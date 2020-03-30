@@ -1,0 +1,67 @@
+###################################################################################################
+#####                                                                                         #####
+#####               LiteFX.Core - Defines the common includes for the project.                #####
+#####                                                                                         #####
+###################################################################################################
+
+PROJECT(LiteFX.Core VERSION ${LITEFX_VERSION} LANGUAGES CXX)
+MESSAGE(STATUS "Initializing: LiteFX.Core...")
+
+CONFIGURE_FILE("config.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/config.h")
+CONFIGURE_FILE("version.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/version.h")
+CONFIGURE_FILE("header.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/litefx.h")
+CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/core.h")
+
+# Collect header & source files.
+SET(CORE_HEADERS
+    "include/litefx/core_types.hpp"
+    "include/litefx/core.h"
+    "include/litefx/config.h"
+    "include/litefx/version.h"
+    "include/litefx/litefx.h"
+)
+
+SET(CORE_SOURCES
+    "src/Application.cpp"
+)
+
+# Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.
+# Use _declspec(dllexport) for types.
+ADD_DEFINITIONS(-DNOMINMAX)
+
+ADD_LIBRARY(LiteFX.Core SHARED
+    ${CORE_HEADERS}
+    ${CORE_SOURCES}
+)
+
+# Create source groups for better code organization.
+SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CORE_HEADERS} ${CORE_SOURCES})
+
+# Setup project properties.
+SET_TARGET_PROPERTIES(LiteFX.Core PROPERTIES
+    FOLDER "SDK"
+    VERSION ${LITEFX_VERSION}
+    SOVERSION ${LITEFX_YEAR}
+)
+
+TARGET_INCLUDE_DIRECTORIES(LiteFX.Core
+    PRIVATE 
+        "src/"
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDE_DIR}>
+)
+
+# Setup installer.
+INSTALL(TARGETS LiteFX.Core EXPORT LiteFXCoreConfig
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
+)
+
+INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
+INSTALL(EXPORT LiteFXCoreConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+
+# Export config.
+EXPORT(TARGETS LiteFX.Core FILE LiteFXCoreConfig.cmake)
