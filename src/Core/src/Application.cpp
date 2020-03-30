@@ -2,7 +2,8 @@
 
 using namespace LiteFX;
 
-CLiteFxApp::CLiteFxApp()
+CLiteFxApp::CLiteFxApp() :
+	m_name("LiteFX Application")
 {
 
 }
@@ -10,4 +11,14 @@ CLiteFxApp::CLiteFxApp()
 CLiteFxApp::~CLiteFxApp()
 {
 
+}
+
+const String& CLiteFxApp::getName() const
+{
+	return m_name;
+}
+
+void CLiteFxApp::setName(const String& name)
+{
+	m_name = name;
 }
