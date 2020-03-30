@@ -9,7 +9,6 @@ MESSAGE(STATUS "Initializing: LiteFX.Core...")
 
 CONFIGURE_FILE("config.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/config.h")
 CONFIGURE_FILE("version.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/version.h")
-CONFIGURE_FILE("header.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/litefx.h")
 CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/core.h")
 
 # Collect header & source files.
