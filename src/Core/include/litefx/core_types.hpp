@@ -13,13 +13,21 @@ namespace LiteFX {
 
 	public:
 		CLiteFxApp();
+		CLiteFxApp(const String& name);
 		CLiteFxApp(const CLiteFxApp&) = delete;
 		CLiteFxApp(CLiteFxApp&&) = delete;
 		virtual ~CLiteFxApp();
 
 	public:
-		const String& getName() const;
-		void setName(const String& name);
+		virtual const String& getName() const;
+
+	protected:
+		virtual void setName(const String& name);
+
+	public:
+		virtual void start(int argc, char** argv);
+		virtual void start(const Array<String>& args) = 0;
+		virtual void stop();
 	};
 
 }
