@@ -12,5 +12,9 @@ int main(int argc, char** argv)
 	catch (std::exception& ex)
 	{
 		std::cerr << "Unhandled exception: " << ex.what() << std::endl;
+
+		return EXIT_FAILURE;
 	}
+
+	return EXIT_SUCCESS;
 }
