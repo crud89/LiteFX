@@ -1,11 +1,11 @@
 ###################################################################################################
 #####                                                                                         #####
-#####                LiteFX.Rendering - Contains the Vulkan rendering backend.                #####
+#####             LiteFX.Backends.Vulkan - Contains the Vulkan rendering backend.             #####
 #####                                                                                         #####
 ###################################################################################################
 
 PROJECT(LiteFX.Backends.Vulkan VERSION ${LITEFX_VERSION} LANGUAGES CXX)
-MESSAGE(STATUS "Initializing: LiteFX.LiteFX.Backends.Vulkan...")
+MESSAGE(STATUS "Initializing: LiteFX.Backends.Vulkan...")
 
 # Install packages.
 MESSAGE (STATUS "Installing package dependencies...")
