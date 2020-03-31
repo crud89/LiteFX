@@ -47,12 +47,12 @@ int AppVersion::getEngineStatus() const
 	return LITEFX_STATUS;
 }
 
-const String& AppVersion::getEngineIdentifier() const
+String AppVersion::getEngineIdentifier() const
 {
 	return LITEFX_ENGINE_ID;
 }
 
-const String& AppVersion::getEngineVersion() const
+String AppVersion::getEngineVersion() const
 {
 	return LITEFX_VERSION;
 }
