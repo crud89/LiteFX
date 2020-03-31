@@ -1,6 +1,6 @@
 #pragma once
 
-#include "litefx/core.h"
+#include <litefx/core_types.hpp>
 
 #if !defined (LITEFX_RENDERING_API)
 #  if defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
@@ -15,3 +15,26 @@
 #ifndef LITEFX_RENDERING_API
 #  define LITEFX_RENDERING_API
 #endif
+
+namespace LiteFX {
+	namespace Rendering {
+
+		using namespace LiteFX;
+
+		class LITEFX_RENDERING_API RenderBackend {
+		private:
+			const App& m_app;
+
+		public:
+			RenderBackend(const App& app);
+			virtual ~RenderBackend() = default;
+
+		public:
+			const App& getApp() const;
+
+		protected:
+			virtual void initialize() = 0;
+		};
+
+	}
+}
