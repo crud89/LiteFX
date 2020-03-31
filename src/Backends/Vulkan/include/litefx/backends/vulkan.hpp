@@ -39,6 +39,7 @@ namespace LiteFX {
 
 			protected:
 				virtual void initialize(const Array<String>& extensions);
+				virtual void release();
 
 			public:
 				virtual bool validateExtensions(const Array<String>& extensions);

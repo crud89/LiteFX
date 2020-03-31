@@ -13,10 +13,15 @@ VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions) :
 
 VulkanBackend::~VulkanBackend()
 {
+    this->release();
 }
 
 void VulkanBackend::initialize(const Array<String>& extensions)
 {
+    // Check, if already initialized.
+    if (m_instance != nullptr)
+        throw std::runtime_error("The backend is already initialized. Call `release` and try again.");
+
     // Parse the extensions.
     std::vector<const char*> requiredExtensions;
 
@@ -51,6 +56,12 @@ void VulkanBackend::initialize(const Array<String>& extensions)
     createInfo.enabledLayerCount = 0;
 
     auto result = ::vkCreateInstance(&createInfo, nullptr, &m_instance);
+}
+
+void VulkanBackend::release()
+{
+    ::vkDestroyInstance(m_instance, nullptr);
+    m_instance = nullptr;
 }
 
 bool VulkanBackend::validateExtensions(const Array<String>& extensions)
