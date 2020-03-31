@@ -71,7 +71,8 @@ namespace LiteFX {
 			virtual UniquePtr<GraphicsDevice> createDevice() const = 0;
 		};
 
-		class LITEFX_RENDERING_API RenderBackend
+		class LITEFX_RENDERING_API RenderBackend :
+			public IResource
 		{
 		private:
 			const App& m_app;

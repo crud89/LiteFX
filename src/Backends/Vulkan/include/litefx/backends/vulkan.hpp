@@ -73,6 +73,9 @@ namespace LiteFX {
 				virtual ~VulkanBackend();
 
 			public:
+				virtual const Handle getHandle() const override;
+
+			public:
 				virtual Array<UniquePtr<GraphicsAdapter>> getAdapters() const override;
 				virtual void useAdapter(const GraphicsAdapter* adapter) const override;
 

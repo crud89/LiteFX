@@ -16,6 +16,11 @@ VulkanBackend::~VulkanBackend()
     this->release();
 }
 
+const Handle VulkanBackend::getHandle() const
+{
+    return m_instance;
+}
+
 void VulkanBackend::initialize(const Array<String>& extensions, const Array<String>& validationLayers)
 {
     // Check, if already initialized.
