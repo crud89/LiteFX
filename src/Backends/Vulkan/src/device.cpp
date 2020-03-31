@@ -3,7 +3,7 @@
 using namespace LiteFX::Rendering::Backends;
 
 VulkanDevice::VulkanDevice(VkPhysicalDevice device) :
-	RenderDevice(device)
+	GraphicsAdapter(device)
 {
 }
 
@@ -41,20 +41,20 @@ uint32_t VulkanDevice::getDeviceId() const
     return properties.deviceID;
 }
 
-RenderDeviceType VulkanDevice::getType() const
+GraphicsAdapterType VulkanDevice::getType() const
 {
     auto properties = this->getProperties();
     
     switch (properties.deviceType)
     {
     case VK_PHYSICAL_DEVICE_TYPE_CPU:
-        return RenderDeviceType::CPU;
+        return GraphicsAdapterType::CPU;
     case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
     case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
     case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-        return RenderDeviceType::CPU;
+        return GraphicsAdapterType::CPU;
     default:
-        return RenderDeviceType::Other;
+        return GraphicsAdapterType::Other;
     }
 }
 

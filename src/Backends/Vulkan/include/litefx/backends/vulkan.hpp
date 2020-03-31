@@ -26,7 +26,7 @@ namespace LiteFX {
 			using namespace LiteFX::Rendering;
 
 			class LITEFX_VULKAN_API VulkanDevice :
-				public RenderDevice
+				public GraphicsAdapter
 			{
 			public:
 				VulkanDevice(VkPhysicalDevice device);
@@ -38,7 +38,7 @@ namespace LiteFX {
 				virtual String getName() const override;
 				virtual uint32_t getVendorId() const override;
 				virtual uint32_t getDeviceId() const override;
-				virtual RenderDeviceType getType() const override;
+				virtual GraphicsAdapterType getType() const override;
 				virtual uint32_t getDriverVersion() const override;
 				virtual uint32_t getApiVersion() const override;
 
@@ -60,8 +60,8 @@ namespace LiteFX {
 				virtual ~VulkanBackend();
 
 			public:
-				virtual Array<UniquePtr<RenderDevice>> getDevices() const override;
-				virtual void useDevice(const RenderDevice* device) override;
+				virtual Array<UniquePtr<GraphicsAdapter>> getDevices() const override;
+				virtual void useDevice(const GraphicsAdapter* device) override;
 
 			protected:
 				virtual void initialize(const Array<String>& extensions, const Array<String>& validationLayers);

@@ -21,14 +21,14 @@ namespace LiteFX {
 
 		using namespace LiteFX;
 
-		enum class LITEFX_RENDERING_API RenderDeviceType 
+		enum class LITEFX_RENDERING_API GraphicsAdapterType 
 		{
 			GPU = 0x01,
 			CPU = 0x02,
 			Other = 0xFF,
 		};
 
-		class LITEFX_RENDERING_API RenderDevice 
+		class LITEFX_RENDERING_API GraphicsAdapter 
 		{
 		public:
 			typedef void* Handle;
@@ -37,17 +37,17 @@ namespace LiteFX {
 			const Handle m_handle;
 
 		public:
-			RenderDevice(const Handle handle);
-			RenderDevice(const RenderDevice&) = delete;
-			RenderDevice(RenderDevice&&) = delete;
-			virtual ~RenderDevice() = default;
+			GraphicsAdapter(const Handle handle);
+			GraphicsAdapter(const GraphicsAdapter&) = delete;
+			GraphicsAdapter(GraphicsAdapter&&) = delete;
+			virtual ~GraphicsAdapter() = default;
 
 		public:
 			virtual const Handle getHandle() const;
 			virtual String getName() const = 0;
 			virtual uint32_t getVendorId() const = 0;
 			virtual uint32_t getDeviceId() const = 0;
-			virtual RenderDeviceType getType() const = 0;
+			virtual GraphicsAdapterType getType() const = 0;
 			virtual uint32_t getDriverVersion() const = 0;
 			virtual uint32_t getApiVersion() const = 0;
 
@@ -71,8 +71,8 @@ namespace LiteFX {
 			const App& getApp() const;
 
 		public:
-			virtual Array<UniquePtr<RenderDevice>> getDevices() const = 0;
-			virtual void useDevice(const RenderDevice* device) = 0;
+			virtual Array<UniquePtr<GraphicsAdapter>> getDevices() const = 0;
+			virtual void useDevice(const GraphicsAdapter* device) = 0;
 		};
 
 	}
