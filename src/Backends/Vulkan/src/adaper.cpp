@@ -2,12 +2,12 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-VulkanDevice::VulkanDevice(VkPhysicalDevice device) :
-	GraphicsAdapter(device)
+VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
+	GraphicsAdapter(adapter)
 {
 }
 
-VkPhysicalDeviceProperties VulkanDevice::getProperties() const
+VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const
 {
     VkPhysicalDeviceProperties properties;
     ::vkGetPhysicalDeviceProperties(this->getHandle<VkPhysicalDevice>(), &properties);
@@ -15,7 +15,7 @@ VkPhysicalDeviceProperties VulkanDevice::getProperties() const
     return properties;
 }
 
-VkPhysicalDeviceFeatures VulkanDevice::getFeatures() const
+VkPhysicalDeviceFeatures VulkanGraphicsAdapter::getFeatures() const
 {
     VkPhysicalDeviceFeatures features;
     ::vkGetPhysicalDeviceFeatures(this->getHandle<VkPhysicalDevice>(), &features);
@@ -23,25 +23,25 @@ VkPhysicalDeviceFeatures VulkanDevice::getFeatures() const
     return features;
 }
 
-String VulkanDevice::getName() const
+String VulkanGraphicsAdapter::getName() const
 {
     auto properties = this->getProperties();
     return String(properties.deviceName);
 }
 
-uint32_t VulkanDevice::getVendorId() const
+uint32_t VulkanGraphicsAdapter::getVendorId() const
 {
     auto properties = this->getProperties();
     return properties.vendorID;
 }
 
-uint32_t VulkanDevice::getDeviceId() const
+uint32_t VulkanGraphicsAdapter::getDeviceId() const
 {
     auto properties = this->getProperties();
     return properties.deviceID;
 }
 
-GraphicsAdapterType VulkanDevice::getType() const
+GraphicsAdapterType VulkanGraphicsAdapter::getType() const
 {
     auto properties = this->getProperties();
     
@@ -58,13 +58,13 @@ GraphicsAdapterType VulkanDevice::getType() const
     }
 }
 
-uint32_t VulkanDevice::getDriverVersion() const
+uint32_t VulkanGraphicsAdapter::getDriverVersion() const
 {
     auto properties = this->getProperties();
     return properties.driverVersion;
 }
 
-uint32_t VulkanDevice::getApiVersion() const
+uint32_t VulkanGraphicsAdapter::getApiVersion() const
 {
     auto properties = this->getProperties();
     return properties.apiVersion;

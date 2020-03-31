@@ -23,7 +23,7 @@ SET(VULKAN_BACKEND_HEADERS
 
 SET(VULKAN_BACKEND_SOURCES
     "src/backend.cpp"
-    "src/device.cpp"
+    "src/adaper.cpp"
 )
 
 # Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.

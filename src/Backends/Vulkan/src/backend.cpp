@@ -142,7 +142,7 @@ Array<String> VulkanBackend::getValidationLayers()
     return layerNames;
 }
 
-Array<UniquePtr<GraphicsAdapter>> VulkanBackend::getDevices() const
+Array<UniquePtr<GraphicsAdapter>> VulkanBackend::getAdapters() const
 {
     if (m_instance == nullptr)
         throw std::runtime_error("The backend is not initialized.");
@@ -156,14 +156,7 @@ Array<UniquePtr<GraphicsAdapter>> VulkanBackend::getDevices() const
     Array<UniquePtr<GraphicsAdapter>> renderDevices;
 
     for each (auto & deviceHandle in handles)
-        renderDevices.push_back(makeUnique<VulkanDevice>(deviceHandle));
+        renderDevices.push_back(makeUnique<VulkanGraphicsAdapter>(deviceHandle));
 
     return renderDevices;
-}
-
-void VulkanBackend::useDevice(const GraphicsAdapter* device)
-{
-    if (device == nullptr)
-        throw std::runtime_error("The parameter `device` must be initialized.");
-    
 }

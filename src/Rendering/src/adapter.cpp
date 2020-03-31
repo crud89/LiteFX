@@ -9,7 +9,7 @@ GraphicsAdapter::GraphicsAdapter(const Handle handle) :
 		throw std::invalid_argument("The `handle` parameter must be initialized.");
 }
 
-const GraphicsAdapter::Handle GraphicsAdapter::getHandle() const
+const Handle GraphicsAdapter::getHandle() const
 {
 	return m_handle;
 }

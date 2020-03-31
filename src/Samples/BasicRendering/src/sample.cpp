@@ -50,16 +50,16 @@ int SampleApp::start(int argc, char** argv)
 
 	// Print device list.
 	if (listDevices)
-		for each (auto & device in m_renderBackend->getDevices())
+		for each (auto & device in m_renderBackend->getAdapters())
 			std::cout << "[" << device->getDeviceId() << "]: " << device->getName() << std::endl;
 
-	// Use either the selected device, or the first one.
-	if (deviceId < 0)
-		m_renderBackend->useDevice(m_renderBackend->getDevices().front().get());
-	else
-		for each (auto & device in m_renderBackend->getDevices())
-			if (device->getDeviceId() == deviceId)
-				m_renderBackend->useDevice(device.get());
+	//// Use either the selected device, or the first one.
+	//if (deviceId < 0)
+	//	m_renderBackend->useDevice(m_renderBackend->getAdapters().front().get());
+	//else
+	//	for each (auto & device in m_renderBackend->getAdapters())
+	//		if (device->getDeviceId() == deviceId)
+	//			m_renderBackend->useDevice(device.get());
 
 	// Start event loop, if command line parameters do not suggest otherwise.
 	if (!listCommand->parsed())
