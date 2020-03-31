@@ -71,7 +71,7 @@ namespace LiteFX {
 			virtual UniquePtr<GraphicsAdapter> createDevice() const = 0;
 		};
 
-		class LITEFX_RENDERING_API RenderBackend 
+		class LITEFX_RENDERING_API RenderBackend
 		{
 		private:
 			const App& m_app;
@@ -87,6 +87,7 @@ namespace LiteFX {
 
 		public:
 			virtual Array<UniquePtr<GraphicsAdapter>> getAdapters() const = 0;
+			virtual void useAdapter(const GraphicsAdapter* adapter) const = 0;
 		};
 
 	}

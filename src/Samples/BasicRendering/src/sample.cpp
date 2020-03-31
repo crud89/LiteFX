@@ -53,13 +53,13 @@ int SampleApp::start(int argc, char** argv)
 		for each (auto & device in m_renderBackend->getAdapters())
 			std::cout << "[" << device->getDeviceId() << "]: " << device->getName() << std::endl;
 
-	//// Use either the selected device, or the first one.
-	//if (deviceId < 0)
-	//	m_renderBackend->useDevice(m_renderBackend->getAdapters().front().get());
-	//else
-	//	for each (auto & device in m_renderBackend->getAdapters())
-	//		if (device->getDeviceId() == deviceId)
-	//			m_renderBackend->useDevice(device.get());
+	// Use either the selected device, or the first one.
+	if (deviceId < 0)
+		m_renderBackend->useAdapter(m_renderBackend->getAdapters().front().get());
+	else
+		for each (auto & device in m_renderBackend->getAdapters())
+			if (device->getDeviceId() == deviceId)
+				m_renderBackend->useAdapter(device.get());
 
 	// Start event loop, if command line parameters do not suggest otherwise.
 	if (!listCommand->parsed())

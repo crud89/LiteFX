@@ -69,3 +69,13 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const
     auto properties = this->getProperties();
     return properties.apiVersion;
 }
+
+UniquePtr<GraphicsAdapter> VulkanGraphicsAdapter::createDevice() const
+{
+    // Find an available graphics queue.
+    uint32_t queueFamilies = 0;
+    ::vkGetPhysicalDeviceQueueFamilyProperties(IResource::getHandle<VkPhysicalDevice>(), &queueFamilies, nullptr);
+
+    Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
+    ::vkGetPhysicalDeviceQueueFamilyProperties(IResource::getHandle<VkPhysicalDevice>(), &queueFamilies, familyProperties.data());
+}

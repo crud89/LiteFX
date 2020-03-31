@@ -160,3 +160,15 @@ Array<UniquePtr<GraphicsAdapter>> VulkanBackend::getAdapters() const
 
     return renderDevices;
 }
+
+void VulkanBackend::useAdapter(const GraphicsAdapter* adapter) const
+{
+    if (adapter == nullptr)
+        throw std::invalid_argument("The parameter `adapter` must be initialized.");
+
+    if (m_instance == nullptr)
+        throw std::runtime_error("The backend is not initialized.");
+
+
+
+}
