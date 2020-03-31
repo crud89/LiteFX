@@ -11,14 +11,16 @@ App::~App()
 	this->stop();
 }
 
-void App::start(int argc, char** argv)
+int App::start(int argc, char** argv)
 {
-	this->start(Array<String>(argv, argv + argc));
+	return this->start(Array<String>(argv, argv + argc));
 }
 
-void App::start(const Array<String>& args)
+int App::start(const Array<String>& args)
 {
 	this->work();
+
+	return EXIT_SUCCESS;
 }
 
 void App::stop()

@@ -13,13 +13,14 @@ ENDIF(NOT BUILD_VULKAN_BACKEND)
 
 # Install packages.
 MESSAGE (STATUS "Installing package dependencies...")
-VCPKG_INSTALL (glm glad vulkan glfw3)
+VCPKG_INSTALL (glm glad vulkan glfw3 cli11)
 
 # Resolve package dependencies.
 FIND_PACKAGE(glm CONFIG REQUIRED)
 FIND_PACKAGE(glad CONFIG REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
 FIND_PACKAGE(glfw3 CONFIG REQUIRED)
+FIND_PACKAGE(cli11 CONFIG REQUIRED)
 
 # Collect header & source files.
 SET(SAMPLE_BASIC_RENDERING_HEADERS
@@ -56,7 +57,7 @@ SET_TARGET_PROPERTIES(LiteFX.Samples.BasicRendering PROPERTIES
 TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.BasicRendering PRIVATE "src/")
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Samples.BasicRendering PRIVATE glm glad::glad glfw Vulkan::Vulkan LiteFX.Core LiteFX.Rendering LiteFX.Backends.Vulkan)
+TARGET_LINK_LIBRARIES(LiteFX.Samples.BasicRendering PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Rendering LiteFX.Backends.Vulkan)
 
 # Setup installer.
 INSTALL(TARGETS LiteFX.Samples.BasicRendering EXPORT LiteFXSamplesBasicRenderingConfig

@@ -47,8 +47,8 @@ namespace LiteFX {
 		virtual AppVersion getVersion() const = 0;
 
 	public:
-		virtual void start(int argc, char** argv);
-		virtual void start(const Array<String>& args);
+		virtual int start(int argc, char** argv);
+		virtual int start(const Array<String>& args);
 		virtual void stop();
 		virtual void work() = 0;
 	};

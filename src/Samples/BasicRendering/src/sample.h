@@ -34,11 +34,11 @@ public:
 	virtual AppVersion getVersion() const override { return AppVersion(1, 0, 0, 0); }
 
 public:
-	virtual void start(const Array<String>& args) override;
+	virtual int start(int argc, char** argv) override;
 	virtual void stop() override;
 	virtual void work() override;
 
 private:
-	void initializeRenderer();
+	void initializeRenderer(const Array<String>& validationLayers);
 	void createWindow();
 };

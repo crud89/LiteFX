@@ -1,17 +1,41 @@
 #include "sample.h"
 
 #include <vulkan/vulkan.h>
+#include <CLI/CLI.hpp>
 #include <iostream>
 
 SampleApp::SampleApp() : App()
 {
 }
 
-void SampleApp::start(const Array<String>& args)
+int SampleApp::start(int argc, char** argv)
 {
-	this->initializeRenderer();
+	// Parse the command line parameters.
+	String appName = this->getName();
+	CLI::App app { "Demonstrates basic drawing techniques.", appName };
+	auto validationLayerOption = app.add_option("-v,--validationLayer", "Adds a Vulkan validation layer.")->take_all();
+	
+	try 
+	{
+		app.parse(argc, argv);
+	}
+	catch (const CLI::ParseError& ex)
+	{
+		return app.exit(ex);
+	}
 
-	App::start(args);
+	// Turn the validation layers into a list.
+	Array<String> validationLayers;
+
+	if (validationLayerOption->count() > 0)
+		for each (auto & result in validationLayerOption->results())
+			validationLayers.push_back(result);
+
+	// Initialize the rendering backend.
+	this->initializeRenderer(validationLayers);
+
+	// Call the event loop.
+	return App::start(argc, argv);
 }
 
 void SampleApp::stop()
@@ -28,7 +52,7 @@ void SampleApp::work()
 	}
 }
 
-void SampleApp::initializeRenderer()
+void SampleApp::initializeRenderer(const Array<String>& validationLayers)
 {
 	// Create a window.
 	this->createWindow();
@@ -42,7 +66,7 @@ void SampleApp::initializeRenderer()
 		requiredExtensions.push_back(String(extensionNames[i]));
 
 	// Create a rendering backend.
-	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions, Array<String> { "VK_LAYER_KHRONOS_validation" });
+	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions, validationLayers);
 }
 
 void SampleApp::createWindow()
