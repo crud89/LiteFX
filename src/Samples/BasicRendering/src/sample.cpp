@@ -30,9 +30,19 @@ void SampleApp::work()
 
 void SampleApp::initializeRenderer()
 {
+	// Create a window.
 	this->createWindow();
 
-	m_renderBackend = makeUnique<VulkanBackend>(*this, Array<String>());
+	// Get the required extensions from glfw.
+	uint32_t extensions = 0;
+	const char** extensionNames = ::glfwGetRequiredInstanceExtensions(&extensions);
+	Array<String> requiredExtensions;
+
+	for (int i(0); i < extensions; ++i)
+		requiredExtensions.push_back(String(extensionNames[i]));
+
+	// Create a rendering backend.
+	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions);
 }
 
 void SampleApp::createWindow()
