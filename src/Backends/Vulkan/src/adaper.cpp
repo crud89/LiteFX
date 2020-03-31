@@ -1,8 +1,9 @@
 #include <litefx/backends/vulkan.hpp>
+#include <optional>
 
 using namespace LiteFX::Rendering::Backends;
 
-VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
+VulkanGraphicsAdapter::VulkanGraphicsAdapter(const VkPhysicalDevice adapter) :
 	GraphicsAdapter(adapter)
 {
 }
@@ -70,7 +71,7 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const
     return properties.apiVersion;
 }
 
-UniquePtr<GraphicsAdapter> VulkanGraphicsAdapter::createDevice() const
+UniquePtr<GraphicsDevice> VulkanGraphicsAdapter::createDevice() const
 {
     // Find an available graphics queue.
     uint32_t queueFamilies = 0;
@@ -78,4 +79,46 @@ UniquePtr<GraphicsAdapter> VulkanGraphicsAdapter::createDevice() const
 
     Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
     ::vkGetPhysicalDeviceQueueFamilyProperties(IResource::getHandle<VkPhysicalDevice>(), &queueFamilies, familyProperties.data());
+    
+    std::optional<uint32_t> graphicsQueue;
+    
+    for (size_t i(0); i < familyProperties.size(); ++i)
+    {
+        if (familyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+        {
+            graphicsQueue = static_cast<uint32_t>(i);
+            break;
+        }
+    }
+
+    if (!graphicsQueue.has_value())
+        throw std::runtime_error("No graphics queue could be found.");
+
+    // Define a graphics queue for the device.
+    const float queuePriority = 1.0f;
+    VkDeviceQueueCreateInfo queueCreateInfo = {};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = graphicsQueue.value();
+    queueCreateInfo.queueCount = 1;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+    
+    // Define the device features.
+    VkPhysicalDeviceFeatures deviceFeatures = {};
+
+    // Define the device itself.
+    VkDeviceCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    // NOTE: For legacy support we should also set the device validation layers here.
+
+    // Create the device.
+    VkDevice device;
+
+    if (::vkCreateDevice(IResource::getHandle<VkPhysicalDevice>(), &createInfo, nullptr, &device) != VK_SUCCESS)
+        throw std::runtime_error("Unable to create Vulkan device.");
+
+    return makeUnique<VulkanDevice>(device);
 }

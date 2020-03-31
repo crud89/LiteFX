@@ -169,6 +169,7 @@ void VulkanBackend::useAdapter(const GraphicsAdapter* adapter) const
     if (m_instance == nullptr)
         throw std::runtime_error("The backend is not initialized.");
 
-
+    // Create a device.
+    auto device = adapter->createDevice();
 
 }

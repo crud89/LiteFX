@@ -29,17 +29,17 @@ namespace LiteFX {
 				public GraphicsDevice
 			{
 			public:
-				VulkanDevice(VkDevice device);
+				VulkanDevice(const VkDevice device);
 				VulkanDevice(const VulkanDevice&) = delete;
 				VulkanDevice(VulkanDevice&&) = delete;
-				virtual ~VulkanDevice() = default;
+				virtual ~VulkanDevice();
 			};
 
 			class LITEFX_VULKAN_API VulkanGraphicsAdapter :
 				public GraphicsAdapter
 			{
 			public:
-				VulkanGraphicsAdapter(VkPhysicalDevice adapter);
+				VulkanGraphicsAdapter(const VkPhysicalDevice adapter);
 				VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
 				VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
 				virtual ~VulkanGraphicsAdapter() = default;
@@ -53,7 +53,7 @@ namespace LiteFX {
 				virtual uint32_t getApiVersion() const override;
 
 			public:
-				virtual UniquePtr<GraphicsAdapter> createDevice() const override;
+				virtual UniquePtr<GraphicsDevice> createDevice() const override;
 
 			public:
 				virtual VkPhysicalDeviceProperties getProperties() const;

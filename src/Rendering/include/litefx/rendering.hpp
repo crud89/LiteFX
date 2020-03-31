@@ -68,7 +68,7 @@ namespace LiteFX {
 			virtual uint32_t getApiVersion() const = 0;
 
 		public:
-			virtual UniquePtr<GraphicsAdapter> createDevice() const = 0;
+			virtual UniquePtr<GraphicsDevice> createDevice() const = 0;
 		};
 
 		class LITEFX_RENDERING_API RenderBackend

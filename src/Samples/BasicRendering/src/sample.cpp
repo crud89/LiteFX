@@ -95,6 +95,9 @@ void SampleApp::initializeRenderer(const Array<String>& validationLayers)
 
 	// Create a rendering backend.
 	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions, validationLayers);
+
+	//if (::glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+	//	throw std::runtime_error("Unable to create window surface.");
 }
 
 void SampleApp::createWindow()
