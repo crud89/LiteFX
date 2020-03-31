@@ -22,7 +22,8 @@ SET(CORE_HEADERS
 )
 
 SET(CORE_SOURCES
-    "src/Application.cpp"
+    "src/app.cpp"
+    "src/appversion.cpp"
 )
 
 # Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.

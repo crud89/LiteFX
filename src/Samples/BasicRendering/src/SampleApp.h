@@ -6,7 +6,7 @@
 
 using namespace LiteFX;
 
-class SampleApp : public LiteFX::CLiteFxApp 
+class SampleApp : public LiteFX::App 
 {
 private:
 	struct GlfwWindowDeleter {
@@ -22,6 +22,10 @@ private:
 
 public:
 	SampleApp();
+
+public:
+	virtual const String getName() const override { return "LiteFX Sample: Basic Rendering"; }
+	virtual const AppVersion getVersion() const override { return AppVersion(1, 0, 0, 0); }
 
 public:
 	virtual void start(const Array<String>& args) override;

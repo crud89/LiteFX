@@ -1,9 +1,9 @@
 #include "SampleApp.h"
 
+#include <vulkan/vulkan.h>
 #include <iostream>
 
-SampleApp::SampleApp() : 
-	CLiteFxApp("LiteFX Samples: Basic Rendering")
+SampleApp::SampleApp() : App()
 {
 }
 
@@ -11,7 +11,7 @@ void SampleApp::start(const Array<String>& args)
 {
 	this->initializeRenderer();
 
-	LiteFX::CLiteFxApp::start(args);
+	App::start(args);
 }
 
 void SampleApp::stop()

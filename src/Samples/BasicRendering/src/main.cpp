@@ -6,7 +6,7 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		CLiteFxApp& app = SampleApp();
+		App& app = SampleApp();
 		app.start(argc, argv);
 	}
 	catch (const std::exception& ex)
