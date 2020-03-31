@@ -4,6 +4,16 @@
 
 namespace LiteFX {
 
+	class LITEFX_CORE_API IResource
+	{
+	public:
+		virtual const Handle getHandle() const = 0;
+
+	public:
+		template <class THandle>
+		inline const THandle getHandle() const { return reinterpret_cast<THandle>(this->getHandle()); }
+	};
+
 	/**
 	* 
 	**/
