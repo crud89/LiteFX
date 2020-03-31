@@ -25,6 +25,16 @@ namespace LiteFX {
 
 			using namespace LiteFX::Rendering;
 
+			class LITEFX_VULKAN_API VulkanDevice :
+				public RenderDevice
+			{
+			public:
+				VulkanDevice(VkPhysicalDevice device);
+				VulkanDevice(const VulkanDevice&) = delete;
+				VulkanDevice(VulkanDevice&&) = delete;
+				virtual ~VulkanDevice() = default;
+			};
+
 			class LITEFX_VULKAN_API VulkanBackend :
 				public RenderBackend
 			{
@@ -36,6 +46,10 @@ namespace LiteFX {
 				VulkanBackend(const VulkanBackend&) = delete;
 				VulkanBackend(VulkanBackend&&) = delete;
 				virtual ~VulkanBackend();
+
+			public:
+				virtual Array<RenderDevice> getDevices() const override;
+				virtual void useDevice(const RenderDevice& device) override;
 
 			protected:
 				virtual void initialize(const Array<String>& extensions, const Array<String>& validationLayers);

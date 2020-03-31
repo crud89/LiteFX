@@ -141,3 +141,13 @@ Array<String> VulkanBackend::getValidationLayers()
 
     return layerNames;
 }
+
+Array<RenderDevice> VulkanBackend::getDevices() const
+{
+
+}
+
+void VulkanBackend::useDevice(const RenderDevice& device) 
+{
+
+}

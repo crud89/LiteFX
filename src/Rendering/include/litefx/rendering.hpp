@@ -21,6 +21,27 @@ namespace LiteFX {
 
 		using namespace LiteFX;
 
+		class LITEFX_RENDERING_API RenderDevice {
+		public:
+			typedef void* Handle;
+
+		private:
+			const Handle m_handle;
+
+		public:
+			RenderDevice(const Handle handle);
+			RenderDevice(const RenderDevice&) = delete;
+			RenderDevice(RenderDevice&&) = delete;
+			virtual ~RenderDevice() = default;
+
+		public:
+			virtual const Handle getHandle() const;
+
+		public:
+			template <class THandle>
+			inline const THandle getHandle() const { return reinterpret_cast<THandle>(this->getHandle()); }
+		};
+
 		class LITEFX_RENDERING_API RenderBackend {
 		private:
 			const App& m_app;
@@ -33,6 +54,10 @@ namespace LiteFX {
 
 		public:
 			const App& getApp() const;
+
+		public:
+			virtual Array<RenderDevice> getDevices() const = 0;
+			virtual void useDevice(const RenderDevice& device) = 0;
 		};
 
 	}
