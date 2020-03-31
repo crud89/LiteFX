@@ -64,11 +64,11 @@ void VulkanBackend::release()
     m_instance = nullptr;
 }
 
-bool VulkanBackend::validateExtensions(const Array<String>& extensions)
+bool VulkanBackend::validateExtensions(const Array<String>& extensions) const
 {
     auto availableExtensions = this->getAvailableExtensions();
     
-    for each (auto & extension in extensions)
+    for each (auto& extension in extensions)
     {
         auto match = std::find_if(availableExtensions.begin(), availableExtensions.end(), [&extension](String& str) {
             for (size_t i(0); i < str.size(); ++i)
@@ -85,7 +85,7 @@ bool VulkanBackend::validateExtensions(const Array<String>& extensions)
     return true;
 }
 
-Array<String> VulkanBackend::getAvailableExtensions()
+Array<String> VulkanBackend::getAvailableExtensions() const
 {
     uint32_t extensions = 0;
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, nullptr);
@@ -95,8 +95,45 @@ Array<String> VulkanBackend::getAvailableExtensions()
 
     Array<String> extensionNames;
 
-    for each (auto & extension in availableExtensions)
+    for each (auto& extension in availableExtensions)
         extensionNames.push_back(extension.extensionName);
 
     return extensionNames;
+}
+
+bool VulkanBackend::validateLayers(const Array<String>& validationLayers) const
+{
+    auto layers = this->getValidationLayers();
+
+    for each (auto& layer in validationLayers)
+    {
+        auto match = std::find_if(layers.begin(), layers.end(), [&layer](String& str) {
+            for (size_t i(0); i < str.size(); ++i)
+                if (::tolower(str[i]) != ::tolower(layer[i]))
+                    return false;
+
+            return true;
+        });
+
+        if (match == layers.end())
+            return false;
+    }
+
+    return true;
+}
+
+Array<String> VulkanBackend::getValidationLayers() const
+{
+    uint32_t layers = 0;
+    ::vkEnumerateInstanceLayerProperties(&layers, nullptr);
+
+    Array<VkLayerProperties> availableLayers(layers);
+    ::vkEnumerateInstanceLayerProperties(&layers, availableLayers.data());
+
+    Array<String> layerNames;
+
+    for each (auto& layer in availableLayers)
+        layerNames.push_back(layer.layerName);
+
+    return layerNames;
 }

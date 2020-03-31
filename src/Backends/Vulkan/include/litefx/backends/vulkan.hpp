@@ -42,8 +42,10 @@ namespace LiteFX {
 				virtual void release();
 
 			public:
-				virtual bool validateExtensions(const Array<String>& extensions);
-				virtual Array<String> getAvailableExtensions();
+				virtual bool validateExtensions(const Array<String>& extensions) const;
+				virtual Array<String> getAvailableExtensions() const;
+				virtual bool validateLayers(const Array<String>& validationLayers) const;
+				virtual Array<String> getValidationLayers() const;
 			};
 		}
 	}
