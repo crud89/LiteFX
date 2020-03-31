@@ -32,6 +32,11 @@ void CLiteFxApp::start(int argc, char** argv)
 	this->start(Array<String>(argv, argv + argc));
 }
 
+void CLiteFxApp::start(const Array<String>& args)
+{
+	this->work();
+}
+
 void CLiteFxApp::stop()
 {
 }

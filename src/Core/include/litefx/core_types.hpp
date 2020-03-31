@@ -26,8 +26,9 @@ namespace LiteFX {
 
 	public:
 		virtual void start(int argc, char** argv);
-		virtual void start(const Array<String>& args) = 0;
+		virtual void start(const Array<String>& args);
 		virtual void stop();
+		virtual void work() = 0;
 	};
 
 }

@@ -9,7 +9,7 @@ int main(int argc, char** argv)
 		CLiteFxApp& app = SampleApp();
 		app.start(argc, argv);
 	}
-	catch (std::exception& ex)
+	catch (const std::exception& ex)
 	{
 		std::cerr << "Unhandled exception: " << ex.what() << std::endl;
 
