@@ -31,6 +31,8 @@ void SampleApp::work()
 void SampleApp::initializeRenderer()
 {
 	this->createWindow();
+
+	m_renderBackend = makeUnique<VulkanBackend>(*this, Array<String>());
 }
 
 void SampleApp::createWindow()

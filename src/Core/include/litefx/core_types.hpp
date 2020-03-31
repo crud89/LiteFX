@@ -27,8 +27,8 @@ namespace LiteFX {
 		int getEngineMinor() const;
 		int getEngineRevision() const;
 		int getEngineStatus() const;
-		const String& getEngineIdentifier() const;
-		const String& getEngineVersion() const;
+		String getEngineIdentifier() const;
+		String getEngineVersion() const;
 	};
 
 	/**
@@ -43,8 +43,8 @@ namespace LiteFX {
 		virtual ~App();
 
 	public:
-		virtual const String getName() const = 0;
-		virtual const AppVersion getVersion() const = 0;
+		virtual String getName() const = 0;
+		virtual AppVersion getVersion() const = 0;
 
 	public:
 		virtual void start(int argc, char** argv);

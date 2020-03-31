@@ -26,14 +26,13 @@ namespace LiteFX {
 			const App& m_app;
 
 		public:
-			RenderBackend(const App& app);
+			explicit RenderBackend(const App& app);
+			RenderBackend(const RenderBackend&) = delete;
+			RenderBackend(RenderBackend&&) = delete;
 			virtual ~RenderBackend() = default;
 
 		public:
 			const App& getApp() const;
-
-		protected:
-			virtual void initialize() = 0;
 		};
 
 	}

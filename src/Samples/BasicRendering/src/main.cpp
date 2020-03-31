@@ -9,7 +9,7 @@ int main(int argc, char** argv)
 		App& app = SampleApp();
 		app.start(argc, argv);
 	}
-	catch (const std::exception& ex)
+	catch (const LiteFX::Exception& ex)
 	{
 		std::cerr << "Unhandled exception: " << ex.what() << std::endl;
 
