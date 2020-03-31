@@ -163,5 +163,7 @@ Array<UniquePtr<RenderDevice>> VulkanBackend::getDevices() const
 
 void VulkanBackend::useDevice(const RenderDevice* device)
 {
-
+    if (device == nullptr)
+        throw std::runtime_error("The parameter `device` must be initialized.");
+    
 }
