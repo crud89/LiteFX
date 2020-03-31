@@ -10,7 +10,7 @@ VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
 VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const
 {
     VkPhysicalDeviceProperties properties;
-    ::vkGetPhysicalDeviceProperties(this->getHandle<VkPhysicalDevice>(), &properties);
+    ::vkGetPhysicalDeviceProperties(IResource::getHandle<VkPhysicalDevice>(), &properties);
 
     return properties;
 }
@@ -18,7 +18,7 @@ VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const
 VkPhysicalDeviceFeatures VulkanGraphicsAdapter::getFeatures() const
 {
     VkPhysicalDeviceFeatures features;
-    ::vkGetPhysicalDeviceFeatures(this->getHandle<VkPhysicalDevice>(), &features);
+    ::vkGetPhysicalDeviceFeatures(IResource::getHandle<VkPhysicalDevice>(), &features);
     
     return features;
 }

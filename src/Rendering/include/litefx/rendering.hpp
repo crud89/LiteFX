@@ -28,10 +28,25 @@ namespace LiteFX {
 			Other = 0xFF,
 		};
 
-		class LITEFX_RENDERING_API GraphicsAdapter 
+		class LITEFX_RENDERING_API GraphicsDevice :
+			public IResource
 		{
-		public:
+		private:
+			const Handle m_handle;
 
+		public:
+			GraphicsDevice(const Handle handle);
+			GraphicsDevice(const GraphicsDevice&) = delete;
+			GraphicsDevice(GraphicsDevice&&) = delete;
+			virtual ~GraphicsDevice() = default;
+
+		public:
+			virtual const Handle getHandle() const override;
+		};
+
+		class LITEFX_RENDERING_API GraphicsAdapter :
+			public IResource
+		{
 		private:
 			const Handle m_handle;
 
@@ -42,7 +57,9 @@ namespace LiteFX {
 			virtual ~GraphicsAdapter() = default;
 
 		public:
-			virtual const Handle getHandle() const;
+			virtual const Handle getHandle() const override;
+
+		public:
 			virtual String getName() const = 0;
 			virtual uint32_t getVendorId() const = 0;
 			virtual uint32_t getDeviceId() const = 0;
@@ -51,8 +68,7 @@ namespace LiteFX {
 			virtual uint32_t getApiVersion() const = 0;
 
 		public:
-			template <class THandle>
-			inline const THandle getHandle() const { return reinterpret_cast<THandle>(this->getHandle()); }
+			virtual UniquePtr<GraphicsAdapter> createDevice() const = 0;
 		};
 
 		class LITEFX_RENDERING_API RenderBackend 

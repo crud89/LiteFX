@@ -25,6 +25,16 @@ namespace LiteFX {
 
 			using namespace LiteFX::Rendering;
 
+			class LITEFX_VULKAN_API VulkanDevice :
+				public GraphicsDevice
+			{
+			public:
+				VulkanDevice(VkDevice device);
+				VulkanDevice(const VulkanDevice&) = delete;
+				VulkanDevice(VulkanDevice&&) = delete;
+				virtual ~VulkanDevice() = default;
+			};
+
 			class LITEFX_VULKAN_API VulkanGraphicsAdapter :
 				public GraphicsAdapter
 			{
