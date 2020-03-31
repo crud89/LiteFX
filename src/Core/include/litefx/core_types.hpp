@@ -23,6 +23,12 @@ namespace LiteFX {
 		int getMinor() const;
 		int getPatch() const;
 		int getRevision() const;
+		int getEngineMajor() const;
+		int getEngineMinor() const;
+		int getEngineRevision() const;
+		int getEngineStatus() const;
+		const String& getEngineIdentifier() const;
+		const String& getEngineVersion() const;
 	};
 
 	/**

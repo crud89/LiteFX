@@ -26,3 +26,33 @@ int AppVersion::getRevision() const
 {
 	return m_revision;
 }
+
+int AppVersion::getEngineMajor() const
+{
+	return LITEFX_MAJOR;
+}
+
+int AppVersion::getEngineMinor() const
+{
+	return LITEFX_MINOR;
+}
+
+int AppVersion::getEngineRevision() const
+{
+	return LITEFX_REV;
+}
+
+int AppVersion::getEngineStatus() const
+{
+	return LITEFX_STATUS;
+}
+
+const String& AppVersion::getEngineIdentifier() const
+{
+	return LITEFX_ENGINE_ID;
+}
+
+const String& AppVersion::getEngineVersion() const
+{
+	return LITEFX_VERSION;
+}
