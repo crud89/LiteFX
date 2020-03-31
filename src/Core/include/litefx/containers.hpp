@@ -50,4 +50,10 @@ namespace LiteFX
 	{
 		return std::make_shared<T>(std::forward<TArgs>(_args)...);
 	}
+
+	template <class T>
+	SharedPtr<T> makeShared(UniquePtr<T>& ptr)
+	{
+		return std::make_shared<T>(ptr.release());
+	}
 }
