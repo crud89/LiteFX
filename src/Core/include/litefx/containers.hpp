@@ -14,6 +14,7 @@ namespace LiteFX
 {
 	using String = std::string;
 	using Exception = std::exception;
+	using Handle = void*;
 
 	template<class TKey, class TVal>
 	using Dictionary = std::map<TKey, TVal>;
