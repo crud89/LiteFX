@@ -25,6 +25,7 @@ private:
 private:
 	GlfwWindowPtr m_window;
 	RenderBackendPtr m_renderBackend;
+	VkSurfaceKHR m_surface;
 
 public:
 	SampleApp();

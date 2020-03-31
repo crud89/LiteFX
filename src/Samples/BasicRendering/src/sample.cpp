@@ -69,6 +69,7 @@ int SampleApp::start(int argc, char** argv)
 void SampleApp::stop()
 {
 	::glfwDestroyWindow(m_window.get());
+	::vkDestroySurfaceKHR(reinterpret_cast<VkInstance>(m_renderBackend->getHandle()), m_surface, nullptr);
 	::glfwTerminate();
 }
 
@@ -78,6 +79,8 @@ void SampleApp::work()
 	{
 		::glfwPollEvents();
 	}
+
+	this->stop();
 }
 
 void SampleApp::initializeRenderer(const Array<String>& validationLayers)
@@ -96,8 +99,9 @@ void SampleApp::initializeRenderer(const Array<String>& validationLayers)
 	// Create a rendering backend.
 	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions, validationLayers);
 
-	//if (::glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
-	//	throw std::runtime_error("Unable to create window surface.");
+	// Create a surface.
+	if (::glfwCreateWindowSurface(reinterpret_cast<VkInstance>(m_renderBackend->getHandle()), m_window.get(), nullptr, &m_surface) != VK_SUCCESS)
+		throw std::runtime_error("Unable to create window surface.");
 }
 
 void SampleApp::createWindow()
