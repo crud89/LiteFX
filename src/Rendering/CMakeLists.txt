@@ -9,11 +9,11 @@ MESSAGE(STATUS "Initializing: LiteFX.Rendering...")
 
 # Collect header & source files.
 SET(RENDERING_HEADERS
-    "include/litefx/Rendering.hpp"
+    "include/litefx/rendering.hpp"
 )
 
 SET(RENDERING_SOURCES
-    "src/Rendering.cpp"
+    "src/rendering.cpp"
 )
 
 # Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.

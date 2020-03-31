@@ -23,12 +23,12 @@ FIND_PACKAGE(glfw3 CONFIG REQUIRED)
 
 # Collect header & source files.
 SET(SAMPLE_BASIC_RENDERING_HEADERS
-    "src/sampleapp.h"
+    "src/sample.h"
 )
 
 SET(SAMPLE_BASIC_RENDERING_SOURCES
     "src/main.cpp"
-    "src/sampleapp.cpp"
+    "src/sample.cpp"
 )
 
 # Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.

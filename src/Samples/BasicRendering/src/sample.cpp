@@ -1,4 +1,4 @@
-#include "SampleApp.h"
+#include "sample.h"
 
 #include <vulkan/vulkan.h>
 #include <iostream>
