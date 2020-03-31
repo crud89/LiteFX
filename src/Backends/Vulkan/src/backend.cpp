@@ -25,10 +25,10 @@ void VulkanBackend::initialize(const Array<String>& extensions, const Array<Stri
     // Parse the extensions.
     std::vector<const char*> requiredExtensions, enabledLayers;
 
-    for each (auto& extension in extensions)
+    for each (auto & extension in extensions)
         requiredExtensions.push_back(extension.data());
 
-    for each (auto& layer in validationLayers)
+    for each (auto & layer in validationLayers)
         enabledLayers.push_back(layer.data());
 
     // Check if all extensions are available.
@@ -72,7 +72,7 @@ bool VulkanBackend::validateExtensions(const Array<String>& extensions)
 {
     auto availableExtensions = VulkanBackend::getAvailableExtensions();
     
-    for each (auto& extension in extensions)
+    for each (auto & extension in extensions)
     {
         auto match = std::find_if(availableExtensions.begin(), availableExtensions.end(), [&extension](String& str) {
             for (size_t i(0); i < str.size(); ++i)
@@ -99,7 +99,7 @@ Array<String> VulkanBackend::getAvailableExtensions()
 
     Array<String> extensionNames;
 
-    for each (auto& extension in availableExtensions)
+    for each (auto & extension in availableExtensions)
         extensionNames.push_back(extension.extensionName);
 
     return extensionNames;
@@ -109,7 +109,7 @@ bool VulkanBackend::validateLayers(const Array<String>& validationLayers)
 {
     auto layers = VulkanBackend::getValidationLayers();
 
-    for each (auto& layer in validationLayers)
+    for each (auto & layer in validationLayers)
     {
         auto match = std::find_if(layers.begin(), layers.end(), [&layer](String& str) {
             for (size_t i(0); i < str.size(); ++i)
@@ -136,18 +136,32 @@ Array<String> VulkanBackend::getValidationLayers()
 
     Array<String> layerNames;
 
-    for each (auto& layer in availableLayers)
+    for each (auto & layer in availableLayers)
         layerNames.push_back(layer.layerName);
 
     return layerNames;
 }
 
-Array<RenderDevice> VulkanBackend::getDevices() const
+Array<UniquePtr<RenderDevice>> VulkanBackend::getDevices() const
 {
+    if (m_instance == nullptr)
+        throw std::runtime_error("The backend is not initialized.");
 
+    uint32_t devices = 0;
+    ::vkEnumeratePhysicalDevices(m_instance, &devices, nullptr);
+
+    Array<VkPhysicalDevice> handles(devices);
+    ::vkEnumeratePhysicalDevices(m_instance, &devices, handles.data());
+
+    Array<UniquePtr<RenderDevice>> renderDevices;
+
+    for each (auto & deviceHandle in handles)
+        renderDevices.push_back(makeUnique<VulkanDevice>(deviceHandle));
+
+    return renderDevices;
 }
 
-void VulkanBackend::useDevice(const RenderDevice& device) 
+void VulkanBackend::useDevice(const RenderDevice* device)
 {
 
 }

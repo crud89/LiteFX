@@ -33,6 +33,18 @@ namespace LiteFX {
 				VulkanDevice(const VulkanDevice&) = delete;
 				VulkanDevice(VulkanDevice&&) = delete;
 				virtual ~VulkanDevice() = default;
+
+			public:
+				virtual String getName() const override;
+				virtual uint32_t getVendorId() const override;
+				virtual uint32_t getDeviceId() const override;
+				virtual RenderDeviceType getType() const override;
+				virtual uint32_t getDriverVersion() const override;
+				virtual uint32_t getApiVersion() const override;
+
+			public:
+				virtual VkPhysicalDeviceProperties getProperties() const;
+				virtual VkPhysicalDeviceFeatures getFeatures() const;
 			};
 
 			class LITEFX_VULKAN_API VulkanBackend :
@@ -48,8 +60,8 @@ namespace LiteFX {
 				virtual ~VulkanBackend();
 
 			public:
-				virtual Array<RenderDevice> getDevices() const override;
-				virtual void useDevice(const RenderDevice& device) override;
+				virtual Array<UniquePtr<RenderDevice>> getDevices() const override;
+				virtual void useDevice(const RenderDevice* device) override;
 
 			protected:
 				virtual void initialize(const Array<String>& extensions, const Array<String>& validationLayers);

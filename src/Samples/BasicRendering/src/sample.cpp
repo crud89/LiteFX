@@ -13,7 +13,15 @@ int SampleApp::start(int argc, char** argv)
 	// Parse the command line parameters.
 	String appName = this->getName();
 	CLI::App app { "Demonstrates basic drawing techniques.", appName };
-	auto validationLayerOption = app.add_option("-v,--validationLayer", "Adds a Vulkan validation layer.")->take_all();
+
+	auto listValidationLayers{ false }, listDevices{ false };
+
+	auto listCommand = app.add_subcommand("list", "Validation Layers");
+	listCommand->add_flag("-l, --layers", listValidationLayers);
+	listCommand->add_flag("-d, --devices", listDevices);
+
+	auto validationLayers = app.add_option("-l,--layers")->take_all();
+	auto deviceId = app.add_option("-d,--device")->take_first();
 	
 	try 
 	{
@@ -24,18 +32,29 @@ int SampleApp::start(int argc, char** argv)
 		return app.exit(ex);
 	}
 
-	// Turn the validation layers into a list.
-	Array<String> validationLayers;
+	// Print validation layers.
+	if (listValidationLayers)
+		for each (auto & layer in VulkanBackend::getValidationLayers())
+			std::cout << layer << std::endl;
 
-	if (validationLayerOption->count() > 0)
-		for each (auto & result in validationLayerOption->results())
-			validationLayers.push_back(result);
+	// Turn the validation layers into a list.
+	Array<String> enabledLayers;
+
+	if (validationLayers->count() > 0)
+		for each (auto & result in validationLayers->results())
+			enabledLayers.push_back(result);
 
 	// Initialize the rendering backend.
-	this->initializeRenderer(validationLayers);
+	this->initializeRenderer(enabledLayers);
 
-	// Call the event loop.
-	return App::start(argc, argv);
+	// Print device list.
+	if (listDevices)
+		for each (auto & device in m_renderBackend->getDevices())
+			std::cout << device->getDeviceId() << ": " << device->getName() << std::endl;
+
+	// Start event loop, if command line parameters do not suggest otherwise.
+	if (!listCommand->parsed())
+		return App::start(argc, argv);
 }
 
 void SampleApp::stop()
