@@ -31,7 +31,6 @@ namespace LiteFX {
 		class LITEFX_RENDERING_API GraphicsAdapter 
 		{
 		public:
-			typedef void* Handle;
 
 		private:
 			const Handle m_handle;
@@ -71,8 +70,7 @@ namespace LiteFX {
 			const App& getApp() const;
 
 		public:
-			virtual Array<UniquePtr<GraphicsAdapter>> getDevices() const = 0;
-			virtual void useDevice(const GraphicsAdapter* device) = 0;
+			virtual Array<UniquePtr<GraphicsAdapter>> getAdapters() const = 0;
 		};
 
 	}
