@@ -5,10 +5,10 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions) :
+VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
     RenderBackend(app), m_instance(nullptr)
 {
-	this->initialize(extensions);
+    this->initialize(extensions, validationLayers);
 }
 
 VulkanBackend::~VulkanBackend()
@@ -16,17 +16,20 @@ VulkanBackend::~VulkanBackend()
     this->release();
 }
 
-void VulkanBackend::initialize(const Array<String>& extensions)
+void VulkanBackend::initialize(const Array<String>& extensions, const Array<String>& validationLayers)
 {
     // Check, if already initialized.
     if (m_instance != nullptr)
         throw std::runtime_error("The backend is already initialized. Call `release` and try again.");
 
     // Parse the extensions.
-    std::vector<const char*> requiredExtensions;
+    std::vector<const char*> requiredExtensions, enabledLayers;
 
-    for each (auto & extension in extensions)
+    for each (auto& extension in extensions)
         requiredExtensions.push_back(extension.data());
+
+    for each (auto& layer in validationLayers)
+        enabledLayers.push_back(layer.data());
 
     // Check if all extensions are available.
     if (!this->validateExtensions(extensions))
@@ -53,7 +56,8 @@ void VulkanBackend::initialize(const Array<String>& extensions)
     createInfo.pApplicationInfo = &appInfo;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = requiredExtensions.data();
-    createInfo.enabledLayerCount = 0;
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.size() == 0 ? nullptr : enabledLayers.data();
 
     auto result = ::vkCreateInstance(&createInfo, nullptr, &m_instance);
 }
@@ -64,9 +68,9 @@ void VulkanBackend::release()
     m_instance = nullptr;
 }
 
-bool VulkanBackend::validateExtensions(const Array<String>& extensions) const
+bool VulkanBackend::validateExtensions(const Array<String>& extensions)
 {
-    auto availableExtensions = this->getAvailableExtensions();
+    auto availableExtensions = VulkanBackend::getAvailableExtensions();
     
     for each (auto& extension in extensions)
     {
@@ -85,7 +89,7 @@ bool VulkanBackend::validateExtensions(const Array<String>& extensions) const
     return true;
 }
 
-Array<String> VulkanBackend::getAvailableExtensions() const
+Array<String> VulkanBackend::getAvailableExtensions()
 {
     uint32_t extensions = 0;
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, nullptr);
@@ -101,9 +105,9 @@ Array<String> VulkanBackend::getAvailableExtensions() const
     return extensionNames;
 }
 
-bool VulkanBackend::validateLayers(const Array<String>& validationLayers) const
+bool VulkanBackend::validateLayers(const Array<String>& validationLayers)
 {
-    auto layers = this->getValidationLayers();
+    auto layers = VulkanBackend::getValidationLayers();
 
     for each (auto& layer in validationLayers)
     {
@@ -122,7 +126,7 @@ bool VulkanBackend::validateLayers(const Array<String>& validationLayers) const
     return true;
 }
 
-Array<String> VulkanBackend::getValidationLayers() const
+Array<String> VulkanBackend::getValidationLayers()
 {
     uint32_t layers = 0;
     ::vkEnumerateInstanceLayerProperties(&layers, nullptr);

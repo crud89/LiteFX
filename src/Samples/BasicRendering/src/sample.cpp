@@ -42,7 +42,7 @@ void SampleApp::initializeRenderer()
 		requiredExtensions.push_back(String(extensionNames[i]));
 
 	// Create a rendering backend.
-	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions);
+	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions, Array<String> { "VK_LAYER_KHRONOS_validation" });
 }
 
 void SampleApp::createWindow()

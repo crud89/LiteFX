@@ -32,20 +32,20 @@ namespace LiteFX {
 				VkInstance m_instance;
 
 			public:
-				explicit VulkanBackend(const App& app, const Array<String>& extensions);
+				explicit VulkanBackend(const App& app, const Array<String>& extensions = { }, const Array<String>& validationLayers = { });
 				VulkanBackend(const VulkanBackend&) = delete;
 				VulkanBackend(VulkanBackend&&) = delete;
 				virtual ~VulkanBackend();
 
 			protected:
-				virtual void initialize(const Array<String>& extensions);
+				virtual void initialize(const Array<String>& extensions, const Array<String>& validationLayers);
 				virtual void release();
 
 			public:
-				virtual bool validateExtensions(const Array<String>& extensions) const;
-				virtual Array<String> getAvailableExtensions() const;
-				virtual bool validateLayers(const Array<String>& validationLayers) const;
-				virtual Array<String> getValidationLayers() const;
+				static bool validateExtensions(const Array<String>& extensions);
+				static Array<String> getAvailableExtensions();
+				static bool validateLayers(const Array<String>& validationLayers);
+				static Array<String> getValidationLayers();
 			};
 		}
 	}
