@@ -17,6 +17,8 @@ SET(RENDERING_SOURCES
     "src/adapter.cpp"
     "src/device.cpp"
     "src/queue.cpp"
+    "src/pool.cpp"
+    "src/surface.cpp"
 )
 
 # Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.

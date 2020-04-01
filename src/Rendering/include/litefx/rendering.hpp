@@ -28,6 +28,38 @@ namespace LiteFX {
 			Other = 0xFF,
 		};
 
+		class LITEFX_RENDERING_API Surface :
+			public IResource
+		{
+		private:
+			const Handle m_handle;
+
+		public:
+			Surface(const Handle handle);
+			Surface(const Surface&) = delete;
+			Surface(Surface&&) = delete;
+			virtual ~Surface() = default;
+
+		public:
+			virtual const Handle getHandle() const override;
+		};
+
+		class LITEFX_RENDERING_API CommandPool :
+			public IResource
+		{
+		private:
+			const Handle m_handle;
+
+		public:
+			CommandPool(const Handle handle);
+			CommandPool(const CommandPool&) = delete;
+			CommandPool(CommandPool&&) = delete;
+			virtual ~CommandPool() = default;
+
+		public:
+			virtual const Handle getHandle() const override;
+		};
+
 		class LITEFX_RENDERING_API CommandQueue :
 			public IResource
 		{
