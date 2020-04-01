@@ -11,10 +11,7 @@ namespace LiteFX {
 		THandle m_handle;
 
 	protected:
-		IResource(THandle handle) : m_handle(handle) {
-			if (handle == nullptr)
-				throw std::invalid_argument("The `handle` parameter must be initialized.");
-		}
+		IResource(THandle handle) : m_handle(handle) = default;
 
 	public:
 		IResource(const IResource&) = delete;
