@@ -28,6 +28,22 @@ namespace LiteFX {
 			Other = 0xFF,
 		};
 
+		class LITEFX_RENDERING_API CommandQueue :
+			public IResource
+		{
+		private:
+			const Handle m_handle;
+
+		public:
+			CommandQueue(const Handle handle);
+			CommandQueue(const CommandQueue&) = delete;
+			CommandQueue(CommandQueue&&) = delete;
+			virtual ~CommandQueue() = default;
+
+		public:
+			virtual const Handle getHandle() const override;
+		};
+
 		class LITEFX_RENDERING_API GraphicsDevice :
 			public IResource
 		{
