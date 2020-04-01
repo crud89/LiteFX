@@ -15,14 +15,14 @@ int SampleApp::start(int argc, char** argv)
 	CLI::App app { "Demonstrates basic drawing techniques.", appName };
 
 	auto listValidationLayers{ false }, listDevices{ false };
-	auto deviceId{ -1 };
+	auto adapterId{ -1 };
 
 	auto listCommand = app.add_subcommand("list", "Validation Layers");
 	listCommand->add_flag("-l, --layers", listValidationLayers);
-	listCommand->add_flag("-d, --devices", listDevices);
+	listCommand->add_flag("-a, --adapters", listDevices);
 
 	auto validationLayers = app.add_option("-l,--layers")->take_all();
-	app.add_option("-d,--device", deviceId)->take_first();
+	app.add_option("-a,--adapter", adapterId)->take_first();
 	
 	try 
 	{
@@ -50,16 +50,16 @@ int SampleApp::start(int argc, char** argv)
 
 	// Print device list.
 	if (listDevices)
-		for each (auto & device in m_renderBackend->getAdapters())
-			std::cout << "[" << device->getDeviceId() << "]: " << device->getName() << std::endl;
+		for each (auto & adapter in m_renderBackend->getAdapters())
+			std::cout << "[" << adapter->getDeviceId() << "]: " << adapter->getName() << std::endl;
 
 	// Use either the selected device, or the first one.
-	if (deviceId < 0)
+	if (adapterId < 0)
 		m_renderBackend->useAdapter(m_renderBackend->getAdapters().front().get());
 	else
-		for each (auto & device in m_renderBackend->getAdapters())
-			if (device->getDeviceId() == deviceId)
-				m_renderBackend->useAdapter(device.get());
+		for each (auto & adapter in m_renderBackend->getAdapters())
+			if (adapter->getDeviceId() == adapterId)
+				m_renderBackend->useAdapter(adapter.get());
 
 	// Start event loop, if command line parameters do not suggest otherwise.
 	if (!listCommand->parsed())

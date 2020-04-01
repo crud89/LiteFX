@@ -80,15 +80,21 @@ UniquePtr<GraphicsDevice> VulkanGraphicsAdapter::createDevice() const
     Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
     ::vkGetPhysicalDeviceQueueFamilyProperties(IResource::getHandle<VkPhysicalDevice>(), &queueFamilies, familyProperties.data());
     
-    std::optional<uint32_t> graphicsQueue;
+    std::optional<uint32_t> graphicsQueue, presentQueue;
     
     for (size_t i(0); i < familyProperties.size(); ++i)
     {
         if (familyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-        {
             graphicsQueue = static_cast<uint32_t>(i);
+
+        VkBool32 canPresent = false;
+        ::vkGetPhysicalDeviceSurfaceSupportKHR(IResource::getHandle<VkPhysicalDevice>(), i, surface, &canPresent);
+
+        if (canPresent)
+            presentQueue = static_cast<uint32_t>(i);
+
+        if (presentQueue.has_value() && graphicsQueue.has_value())
             break;
-        }
     }
 
     if (!graphicsQueue.has_value())
