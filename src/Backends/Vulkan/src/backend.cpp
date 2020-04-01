@@ -68,46 +68,34 @@ void VulkanBackend::release()
     this->handle() = nullptr;
 }
 
-void VulkanBackend::getAdapters(Array<SharedPtr<GraphicsAdapter>>& adapters, bool forceReload) const
+Array<UniquePtr<IGraphicsAdapter>> VulkanBackend::getAdapters() const
 {
-    if (!adapters.empty())
-        throw std::invalid_argument("The parameter `adapters` must be empty.");
-
     if (this->handle() == nullptr)
         throw std::runtime_error("The backend is not initialized.");
 
-    uint32_t devices = 0;
-    ::vkEnumeratePhysicalDevices(this->handle(), &devices, nullptr);
+    uint32_t adapters = 0;
+    ::vkEnumeratePhysicalDevices(this->handle(), &adapters, nullptr);
 
-    Array<VkPhysicalDevice> handles(devices);
-    ::vkEnumeratePhysicalDevices(this->handle(), &devices, handles.data());
+    Array<VkPhysicalDevice> handles(adapters);
+    ::vkEnumeratePhysicalDevices(this->handle(), &adapters, handles.data());
 
-    for each (auto & deviceHandle in handles)
-        adapters.push_back(makeShared<VulkanGraphicsAdapter>(deviceHandle));
+    Array<UniquePtr<IGraphicsAdapter>> results;
+
+    for each (auto & handle in handles)
+        results.push_back(makeUnique<VulkanGraphicsAdapter>(handle));
+
+    return results;
 }
 
-UniquePtr<CommandQueue> VulkanBackend::createQueue(const QueueType& queueType) const
+UniquePtr<ICommandQueue> VulkanBackend::createQueue(const QueueType& queueType) const
 {
     throw;
 }
 
-UniquePtr<Surface> VulkanBackend::createSurface() const
+UniquePtr<ISurface> VulkanBackend::createSurface() const
 {
     throw;
 }
-
-//void VulkanBackend::useAdapter(const GraphicsAdapter* adapter) const
-//{
-//    if (adapter == nullptr)
-//        throw std::invalid_argument("The parameter `adapter` must be initialized.");
-//
-//    if (m_handle == nullptr)
-//        throw std::runtime_error("The backend is not initialized.");
-//
-//    // Create a device.
-//    auto device = adapter->createDevice();
-//
-//}
 
 // ------------------------------------------------------------------------------------------------
 // Static interface.
@@ -125,7 +113,7 @@ bool VulkanBackend::validateExtensions(const Array<String>& extensions)
                     return false;
 
             return true;
-            });
+        });
 
         if (match == availableExtensions.end())
             return false;
@@ -162,7 +150,7 @@ bool VulkanBackend::validateLayers(const Array<String>& validationLayers)
                     return false;
 
             return true;
-            });
+        });
 
         if (match == layers.end())
             return false;

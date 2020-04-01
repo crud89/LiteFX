@@ -26,7 +26,7 @@ namespace LiteFX {
 			using namespace LiteFX::Rendering;
 
 			class LITEFX_VULKAN_API VulkanDevice :
-				public GraphicsDevice,
+				public IGraphicsDevice,
 				public IResource<VkDevice>
 			{
 			public:
@@ -37,7 +37,7 @@ namespace LiteFX {
 			};
 
 			class LITEFX_VULKAN_API VulkanGraphicsAdapter :
-				public GraphicsAdapter,
+				public IGraphicsAdapter,
 				public IResource<VkPhysicalDevice>
 			{
 			public:
@@ -55,7 +55,7 @@ namespace LiteFX {
 				virtual uint32_t getApiVersion() const override;
 
 			public:
-				virtual UniquePtr<GraphicsDevice> createDevice() const override;
+				virtual UniquePtr<IGraphicsDevice> createDevice() const override;
 
 			public:
 				virtual VkPhysicalDeviceProperties getProperties() const;
@@ -73,9 +73,9 @@ namespace LiteFX {
 				virtual ~VulkanBackend();
 
 			public:
-				virtual void getAdapters(Array<SharedPtr<GraphicsAdapter>>& adapters, bool forceReload) const override;
-				virtual UniquePtr<CommandQueue> createQueue(const QueueType& queueType) const override;
-				virtual UniquePtr<Surface> createSurface() const override;
+				virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const override;
+				virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const override;
+				//virtual UniquePtr<ISurface> createSurface() const override;
 				//virtual void useAdapter(const GraphicsAdapter* adapter) const override;
 
 			protected:

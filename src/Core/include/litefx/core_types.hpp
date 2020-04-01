@@ -11,7 +11,7 @@ namespace LiteFX {
 		THandle m_handle;
 
 	protected:
-		IResource(THandle handle) : m_handle(handle) { }
+		IResource(const THandle handle) : m_handle(handle) { }
 
 	public:
 		IResource(const IResource&) = delete;

@@ -4,7 +4,7 @@
 using namespace LiteFX::Rendering::Backends;
 
 VulkanGraphicsAdapter::VulkanGraphicsAdapter(const VkPhysicalDevice adapter) :
-	GraphicsAdapter(), IResource(adapter)
+	IResource(adapter)
 {
     if (adapter == nullptr)
         throw std::invalid_argument("The argument `adapter` must be initialized.");
@@ -73,7 +73,7 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const
     return properties.apiVersion;
 }
 
-UniquePtr<GraphicsDevice> VulkanGraphicsAdapter::createDevice() const
+UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice() const
 {
     // Find an available graphics queue.
     uint32_t queueFamilies = 0;
