@@ -26,7 +26,8 @@ namespace LiteFX {
 			using namespace LiteFX::Rendering;
 
 			class LITEFX_VULKAN_API VulkanDevice :
-				public GraphicsDevice
+				public GraphicsDevice,
+				public IResource<VkDevice>
 			{
 			public:
 				VulkanDevice(const VkDevice device);
@@ -36,7 +37,8 @@ namespace LiteFX {
 			};
 
 			class LITEFX_VULKAN_API VulkanGraphicsAdapter :
-				public GraphicsAdapter
+				public GraphicsAdapter,
+				public IResource<VkPhysicalDevice>
 			{
 			public:
 				VulkanGraphicsAdapter(const VkPhysicalDevice adapter);
@@ -61,11 +63,9 @@ namespace LiteFX {
 			};
 
 			class LITEFX_VULKAN_API VulkanBackend :
-				public RenderBackend
+				public RenderBackend, 
+				public IResource<VkInstance>
 			{
-			private:
-				VkInstance m_instance;
-				
 			public:
 				explicit VulkanBackend(const App& app, const Array<String>& extensions = { }, const Array<String>& validationLayers = { });
 				VulkanBackend(const VulkanBackend&) = delete;
@@ -73,11 +73,10 @@ namespace LiteFX {
 				virtual ~VulkanBackend();
 
 			public:
-				virtual const Handle getHandle() const override;
-
-			public:
-				virtual Array<UniquePtr<GraphicsAdapter>> getAdapters() const override;
-				virtual void useAdapter(const GraphicsAdapter* adapter) const override;
+				virtual void getAdapters(Array<SharedPtr<GraphicsAdapter>>& adapters, bool forceReload) const override;
+				virtual UniquePtr<CommandQueue> createQueue(const QueueType& queueType) const override;
+				virtual UniquePtr<Surface> createSurface() const override;
+				//virtual void useAdapter(const GraphicsAdapter* adapter) const override;
 
 			protected:
 				virtual void initialize(const Array<String>& extensions, const Array<String>& validationLayers);

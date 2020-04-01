@@ -4,14 +4,29 @@
 
 namespace LiteFX {
 
-	class LITEFX_CORE_API IResource
+	template <class THandle>
+	class IResource
 	{
-	public:
-		virtual const Handle getHandle() const = 0;
+	private:
+		THandle m_handle;
+
+	protected:
+		IResource(THandle handle) : m_handle(handle) {
+			if (handle == nullptr)
+				throw std::invalid_argument("The `handle` parameter must be initialized.");
+		}
 
 	public:
-		template <class THandle>
-		inline const THandle getHandle() const { return reinterpret_cast<THandle>(this->getHandle()); }
+		IResource(const IResource&) = delete;
+		IResource(IResource&&) = delete;
+		virtual ~IResource() = default;
+
+	protected:
+		THandle handle() const { return m_handle; }
+		THandle& handle() { return m_handle; }
+
+	public:
+		virtual const Handle getHandle() const { return reinterpret_cast<Handle>(m_handle); }
 	};
 
 	/**

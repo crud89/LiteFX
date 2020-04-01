@@ -6,7 +6,7 @@
 using namespace LiteFX::Rendering::Backends;
 
 VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
-    RenderBackend(app), m_instance(nullptr)
+    RenderBackend(app), IResource(nullptr)
 {
     this->initialize(extensions, validationLayers);
 }
@@ -16,15 +16,10 @@ VulkanBackend::~VulkanBackend()
     this->release();
 }
 
-const Handle VulkanBackend::getHandle() const
-{
-    return m_instance;
-}
-
 void VulkanBackend::initialize(const Array<String>& extensions, const Array<String>& validationLayers)
 {
     // Check, if already initialized.
-    if (m_instance != nullptr)
+    if (this->handle() != nullptr)
         throw std::runtime_error("The backend is already initialized. Call `release` and try again.");
 
     // Parse the extensions.
@@ -64,19 +59,64 @@ void VulkanBackend::initialize(const Array<String>& extensions, const Array<Stri
     createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.size() == 0 ? nullptr : enabledLayers.data();
 
-    auto result = ::vkCreateInstance(&createInfo, nullptr, &m_instance);
+    auto result = ::vkCreateInstance(&createInfo, nullptr, &this->handle());
 }
 
 void VulkanBackend::release()
 {
-    ::vkDestroyInstance(m_instance, nullptr);
-    m_instance = nullptr;
+    ::vkDestroyInstance(this->handle(), nullptr);
+    this->handle() = nullptr;
 }
+
+void VulkanBackend::getAdapters(Array<SharedPtr<GraphicsAdapter>>& adapters, bool forceReload) const
+{
+    if (!adapters.empty())
+        throw std::invalid_argument("The parameter `adapters` must be empty.");
+
+    if (this->handle() == nullptr)
+        throw std::runtime_error("The backend is not initialized.");
+
+    uint32_t devices = 0;
+    ::vkEnumeratePhysicalDevices(this->handle(), &devices, nullptr);
+
+    Array<VkPhysicalDevice> handles(devices);
+    ::vkEnumeratePhysicalDevices(this->handle(), &devices, handles.data());
+
+    for each (auto & deviceHandle in handles)
+        adapters.push_back(makeShared<VulkanGraphicsAdapter>(deviceHandle));
+}
+
+UniquePtr<CommandQueue> VulkanBackend::createQueue(const QueueType& queueType) const
+{
+    throw;
+}
+
+UniquePtr<Surface> VulkanBackend::createSurface() const
+{
+    throw;
+}
+
+//void VulkanBackend::useAdapter(const GraphicsAdapter* adapter) const
+//{
+//    if (adapter == nullptr)
+//        throw std::invalid_argument("The parameter `adapter` must be initialized.");
+//
+//    if (m_handle == nullptr)
+//        throw std::runtime_error("The backend is not initialized.");
+//
+//    // Create a device.
+//    auto device = adapter->createDevice();
+//
+//}
+
+// ------------------------------------------------------------------------------------------------
+// Static interface.
+// ------------------------------------------------------------------------------------------------
 
 bool VulkanBackend::validateExtensions(const Array<String>& extensions)
 {
     auto availableExtensions = VulkanBackend::getAvailableExtensions();
-    
+
     for each (auto & extension in extensions)
     {
         auto match = std::find_if(availableExtensions.begin(), availableExtensions.end(), [&extension](String& str) {
@@ -85,7 +125,7 @@ bool VulkanBackend::validateExtensions(const Array<String>& extensions)
                     return false;
 
             return true;
-        });
+            });
 
         if (match == availableExtensions.end())
             return false;
@@ -122,7 +162,7 @@ bool VulkanBackend::validateLayers(const Array<String>& validationLayers)
                     return false;
 
             return true;
-        });
+            });
 
         if (match == layers.end())
             return false;
@@ -145,36 +185,4 @@ Array<String> VulkanBackend::getValidationLayers()
         layerNames.push_back(layer.layerName);
 
     return layerNames;
-}
-
-Array<UniquePtr<GraphicsAdapter>> VulkanBackend::getAdapters() const
-{
-    if (m_instance == nullptr)
-        throw std::runtime_error("The backend is not initialized.");
-
-    uint32_t devices = 0;
-    ::vkEnumeratePhysicalDevices(m_instance, &devices, nullptr);
-
-    Array<VkPhysicalDevice> handles(devices);
-    ::vkEnumeratePhysicalDevices(m_instance, &devices, handles.data());
-
-    Array<UniquePtr<GraphicsAdapter>> renderDevices;
-
-    for each (auto & deviceHandle in handles)
-        renderDevices.push_back(makeUnique<VulkanGraphicsAdapter>(deviceHandle));
-
-    return renderDevices;
-}
-
-void VulkanBackend::useAdapter(const GraphicsAdapter* adapter) const
-{
-    if (adapter == nullptr)
-        throw std::invalid_argument("The parameter `adapter` must be initialized.");
-
-    if (m_instance == nullptr)
-        throw std::runtime_error("The backend is not initialized.");
-
-    // Create a device.
-    auto device = adapter->createDevice();
-
 }

@@ -28,84 +28,58 @@ namespace LiteFX {
 			Other = 0xFF,
 		};
 
-		class LITEFX_RENDERING_API Surface :
-			public IResource
+		enum class LITEFX_RENDERING_API QueueType 
 		{
-		private:
-			const Handle m_handle;
+			Graphics = 0x01,
+			Compute = 0x02,
+			Transfer = 0x04,
+			Present = 0x10,
+			Other = 0xFF
+		};
 
+		class LITEFX_RENDERING_API Surface
+		{
 		public:
-			Surface(const Handle handle);
+			Surface() = default;
 			Surface(const Surface&) = delete;
 			Surface(Surface&&) = delete;
 			virtual ~Surface() = default;
-
-		public:
-			virtual const Handle getHandle() const override;
 		};
 
-		class LITEFX_RENDERING_API CommandPool :
-			public IResource
+		class LITEFX_RENDERING_API CommandPool
 		{
-		private:
-			const Handle m_handle;
-
 		public:
-			CommandPool(const Handle handle);
+			CommandPool() = default;
 			CommandPool(const CommandPool&) = delete;
 			CommandPool(CommandPool&&) = delete;
 			virtual ~CommandPool() = default;
-
-		public:
-			virtual const Handle getHandle() const override;
 		};
 
-		class LITEFX_RENDERING_API CommandQueue :
-			public IResource
+		class LITEFX_RENDERING_API CommandQueue
 		{
-		private:
-			const Handle m_handle;
-
 		public:
-			CommandQueue(const Handle handle);
+			CommandQueue() = default;
 			CommandQueue(const CommandQueue&) = delete;
 			CommandQueue(CommandQueue&&) = delete;
 			virtual ~CommandQueue() = default;
-
-		public:
-			virtual const Handle getHandle() const override;
 		};
 
-		class LITEFX_RENDERING_API GraphicsDevice :
-			public IResource
+		class LITEFX_RENDERING_API GraphicsDevice
 		{
-		private:
-			const Handle m_handle;
-
 		public:
-			GraphicsDevice(const Handle handle);
+			GraphicsDevice() = default;
 			GraphicsDevice(const GraphicsDevice&) = delete;
 			GraphicsDevice(GraphicsDevice&&) = delete;
 			virtual ~GraphicsDevice() = default;
-
-		public:
-			virtual const Handle getHandle() const override;
 		};
 
-		class LITEFX_RENDERING_API GraphicsAdapter :
-			public IResource
+		class LITEFX_RENDERING_API GraphicsAdapter
 		{
-		private:
-			const Handle m_handle;
-
 		public:
-			GraphicsAdapter(const Handle handle);
+			GraphicsAdapter() = default;
 			GraphicsAdapter(const GraphicsAdapter&) = delete;
 			GraphicsAdapter(GraphicsAdapter&&) = delete;
 			virtual ~GraphicsAdapter() = default;
-
-		public:
-			virtual const Handle getHandle() const override;
 
 		public:
 			virtual String getName() const = 0;
@@ -119,8 +93,7 @@ namespace LiteFX {
 			virtual UniquePtr<GraphicsDevice> createDevice() const = 0;
 		};
 
-		class LITEFX_RENDERING_API RenderBackend :
-			public IResource
+		class LITEFX_RENDERING_API RenderBackend
 		{
 		private:
 			const App& m_app;
@@ -135,8 +108,10 @@ namespace LiteFX {
 			const App& getApp() const;
 
 		public:
-			virtual Array<UniquePtr<GraphicsAdapter>> getAdapters() const = 0;
-			virtual void useAdapter(const GraphicsAdapter* adapter) const = 0;
+			virtual void getAdapters(Array<SharedPtr<GraphicsAdapter>>& adapters, bool forceReload = false) const = 0;
+			virtual UniquePtr<CommandQueue> createQueue(const QueueType& queueType) const = 0;
+			virtual UniquePtr<Surface> createSurface() const = 0;
+			//virtual void useAdapter(const GraphicsAdapter* adapter) const = 0;
 		};
 
 	}

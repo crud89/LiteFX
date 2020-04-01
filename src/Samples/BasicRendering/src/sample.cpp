@@ -48,18 +48,18 @@ int SampleApp::start(int argc, char** argv)
 	// Initialize the rendering backend.
 	this->initializeRenderer(enabledLayers);
 
-	// Print device list.
-	if (listDevices)
-		for each (auto & adapter in m_renderBackend->getAdapters())
-			std::cout << "[" << adapter->getDeviceId() << "]: " << adapter->getName() << std::endl;
+	//// Print device list.
+	//if (listDevices)
+	//	for each (auto & adapter in m_renderBackend->getAdapters())
+	//		std::cout << "[" << adapter->getDeviceId() << "]: " << adapter->getName() << std::endl;
 
-	// Use either the selected device, or the first one.
-	if (adapterId < 0)
-		m_renderBackend->useAdapter(m_renderBackend->getAdapters().front().get());
-	else
-		for each (auto & adapter in m_renderBackend->getAdapters())
-			if (adapter->getDeviceId() == adapterId)
-				m_renderBackend->useAdapter(adapter.get());
+	//// Use either the selected device, or the first one.
+	//if (adapterId < 0)
+	//	m_renderBackend->useAdapter(m_renderBackend->getAdapters().front().get());
+	//else
+	//	for each (auto & adapter in m_renderBackend->getAdapters())
+	//		if (adapter->getDeviceId() == adapterId)
+	//			m_renderBackend->useAdapter(adapter.get());
 
 	// Start event loop, if command line parameters do not suggest otherwise.
 	if (!listCommand->parsed())

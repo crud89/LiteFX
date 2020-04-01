@@ -4,14 +4,14 @@
 using namespace LiteFX::Rendering::Backends;
 
 VulkanGraphicsAdapter::VulkanGraphicsAdapter(const VkPhysicalDevice adapter) :
-	GraphicsAdapter(adapter)
+	GraphicsAdapter(), IResource(adapter)
 {
 }
 
 VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const
 {
     VkPhysicalDeviceProperties properties;
-    ::vkGetPhysicalDeviceProperties(IResource::getHandle<VkPhysicalDevice>(), &properties);
+    ::vkGetPhysicalDeviceProperties(this->handle(), &properties);
 
     return properties;
 }
@@ -19,7 +19,7 @@ VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const
 VkPhysicalDeviceFeatures VulkanGraphicsAdapter::getFeatures() const
 {
     VkPhysicalDeviceFeatures features;
-    ::vkGetPhysicalDeviceFeatures(IResource::getHandle<VkPhysicalDevice>(), &features);
+    ::vkGetPhysicalDeviceFeatures(this->handle(), &features);
     
     return features;
 }
@@ -75,10 +75,10 @@ UniquePtr<GraphicsDevice> VulkanGraphicsAdapter::createDevice() const
 {
     // Find an available graphics queue.
     uint32_t queueFamilies = 0;
-    ::vkGetPhysicalDeviceQueueFamilyProperties(IResource::getHandle<VkPhysicalDevice>(), &queueFamilies, nullptr);
+    ::vkGetPhysicalDeviceQueueFamilyProperties(this->handle(), &queueFamilies, nullptr);
 
     Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
-    ::vkGetPhysicalDeviceQueueFamilyProperties(IResource::getHandle<VkPhysicalDevice>(), &queueFamilies, familyProperties.data());
+    ::vkGetPhysicalDeviceQueueFamilyProperties(this->handle(), &queueFamilies, familyProperties.data());
     
     std::optional<uint32_t> graphicsQueue, presentQueue;
     
@@ -88,7 +88,7 @@ UniquePtr<GraphicsDevice> VulkanGraphicsAdapter::createDevice() const
             graphicsQueue = static_cast<uint32_t>(i);
 
         VkBool32 canPresent = false;
-        ::vkGetPhysicalDeviceSurfaceSupportKHR(IResource::getHandle<VkPhysicalDevice>(), i, surface, &canPresent);
+        //::vkGetPhysicalDeviceSurfaceSupportKHR(this->handle(), i, surface, &canPresent);
 
         if (canPresent)
             presentQueue = static_cast<uint32_t>(i);
@@ -123,7 +123,7 @@ UniquePtr<GraphicsDevice> VulkanGraphicsAdapter::createDevice() const
     // Create the device.
     VkDevice device;
 
-    if (::vkCreateDevice(IResource::getHandle<VkPhysicalDevice>(), &createInfo, nullptr, &device) != VK_SUCCESS)
+    if (::vkCreateDevice(this->handle(), &createInfo, nullptr, &device) != VK_SUCCESS)
         throw std::runtime_error("Unable to create Vulkan device.");
 
     return makeUnique<VulkanDevice>(device);
