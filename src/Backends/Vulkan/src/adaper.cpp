@@ -6,6 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 VulkanGraphicsAdapter::VulkanGraphicsAdapter(const VkPhysicalDevice adapter) :
 	GraphicsAdapter(), IResource(adapter)
 {
+    if (adapter == nullptr)
+        throw std::invalid_argument("The argument `adapter` must be initialized.");
 }
 
 VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const
