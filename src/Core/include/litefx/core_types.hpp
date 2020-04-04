@@ -73,11 +73,10 @@ namespace LiteFX {
 		virtual ~IResource() noexcept = default;
 
 	protected:
-		THandle handle() const noexcept { return m_handle; }
 		THandle& handle() noexcept { return m_handle; }
 
 	public:
-		virtual const Handle getHandle() const noexcept { return reinterpret_cast<Handle>(m_handle); }
+		THandle handle() const noexcept { return m_handle; }
 	};
 
 	/**

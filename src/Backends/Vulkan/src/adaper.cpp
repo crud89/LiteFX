@@ -19,9 +19,6 @@ public:
 public:
     SharedPtr<VulkanQueue> findQueue(const QueueType& type, Optional<uint32_t>& queueId) const noexcept
     {
-        if (m_queues.empty())
-            return nullptr;
-
         for (size_t q(0); q < m_queues.size(); ++q)
         {
             if ((m_queues[q]->getType() & type) == type)
@@ -34,14 +31,37 @@ public:
         return nullptr;
     }
 
-    UniquePtr<VulkanDevice> createDevice(const ISurface* surface)
+    SharedPtr<VulkanQueue> findQueue(const QueueType& type, Optional<uint32_t>& queueId, const VulkanSurface* surface) const
     {
         if (surface == nullptr)
-            throw std::invalid_argument("The provided surface is not initialized.");
+            throw std::invalid_argument("The argument `surface` is not initialized.");
+
+        for (size_t q(0); q < m_queues.size(); ++q)
+        {
+            if ((m_queues[q]->getType() & type) == type)
+            {
+                VkBool32 canPresent = VK_FALSE;
+                ::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter, q, surface->handle(), &canPresent);
+
+                if (canPresent)
+                {
+                    queueId = static_cast<uint32_t>(q);
+                    return m_queues[q];
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
+    UniquePtr<VulkanDevice> createDevice(const VulkanSurface* surface)
+    {
+        if (surface == nullptr)
+            throw std::invalid_argument("The provided surface is not initialized or not a valid Vulkan surface.");
 
         // Create a graphics device.
         Optional<uint32_t> queueId;
-        auto queue = this->findQueue(QueueType::Graphics, queueId);
+        auto queue = this->findQueue(QueueType::Graphics, queueId, surface);
 
         if (!queueId.has_value())
             throw std::runtime_error("The adapter does not provide a graphics device.");
@@ -180,7 +200,7 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
 
 UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ISurface* surface) const
 {
-    return m_impl->createDevice(surface);
+    return m_impl->createDevice(dynamic_cast<const VulkanSurface*>(surface));
 }
 
 SharedPtr<ICommandQueue> VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const
