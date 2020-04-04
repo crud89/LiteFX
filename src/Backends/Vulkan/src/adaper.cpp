@@ -10,7 +10,7 @@ VulkanGraphicsAdapter::VulkanGraphicsAdapter(const VkPhysicalDevice adapter) :
         throw std::invalid_argument("The argument `adapter` must be initialized.");
 }
 
-VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const
+VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const noexcept
 {
     VkPhysicalDeviceProperties properties;
     ::vkGetPhysicalDeviceProperties(this->handle(), &properties);
@@ -18,7 +18,7 @@ VkPhysicalDeviceProperties VulkanGraphicsAdapter::getProperties() const
     return properties;
 }
 
-VkPhysicalDeviceFeatures VulkanGraphicsAdapter::getFeatures() const
+VkPhysicalDeviceFeatures VulkanGraphicsAdapter::getFeatures() const noexcept
 {
     VkPhysicalDeviceFeatures features;
     ::vkGetPhysicalDeviceFeatures(this->handle(), &features);
@@ -26,25 +26,25 @@ VkPhysicalDeviceFeatures VulkanGraphicsAdapter::getFeatures() const
     return features;
 }
 
-String VulkanGraphicsAdapter::getName() const
+String VulkanGraphicsAdapter::getName() const noexcept
 {
     auto properties = this->getProperties();
     return String(properties.deviceName);
 }
 
-uint32_t VulkanGraphicsAdapter::getVendorId() const
+uint32_t VulkanGraphicsAdapter::getVendorId() const noexcept
 {
     auto properties = this->getProperties();
     return properties.vendorID;
 }
 
-uint32_t VulkanGraphicsAdapter::getDeviceId() const
+uint32_t VulkanGraphicsAdapter::getDeviceId() const noexcept
 {
     auto properties = this->getProperties();
     return properties.deviceID;
 }
 
-GraphicsAdapterType VulkanGraphicsAdapter::getType() const
+GraphicsAdapterType VulkanGraphicsAdapter::getType() const noexcept
 {
     auto properties = this->getProperties();
     
@@ -61,13 +61,13 @@ GraphicsAdapterType VulkanGraphicsAdapter::getType() const
     }
 }
 
-uint32_t VulkanGraphicsAdapter::getDriverVersion() const
+uint32_t VulkanGraphicsAdapter::getDriverVersion() const noexcept
 {
     auto properties = this->getProperties();
     return properties.driverVersion;
 }
 
-uint32_t VulkanGraphicsAdapter::getApiVersion() const
+uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
 {
     auto properties = this->getProperties();
     return properties.apiVersion;

@@ -1,14 +1,18 @@
+// CLI11 parses optional values as double by default, which yields an implicit-cast warning.
+#pragma warning(disable: 4244)
+
 #include "sample.h"
 
 #include <vulkan/vulkan.h>
 #include <CLI/CLI.hpp>
 #include <iostream>
 
-SampleApp::SampleApp() : App()
+SampleApp::SampleApp() noexcept :
+	App(), m_renderBackend(nullptr), m_surface(nullptr), m_window(nullptr)
 {
 }
 
-int SampleApp::start(int argc, char** argv)
+int SampleApp::start(const int argc, const char** argv)
 {
 	// Parse the command line parameters.
 	String appName = this->getName();
@@ -65,9 +69,25 @@ int SampleApp::start(int argc, char** argv)
 		adapter = m_renderBackend->getAdapter(std::nullopt);
 	}
 
+	// Create a queue.
+	UniquePtr<ICommandQueue> queue = m_renderBackend->createQueue(QueueType::Graphics | QueueType::Present);
+
 	// Start event loop, if command line parameters do not suggest otherwise.
 	if (!listCommand->parsed())
-		return App::start(argc, argv);
+		this->work();
+
+	return EXIT_SUCCESS;
+}
+
+int SampleApp::start(const Array<String>& args)
+{
+	int argc = static_cast<int>(args.size());
+	Array<const char*> argv(argc);
+	std::generate(argv.begin(), argv.end(), [&args, i = 0] () mutable {
+		return args[i++].c_str();
+	});
+
+	return this->start(argc, argv.data());
 }
 
 void SampleApp::stop()
@@ -97,7 +117,7 @@ void SampleApp::initializeRenderer(const Array<String>& validationLayers)
 	const char** extensionNames = ::glfwGetRequiredInstanceExtensions(&extensions);
 	Array<String> requiredExtensions;
 
-	for (int i(0); i < extensions; ++i)
+	for (uint32_t i(0); i < extensions; ++i)
 		requiredExtensions.push_back(String(extensionNames[i]));
 
 	// Create a rendering backend.

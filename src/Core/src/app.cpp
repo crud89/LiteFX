@@ -2,27 +2,11 @@
 
 using namespace LiteFX;
 
-App::App()
+App::App() noexcept
 {
 }
 
-App::~App()
-{
-	this->stop();
-}
-
-int App::start(int argc, char** argv)
+int App::start(const int argc, const char** argv)
 {
 	return this->start(Array<String>(argv, argv + argc));
-}
-
-int App::start(const Array<String>& args)
-{
-	this->work();
-
-	return EXIT_SUCCESS;
-}
-
-void App::stop()
-{
 }

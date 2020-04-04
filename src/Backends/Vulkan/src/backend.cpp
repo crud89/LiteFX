@@ -108,11 +108,19 @@ UniquePtr<IGraphicsAdapter> VulkanBackend::getAdapter(Optional<uint32_t> adapter
     return makeUnique<VulkanGraphicsAdapter>(*match);
 }
 
-//UniquePtr<ICommandQueue> VulkanBackend::createQueue(const QueueType& queueType) const
-//{
-//    throw;
-//}
-//
+UniquePtr<ICommandQueue> VulkanBackend::createQueue(const QueueType& queueType) const
+{
+    if (this->handle() == nullptr)
+        throw std::runtime_error("The backend is not initialized.");
+
+    if (LITEFX_FLAG_IS_SET(queueType, QueueType::Graphics));
+    {
+        throw;
+    }
+
+    throw;
+}
+
 //UniquePtr<ISurface> VulkanBackend::createSurface() const
 //{
 //    throw;
@@ -122,7 +130,7 @@ UniquePtr<IGraphicsAdapter> VulkanBackend::getAdapter(Optional<uint32_t> adapter
 // Static interface.
 // ------------------------------------------------------------------------------------------------
 
-bool VulkanBackend::validateExtensions(const Array<String>& extensions)
+bool VulkanBackend::validateExtensions(const Array<String>& extensions) noexcept
 {
     auto availableExtensions = VulkanBackend::getAvailableExtensions();
 
@@ -143,7 +151,7 @@ bool VulkanBackend::validateExtensions(const Array<String>& extensions)
     return true;
 }
 
-Array<String> VulkanBackend::getAvailableExtensions()
+Array<String> VulkanBackend::getAvailableExtensions() noexcept
 {
     uint32_t extensions = 0;
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, nullptr);
@@ -159,7 +167,7 @@ Array<String> VulkanBackend::getAvailableExtensions()
     return extensionNames;
 }
 
-bool VulkanBackend::validateLayers(const Array<String>& validationLayers)
+bool VulkanBackend::validateLayers(const Array<String>& validationLayers) noexcept
 {
     auto layers = VulkanBackend::getValidationLayers();
 
@@ -180,7 +188,7 @@ bool VulkanBackend::validateLayers(const Array<String>& validationLayers)
     return true;
 }
 
-Array<String> VulkanBackend::getValidationLayers()
+Array<String> VulkanBackend::getValidationLayers() noexcept
 {
     uint32_t layers = 0;
     ::vkEnumerateInstanceLayerProperties(&layers, nullptr);

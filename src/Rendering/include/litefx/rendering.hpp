@@ -33,6 +33,8 @@ namespace LiteFX::Rendering {
 		Other = 0xFF
 	};
 
+	LITEFX_DEFINE_FLAGS(QueueType)
+
 	class LITEFX_RENDERING_API ISurface {
 	};
 
@@ -47,41 +49,37 @@ namespace LiteFX::Rendering {
 
 	class LITEFX_RENDERING_API IGraphicsAdapter {
 	public:
-		virtual String getName() const = 0;
-		virtual uint32_t getVendorId() const = 0;
-		virtual uint32_t getDeviceId() const = 0;
-		virtual GraphicsAdapterType getType() const = 0;
-		virtual uint32_t getDriverVersion() const = 0;
-		virtual uint32_t getApiVersion() const = 0;
+		virtual String getName() const noexcept = 0;
+		virtual uint32_t getVendorId() const noexcept = 0;
+		virtual uint32_t getDeviceId() const noexcept = 0;
+		virtual GraphicsAdapterType getType() const noexcept = 0;
+		virtual uint32_t getDriverVersion() const noexcept = 0;
+		virtual uint32_t getApiVersion() const noexcept = 0;
 
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice() const = 0;
 	};
 
-	class LITEFX_RENDERING_API IRenderBackend
-	{
+	class LITEFX_RENDERING_API IRenderBackend {
 	public:
 		virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const = 0;
 		virtual UniquePtr<IGraphicsAdapter> getAdapter(Optional<uint32_t> adapterId = std::nullopt) const = 0;
-		//virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const = 0;
+		virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const = 0;
 		//virtual UniquePtr<ISurface> createSurface() const = 0;
 		//virtual void useAdapter(const GraphicsAdapter* adapter) const = 0;
 	};
 
-	class LITEFX_RENDERING_API RenderBackend :
-		public IRenderBackend
-	{
-	private:
-		const App& m_app;
+	class LITEFX_RENDERING_API RenderBackend : public IRenderBackend {
+		LITEFX_IMPLEMENTATION(RenderBackendImpl)
 
 	public:
-		explicit RenderBackend(const App& app);
-		RenderBackend(const RenderBackend&) = delete;
-		RenderBackend(RenderBackend&&) = delete;
-		virtual ~RenderBackend() = default;
+		explicit RenderBackend(const App& app) noexcept;
+		RenderBackend(const RenderBackend&) noexcept = delete;
+		RenderBackend(RenderBackend&&) noexcept = delete;
+		virtual ~RenderBackend() noexcept;
 
 	public:
-		const App& getApp() const;
+		const App& getApp() const noexcept;
 	};
 
 }

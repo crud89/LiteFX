@@ -38,32 +38,32 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanGraphicsAdapter() = default;
 
 	public:
-		virtual String getName() const override;
-		virtual uint32_t getVendorId() const override;
-		virtual uint32_t getDeviceId() const override;
-		virtual GraphicsAdapterType getType() const override;
-		virtual uint32_t getDriverVersion() const override;
-		virtual uint32_t getApiVersion() const override;
+		virtual String getName() const noexcept override;
+		virtual uint32_t getVendorId() const noexcept override;
+		virtual uint32_t getDeviceId() const noexcept override;
+		virtual GraphicsAdapterType getType() const noexcept override;
+		virtual uint32_t getDriverVersion() const noexcept override;
+		virtual uint32_t getApiVersion() const noexcept override;
 
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice() const override;
 
 	public:
-		virtual VkPhysicalDeviceProperties getProperties() const;
-		virtual VkPhysicalDeviceFeatures getFeatures() const;
+		virtual VkPhysicalDeviceProperties getProperties() const noexcept;
+		virtual VkPhysicalDeviceFeatures getFeatures() const noexcept;
 	};
 
 	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend, public IResource<VkInstance> {
 	public:
 		explicit VulkanBackend(const App& app, const Array<String>& extensions = { }, const Array<String>& validationLayers = { });
-		VulkanBackend(const VulkanBackend&) = delete;
-		VulkanBackend(VulkanBackend&&) = delete;
+		VulkanBackend(const VulkanBackend&) noexcept = delete;
+		VulkanBackend(VulkanBackend&&) noexcept = delete;
 		virtual ~VulkanBackend();
 
 	public:
 		virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const override;
 		virtual UniquePtr<IGraphicsAdapter> getAdapter(Optional<uint32_t> adapterId = std::nullopt) const override;
-		//virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const override;
+		virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const override;
 		//virtual UniquePtr<ISurface> createSurface() const override;
 		//virtual void useAdapter(const GraphicsAdapter* adapter) const override;
 
@@ -72,10 +72,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual void release();
 
 	public:
-		static bool validateExtensions(const Array<String>& extensions);
-		static Array<String> getAvailableExtensions();
-		static bool validateLayers(const Array<String>& validationLayers);
-		static Array<String> getValidationLayers();
+		static bool validateExtensions(const Array<String>& extensions) noexcept;
+		static Array<String> getAvailableExtensions() noexcept;
+		static bool validateLayers(const Array<String>& validationLayers) noexcept;
+		static Array<String> getValidationLayers() noexcept;
 	};
 
 }

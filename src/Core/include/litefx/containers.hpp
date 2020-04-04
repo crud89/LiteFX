@@ -12,6 +12,7 @@
 #include <stdexcept>
 
 namespace LiteFX {
+
 	using String = std::string;
 	using Exception = std::exception;
 	using Handle = void*;
@@ -55,4 +56,5 @@ namespace LiteFX {
 	SharedPtr<T> makeShared(UniquePtr<T>& ptr) {
 		return std::make_shared<T>(ptr.release());
 	}
+
 }
