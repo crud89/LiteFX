@@ -17,4 +17,9 @@
 #  define LITEFX_CORE_API
 #endif
 
+#if (defined _WIN32 || defined WINCE)
+#  define NOMINMAX
+#  include <Windows.h>
+#endif
+
 #include "containers.hpp"

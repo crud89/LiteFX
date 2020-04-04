@@ -4,10 +4,6 @@
 #include <litefx/core_types.hpp>
 #include <litefx/rendering.hpp>
 
-#if defined(BUILD_OPEN_GL_BACKEND)
-#  include <litefx/backends/opengl.hpp>
-#endif // defined(BUILD_OPEN_GL_BACKEND)
-
 #if defined(BUILD_VULKAN_BACKEND)
 #  include <litefx/backends/vulkan.hpp>
 #endif // defined(BUILD_VULKAN_BACKEND)

@@ -32,9 +32,6 @@ SET(SAMPLE_BASIC_RENDERING_SOURCES
     "src/sample.cpp"
 )
 
-# Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.
-ADD_DEFINITIONS(-DNOMINMAX)
-
 # Add shared library project.
 ADD_EXECUTABLE(LiteFX.Samples.BasicRendering 
     ${SAMPLE_BASIC_RENDERING_HEADERS}

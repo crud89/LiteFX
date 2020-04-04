@@ -24,11 +24,7 @@ SET(CORE_HEADERS
 SET(CORE_SOURCES
     "src/app.cpp"
     "src/appversion.cpp"
-)
-
-# Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.
-# Use _declspec(dllexport) for types.
-ADD_DEFINITIONS(-DNOMINMAX)
+ )
 
 ADD_LIBRARY(LiteFX.Core SHARED
     ${CORE_HEADERS}

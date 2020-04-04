@@ -16,6 +16,13 @@
 
 namespace LiteFX {
 
+	enum class LITEFX_CORE_API Platform {
+		None = 0x00000000,
+		Win32 = 0x00000001,
+		// TODO: ...
+		Other = 0xFFFFFFFF
+	};
+
 #if (defined(BUILD_LITEFX_PIMPL) && BUILD_LITEFX_PIMPL) || (!defined(BUILD_LITEFX_PIMPL)) && !defined(LITEFX_IMPLEMENTATION)
 	template <class pImpl>
 	class PimplPtr {
@@ -102,15 +109,18 @@ namespace LiteFX {
 	* Base class for a LiteFX application.
 	**/
 	class LITEFX_CORE_API App {
+		LITEFX_IMPLEMENTATION(AppImpl)
+
 	public:
-		App() noexcept;
+		App(const Platform& platform) noexcept;
 		App(const App&) = delete;
 		App(App&&) = delete;
-		virtual ~App() noexcept = default;
+		virtual ~App() noexcept;
 
 	public:
 		virtual String getName() const noexcept = 0;
 		virtual AppVersion getVersion() const noexcept = 0;
+		virtual Platform getPlatform() const noexcept;
 
 	public:
 		virtual int start(const int argc, const char** argv);

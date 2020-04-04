@@ -8,7 +8,7 @@
 #include <iostream>
 
 SampleApp::SampleApp() noexcept :
-	App(), m_renderBackend(nullptr), m_surface(nullptr), m_window(nullptr)
+	App(Platform::Win32), m_renderBackend(nullptr), m_window(nullptr), m_surface(nullptr)
 {
 }
 
@@ -70,7 +70,7 @@ int SampleApp::start(const int argc, const char** argv)
 	}
 
 	// Create a queue.
-	UniquePtr<ICommandQueue> queue = m_renderBackend->createQueue(QueueType::Graphics | QueueType::Present);
+	auto queue = adapter->findQueue(QueueType::Graphics);
 
 	// Start event loop, if command line parameters do not suggest otherwise.
 	if (!listCommand->parsed())
@@ -92,8 +92,10 @@ int SampleApp::start(const Array<String>& args)
 
 void SampleApp::stop()
 {
+	m_surface = nullptr;
+	m_renderBackend = nullptr;
+
 	::glfwDestroyWindow(m_window.get());
-	::vkDestroySurfaceKHR(reinterpret_cast<VkInstance>(m_renderBackend->getHandle()), m_surface, nullptr);
 	::glfwTerminate();
 }
 
@@ -124,8 +126,7 @@ void SampleApp::initializeRenderer(const Array<String>& validationLayers)
 	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions, validationLayers);
 
 	// Create a surface.
-	if (::glfwCreateWindowSurface(reinterpret_cast<VkInstance>(m_renderBackend->getHandle()), m_window.get(), nullptr, &m_surface) != VK_SUCCESS)
-		throw std::runtime_error("Unable to create window surface.");
+	m_surface = m_renderBackend->createSurfaceWin32(::glfwGetWin32Window(m_window.get()));
 }
 
 void SampleApp::createWindow()

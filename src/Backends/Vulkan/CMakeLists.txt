@@ -25,10 +25,9 @@ SET(VULKAN_BACKEND_SOURCES
     "src/backend.cpp"
     "src/adaper.cpp"
     "src/device.cpp"
+    "src/queue.cpp"
+    "src/surface.cpp"
 )
-
-# Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.
-ADD_DEFINITIONS(-DNOMINMAX)
 
 # Add shared library project.
 ADD_LIBRARY(LiteFX.Backends.Vulkan SHARED

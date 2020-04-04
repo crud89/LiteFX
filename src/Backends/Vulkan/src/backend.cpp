@@ -1,8 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
 
-#include <stdexcept>
-#include <algorithm>
-
 using namespace LiteFX::Rendering::Backends;
 
 VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
@@ -108,23 +105,23 @@ UniquePtr<IGraphicsAdapter> VulkanBackend::getAdapter(Optional<uint32_t> adapter
     return makeUnique<VulkanGraphicsAdapter>(*match);
 }
 
-UniquePtr<ICommandQueue> VulkanBackend::createQueue(const QueueType& queueType) const
+UniquePtr<ISurface> VulkanBackend::createSurfaceWin32(HWND hwnd) const
 {
     if (this->handle() == nullptr)
         throw std::runtime_error("The backend is not initialized.");
 
-    if (LITEFX_FLAG_IS_SET(queueType, QueueType::Graphics));
-    {
-        throw;
-    }
+    VkWin32SurfaceCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    createInfo.hwnd = hwnd;
+    createInfo.hinstance = ::GetModuleHandle(nullptr);
 
-    throw;
+    VkSurfaceKHR surface;
+
+    if (::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface) != VK_SUCCESS)
+        throw std::runtime_error("Unable to create vulkan surface for provided window.");
+
+    return makeUnique<VulkanSurface>(surface, this->handle());
 }
-
-//UniquePtr<ISurface> VulkanBackend::createSurface() const
-//{
-//    throw;
-//}
 
 // ------------------------------------------------------------------------------------------------
 // Static interface.

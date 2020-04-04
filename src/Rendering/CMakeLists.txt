@@ -16,9 +16,6 @@ SET(RENDERING_SOURCES
     "src/backend.cpp"
 )
 
-# Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.
-ADD_DEFINITIONS(-DNOMINMAX)
-
 # Add shared library project.
 ADD_LIBRARY(LiteFX.Rendering SHARED
     ${RENDERING_HEADERS}
