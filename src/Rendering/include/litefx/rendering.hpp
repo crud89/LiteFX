@@ -23,7 +23,7 @@ namespace LiteFX::Rendering {
 		None = 0x00000000,
 		GPU = 0x00000001,
 		CPU = 0x00000002,
-		Other = 0xFFFFFFFF,
+		Other = 0x7FFFFFFF,
 	};
 
 	enum class LITEFX_RENDERING_API QueueType {
@@ -31,7 +31,7 @@ namespace LiteFX::Rendering {
 		Graphics = 0x00000001,
 		Compute = 0x00000002,
 		Transfer = 0x00000004,
-		Other = 0xFFFFFFFF
+		Other = 0x7FFFFFFF
 	};
 
 
@@ -54,7 +54,7 @@ namespace LiteFX::Rendering {
 		virtual ~ICommandQueue() noexcept = default;
 
 	public:
-		virtual const QueueType& getType() const noexcept = 0;
+		virtual QueueType getType() const noexcept = 0;
 	};
 
 	class LITEFX_RENDERING_API IGraphicsDevice {

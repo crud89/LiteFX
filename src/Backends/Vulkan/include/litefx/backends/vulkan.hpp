@@ -28,6 +28,13 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
+	// Forward declarations.
+	class VulkanSurface;
+	class VulkanQueue;
+	class VulkanDevice;
+	class VulkanGraphicsAdapter;
+	class VulkanBackend;
+
 	class LITEFX_VULKAN_API VulkanSurface : public ISurface, public IResource<VkSurfaceKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
 
@@ -40,16 +47,24 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl)
 	
 	public:
-		VulkanQueue(const QueueType& type) noexcept;
+		VulkanQueue(const QueueType& type, const uint32_t id) noexcept;
 		virtual ~VulkanQueue() noexcept;
 
 	public:
-		virtual const QueueType& getType() const noexcept override;
+		virtual uint32_t getId() const noexcept;
+
+	public:
+		virtual void initDeviceQueue(const VulkanDevice* device);
+
+	public:
+		virtual QueueType getType() const noexcept override;
 	};
 
 	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice, public IResource<VkDevice> {
+		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
+
 	public:
-		VulkanDevice(const VkDevice device);
+		VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue);
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;

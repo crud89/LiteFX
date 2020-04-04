@@ -41,7 +41,7 @@ public:
             if ((m_queues[q]->getType() & type) == type)
             {
                 VkBool32 canPresent = VK_FALSE;
-                ::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter, q, surface->handle(), &canPresent);
+                ::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter, static_cast<uint32_t>(q), surface->handle(), &canPresent);
 
                 if (canPresent)
                 {
@@ -92,7 +92,7 @@ public:
         if (::vkCreateDevice(m_adapter, &createInfo, nullptr, &device) != VK_SUCCESS)
             throw std::runtime_error("Unable to create Vulkan device.");
 
-        return makeUnique<VulkanDevice>(device);
+        return makeUnique<VulkanDevice>(device, queue);
     }
 
 public:
@@ -125,7 +125,7 @@ private:
         ::vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilies, familyProperties.data());
         std::generate(queues.begin(), queues.end(), [&familyProperties, i = 0] () mutable {
             QueueType type = QueueType::None;
-            auto& familyProperty = familyProperties[i++];
+            auto& familyProperty = familyProperties[i];
 
             if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
                 type |= QueueType::Compute;
@@ -134,7 +134,7 @@ private:
             if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
                 type |= QueueType::Transfer;
 
-            return makeShared<VulkanQueue>(type);
+            return makeShared<VulkanQueue>(type, i++);
         });
 
         m_queues = std::move(queues);
