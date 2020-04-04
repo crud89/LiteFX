@@ -4,10 +4,12 @@
 // See: https://stackoverflow.com/a/22054743/1254352
 #pragma warning(disable: 4251)
 
+#include <algorithm>
 #include <string>
 #include <optional>
 #include <map>
 #include <vector>
+#include <tuple>
 #include <memory>
 #include <stdexcept>
 
@@ -31,6 +33,9 @@ namespace LiteFX {
 
 	template <class T>
 	using SharedPtr = std::shared_ptr<T>;
+
+	template <class... T>
+	using Tuple = std::tuple<T...>;
 
 	template <class T>
 	UniquePtr<T> makeUnique() {
