@@ -76,7 +76,7 @@ namespace LiteFX::Rendering {
 		virtual uint32_t getApiVersion() const noexcept = 0;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ICommandQueue* queue) const = 0;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface) const = 0;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const = 0;
 	};
 
@@ -87,7 +87,6 @@ namespace LiteFX::Rendering {
 	public:
 		virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const = 0;
 		virtual UniquePtr<IGraphicsAdapter> getAdapter(Optional<uint32_t> adapterId = std::nullopt) const = 0;
-		//virtual void useAdapter(const GraphicsAdapter* adapter) const = 0;
 
 		// Platform specific code.
 	public:

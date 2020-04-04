@@ -28,11 +28,13 @@ private:
 	typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 	typedef UniquePtr<VulkanBackend> RenderBackendPtr;
 	typedef UniquePtr<ISurface> RenderSurfacePtr;
+	typedef UniquePtr<IGraphicsDevice> GraphicsDevicePtr;
 
 private:
 	GlfwWindowPtr m_window;
 	RenderBackendPtr m_renderBackend;
 	RenderSurfacePtr m_surface;
+	GraphicsDevicePtr m_device;
 
 public:
 	SampleApp() noexcept;

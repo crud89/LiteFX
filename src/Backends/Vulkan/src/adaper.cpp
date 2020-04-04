@@ -17,37 +17,40 @@ public:
     }
 
 public:
-    SharedPtr<VulkanQueue> findQueue(const QueueType& type) const noexcept
+    SharedPtr<VulkanQueue> findQueue(const QueueType& type, Optional<uint32_t>& queueId) const noexcept
     {
-        for each (auto& queue in m_queues)
-            if ((queue->getType() & type) == type)
-                return queue;
+        if (m_queues.empty())
+            return nullptr;
+
+        for (size_t q(0); q < m_queues.size(); ++q)
+        {
+            if ((m_queues[q]->getType() & type) == type)
+            {
+                queueId = static_cast<uint32_t>(q);
+                return m_queues[q];
+            }
+        }
+
+        return nullptr;
     }
 
-    UniquePtr<VulkanDevice> createDevice(const ICommandQueue* queue) 
+    UniquePtr<VulkanDevice> createDevice(const ISurface* surface)
     {
-        if (queue == nullptr)
-            throw std::invalid_argument("The provided queue is not initialized.");
+        if (surface == nullptr)
+            throw std::invalid_argument("The provided surface is not initialized.");
 
-        int queueId = 0;
-        auto match = std::find_if(m_queues.begin(), m_queues.end(), [&queue, &queueId](const SharedPtr<VulkanQueue>& q) {
-            if (q.get() != queue)
-            {
-                queueId++;
-                return false;
-            }
+        // Create a graphics device.
+        Optional<uint32_t> queueId;
+        auto queue = this->findQueue(QueueType::Graphics, queueId);
 
-            return true;
-        });
-
-        if (match == m_queues.end())
-            throw std::invalid_argument("The provided queue does not belong to this adapter.");
+        if (!queueId.has_value())
+            throw std::runtime_error("The adapter does not provide a graphics device.");
 
         // Define a graphics queue for the device.
         const float queuePriority = 1.0f;
         VkDeviceQueueCreateInfo queueCreateInfo = {};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueId;
+        queueCreateInfo.queueFamilyIndex = queueId.value();
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;
         
@@ -175,12 +178,13 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
     return properties.apiVersion;
 }
 
-UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ICommandQueue* queue) const
+UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ISurface* surface) const
 {
-    return m_impl->createDevice(queue);
+    return m_impl->createDevice(surface);
 }
 
 SharedPtr<ICommandQueue> VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const
 {
-    return m_impl->findQueue(queueType);
+    Optional<uint32_t> queueId;
+    return m_impl->findQueue(queueType, queueId);
 }

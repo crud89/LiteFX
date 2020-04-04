@@ -8,7 +8,7 @@
 #include <iostream>
 
 SampleApp::SampleApp() noexcept :
-	App(Platform::Win32), m_renderBackend(nullptr), m_window(nullptr), m_surface(nullptr)
+	App(Platform::Win32), m_renderBackend(nullptr), m_window(nullptr), m_surface(nullptr), m_device(nullptr)
 {
 }
 
@@ -69,8 +69,8 @@ int SampleApp::start(const int argc, const char** argv)
 		adapter = m_renderBackend->getAdapter(std::nullopt);
 	}
 
-	// Create a queue.
-	auto queue = adapter->findQueue(QueueType::Graphics);
+	// Create a graphics device for the window surface.
+	m_device = adapter->createDevice(m_surface.get());
 
 	// Start event loop, if command line parameters do not suggest otherwise.
 	if (!listCommand->parsed())
@@ -92,6 +92,7 @@ int SampleApp::start(const Array<String>& args)
 
 void SampleApp::stop()
 {
+	m_device = nullptr;
 	m_surface = nullptr;
 	m_renderBackend = nullptr;
 

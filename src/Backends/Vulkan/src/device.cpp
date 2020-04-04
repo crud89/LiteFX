@@ -9,7 +9,7 @@ VulkanDevice::VulkanDevice(const VkDevice device) :
 		throw std::invalid_argument("The argument `device` must be initialized.");
 }
 
-VulkanDevice::~VulkanDevice()
+VulkanDevice::~VulkanDevice() noexcept
 {
 	::vkDestroyDevice(this->handle(), nullptr);
 }

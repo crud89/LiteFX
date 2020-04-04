@@ -52,7 +52,7 @@ namespace LiteFX::Rendering::Backends {
 		VulkanDevice(const VkDevice device);
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
-		virtual ~VulkanDevice();
+		virtual ~VulkanDevice() noexcept;
 	};
 
 	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
@@ -73,7 +73,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual uint32_t getApiVersion() const noexcept override;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ICommandQueue* queue) const override;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface) const override;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const override;
 	};
 
