@@ -5,6 +5,7 @@
 #pragma warning(disable: 4251)
 
 #include <string>
+#include <optional>
 #include <map>
 #include <vector>
 #include <memory>
@@ -21,6 +22,9 @@ namespace LiteFX
 
 	template<class T>
 	using Array = std::vector<T>;
+
+	template<class T>
+	using Optional = std::optional<T>;
 
 	template<class T, class TDeleter = std::default_delete<T>>
 	using UniquePtr = std::unique_ptr<T, TDeleter>;

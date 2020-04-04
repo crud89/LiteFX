@@ -16,81 +16,79 @@
 #  define LITEFX_RENDERING_API
 #endif
 
-namespace LiteFX {
-	namespace Rendering {
+namespace LiteFX::Rendering {
+	using namespace LiteFX;
 
-		using namespace LiteFX;
+	enum class LITEFX_RENDERING_API GraphicsAdapterType
+	{
+		GPU = 0x01,
+		CPU = 0x02,
+		Other = 0xFF,
+	};
 
-		enum class LITEFX_RENDERING_API GraphicsAdapterType 
-		{
-			GPU = 0x01,
-			CPU = 0x02,
-			Other = 0xFF,
-		};
+	enum class LITEFX_RENDERING_API QueueType
+	{
+		Graphics = 0x01,
+		Compute = 0x02,
+		Transfer = 0x04,
+		Present = 0x10,
+		Other = 0xFF
+	};
 
-		enum class LITEFX_RENDERING_API QueueType 
-		{
-			Graphics = 0x01,
-			Compute = 0x02,
-			Transfer = 0x04,
-			Present = 0x10,
-			Other = 0xFF
-		};
+	class LITEFX_RENDERING_API ISurface
+	{
+	};
 
-		class LITEFX_RENDERING_API ISurface
-		{
-		};
+	class LITEFX_RENDERING_API ICommandPool
+	{
+	};
 
-		class LITEFX_RENDERING_API ICommandPool
-		{
-		};
+	class LITEFX_RENDERING_API ICommandQueue
+	{
+	};
 
-		class LITEFX_RENDERING_API ICommandQueue
-		{
-		};
+	class LITEFX_RENDERING_API IGraphicsDevice
+	{
+	};
 
-		class LITEFX_RENDERING_API IGraphicsDevice
-		{
-		};
+	class LITEFX_RENDERING_API IGraphicsAdapter
+	{
+	public:
+		virtual String getName() const = 0;
+		virtual uint32_t getVendorId() const = 0;
+		virtual uint32_t getDeviceId() const = 0;
+		virtual GraphicsAdapterType getType() const = 0;
+		virtual uint32_t getDriverVersion() const = 0;
+		virtual uint32_t getApiVersion() const = 0;
 
-		class LITEFX_RENDERING_API IGraphicsAdapter
-		{
-		public:
-			virtual String getName() const = 0;
-			virtual uint32_t getVendorId() const = 0;
-			virtual uint32_t getDeviceId() const = 0;
-			virtual GraphicsAdapterType getType() const = 0;
-			virtual uint32_t getDriverVersion() const = 0;
-			virtual uint32_t getApiVersion() const = 0;
+	public:
+		virtual UniquePtr<IGraphicsDevice> createDevice() const = 0;
+	};
 
-		public:
-			virtual UniquePtr<IGraphicsDevice> createDevice() const = 0;
-		};
+	class LITEFX_RENDERING_API IRenderBackend
+	{
+	public:
+		virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const = 0;
+		virtual UniquePtr<IGraphicsAdapter> getAdapter(Optional<uint32_t> adapterId = std::nullopt) const = 0;
+		//virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const = 0;
+		//virtual UniquePtr<ISurface> createSurface() const = 0;
+		//virtual void useAdapter(const GraphicsAdapter* adapter) const = 0;
+	};
 
-		class LITEFX_RENDERING_API IRenderBackend
-		{
-		public:
-			virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const = 0;
-			virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const = 0;
-			virtual UniquePtr<ISurface> createSurface() const = 0;
-			//virtual void useAdapter(const GraphicsAdapter* adapter) const = 0;
-		};
+	class LITEFX_RENDERING_API RenderBackend :
+		public IRenderBackend
+	{
+	private:
+		const App& m_app;
 
-		class LITEFX_RENDERING_API RenderBackend :
-			public IRenderBackend
-		{
-		private:
-			const App& m_app;
+	public:
+		explicit RenderBackend(const App& app);
+		RenderBackend(const RenderBackend&) = delete;
+		RenderBackend(RenderBackend&&) = delete;
+		virtual ~RenderBackend() = default;
 
-		public:
-			explicit RenderBackend(const App& app);
-			RenderBackend(const RenderBackend&) = delete;
-			RenderBackend(RenderBackend&&) = delete;
-			virtual ~RenderBackend() = default;
+	public:
+		const App& getApp() const;
+	};
 
-		public:
-			const App& getApp() const;
-		};
-
-	}
 }

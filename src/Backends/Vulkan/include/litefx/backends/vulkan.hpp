@@ -60,6 +60,9 @@ namespace LiteFX {
 			public:
 				virtual VkPhysicalDeviceProperties getProperties() const;
 				virtual VkPhysicalDeviceFeatures getFeatures() const;
+
+			public:
+				//static Iteratable<const IGraphicsAdapter&> getAdapters();
 			};
 
 			class LITEFX_VULKAN_API VulkanBackend :
@@ -74,7 +77,8 @@ namespace LiteFX {
 
 			public:
 				virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const override;
-				virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const override;
+				virtual UniquePtr<IGraphicsAdapter> getAdapter(Optional<uint32_t> adapterId = std::nullopt) const override;
+				//virtual UniquePtr<ICommandQueue> createQueue(const QueueType& queueType) const override;
 				//virtual UniquePtr<ISurface> createSurface() const override;
 				//virtual void useAdapter(const GraphicsAdapter* adapter) const override;
 

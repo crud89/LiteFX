@@ -77,25 +77,46 @@ Array<UniquePtr<IGraphicsAdapter>> VulkanBackend::getAdapters() const
     ::vkEnumeratePhysicalDevices(this->handle(), &adapters, nullptr);
 
     Array<VkPhysicalDevice> handles(adapters);
+    Array<UniquePtr<IGraphicsAdapter>> results(adapters);
+
     ::vkEnumeratePhysicalDevices(this->handle(), &adapters, handles.data());
-
-    Array<UniquePtr<IGraphicsAdapter>> results;
-
-    for each (auto & handle in handles)
-        results.push_back(makeUnique<VulkanGraphicsAdapter>(handle));
-
+    std::generate(results.begin(), results.end(), [&handles, i = 0] () mutable { 
+        return makeUnique<VulkanGraphicsAdapter>(handles[i++]); 
+    });
+    
     return results;
 }
 
-UniquePtr<ICommandQueue> VulkanBackend::createQueue(const QueueType& queueType) const
+UniquePtr<IGraphicsAdapter> VulkanBackend::getAdapter(Optional<uint32_t> adapterId) const
 {
-    throw;
+    if (this->handle() == nullptr)
+        throw std::runtime_error("The backend is not initialized.");
+
+    uint32_t adapters = 0;
+    ::vkEnumeratePhysicalDevices(this->handle(), &adapters, nullptr);
+
+    Array<VkPhysicalDevice> handles(adapters);
+    ::vkEnumeratePhysicalDevices(this->handle(), &adapters, handles.data());
+
+    auto match = std::find_if(handles.begin(), handles.end(), [&adapterId](const VkPhysicalDevice& dvc) {
+        return !adapterId.has_value() || makeUnique<VulkanGraphicsAdapter>(dvc)->getDeviceId() == adapterId;
+    });
+
+    if (match == handles.end())
+        throw std::runtime_error("The requested graphics adapter could not be found.");
+
+    return makeUnique<VulkanGraphicsAdapter>(*match);
 }
 
-UniquePtr<ISurface> VulkanBackend::createSurface() const
-{
-    throw;
-}
+//UniquePtr<ICommandQueue> VulkanBackend::createQueue(const QueueType& queueType) const
+//{
+//    throw;
+//}
+//
+//UniquePtr<ISurface> VulkanBackend::createSurface() const
+//{
+//    throw;
+//}
 
 // ------------------------------------------------------------------------------------------------
 // Static interface.
