@@ -19,15 +19,13 @@
 namespace LiteFX::Rendering {
 	using namespace LiteFX;
 
-	enum class LITEFX_RENDERING_API GraphicsAdapterType
-	{
+	enum class LITEFX_RENDERING_API GraphicsAdapterType {
 		GPU = 0x01,
 		CPU = 0x02,
 		Other = 0xFF,
 	};
 
-	enum class LITEFX_RENDERING_API QueueType
-	{
+	enum class LITEFX_RENDERING_API QueueType {
 		Graphics = 0x01,
 		Compute = 0x02,
 		Transfer = 0x04,
@@ -35,24 +33,19 @@ namespace LiteFX::Rendering {
 		Other = 0xFF
 	};
 
-	class LITEFX_RENDERING_API ISurface
-	{
+	class LITEFX_RENDERING_API ISurface {
 	};
 
-	class LITEFX_RENDERING_API ICommandPool
-	{
+	class LITEFX_RENDERING_API ICommandPool {
 	};
 
-	class LITEFX_RENDERING_API ICommandQueue
-	{
+	class LITEFX_RENDERING_API ICommandQueue {
 	};
 
-	class LITEFX_RENDERING_API IGraphicsDevice
-	{
+	class LITEFX_RENDERING_API IGraphicsDevice {
 	};
 
-	class LITEFX_RENDERING_API IGraphicsAdapter
-	{
+	class LITEFX_RENDERING_API IGraphicsAdapter {
 	public:
 		virtual String getName() const = 0;
 		virtual uint32_t getVendorId() const = 0;

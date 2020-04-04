@@ -11,8 +11,7 @@
 #include <memory>
 #include <stdexcept>
 
-namespace LiteFX 
-{
+namespace LiteFX {
 	using String = std::string;
 	using Exception = std::exception;
 	using Handle = void*;
@@ -33,32 +32,27 @@ namespace LiteFX
 	using SharedPtr = std::shared_ptr<T>;
 
 	template <class T>
-	UniquePtr<T> makeUnique()
-	{
+	UniquePtr<T> makeUnique() {
 		return std::make_unique<T>();
 	}
 
 	template <class T, class... TArgs>
-	UniquePtr<T> makeUnique(TArgs&&... _args)
-	{
+	UniquePtr<T> makeUnique(TArgs&&... _args) {
 		return std::make_unique<T>(std::forward<TArgs>(_args)...);
 	}
 
 	template <class T>
-	SharedPtr<T> makeShared()
-	{
+	SharedPtr<T> makeShared() {
 		return std::make_shared<T>()
 	}
 
 	template <class T, class... TArgs>
-	SharedPtr<T> makeShared(TArgs&&... _args)
-	{
+	SharedPtr<T> makeShared(TArgs&&... _args) {
 		return std::make_shared<T>(std::forward<TArgs>(_args)...);
 	}
 
 	template <class T>
-	SharedPtr<T> makeShared(UniquePtr<T>& ptr)
-	{
+	SharedPtr<T> makeShared(UniquePtr<T>& ptr) {
 		return std::make_shared<T>(ptr.release());
 	}
 }

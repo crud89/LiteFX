@@ -5,8 +5,7 @@
 namespace LiteFX {
 
 	template <class THandle>
-	class IResource
-	{
+	class IResource {
 	private:
 		THandle m_handle;
 
@@ -29,8 +28,7 @@ namespace LiteFX {
 	/**
 	* 
 	**/
-	class LITEFX_CORE_API AppVersion
-	{
+	class LITEFX_CORE_API AppVersion {
 	private:
 		int m_major, m_minor, m_patch, m_revision;
 
@@ -56,8 +54,7 @@ namespace LiteFX {
 	/**
 	* Base class for a LiteFX application.
 	**/
-	class LITEFX_CORE_API App 
-	{
+	class LITEFX_CORE_API App {
 	public:
 		App();
 		App(const App&) = delete;
