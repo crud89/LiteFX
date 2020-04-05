@@ -40,16 +40,18 @@ public:
 public:
     SharedPtr<VulkanQueue> findQueue(const QueueType& type, Optional<uint32_t>& queueId) const noexcept
     {
-        for (size_t q(0); q < m_queues.size(); ++q)
-        {
-            if ((m_queues[q]->getType() & type) == type)
-            {
-                queueId = static_cast<uint32_t>(q);
-                return m_queues[q];
-            }
-        }
+        auto match = std::find_if(m_queues.begin(), m_queues.end(), [&](const SharedPtr<VulkanQueue>& queue) mutable {
+            if ((queue->getType() & type) != type)
+                return false;
 
-        return nullptr;
+            queueId = queue->getId();
+            return true;
+        });
+
+        if (match == m_queues.end())
+            return nullptr;
+
+        return *match;
     }
 
     SharedPtr<VulkanQueue> findQueue(const VulkanGraphicsAdapter& parent, const QueueType& type, Optional<uint32_t>& queueId, const VulkanSurface* surface) const
@@ -57,22 +59,24 @@ public:
         if (surface == nullptr)
             throw std::invalid_argument("The argument `surface` is not initialized.");
 
-        for (size_t q(0); q < m_queues.size(); ++q)
-        {
-            if ((m_queues[q]->getType() & type) == type)
-            {
-                VkBool32 canPresent = VK_FALSE;
-                ::vkGetPhysicalDeviceSurfaceSupportKHR(parent.handle(), static_cast<uint32_t>(q), surface->handle(), &canPresent);
+        auto match = std::find_if(m_queues.begin(), m_queues.end(), [&](const SharedPtr<VulkanQueue>& queue) mutable {
+            if ((queue->getType() & type) != type)
+                return false;
 
-                if (canPresent)
-                {
-                    queueId = static_cast<uint32_t>(q);
-                    return m_queues[q];
-                }
-            }
-        }
+            VkBool32 canPresent = VK_FALSE;
+            ::vkGetPhysicalDeviceSurfaceSupportKHR(parent.handle(), queue->getId(), surface->handle(), &canPresent);
 
-        return nullptr;
+            if (!canPresent)
+                return false;
+
+            queueId = queue->getId();
+            return true;
+        });
+
+        if (match == m_queues.end())
+            return nullptr;
+
+        return *match;
     }
 
     UniquePtr<VulkanDevice> createDevice(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface, const Array<String>& ext = { })
