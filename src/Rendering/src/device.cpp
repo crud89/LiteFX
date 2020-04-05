@@ -8,7 +8,7 @@ private:
 	const ISurface* m_surface;
 
 public:
-	GraphicsDeviceImpl(const IGraphicsAdapter* adapter, const ISurface* surface) noexcept : 
+	GraphicsDeviceImpl(const IGraphicsAdapter* adapter, const ISurface* surface) noexcept :
 		m_adapter(adapter), m_surface(surface) { }
 
 public:
@@ -35,12 +35,12 @@ GraphicsDevice::GraphicsDevice(const IGraphicsAdapter* adapter, const ISurface* 
 
 GraphicsDevice::~GraphicsDevice() noexcept = default;
 
-const IGraphicsAdapter* GraphicsDevice::getAdapter() const
+const IGraphicsAdapter* GraphicsDevice::getAdapter() const noexcept
 {
 	return m_impl->getAdapter();
 }
 
-const ISurface* GraphicsDevice::getSurface() const
+const ISurface* GraphicsDevice::getSurface() const noexcept
 {
 	return m_impl->getSurface();
 }

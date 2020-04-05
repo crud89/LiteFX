@@ -38,7 +38,7 @@ public:
     }
 
 public:
-    UniquePtr<VulkanDevice> createDevice(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface, const Array<String>& ext = { })
+    UniquePtr<VulkanDevice> createDevice(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface, const Format& format, const Array<String>& ext = { })
     {
         if (surface == nullptr)
             throw std::invalid_argument("The provided surface is not initialized or not a valid Vulkan surface.");
@@ -88,7 +88,7 @@ public:
         if (::vkCreateDevice(parent.handle(), &createInfo, nullptr, &device) != VK_SUCCESS)
             throw std::runtime_error("Unable to create Vulkan device.");
 
-        return makeUnique<VulkanDevice>(&parent, surface, device, queue, extensions);
+        return makeUnique<VulkanDevice>(&parent, surface, device, queue, format, extensions);
     }
 
     SharedPtr<VulkanQueue> findQueue(const QueueType& type, Optional<uint32_t>& queueId) const noexcept
@@ -131,23 +131,6 @@ public:
 
         return *match;
     }
-    
-    Array<Format> getSurfaceFormats(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface) const
-    {
-        if (surface == nullptr)
-            throw std::invalid_argument("The argument `surface` is not initialized.");
-
-        uint32_t formats;
-        ::vkGetPhysicalDeviceSurfaceFormatsKHR(parent.handle(), surface->handle(), &formats, nullptr);
-
-        Array<VkSurfaceFormatKHR> availableFormats(formats);
-        Array<Format> surfaceFormats(formats);
-        
-        ::vkGetPhysicalDeviceSurfaceFormatsKHR(parent.handle(), surface->handle(), &formats, availableFormats.data());
-        std::generate(surfaceFormats.begin(), surfaceFormats.end(), [&availableFormats, i = 0]() mutable { return getFormat(availableFormats[i++].format); });
-
-        return surfaceFormats;
-    }
 
 public:
     VkPhysicalDeviceProperties getProperties(const VulkanGraphicsAdapter& parent) const noexcept
@@ -167,7 +150,7 @@ public:
     }
 };
 
-VulkanGraphicsAdapter::VulkanGraphicsAdapter(const VkPhysicalDevice adapter) :
+VulkanGraphicsAdapter::VulkanGraphicsAdapter(const VkPhysicalDevice& adapter) :
 	IResource(adapter), m_impl(makePimpl<VulkanGraphicsAdapterImpl>())
 {
     if (adapter == nullptr)
@@ -225,20 +208,15 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
     return properties.apiVersion;
 }
 
-UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ISurface* surface, const Array<String>& extensions) const
+UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ISurface* surface, const Format& format, const Array<String>& extensions) const
 {
-    return m_impl->createDevice(*this, dynamic_cast<const VulkanSurface*>(surface), extensions);
+    return m_impl->createDevice(*this, dynamic_cast<const VulkanSurface*>(surface), format, extensions);
 }
 
 SharedPtr<ICommandQueue> VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const
 {
     Optional<uint32_t> queueId;
     return m_impl->findQueue(queueType, queueId);
-}
-
-Array<Format> VulkanGraphicsAdapter::getSurfaceFormats(const ISurface* surface) const
-{
-    return m_impl->getSurfaceFormats(*this, dynamic_cast<const VulkanSurface*>(surface));
 }
 
 bool VulkanGraphicsAdapter::validateDeviceExtensions(const Array<String>& extensions) const noexcept

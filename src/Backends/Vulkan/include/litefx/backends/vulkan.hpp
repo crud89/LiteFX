@@ -40,6 +40,18 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanGraphicsAdapter;
 	class VulkanBackend;
 
+	// Class definitions.
+	class LITEFX_VULKAN_API VulkanSwapChain : public ISwapChain, public IResource<VkSwapchainKHR> {
+		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl)
+
+	public:
+		VulkanSwapChain(const VkSwapchainKHR& swapChain, const VulkanDevice* device);
+		virtual ~VulkanSwapChain() noexcept;
+
+	public:
+		virtual const IGraphicsDevice* getDevice() const noexcept override;
+	};
+
 	class LITEFX_VULKAN_API VulkanSurface : public ISurface, public IResource<VkSurfaceKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
 
@@ -69,20 +81,22 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
 
 	public:
-		VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, const VkDevice device, SharedPtr<VulkanQueue> queue, const Array<String>& extensions = { });
+		VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, const VkDevice device, SharedPtr<VulkanQueue> queue, const Format& format, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
 
 	public:
-		virtual UniquePtr<ISwapChain> createSwapChain(const Format& format = Format::B8G8R8A8_UNORM_SRGB) const override;
+		virtual const Array<String>& getExtensions() const noexcept;
+		virtual Array<Format> getSurfaceFormats() const override;
+		virtual const ISwapChain* getSwapChain() const noexcept override;
 	};
 
 	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl)
 
 	public:
-		VulkanGraphicsAdapter(const VkPhysicalDevice adapter);
+		VulkanGraphicsAdapter(const VkPhysicalDevice& adapter);
 		VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
 		VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
 		virtual ~VulkanGraphicsAdapter() noexcept;
@@ -96,9 +110,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual uint32_t getApiVersion() const noexcept override;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Array<String>& extensions = { }) const override;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const override;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const override;
-		virtual Array<Format> getSurfaceFormats(const ISurface* surface) const override;
 
 	public:
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;

@@ -71,6 +71,7 @@ int SampleApp::start(const int argc, const char** argv)
 
 	// Create a graphics device for the window surface.
 	m_device = adapter->createDevice(m_surface.get());
+	auto swapChain = m_device->getSwapChain();
 
 	// Start event loop, if command line parameters do not suggest otherwise.
 	if (!listCommand->parsed())

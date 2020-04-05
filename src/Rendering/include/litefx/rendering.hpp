@@ -61,7 +61,8 @@ namespace LiteFX::Rendering {
 	public:
 		virtual ~ISwapChain() noexcept = default;
 
-
+	public:
+		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
 	};
 
 	class LITEFX_RENDERING_API ISurface {
@@ -87,11 +88,10 @@ namespace LiteFX::Rendering {
 		virtual ~IGraphicsDevice() noexcept = default;
 
 	public:
-		virtual const IGraphicsAdapter* getAdapter() const = 0;
-		virtual const ISurface* getSurface() const = 0;
-
-	public:
-		virtual UniquePtr<ISwapChain> createSwapChain(const Format& format = Format::B8G8R8A8_UNORM_SRGB) const = 0;
+		virtual const IGraphicsAdapter* getAdapter() const noexcept= 0;
+		virtual const ISurface* getSurface() const noexcept = 0;
+		virtual const ISwapChain* getSwapChain() const noexcept = 0;
+		virtual Array<Format> getSurfaceFormats() const = 0;
 	};
 
 	class LITEFX_RENDERING_API IGraphicsAdapter {
@@ -107,9 +107,8 @@ namespace LiteFX::Rendering {
 		virtual uint32_t getApiVersion() const noexcept = 0;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Array<String>& extensions = { }) const = 0;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const = 0;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const = 0;
-		virtual Array<Format> getSurfaceFormats(const ISurface* surface) const = 0;
 	};
 
 	class LITEFX_RENDERING_API IRenderBackend {
@@ -140,8 +139,8 @@ namespace LiteFX::Rendering {
 		virtual ~GraphicsDevice() noexcept;
 
 	public:
-		virtual const IGraphicsAdapter* getAdapter() const override;
-		virtual const ISurface* getSurface() const override;
+		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
+		virtual const ISurface* getSurface() const noexcept override;
 	};
 
 	class LITEFX_RENDERING_API RenderBackend : public IRenderBackend {
