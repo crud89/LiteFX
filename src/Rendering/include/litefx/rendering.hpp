@@ -92,6 +92,7 @@ namespace LiteFX::Rendering {
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const = 0;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const = 0;
+		virtual Array<Format> getSurfaceFormats(const ISurface* surface) const = 0;
 	};
 
 	class LITEFX_RENDERING_API IRenderBackend {

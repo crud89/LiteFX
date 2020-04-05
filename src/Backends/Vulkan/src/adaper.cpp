@@ -38,6 +38,70 @@ public:
     }
 
 public:
+    UniquePtr<VulkanDevice> createDevice(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface, const Format& format, const Array<String>& ext = { })
+    {
+        if (surface == nullptr)
+            throw std::invalid_argument("The provided surface is not initialized or not a valid Vulkan surface.");
+
+        if (format == Format::Other || format == Format::None)
+            throw std::invalid_argument("The provided surface format it not a valid value.");
+
+        // Add mandatory extensions and check for availability.
+        Array<String> extensions = ext;
+        extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+        if (!parent.validateDeviceExtensions(extensions))
+            throw std::runtime_error("Some required device extensions are not supported by the system.");
+
+        // Parse the extensions.
+        // NOTE: For legacy support we should also set the device validation layers here.
+        std::vector<const char*> requiredExtensions(extensions.size());
+        std::generate(requiredExtensions.begin(), requiredExtensions.end(), [&extensions, i = 0]() mutable { return extensions[i++].data(); });
+
+        // Create a graphics device.
+        Optional<uint32_t> queueId;
+        auto queue = this->findQueue(parent, QueueType::Graphics, queueId, surface);
+
+        if (!queueId.has_value())
+            throw std::runtime_error("The adapter does not provide a graphics device.");
+        
+        // Query swap chain support.
+        auto surfaceFormats = this->getSurfaceFormats(parent, surface);
+        auto selectedFormat = std::find_if(surfaceFormats.begin(), surfaceFormats.end(), [format](const Format& surfaceFormat) { return surfaceFormat == format; });
+
+        if (selectedFormat == surfaceFormats.end())
+            throw std::runtime_error("The adapter does not provide a graphics device.");
+
+
+        // Define a graphics queue for the device.
+        const float queuePriority = 1.0f;
+        VkDeviceQueueCreateInfo queueCreateInfo = {};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueId.value();
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        
+        // Define the device features.
+        VkPhysicalDeviceFeatures deviceFeatures = {};
+
+        // Define the device itself.
+        VkDeviceCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+        createInfo.pEnabledFeatures = &deviceFeatures;
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
+        createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+
+        // Create the device.
+        VkDevice device;
+
+        if (::vkCreateDevice(parent.handle(), &createInfo, nullptr, &device) != VK_SUCCESS)
+            throw std::runtime_error("Unable to create Vulkan device.");
+
+        return makeUnique<VulkanDevice>(device, queue, extensions);
+    }
+
     SharedPtr<VulkanQueue> findQueue(const QueueType& type, Optional<uint32_t>& queueId) const noexcept
     {
         auto match = std::find_if(m_queues.begin(), m_queues.end(), [&](const SharedPtr<VulkanQueue>& queue) mutable {
@@ -78,76 +142,22 @@ public:
 
         return *match;
     }
-
-    UniquePtr<VulkanDevice> createDevice(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface, const Format& format, const Array<String>& ext = { })
+    
+    Array<Format> getSurfaceFormats(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface) const
     {
         if (surface == nullptr)
-            throw std::invalid_argument("The provided surface is not initialized or not a valid Vulkan surface.");
+            throw std::invalid_argument("The argument `surface` is not initialized.");
 
-        if (format == Format::Other || format == Format::None)
-            throw std::invalid_argument("The provided surface format it not a valid value.");
-
-        // Add mandatory extensions and check for availability.
-        Array<String> extensions = ext;
-        extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-
-        if (!parent.validateDeviceExtensions(extensions))
-            throw std::runtime_error("Some required device extensions are not supported by the system.");
-
-        // Parse the extensions.
-        // NOTE: For legacy support we should also set the device validation layers here.
-        std::vector<const char*> requiredExtensions(extensions.size());
-        std::generate(requiredExtensions.begin(), requiredExtensions.end(), [&extensions, i = 0]() mutable { return extensions[i++].data(); });
-
-        // Create a graphics device.
-        Optional<uint32_t> queueId;
-        auto queue = this->findQueue(parent, QueueType::Graphics, queueId, surface);
-
-        if (!queueId.has_value())
-            throw std::runtime_error("The adapter does not provide a graphics device.");
-        
-        // Query swap chain support.
         uint32_t formats;
         ::vkGetPhysicalDeviceSurfaceFormatsKHR(parent.handle(), surface->handle(), &formats, nullptr);
 
         Array<VkSurfaceFormatKHR> availableFormats(formats);
-        ::vkGetPhysicalDeviceSurfaceFormatsKHR(parent.handle(), surface->handle(), &formats, availableFormats.data());
-
-        auto selectedFormat = std::find_if(availableFormats.begin(), availableFormats.end(), [format](const VkSurfaceFormatKHR& surfaceFormat) {
-            return getFormat(surfaceFormat.format) == format;
-        });
-
-        if (selectedFormat == availableFormats.end())
-            throw std::runtime_error("The adapter does not provide a graphics device.");
-
-
-        // Define a graphics queue for the device.
-        const float queuePriority = 1.0f;
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueId.value();
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        Array<Format> surfaceFormats(formats);
         
-        // Define the device features.
-        VkPhysicalDeviceFeatures deviceFeatures = {};
+        ::vkGetPhysicalDeviceSurfaceFormatsKHR(parent.handle(), surface->handle(), &formats, availableFormats.data());
+        std::generate(surfaceFormats.begin(), surfaceFormats.end(), [&availableFormats, i = 0]() mutable { return getFormat(availableFormats[i++].format); });
 
-        // Define the device itself.
-        VkDeviceCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pQueueCreateInfos = &queueCreateInfo;
-        createInfo.queueCreateInfoCount = 1;
-        createInfo.pEnabledFeatures = &deviceFeatures;
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
-        createInfo.ppEnabledExtensionNames = requiredExtensions.data();
-
-        // Create the device.
-        VkDevice device;
-
-        if (::vkCreateDevice(parent.handle(), &createInfo, nullptr, &device) != VK_SUCCESS)
-            throw std::runtime_error("Unable to create Vulkan device.");
-
-        return makeUnique<VulkanDevice>(device, queue, extensions);
+        return surfaceFormats;
     }
 
 public:
@@ -235,6 +245,11 @@ SharedPtr<ICommandQueue> VulkanGraphicsAdapter::findQueue(const QueueType& queue
 {
     Optional<uint32_t> queueId;
     return m_impl->findQueue(queueType, queueId);
+}
+
+Array<Format> VulkanGraphicsAdapter::getSurfaceFormats(const ISurface* surface) const
+{
+    return m_impl->getSurfaceFormats(*this, dynamic_cast<const VulkanSurface*>(surface));
 }
 
 bool VulkanGraphicsAdapter::validateDeviceExtensions(const Array<String>& extensions) const noexcept

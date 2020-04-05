@@ -95,6 +95,7 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const override;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const override;
+		virtual Array<Format> getSurfaceFormats(const ISurface* surface) const override;
 
 	public:
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
