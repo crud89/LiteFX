@@ -28,6 +28,10 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
+	// Conversion helpers.
+	Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
+	VkFormat LITEFX_VULKAN_API getFormat(const Format& format);
+
 	// Forward declarations.
 	class VulkanSwapChain;
 	class VulkanSurface;
@@ -89,7 +93,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual uint32_t getApiVersion() const noexcept override;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Array<String>& extensions = { }) const override;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const override;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const override;
 
 	public:

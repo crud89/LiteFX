@@ -34,6 +34,13 @@ namespace LiteFX::Rendering {
 		Other = 0x7FFFFFFF
 	};
 
+	enum class LITEFX_RENDERING_API Format {
+		None = 0x00000000,
+		B8G8R8A8_UNORM = 0x00000001,
+		B8G8R8A8_UNORM_SRGB = 0x00000011,
+		Other = 0x7FFFFFFF,
+	};
+
 
 	LITEFX_DEFINE_FLAGS(QueueType);
 	// ...
@@ -83,7 +90,7 @@ namespace LiteFX::Rendering {
 		virtual uint32_t getApiVersion() const noexcept = 0;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Array<String>& extensions = { }) const = 0;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const = 0;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const = 0;
 	};
 

@@ -79,10 +79,13 @@ public:
         return *match;
     }
 
-    UniquePtr<VulkanDevice> createDevice(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface, const Array<String>& ext = { })
+    UniquePtr<VulkanDevice> createDevice(const VulkanGraphicsAdapter& parent, const VulkanSurface* surface, const Format& format, const Array<String>& ext = { })
     {
         if (surface == nullptr)
             throw std::invalid_argument("The provided surface is not initialized or not a valid Vulkan surface.");
+
+        if (format == Format::Other || format == Format::None)
+            throw std::invalid_argument("The provided surface format it not a valid value.");
 
         // Add mandatory extensions and check for availability.
         Array<String> extensions = ext;
@@ -102,6 +105,21 @@ public:
 
         if (!queueId.has_value())
             throw std::runtime_error("The adapter does not provide a graphics device.");
+        
+        // Query swap chain support.
+        uint32_t formats;
+        ::vkGetPhysicalDeviceSurfaceFormatsKHR(parent.handle(), surface->handle(), &formats, nullptr);
+
+        Array<VkSurfaceFormatKHR> availableFormats(formats);
+        ::vkGetPhysicalDeviceSurfaceFormatsKHR(parent.handle(), surface->handle(), &formats, availableFormats.data());
+
+        auto selectedFormat = std::find_if(availableFormats.begin(), availableFormats.end(), [format](const VkSurfaceFormatKHR& surfaceFormat) {
+            return getFormat(surfaceFormat.format) == format;
+        });
+
+        if (selectedFormat == availableFormats.end())
+            throw std::runtime_error("The adapter does not provide a graphics device.");
+
 
         // Define a graphics queue for the device.
         const float queuePriority = 1.0f;
@@ -208,9 +226,9 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
     return properties.apiVersion;
 }
 
-UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ISurface* surface, const Array<String>& extensions) const
+UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ISurface* surface, const Format& format, const Array<String>& extensions) const
 {
-    return m_impl->createDevice(*this, dynamic_cast<const VulkanSurface*>(surface), extensions);
+    return m_impl->createDevice(*this, dynamic_cast<const VulkanSurface*>(surface), format, extensions);
 }
 
 SharedPtr<ICommandQueue> VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const
