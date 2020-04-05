@@ -2,6 +2,10 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class VulkanQueue::VulkanQueueImpl {
 private:
 	QueueType m_type;
@@ -28,6 +32,10 @@ public:
 		return m_type;
 	}
 };
+
+// ------------------------------------------------------------------------------------------------
+// Shared interface.
+// ------------------------------------------------------------------------------------------------
 
 VulkanQueue::VulkanQueue(const QueueType& type, const uint32_t id) noexcept :
 	IResource(nullptr), m_impl(makePimpl<VulkanQueueImpl>(type, id))

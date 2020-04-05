@@ -18,6 +18,8 @@ FIND_PACKAGE(Vulkan REQUIRED)
 
 # Collect header & source files.
 SET(VULKAN_BACKEND_HEADERS
+    "include/litefx/backends/vulkan_api.hpp"
+    "include/litefx/backends/vulkan_platform.hpp"
     "include/litefx/backends/vulkan.hpp"
 )
 

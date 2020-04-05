@@ -2,15 +2,25 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class VulkanDevice::VulkanDeviceImpl {
 private:
 	UniquePtr<VulkanSwapChain> m_swapChain;
-	SharedPtr<VulkanQueue> m_queue;
+	VulkanQueue* m_queue;
 	Array<String> m_extensions;
 
 public:
-	VulkanDeviceImpl(SharedPtr<VulkanQueue> queue, const Array<String>& extensions = { }) noexcept :
-		m_queue(queue), m_extensions(extensions) { }
+	VulkanDeviceImpl(VulkanQueue* queue, const Array<String>& extensions = { }) noexcept :
+		m_queue(queue), m_extensions(extensions) { this->defineMandatoryExtensions(); }
+
+private:
+	void defineMandatoryExtensions() noexcept
+	{
+		m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	}
 
 private:
 	VkSurfaceKHR getSurface(const VulkanDevice& parent) const noexcept
@@ -24,35 +34,90 @@ private:
 		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(parent.getAdapter());
 		return adapter ? adapter->handle() : nullptr;
 	}
-	
-	Array<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const noexcept
+
+public:
+	bool validateDeviceExtensions(const VulkanDevice& parent, const Array<String>& extensions) const noexcept
 	{
-		uint32_t formats;
-		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
+		auto availableExtensions = this->getAvailableDeviceExtensions(parent);
 
-		Array<VkSurfaceFormatKHR> availableFormats(formats);
-		Array<Format> surfaceFormats(formats);
-
-		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
-		std::generate(surfaceFormats.begin(), surfaceFormats.end(), [&availableFormats, i = 0]() mutable { return getFormat(availableFormats[i++].format); });
-
-		return surfaceFormats;
+		return std::all_of(extensions.begin(), extensions.end(), [&availableExtensions](const String& extension) {
+			return std::find_if(availableExtensions.begin(), availableExtensions.end(), [&extension](String& str) {
+				return std::equal(str.begin(), str.end(), extension.begin(), extension.end(), [](char a, char b) {
+					return std::tolower(a) == std::tolower(b);
+					});
+				}) != availableExtensions.end();
+			});
 	}
 
-	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
+	Array<String> getAvailableDeviceExtensions(const VulkanDevice& parent) const noexcept
 	{
-		uint32_t formats;
-		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
+		auto adapter = this->getAdapter(parent);
 
-		Array<VkSurfaceFormatKHR> availableFormats(formats);
-		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
+		uint32_t extensions = 0;
+		::vkEnumerateDeviceExtensionProperties(adapter, nullptr, &extensions, nullptr);
 
-		auto match = std::find_if(availableFormats.begin(), availableFormats.end(), [format](const VkSurfaceFormatKHR& surfaceFormat) { return surfaceFormat.format == getFormat(format); });
+		Array<VkExtensionProperties> availableExtensions(extensions);
+		Array<String> extensionNames(extensions);
 
-		if (match == availableFormats.end())
-			return VK_COLOR_SPACE_MAX_ENUM_KHR;
+		::vkEnumerateDeviceExtensionProperties(adapter, nullptr, &extensions, availableExtensions.data());
+		std::generate(extensionNames.begin(), extensionNames.end(), [&availableExtensions, i = 0]() mutable { return availableExtensions[i++].extensionName; });
 
-		return match->colorSpace;
+		return extensionNames;
+	}
+
+public:
+	VkDevice initialize(const VulkanDevice& parent, const Format& format)
+	{
+		auto adapter = this->getAdapter(parent);
+
+		if (adapter == nullptr)
+			throw std::invalid_argument("The argument `adapter` must be initialized.");
+
+		if (!this->validateDeviceExtensions(parent, m_extensions))
+			throw std::runtime_error("Some required device extensions are not supported by the system.");
+
+		// Parse the extensions.
+		// NOTE: For legacy support we should also set the device validation layers here.
+		std::vector<const char*> requiredExtensions(m_extensions.size());
+		std::generate(requiredExtensions.begin(), requiredExtensions.end(), [this, i = 0]() mutable { return m_extensions[i++].data(); });
+
+		// Define a graphics queue for the device.
+		const float queuePriority = 1.0f;
+		VkDeviceQueueCreateInfo queueCreateInfo = {};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = m_queue->getId();
+		queueCreateInfo.queueCount = 1;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+
+		// Define the device features.
+		VkPhysicalDeviceFeatures deviceFeatures = {};
+
+		// Define the device itself.
+		VkDeviceCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.pQueueCreateInfos = &queueCreateInfo;
+		createInfo.queueCreateInfoCount = 1;
+		createInfo.pEnabledFeatures = &deviceFeatures;
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
+		createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+
+		// Create the device.
+		VkDevice device;
+
+		if (::vkCreateDevice(adapter, &createInfo, nullptr, &device) != VK_SUCCESS)
+			throw std::runtime_error("Unable to create Vulkan device.");
+
+		return device;
+	}
+
+	void createSwapChain(const VulkanDevice& parent, const Format& format)
+	{
+		m_swapChain = makeUnique<VulkanSwapChain>(&parent, format);
+	}
+
+	void initDeviceQueue(const VulkanDevice& parent)
+	{
+		m_queue->initDeviceQueue(&parent);
 	}
 
 public:
@@ -67,7 +132,16 @@ public:
 		if (surface == nullptr)
 			throw std::runtime_error("The surface is not a valid Vulkan surface.");
 
-		return this->getSurfaceFormats(adapter, surface);
+		uint32_t formats;
+		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
+
+		Array<VkSurfaceFormatKHR> availableFormats(formats);
+		Array<Format> surfaceFormats(formats);
+
+		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
+		std::generate(surfaceFormats.begin(), surfaceFormats.end(), [&availableFormats, i = 0]() mutable { return getFormat(availableFormats[i++].format); });
+
+		return surfaceFormats;
 	}
 
 	const Array<String>& getExtensions() const noexcept 
@@ -79,84 +153,22 @@ public:
 	{
 		return m_swapChain.get();
 	}
-
-	void createSwapChain(const VulkanDevice& parent, const Format& format)
-	{
-		if (format == Format::Other || format == Format::None)
-			throw std::invalid_argument("The provided surface format it not a valid value.");
-
-		auto adapter = this->getAdapter(parent);
-		auto surface = this->getSurface(parent);
-
-		if (adapter == nullptr)
-			throw std::runtime_error("The adapter is not a valid Vulkan adapter.");
-
-		if (surface == nullptr)
-			throw std::runtime_error("The surface is not a valid Vulkan surface.");
-
-		// Query swap chain format.
-		auto surfaceFormats = this->getSurfaceFormats(adapter, surface);
-		auto selectedFormat = std::find_if(surfaceFormats.begin(), surfaceFormats.end(), [format](const Format& surfaceFormat) { return surfaceFormat == format; });
-
-		if (selectedFormat == surfaceFormats.end())
-			throw std::invalid_argument("The requested format is not supported by this device.");
-
-		VkSurfaceCapabilitiesKHR deviceCaps;
-		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(adapter, surface, &deviceCaps);
-
-		// Get the number of images in the swap chain.
-		uint32_t images = deviceCaps.minImageCount + 1;
-
-		if (deviceCaps.maxImageCount > 0 && images > deviceCaps.maxImageCount)
-			images = deviceCaps.maxImageCount;
-
-		// Create a swap chain.
-		VkSwapchainCreateInfoKHR createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = surface;
-		createInfo.minImageCount = images;
-		createInfo.imageFormat = getFormat(*selectedFormat);
-		createInfo.imageColorSpace = findColorSpace(adapter, surface, *selectedFormat);
-		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		createInfo.queueFamilyIndexCount = 0;
-		createInfo.pQueueFamilyIndices = nullptr;
-		createInfo.preTransform = deviceCaps.currentTransform;
-		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		createInfo.clipped = VK_TRUE;
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-		// TODO: For maximum platform compatibility we should check if `deviceCaps.currentExtent.width` equals UINT32_MAX and select another resolution in this case.
-		createInfo.imageExtent = deviceCaps.currentExtent;
-
-		// Set the present mode to VK_PRESENT_MODE_FIFO_KHR for now, which is always available.
-		// TODO: Change present mode:
-		// -VK_PRESENT_MODE_IMMEDIATE_KHR: to disable VSync
-		// -VK_PRESENT_MODE_MAILBOX_KHR: to enable triple buffering
-		createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-
-		// Create the swap chain instance.
-		VkSwapchainKHR swapChain;
-
-		if (::vkCreateSwapchainKHR(parent.handle(), &createInfo, nullptr, &swapChain) != VK_SUCCESS)
-			throw std::runtime_error("Swap chain could not be created.");
-
-		m_swapChain = makeUnique<VulkanSwapChain>(swapChain, &parent);
-	}
 };
 
-VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, const VkDevice device, SharedPtr<VulkanQueue> queue, const Format& format, const Array<String>& extensions) :
-	IResource(device), m_impl(makePimpl<VulkanDeviceImpl>(queue, extensions)), GraphicsDevice(adapter, surface)
-{
-	if (device == nullptr)
-		throw std::invalid_argument("The argument `device` must be initialized.");
-	
-	if (queue == nullptr)
-		throw std::invalid_argument("The argument `queue` must be initialized.");
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
 
-	queue->initDeviceQueue(this);
+VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, VulkanQueue* deviceQueue, const Format& format, const Array<String>& extensions) :
+	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(deviceQueue, extensions)), GraphicsDevice(adapter, surface)
+{
+	if (deviceQueue == nullptr)
+		throw std::invalid_argument("The argument `deviceQueue` must be initialized.");
+	
+	this->handle() = m_impl->initialize(*this, format);
+
 	m_impl->createSwapChain(*this, format);
+	m_impl->initDeviceQueue(*this);
 }
 
 VulkanDevice::~VulkanDevice() noexcept
@@ -178,4 +190,14 @@ Array<Format> VulkanDevice::getSurfaceFormats() const
 const ISwapChain* VulkanDevice::getSwapChain() const noexcept
 {
 	return m_impl->getSwapChain();
+}
+
+bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) const noexcept
+{
+	return m_impl->validateDeviceExtensions(*this, extensions);
+}
+
+Array<String> VulkanDevice::getAvailableDeviceExtensions() const noexcept
+{
+	return m_impl->getAvailableDeviceExtensions(*this);
 }

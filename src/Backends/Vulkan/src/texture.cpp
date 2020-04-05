@@ -2,6 +2,10 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class VulkanTexture::VulkanTextureImpl {
 private:
 
@@ -9,18 +13,20 @@ public:
 	VulkanTextureImpl() noexcept = default;
 
 public:
-	void initialize(const VulkanTexture& parent)
+	VkImage initialize(const VulkanTexture& parent)
 	{
+		return nullptr;
 	}
 };
 
-VulkanTexture::VulkanTexture(const VkImage& image) :
-	IResource(image), m_impl(makePimpl<VulkanTextureImpl>())
-{
-	if (image == nullptr)
-		throw std::invalid_argument("The argument `image` must be initialized.");
+// ------------------------------------------------------------------------------------------------
+// Shared interface.
+// ------------------------------------------------------------------------------------------------
 
-	m_impl->initialize(*this);
+VulkanTexture::VulkanTexture() :
+	IResource(nullptr), m_impl(makePimpl<VulkanTextureImpl>())
+{
+	this->handle() = m_impl->initialize(*this);
 }
 
 VulkanTexture::~VulkanTexture() noexcept = default;

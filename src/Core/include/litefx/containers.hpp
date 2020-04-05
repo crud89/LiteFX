@@ -12,6 +12,7 @@
 #include <tuple>
 #include <memory>
 #include <stdexcept>
+#include <functional>
 
 namespace LiteFX {
 

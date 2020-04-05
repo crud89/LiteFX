@@ -58,7 +58,7 @@ int SampleApp::start(const int argc, const char** argv)
 			std::cout << "[" << adapter->getDeviceId() << "]: " << adapter->getName() << std::endl;
 
 	// Use either the selected device, or the first one.
-	UniquePtr<IGraphicsAdapter> adapter;
+	const IGraphicsAdapter* adapter = nullptr;
 
 	try
 	{
@@ -68,6 +68,9 @@ int SampleApp::start(const int argc, const char** argv)
 	{
 		adapter = m_renderBackend->getAdapter(std::nullopt);
 	}
+
+	if (adapter == nullptr)
+		throw std::runtime_error("No compatible graphics adapters found.");
 
 	// Create a graphics device for the window surface.
 	m_device = adapter->createDevice(m_surface.get());
@@ -128,7 +131,14 @@ void SampleApp::initializeRenderer(const Array<String>& validationLayers)
 	m_renderBackend = makeUnique<VulkanBackend>(*this, requiredExtensions, validationLayers);
 
 	// Create a surface.
-	m_surface = m_renderBackend->createSurfaceWin32(::glfwGetWin32Window(m_window.get()));
+	m_surface = VulkanSurface::createSurface(*m_renderBackend, [&](const VkInstance& instance) {
+		VkSurfaceKHR surface;
+
+		if (::glfwCreateWindowSurface(instance, m_window.get(), nullptr, &surface) != VK_SUCCESS)
+			throw std::runtime_error("Unable to create GLFW window surface.");
+
+		return surface;
+	});
 }
 
 void SampleApp::createWindow()

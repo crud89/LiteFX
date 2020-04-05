@@ -114,7 +114,7 @@ namespace LiteFX::Rendering {
 
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const = 0;
-		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const = 0;
+		virtual const ICommandQueue* findQueue(const QueueType& queueType) const = 0;
 	};
 
 	class LITEFX_RENDERING_API IRenderBackend {
@@ -122,16 +122,8 @@ namespace LiteFX::Rendering {
 		virtual ~IRenderBackend() noexcept = default;
 
 	public:
-		virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const = 0;
-		virtual UniquePtr<IGraphicsAdapter> getAdapter(Optional<uint32_t> adapterId = std::nullopt) const = 0;
-
-		// Platform specific code.
-	public:
-#if (defined _WIN32 || defined WINCE)
-		virtual UniquePtr<ISurface> createSurfaceWin32(HWND hwnd) const = 0;
-#else 
-#pragma message ("IRenderBackend: No supported surface platform detected.")
-#endif
+		virtual Array<const IGraphicsAdapter*> getAdapters() const = 0;
+		virtual const IGraphicsAdapter* getAdapter(Optional<uint32_t> adapterId = std::nullopt) const = 0;
 	};
 
 	// Base classes.

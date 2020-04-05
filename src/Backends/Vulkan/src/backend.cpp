@@ -2,22 +2,23 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class VulkanBackend::VulkanBackendImpl {
 private:
     Array<String> m_extensions;
     Array<String> m_layers;
+    Array<UniquePtr<IGraphicsAdapter>> m_adapters;
 
 public:
     VulkanBackendImpl(const Array<String>& extensions, const Array<String>& validationLayers) noexcept :
         m_extensions(extensions), m_layers(validationLayers) { }
 
 public:
-    void initialize(VulkanBackend& parent)
+    VkInstance initialize(const VulkanBackend& parent)
     {
-        // Check, if already initialized.
-        if (parent.handle() != nullptr)
-            throw std::runtime_error("The backend is already initialized.");
-
         // Parse the extensions.
         std::vector<const char*> requiredExtensions(m_extensions.size()), enabledLayers(m_layers.size());
         std::generate(requiredExtensions.begin(), requiredExtensions.end(), [this, i = 0]() mutable { return m_extensions[i++].data(); });
@@ -25,11 +26,11 @@ public:
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateExtensions(m_extensions))
-            throw std::runtime_error("Some required Vulkan extensions are not supported by the system.");
+            throw std::invalid_argument("Some required Vulkan extensions are not supported by the system.");
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateLayers(m_layers))
-            throw std::runtime_error("Some required Vulkan layers are not supported by the system.");
+            throw std::invalid_argument("Some required Vulkan layers are not supported by the system.");
 
         // Get the app instance.
         auto& app = parent.getApp();
@@ -55,66 +56,70 @@ public:
         createInfo.enabledLayerCount = static_cast<uint32_t>(m_layers.size());
         createInfo.ppEnabledLayerNames = m_layers.size() == 0 ? nullptr : enabledLayers.data();
 
-        if (::vkCreateInstance(&createInfo, nullptr, &parent.handle()) != VK_SUCCESS)
+        VkInstance instance;
+
+        if (::vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
             throw std::runtime_error("Unable to create Vulkan instance.");
+
+        // Return the instance.
+        return instance;
+    }
+
+    void loadAdapters(const VulkanBackend& parent) noexcept
+    {
+        uint32_t adapters = 0;
+        ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, nullptr);
+
+        Array<VkPhysicalDevice> handles(adapters);
+        m_adapters = Array<UniquePtr<IGraphicsAdapter>>(adapters);
+
+        ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, handles.data());
+        std::generate(m_adapters.begin(), m_adapters.end(), [this, &handles, i = 0]() mutable {
+            return makeUnique<VulkanGraphicsAdapter>(handles[i++]);
+        });
     }
 
 public:
-    const Array<String>& getExtensions() const
+    const Array<String>& getExtensions() const noexcept
     {
         return m_extensions;
     }
 
-    const Array<String>& getLayers() const
+    const Array<String>& getLayers() const noexcept
     {
         return m_layers;
     }
 
-    Array<UniquePtr<IGraphicsAdapter>> getAdapters(const VulkanBackend& parent) const
+    Array<const IGraphicsAdapter*> getAdapters() const noexcept
     {
-        if (parent.handle() == nullptr)
-            throw std::runtime_error("The backend is not initialized.");
-
-        uint32_t adapters = 0;
-        ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, nullptr);
-
-        Array<VkPhysicalDevice> handles(adapters);
-        Array<UniquePtr<IGraphicsAdapter>> results(adapters);
-
-        ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, handles.data());
-        std::generate(results.begin(), results.end(), [this, &handles, i = 0]() mutable {
-            return makeUnique<VulkanGraphicsAdapter>(handles[i++]);
-        });
+        Array<const IGraphicsAdapter*> results(m_adapters.size());
+        std::generate(results.begin(), results.end(), [&, i = 0]() mutable { return m_adapters[i++].get(); });
 
         return results;
     }
 
-    UniquePtr<IGraphicsAdapter> getAdapter(const VulkanBackend& parent, Optional<uint32_t> adapterId) const
+    const IGraphicsAdapter* getAdapter(Optional<uint32_t> adapterId) const noexcept
     {
-        if (parent.handle() == nullptr)
-            throw std::runtime_error("The backend is not initialized.");
+        auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<IGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
 
-        uint32_t adapters = 0;
-        ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, nullptr);
-
-        Array<VkPhysicalDevice> handles(adapters);
-        ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, handles.data());
-
-        auto match = std::find_if(handles.begin(), handles.end(), [&adapterId](const VkPhysicalDevice& dvc) {
-            return !adapterId.has_value() || makeUnique<VulkanGraphicsAdapter>(dvc)->getDeviceId() == adapterId;
-        });
-
-        if (match == handles.end())
-            throw std::runtime_error("The requested graphics adapter could not be found.");
-
-        return makeUnique<VulkanGraphicsAdapter>(*match);
+        if (match != m_adapters.end())
+            return match->get();
+        
+        return nullptr;
     }
 };
+
+// ------------------------------------------------------------------------------------------------
+// Shared interface.
+// ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
     RenderBackend(app), IResource(nullptr), m_impl(makePimpl<VulkanBackendImpl>(extensions, validationLayers))
 {
-    m_impl->initialize(*this);
+    this->handle() = m_impl->initialize(*this);
+
+    // Load adapters.
+    m_impl->loadAdapters(*this);
 }
 
 VulkanBackend::~VulkanBackend() noexcept 
@@ -122,36 +127,14 @@ VulkanBackend::~VulkanBackend() noexcept
     ::vkDestroyInstance(this->handle(), nullptr);
 }
 
-Array<UniquePtr<IGraphicsAdapter>> VulkanBackend::getAdapters() const
+Array<const IGraphicsAdapter*> VulkanBackend::getAdapters() const
 {
-    return m_impl->getAdapters(*this);
+    return m_impl->getAdapters();
 }
 
-UniquePtr<IGraphicsAdapter> VulkanBackend::getAdapter(Optional<uint32_t> adapterId) const
+const IGraphicsAdapter* VulkanBackend::getAdapter(Optional<uint32_t> adapterId) const
 {
-    return m_impl->getAdapter(*this, adapterId);
-}
-
-// ------------------------------------------------------------------------------------------------
-// Platform specific code.
-// ------------------------------------------------------------------------------------------------
-
-UniquePtr<ISurface> VulkanBackend::createSurfaceWin32(HWND hwnd) const
-{
-    if (this->handle() == nullptr)
-        throw std::runtime_error("The backend is not initialized.");
-
-    VkWin32SurfaceCreateInfoKHR createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    createInfo.hwnd = hwnd;
-    createInfo.hinstance = ::GetModuleHandle(nullptr);
-
-    VkSurfaceKHR surface;
-
-    if (::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface) != VK_SUCCESS)
-        throw std::runtime_error("Unable to create vulkan surface for provided window.");
-
-    return makeUnique<VulkanSurface>(surface, this->handle());
+    return m_impl->getAdapter(adapterId);
 }
 
 // ------------------------------------------------------------------------------------------------

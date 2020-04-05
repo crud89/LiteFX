@@ -3,27 +3,8 @@
 #include <litefx/core_types.hpp>
 #include <litefx/rendering.hpp>
 
-#if (defined _WIN32 || defined WINCE)
-#  define VK_USE_PLATFORM_WIN32_KHR
-#else 
-#  pragma message ("Vulkan: No supported surface platform detected.")
-#endif
-
-#include <vulkan/vulkan.h>
-
-#if !defined (LITEFX_VULKAN_API)
-#  if defined(LiteFX_Backends_Vulkan_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_VULKAN_API __declspec(dllexport)
-#  elif (defined(LiteFX_Backends_Vulkan_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_VULKAN_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_Backends_Vulkan_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_VULKAN_API __declspec(dllimport)
-#  endif
-#endif
-
-#ifndef LITEFX_VULKAN_API
-#  define LITEFX_VULKAN_API
-#endif
+#include "vulkan_api.hpp"
+#include "vulkan_platform.hpp"
 
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
@@ -34,7 +15,6 @@ namespace LiteFX::Rendering::Backends {
 
 	// Forward declarations.
 	class VulkanSwapChain;
-	class VulkanSurface;
 	class VulkanQueue;
 	class VulkanDevice;
 	class VulkanGraphicsAdapter;
@@ -45,7 +25,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl)
 
 	public:
-		VulkanTexture(const VkImage& image);
+		VulkanTexture();
 		virtual ~VulkanTexture() noexcept;
 	};
 
@@ -53,19 +33,11 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl)
 
 	public:
-		VulkanSwapChain(const VkSwapchainKHR& swapChain, const VulkanDevice* device);
+		VulkanSwapChain(const VulkanDevice* device, const Format& format = Format::B8G8R8A8_UNORM_SRGB);
 		virtual ~VulkanSwapChain() noexcept;
 
 	public:
 		virtual const IGraphicsDevice* getDevice() const noexcept override;
-	};
-
-	class LITEFX_VULKAN_API VulkanSurface : public ISurface, public IResource<VkSurfaceKHR> {
-		LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
-
-	public:
-		VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent = nullptr) noexcept;
-		virtual ~VulkanSurface() noexcept;
 	};
 
 	class LITEFX_VULKAN_API VulkanQueue : public ICommandQueue, public IResource<VkQueue> {
@@ -89,7 +61,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
 
 	public:
-		VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, const VkDevice device, SharedPtr<VulkanQueue> queue, const Format& format, const Array<String>& extensions = { });
+		VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, VulkanQueue* deviceQueue, const Format& format, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
@@ -98,13 +70,17 @@ namespace LiteFX::Rendering::Backends {
 		virtual const Array<String>& getExtensions() const noexcept;
 		virtual Array<Format> getSurfaceFormats() const override;
 		virtual const ISwapChain* getSwapChain() const noexcept override;
+
+	public:
+		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
+		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
 	};
 
 	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl)
 
 	public:
-		VulkanGraphicsAdapter(const VkPhysicalDevice& adapter);
+		VulkanGraphicsAdapter(VkPhysicalDevice adapter);
 		VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
 		VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
 		virtual ~VulkanGraphicsAdapter() noexcept;
@@ -119,11 +95,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const override;
-		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const override;
-
-	public:
-		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
-		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
+		virtual const ICommandQueue* findQueue(const QueueType& queueType) const override;
 	};
 
 	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend, public IResource<VkInstance> {
@@ -136,20 +108,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanBackend();
 
 	public:
-		virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const override;
-		virtual UniquePtr<IGraphicsAdapter> getAdapter(Optional<uint32_t> adapterId = std::nullopt) const override;
+		virtual Array<const IGraphicsAdapter*> getAdapters() const override;
+		virtual const IGraphicsAdapter* getAdapter(Optional<uint32_t> adapterId = std::nullopt) const override;
 
 	public:
 		static bool validateExtensions(const Array<String>& extensions) noexcept;
 		static Array<String> getAvailableExtensions() noexcept;
 		static bool validateLayers(const Array<String>& validationLayers) noexcept;
 		static Array<String> getValidationLayers() noexcept;
-
-		// Platform specific code.
-	public:
-#ifdef VK_USE_PLATFORM_WIN32_KHR
-		virtual UniquePtr<ISurface> createSurfaceWin32(HWND hwnd) const override;
-#endif
 	};
 
 }
