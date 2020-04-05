@@ -7,9 +7,7 @@ private:
 	const App& m_app;
 
 public:
-	RenderBackendImpl(const App& app) noexcept :
-		m_app(app) { }
-	RenderBackendImpl::~RenderBackendImpl() noexcept { }
+	RenderBackendImpl(const App& app) noexcept : m_app(app) { }
 
 public:
 	const App& getApp() const noexcept 

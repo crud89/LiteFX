@@ -9,7 +9,6 @@ private:
 public:
 	AppVersionImpl::AppVersionImpl(int major, int minor, int patch, int revision) noexcept :
 		m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) { }
-	~AppVersionImpl() noexcept = default;
 
 public:
 	int getMajor() const noexcept

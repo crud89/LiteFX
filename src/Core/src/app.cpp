@@ -7,8 +7,7 @@ private:
 	Platform m_platform;
 
 public:
-	AppImpl(const Platform& platform) noexcept : 
-		m_platform(platform) { }
+	AppImpl(const Platform& platform) noexcept : m_platform(platform) { }
 
 public:
 	Platform getPlatform() const noexcept
