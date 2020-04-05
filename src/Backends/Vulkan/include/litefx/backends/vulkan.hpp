@@ -29,6 +29,7 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	// Forward declarations.
+	class VulkanSwapChain;
 	class VulkanSurface;
 	class VulkanQueue;
 	class VulkanDevice;
@@ -64,7 +65,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
 
 	public:
-		VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue);
+		VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
@@ -88,11 +89,17 @@ namespace LiteFX::Rendering::Backends {
 		virtual uint32_t getApiVersion() const noexcept override;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface) const override;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Array<String>& extensions = { }) const override;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const override;
+
+	public:
+		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
+		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
 	};
 
 	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend, public IResource<VkInstance> {
+		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
+
 	public:
 		explicit VulkanBackend(const App& app, const Array<String>& extensions = { }, const Array<String>& validationLayers = { });
 		VulkanBackend(const VulkanBackend&) noexcept = delete;
@@ -102,10 +109,6 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual Array<UniquePtr<IGraphicsAdapter>> getAdapters() const override;
 		virtual UniquePtr<IGraphicsAdapter> getAdapter(Optional<uint32_t> adapterId = std::nullopt) const override;
-
-	protected:
-		virtual void initialize(const Array<String>& extensions, const Array<String>& validationLayers);
-		virtual void release();
 
 	public:
 		static bool validateExtensions(const Array<String>& extensions) noexcept;

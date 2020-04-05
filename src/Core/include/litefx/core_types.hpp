@@ -20,7 +20,7 @@ namespace LiteFX {
 		None = 0x00000000,
 		Win32 = 0x00000001,
 		// TODO: ...
-		Other = 0xFFFFFFFF
+		Other = 0x7FFFFFFF
 	};
 
 #if (defined(BUILD_LITEFX_PIMPL) && BUILD_LITEFX_PIMPL) || (!defined(BUILD_LITEFX_PIMPL)) && !defined(LITEFX_IMPLEMENTATION)

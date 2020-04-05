@@ -4,14 +4,18 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanQueue::VulkanQueueImpl {
 private:
-	VkQueue m_queue;
 	QueueType m_type;
 	uint32_t m_id;
 
 public:
 	VulkanQueueImpl(const QueueType& type, const uint32_t id) noexcept :
-		m_type(type), m_id(id), m_queue(nullptr) { }
-	~VulkanQueueImpl() noexcept = default;
+		m_type(type), m_id(id) { }
+
+public:
+	void createDeviceQueue(const VulkanDevice* device, VkQueue& queue) noexcept
+	{
+		::vkGetDeviceQueue(device->handle(), m_id, 0, &queue);
+	}
 
 public:
 	uint32_t getId() const noexcept
@@ -22,12 +26,6 @@ public:
 	QueueType getType() const noexcept
 	{
 		return m_type;
-	}
-
-	VkQueue createDeviceQueue(const VulkanDevice* device) noexcept
-	{
-		::vkGetDeviceQueue(device->handle(), m_id, 0, &m_queue);
-		return m_queue;
 	}
 };
 
@@ -46,7 +44,7 @@ void VulkanQueue::initDeviceQueue(const VulkanDevice* device)
 	if (this->handle() != nullptr)
 		throw std::runtime_error("The queue is already initialized.");
 
-	this->handle() = m_impl->createDeviceQueue(device);
+	 m_impl->createDeviceQueue(device, this->handle());
 }
 
 uint32_t VulkanQueue::getId() const noexcept

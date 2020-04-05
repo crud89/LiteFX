@@ -4,19 +4,27 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanSurface::VulkanSurfaceImpl {
 private:
-	VkSurfaceKHR m_surface;
 	VkInstance m_instance;
 
 public:
-	VulkanSurfaceImpl(const VkSurfaceKHR& surface, const VkInstance& parent) noexcept :
-		m_surface(surface), m_instance(parent) { 
+	VulkanSurfaceImpl(const VkInstance& instance) noexcept :
+		m_instance(instance) { }
+
+public:
+
+public:
+	const VkInstance& getInstance() const
+	{
+		return m_instance;
 	}
-	~VulkanSurfaceImpl() noexcept { ::vkDestroySurfaceKHR(m_instance, m_surface, nullptr); }
 };
 
 VulkanSurface::VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent) noexcept :
-	IResource(surface), m_impl(makePimpl<VulkanSurfaceImpl>(surface, parent))
+	IResource(surface), m_impl(makePimpl<VulkanSurfaceImpl>(parent))
 {
 }
 
-VulkanSurface::~VulkanSurface() noexcept = default;
+VulkanSurface::~VulkanSurface() noexcept
+{
+	::vkDestroySurfaceKHR(m_impl->getInstance(), this->handle(), nullptr);
+}

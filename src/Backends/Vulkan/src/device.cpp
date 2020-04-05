@@ -4,17 +4,15 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanDevice::VulkanDeviceImpl {
 private:
-	VkDevice m_device;
 	SharedPtr<VulkanQueue> m_queue;
 
 public:
-	VulkanDeviceImpl(const VkDevice device, SharedPtr<VulkanQueue> queue) noexcept :
-		m_device(device), m_queue(queue)  { }
-	~VulkanDeviceImpl() noexcept { ::vkDestroyDevice(m_device, nullptr); }
+	VulkanDeviceImpl(SharedPtr<VulkanQueue> queue) noexcept :
+		m_queue(queue) { }
 };
 
-VulkanDevice::VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue) :
-	IResource(device), m_impl(makePimpl<VulkanDeviceImpl>(device, queue))
+VulkanDevice::VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue, const Array<String>& extensions) :
+	IResource(device), m_impl(makePimpl<VulkanDeviceImpl>(queue))
 {
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");
@@ -25,4 +23,7 @@ VulkanDevice::VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue) 
 	queue->initDeviceQueue(this);
 }
 
-VulkanDevice::~VulkanDevice() noexcept = default;
+VulkanDevice::~VulkanDevice() noexcept
+{
+	::vkDestroyDevice(this->handle(), nullptr);
+}

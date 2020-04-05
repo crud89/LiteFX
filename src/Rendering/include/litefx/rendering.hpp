@@ -39,6 +39,13 @@ namespace LiteFX::Rendering {
 	// ...
 
 
+	class LITEFX_RENDERING_API ISwapChain {
+	public:
+		virtual ~ISwapChain() noexcept = default;
+
+
+	};
+
 	class LITEFX_RENDERING_API ISurface {
 	public:
 		virtual ~ISurface() noexcept = default;
@@ -76,7 +83,7 @@ namespace LiteFX::Rendering {
 		virtual uint32_t getApiVersion() const noexcept = 0;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface) const = 0;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Array<String>& extensions = { }) const = 0;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const = 0;
 	};
 
