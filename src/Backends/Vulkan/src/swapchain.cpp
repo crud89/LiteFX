@@ -11,6 +11,18 @@ public:
 		m_device(device) { }
 
 public:
+	void initialize(const VulkanSwapChain& parent)
+	{
+		uint32_t images;
+		::vkGetSwapchainImagesKHR(m_device->handle(), parent.handle(), &images, nullptr);
+
+		Array<VkImage> imageChain(images);
+		::vkGetSwapchainImagesKHR(m_device->handle(), parent.handle(), &images, imageChain.data());
+		
+		throw;
+	}
+
+public:
 	const VulkanDevice* getDevice() const noexcept
 	{
 		return m_device;
@@ -25,6 +37,8 @@ VulkanSwapChain::VulkanSwapChain(const VkSwapchainKHR& swapChain, const VulkanDe
 
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");
+
+	m_impl->initialize(*this);
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;

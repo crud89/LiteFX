@@ -20,6 +20,7 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX;
 
 	// Forward declarations.
+	class ITexture;
 	class ISwapChain;
 	class ISurface;
 	class ICommandPool;
@@ -57,6 +58,11 @@ namespace LiteFX::Rendering {
 
 
 	// Define interfaces.
+	class LITEFX_RENDERING_API ITexture {
+	public:
+		virtual ~ITexture() noexcept = default;
+	};
+
 	class LITEFX_RENDERING_API ISwapChain {
 	public:
 		virtual ~ISwapChain() noexcept = default;

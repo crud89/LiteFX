@@ -41,6 +41,14 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanBackend;
 
 	// Class definitions.
+	class LITEFX_VULKAN_API VulkanTexture : public ITexture, public IResource<VkImage> {
+		LITEFX_IMPLEMENTATION(VulkanTextureImpl)
+
+	public:
+		VulkanTexture(const VkImage& image);
+		virtual ~VulkanTexture() noexcept;
+	};
+
 	class LITEFX_VULKAN_API VulkanSwapChain : public ISwapChain, public IResource<VkSwapchainKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl)
 

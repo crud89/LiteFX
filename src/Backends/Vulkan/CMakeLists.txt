@@ -29,6 +29,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/queue.cpp"
     "src/surface.cpp"
     "src/swapchain.cpp"
+    "src/texture.cpp"
 )
 
 # Add shared library project.
