@@ -11,8 +11,8 @@ public:
 		m_queue(queue) { }
 };
 
-VulkanDevice::VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue, const Array<String>& extensions) :
-	IResource(device), m_impl(makePimpl<VulkanDeviceImpl>(queue))
+VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, const VkDevice device, SharedPtr<VulkanQueue> queue, const Array<String>& extensions) :
+	IResource(device), GraphicsDevice(adapter, surface), m_impl(makePimpl<VulkanDeviceImpl>(queue))
 {
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");
@@ -26,4 +26,9 @@ VulkanDevice::VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue, 
 VulkanDevice::~VulkanDevice() noexcept
 {
 	::vkDestroyDevice(this->handle(), nullptr);
+}
+
+UniquePtr<ISwapChain> VulkanDevice::createSwapChain(const Format& format) const
+{
+	throw;
 }

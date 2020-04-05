@@ -14,6 +14,7 @@ SET(RENDERING_HEADERS
 
 SET(RENDERING_SOURCES
     "src/backend.cpp"
+    "src/device.cpp"
 )
 
 # Add shared library project.

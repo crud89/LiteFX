@@ -19,6 +19,16 @@
 namespace LiteFX::Rendering {
 	using namespace LiteFX;
 
+	// Forward declarations.
+	class ISwapChain;
+	class ISurface;
+	class ICommandPool;
+	class ICommandQueue;
+	class IGraphicsDevice;
+	class IGraphicsAdapter;
+	class IRenderBackend;
+
+	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {
 		None = 0x00000000,
 		GPU = 0x00000001,
@@ -41,11 +51,12 @@ namespace LiteFX::Rendering {
 		Other = 0x7FFFFFFF,
 	};
 
-
+	// Define flags.
 	LITEFX_DEFINE_FLAGS(QueueType);
 	// ...
 
 
+	// Define interfaces.
 	class LITEFX_RENDERING_API ISwapChain {
 	public:
 		virtual ~ISwapChain() noexcept = default;
@@ -75,6 +86,12 @@ namespace LiteFX::Rendering {
 	public:
 		virtual ~IGraphicsDevice() noexcept = default;
 
+	public:
+		virtual const IGraphicsAdapter* getAdapter() const = 0;
+		virtual const ISurface* getSurface() const = 0;
+
+	public:
+		virtual UniquePtr<ISwapChain> createSwapChain(const Format& format = Format::B8G8R8A8_UNORM_SRGB) const = 0;
 	};
 
 	class LITEFX_RENDERING_API IGraphicsAdapter {
@@ -90,7 +107,7 @@ namespace LiteFX::Rendering {
 		virtual uint32_t getApiVersion() const noexcept = 0;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const = 0;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Array<String>& extensions = { }) const = 0;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const = 0;
 		virtual Array<Format> getSurfaceFormats(const ISurface* surface) const = 0;
 	};
@@ -110,6 +127,21 @@ namespace LiteFX::Rendering {
 #else 
 #pragma message ("IRenderBackend: No supported surface platform detected.")
 #endif
+	};
+
+	// Base classes.
+	class LITEFX_RENDERING_API GraphicsDevice : public IGraphicsDevice {
+		LITEFX_IMPLEMENTATION(GraphicsDeviceImpl)
+
+	public:
+		GraphicsDevice(const IGraphicsAdapter* adapter, const ISurface* surface);
+		GraphicsDevice(const GraphicsDevice&) noexcept = delete;
+		GraphicsDevice(GraphicsDevice&&) noexcept = delete;
+		virtual ~GraphicsDevice() noexcept;
+
+	public:
+		virtual const IGraphicsAdapter* getAdapter() const override;
+		virtual const ISurface* getSurface() const override;
 	};
 
 	class LITEFX_RENDERING_API RenderBackend : public IRenderBackend {

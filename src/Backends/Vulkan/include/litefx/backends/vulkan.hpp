@@ -65,14 +65,17 @@ namespace LiteFX::Rendering::Backends {
 		virtual QueueType getType() const noexcept override;
 	};
 
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
 
 	public:
-		VulkanDevice(const VkDevice device, SharedPtr<VulkanQueue> queue, const Array<String>& extensions = { });
+		VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, const VkDevice device, SharedPtr<VulkanQueue> queue, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
+
+	public:
+		virtual UniquePtr<ISwapChain> createSwapChain(const Format& format = Format::B8G8R8A8_UNORM_SRGB) const override;
 	};
 
 	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
@@ -93,7 +96,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual uint32_t getApiVersion() const noexcept override;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const override;
+		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Array<String>& extensions = { }) const override;
 		virtual SharedPtr<ICommandQueue> findQueue(const QueueType& queueType) const override;
 		virtual Array<Format> getSurfaceFormats(const ISurface* surface) const override;
 

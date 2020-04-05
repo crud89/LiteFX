@@ -28,6 +28,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/device.cpp"
     "src/queue.cpp"
     "src/surface.cpp"
+    "src/swapchain.cpp"
 )
 
 # Add shared library project.
