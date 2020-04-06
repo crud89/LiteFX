@@ -13,9 +13,8 @@ public:
 	VulkanTextureImpl() noexcept = default;
 
 public:
-	VkImage initialize(const VulkanTexture& parent)
+	void initialize(const VulkanTexture& parent)
 	{
-		return nullptr;
 	}
 };
 
@@ -23,10 +22,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture() :
-	IResource(nullptr), m_impl(makePimpl<VulkanTextureImpl>())
+VulkanTexture::VulkanTexture(VkImage image) :
+	IResource(image), m_impl(makePimpl<VulkanTextureImpl>())
 {
-	this->handle() = m_impl->initialize(*this);
+	if (image == nullptr)
+		throw std::invalid_argument("The argument `image` is not initialized.");
+
+	m_impl->initialize(*this);
 }
 
 VulkanTexture::~VulkanTexture() noexcept = default;

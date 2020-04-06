@@ -20,6 +20,7 @@ INCLUDE("${CMAKE_SOURCE_DIR}/cmake/modules.cmake")
 
 # Include sub-projects.
 ADD_SUBDIRECTORY(Core)
+ADD_SUBDIRECTORY(Math)
 ADD_SUBDIRECTORY(Rendering)
 
 # Include optional modules.

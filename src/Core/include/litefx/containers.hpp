@@ -13,6 +13,7 @@
 #include <memory>
 #include <stdexcept>
 #include <functional>
+#include <variant>
 
 namespace LiteFX {
 
@@ -37,6 +38,9 @@ namespace LiteFX {
 
 	template <class... T>
 	using Tuple = std::tuple<T...>;
+
+	template <class... T>
+	using Variant = std::variant<T...>;
 
 	template <class T>
 	UniquePtr<T> makeUnique() {

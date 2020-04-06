@@ -15,6 +15,18 @@ public:
 		m_device(device) { }
 
 private:
+	void loadImages(const VkSwapchainKHR& swapChain, const Format& format, const VkExtent2D& extent)
+	{
+		uint32_t images;
+		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, nullptr);
+
+		Array<VkImage> imageChain(images);
+		Array<VulkanTexture> textures(images);
+		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, imageChain.data());
+		std::generate(textures.begin(), textures.end(), [&]() { return makeUnique<VulkanTexture>(); });
+	}
+
+private:
 	VkSurfaceKHR getSurface() const noexcept
 	{
 		auto surface = dynamic_cast<const VulkanSurface*>(m_device->getSurface());
@@ -27,7 +39,6 @@ private:
 		return adapter ? adapter->handle() : nullptr;
 	}
 
-private:
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
 	{
 		uint32_t formats;
@@ -107,12 +118,8 @@ public:
 		if (::vkCreateSwapchainKHR(m_device->handle(), &createInfo, nullptr, &swapChain) != VK_SUCCESS)
 			throw std::runtime_error("Swap chain could not be created.");
 
-		//uint32_t images;
-		//::vkGetSwapchainImagesKHR(m_device->handle(), parent.handle(), &images, nullptr);
+		this->loadImages(swapChain);
 
-		//Array<VkImage> imageChain(images);
-		//::vkGetSwapchainImagesKHR(m_device->handle(), parent.handle(), &images, imageChain.data());
-		
 		return swapChain;
 	}
 

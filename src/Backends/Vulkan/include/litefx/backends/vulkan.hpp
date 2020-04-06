@@ -25,7 +25,8 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl)
 
 	public:
-		VulkanTexture();
+		//VulkanTexture(VkImage image, const Format& format, const Size& size);
+		//VulkanTexture(device, format, ...);
 		virtual ~VulkanTexture() noexcept;
 	};
 
