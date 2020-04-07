@@ -38,226 +38,465 @@ namespace LiteFX::Math {
 	using UInt64 = uint64_t;
 	using Float = float_t;
 	using Double = double_t;
-	
-	template <typename T>
-	class LITEFX_MATH_API Vector<T, 1> {
+
+	template <>
+	class LITEFX_MATH_API Vector<Float, 1> {
 	public:
 		static constexpr size_t vec_size = 1;
-		using vec_type = Vector<T, vec_size>;
+		using scalar_type = Float;
+		using vec_type = Vector<scalar_type, vec_size>;
 
 	private:
-		T m_elements[vec_size];
+		scalar_type m_elements[vec_size];
 
 	public:
 		Vector() noexcept = delete;
-		inline Vector(const T& x) noexcept;
+		inline Vector(const scalar_type& x) noexcept;
 		inline Vector(const vec_type& _other) noexcept;
 		inline Vector(vec_type&& _other) noexcept;
 		virtual inline ~Vector() noexcept = default;
 
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::tvec1<T>& v) noexcept;
-		inline operator glm::tvec1<T>() noexcept;
+		inline Vector(const glm::f32vec1& v) noexcept;
+		inline operator glm::f32vec1() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
 		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
-		inline operator Float () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline operator UInt32 () noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator scalar_type() noexcept;
 #endif
 	};
 
-	template <typename T>
-	class LITEFX_MATH_API Vector<T, 2> {
+	template <>
+	class LITEFX_MATH_API Vector<UInt32, 1> {
+	public:
+		static constexpr size_t vec_size = 1;
+		using scalar_type = UInt32;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		Vector() noexcept = delete;
+		inline Vector(const scalar_type& x) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+
+#if defined(BUILD_ENABLE_GLM)
+		inline Vector(const glm::u32vec1& v) noexcept;
+		inline operator glm::u32vec1() noexcept;
+#endif
+
+#if defined(BUILD_ENABLE_DIRECTX_MATH)
+		inline Vector(const DirectX::XMVECTOR& v) noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator scalar_type() noexcept;
+#endif
+	};
+
+	template <>
+	class LITEFX_MATH_API Vector<Float, 2> {
 	public:
 		static constexpr size_t vec_size = 2;
-		using vec_type = Vector<T, vec_size>;
+		using scalar_type = Float;
+		using vec_type = Vector<scalar_type, vec_size>;
 
 	private:
-		T m_elements[vec_size];
+		scalar_type m_elements[vec_size];
 
 	public:
 		Vector() noexcept = delete;
-		inline Vector(const T& x, const T& y) noexcept;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y) noexcept;
 		inline Vector(const vec_type& _other) noexcept;
 		inline Vector(vec_type&& _other) noexcept;
 		virtual inline ~Vector() noexcept = default;
 
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::tvec2<T>& v) noexcept;
-		inline operator glm::tvec2<T>() noexcept;
+		inline Vector(const glm::f32vec2& v) noexcept;
+		inline operator glm::f32vec2() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
 		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
 		inline Vector(const DirectX::XMFLOAT2& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline Vector(const DirectX::XMUINT2& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline Vector(const DirectX::XMINT2& v) noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
-		inline operator DirectX::XMFLOAT2 () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline operator DirectX::XMUINT2 () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline operator DirectX::XMINT2 () noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMFLOAT2() noexcept;
 #endif
 	};
 
-	template <typename T>
-	class LITEFX_MATH_API Vector<T, 3> {
+	template <>
+	class LITEFX_MATH_API Vector<UInt32, 2> {
+	public:
+		static constexpr size_t vec_size = 2;
+		using scalar_type = UInt32;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		Vector() noexcept = delete;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+
+#if defined(BUILD_ENABLE_GLM)
+		inline Vector(const glm::u32vec2& v) noexcept;
+		inline operator glm::u32vec2() noexcept;
+#endif
+
+#if defined(BUILD_ENABLE_DIRECTX_MATH)
+		inline Vector(const DirectX::XMVECTOR& v) noexcept;
+		inline Vector(const DirectX::XMUINT2& v) noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMUINT2() noexcept;
+#endif
+	};
+
+	template <>
+	class LITEFX_MATH_API Vector<Int32, 2> {
+	public:
+		static constexpr size_t vec_size = 2;
+		using scalar_type = Int32;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		Vector() noexcept = delete;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+
+#if defined(BUILD_ENABLE_GLM)
+		inline Vector(const glm::i32vec2& v) noexcept;
+		inline operator glm::i32vec2() noexcept;
+#endif
+
+#if defined(BUILD_ENABLE_DIRECTX_MATH)
+		inline Vector(const DirectX::XMVECTOR& v) noexcept;
+		inline Vector(const DirectX::XMINT2& v) noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMINT2() noexcept;
+#endif
+	};
+
+	template <>
+	class LITEFX_MATH_API Vector<Float, 3> {
 	public:
 		static constexpr size_t vec_size = 3;
-		using vec_type = Vector<T, vec_size>;
+		using scalar_type = Float;
+		using vec_type = Vector<scalar_type, vec_size>;
 
 	private:
-		T m_elements[vec_size];
+		scalar_type m_elements[vec_size];
 
 	public:
 		Vector() noexcept = delete;
-		inline Vector(const T& x, const T& y, const T& z) noexcept;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept;
 		inline Vector(const vec_type& _other) noexcept;
 		inline Vector(vec_type&& _other) noexcept;
 		virtual inline ~Vector() noexcept = default;
 
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+		inline const scalar_type& z() const;
+		inline scalar_type& z();
+
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::tvec3<T>& v) noexcept;
-		inline operator glm::tvec3<T>() noexcept;
+		inline Vector(const glm::f32vec3& v) noexcept;
+		inline operator glm::f32vec3() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
 		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
 		inline Vector(const DirectX::XMFLOAT3& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline Vector(const DirectX::XMUINT3& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline Vector(const DirectX::XMINT3& v) noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
-		inline operator DirectX::XMFLOAT3 () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline operator DirectX::XMUINT3 () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline operator DirectX::XMINT3 () noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMFLOAT3() noexcept;
 #endif
 	};
 
-	template <typename T>
-	class LITEFX_MATH_API Vector<T, 4> {
+	template <>
+	class LITEFX_MATH_API Vector<UInt32, 3> {
 	public:
-		static constexpr size_t vec_size = 4;
-		using vec_type = Vector<T, vec_size>;
+		static constexpr size_t vec_size = 3;
+		using scalar_type = UInt32;
+		using vec_type = Vector<scalar_type, vec_size>;
 
 	private:
-		T m_elements[vec_size];
+		scalar_type m_elements[vec_size];
 
 	public:
 		Vector() noexcept = delete;
-		inline Vector(const T& x, const T& y, const T& z, const T& w) noexcept;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept;
 		inline Vector(const vec_type& _other) noexcept;
 		inline Vector(vec_type&& _other) noexcept;
 		virtual inline ~Vector() noexcept = default;
 
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+		inline const scalar_type& z() const;
+		inline scalar_type& z();
+
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::tvec4<T>& v) noexcept;
-		inline operator glm::tvec4<T>() noexcept;
+		inline Vector(const glm::u32vec3& v) noexcept;
+		inline operator glm::u32vec3() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
 		inline Vector(const DirectX::XMVECTOR& v) noexcept;
+		inline Vector(const DirectX::XMUINT3& v) noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMUINT3() noexcept;
+#endif
+	};
 
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
+	template <>
+	class LITEFX_MATH_API Vector<Int32, 3> {
+	public:
+		static constexpr size_t vec_size = 3;
+		using scalar_type = Int32;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		Vector() noexcept = delete;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+		inline const scalar_type& z() const;
+		inline scalar_type& z();
+
+#if defined(BUILD_ENABLE_GLM)
+		inline Vector(const glm::i32vec3& v) noexcept;
+		inline operator glm::i32vec3() noexcept;
+#endif
+
+#if defined(BUILD_ENABLE_DIRECTX_MATH)
+		inline Vector(const DirectX::XMVECTOR& v) noexcept;
+		inline Vector(const DirectX::XMINT3& v) noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMINT3() noexcept;
+#endif
+	};
+
+	template <>
+	class LITEFX_MATH_API Vector<Float, 4> {
+	public:
+		static constexpr size_t vec_size = 4;
+		using scalar_type = Float;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		Vector() noexcept = delete;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+		inline const scalar_type& z() const;
+		inline scalar_type& z();
+		inline const scalar_type& w() const;
+		inline scalar_type& w();
+
+#if defined(BUILD_ENABLE_GLM)
+		inline Vector(const glm::f32vec4& v) noexcept;
+		inline operator glm::f32vec4() noexcept;
+#endif
+
+#if defined(BUILD_ENABLE_DIRECTX_MATH)
+		inline Vector(const DirectX::XMVECTOR& v) noexcept;
 		inline Vector(const DirectX::XMFLOAT4& v) noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMFLOAT4() noexcept;
+#endif
+	};
 
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
+	template <>
+	class LITEFX_MATH_API Vector<UInt32, 4> {
+	public:
+		static constexpr size_t vec_size = 4;
+		using scalar_type = UInt32;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		Vector() noexcept = delete;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+		inline const scalar_type& z() const;
+		inline scalar_type& z();
+		inline const scalar_type& w() const;
+		inline scalar_type& w();
+
+#if defined(BUILD_ENABLE_GLM)
+		inline Vector(const glm::u32vec4& v) noexcept;
+		inline operator glm::u32vec4() noexcept;
+#endif
+
+#if defined(BUILD_ENABLE_DIRECTX_MATH)
 		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
 		inline Vector(const DirectX::XMUINT4& v) noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMUINT4() noexcept;
+#endif
+	};
 
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
+	template <>
+	class LITEFX_MATH_API Vector<Int32, 4> {
+	public:
+		static constexpr size_t vec_size = 4;
+		using scalar_type = Int32;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		Vector() noexcept = delete;
+		inline Vector(const scalar_type& v) noexcept;
+		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		inline const scalar_type* elements() const noexcept;
+		inline scalar_type* elements() noexcept;
+		inline const scalar_type& operator[](const int& i) const noexcept;
+		inline scalar_type& operator[](const int& i) noexcept;
+		inline const scalar_type& x() const;
+		inline scalar_type& x();
+		inline const scalar_type& y() const;
+		inline scalar_type& y();
+		inline const scalar_type& z() const;
+		inline scalar_type& z();
+		inline const scalar_type& w() const;
+		inline scalar_type& w();
+
+#if defined(BUILD_ENABLE_GLM)
+		inline Vector(const glm::i32vec4& v) noexcept;
+		inline operator glm::i32vec4() noexcept;
+#endif
+
+#if defined(BUILD_ENABLE_DIRECTX_MATH)
 		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
 		inline Vector(const DirectX::XMINT4& v) noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Float>>>
-		inline operator DirectX::XMFLOAT4 () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, UInt32> && std::is_unsigned_v<T>>>
-		inline operator DirectX::XMUINT4 () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline operator DirectX::XMVECTOR () noexcept;
-		
-		template <typename U = T, typename std::enable_if_t<std::is_same_v<T, U> && std::is_same_v<T, Int32> && std::is_signed_v<T>>>
-		inline operator DirectX::XMINT4 () noexcept;
+		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMINT4() noexcept;
 #endif
 	};
 
