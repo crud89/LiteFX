@@ -2,6 +2,7 @@
 
 #include <litefx/core.h>
 #include <litefx/core_types.hpp>
+#include <litefx/math_types.hpp>
 #include <litefx/rendering.hpp>
 
 #if defined(BUILD_VULKAN_BACKEND)
