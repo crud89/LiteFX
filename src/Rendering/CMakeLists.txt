@@ -45,7 +45,9 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Rendering
 )
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Rendering LiteFX.Core)
+TARGET_LINK_LIBRARIES(LiteFX.Rendering LiteFX.Core LiteFX.Math)
+
+TARGET_PRECOMPILE_HEADERS(LiteFX.Rendering REUSE_FROM LiteFX.Core)
 
 # Setup installer.
 INSTALL(TARGETS LiteFX.Rendering EXPORT LiteFXRenderingConfig

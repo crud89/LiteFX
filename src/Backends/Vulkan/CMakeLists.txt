@@ -63,9 +63,11 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Backends.Vulkan
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Backends.Vulkan
-    PUBLIC LiteFX.Core LiteFX.Rendering
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering
     PRIVATE glm glad::glad Vulkan::Vulkan
 )
+
+TARGET_PRECOMPILE_HEADERS(LiteFX.Backends.Vulkan REUSE_FROM LiteFX.Core)
 
 # Setup installer.
 INSTALL(TARGETS LiteFX.Backends.Vulkan EXPORT LiteFXBackendsVulkanConfig
