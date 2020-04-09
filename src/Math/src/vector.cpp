@@ -3,6 +3,72 @@
 using namespace LiteFX::Math;
 
 // ------------------------------------------------------------------------------------------------
+// Vector<T, DIM>.
+// ------------------------------------------------------------------------------------------------
+
+template <typename T, int DIM>
+Vector<T, DIM>::Vector(const vec_type& _other) noexcept 
+{
+	std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+		return _other.m_elements[i++];
+	});
+}
+
+template <typename T, int DIM>
+Vector<T, DIM>::Vector(vec_type&& _other) noexcept
+{
+	std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+		return std::move(_other.m_elements[i++]);
+	});
+}
+
+template <typename T, int DIM>
+const T& Vector<T, DIM>::elements() const noexcept
+{
+	return m_elements;
+}
+
+// ------------------------------------------------------------------------------------------------
+// Vector<T, 1>.
+// ------------------------------------------------------------------------------------------------
+
+template <typename T>
+Vector<T, 1>::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0] } { }
+
+template <typename T>
+Vector<T, 1>::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]) } { }
+
+// ------------------------------------------------------------------------------------------------
+// Vector<T, 2>.
+// ------------------------------------------------------------------------------------------------
+
+template <typename T>
+Vector<T, 2>::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1] } { }
+
+template <typename T>
+Vector<T, 2>::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]) } { }
+
+// ------------------------------------------------------------------------------------------------
+// Vector<T, 3>.
+// ------------------------------------------------------------------------------------------------
+
+template <typename T>
+Vector<T, 3>::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2] } { }
+
+template <typename T>
+Vector<T, 3>::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]) } { }
+
+// ------------------------------------------------------------------------------------------------
+// Vector<T, 4>.
+// ------------------------------------------------------------------------------------------------
+
+template <typename T>
+Vector<T, 4>::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2], _other.m_elements[3] } { }
+
+template <typename T>
+Vector<T, 4>::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]), std::move(_other.m_elements[3]) } { }
+
+// ------------------------------------------------------------------------------------------------
 // Vector1f.
 // ------------------------------------------------------------------------------------------------
 
@@ -477,14 +543,43 @@ Vector4i::operator DirectX::XMINT4() noexcept { return DirectX::XMINT4(m_element
 // Specialize classes so that they get exported.
 // ------------------------------------------------------------------------------------------------
 
-class LITEFX_MATH_API CVector1f : public Vector1f { };
-class LITEFX_MATH_API CVector1u : public Vector1u { };
-class LITEFX_MATH_API CVector2f : public Vector2f { };
-class LITEFX_MATH_API CVector2u : public Vector2u { };
-class LITEFX_MATH_API CVector2i : public Vector2i { };
-class LITEFX_MATH_API CVector3f : public Vector3f { };
-class LITEFX_MATH_API CVector3u : public Vector3u { };
-class LITEFX_MATH_API CVector3i : public Vector3i { };
-class LITEFX_MATH_API CVector4f : public Vector4f { };
-class LITEFX_MATH_API CVector4u : public Vector4u { };
-class LITEFX_MATH_API CVector4i : public Vector4i { };
+class LITEFX_MATH_API CByteVector1 : public LiteFX::Math::Vectors::ByteVector1 {};
+class LITEFX_MATH_API CByteVector2 : public LiteFX::Math::Vectors::ByteVector2 {};
+class LITEFX_MATH_API CByteVector3 : public LiteFX::Math::Vectors::ByteVector3 {};
+class LITEFX_MATH_API CByteVector4 : public LiteFX::Math::Vectors::ByteVector4 {};
+class LITEFX_MATH_API CInt16Vector1 : public LiteFX::Math::Vectors::Int16Vector1 {};
+class LITEFX_MATH_API CInt16Vector2 : public LiteFX::Math::Vectors::Int16Vector2 {};
+class LITEFX_MATH_API CInt16Vector3 : public LiteFX::Math::Vectors::Int16Vector3 {};
+class LITEFX_MATH_API CInt16Vector4 : public LiteFX::Math::Vectors::Int16Vector4 {};
+class LITEFX_MATH_API CUInt16Vector1 : public LiteFX::Math::Vectors::UInt16Vector1 {};
+class LITEFX_MATH_API CUInt16Vector2 : public LiteFX::Math::Vectors::UInt16Vector2 {};
+class LITEFX_MATH_API CUInt16Vector3 : public LiteFX::Math::Vectors::UInt16Vector3 {};
+class LITEFX_MATH_API CUInt16Vector4 : public LiteFX::Math::Vectors::UInt16Vector4 {};
+class LITEFX_MATH_API CInt32Vector1 : public LiteFX::Math::Vectors::Int32Vector1 {};
+class LITEFX_MATH_API CInt32Vector2 : public LiteFX::Math::Vectors::Int32Vector2 {};
+class LITEFX_MATH_API CInt32Vector3 : public LiteFX::Math::Vectors::Int32Vector3 {};
+class LITEFX_MATH_API CInt32Vector4 : public LiteFX::Math::Vectors::Int32Vector4 {};
+class LITEFX_MATH_API CUInt32Vector1 : public LiteFX::Math::Vectors::UInt32Vector1 {};
+class LITEFX_MATH_API CUInt32Vector2 : public LiteFX::Math::Vectors::UInt32Vector2 {};
+class LITEFX_MATH_API CUInt32Vector3 : public LiteFX::Math::Vectors::UInt32Vector3 {};
+class LITEFX_MATH_API CUInt32Vector4 : public LiteFX::Math::Vectors::UInt32Vector4 {};
+class LITEFX_MATH_API CInt64Vector1 : public LiteFX::Math::Vectors::Int64Vector1 {};
+class LITEFX_MATH_API CInt64Vector2 : public LiteFX::Math::Vectors::Int64Vector2 {};
+class LITEFX_MATH_API CInt64Vector3 : public LiteFX::Math::Vectors::Int64Vector3 {};
+class LITEFX_MATH_API CInt64Vector4 : public LiteFX::Math::Vectors::Int64Vector4 {};
+class LITEFX_MATH_API CUInt64Vector1 : public LiteFX::Math::Vectors::UInt64Vector1 {};
+class LITEFX_MATH_API CUInt64Vector2 : public LiteFX::Math::Vectors::UInt64Vector2 {};
+class LITEFX_MATH_API CUInt64Vector3 : public LiteFX::Math::Vectors::UInt64Vector3 {};
+class LITEFX_MATH_API CUInt64Vector4 : public LiteFX::Math::Vectors::UInt64Vector4 {};
+class LITEFX_MATH_API CFloatVector1 : public LiteFX::Math::Vectors::FloatVector1 {};
+class LITEFX_MATH_API CFloatVector2 : public LiteFX::Math::Vectors::FloatVector2 {};
+class LITEFX_MATH_API CFloatVector3 : public LiteFX::Math::Vectors::FloatVector3 {};
+class LITEFX_MATH_API CFloatVector4 : public LiteFX::Math::Vectors::FloatVector4 {};
+class LITEFX_MATH_API CDoubleVector1 : public LiteFX::Math::Vectors::DoubleVector1 {};
+class LITEFX_MATH_API CDoubleVector2 : public LiteFX::Math::Vectors::DoubleVector2 {};
+class LITEFX_MATH_API CDoubleVector3 : public LiteFX::Math::Vectors::DoubleVector3 {};
+class LITEFX_MATH_API CDoubleVector4 : public LiteFX::Math::Vectors::DoubleVector4 {};
+
+class LITEFX_MATH_API CSizeVector2 : public Size2d {};
+class LITEFX_MATH_API CSizeVector3 : public Size3d {};
+class LITEFX_MATH_API CSizeVector4 : public Size4d {};

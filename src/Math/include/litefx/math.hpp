@@ -27,8 +27,6 @@
 namespace LiteFX::Math {
 	using namespace LiteFX;
 
-	template <typename T, int DIM> class LITEFX_MATH_API Vector;
-
 	using Byte = uint8_t;
 	using Int16 = int16_t;
 	using UInt16 = uint16_t;
@@ -38,6 +36,122 @@ namespace LiteFX::Math {
 	using UInt64 = uint64_t;
 	using Float = float_t;
 	using Double = double_t;
+
+	template <typename T, int DIM>
+	class LITEFX_MATH_API Vector {
+	public:
+		static constexpr size_t vec_size = DIM;
+		using scalar_type = T;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		inline Vector() noexcept = default;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		inline const scalar_type& elements() const noexcept;
+	};
+
+	template <typename T>
+	class LITEFX_MATH_API Vector<T, 1> {
+	public:
+		static constexpr size_t vec_size = 1;
+		using scalar_type = T;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		//inline Vector(const scalar_type& x) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		//inline const scalar_type& x() const;
+		//inline scalar_type& x();
+	};
+
+	template <typename T>
+	class LITEFX_MATH_API Vector<T, 2> {
+	public:
+		static constexpr size_t vec_size = 2;
+		using scalar_type = T;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		//inline Vector(const scalar_type& x) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		//inline const scalar_type& x() const;
+		//inline scalar_type& x();
+		//inline const scalar_type& y() const;
+		//inline scalar_type& y();
+	};
+
+	template <typename T>
+	class LITEFX_MATH_API Vector<T, 3> {
+	public:
+		static constexpr size_t vec_size = 3;
+		using scalar_type = T;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		//inline Vector(const scalar_type& x) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		//inline const scalar_type& x() const;
+		//inline scalar_type& x();
+		//inline const scalar_type& y() const;
+		//inline scalar_type& y();
+		//inline const scalar_type& z() const;
+		//inline scalar_type& z();
+	};
+
+	template <typename T>
+	class LITEFX_MATH_API Vector<T, 4> {
+	public:
+		static constexpr size_t vec_size = 4;
+		using scalar_type = T;
+		using vec_type = Vector<scalar_type, vec_size>;
+
+	private:
+		scalar_type m_elements[vec_size];
+
+	public:
+		//inline Vector(const scalar_type& x) noexcept;
+		inline Vector(const vec_type& _other) noexcept;
+		inline Vector(vec_type&& _other) noexcept;
+		virtual inline ~Vector() noexcept = default;
+
+	public:
+		//inline const scalar_type& x() const;
+		//inline scalar_type& x();
+		//inline const scalar_type& y() const;
+		//inline scalar_type& y();
+		//inline const scalar_type& z() const;
+		//inline scalar_type& z();
+		//inline const scalar_type& w() const;
+		//inline scalar_type& w();
+	};
 
 	template <>
 	class LITEFX_MATH_API Vector<Float, 1> {
@@ -505,15 +619,61 @@ namespace LiteFX::Math {
 	template<typename T> using TVector3 = Vector<T, 3>;
 	template<typename T> using TVector4 = Vector<T, 4>;
 
-	typedef TVector1<UInt32> Vector1u;
-	typedef TVector1<Float> Vector1f;
-	typedef TVector2<Int32> Vector2i;
-	typedef TVector2<UInt32> Vector2u;
-	typedef TVector2<Float> Vector2f;
-	typedef TVector3<Int32> Vector3i;
-	typedef TVector3<UInt32> Vector3u;
-	typedef TVector3<Float> Vector3f;
-	typedef TVector4<Int32> Vector4i;
-	typedef TVector4<UInt32> Vector4u;
-	typedef TVector4<Float> Vector4f;
+	// Define exported vector types.
+	namespace Vectors {
+		using ByteVector1 = TVector1<Byte>;
+		using ByteVector2 = TVector2<Byte>;
+		using ByteVector3 = TVector3<Byte>;
+		using ByteVector4 = TVector4<Byte>;
+		using Int16Vector1 = TVector1<Int16>;
+		using Int16Vector2 = TVector2<Int16>;
+		using Int16Vector3 = TVector3<Int16>;
+		using Int16Vector4 = TVector4<Int16>;
+		using UInt16Vector1 = TVector1<UInt16>;
+		using UInt16Vector2 = TVector2<UInt16>;
+		using UInt16Vector3 = TVector3<UInt16>;
+		using UInt16Vector4 = TVector4<UInt16>;
+		using Int32Vector1 = TVector1<Int32>;
+		using Int32Vector2 = TVector2<Int32>;
+		using Int32Vector3 = TVector3<Int32>;
+		using Int32Vector4 = TVector4<Int32>;
+		using UInt32Vector1 = TVector1<UInt32>;
+		using UInt32Vector2 = TVector2<UInt32>;
+		using UInt32Vector3 = TVector3<UInt32>;
+		using UInt32Vector4 = TVector4<UInt32>;
+		using Int64Vector1 = TVector1<Int64>;
+		using Int64Vector2 = TVector2<Int64>;
+		using Int64Vector3 = TVector3<Int64>;
+		using Int64Vector4 = TVector4<Int64>;
+		using UInt64Vector1 = TVector1<UInt64>;
+		using UInt64Vector2 = TVector2<UInt64>;
+		using UInt64Vector3 = TVector3<UInt64>;
+		using UInt64Vector4 = TVector4<UInt64>;
+		using FloatVector1 = TVector1<Float>;
+		using FloatVector2 = TVector2<Float>;
+		using FloatVector3 = TVector3<Float>;
+		using FloatVector4 = TVector4<Float>;
+		using DoubleVector1 = TVector1<Double>;
+		using DoubleVector2 = TVector2<Double>;
+		using DoubleVector3 = TVector3<Double>;
+		using DoubleVector4 = TVector4<Double>;
+	}
+
+	// Define vector types that support conversion to higher level APIs.
+	typedef Vectors::UInt32Vector1 Vector1u;
+	typedef Vectors::FloatVector1 Vector1f;
+	typedef Vectors::Int32Vector2 Vector2i;
+	typedef Vectors::UInt32Vector2 Vector2u;
+	typedef Vectors::FloatVector2 Vector2f;
+	typedef Vectors::Int32Vector3 Vector3i;
+	typedef Vectors::UInt32Vector3 Vector3u;
+	typedef Vectors::FloatVector3 Vector3f;
+	typedef Vectors::Int32Vector4 Vector4i;
+	typedef Vectors::UInt32Vector4 Vector4u;
+	typedef Vectors::FloatVector4 Vector4f;
+
+	// Define other special vector types.
+	typedef TVector2<size_t> Size2d;
+	typedef TVector3<size_t> Size3d;
+	typedef TVector4<size_t> Size4d;
 }
