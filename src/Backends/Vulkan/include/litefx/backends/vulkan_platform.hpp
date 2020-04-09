@@ -1,6 +1,5 @@
 #pragma once
 
-#include <litefx/core_types.hpp>
 #include <litefx/rendering.hpp>
 
 #if (defined _WIN32 || defined WINCE)

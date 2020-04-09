@@ -20,10 +20,13 @@ private:
 		uint32_t images;
 		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, nullptr);
 
-		Array<VkImage> imageChain(images);
-		Array<VulkanTexture> textures(images);
-		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, imageChain.data());
-		std::generate(textures.begin(), textures.end(), [&]() { return makeUnique<VulkanTexture>(); });
+		// TODO:
+		//Array<VkImage> imageChain(images);
+		//Array<UniquePtr<VulkanTexture>> textures(images);
+		//::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, imageChain.data());
+		
+		// TODO:
+		//std::generate(textures.begin(), textures.end(), [&]() { return makeUnique<VulkanTexture>(); });
 	}
 
 private:
@@ -118,7 +121,8 @@ public:
 		if (::vkCreateSwapchainKHR(m_device->handle(), &createInfo, nullptr, &swapChain) != VK_SUCCESS)
 			throw std::runtime_error("Swap chain could not be created.");
 
-		this->loadImages(swapChain);
+		// TODO:
+		//this->loadImages(swapChain);
 
 		return swapChain;
 	}

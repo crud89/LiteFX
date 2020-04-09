@@ -7,6 +7,17 @@
 PROJECT(LiteFX.Rendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: LiteFX.Rendering...")
 
+# Install packages.
+MESSAGE(STATUS "Installing package dependencies...")
+
+SET(PRIVATE_LINK_LIBS "")
+
+IF(BUILD_ENABLE_GLM)
+    VCPKG_INSTALL(glm)
+    FIND_PACKAGE(glm CONFIG REQUIRED)
+    LIST(APPEND PRIVATE_LINK_LIBS "glm")
+ENDIF(BUILD_ENABLE_GLM)
+
 # Collect header & source files.
 SET(RENDERING_HEADERS
     "include/litefx/rendering.hpp"
@@ -22,8 +33,6 @@ ADD_LIBRARY(LiteFX.Rendering SHARED
     ${RENDERING_HEADERS}
     ${RENDERING_SOURCES}
 )
-
-ADD_DEPENDENCIES(LiteFX.Rendering LiteFX.Core)
 
 # Create source groups for better code organization.
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${RENDERING_HEADERS} ${RENDERING_SOURCES})
@@ -45,7 +54,7 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Rendering
 )
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Rendering LiteFX.Core LiteFX.Math)
+TARGET_LINK_LIBRARIES(LiteFX.Rendering PUBLIC LiteFX.Core LiteFX.Math LiteFX.AppModel PRIVATE ${PRIVATE_LINK_LIBS})
 
 TARGET_PRECOMPILE_HEADERS(LiteFX.Rendering REUSE_FROM LiteFX.Core)
 

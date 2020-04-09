@@ -1,6 +1,7 @@
 #pragma once
 
-#include <litefx/core_types.hpp>
+#include <litefx/app.hpp>
+#include <litefx/math.hpp>
 
 #if !defined (LITEFX_RENDERING_API)
 #  if defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)

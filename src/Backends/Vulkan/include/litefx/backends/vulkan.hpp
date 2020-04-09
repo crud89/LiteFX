@@ -1,12 +1,12 @@
 #pragma once
 
-#include <litefx/core_types.hpp>
 #include <litefx/rendering.hpp>
 
 #include "vulkan_api.hpp"
 #include "vulkan_platform.hpp"
 
 namespace LiteFX::Rendering::Backends {
+	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
 	// Conversion helpers.
@@ -24,7 +24,11 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_VULKAN_API VulkanTexture : public ITexture, public IResource<VkImage> {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl)
 
+	private:
+		Vector2f m_vec;
+
 	public:
+		VulkanTexture() noexcept = default;
 		//VulkanTexture(VkImage image, const Format& format, const Size& size);
 		//VulkanTexture(device, format, ...);
 		virtual ~VulkanTexture() noexcept;

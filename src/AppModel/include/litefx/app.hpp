@@ -1,24 +1,24 @@
 #pragma once
 
-#if !defined (LITEFX_CORE_API)
-#  if defined(LiteFX_Core_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_CORE_API __declspec(dllexport)
-#  elif (defined(LiteFX_Core_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_CORE_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_Core_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_CORE_API __declspec(dllimport)
+#if !defined (LITEFX_APPMODEL_API)
+#  if defined(LiteFX_AppModel_EXPORTS) && (defined _WIN32 || defined WINCE)
+#    define LITEFX_APPMODEL_API __declspec(dllexport)
+#  elif (defined(LiteFX_AppModel_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
+#    define LITEFX_APPMODEL_API __attribute__ ((visibility ("default")))
+#  elif !defined(LiteFX_AppModel_EXPORTS) && (defined _WIN32 || defined WINCE)
+#    define LITEFX_APPMODEL_API __declspec(dllimport)
 #  endif
 #endif
 
-#ifndef LITEFX_CORE_API
-#  define LITEFX_CORE_API
+#ifndef LITEFX_APPMODEL_API
+#  define LITEFX_APPMODEL_API
 #endif
 
 #include <litefx/core.h>
 
 namespace LiteFX {
 
-	enum class LITEFX_CORE_API Platform {
+	enum class LITEFX_APPMODEL_API Platform {
 		None = 0x00000000,
 		Win32 = 0x00000001,
 		// TODO: ...
@@ -26,9 +26,9 @@ namespace LiteFX {
 	};
 
 	/**
-	* 
+	*
 	**/
-	class LITEFX_CORE_API AppVersion {
+	class LITEFX_APPMODEL_API AppVersion {
 		LITEFX_IMPLEMENTATION(AppVersionImpl)
 
 	public:
@@ -53,7 +53,7 @@ namespace LiteFX {
 	/**
 	* Base class for a LiteFX application.
 	**/
-	class LITEFX_CORE_API App {
+	class LITEFX_APPMODEL_API App {
 		LITEFX_IMPLEMENTATION(AppImpl)
 
 	public:

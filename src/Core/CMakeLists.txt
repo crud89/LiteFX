@@ -13,7 +13,6 @@ CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/core.h")
 
 # Collect header & source files.
 SET(CORE_HEADERS
-    "include/litefx/core_types.hpp"
     "include/litefx/containers.hpp"
     "include/litefx/core.h"
     "include/litefx/config.h"
@@ -22,8 +21,7 @@ SET(CORE_HEADERS
 )
 
 SET(CORE_SOURCES
-    "src/app.cpp"
-    "src/appversion.cpp"
+    "src/core.cpp"
  )
 
 ADD_LIBRARY(LiteFX.Core SHARED
@@ -34,11 +32,16 @@ ADD_LIBRARY(LiteFX.Core SHARED
 # Create source groups for better code organization.
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CORE_HEADERS} ${CORE_SOURCES})
 
-# Setup project properties.
+# Setup project properties. Relevant properties:
+# - FOLDER: IDE folder (if supported).
+# - VERSION/SOVERSION: The current build version.
+# - DEFINE_SYMBOL: Disables the "_EXPORTS" define, which would conflict with the precompiled header.
+# Do not export
 SET_TARGET_PROPERTIES(LiteFX.Core PROPERTIES
     FOLDER "SDK"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
+    DEFINE_SYMBOL ""
 )
 
 TARGET_INCLUDE_DIRECTORIES(LiteFX.Core

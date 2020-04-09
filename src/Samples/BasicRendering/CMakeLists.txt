@@ -38,8 +38,6 @@ ADD_EXECUTABLE(LiteFX.Samples.BasicRendering
     ${SAMPLE_BASIC_RENDERING_SOURCES}
 )
 
-ADD_DEPENDENCIES(LiteFX.Samples.BasicRendering LiteFX.Core LiteFX.Rendering LiteFX.Backends.Vulkan)
-
 # Create source groups for better code organization.
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${VULKAN_BACKEND_SOURCES})
 
@@ -54,7 +52,7 @@ SET_TARGET_PROPERTIES(LiteFX.Samples.BasicRendering PROPERTIES
 TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.BasicRendering PRIVATE "src/")
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Samples.BasicRendering PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.Backends.Vulkan)
+TARGET_LINK_LIBRARIES(LiteFX.Samples.BasicRendering PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
 
 TARGET_PRECOMPILE_HEADERS(LiteFX.Samples.BasicRendering REUSE_FROM LiteFX.Core)
 
@@ -69,7 +67,7 @@ INSTALL(TARGETS LiteFX.Samples.BasicRendering EXPORT LiteFXSamplesBasicRendering
 #INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
 INSTALL(EXPORT LiteFXSamplesBasicRenderingConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
 
-IF (WIN32)
+IF(WIN32)
     INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/glfw3.dll DESTINATION ${CMAKE_INSTALL_BINARY_DIR})
 ENDIF(WIN32)
 

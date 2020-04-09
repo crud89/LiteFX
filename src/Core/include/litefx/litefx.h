@@ -1,8 +1,8 @@
 #pragma once
 
 #include <litefx/core.h>
-#include <litefx/core_types.hpp>
-#include <litefx/math_types.hpp>
+#include <litefx/app.hpp>
+#include <litefx/math.hpp>
 #include <litefx/rendering.hpp>
 
 #if defined(BUILD_VULKAN_BACKEND)

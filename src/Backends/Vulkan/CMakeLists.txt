@@ -40,8 +40,6 @@ ADD_LIBRARY(LiteFX.Backends.Vulkan SHARED
     ${VULKAN_BACKEND_SOURCES}
 )
 
-ADD_DEPENDENCIES(LiteFX.Backends.Vulkan LiteFX.Core LiteFX.Rendering)
-
 # Create source groups for better code organization.
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${VULKAN_BACKEND_SOURCES})
 
@@ -63,7 +61,7 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Backends.Vulkan
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Backends.Vulkan
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
     PRIVATE glm glad::glad Vulkan::Vulkan
 )
 

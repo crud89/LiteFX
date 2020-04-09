@@ -22,13 +22,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(VkImage image) :
-	IResource(image), m_impl(makePimpl<VulkanTextureImpl>())
-{
-	if (image == nullptr)
-		throw std::invalid_argument("The argument `image` is not initialized.");
-
-	m_impl->initialize(*this);
-}
+//VulkanTexture::VulkanTexture(VkImage image) :
+//	IResource(image), m_impl(makePimpl<VulkanTextureImpl>())
+//{
+//	if (image == nullptr)
+//		throw std::invalid_argument("The argument `image` is not initialized.");
+//
+//	m_impl->initialize(*this);
+//}
 
 VulkanTexture::~VulkanTexture() noexcept = default;

@@ -1,50 +1,40 @@
 ###################################################################################################
 #####                                                                                         #####
-#####                     LiteFX.Math - Contains the base math library.                       #####
+#####           LiteFX.AppModel - Contains the application base model definition.             #####
 #####                                                                                         #####
 ###################################################################################################
 
-PROJECT(LiteFX.Math VERSION ${LITEFX_VERSION} LANGUAGES CXX)
-MESSAGE(STATUS "Initializing: LiteFX.Math...")
-
-# Install packages.
-MESSAGE(STATUS "Installing package dependencies...")
-
-SET(PRIVATE_LINK_LIBS "")
-
-IF(BUILD_ENABLE_GLM)
-    VCPKG_INSTALL(glm)
-    FIND_PACKAGE(glm CONFIG REQUIRED)
-    LIST(APPEND PRIVATE_LINK_LIBS "glm")
-ENDIF(BUILD_ENABLE_GLM)
+PROJECT(LiteFX.AppModel VERSION ${LITEFX_VERSION} LANGUAGES CXX)
+MESSAGE(STATUS "Initializing: LiteFX.AppModel...")
 
 # Collect header & source files.
-SET(VULKAN_MATH_HEADERS
-    "include/litefx/math.hpp"
+SET(APP_MODEL_HEADERS
+    "include/litefx/app.hpp"
 )
 
-SET(VULKAN_MATH_SOURCES
-    "src/vector.cpp"
+SET(APP_MODEL_SOURCES
+    "src/app.cpp"
+    "src/appversion.cpp"
+ )
+
+ADD_LIBRARY(LiteFX.AppModel SHARED
+    ${APP_MODEL_HEADERS}
+    ${APP_MODEL_SOURCES}
 )
 
-# Add shared library project.
-ADD_LIBRARY(LiteFX.Math SHARED
-    ${VULKAN_MATH_HEADERS}
-    ${VULKAN_MATH_SOURCES}
-)
+ADD_DEPENDENCIES(LiteFX.AppModel LiteFX.Core)
 
 # Create source groups for better code organization.
-SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_MATH_HEADERS} ${VULKAN_MATH_SOURCES})
+SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${APP_MODEL_HEADERS} ${APP_MODEL_SOURCES})
 
 # Setup project properties.
-SET_TARGET_PROPERTIES(LiteFX.Math PROPERTIES
+SET_TARGET_PROPERTIES(LiteFX.AppModel PROPERTIES
     FOLDER "SDK"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
 )
 
-# Setup target include directories.
-TARGET_INCLUDE_DIRECTORIES(LiteFX.Math 
+TARGET_INCLUDE_DIRECTORIES(LiteFX.AppModel
     PRIVATE 
         "src/"
     PUBLIC
@@ -53,15 +43,15 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Math
 )
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Math
+TARGET_LINK_LIBRARIES(LiteFX.AppModel
     PUBLIC LiteFX.Core
     PRIVATE ${PRIVATE_LINK_LIBS}
 )
 
-TARGET_PRECOMPILE_HEADERS(LiteFX.Math REUSE_FROM LiteFX.Core)
+TARGET_PRECOMPILE_HEADERS(LiteFX.AppModel REUSE_FROM LiteFX.Core)
 
 # Setup installer.
-INSTALL(TARGETS LiteFX.Math EXPORT LiteFXMathConfig
+INSTALL(TARGETS LiteFX.AppModel EXPORT LiteFXAppModelConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
@@ -69,7 +59,7 @@ INSTALL(TARGETS LiteFX.Math EXPORT LiteFXMathConfig
 )
 
 INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
-INSTALL(EXPORT LiteFXMathConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+INSTALL(EXPORT LiteFXAppModelConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
 
 # Export config.
-EXPORT(TARGETS LiteFX.Math FILE LiteFXMathConfig.cmake)
+EXPORT(TARGETS LiteFX.AppModel FILE LiteFXAppModelConfig.cmake)

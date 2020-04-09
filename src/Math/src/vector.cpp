@@ -1,4 +1,4 @@
-#include <litefx/math_types.hpp>
+#include <litefx/math.hpp>
 
 using namespace LiteFX::Math;
 
