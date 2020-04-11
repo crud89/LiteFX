@@ -26,12 +26,12 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		VulkanTexture() noexcept = default;
-		//VulkanTexture(VkImage image, const Format& format, const Size& size);
-		//VulkanTexture(device, format, ...);
+		VulkanTexture(VkImage image, const Format& format, const Size2d& size);
 		virtual ~VulkanTexture() noexcept;
 
 	public:
 		virtual Size2d getSize() const noexcept override;
+		virtual Format getFormat() const noexcept override;
 	};
 
 	class LITEFX_VULKAN_API VulkanSwapChain : public ISwapChain, public IResource<VkSwapchainKHR> {

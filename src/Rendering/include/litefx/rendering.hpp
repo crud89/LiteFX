@@ -66,6 +66,7 @@ namespace LiteFX::Rendering {
 
 	public:
 		virtual Size2d getSize() const noexcept = 0;
+		virtual Format getFormat() const noexcept = 0;
 	};
 
 	class LITEFX_RENDERING_API ISwapChain {
