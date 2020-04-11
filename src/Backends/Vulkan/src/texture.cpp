@@ -9,16 +9,22 @@ using namespace LiteFX::Rendering::Backends;
 class VulkanTexture::VulkanTextureImpl {
 private:
 	const VulkanDevice* m_device;
+	VkImageView m_view;
 	Format m_format;
 	Size2d m_size;
 
 public:
 	VulkanTextureImpl(const VulkanDevice* device, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) noexcept :
-		m_device(device), m_format(format), m_size(size) { }
+		m_device(device), m_format(format), m_size(size), m_view(nullptr) { }
+
+	~VulkanTextureImpl() noexcept {
+		::vkDestroyImageView(m_device->handle(), m_view, nullptr);
+	}
 
 public:
 	void initialize(const VulkanTexture& parent)
 	{
+		m_view = m_device->vkCreateImageView(parent.handle(), m_format);
 	}
 
 public:

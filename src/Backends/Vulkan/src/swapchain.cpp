@@ -150,9 +150,10 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& forma
 
 VulkanSwapChain::~VulkanSwapChain() noexcept 
 {
+	auto device = m_impl->getDevice()->handle();
 	m_impl.destroy();
 
-	::vkDestroySwapchainKHR(m_impl->getDevice()->handle(), this->handle(), nullptr);
+	::vkDestroySwapchainKHR(device, this->handle(), nullptr);
 }
 
 const IGraphicsDevice* VulkanSwapChain::getDevice() const noexcept

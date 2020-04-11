@@ -101,6 +101,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<ITexture> makeTexture2d(VkImage image, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const;
 
 	public:
+		virtual VkImageView vkCreateImageView(const VkImage& image, const Format& format) const;
+
+	public:
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
 		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
 	};
