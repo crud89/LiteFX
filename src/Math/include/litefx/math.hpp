@@ -55,6 +55,8 @@ namespace LiteFX::Math {
 		inline Vector1f& operator=(const Vector<Float, 1>& _other) noexcept;
 		inline Vector1f& operator=(Vector<Float, 1>&& _other) noexcept;
 		inline Vector1f& operator=(const Array<Float>& _other) noexcept;
+		inline Vector1f& operator=(const Vector1f& _other) noexcept;
+		inline Vector1f& operator=(Vector1f&& _other) noexcept;
 		inline const Float& operator[](const unsigned int& i) const noexcept;
 		inline Float& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Float>() noexcept;
@@ -89,6 +91,8 @@ namespace LiteFX::Math {
 		inline Vector1u& operator=(const Vector<UInt32, 1>& _other) noexcept;
 		inline Vector1u& operator=(Vector<UInt32, 1>&& _other) noexcept;
 		inline Vector1u& operator=(const Array<UInt32>& _other) noexcept;
+		inline Vector1u& operator=(const Vector1u& _other) noexcept;
+		inline Vector1u& operator=(Vector1u&& _other) noexcept;
 		inline const UInt32& operator[](const unsigned int& i) const noexcept;
 		inline UInt32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<UInt32>() noexcept;
@@ -108,7 +112,6 @@ namespace LiteFX::Math {
 #endif
 	};
 
-
 	class LITEFX_MATH_API Vector2f : public Vector<Float, 2> {
 	public:
 		Vector2f() noexcept;
@@ -124,6 +127,8 @@ namespace LiteFX::Math {
 		inline Vector2f& operator=(const Vector<Float, 2>& _other) noexcept;
 		inline Vector2f& operator=(Vector<Float, 2>&& _other) noexcept;
 		inline Vector2f& operator=(const Array<Float>& _other) noexcept;
+		inline Vector2f& operator=(const Vector2f& _other) noexcept;
+		inline Vector2f& operator=(Vector2f&& _other) noexcept;
 		inline const Float& operator[](const unsigned int& i) const noexcept;
 		inline Float& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Float>() noexcept;
@@ -161,6 +166,8 @@ namespace LiteFX::Math {
 		inline Vector2u& operator=(const Vector<UInt32, 2>& _other) noexcept;
 		inline Vector2u& operator=(Vector<UInt32, 2>&& _other) noexcept;
 		inline Vector2u& operator=(const Array<UInt32>& _other) noexcept;
+		inline Vector2u& operator=(const Vector2u& _other) noexcept;
+		inline Vector2u& operator=(Vector2u&& _other) noexcept;
 		inline const UInt32& operator[](const unsigned int& i) const noexcept;
 		inline UInt32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<UInt32>() noexcept;
@@ -198,6 +205,8 @@ namespace LiteFX::Math {
 		inline Vector2i& operator=(const Vector<Int32, 2>& _other) noexcept;
 		inline Vector2i& operator=(Vector<Int32, 2>&& _other) noexcept;
 		inline Vector2i& operator=(const Array<Int32>& _other) noexcept;
+		inline Vector2i& operator=(const Vector2i& _other) noexcept;
+		inline Vector2i& operator=(Vector2i&& _other) noexcept;
 		inline const Int32& operator[](const unsigned int& i) const noexcept;
 		inline Int32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Int32>() noexcept;
@@ -220,7 +229,6 @@ namespace LiteFX::Math {
 #endif
 	};
 
-
 	class LITEFX_MATH_API Vector3f : public Vector<Float, 3> {
 	public:
 		Vector3f() noexcept;
@@ -236,6 +244,8 @@ namespace LiteFX::Math {
 		inline Vector3f& operator=(const Vector<Float, 3>& _other) noexcept;
 		inline Vector3f& operator=(Vector<Float, 3>&& _other) noexcept;
 		inline Vector3f& operator=(const Array<Float>& _other) noexcept;
+		inline Vector3f& operator=(const Vector3f& _other) noexcept;
+		inline Vector3f& operator=(Vector3f&& _other) noexcept;
 		inline const Float& operator[](const unsigned int& i) const noexcept;
 		inline Float& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Float>() noexcept;
@@ -273,6 +283,8 @@ namespace LiteFX::Math {
 		inline Vector3u& operator=(const Vector<UInt32, 3>& _other) noexcept;
 		inline Vector3u& operator=(Vector<UInt32, 3>&& _other) noexcept;
 		inline Vector3u& operator=(const Array<UInt32>& _other) noexcept;
+		inline Vector3u& operator=(const Vector3u& _other) noexcept;
+		inline Vector3u& operator=(Vector3u&& _other) noexcept;
 		inline const UInt32& operator[](const unsigned int& i) const noexcept;
 		inline UInt32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<UInt32>() noexcept;
@@ -310,6 +322,8 @@ namespace LiteFX::Math {
 		inline Vector3i& operator=(const Vector<Int32, 3>& _other) noexcept;
 		inline Vector3i& operator=(Vector<Int32, 3>&& _other) noexcept;
 		inline Vector3i& operator=(const Array<Int32>& _other) noexcept;
+		inline Vector3i& operator=(const Vector3i& _other) noexcept;
+		inline Vector3i& operator=(Vector3i&& _other) noexcept;
 		inline const Int32& operator[](const unsigned int& i) const noexcept;
 		inline Int32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Int32>() noexcept;
@@ -332,7 +346,6 @@ namespace LiteFX::Math {
 #endif
 	};
 
-
 	class LITEFX_MATH_API Vector4f : public Vector<Float, 4> {
 	public:
 		Vector4f() noexcept;
@@ -348,6 +361,8 @@ namespace LiteFX::Math {
 		inline Vector4f& operator=(const Vector<Float, 4>& _other) noexcept;
 		inline Vector4f& operator=(Vector<Float, 4>&& _other) noexcept;
 		inline Vector4f& operator=(const Array<Float>& _other) noexcept;
+		inline Vector4f& operator=(const Vector4f& _other) noexcept;
+		inline Vector4f& operator=(Vector4f&& _other) noexcept;
 		inline const Float& operator[](const unsigned int& i) const noexcept;
 		inline Float& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Float>() noexcept;
@@ -385,6 +400,8 @@ namespace LiteFX::Math {
 		inline Vector4u& operator=(const Vector<UInt32, 4>& _other) noexcept;
 		inline Vector4u& operator=(Vector<UInt32, 4>&& _other) noexcept;
 		inline Vector4u& operator=(const Array<UInt32>& _other) noexcept;
+		inline Vector4u& operator=(const Vector4u& _other) noexcept;
+		inline Vector4u& operator=(Vector4u&& _other) noexcept;
 		inline const UInt32& operator[](const unsigned int& i) const noexcept;
 		inline UInt32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<UInt32>() noexcept;
@@ -422,6 +439,8 @@ namespace LiteFX::Math {
 		inline Vector4i& operator=(const Vector<Int32, 4>& _other) noexcept;
 		inline Vector4i& operator=(Vector<Int32, 4>&& _other) noexcept;
 		inline Vector4i& operator=(const Array<Int32>& _other) noexcept;
+		inline Vector4i& operator=(const Vector4i& _other) noexcept;
+		inline Vector4i& operator=(Vector4i&& _other) noexcept;
 		inline const Int32& operator[](const unsigned int& i) const noexcept;
 		inline Int32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Int32>() noexcept;
@@ -483,10 +502,73 @@ namespace LiteFX::Math {
 		using DoubleVector3 = TVector3<Double>;
 		using DoubleVector4 = TVector4<Double>;
 	}
+#pragma endregion
 
-	// Define other special vector types.
-	typedef TVector2<size_t> Size2d;
-	typedef TVector3<size_t> Size3d;
-	typedef TVector4<size_t> Size4d;
+#pragma region Size
+	class LITEFX_MATH_API Size2d : public Vector<size_t, 2> {
+	public:
+		Size2d() noexcept;
+		Size2d(const size_t& v) noexcept;
+		Size2d(const size_t& w, const size_t& h) noexcept;
+		Size2d(const Size2d&) noexcept;
+		Size2d(Size2d&&) noexcept;
+		virtual ~Size2d() noexcept = default;
+
+	public:
+		inline Size2d& operator=(const Size2d& _other) noexcept;
+		inline Size2d& operator=(Size2d&& _other) noexcept;
+
+	public:
+		inline const size_t& width() const noexcept;
+		inline size_t& width() noexcept;
+		inline const size_t& height() const noexcept;
+		inline size_t& height() noexcept;
+	};
+
+	class LITEFX_MATH_API Size3d : public Vector<size_t, 3> {
+	public:
+		Size3d() noexcept;
+		Size3d(const size_t& v) noexcept;
+		Size3d(const size_t& w, const size_t& h, const size_t& d) noexcept;
+		Size3d(const Size3d&) noexcept;
+		Size3d(Size3d&&) noexcept;
+		virtual ~Size3d() noexcept = default;
+
+	public:
+		inline Size3d& operator=(const Size3d& _other) noexcept;
+		inline Size3d& operator=(Size3d&& _other) noexcept;
+
+	public:
+		inline const size_t& width() const noexcept;
+		inline size_t& width() noexcept;
+		inline const size_t& height() const noexcept;
+		inline size_t& height() noexcept;
+		inline const size_t& depth() const noexcept;
+		inline size_t& depth() noexcept;
+	};
+
+	class LITEFX_MATH_API Size4d : public Vector<size_t, 4> {
+	public:
+		Size4d() noexcept;
+		Size4d(const size_t& v) noexcept;
+		Size4d(const size_t& w, const size_t& h, const size_t& d, const size_t& a) noexcept;
+		Size4d(const Size4d&) noexcept;
+		Size4d(Size4d&&) noexcept;
+		virtual ~Size4d() noexcept = default;
+
+	public:
+		inline Size4d& operator=(const Size4d& _other) noexcept;
+		inline Size4d& operator=(Size4d&& _other) noexcept;
+
+	public:
+		inline const size_t& width() const noexcept;
+		inline size_t& width() noexcept;
+		inline const size_t& height() const noexcept;
+		inline size_t& height() noexcept;
+		inline const size_t& depth() const noexcept;
+		inline size_t& depth() noexcept;
+		inline const size_t& alpha() const noexcept;
+		inline size_t& alpha() noexcept;
+	};
 #pragma endregion
 }

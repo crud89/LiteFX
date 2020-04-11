@@ -37,6 +37,14 @@ Vector1f& Vector1f::operator=(const Array<Float>& _other) noexcept {
     return *this;
 }
 
+Vector1f& Vector1f::operator=(const Vector1f& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector1f& Vector1f::operator=(Vector1f&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
+}
+
 const Float& Vector1f::operator[](const unsigned int& i) const noexcept {
     return Vector<Float, 1>::operator[](i);
 }
@@ -112,6 +120,14 @@ Vector1u& Vector1u::operator=(const Array<UInt32>& _other) noexcept {
     });
 
     return *this;
+}
+
+Vector1u& Vector1u::operator=(const Vector1u& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector1u& Vector1u::operator=(Vector1u&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
 const UInt32& Vector1u::operator[](const unsigned int& i) const noexcept {
@@ -194,6 +210,14 @@ Vector2f& Vector2f::operator=(const Array<Float>& _other) noexcept {
     });
 
     return *this;
+}
+
+Vector2f& Vector2f::operator=(const Vector2f& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector2f& Vector2f::operator=(Vector2f&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
 const Float& Vector2f::operator[](const unsigned int& i) const noexcept {
@@ -300,6 +324,14 @@ Vector2u& Vector2u::operator=(const Array<UInt32>& _other) noexcept {
     return *this;
 }
 
+Vector2u& Vector2u::operator=(const Vector2u& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector2u& Vector2u::operator=(Vector2u&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
+}
+
 const UInt32& Vector2u::operator[](const unsigned int& i) const noexcept {
     return Vector<UInt32, 2>::operator[](i);
 }
@@ -402,6 +434,14 @@ Vector2i& Vector2i::operator=(const Array<Int32>& _other) noexcept {
     });
 
     return *this;
+}
+
+Vector2i& Vector2i::operator=(const Vector2i& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector2i& Vector2i::operator=(Vector2i&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
 const Int32& Vector2i::operator[](const unsigned int& i) const noexcept {
@@ -507,6 +547,14 @@ Vector3f& Vector3f::operator=(const Array<Float>& _other) noexcept {
     });
 
     return *this;
+}
+
+Vector3f& Vector3f::operator=(const Vector3f& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector3f& Vector3f::operator=(Vector3f&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
 const Float& Vector3f::operator[](const unsigned int& i) const noexcept {
@@ -618,6 +666,14 @@ Vector3u& Vector3u::operator=(const Array<UInt32>& _other) noexcept {
     return *this;
 }
 
+Vector3u& Vector3u::operator=(const Vector3u& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector3u& Vector3u::operator=(Vector3u&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
+}
+
 const UInt32& Vector3u::operator[](const unsigned int& i) const noexcept {
     return Vector<UInt32, 3>::operator[](i);
 }
@@ -725,6 +781,14 @@ Vector3i& Vector3i::operator=(const Array<Int32>& _other) noexcept {
     });
 
     return *this;
+}
+
+Vector3i& Vector3i::operator=(const Vector3i& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector3i& Vector3i::operator=(Vector3i&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
 const Int32& Vector3i::operator[](const unsigned int& i) const noexcept {
@@ -835,6 +899,14 @@ Vector4f& Vector4f::operator=(const Array<Float>& _other) noexcept {
     });
 
     return *this;
+}
+
+Vector4f& Vector4f::operator=(const Vector4f& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector4f& Vector4f::operator=(Vector4f&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
 const Float& Vector4f::operator[](const unsigned int& i) const noexcept {
@@ -951,6 +1023,14 @@ Vector4u& Vector4u::operator=(const Array<UInt32>& _other) noexcept {
     return *this;
 }
 
+Vector4u& Vector4u::operator=(const Vector4u& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector4u& Vector4u::operator=(Vector4u&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
+}
+
 const UInt32& Vector4u::operator[](const unsigned int& i) const noexcept {
     return Vector<UInt32, 4>::operator[](i);
 }
@@ -1065,6 +1145,14 @@ Vector4i& Vector4i::operator=(const Array<Int32>& _other) noexcept {
     return *this;
 }
 
+Vector4i& Vector4i::operator=(const Vector4i& _other) noexcept {
+    return this->operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
+}
+
+Vector4i& Vector4i::operator=(Vector4i&& _other) noexcept {
+    return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
+}
+
 const Int32& Vector4i::operator[](const unsigned int& i) const noexcept {
     return Vector<Int32, 4>::operator[](i);
 }
@@ -1136,48 +1224,3 @@ Vector4i::operator DirectX::XMINT4() noexcept {
     return DirectX::XMINT4(m_elements);
 }
 #endif
-
-// ------------------------------------------------------------------------------------------------
-// Specialize classes so that they get exported.
-// ------------------------------------------------------------------------------------------------
-
-class LITEFX_MATH_API CByteVector1 : public LiteFX::Math::Vectors::ByteVector1 {};
-class LITEFX_MATH_API CByteVector2 : public LiteFX::Math::Vectors::ByteVector2 {};
-class LITEFX_MATH_API CByteVector3 : public LiteFX::Math::Vectors::ByteVector3 {};
-class LITEFX_MATH_API CByteVector4 : public LiteFX::Math::Vectors::ByteVector4 {};
-class LITEFX_MATH_API CInt16Vector1 : public LiteFX::Math::Vectors::Int16Vector1 {};
-class LITEFX_MATH_API CInt16Vector2 : public LiteFX::Math::Vectors::Int16Vector2 {};
-class LITEFX_MATH_API CInt16Vector3 : public LiteFX::Math::Vectors::Int16Vector3 {};
-class LITEFX_MATH_API CInt16Vector4 : public LiteFX::Math::Vectors::Int16Vector4 {};
-class LITEFX_MATH_API CUInt16Vector1 : public LiteFX::Math::Vectors::UInt16Vector1 {};
-class LITEFX_MATH_API CUInt16Vector2 : public LiteFX::Math::Vectors::UInt16Vector2 {};
-class LITEFX_MATH_API CUInt16Vector3 : public LiteFX::Math::Vectors::UInt16Vector3 {};
-class LITEFX_MATH_API CUInt16Vector4 : public LiteFX::Math::Vectors::UInt16Vector4 {};
-class LITEFX_MATH_API CInt32Vector1 : public LiteFX::Math::Vectors::Int32Vector1 {};
-class LITEFX_MATH_API CInt32Vector2 : public LiteFX::Math::Vectors::Int32Vector2 {};
-class LITEFX_MATH_API CInt32Vector3 : public LiteFX::Math::Vectors::Int32Vector3 {};
-class LITEFX_MATH_API CInt32Vector4 : public LiteFX::Math::Vectors::Int32Vector4 {};
-class LITEFX_MATH_API CUInt32Vector1 : public LiteFX::Math::Vectors::UInt32Vector1 {};
-class LITEFX_MATH_API CUInt32Vector2 : public LiteFX::Math::Vectors::UInt32Vector2 {};
-class LITEFX_MATH_API CUInt32Vector3 : public LiteFX::Math::Vectors::UInt32Vector3 {};
-class LITEFX_MATH_API CUInt32Vector4 : public LiteFX::Math::Vectors::UInt32Vector4 {};
-class LITEFX_MATH_API CInt64Vector1 : public LiteFX::Math::Vectors::Int64Vector1 {};
-class LITEFX_MATH_API CInt64Vector2 : public LiteFX::Math::Vectors::Int64Vector2 {};
-class LITEFX_MATH_API CInt64Vector3 : public LiteFX::Math::Vectors::Int64Vector3 {};
-class LITEFX_MATH_API CInt64Vector4 : public LiteFX::Math::Vectors::Int64Vector4 {};
-class LITEFX_MATH_API CUInt64Vector1 : public LiteFX::Math::Vectors::UInt64Vector1 {};
-class LITEFX_MATH_API CUInt64Vector2 : public LiteFX::Math::Vectors::UInt64Vector2 {};
-class LITEFX_MATH_API CUInt64Vector3 : public LiteFX::Math::Vectors::UInt64Vector3 {};
-class LITEFX_MATH_API CUInt64Vector4 : public LiteFX::Math::Vectors::UInt64Vector4 {};
-class LITEFX_MATH_API CFloatVector1 : public LiteFX::Math::Vectors::FloatVector1 {};
-class LITEFX_MATH_API CFloatVector2 : public LiteFX::Math::Vectors::FloatVector2 {};
-class LITEFX_MATH_API CFloatVector3 : public LiteFX::Math::Vectors::FloatVector3 {};
-class LITEFX_MATH_API CFloatVector4 : public LiteFX::Math::Vectors::FloatVector4 {};
-class LITEFX_MATH_API CDoubleVector1 : public LiteFX::Math::Vectors::DoubleVector1 {};
-class LITEFX_MATH_API CDoubleVector2 : public LiteFX::Math::Vectors::DoubleVector2 {};
-class LITEFX_MATH_API CDoubleVector3 : public LiteFX::Math::Vectors::DoubleVector3 {};
-class LITEFX_MATH_API CDoubleVector4 : public LiteFX::Math::Vectors::DoubleVector4 {};
-
-class LITEFX_MATH_API CSizeVector2 : public Size2d {};
-class LITEFX_MATH_API CSizeVector3 : public Size3d {};
-class LITEFX_MATH_API CSizeVector4 : public Size4d {};
