@@ -19,6 +19,7 @@
 
 namespace LiteFX::Rendering {
 	using namespace LiteFX;
+	using namespace LiteFX::Math;
 
 	// Forward declarations.
 	class ITexture;
@@ -62,6 +63,9 @@ namespace LiteFX::Rendering {
 	class LITEFX_RENDERING_API ITexture {
 	public:
 		virtual ~ITexture() noexcept = default;
+
+	public:
+		virtual Size2d getSize() const noexcept = 0;
 	};
 
 	class LITEFX_RENDERING_API ISwapChain {

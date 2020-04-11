@@ -14,6 +14,28 @@ SampleApp::SampleApp() noexcept :
 
 int SampleApp::start(const int argc, const char** argv)
 {
+	Math::Vector4f _test1 = glm::vec4(10.f, 0.f, 0.f, 1.f);
+	Math::Vector4f _test2 = DirectX::XMFLOAT4(0.f, 10.f, 0.f, 1.f);
+	_test1 = _test2;
+	_test2 = glm::vec4(0.f, 0.f, 10.f, 1.f);
+	glm::vec4 a = _test1;
+	DirectX::XMFLOAT4 b = _test1;
+	auto _x = _test1.x();
+	auto _y = _test1.y();
+	auto _z = _test1.z();
+	auto _w = _test1.w();
+
+	Math::Vector<String, 2> strings;
+	auto x = strings.x();
+	auto y = strings.y();
+	//auto z = strings.z();
+	//auto w = strings.w();
+
+	Math::Size2d s1;
+	Math::Size2d s2(s1);
+	Math::Size2d s3;
+	//s3 = s1;
+
 	// Parse the command line parameters.
 	String appName = this->getName();
 	CLI::App app { "Demonstrates basic drawing techniques.", appName };

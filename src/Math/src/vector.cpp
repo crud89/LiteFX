@@ -3,541 +3,1139 @@
 using namespace LiteFX::Math;
 
 // ------------------------------------------------------------------------------------------------
-// Vector<T, DIM>.
-// ------------------------------------------------------------------------------------------------
-
-template <typename T, int DIM>
-Vector<T, DIM>::Vector(const vec_type& _other) noexcept 
-{
-	std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-		return _other.m_elements[i++];
-	});
-}
-
-template <typename T, int DIM>
-Vector<T, DIM>::Vector(vec_type&& _other) noexcept
-{
-	std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-		return std::move(_other.m_elements[i++]);
-	});
-}
-
-template <typename T, int DIM>
-const T& Vector<T, DIM>::elements() const noexcept
-{
-	return m_elements;
-}
-
-// ------------------------------------------------------------------------------------------------
-// Vector<T, 1>.
-// ------------------------------------------------------------------------------------------------
-
-template <typename T>
-Vector<T, 1>::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0] } { }
-
-template <typename T>
-Vector<T, 1>::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]) } { }
-
-// ------------------------------------------------------------------------------------------------
-// Vector<T, 2>.
-// ------------------------------------------------------------------------------------------------
-
-template <typename T>
-Vector<T, 2>::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1] } { }
-
-template <typename T>
-Vector<T, 2>::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]) } { }
-
-// ------------------------------------------------------------------------------------------------
-// Vector<T, 3>.
-// ------------------------------------------------------------------------------------------------
-
-template <typename T>
-Vector<T, 3>::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2] } { }
-
-template <typename T>
-Vector<T, 3>::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]) } { }
-
-// ------------------------------------------------------------------------------------------------
-// Vector<T, 4>.
-// ------------------------------------------------------------------------------------------------
-
-template <typename T>
-Vector<T, 4>::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2], _other.m_elements[3] } { }
-
-template <typename T>
-Vector<T, 4>::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]), std::move(_other.m_elements[3]) } { }
-
-// ------------------------------------------------------------------------------------------------
 // Vector1f.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector1f
+Vector1f::Vector1f() noexcept : Vector<Float, 1>() { }
+Vector1f::Vector1f(const Float& v) noexcept : Vector<Float, 1>(v) { }
+Vector1f::Vector1f(const Vector1f& _v) noexcept : Vector<Float, 1>(_v) { }
+Vector1f::Vector1f(const Vector<Float, 1>& _v) noexcept : Vector<Float, 1>(_v) { }
+Vector1f::Vector1f(Vector1f&& _v) noexcept : Vector<Float, 1>(_v) { }
+Vector1f::Vector1f(Vector<Float, 1>&& _v) noexcept : Vector<Float, 1>(_v) { }
 
-Vector1f::Vector(const scalar_type& x) noexcept : m_elements{ x } { }
-Vector1f::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0] } { }
-Vector1f::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]) } { }
-const Vector1f::scalar_type* Vector1f::elements() const noexcept { return m_elements; }
-Vector1f::scalar_type* Vector1f::elements() noexcept { return m_elements; }
-const Vector1f::scalar_type& Vector1f::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector1f::scalar_type& Vector1f::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector1f::scalar_type& Vector1f::x() const { return m_elements[0]; }
-Vector1f::scalar_type& Vector1f::x() { return m_elements[0]; }
+Vector1f& Vector1f::operator=(const Vector<Float, 1>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
 
-#if defined(BUILD_ENABLE_GLM)
-Vector1f::Vector(const glm::f32vec1& v) noexcept : m_elements{ v.x } { }
-Vector1f::operator glm::f32vec1() noexcept { return glm::f32vec1(m_elements[0]); }
-#endif 
-
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector1f::Vector(const DirectX::XMVECTOR& v) noexcept {
-	scalar_type e;
-	DirectX::XMStoreFloat(&e, v);
-	m_elements[0] = e;
+    return *this;
 }
 
-Vector1f::operator DirectX::XMVECTOR() noexcept { return DirectX::XMLoadFloat(m_elements); }
-Vector1f::operator Vector1f::scalar_type() noexcept { return m_elements[0]; }
-#endif
-#pragma endregion
+Vector1f& Vector1f::operator=(Vector<Float, 1>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
 
-// ------------------------------------------------------------------------------------------------
-// Vector1u
-// ------------------------------------------------------------------------------------------------
+    return *this;
+}
 
-#pragma region Vector1u
+Vector1f& Vector1f::operator=(const Array<Float>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
 
-Vector1u::Vector(const scalar_type& x) noexcept : m_elements{ x } { }
-Vector1u::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0] } { }
-Vector1u::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]) } { }
-const Vector1u::scalar_type* Vector1u::elements() const noexcept { return m_elements; }
-Vector1u::scalar_type* Vector1u::elements() noexcept { return m_elements; }
-const Vector1u::scalar_type& Vector1u::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector1u::scalar_type& Vector1u::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector1u::scalar_type& Vector1u::x() const { return m_elements[0]; }
-Vector1u::scalar_type& Vector1u::x() { return m_elements[0]; }
+    return *this;
+}
+
+const Float& Vector1f::operator[](const unsigned int& i) const noexcept {
+    return Vector<Float, 1>::operator[](i);
+}
+
+Float& Vector1f::operator[](const unsigned int& i) noexcept {
+    return Vector<Float, 1>::operator[](i);
+}
+
+Vector1f::operator Array<Float>() noexcept {
+    Array<Float> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector1u::Vector(const glm::u32vec1& v) noexcept : m_elements{ v.x } { }
-Vector1u::operator glm::u32vec1() noexcept { return glm::u32vec1(m_elements[0]); }
+Vector1f::Vector1f(const glm::f32vec1& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector1f::Vector1f(glm::f32vec1&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector1f::operator glm::f32vec1() noexcept {
+    return glm::f32vec1(m_elements[0]);
+}
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector1u::Vector(const DirectX::XMVECTOR& v) noexcept {
-	UInt32 e;
-	DirectX::XMStoreInt(&e, v);
-	m_elements[0] = e;
+Vector1f::Vector1f(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMStoreFloat(m_elements, v);
 }
 
-Vector1u::operator DirectX::XMVECTOR() noexcept { return DirectX::XMLoadInt(m_elements); }
-Vector1u::operator Vector1u::scalar_type() noexcept { return m_elements[0]; }
+Vector1f::Vector1f(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMStoreFloat(m_elements, std::move(v));
+}
+
+Vector1f::operator DirectX::XMVECTOR() noexcept {
+    return DirectX::XMLoadFloat(m_elements);
+}
 #endif
-#pragma endregion
+
+// ------------------------------------------------------------------------------------------------
+// Vector1u.
+// ------------------------------------------------------------------------------------------------
+
+Vector1u::Vector1u() noexcept : Vector<UInt32, 1>() { }
+Vector1u::Vector1u(const UInt32& v) noexcept : Vector<UInt32, 1>(v) { }
+Vector1u::Vector1u(const Vector1u& _v) noexcept : Vector<UInt32, 1>(_v) { }
+Vector1u::Vector1u(const Vector<UInt32, 1>& _v) noexcept : Vector<UInt32, 1>(_v) { }
+Vector1u::Vector1u(Vector1u&& _v) noexcept : Vector<UInt32, 1>(_v) { }
+Vector1u::Vector1u(Vector<UInt32, 1>&& _v) noexcept : Vector<UInt32, 1>(_v) { }
+
+Vector1u& Vector1u::operator=(const Vector<UInt32, 1>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector1u& Vector1u::operator=(Vector<UInt32, 1>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector1u& Vector1u::operator=(const Array<UInt32>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const UInt32& Vector1u::operator[](const unsigned int& i) const noexcept {
+    return Vector<UInt32, 1>::operator[](i);
+}
+
+UInt32& Vector1u::operator[](const unsigned int& i) noexcept {
+    return Vector<UInt32, 1>::operator[](i);
+}
+
+Vector1u::operator Array<UInt32>() noexcept {
+    Array<UInt32> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
+
+#if defined(BUILD_ENABLE_GLM)
+Vector1u::Vector1u(const glm::u32vec1& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector1u::Vector1u(glm::u32vec1&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector1u::operator glm::u32vec1() noexcept {
+    return glm::u32vec1(m_elements[0]);
+}
+#endif
+
+#if defined(BUILD_ENABLE_DIRECTX_MATH)
+Vector1u::Vector1u(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMStoreInt(m_elements, v);
+}
+
+Vector1u::Vector1u(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMStoreInt(m_elements, std::move(v));
+}
+
+Vector1u::operator DirectX::XMVECTOR() noexcept {
+    return DirectX::XMLoadInt(m_elements);
+}
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // Vector2f.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector2f
+Vector2f::Vector2f() noexcept : Vector<Float, 2>() { }
+Vector2f::Vector2f(const Float& v) noexcept : Vector<Float, 2>(v) { }
+Vector2f::Vector2f(const Float& x, const Float& y) noexcept : Vector<Float, 2>() { 
+    this->x() = x;
+    this->y() = y;
+}
 
-Vector2f::Vector(const scalar_type& v) noexcept : m_elements{ v, v } { }
-Vector2f::Vector(const scalar_type& x, const scalar_type& y) noexcept : m_elements{ x, y } { }
-Vector2f::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1] } { }
-Vector2f::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]) } { }
-const Vector2f::scalar_type* Vector2f::elements() const noexcept { return m_elements; }
-Vector2f::scalar_type* Vector2f::elements() noexcept { return m_elements; }
-const Vector2f::scalar_type& Vector2f::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector2f::scalar_type& Vector2f::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector2f::scalar_type& Vector2f::x() const { return m_elements[0]; }
-Vector2f::scalar_type& Vector2f::x() { return m_elements[0]; }
-const Vector2f::scalar_type& Vector2f::y() const { return m_elements[1]; }
-Vector2f::scalar_type& Vector2f::y() { return m_elements[1]; }
+Vector2f::Vector2f(const Vector2f& _v) noexcept : Vector<Float, 2>(_v) { }
+Vector2f::Vector2f(const Vector<Float, 2>& _v) noexcept : Vector<Float, 2>(_v) { }
+Vector2f::Vector2f(Vector2f&& _v) noexcept : Vector<Float, 2>(_v) { }
+Vector2f::Vector2f(Vector<Float, 2>&& _v) noexcept : Vector<Float, 2>(_v) { }
+
+Vector2f& Vector2f::operator=(const Vector<Float, 2>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector2f& Vector2f::operator=(Vector<Float, 2>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector2f& Vector2f::operator=(const Array<Float>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const Float& Vector2f::operator[](const unsigned int& i) const noexcept {
+    return Vector<Float, 2>::operator[](i);
+}
+
+Float& Vector2f::operator[](const unsigned int& i) noexcept {
+    return Vector<Float, 2>::operator[](i);
+}
+
+Vector2f::operator Array<Float>() noexcept {
+    Array<Float> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector2f::Vector(const glm::f32vec2& v) noexcept : m_elements{ v.x, v.y } { }
-Vector2f::operator glm::f32vec2() noexcept { return glm::f32vec2(m_elements[0], m_elements[1]); }
-#endif 
+Vector2f::Vector2f(const glm::f32vec2& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector2f::Vector2f(glm::f32vec2&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector2f::operator glm::f32vec2() noexcept {
+    return glm::f32vec2(m_elements[0], m_elements[1]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector2f::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMFLOAT2 e;
-	DirectX::XMStoreFloat2(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
+Vector2f::Vector2f(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMFLOAT2 e;
+    DirectX::XMStoreFloat2(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+}
+
+Vector2f::Vector2f(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMFLOAT2 e;
+    DirectX::XMStoreFloat2(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+}
+
+Vector2f::Vector2f(const DirectX::XMFLOAT2& v) noexcept : Vector<Float, 2>() {
+    this->x() = v.x;
+    this->y() = v.y;
+}
+
+Vector2f::Vector2f(DirectX::XMFLOAT2&& v) noexcept : Vector<Float, 2>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
 }
 
 Vector2f::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMFLOAT2();
-	return DirectX::XMLoadFloat2(&e); 
+    return DirectX::XMLoadFloat2(&this->operator DirectX::XMFLOAT2());
 }
 
-Vector2f::Vector(const DirectX::XMFLOAT2& v) noexcept : m_elements{ v.x, v.y } { }
-Vector2f::operator DirectX::XMFLOAT2() noexcept { return DirectX::XMFLOAT2(m_elements[0], m_elements[1]); }
+Vector2f::operator DirectX::XMFLOAT2() noexcept {
+    return DirectX::XMFLOAT2(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Vector2u.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector2u
+Vector2u::Vector2u() noexcept : Vector<UInt32, 2>() { }
+Vector2u::Vector2u(const UInt32& v) noexcept : Vector<UInt32, 2>(v) { }
+Vector2u::Vector2u(const UInt32& x, const UInt32& y) noexcept : Vector<UInt32, 2>() {
+    this->x() = x;
+    this->y() = y;
+}
 
-Vector2u::Vector(const scalar_type& v) noexcept : m_elements{ v, v } { }
-Vector2u::Vector(const scalar_type& x, const scalar_type& y) noexcept : m_elements{ x, y } { }
-Vector2u::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1] } { }
-Vector2u::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]) } { }
-const Vector2u::scalar_type* Vector2u::elements() const noexcept { return m_elements; }
-Vector2u::scalar_type* Vector2u::elements() noexcept { return m_elements; }
-const Vector2u::scalar_type& Vector2u::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector2u::scalar_type& Vector2u::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector2u::scalar_type& Vector2u::x() const { return m_elements[0]; }
-Vector2u::scalar_type& Vector2u::x() { return m_elements[0]; }
-const Vector2u::scalar_type& Vector2u::y() const { return m_elements[1]; }
-Vector2u::scalar_type& Vector2u::y() { return m_elements[1]; }
+Vector2u::Vector2u(const Vector2u& _v) noexcept : Vector<UInt32, 2>(_v) { }
+Vector2u::Vector2u(const Vector<UInt32, 2>& _v) noexcept : Vector<UInt32, 2>(_v) { }
+Vector2u::Vector2u(Vector2u&& _v) noexcept : Vector<UInt32, 2>(_v) { }
+Vector2u::Vector2u(Vector<UInt32, 2>&& _v) noexcept : Vector<UInt32, 2>(_v) { }
+
+Vector2u& Vector2u::operator=(const Vector<UInt32, 2>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector2u& Vector2u::operator=(Vector<UInt32, 2>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector2u& Vector2u::operator=(const Array<UInt32>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const UInt32& Vector2u::operator[](const unsigned int& i) const noexcept {
+    return Vector<UInt32, 2>::operator[](i);
+}
+
+UInt32& Vector2u::operator[](const unsigned int& i) noexcept {
+    return Vector<UInt32, 2>::operator[](i);
+}
+
+Vector2u::operator Array<UInt32>() noexcept {
+    Array<UInt32> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector2u::Vector(const glm::u32vec2& v) noexcept : m_elements{ v.x, v.y } { }
-Vector2u::operator glm::u32vec2() noexcept { return glm::u32vec2(m_elements[0], m_elements[1]); }
-#endif 
+Vector2u::Vector2u(const glm::u32vec2& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector2u::Vector2u(glm::u32vec2&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector2u::operator glm::u32vec2() noexcept {
+    return glm::u32vec2(m_elements[0], m_elements[1]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector2u::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMUINT2 e;
-	DirectX::XMStoreUInt2(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
+Vector2u::Vector2u(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMUINT2 e;
+    DirectX::XMStoreUInt2(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+}
+
+Vector2u::Vector2u(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMUINT2 e;
+    DirectX::XMStoreUInt2(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+}
+
+Vector2u::Vector2u(const DirectX::XMUINT2& v) noexcept : Vector<UInt32, 2>() {
+    this->x() = v.x;
+    this->y() = v.y;
+}
+
+Vector2u::Vector2u(DirectX::XMUINT2&& v) noexcept : Vector<UInt32, 2>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
 }
 
 Vector2u::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMUINT2();
-	return DirectX::XMLoadUInt2(&e);
+    return DirectX::XMLoadUInt2(&this->operator DirectX::XMUINT2());
 }
 
-Vector2u::Vector(const DirectX::XMUINT2& v) noexcept : m_elements{ v.x, v.y } { }
-Vector2u::operator DirectX::XMUINT2() noexcept { return DirectX::XMUINT2(m_elements[0], m_elements[1]); }
+Vector2u::operator DirectX::XMUINT2() noexcept {
+    return DirectX::XMUINT2(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Vector2i.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector2i
+Vector2i::Vector2i() noexcept : Vector<Int32, 2>() { }
+Vector2i::Vector2i(const Int32& v) noexcept : Vector<Int32, 2>(v) { }
+Vector2i::Vector2i(const Int32& x, const Int32& y) noexcept : Vector<Int32, 2>() {
+    this->x() = x;
+    this->y() = y;
+}
 
-Vector2i::Vector(const scalar_type& v) noexcept : m_elements{ v, v } { }
-Vector2i::Vector(const scalar_type& x, const scalar_type& y) noexcept : m_elements{ x, y } { }
-Vector2i::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1] } { }
-Vector2i::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]) } { }
-const Vector2i::scalar_type* Vector2i::elements() const noexcept { return m_elements; }
-Vector2i::scalar_type* Vector2i::elements() noexcept { return m_elements; }
-const Vector2i::scalar_type& Vector2i::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector2i::scalar_type& Vector2i::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector2i::scalar_type& Vector2i::x() const { return m_elements[0]; }
-Vector2i::scalar_type& Vector2i::x() { return m_elements[0]; }
-const Vector2i::scalar_type& Vector2i::y() const { return m_elements[1]; }
-Vector2i::scalar_type& Vector2i::y() { return m_elements[1]; }
+Vector2i::Vector2i(const Vector2i& _v) noexcept : Vector<Int32, 2>(_v) { }
+Vector2i::Vector2i(const Vector<Int32, 2>& _v) noexcept : Vector<Int32, 2>(_v) { }
+Vector2i::Vector2i(Vector2i&& _v) noexcept : Vector<Int32, 2>(_v) { }
+Vector2i::Vector2i(Vector<Int32, 2>&& _v) noexcept : Vector<Int32, 2>(_v) { }
+
+Vector2i& Vector2i::operator=(const Vector<Int32, 2>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector2i& Vector2i::operator=(Vector<Int32, 2>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector2i& Vector2i::operator=(const Array<Int32>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const Int32& Vector2i::operator[](const unsigned int& i) const noexcept {
+    return Vector<Int32, 2>::operator[](i);
+}
+
+Int32& Vector2i::operator[](const unsigned int& i) noexcept {
+    return Vector<Int32, 2>::operator[](i);
+}
+
+Vector2i::operator Array<Int32>() noexcept {
+    Array<Int32> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector2i::Vector(const glm::i32vec2& v) noexcept : m_elements{ v.x, v.y } { }
-Vector2i::operator glm::i32vec2() noexcept { return glm::i32vec2(m_elements[0], m_elements[1]); }
-#endif 
+Vector2i::Vector2i(const glm::i32vec2& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector2i::Vector2i(glm::i32vec2&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector2i::operator glm::i32vec2() noexcept {
+    return glm::i32vec2(m_elements[0], m_elements[1]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector2i::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMINT2 e;
-	DirectX::XMStoreSInt2(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
+Vector2i::Vector2i(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMINT2 e;
+    DirectX::XMStoreSInt2(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+}
+
+Vector2i::Vector2i(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMINT2 e;
+    DirectX::XMStoreSInt2(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+}
+
+Vector2i::Vector2i(const DirectX::XMINT2& v) noexcept : Vector<Int32, 2>() {
+    this->x() = v.x;
+    this->y() = v.y;
+}
+
+Vector2i::Vector2i(DirectX::XMINT2&& v) noexcept : Vector<Int32, 2>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
 }
 
 Vector2i::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMINT2();
-	return DirectX::XMLoadSInt2(&e);
+    return DirectX::XMLoadSInt2(&this->operator DirectX::XMINT2());
 }
 
-Vector2i::Vector(const DirectX::XMINT2& v) noexcept : m_elements{ v.x, v.y } { }
-Vector2i::operator DirectX::XMINT2() noexcept { return DirectX::XMINT2(m_elements[0], m_elements[1]); }
+Vector2i::operator DirectX::XMINT2() noexcept {
+    return DirectX::XMINT2(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Vector3f.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector3f
+Vector3f::Vector3f() noexcept : Vector<Float, 3>() { }
+Vector3f::Vector3f(const Float& v) noexcept : Vector<Float, 3>(v) { }
+Vector3f::Vector3f(const Float& x, const Float& y, const Float& z) noexcept : Vector<Float, 3>() {
+    this->x() = x;
+    this->y() = y;
+    this->z() = z;
+}
 
-Vector3f::Vector(const scalar_type& v) noexcept : m_elements{ v, v, v } { }
-Vector3f::Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept : m_elements{ x, y, z } { }
-Vector3f::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2] } { }
-Vector3f::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]) } { }
-const Vector3f::scalar_type* Vector3f::elements() const noexcept { return m_elements; }
-Vector3f::scalar_type* Vector3f::elements() noexcept { return m_elements; }
-const Vector3f::scalar_type& Vector3f::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector3f::scalar_type& Vector3f::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector3f::scalar_type& Vector3f::x() const { return m_elements[0]; }
-Vector3f::scalar_type& Vector3f::x() { return m_elements[0]; }
-const Vector3f::scalar_type& Vector3f::y() const { return m_elements[1]; }
-Vector3f::scalar_type& Vector3f::y() { return m_elements[1]; }
-const Vector3f::scalar_type& Vector3f::z() const { return m_elements[2]; }
-Vector3f::scalar_type& Vector3f::z() { return m_elements[2]; }
+Vector3f::Vector3f(const Vector3f& _v) noexcept : Vector<Float, 3>(_v) { }
+Vector3f::Vector3f(const Vector<Float, 3>& _v) noexcept : Vector<Float, 3>(_v) { }
+Vector3f::Vector3f(Vector3f&& _v) noexcept : Vector<Float, 3>(_v) { }
+Vector3f::Vector3f(Vector<Float, 3>&& _v) noexcept : Vector<Float, 3>(_v) { }
+
+Vector3f& Vector3f::operator=(const Vector<Float, 3>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector3f& Vector3f::operator=(Vector<Float, 3>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector3f& Vector3f::operator=(const Array<Float>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const Float& Vector3f::operator[](const unsigned int& i) const noexcept {
+    return Vector<Float, 3>::operator[](i);
+}
+
+Float& Vector3f::operator[](const unsigned int& i) noexcept {
+    return Vector<Float, 3>::operator[](i);
+}
+
+Vector3f::operator Array<Float>() noexcept {
+    Array<Float> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector3f::Vector(const glm::f32vec3& v) noexcept : m_elements{ v.x, v.y, v.z } { }
-Vector3f::operator glm::f32vec3() noexcept { return glm::f32vec3(m_elements[0], m_elements[1], m_elements[2]); }
-#endif 
+Vector3f::Vector3f(const glm::f32vec3& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector3f::Vector3f(glm::f32vec3&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector3f::operator glm::f32vec3() noexcept {
+    return glm::f32vec3(m_elements[0], m_elements[1], m_elements[2]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector3f::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMFLOAT3 e;
-	DirectX::XMStoreFloat3(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
-	m_elements[2] = e.z;
+Vector3f::Vector3f(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMFLOAT3 e;
+    DirectX::XMStoreFloat3(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+}
+
+Vector3f::Vector3f(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMFLOAT3 e;
+    DirectX::XMStoreFloat3(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+}
+
+Vector3f::Vector3f(const DirectX::XMFLOAT3& v) noexcept : Vector<Float, 3>() {
+    this->x() = v.x;
+    this->y() = v.y;
+    this->z() = v.z;
+}
+
+Vector3f::Vector3f(DirectX::XMFLOAT3&& v) noexcept : Vector<Float, 3>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
+    this->z() = std::move(v.z);
 }
 
 Vector3f::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMFLOAT3();
-	return DirectX::XMLoadFloat3(&e);
+    return DirectX::XMLoadFloat3(&this->operator DirectX::XMFLOAT3());
 }
 
-Vector3f::Vector(const DirectX::XMFLOAT3& v) noexcept : m_elements{ v.x, v.y, v.z } { }
-Vector3f::operator DirectX::XMFLOAT3() noexcept { return DirectX::XMFLOAT3(m_elements[0], m_elements[1], m_elements[2]); }
+Vector3f::operator DirectX::XMFLOAT3() noexcept {
+    return DirectX::XMFLOAT3(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Vector3u.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector3u
+Vector3u::Vector3u() noexcept : Vector<UInt32, 3>() { }
+Vector3u::Vector3u(const UInt32& v) noexcept : Vector<UInt32, 3>(v) { }
+Vector3u::Vector3u(const UInt32& x, const UInt32& y, const UInt32& z) noexcept : Vector<UInt32, 3>() {
+    this->x() = x;
+    this->y() = y;
+    this->z() = z;
+}
 
-Vector3u::Vector(const scalar_type& v) noexcept : m_elements{ v, v, v } { }
-Vector3u::Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept : m_elements{ x, y, z } { }
-Vector3u::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2] } { }
-Vector3u::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]) } { }
-const Vector3u::scalar_type* Vector3u::elements() const noexcept { return m_elements; }
-Vector3u::scalar_type* Vector3u::elements() noexcept { return m_elements; }
-const Vector3u::scalar_type& Vector3u::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector3u::scalar_type& Vector3u::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector3u::scalar_type& Vector3u::x() const { return m_elements[0]; }
-Vector3u::scalar_type& Vector3u::x() { return m_elements[0]; }
-const Vector3u::scalar_type& Vector3u::y() const { return m_elements[1]; }
-Vector3u::scalar_type& Vector3u::y() { return m_elements[1]; }
-const Vector3u::scalar_type& Vector3u::z() const { return m_elements[2]; }
-Vector3u::scalar_type& Vector3u::z() { return m_elements[2]; }
+Vector3u::Vector3u(const Vector3u& _v) noexcept : Vector<UInt32, 3>(_v) { }
+Vector3u::Vector3u(const Vector<UInt32, 3>& _v) noexcept : Vector<UInt32, 3>(_v) { }
+Vector3u::Vector3u(Vector3u&& _v) noexcept : Vector<UInt32, 3>(_v) { }
+Vector3u::Vector3u(Vector<UInt32, 3>&& _v) noexcept : Vector<UInt32, 3>(_v) { }
+
+Vector3u& Vector3u::operator=(const Vector<UInt32, 3>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector3u& Vector3u::operator=(Vector<UInt32, 3>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector3u& Vector3u::operator=(const Array<UInt32>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const UInt32& Vector3u::operator[](const unsigned int& i) const noexcept {
+    return Vector<UInt32, 3>::operator[](i);
+}
+
+UInt32& Vector3u::operator[](const unsigned int& i) noexcept {
+    return Vector<UInt32, 3>::operator[](i);
+}
+
+Vector3u::operator Array<UInt32>() noexcept {
+    Array<UInt32> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector3u::Vector(const glm::u32vec3& v) noexcept : m_elements{ v.x, v.y, v.z } { }
-Vector3u::operator glm::u32vec3() noexcept { return glm::u32vec3(m_elements[0], m_elements[1], m_elements[2]); }
-#endif 
+Vector3u::Vector3u(const glm::u32vec3& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector3u::Vector3u(glm::u32vec3&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector3u::operator glm::u32vec3() noexcept {
+    return glm::u32vec3(m_elements[0], m_elements[1], m_elements[2]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector3u::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMUINT3 e;
-	DirectX::XMStoreUInt3(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
-	m_elements[2] = e.z;
+Vector3u::Vector3u(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMUINT3 e;
+    DirectX::XMStoreUInt3(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+}
+
+Vector3u::Vector3u(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMUINT3 e;
+    DirectX::XMStoreUInt3(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+}
+
+Vector3u::Vector3u(const DirectX::XMUINT3& v) noexcept : Vector<UInt32, 3>() {
+    this->x() = v.x;
+    this->y() = v.y;
+    this->z() = v.z;
+}
+
+Vector3u::Vector3u(DirectX::XMUINT3&& v) noexcept : Vector<UInt32, 3>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
+    this->z() = std::move(v.z);
 }
 
 Vector3u::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMUINT3();
-	return DirectX::XMLoadUInt3(&e);
+    return DirectX::XMLoadUInt3(&this->operator DirectX::XMUINT3());
 }
 
-Vector3u::Vector(const DirectX::XMUINT3& v) noexcept : m_elements{ v.x, v.y, v.z } { }
-Vector3u::operator DirectX::XMUINT3() noexcept { return DirectX::XMUINT3(m_elements[0], m_elements[1], m_elements[2]); }
+Vector3u::operator DirectX::XMUINT3() noexcept {
+    return DirectX::XMUINT3(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Vector3i.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector3i
+Vector3i::Vector3i() noexcept : Vector<Int32, 3>() { }
+Vector3i::Vector3i(const Int32& v) noexcept : Vector<Int32, 3>(v) { }
+Vector3i::Vector3i(const Int32& x, const Int32& y, const Int32& z) noexcept : Vector<Int32, 3>() {
+    this->x() = x;
+    this->y() = y;
+    this->z() = z;
+}
 
-Vector3i::Vector(const scalar_type& v) noexcept : m_elements{ v, v, v } { }
-Vector3i::Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept : m_elements{ x, y, z } { }
-Vector3i::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2] } { }
-Vector3i::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]) } { }
-const Vector3i::scalar_type* Vector3i::elements() const noexcept { return m_elements; }
-Vector3i::scalar_type* Vector3i::elements() noexcept { return m_elements; }
-const Vector3i::scalar_type& Vector3i::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector3i::scalar_type& Vector3i::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector3i::scalar_type& Vector3i::x() const { return m_elements[0]; }
-Vector3i::scalar_type& Vector3i::x() { return m_elements[0]; }
-const Vector3i::scalar_type& Vector3i::y() const { return m_elements[1]; }
-Vector3i::scalar_type& Vector3i::y() { return m_elements[1]; }
-const Vector3i::scalar_type& Vector3i::z() const { return m_elements[2]; }
-Vector3i::scalar_type& Vector3i::z() { return m_elements[2]; }
+Vector3i::Vector3i(const Vector3i& _v) noexcept : Vector<Int32, 3>(_v) { }
+Vector3i::Vector3i(const Vector<Int32, 3>& _v) noexcept : Vector<Int32, 3>(_v) { }
+Vector3i::Vector3i(Vector3i&& _v) noexcept : Vector<Int32, 3>(_v) { }
+Vector3i::Vector3i(Vector<Int32, 3>&& _v) noexcept : Vector<Int32, 3>(_v) { }
+
+Vector3i& Vector3i::operator=(const Vector<Int32, 3>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector3i& Vector3i::operator=(Vector<Int32, 3>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector3i& Vector3i::operator=(const Array<Int32>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const Int32& Vector3i::operator[](const unsigned int& i) const noexcept {
+    return Vector<Int32, 3>::operator[](i);
+}
+
+Int32& Vector3i::operator[](const unsigned int& i) noexcept {
+    return Vector<Int32, 3>::operator[](i);
+}
+
+Vector3i::operator Array<Int32>() noexcept {
+    Array<Int32> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector3i::Vector(const glm::i32vec3& v) noexcept : m_elements{ v.x, v.y, v.z } { }
-Vector3i::operator glm::i32vec3() noexcept { return glm::i32vec3(m_elements[0], m_elements[1], m_elements[2]); }
-#endif 
+Vector3i::Vector3i(const glm::i32vec3& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector3i::Vector3i(glm::i32vec3&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector3i::operator glm::i32vec3() noexcept {
+    return glm::i32vec3(m_elements[0], m_elements[1], m_elements[2]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector3i::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMINT3 e;
-	DirectX::XMStoreSInt3(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
-	m_elements[2] = e.z;
+Vector3i::Vector3i(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMINT3 e;
+    DirectX::XMStoreSInt3(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+}
+
+Vector3i::Vector3i(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMINT3 e;
+    DirectX::XMStoreSInt3(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+}
+
+Vector3i::Vector3i(const DirectX::XMINT3& v) noexcept : Vector<Int32, 3>() {
+    this->x() = v.x;
+    this->y() = v.y;
+    this->z() = v.z;
+}
+
+Vector3i::Vector3i(DirectX::XMINT3&& v) noexcept : Vector<Int32, 3>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
+    this->z() = std::move(v.z);
 }
 
 Vector3i::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMINT3();
-	return DirectX::XMLoadSInt3(&e);
+    return DirectX::XMLoadSInt3(&this->operator DirectX::XMINT3());
 }
 
-Vector3i::Vector(const DirectX::XMINT3& v) noexcept : m_elements{ v.x, v.y, v.z } { }
-Vector3i::operator DirectX::XMINT3() noexcept { return DirectX::XMINT3(m_elements[0], m_elements[1], m_elements[2]); }
+Vector3i::operator DirectX::XMINT3() noexcept {
+    return DirectX::XMINT3(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Vector4f.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector4f
+Vector4f::Vector4f() noexcept : Vector<Float, 4>() { }
+Vector4f::Vector4f(const Float& v) noexcept : Vector<Float, 4>(v) { }
+Vector4f::Vector4f(const Float& x, const Float& y, const Float& z, const Float& w) noexcept : Vector<Float, 4>() {
+    this->x() = x;
+    this->y() = y;
+    this->z() = z;
+    this->w() = w;
+}
 
-Vector4f::Vector(const scalar_type& v) noexcept : m_elements{ v, v, v, v } { }
-Vector4f::Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept : m_elements{ x, y, z, w } { }
-Vector4f::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2], _other.m_elements[3] } { }
-Vector4f::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]), std::move(_other.m_elements[3]) } { }
-const Vector4f::scalar_type* Vector4f::elements() const noexcept { return m_elements; }
-Vector4f::scalar_type* Vector4f::elements() noexcept { return m_elements; }
-const Vector4f::scalar_type& Vector4f::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector4f::scalar_type& Vector4f::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector4f::scalar_type& Vector4f::x() const { return m_elements[0]; }
-Vector4f::scalar_type& Vector4f::x() { return m_elements[0]; }
-const Vector4f::scalar_type& Vector4f::y() const { return m_elements[1]; }
-Vector4f::scalar_type& Vector4f::y() { return m_elements[1]; }
-const Vector4f::scalar_type& Vector4f::z() const { return m_elements[2]; }
-Vector4f::scalar_type& Vector4f::z() { return m_elements[2]; }
-const Vector4f::scalar_type& Vector4f::w() const { return m_elements[3]; }
-Vector4f::scalar_type& Vector4f::w() { return m_elements[3]; }
+Vector4f::Vector4f(const Vector4f& _v) noexcept : Vector<Float, 4>(_v) { }
+Vector4f::Vector4f(const Vector<Float, 4>& _v) noexcept : Vector<Float, 4>(_v) { }
+Vector4f::Vector4f(Vector4f&& _v) noexcept : Vector<Float, 4>(_v) { }
+Vector4f::Vector4f(Vector<Float, 4>&& _v) noexcept : Vector<Float, 4>(_v) { }
+
+Vector4f& Vector4f::operator=(const Vector<Float, 4>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector4f& Vector4f::operator=(Vector<Float, 4>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector4f& Vector4f::operator=(const Array<Float>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const Float& Vector4f::operator[](const unsigned int& i) const noexcept {
+    return Vector<Float, 4>::operator[](i);
+}
+
+Float& Vector4f::operator[](const unsigned int& i) noexcept {
+    return Vector<Float, 4>::operator[](i);
+}
+
+Vector4f::operator Array<Float>() noexcept {
+    Array<Float> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector4f::Vector(const glm::f32vec4& v) noexcept : m_elements{ v.x, v.y, v.z, v.w } { }
-Vector4f::operator glm::f32vec4() noexcept { return glm::f32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]); }
-#endif 
+Vector4f::Vector4f(const glm::f32vec4& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector4f::Vector4f(glm::f32vec4&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector4f::operator glm::f32vec4() noexcept {
+    return glm::f32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector4f::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMFLOAT4 e;
-	DirectX::XMStoreFloat4(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
-	m_elements[2] = e.z;
-	m_elements[3] = e.w;
+Vector4f::Vector4f(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMFLOAT4 e;
+    DirectX::XMStoreFloat4(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+    this->w() = e.w;
+}
+
+Vector4f::Vector4f(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMFLOAT4 e;
+    DirectX::XMStoreFloat4(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+    this->w() = e.w;
+}
+
+Vector4f::Vector4f(const DirectX::XMFLOAT4& v) noexcept : Vector<Float, 4>() {
+    this->x() = v.x;
+    this->y() = v.y;
+    this->z() = v.z;
+    this->w() = v.w;
+}
+
+Vector4f::Vector4f(DirectX::XMFLOAT4&& v) noexcept : Vector<Float, 4>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
+    this->z() = std::move(v.z);
+    this->w() = std::move(v.w);
 }
 
 Vector4f::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMFLOAT4();
-	return DirectX::XMLoadFloat4(&e);
+    return DirectX::XMLoadFloat4(&this->operator DirectX::XMFLOAT4());
 }
 
-Vector4f::Vector(const DirectX::XMFLOAT4& v) noexcept : m_elements{ v.x, v.y, v.z, v.w } { }
-Vector4f::operator DirectX::XMFLOAT4() noexcept { return DirectX::XMFLOAT4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]); }
+Vector4f::operator DirectX::XMFLOAT4() noexcept {
+    return DirectX::XMFLOAT4(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Vector4u.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector4u
+Vector4u::Vector4u() noexcept : Vector<UInt32, 4>() { }
+Vector4u::Vector4u(const UInt32& v) noexcept : Vector<UInt32, 4>(v) { }
+Vector4u::Vector4u(const UInt32& x, const UInt32& y, const UInt32& z, const UInt32& w) noexcept : Vector<UInt32, 4>() {
+    this->x() = x;
+    this->y() = y;
+    this->z() = z;
+    this->w() = w;
+}
 
-Vector4u::Vector(const scalar_type& v) noexcept : m_elements{ v, v, v, v } { }
-Vector4u::Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept : m_elements{ x, y, z, w } { }
-Vector4u::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2], _other.m_elements[3] } { }
-Vector4u::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]), std::move(_other.m_elements[3]) } { }
-const Vector4u::scalar_type* Vector4u::elements() const noexcept { return m_elements; }
-Vector4u::scalar_type* Vector4u::elements() noexcept { return m_elements; }
-const Vector4u::scalar_type& Vector4u::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector4u::scalar_type& Vector4u::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector4u::scalar_type& Vector4u::x() const { return m_elements[0]; }
-Vector4u::scalar_type& Vector4u::x() { return m_elements[0]; }
-const Vector4u::scalar_type& Vector4u::y() const { return m_elements[1]; }
-Vector4u::scalar_type& Vector4u::y() { return m_elements[1]; }
-const Vector4u::scalar_type& Vector4u::z() const { return m_elements[2]; }
-Vector4u::scalar_type& Vector4u::z() { return m_elements[2]; }
-const Vector4u::scalar_type& Vector4u::w() const { return m_elements[3]; }
-Vector4u::scalar_type& Vector4u::w() { return m_elements[3]; }
+Vector4u::Vector4u(const Vector4u& _v) noexcept : Vector<UInt32, 4>(_v) { }
+Vector4u::Vector4u(const Vector<UInt32, 4>& _v) noexcept : Vector<UInt32, 4>(_v) { }
+Vector4u::Vector4u(Vector4u&& _v) noexcept : Vector<UInt32, 4>(_v) { }
+Vector4u::Vector4u(Vector<UInt32, 4>&& _v) noexcept : Vector<UInt32, 4>(_v) { }
+
+Vector4u& Vector4u::operator=(const Vector<UInt32, 4>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector4u& Vector4u::operator=(Vector<UInt32, 4>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector4u& Vector4u::operator=(const Array<UInt32>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const UInt32& Vector4u::operator[](const unsigned int& i) const noexcept {
+    return Vector<UInt32, 4>::operator[](i);
+}
+
+UInt32& Vector4u::operator[](const unsigned int& i) noexcept {
+    return Vector<UInt32, 4>::operator[](i);
+}
+
+Vector4u::operator Array<UInt32>() noexcept {
+    Array<UInt32> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector4u::Vector(const glm::u32vec4& v) noexcept : m_elements{ v.x, v.y, v.z, v.w } { }
-Vector4u::operator glm::u32vec4() noexcept { return glm::u32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]); }
-#endif 
+Vector4u::Vector4u(const glm::u32vec4& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector4u::Vector4u(glm::u32vec4&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector4u::operator glm::u32vec4() noexcept {
+    return glm::u32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector4u::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMUINT4 e;
-	DirectX::XMStoreUInt4(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
-	m_elements[2] = e.z;
-	m_elements[3] = e.w;
+Vector4u::Vector4u(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMUINT4 e;
+    DirectX::XMStoreUInt4(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+    this->w() = e.w;
+}
+
+Vector4u::Vector4u(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMUINT4 e;
+    DirectX::XMStoreUInt4(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+    this->w() = e.w;
+}
+
+Vector4u::Vector4u(const DirectX::XMUINT4& v) noexcept : Vector<UInt32, 4>() {
+    this->x() = v.x;
+    this->y() = v.y;
+    this->z() = v.z;
+    this->w() = v.w;
+}
+
+Vector4u::Vector4u(DirectX::XMUINT4&& v) noexcept : Vector<UInt32, 4>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
+    this->z() = std::move(v.z);
+    this->w() = std::move(v.w);
 }
 
 Vector4u::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMUINT4();
-	return DirectX::XMLoadUInt4(&e);
+    return DirectX::XMLoadUInt4(&this->operator DirectX::XMUINT4());
 }
 
-Vector4u::Vector(const DirectX::XMUINT4& v) noexcept : m_elements{ v.x, v.y, v.z, v.w } { }
-Vector4u::operator DirectX::XMUINT4() noexcept { return DirectX::XMUINT4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]); }
+Vector4u::operator DirectX::XMUINT4() noexcept {
+    return DirectX::XMUINT4(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Vector4i.
 // ------------------------------------------------------------------------------------------------
 
-#pragma region Vector4i
+Vector4i::Vector4i() noexcept : Vector<Int32, 4>() { }
+Vector4i::Vector4i(const Int32& v) noexcept : Vector<Int32, 4>(v) { }
+Vector4i::Vector4i(const Int32& x, const Int32& y, const Int32& z, const Int32& w) noexcept : Vector<Int32, 4>() {
+    this->x() = x;
+    this->y() = y;
+    this->z() = z;
+    this->w() = w;
+}
 
-Vector4i::Vector(const scalar_type& v) noexcept : m_elements{ v, v, v, v } { }
-Vector4i::Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept : m_elements{ x, y, z, w } { }
-Vector4i::Vector(const vec_type& _other) noexcept : m_elements{ _other.m_elements[0], _other.m_elements[1], _other.m_elements[2], _other.m_elements[3] } { }
-Vector4i::Vector(vec_type&& _other) noexcept : m_elements{ std::move(_other.m_elements[0]), std::move(_other.m_elements[1]), std::move(_other.m_elements[2]), std::move(_other.m_elements[3]) } { }
-const Vector4i::scalar_type* Vector4i::elements() const noexcept { return m_elements; }
-Vector4i::scalar_type* Vector4i::elements() noexcept { return m_elements; }
-const Vector4i::scalar_type& Vector4i::operator[](const int& i) const noexcept { return m_elements[i]; }
-Vector4i::scalar_type& Vector4i::operator[](const int& i) noexcept { return m_elements[i]; }
-const Vector4i::scalar_type& Vector4i::x() const { return m_elements[0]; }
-Vector4i::scalar_type& Vector4i::x() { return m_elements[0]; }
-const Vector4i::scalar_type& Vector4i::y() const { return m_elements[1]; }
-Vector4i::scalar_type& Vector4i::y() { return m_elements[1]; }
-const Vector4i::scalar_type& Vector4i::z() const { return m_elements[2]; }
-Vector4i::scalar_type& Vector4i::z() { return m_elements[2]; }
-const Vector4i::scalar_type& Vector4i::w() const { return m_elements[3]; }
-Vector4i::scalar_type& Vector4i::w() { return m_elements[3]; }
+Vector4i::Vector4i(const Vector4i& _v) noexcept : Vector<Int32, 4>(_v) { }
+Vector4i::Vector4i(const Vector<Int32, 4>& _v) noexcept : Vector<Int32, 4>(_v) { }
+Vector4i::Vector4i(Vector4i&& _v) noexcept : Vector<Int32, 4>(_v) { }
+Vector4i::Vector4i(Vector<Int32, 4>&& _v) noexcept : Vector<Int32, 4>(_v) { }
+
+Vector4i& Vector4i::operator=(const Vector<Int32, 4>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+Vector4i& Vector4i::operator=(Vector<Int32, 4>&& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return std::move(_other[i++]);
+    });
+
+    return *this;
+}
+
+Vector4i& Vector4i::operator=(const Array<Int32>& _other) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
+        return _other[i++];
+    });
+
+    return *this;
+}
+
+const Int32& Vector4i::operator[](const unsigned int& i) const noexcept {
+    return Vector<Int32, 4>::operator[](i);
+}
+
+Int32& Vector4i::operator[](const unsigned int& i) noexcept {
+    return Vector<Int32, 4>::operator[](i);
+}
+
+Vector4i::operator Array<Int32>() noexcept {
+    Array<Int32> v(vec_size);
+    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
+    return v;
+}
 
 #if defined(BUILD_ENABLE_GLM)
-Vector4i::Vector(const glm::i32vec4& v) noexcept : m_elements{ v.x, v.y, v.z, v.w } { }
-Vector4i::operator glm::i32vec4() noexcept { return glm::i32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]); }
-#endif 
+Vector4i::Vector4i(const glm::i32vec4& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
+}
+
+Vector4i::Vector4i(glm::i32vec4&& v) noexcept {
+    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return std::move(v[i++]); });
+}
+
+Vector4i::operator glm::i32vec4() noexcept {
+    return glm::i32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]);
+}
+#endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-Vector4i::Vector(const DirectX::XMVECTOR& v) noexcept {
-	DirectX::XMINT4 e;
-	DirectX::XMStoreSInt4(&e, v);
-	m_elements[0] = e.x;
-	m_elements[1] = e.y;
-	m_elements[2] = e.z;
-	m_elements[3] = e.w;
+Vector4i::Vector4i(const DirectX::XMVECTOR& v) noexcept {
+    DirectX::XMINT4 e;
+    DirectX::XMStoreSInt4(&e, v);
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+    this->w() = e.w;
+}
+
+Vector4i::Vector4i(DirectX::XMVECTOR&& v) noexcept {
+    DirectX::XMINT4 e;
+    DirectX::XMStoreSInt4(&e, std::move(v));
+
+    this->x() = e.x;
+    this->y() = e.y;
+    this->z() = e.z;
+    this->w() = e.w;
+}
+
+Vector4i::Vector4i(const DirectX::XMINT4& v) noexcept : Vector<Int32, 4>() {
+    this->x() = v.x;
+    this->y() = v.y;
+    this->z() = v.z;
+    this->w() = v.w;
+}
+
+Vector4i::Vector4i(DirectX::XMINT4&& v) noexcept : Vector<Int32, 4>() {
+    this->x() = std::move(v.x);
+    this->y() = std::move(v.y);
+    this->z() = std::move(v.z);
+    this->w() = std::move(v.w);
 }
 
 Vector4i::operator DirectX::XMVECTOR() noexcept {
-	auto e = this->operator DirectX::XMINT4();
-	return DirectX::XMLoadSInt4(&e);
+    return DirectX::XMLoadSInt4(&this->operator DirectX::XMINT4());
 }
 
-Vector4i::Vector(const DirectX::XMINT4& v) noexcept : m_elements{ v.x, v.y, v.z, v.w } { }
-Vector4i::operator DirectX::XMINT4() noexcept { return DirectX::XMINT4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]); }
+Vector4i::operator DirectX::XMINT4() noexcept {
+    return DirectX::XMINT4(m_elements);
+}
 #endif
-#pragma endregion
 
 // ------------------------------------------------------------------------------------------------
 // Specialize classes so that they get exported.

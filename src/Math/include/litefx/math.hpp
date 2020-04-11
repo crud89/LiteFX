@@ -24,6 +24,9 @@
 #include <DirectXMath.h>
 #endif
 
+#include "math_types/vector.hpp"
+#include "math_types/matrix.hpp"
+
 namespace LiteFX::Math {
 	using namespace LiteFX;
 
@@ -37,587 +40,409 @@ namespace LiteFX::Math {
 	using Float = float_t;
 	using Double = double_t;
 
-	template <typename T, int DIM>
-	class LITEFX_MATH_API Vector {
+#pragma region Vector
+	class LITEFX_MATH_API Vector1f : public Vector<Float, 1> {
 	public:
-		static constexpr size_t vec_size = DIM;
-		using scalar_type = T;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		inline Vector() noexcept = default;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector1f() noexcept;
+		Vector1f(const Float& v) noexcept;
+		Vector1f(const Vector1f&) noexcept;
+		Vector1f(const Vector<Float, 1>&) noexcept;
+		Vector1f(Vector1f&&) noexcept;
+		Vector1f(Vector<Float, 1>&&) noexcept;
+		virtual ~Vector1f() noexcept = default;
 
 	public:
-		inline const scalar_type& elements() const noexcept;
-	};
-
-	template <typename T>
-	class LITEFX_MATH_API Vector<T, 1> {
-	public:
-		static constexpr size_t vec_size = 1;
-		using scalar_type = T;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		//inline Vector(const scalar_type& x) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
-
-	public:
-		//inline const scalar_type& x() const;
-		//inline scalar_type& x();
-	};
-
-	template <typename T>
-	class LITEFX_MATH_API Vector<T, 2> {
-	public:
-		static constexpr size_t vec_size = 2;
-		using scalar_type = T;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		//inline Vector(const scalar_type& x) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
-
-	public:
-		//inline const scalar_type& x() const;
-		//inline scalar_type& x();
-		//inline const scalar_type& y() const;
-		//inline scalar_type& y();
-	};
-
-	template <typename T>
-	class LITEFX_MATH_API Vector<T, 3> {
-	public:
-		static constexpr size_t vec_size = 3;
-		using scalar_type = T;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		//inline Vector(const scalar_type& x) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
-
-	public:
-		//inline const scalar_type& x() const;
-		//inline scalar_type& x();
-		//inline const scalar_type& y() const;
-		//inline scalar_type& y();
-		//inline const scalar_type& z() const;
-		//inline scalar_type& z();
-	};
-
-	template <typename T>
-	class LITEFX_MATH_API Vector<T, 4> {
-	public:
-		static constexpr size_t vec_size = 4;
-		using scalar_type = T;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		//inline Vector(const scalar_type& x) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
-
-	public:
-		//inline const scalar_type& x() const;
-		//inline scalar_type& x();
-		//inline const scalar_type& y() const;
-		//inline scalar_type& y();
-		//inline const scalar_type& z() const;
-		//inline scalar_type& z();
-		//inline const scalar_type& w() const;
-		//inline scalar_type& w();
-	};
-
-	template <>
-	class LITEFX_MATH_API Vector<Float, 1> {
-	public:
-		static constexpr size_t vec_size = 1;
-		using scalar_type = Float;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& x) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
-
-	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
+		inline Vector1f& operator=(const Vector<Float, 1>& _other) noexcept;
+		inline Vector1f& operator=(Vector<Float, 1>&& _other) noexcept;
+		inline Vector1f& operator=(const Array<Float>& _other) noexcept;
+		inline const Float& operator[](const unsigned int& i) const noexcept;
+		inline Float& operator[](const unsigned int& i) noexcept;
+		inline operator Array<Float>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::f32vec1& v) noexcept;
+	public:
+		Vector1f(const glm::f32vec1& v) noexcept;
+		Vector1f(glm::f32vec1&& v) noexcept;
 		inline operator glm::f32vec1() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
+	public:
+		Vector1f(const DirectX::XMVECTOR& v) noexcept;
+		Vector1f(DirectX::XMVECTOR&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator scalar_type() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<UInt32, 1> {
+	class LITEFX_MATH_API Vector1u : public Vector<UInt32, 1> {
 	public:
-		static constexpr size_t vec_size = 1;
-		using scalar_type = UInt32;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& x) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector1u() noexcept;
+		Vector1u(const UInt32& v) noexcept;
+		Vector1u(const Vector1u&) noexcept;
+		Vector1u(const Vector<UInt32, 1>&) noexcept;
+		Vector1u(Vector1u&&) noexcept;
+		Vector1u(Vector<UInt32, 1>&&) noexcept;
+		virtual ~Vector1u() noexcept = default;
+		inline operator UInt32() noexcept;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
+		inline Vector1u& operator=(const Vector<UInt32, 1>& _other) noexcept;
+		inline Vector1u& operator=(Vector<UInt32, 1>&& _other) noexcept;
+		inline Vector1u& operator=(const Array<UInt32>& _other) noexcept;
+		inline const UInt32& operator[](const unsigned int& i) const noexcept;
+		inline UInt32& operator[](const unsigned int& i) noexcept;
+		inline operator Array<UInt32>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::u32vec1& v) noexcept;
+	public:
+		Vector1u(const glm::u32vec1& v) noexcept;
+		Vector1u(glm::u32vec1&& v) noexcept;
 		inline operator glm::u32vec1() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
+	public:
+		Vector1u(const DirectX::XMVECTOR& v) noexcept;
+		Vector1u(DirectX::XMVECTOR&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator scalar_type() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<Float, 2> {
-	public:
-		static constexpr size_t vec_size = 2;
-		using scalar_type = Float;
-		using vec_type = Vector<scalar_type, vec_size>;
 
-	private:
-		scalar_type m_elements[vec_size];
-
+	class LITEFX_MATH_API Vector2f : public Vector<Float, 2> {
 	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector2f() noexcept;
+		Vector2f(const Float& v) noexcept;
+		Vector2f(const Float& x, const Float& y) noexcept;
+		Vector2f(const Vector2f&) noexcept;
+		Vector2f(const Vector<Float, 2>&) noexcept;
+		Vector2f(Vector2f&&) noexcept;
+		Vector2f(Vector<Float, 2>&&) noexcept;
+		virtual ~Vector2f() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
+		inline Vector2f& operator=(const Vector<Float, 2>& _other) noexcept;
+		inline Vector2f& operator=(Vector<Float, 2>&& _other) noexcept;
+		inline Vector2f& operator=(const Array<Float>& _other) noexcept;
+		inline const Float& operator[](const unsigned int& i) const noexcept;
+		inline Float& operator[](const unsigned int& i) noexcept;
+		inline operator Array<Float>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::f32vec2& v) noexcept;
+	public:
+		Vector2f(const glm::f32vec2& v) noexcept;
+		Vector2f(glm::f32vec2&& v) noexcept;
 		inline operator glm::f32vec2() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMFLOAT2& v) noexcept;
+	public:
+		Vector2f(const DirectX::XMVECTOR& v) noexcept;
+		Vector2f(DirectX::XMVECTOR&& v) noexcept;
+		Vector2f(const DirectX::XMFLOAT2& v) noexcept;
+		Vector2f(DirectX::XMFLOAT2&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMFLOAT2() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<UInt32, 2> {
+	class LITEFX_MATH_API Vector2u : public Vector<UInt32, 2> {
 	public:
-		static constexpr size_t vec_size = 2;
-		using scalar_type = UInt32;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector2u() noexcept;
+		Vector2u(const UInt32& v) noexcept;
+		Vector2u(const UInt32& x, const UInt32& y) noexcept;
+		Vector2u(const Vector2u&) noexcept;
+		Vector2u(const Vector<UInt32, 2>&) noexcept;
+		Vector2u(Vector2u&&) noexcept;
+		Vector2u(Vector<UInt32, 2>&&) noexcept;
+		virtual ~Vector2u() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
+		inline Vector2u& operator=(const Vector<UInt32, 2>& _other) noexcept;
+		inline Vector2u& operator=(Vector<UInt32, 2>&& _other) noexcept;
+		inline Vector2u& operator=(const Array<UInt32>& _other) noexcept;
+		inline const UInt32& operator[](const unsigned int& i) const noexcept;
+		inline UInt32& operator[](const unsigned int& i) noexcept;
+		inline operator Array<UInt32>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::u32vec2& v) noexcept;
+	public:
+		Vector2u(const glm::u32vec2& v) noexcept;
+		Vector2u(glm::u32vec2&& v) noexcept;
 		inline operator glm::u32vec2() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMUINT2& v) noexcept;
+	public:
+		Vector2u(const DirectX::XMVECTOR& v) noexcept;
+		Vector2u(DirectX::XMVECTOR&& v) noexcept;
+		Vector2u(const DirectX::XMUINT2& v) noexcept;
+		Vector2u(DirectX::XMUINT2&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMUINT2() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<Int32, 2> {
+	class LITEFX_MATH_API Vector2i : public Vector<Int32, 2> {
 	public:
-		static constexpr size_t vec_size = 2;
-		using scalar_type = Int32;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector2i() noexcept;
+		Vector2i(const Int32& v) noexcept;
+		Vector2i(const Int32& x, const Int32& y) noexcept;
+		Vector2i(const Vector2i&) noexcept;
+		Vector2i(const Vector<Int32, 2>&) noexcept;
+		Vector2i(Vector2i&&) noexcept;
+		Vector2i(Vector<Int32, 2>&&) noexcept;
+		virtual ~Vector2i() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
+		inline Vector2i& operator=(const Vector<Int32, 2>& _other) noexcept;
+		inline Vector2i& operator=(Vector<Int32, 2>&& _other) noexcept;
+		inline Vector2i& operator=(const Array<Int32>& _other) noexcept;
+		inline const Int32& operator[](const unsigned int& i) const noexcept;
+		inline Int32& operator[](const unsigned int& i) noexcept;
+		inline operator Array<Int32>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::i32vec2& v) noexcept;
+	public:
+		Vector2i(const glm::i32vec2& v) noexcept;
+		Vector2i(glm::i32vec2&& v) noexcept;
 		inline operator glm::i32vec2() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMINT2& v) noexcept;
+	public:
+		Vector2i(const DirectX::XMVECTOR& v) noexcept;
+		Vector2i(DirectX::XMVECTOR&& v) noexcept;
+		Vector2i(const DirectX::XMINT2& v) noexcept;
+		Vector2i(DirectX::XMINT2&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMINT2() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<Float, 3> {
-	public:
-		static constexpr size_t vec_size = 3;
-		using scalar_type = Float;
-		using vec_type = Vector<scalar_type, vec_size>;
 
-	private:
-		scalar_type m_elements[vec_size];
-
+	class LITEFX_MATH_API Vector3f : public Vector<Float, 3> {
 	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector3f() noexcept;
+		Vector3f(const Float& v) noexcept;
+		Vector3f(const Float& x, const Float& y, const Float& z) noexcept;
+		Vector3f(const Vector3f&) noexcept;
+		Vector3f(const Vector<Float, 3>&) noexcept;
+		Vector3f(Vector3f&&) noexcept;
+		Vector3f(Vector<Float, 3>&&) noexcept;
+		virtual ~Vector3f() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
-		inline const scalar_type& z() const;
-		inline scalar_type& z();
+		inline Vector3f& operator=(const Vector<Float, 3>& _other) noexcept;
+		inline Vector3f& operator=(Vector<Float, 3>&& _other) noexcept;
+		inline Vector3f& operator=(const Array<Float>& _other) noexcept;
+		inline const Float& operator[](const unsigned int& i) const noexcept;
+		inline Float& operator[](const unsigned int& i) noexcept;
+		inline operator Array<Float>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::f32vec3& v) noexcept;
+	public:
+		Vector3f(const glm::f32vec3& v) noexcept;
+		Vector3f(glm::f32vec3&& v) noexcept;
 		inline operator glm::f32vec3() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMFLOAT3& v) noexcept;
+	public:
+		Vector3f(const DirectX::XMVECTOR& v) noexcept;
+		Vector3f(DirectX::XMVECTOR&& v) noexcept;
+		Vector3f(const DirectX::XMFLOAT3& v) noexcept;
+		Vector3f(DirectX::XMFLOAT3&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMFLOAT3() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<UInt32, 3> {
+	class LITEFX_MATH_API Vector3u : public Vector<UInt32, 3> {
 	public:
-		static constexpr size_t vec_size = 3;
-		using scalar_type = UInt32;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector3u() noexcept;
+		Vector3u(const UInt32& v) noexcept;
+		Vector3u(const UInt32& x, const UInt32& y, const UInt32& z) noexcept;
+		Vector3u(const Vector3u&) noexcept;
+		Vector3u(const Vector<UInt32, 3>&) noexcept;
+		Vector3u(Vector3u&&) noexcept;
+		Vector3u(Vector<UInt32, 3>&&) noexcept;
+		virtual ~Vector3u() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
-		inline const scalar_type& z() const;
-		inline scalar_type& z();
+		inline Vector3u& operator=(const Vector<UInt32, 3>& _other) noexcept;
+		inline Vector3u& operator=(Vector<UInt32, 3>&& _other) noexcept;
+		inline Vector3u& operator=(const Array<UInt32>& _other) noexcept;
+		inline const UInt32& operator[](const unsigned int& i) const noexcept;
+		inline UInt32& operator[](const unsigned int& i) noexcept;
+		inline operator Array<UInt32>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::u32vec3& v) noexcept;
+	public:
+		Vector3u(const glm::u32vec3& v) noexcept;
+		Vector3u(glm::u32vec3&& v) noexcept;
 		inline operator glm::u32vec3() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMUINT3& v) noexcept;
+	public:
+		Vector3u(const DirectX::XMVECTOR& v) noexcept;
+		Vector3u(DirectX::XMVECTOR&& v) noexcept;
+		Vector3u(const DirectX::XMUINT3& v) noexcept;
+		Vector3u(DirectX::XMUINT3&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMUINT3() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<Int32, 3> {
+	class LITEFX_MATH_API Vector3i : public Vector<Int32, 3> {
 	public:
-		static constexpr size_t vec_size = 3;
-		using scalar_type = Int32;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector3i() noexcept;
+		Vector3i(const Int32& v) noexcept;
+		Vector3i(const Int32& x, const Int32& y, const Int32& z) noexcept;
+		Vector3i(const Vector3i&) noexcept;
+		Vector3i(const Vector<Int32, 3>&) noexcept;
+		Vector3i(Vector3i&&) noexcept;
+		Vector3i(Vector<Int32, 3>&&) noexcept;
+		virtual ~Vector3i() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
-		inline const scalar_type& z() const;
-		inline scalar_type& z();
+		inline Vector3i& operator=(const Vector<Int32, 3>& _other) noexcept;
+		inline Vector3i& operator=(Vector<Int32, 3>&& _other) noexcept;
+		inline Vector3i& operator=(const Array<Int32>& _other) noexcept;
+		inline const Int32& operator[](const unsigned int& i) const noexcept;
+		inline Int32& operator[](const unsigned int& i) noexcept;
+		inline operator Array<Int32>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::i32vec3& v) noexcept;
+	public:
+		Vector3i(const glm::i32vec3& v) noexcept;
+		Vector3i(glm::i32vec3&& v) noexcept;
 		inline operator glm::i32vec3() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMINT3& v) noexcept;
+	public:
+		Vector3i(const DirectX::XMVECTOR& v) noexcept;
+		Vector3i(DirectX::XMVECTOR&& v) noexcept;
+		Vector3i(const DirectX::XMINT3& v) noexcept;
+		Vector3i(DirectX::XMINT3&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMINT3() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<Float, 4> {
-	public:
-		static constexpr size_t vec_size = 4;
-		using scalar_type = Float;
-		using vec_type = Vector<scalar_type, vec_size>;
 
-	private:
-		scalar_type m_elements[vec_size];
-
+	class LITEFX_MATH_API Vector4f : public Vector<Float, 4> {
 	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector4f() noexcept;
+		Vector4f(const Float& v) noexcept;
+		Vector4f(const Float& x, const Float& y, const Float& z, const Float& w) noexcept;
+		Vector4f(const Vector4f&) noexcept;
+		Vector4f(const Vector<Float, 4>&) noexcept;
+		Vector4f(Vector4f&&) noexcept;
+		Vector4f(Vector<Float, 4>&&) noexcept;
+		virtual ~Vector4f() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
-		inline const scalar_type& z() const;
-		inline scalar_type& z();
-		inline const scalar_type& w() const;
-		inline scalar_type& w();
+		inline Vector4f& operator=(const Vector<Float, 4>& _other) noexcept;
+		inline Vector4f& operator=(Vector<Float, 4>&& _other) noexcept;
+		inline Vector4f& operator=(const Array<Float>& _other) noexcept;
+		inline const Float& operator[](const unsigned int& i) const noexcept;
+		inline Float& operator[](const unsigned int& i) noexcept;
+		inline operator Array<Float>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::f32vec4& v) noexcept;
+	public:
+		Vector4f(const glm::f32vec4& v) noexcept;
+		Vector4f(glm::f32vec4&& v) noexcept;
 		inline operator glm::f32vec4() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMFLOAT4& v) noexcept;
+	public:
+		Vector4f(const DirectX::XMVECTOR& v) noexcept;
+		Vector4f(DirectX::XMVECTOR&& v) noexcept;
+		Vector4f(const DirectX::XMFLOAT4& v) noexcept;
+		Vector4f(DirectX::XMFLOAT4&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMFLOAT4() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<UInt32, 4> {
+	class LITEFX_MATH_API Vector4u : public Vector<UInt32, 4> {
 	public:
-		static constexpr size_t vec_size = 4;
-		using scalar_type = UInt32;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector4u() noexcept;
+		Vector4u(const UInt32& v) noexcept;
+		Vector4u(const UInt32& x, const UInt32& y, const UInt32& z, const UInt32& w) noexcept;
+		Vector4u(const Vector4u&) noexcept;
+		Vector4u(const Vector<UInt32, 4>&) noexcept;
+		Vector4u(Vector4u&&) noexcept;
+		Vector4u(Vector<UInt32, 4>&&) noexcept;
+		virtual ~Vector4u() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
-		inline const scalar_type& z() const;
-		inline scalar_type& z();
-		inline const scalar_type& w() const;
-		inline scalar_type& w();
+		inline Vector4u& operator=(const Vector<UInt32, 4>& _other) noexcept;
+		inline Vector4u& operator=(Vector<UInt32, 4>&& _other) noexcept;
+		inline Vector4u& operator=(const Array<UInt32>& _other) noexcept;
+		inline const UInt32& operator[](const unsigned int& i) const noexcept;
+		inline UInt32& operator[](const unsigned int& i) noexcept;
+		inline operator Array<UInt32>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::u32vec4& v) noexcept;
+	public:
+		Vector4u(const glm::u32vec4& v) noexcept;
+		Vector4u(glm::u32vec4&& v) noexcept;
 		inline operator glm::u32vec4() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMUINT4& v) noexcept;
+	public:
+		Vector4u(const DirectX::XMVECTOR& v) noexcept;
+		Vector4u(DirectX::XMVECTOR&& v) noexcept;
+		Vector4u(const DirectX::XMUINT4& v) noexcept;
+		Vector4u(DirectX::XMUINT4&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMUINT4() noexcept;
 #endif
 	};
 
-	template <>
-	class LITEFX_MATH_API Vector<Int32, 4> {
+	class LITEFX_MATH_API Vector4i : public Vector<Int32, 4> {
 	public:
-		static constexpr size_t vec_size = 4;
-		using scalar_type = Int32;
-		using vec_type = Vector<scalar_type, vec_size>;
-
-	private:
-		scalar_type m_elements[vec_size];
-
-	public:
-		Vector() noexcept = delete;
-		inline Vector(const scalar_type& v) noexcept;
-		inline Vector(const scalar_type& x, const scalar_type& y, const scalar_type& z, const scalar_type& w) noexcept;
-		inline Vector(const vec_type& _other) noexcept;
-		inline Vector(vec_type&& _other) noexcept;
-		virtual inline ~Vector() noexcept = default;
+		Vector4i() noexcept;
+		Vector4i(const Int32& v) noexcept;
+		Vector4i(const Int32& x, const Int32& y, const Int32& z, const Int32& w) noexcept;
+		Vector4i(const Vector4i&) noexcept;
+		Vector4i(const Vector<Int32, 4>&) noexcept;
+		Vector4i(Vector4i&&) noexcept;
+		Vector4i(Vector<Int32, 4>&&) noexcept;
+		virtual ~Vector4i() noexcept = default;
 
 	public:
-		inline const scalar_type* elements() const noexcept;
-		inline scalar_type* elements() noexcept;
-		inline const scalar_type& operator[](const int& i) const noexcept;
-		inline scalar_type& operator[](const int& i) noexcept;
-		inline const scalar_type& x() const;
-		inline scalar_type& x();
-		inline const scalar_type& y() const;
-		inline scalar_type& y();
-		inline const scalar_type& z() const;
-		inline scalar_type& z();
-		inline const scalar_type& w() const;
-		inline scalar_type& w();
+		inline Vector4i& operator=(const Vector<Int32, 4>& _other) noexcept;
+		inline Vector4i& operator=(Vector<Int32, 4>&& _other) noexcept;
+		inline Vector4i& operator=(const Array<Int32>& _other) noexcept;
+		inline const Int32& operator[](const unsigned int& i) const noexcept;
+		inline Int32& operator[](const unsigned int& i) noexcept;
+		inline operator Array<Int32>() noexcept;
 
 #if defined(BUILD_ENABLE_GLM)
-		inline Vector(const glm::i32vec4& v) noexcept;
+	public:
+		Vector4i(const glm::i32vec4& v) noexcept;
+		Vector4i(glm::i32vec4&& v) noexcept;
 		inline operator glm::i32vec4() noexcept;
 #endif
 
 #if defined(BUILD_ENABLE_DIRECTX_MATH)
-		inline Vector(const DirectX::XMVECTOR& v) noexcept;
-		inline Vector(const DirectX::XMINT4& v) noexcept;
+	public:
+		Vector4i(const DirectX::XMVECTOR& v) noexcept;
+		Vector4i(DirectX::XMVECTOR&& v) noexcept;
+		Vector4i(const DirectX::XMINT4& v) noexcept;
+		Vector4i(DirectX::XMINT4&& v) noexcept;
 		inline operator DirectX::XMVECTOR() noexcept;
 		inline operator DirectX::XMINT4() noexcept;
 #endif
 	};
-
-	template<typename T> using TVector1 = Vector<T, 1>;
-	template<typename T> using TVector2 = Vector<T, 2>;
-	template<typename T> using TVector3 = Vector<T, 3>;
-	template<typename T> using TVector4 = Vector<T, 4>;
 
 	// Define exported vector types.
 	namespace Vectors {
@@ -659,21 +484,9 @@ namespace LiteFX::Math {
 		using DoubleVector4 = TVector4<Double>;
 	}
 
-	// Define vector types that support conversion to higher level APIs.
-	typedef Vectors::UInt32Vector1 Vector1u;
-	typedef Vectors::FloatVector1 Vector1f;
-	typedef Vectors::Int32Vector2 Vector2i;
-	typedef Vectors::UInt32Vector2 Vector2u;
-	typedef Vectors::FloatVector2 Vector2f;
-	typedef Vectors::Int32Vector3 Vector3i;
-	typedef Vectors::UInt32Vector3 Vector3u;
-	typedef Vectors::FloatVector3 Vector3f;
-	typedef Vectors::Int32Vector4 Vector4i;
-	typedef Vectors::UInt32Vector4 Vector4u;
-	typedef Vectors::FloatVector4 Vector4f;
-
 	// Define other special vector types.
 	typedef TVector2<size_t> Size2d;
 	typedef TVector3<size_t> Size3d;
 	typedef TVector4<size_t> Size4d;
+#pragma endregion
 }

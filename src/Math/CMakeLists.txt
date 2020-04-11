@@ -20,6 +20,8 @@ ENDIF(BUILD_ENABLE_GLM)
 
 # Collect header & source files.
 SET(VULKAN_MATH_HEADERS
+    "include/litefx/math_types/vector.hpp"
+    "include/litefx/math_types/matrix.hpp"
     "include/litefx/math.hpp"
 )
 

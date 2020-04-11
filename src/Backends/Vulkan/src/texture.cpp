@@ -8,13 +8,20 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanTexture::VulkanTextureImpl {
 private:
+	Size2d m_size;
 
 public:
 	VulkanTextureImpl() noexcept = default;
 
 public:
-	void initialize(const VulkanTexture& parent)
+	void initialize(const VulkanTexture& parent, const Size2d& size)
 	{
+	}
+
+public:
+	Size2d getSize() const noexcept
+	{
+		return m_size;
 	}
 };
 
@@ -32,3 +39,8 @@ public:
 //}
 
 VulkanTexture::~VulkanTexture() noexcept = default;
+
+Size2d VulkanTexture::getSize() const noexcept
+{
+	return m_impl->getSize();
+}
