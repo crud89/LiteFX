@@ -156,7 +156,7 @@ public:
 };
 
 // ------------------------------------------------------------------------------------------------
-// Implementation.
+// Interface.
 // ------------------------------------------------------------------------------------------------
 
 VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, VulkanQueue* deviceQueue, const Format& format, const Array<String>& extensions) :
@@ -201,4 +201,20 @@ bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) con
 Array<String> VulkanDevice::getAvailableDeviceExtensions() const noexcept
 {
 	return m_impl->getAvailableDeviceExtensions(*this);
+}
+
+// ------------------------------------------------------------------------------------------------
+// Factory.
+// ------------------------------------------------------------------------------------------------
+
+//UniquePtr<ITexture> VulkanDevice::createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const
+//{
+//  VkImage image;
+//  // TODO: ...
+//	return makeUnique<VulkanTexture>(this, image, format, size);
+//}
+
+UniquePtr<ITexture> VulkanDevice::makeTexture2d(VkImage image, const Format& format, const Size2d& size) const
+{
+	return makeUnique<VulkanTexture>(this, image, format, size);
 }

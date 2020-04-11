@@ -8,6 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanSwapChain::VulkanSwapChainImpl {
 private:
+	Array<UniquePtr<ITexture>> m_frameBuffers;
 	const VulkanDevice* m_device;
 
 public:
@@ -21,12 +22,14 @@ private:
 		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, nullptr);
 
 		Array<VkImage> imageChain(images);
-		Array<UniquePtr<VulkanTexture>> textures(images);
+		Array<UniquePtr<ITexture>> textures(images);
 
 		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, imageChain.data());
 		std::generate(textures.begin(), textures.end(), [&, i = 0]() mutable { 
-			return makeUnique<VulkanTexture>(m_device, imageChain[i++], format, Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height)));
+			return m_device->makeTexture2d(imageChain[i++], format, Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height)));
 		});
+
+		m_frameBuffers = std::move(textures);
 	}
 
 private:
