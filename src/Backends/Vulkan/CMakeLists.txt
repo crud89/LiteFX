@@ -64,8 +64,10 @@ TARGET_LINK_LIBRARIES(LiteFX.Backends.Vulkan
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
     PRIVATE glm glad::glad Vulkan::Vulkan
 )
-
-TARGET_PRECOMPILE_HEADERS(LiteFX.Backends.Vulkan REUSE_FROM LiteFX.Core)
+# Re-use pre-compiled core header.
+IF(BUILD_PRECOMPILED_HEADERS)
+    TARGET_PRECOMPILE_HEADERS(LiteFX.Backends.Vulkan REUSE_FROM LiteFX.Core)
+ENDIF(BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
 INSTALL(TARGETS LiteFX.Backends.Vulkan EXPORT LiteFXBackendsVulkanConfig

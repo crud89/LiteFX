@@ -54,7 +54,10 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.BasicRendering PRIVATE "src/")
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Samples.BasicRendering PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
 
-TARGET_PRECOMPILE_HEADERS(LiteFX.Samples.BasicRendering REUSE_FROM LiteFX.Core)
+# Re-use pre-compiled core header.
+IF(BUILD_PRECOMPILED_HEADERS)
+    TARGET_PRECOMPILE_HEADERS(LiteFX.Samples.BasicRendering REUSE_FROM LiteFX.Core)
+ENDIF(BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
 INSTALL(TARGETS LiteFX.Samples.BasicRendering EXPORT LiteFXSamplesBasicRenderingConfig

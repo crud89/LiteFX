@@ -14,6 +14,8 @@ OPTION(BUILD_SAMPLE_BASIC_RENDERING "Builds the basic rendering sample." ON)
 OPTION(BUILD_ENABLE_GLM "Enables glm converters for math types." ON)
 OPTION(BUILD_ENABLE_DIRECTX_MATH "Enables DirectXMath converters for math types." ON)
 
+OPTION(BUILD_PRECOMPILED_HEADERS "Use pre-compiled headers during build." OFF)
+
 SET(BUILD_ENGINE_IDENTIFIER "LiteFX" CACHE STRING "Defines the engine identifier string.")
 
 IF(NOT MSVC OR (MSVC AND MSVC_VERSION LESS 1910))

@@ -56,7 +56,10 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Rendering
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Rendering PUBLIC LiteFX.Core LiteFX.Math LiteFX.AppModel PRIVATE ${PRIVATE_LINK_LIBS})
 
-TARGET_PRECOMPILE_HEADERS(LiteFX.Rendering REUSE_FROM LiteFX.Core)
+# Re-use pre-compiled core header.
+IF(BUILD_PRECOMPILED_HEADERS)
+    TARGET_PRECOMPILE_HEADERS(LiteFX.Rendering REUSE_FROM LiteFX.Core)
+ENDIF(BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
 INSTALL(TARGETS LiteFX.Rendering EXPORT LiteFXRenderingConfig
