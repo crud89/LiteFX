@@ -93,6 +93,9 @@ namespace LiteFX {
 		PimplPtr& operator= (PimplPtr&&) noexcept = default;
 		~PimplPtr() noexcept = default;
 
+	public:
+		void destroy() { m_ptr = nullptr; }
+
 	private:
 		PimplPtr(pImpl* pimpl) : m_ptr(pimpl) { }
 

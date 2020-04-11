@@ -104,6 +104,9 @@ namespace LiteFX::Rendering {
 		virtual const ISurface* getSurface() const noexcept = 0;
 		virtual const ISwapChain* getSwapChain() const noexcept = 0;
 		virtual Array<Format> getSurfaceFormats() const = 0;
+
+	public:
+		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const = 0;
 	};
 
 	class LITEFX_RENDERING_API IGraphicsAdapter {

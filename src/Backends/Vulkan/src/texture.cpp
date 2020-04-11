@@ -8,17 +8,17 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanTexture::VulkanTextureImpl {
 private:
+	const VulkanDevice* m_device;
 	Format m_format;
 	Size2d m_size;
 
 public:
-	VulkanTextureImpl(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) noexcept : 
-		m_format(format), m_size(size) { }
+	VulkanTextureImpl(const VulkanDevice* device, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) noexcept :
+		m_device(device), m_format(format), m_size(size) { }
 
 public:
 	void initialize(const VulkanTexture& parent)
 	{
-
 	}
 
 public:
@@ -37,8 +37,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(VkImage image, const Format& format, const Size2d& size) :
-	IResource(image), m_impl(makePimpl<VulkanTextureImpl>(format, size))
+VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size) :
+	IResource(image), m_impl(makePimpl<VulkanTextureImpl>(device, format, size))
 {
 	if (image == nullptr)
 		throw std::invalid_argument("The argument `image` is not initialized.");

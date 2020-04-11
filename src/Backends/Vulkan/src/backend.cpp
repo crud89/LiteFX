@@ -124,6 +124,8 @@ VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, co
 
 VulkanBackend::~VulkanBackend() noexcept 
 {
+    m_impl.destroy();
+
     ::vkDestroyInstance(this->handle(), nullptr);
 }
 

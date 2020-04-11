@@ -173,7 +173,8 @@ VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSur
 
 VulkanDevice::~VulkanDevice() noexcept
 {
-	::vkDestroySwapchainKHR(this->handle(), m_impl->getSwapChain()->handle(), nullptr);
+	m_impl.destroy();
+
 	::vkDestroyDevice(this->handle(), nullptr);
 }
 

@@ -25,7 +25,7 @@ private:
 
 		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, imageChain.data());
 		std::generate(textures.begin(), textures.end(), [&, i = 0]() mutable { 
-			return makeUnique<VulkanTexture>(imageChain[i++], format, Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height))); 
+			return makeUnique<VulkanTexture>(m_device, imageChain[i++], format, Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height)));
 		});
 	}
 
@@ -145,7 +145,12 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& forma
 	this->handle() = m_impl->initialize(*this, format);
 }
 
-VulkanSwapChain::~VulkanSwapChain() noexcept = default;
+VulkanSwapChain::~VulkanSwapChain() noexcept 
+{
+	m_impl.destroy();
+
+	::vkDestroySwapchainKHR(m_impl->getDevice()->handle(), this->handle(), nullptr);
+}
 
 const IGraphicsDevice* VulkanSwapChain::getDevice() const noexcept
 {

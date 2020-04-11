@@ -10,10 +10,18 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	// Conversion helpers.
+	/// <summary>
+	/// 
+	/// </summary>
 	Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
+
+	/// <summary>
+	/// 
+	/// </summary>
 	VkFormat LITEFX_VULKAN_API getFormat(const Format& format);
 
 	// Forward declarations.
+	class VulkanTexture;
 	class VulkanSwapChain;
 	class VulkanQueue;
 	class VulkanDevice;
@@ -21,12 +29,15 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanBackend;
 
 	// Class definitions.
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanTexture : public ITexture, public IResource<VkImage> {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl)
 
 	public:
-		VulkanTexture() noexcept = default;
-		VulkanTexture(VkImage image, const Format& format, const Size2d& size);
+		//VulkanTexture() noexcept = default;
+		VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size);
 		virtual ~VulkanTexture() noexcept;
 
 	public:
@@ -34,6 +45,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual Format getFormat() const noexcept override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanSwapChain : public ISwapChain, public IResource<VkSwapchainKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl)
 
@@ -45,6 +59,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual const IGraphicsDevice* getDevice() const noexcept override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanQueue : public ICommandQueue, public IResource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl)
 	
@@ -62,6 +79,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual QueueType getType() const noexcept override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
 
@@ -77,10 +97,17 @@ namespace LiteFX::Rendering::Backends {
 		virtual const ISwapChain* getSwapChain() const noexcept override;
 
 	public:
+		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const override;
+		//virtual UniquePtr<ITexture> makeTexture2d(VkImage image, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const;
+
+	public:
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
 		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl)
 
@@ -103,6 +130,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual const ICommandQueue* findQueue(const QueueType& queueType) const override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend, public IResource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
