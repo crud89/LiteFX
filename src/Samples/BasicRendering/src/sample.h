@@ -18,38 +18,17 @@ using namespace LiteFX::Rendering;
 using namespace LiteFX::Rendering::Backends;
 
 class SampleApp : public LiteFX::App {
-private:
-	struct GlfwWindowDeleter {
-		void operator()(GLFWwindow* ptr) noexcept {
-			::glfwDestroyWindow(ptr);
-		}
-	};
+public:
+	static String name() noexcept { return "LiteFX Sample: Basic Rendering"; }
+	String getName() const noexcept override { return this->name(); }
 
-	typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
-	typedef UniquePtr<VulkanBackend> RenderBackendPtr;
-	typedef UniquePtr<ISurface> RenderSurfacePtr;
-	typedef UniquePtr<IGraphicsDevice> GraphicsDevicePtr;
-
-private:
-	GlfwWindowPtr m_window;
-	RenderBackendPtr m_renderBackend;
-	RenderSurfacePtr m_surface;
-	GraphicsDevicePtr m_device;
+	static AppVersion version() noexcept { return AppVersion(1, 0, 0, 0); }
+	AppVersion getVersion() const noexcept override { return this->version(); }
 
 public:
-	SampleApp() noexcept;
+	SampleApp(const Platform& platform) noexcept : App(platform) { }
+	static AppBuilder<SampleApp> build() { return App::build<SampleApp>(); }
 
 public:
-	virtual String getName() const noexcept override { return "LiteFX Sample: Basic Rendering"; }
-	virtual AppVersion getVersion() const noexcept override { return AppVersion(1, 0, 0, 0); }
-
-public:
-	virtual int start(const int argc, const char** argv) override;
-	virtual int start(const Array<String>& args) override;
-	virtual void stop() override;
-	virtual void work() override;
-
-private:
-	void initializeRenderer(const Array<String>& validationLayers);
-	void createWindow();
+	virtual void run() override;
 };

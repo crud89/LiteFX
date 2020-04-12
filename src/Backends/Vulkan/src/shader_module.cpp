@@ -106,7 +106,7 @@ const String& VulkanShaderModule::getEntryPoint() const noexcept
 	return m_impl->getEntryPoint();
 }
 
-VkPipelineShaderStageCreateInfo VulkanShaderModule::getShaderStageDefinition() const noexcept
+VkPipelineShaderStageCreateInfo VulkanShaderModule::getShaderStageDefinition() const
 {
 	VkPipelineShaderStageCreateInfo shaderStageDefinition = {};
 	shaderStageDefinition.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

@@ -17,6 +17,16 @@
 #include <litefx/core.h>
 
 namespace LiteFX {
+	
+	template <typename TBackend, typename TApp>
+	class BackendInitializer;
+
+	template <typename TApp>
+	class AppBuilder;
+
+	class IBackend;
+	class AppVersion;
+	class App;
 
 	enum class LITEFX_APPMODEL_API Platform {
 		None = 0x00000000,
@@ -25,9 +35,46 @@ namespace LiteFX {
 		Other = 0x7FFFFFFF
 	};
 
-	/**
-	*
-	**/
+	enum class LITEFX_APPMODEL_API BackendType {
+		Rendering = 0x01,
+		//Physics = 0x02,
+		Other = 0xFF
+	};
+
+	class IBackend {
+	public:
+		virtual ~IBackend() noexcept = default;
+
+	public:
+		virtual BackendType getType() const noexcept = 0;
+	};
+
+	template <typename TApp>
+	class AppBuilder : public IBuilder<TApp> {
+	private:
+		UniquePtr<TApp> m_app;
+
+	public:
+		explicit AppBuilder(const Platform& platform) noexcept :
+			m_app(makeUnique<TApp>(platform)) { }
+		AppBuilder(const AppBuilder&& _other) = delete;
+		AppBuilder(AppBuilder&) = delete;
+		virtual ~AppBuilder() noexcept = default;
+
+	public:
+		virtual const App& getApp() const noexcept { return *m_app.get(); }
+		virtual const IBackend* findBackend(const BackendType& type) const noexcept { return m_app->operator[](type); }
+		virtual UniquePtr<TApp> go() override { return std::move(m_app); }
+		
+		void use(UniquePtr<IBackend>&& backend) { m_app->useBackend(std::move(backend)); }
+
+	public:
+		template<typename TBackend, typename ...TArgs>
+		Initializer<TBackend, AppBuilder<TApp>> backend(TArgs&&... _args) {
+			return Initializer<TBackend, AppBuilder<TApp>>(*this, makeUnique<TBackend>(this->getApp(), std::forward<TArgs>(_args)...));
+		}
+	};
+
 	class LITEFX_APPMODEL_API AppVersion {
 		LITEFX_IMPLEMENTATION(AppVersionImpl)
 
@@ -50,9 +97,6 @@ namespace LiteFX {
 		String getEngineVersion() const noexcept;
 	};
 
-	/**
-	* Base class for a LiteFX application.
-	**/
 	class LITEFX_APPMODEL_API App {
 		LITEFX_IMPLEMENTATION(AppImpl)
 
@@ -65,13 +109,27 @@ namespace LiteFX {
 	public:
 		virtual String getName() const noexcept = 0;
 		virtual AppVersion getVersion() const noexcept = 0;
-		virtual Platform getPlatform() const noexcept;
+		virtual const Platform& getPlatform() const noexcept;
+		virtual const IBackend* findBackend(const BackendType& type) const;
+		virtual const IBackend* operator[](const BackendType& type) const;
 
 	public:
-		virtual int start(const int argc, const char** argv);
-		virtual int start(const Array<String>& args) = 0;
-		virtual void stop() = 0;
-		virtual void work() = 0;
+		virtual void useBackend(UniquePtr<IBackend>&& backend);
+		virtual void run() = 0;
+
+	public:
+		template <typename TApp>
+		static AppBuilder<TApp> build() {
+
+			const Platform& platform =
+#if defined(_WIN32) || defined(WINCE)
+				Platform::Win32;
+#else
+				Platform::Other;
+#endif
+
+			return AppBuilder<TApp>(platform);
+		}
 	};
 
 }

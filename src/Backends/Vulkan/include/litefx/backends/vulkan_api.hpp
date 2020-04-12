@@ -13,3 +13,35 @@
 #ifndef LITEFX_VULKAN_API
 #  define LITEFX_VULKAN_API
 #endif
+
+#if (defined _WIN32 || defined WINCE)
+#  define VK_USE_PLATFORM_WIN32_KHR
+#else 
+#  pragma message ("Vulkan: No supported surface platform detected.")
+#endif
+
+#include <vulkan/vulkan.h>
+
+namespace LiteFX::Rendering::Backends {
+    using namespace LiteFX::Math;
+    using namespace LiteFX::Rendering;
+
+    // Conversion helpers.
+    /// <summary>
+    /// 
+    /// </summary>
+    Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkFormat LITEFX_VULKAN_API getFormat(const Format& format);
+
+    // Forward declarations.
+    class VulkanTexture;
+    class VulkanSwapChain;
+    class VulkanQueue;
+    class VulkanDevice;
+    class VulkanGraphicsAdapter;
+    class VulkanBackend;
+}

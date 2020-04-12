@@ -1,4 +1,4 @@
-#include <litefx/rendering.hpp>
+#include <litefx/rendering_backends.hpp>
 
 using namespace LiteFX::Rendering;
 
@@ -22,6 +22,11 @@ RenderBackend::RenderBackend(const App& app) noexcept :
 }
 
 RenderBackend::~RenderBackend() noexcept = default;
+
+BackendType RenderBackend::getType() const noexcept
+{
+	return BackendType::Rendering;
+}
 
 const App& RenderBackend::getApp() const noexcept
 {

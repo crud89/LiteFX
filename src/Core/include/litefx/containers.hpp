@@ -138,4 +138,34 @@ namespace LiteFX {
 		THandle handle() const noexcept { return m_handle; }
 	};
 
+	template <typename T>
+	class IBuilder {
+	public:
+		///
+		/// TODO: Use this everywhere and rename this project to goFX!
+		///
+		virtual UniquePtr<T> go() = 0;
+	};
+
+	template <typename T, typename TBuilder>
+	class Initializer {
+	public:
+		using type = T;
+		using builder_type = TBuilder;
+		using initializer_type = Initializer<type, builder_type>;
+
+	private:
+		UniquePtr<type> m_instance;
+		TBuilder& m_builder;
+
+	public:
+		Initializer(TBuilder& builder, UniquePtr<T>&& instance) noexcept : m_builder(std::move(builder)), m_instance(std::move(instance)) { }
+		Initializer(const Initializer&) = delete;
+		Initializer(Initializer&&) = delete;
+		virtual ~Initializer() noexcept = default;
+
+	public:
+		virtual TBuilder& use() { m_builder.use(std::move(m_instance)); return m_builder; }
+	};
+
 }

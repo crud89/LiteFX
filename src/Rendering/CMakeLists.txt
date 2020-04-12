@@ -20,12 +20,17 @@ ENDIF(BUILD_WITH_GLM)
 
 # Collect header & source files.
 SET(RENDERING_HEADERS
+    "include/litefx/rendering_api.hpp"
+    "include/litefx/rendering_pipelines.hpp"
+    "include/litefx/rendering_backends.hpp"
     "include/litefx/rendering.hpp"
 )
 
 SET(RENDERING_SOURCES
     "src/backend.cpp"
     "src/device.cpp"
+    "src/device_builder.cpp"
+    "src/pipeline_builder.cpp"
 )
 
 # Add shared library project.

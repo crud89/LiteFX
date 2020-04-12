@@ -1,100 +1,16 @@
 #pragma once
 
-#include <litefx/app.hpp>
+#include <litefx/rendering_api.hpp>
+#include <litefx/rendering_backends.hpp>
+#include <litefx/rendering_pipelines.hpp>
+
 #include <litefx/math.hpp>
-
-#if !defined (LITEFX_RENDERING_API)
-#  if defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_RENDERING_API __declspec(dllexport)
-#  elif (defined(LiteFX_Rendering_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_RENDERING_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_RENDERING_API __declspec(dllimport)
-#  endif
-#endif
-
-#ifndef LITEFX_RENDERING_API
-#  define LITEFX_RENDERING_API
-#endif
 
 namespace LiteFX::Rendering {
 	using namespace LiteFX;
 	using namespace LiteFX::Math;
 
-	// Forward declarations.
-	class IPipelineLayout;
-	class IShaderModule;
-	class IShaderProgram;
-	class ITexture;
-	class ISwapChain;
-	class ISurface;
-	class ICommandPool;
-	class ICommandQueue;
-	class IGraphicsDevice;
-	class IGraphicsAdapter;
-	class IRenderBackend;
-
-	// Define enumerations.
-	enum class LITEFX_RENDERING_API GraphicsAdapterType {
-		None = 0x00000000,
-		GPU = 0x00000001,
-		CPU = 0x00000002,
-		Other = 0x7FFFFFFF,
-	};
-
-	enum class LITEFX_RENDERING_API QueueType {
-		None = 0x00000000,
-		Graphics = 0x00000001,
-		Compute = 0x00000002,
-		Transfer = 0x00000004,
-		Other = 0x7FFFFFFF
-	};
-
-	enum class LITEFX_RENDERING_API Format {
-		None = 0x00000000,
-		B8G8R8A8_UNORM = 0x00000001,
-		B8G8R8A8_UNORM_SRGB = 0x01000001,
-		Other = 0x7FFFFFFF
-	};
-
-	enum class LITEFX_RENDERING_API ShaderType {
-		Vertex = 0x00000001,
-		TessellationControl = 0x00000002,
-		TessellationEvaluation = 0x00000004,
-		Geometry = 0x00000008,
-		Fragment = 0x00000010,
-		Compute = 0x00000020,
-		Other = 0x7FFFFFFF
-	};
-
-	// Define flags.
-	LITEFX_DEFINE_FLAGS(QueueType);
-	LITEFX_DEFINE_FLAGS(ShaderType);
-	// ...
-
-
 	// Define interfaces.
-	class LITEFX_RENDERING_API IPipelineLayout {
-	public:
-		virtual ~IPipelineLayout() noexcept = default;
-	};
-
-	class LITEFX_RENDERING_API IShaderModule {
-	public:
-		virtual ~IShaderModule() noexcept = default;
-
-	public:
-		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
-		virtual const ShaderType& getType() const noexcept = 0;
-		virtual const String& getFileName() const noexcept = 0;
-		virtual const String& getEntryPoint() const noexcept = 0;
-	};
-
-	class LITEFX_RENDERING_API IShaderProgram {
-	public:
-		virtual ~IShaderProgram() noexcept = default;
-	};
-
 	class LITEFX_RENDERING_API ITexture {
 	public:
 		virtual ~ITexture() noexcept = default;
@@ -162,15 +78,6 @@ namespace LiteFX::Rendering {
 		virtual const ICommandQueue* findQueue(const QueueType& queueType) const = 0;
 	};
 
-	class LITEFX_RENDERING_API IRenderBackend {
-	public:
-		virtual ~IRenderBackend() noexcept = default;
-
-	public:
-		virtual Array<const IGraphicsAdapter*> getAdapters() const = 0;
-		virtual const IGraphicsAdapter* getAdapter(Optional<uint32_t> adapterId = std::nullopt) const = 0;
-	};
-
 	// Base classes.
 	class LITEFX_RENDERING_API GraphicsDevice : public IGraphicsDevice {
 		LITEFX_IMPLEMENTATION(GraphicsDeviceImpl)
@@ -184,19 +91,6 @@ namespace LiteFX::Rendering {
 	public:
 		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
 		virtual const ISurface* getSurface() const noexcept override;
-	};
-
-	class LITEFX_RENDERING_API RenderBackend : public IRenderBackend {
-		LITEFX_IMPLEMENTATION(RenderBackendImpl)
-
-	public:
-		explicit RenderBackend(const App& app) noexcept;
-		RenderBackend(const RenderBackend&) noexcept = delete;
-		RenderBackend(RenderBackend&&) noexcept = delete;
-		virtual ~RenderBackend() noexcept;
-
-	public:
-		const App& getApp() const noexcept;
 	};
 
 }

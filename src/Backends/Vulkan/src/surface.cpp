@@ -35,7 +35,7 @@ VulkanSurface::~VulkanSurface() noexcept
 	::vkDestroySurfaceKHR(m_impl->getInstance(), this->handle(), nullptr);
 }
 
-UniquePtr<ISurface> VulkanSurface::createSurface(const VulkanBackend& backend, std::function<VkSurfaceKHR(const VkInstance&)> predicate)
+UniquePtr<ISurface> VulkanSurface::createSurface(const VulkanBackend& backend, surface_callback predicate)
 {
     auto instance = backend.handle();
 

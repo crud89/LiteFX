@@ -248,7 +248,7 @@ VkImageView VulkanDevice::vkCreateImageView(const VkImage& image, const Format& 
 	return view;
 }
 
-UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const String& fileName, const ShaderType& type) const
+UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint) const
 {
-	return makeUnique<VulkanShaderModule>(this, fileName, type);
+	return makeUnique<VulkanShaderModule>(this, type, fileName, entryPoint);
 }

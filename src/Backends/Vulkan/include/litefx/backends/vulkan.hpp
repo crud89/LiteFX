@@ -4,29 +4,11 @@
 
 #include "vulkan_api.hpp"
 #include "vulkan_platform.hpp"
+#include "vulkan_builders.hpp"
 
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
-
-	// Conversion helpers.
-	/// <summary>
-	/// 
-	/// </summary>
-	Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
-
-	/// <summary>
-	/// 
-	/// </summary>
-	VkFormat LITEFX_VULKAN_API getFormat(const Format& format);
-
-	// Forward declarations.
-	class VulkanTexture;
-	class VulkanSwapChain;
-	class VulkanQueue;
-	class VulkanDevice;
-	class VulkanGraphicsAdapter;
-	class VulkanBackend;
 
 	// Class definitions.
 	
@@ -47,7 +29,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const ShaderType& getType() const noexcept override;
 
 	public:
-		virtual VkPipelineShaderStageCreateInfo getShaderStageDefinition() const noexcept;
+		virtual VkPipelineShaderStageCreateInfo getShaderStageDefinition() const;
 	};
 
 	/// <summary>
@@ -169,7 +151,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual Array<const IGraphicsAdapter*> getAdapters() const override;
-		virtual const IGraphicsAdapter* getAdapter(Optional<uint32_t> adapterId = std::nullopt) const override;
+		virtual const IGraphicsAdapter* getAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
 
 	public:
 		static bool validateExtensions(const Array<String>& extensions) noexcept;

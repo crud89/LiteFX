@@ -20,6 +20,7 @@ FIND_PACKAGE(Vulkan REQUIRED)
 SET(VULKAN_BACKEND_HEADERS
     "include/litefx/backends/vulkan_api.hpp"
     "include/litefx/backends/vulkan_platform.hpp"
+    "include/litefx/backends/vulkan_builders.hpp"
     "include/litefx/backends/vulkan.hpp"
 )
 
@@ -28,6 +29,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/backend.cpp"
     "src/adaper.cpp"
     "src/device.cpp"
+    "src/device_builder.cpp"
     "src/queue.cpp"
     "src/surface.cpp"
     "src/swapchain.cpp"

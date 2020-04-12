@@ -71,7 +71,6 @@ public:
         ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, nullptr);
 
         Array<VkPhysicalDevice> handles(adapters);
-        m_adapters = Array<UniquePtr<IGraphicsAdapter>>(adapters);
 
         ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, handles.data());
         std::generate(m_adapters.begin(), m_adapters.end(), [this, &handles, i = 0]() mutable {
@@ -98,7 +97,7 @@ public:
         return results;
     }
 
-    const IGraphicsAdapter* getAdapter(Optional<uint32_t> adapterId) const noexcept
+    const IGraphicsAdapter* getAdapter(const Optional<uint32_t> adapterId) const noexcept
     {
         auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<IGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
 
@@ -134,7 +133,7 @@ Array<const IGraphicsAdapter*> VulkanBackend::getAdapters() const
     return m_impl->getAdapters();
 }
 
-const IGraphicsAdapter* VulkanBackend::getAdapter(Optional<uint32_t> adapterId) const
+const IGraphicsAdapter* VulkanBackend::getAdapter(const Optional<uint32_t>& adapterId) const
 {
     return m_impl->getAdapter(adapterId);
 }
