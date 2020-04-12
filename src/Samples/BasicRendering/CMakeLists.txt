@@ -32,10 +32,16 @@ SET(SAMPLE_BASIC_RENDERING_SOURCES
     "src/sample.cpp"
 )
 
+SET(SAMPLE_BASIC_RENDERING_SHADERS
+    "shaders/default.vert"
+    "shaders/default.frag"
+)
+
 # Add shared library project.
 ADD_EXECUTABLE(LiteFX.Samples.BasicRendering 
     ${SAMPLE_BASIC_RENDERING_HEADERS}
     ${SAMPLE_BASIC_RENDERING_SOURCES}
+    ${SAMPLE_BASIC_RENDERING_SHADERS}
 )
 
 # Create source groups for better code organization.
@@ -53,6 +59,9 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.BasicRendering PRIVATE "src/")
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Samples.BasicRendering PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
+
+# Add shader SAMPLE_BASIC_RENDERING_SOURCES.
+TARGET_SHADER_SOURCES(LiteFX.Samples.BasicRendering LANGUAGE HLSL SOURCES ${SAMPLE_BASIC_RENDERING_SHADERS})
 
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)

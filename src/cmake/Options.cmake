@@ -15,9 +15,22 @@ OPTION(BUILD_SAMPLE_BASIC_RENDERING "Builds the basic rendering sample." ON)
 OPTION(BUILD_WITH_GLM "Enables glm converters for math types." ON)
 OPTION(BUILD_WITH_DIRECTX_MATH "Enables DirectXMath converters for math types." ON)
 
-OPTION(BUILD_SHADERS_GLSLC "Compiles GLSL shaders to SPIR-V using `glslc` when set to ON." ON)
-OPTION(BUILD_SHADERS_DXC_DXIL "Compiles HLSL shaders to DXIL using `dxc` when set to ON." ON)
-OPTION(BUILD_SHADERS_DXC_SPIRV "Compiles HLSL shaders to SPIR-V using `dxc` when set to ON." ON)
+# GLSLC supports glsl but does not compile into DXIL.
+OPTION(BUILD_USE_GLSLC "Uses `glslc` to build shaders. Mutual exclusive with the `BUILD_USE_DXC` option." OFF)
+
+# DXC only supports hlsl but does compile into DXIL and SPIR-V.
+OPTION(BUILD_USE_DXC "Uses `glslc` to build shaders. Mutual exclusive with the `BUILD_USE_GLSLC` option." ON)
+OPTION(BUILD_DXC_DXIL  "DXC is invoked to compile HLSL shaders into DXIL when this option is set to ON." ON)
+OPTION(BUILD_DXC_SPIRV "DXC is invoked to compile HLSL shaders into SPIR-V when this option is set to ON." ON)
+
+IF(BUILD_USE_GLSLC AND BUILD_USE_DXC)
+	MESSAGE(FATAL_ERROR "The options `BUILD_USE_GLSLC` and `BUILD_USE_DXC` can not be both enabled at the same time.")
+ENDIF(BUILD_USE_GLSLC AND BUILD_USE_DXC)
+
+SET(BUILD_GLSLC_DIR $ENV{VULKAN_SDK}/bin CACHE STRING "A directory that contains the `glslc.exe` file.")
+SET(BUILD_GLSLC_COMPILER ${BUILD_GLSLC_DIR}/glslc)
+SET(BUILD_DXC_DIR $ENV{DXC_PATH} CACHE STRING "A directory that contains the `dxc.exe` file.")
+SET(BUILD_DXC_COMPILER ${BUILD_DXC_DIR}/dxc)
 
 OPTION(BUILD_PRECOMPILED_HEADERS "Use pre-compiled headers during build." OFF)
 
