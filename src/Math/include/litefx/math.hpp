@@ -16,11 +16,11 @@
 #  define LITEFX_MATH_API
 #endif
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 #include <glm/glm.hpp>
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 #include <DirectXMath.h>
 #endif
 
@@ -61,14 +61,14 @@ namespace LiteFX::Math {
 		inline Float& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Float>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector1f(const glm::f32vec1& v) noexcept;
 		Vector1f(glm::f32vec1&& v) noexcept;
 		inline operator glm::f32vec1() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector1f(const DirectX::XMVECTOR& v) noexcept;
 		Vector1f(DirectX::XMVECTOR&& v) noexcept;
@@ -97,14 +97,14 @@ namespace LiteFX::Math {
 		inline UInt32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<UInt32>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector1u(const glm::u32vec1& v) noexcept;
 		Vector1u(glm::u32vec1&& v) noexcept;
 		inline operator glm::u32vec1() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector1u(const DirectX::XMVECTOR& v) noexcept;
 		Vector1u(DirectX::XMVECTOR&& v) noexcept;
@@ -133,14 +133,14 @@ namespace LiteFX::Math {
 		inline Float& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Float>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector2f(const glm::f32vec2& v) noexcept;
 		Vector2f(glm::f32vec2&& v) noexcept;
 		inline operator glm::f32vec2() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector2f(const DirectX::XMVECTOR& v) noexcept;
 		Vector2f(DirectX::XMVECTOR&& v) noexcept;
@@ -172,14 +172,14 @@ namespace LiteFX::Math {
 		inline UInt32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<UInt32>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector2u(const glm::u32vec2& v) noexcept;
 		Vector2u(glm::u32vec2&& v) noexcept;
 		inline operator glm::u32vec2() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector2u(const DirectX::XMVECTOR& v) noexcept;
 		Vector2u(DirectX::XMVECTOR&& v) noexcept;
@@ -211,14 +211,14 @@ namespace LiteFX::Math {
 		inline Int32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Int32>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector2i(const glm::i32vec2& v) noexcept;
 		Vector2i(glm::i32vec2&& v) noexcept;
 		inline operator glm::i32vec2() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector2i(const DirectX::XMVECTOR& v) noexcept;
 		Vector2i(DirectX::XMVECTOR&& v) noexcept;
@@ -250,14 +250,14 @@ namespace LiteFX::Math {
 		inline Float& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Float>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector3f(const glm::f32vec3& v) noexcept;
 		Vector3f(glm::f32vec3&& v) noexcept;
 		inline operator glm::f32vec3() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector3f(const DirectX::XMVECTOR& v) noexcept;
 		Vector3f(DirectX::XMVECTOR&& v) noexcept;
@@ -289,14 +289,14 @@ namespace LiteFX::Math {
 		inline UInt32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<UInt32>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector3u(const glm::u32vec3& v) noexcept;
 		Vector3u(glm::u32vec3&& v) noexcept;
 		inline operator glm::u32vec3() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector3u(const DirectX::XMVECTOR& v) noexcept;
 		Vector3u(DirectX::XMVECTOR&& v) noexcept;
@@ -328,14 +328,14 @@ namespace LiteFX::Math {
 		inline Int32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Int32>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector3i(const glm::i32vec3& v) noexcept;
 		Vector3i(glm::i32vec3&& v) noexcept;
 		inline operator glm::i32vec3() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector3i(const DirectX::XMVECTOR& v) noexcept;
 		Vector3i(DirectX::XMVECTOR&& v) noexcept;
@@ -367,14 +367,14 @@ namespace LiteFX::Math {
 		inline Float& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Float>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector4f(const glm::f32vec4& v) noexcept;
 		Vector4f(glm::f32vec4&& v) noexcept;
 		inline operator glm::f32vec4() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector4f(const DirectX::XMVECTOR& v) noexcept;
 		Vector4f(DirectX::XMVECTOR&& v) noexcept;
@@ -406,14 +406,14 @@ namespace LiteFX::Math {
 		inline UInt32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<UInt32>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector4u(const glm::u32vec4& v) noexcept;
 		Vector4u(glm::u32vec4&& v) noexcept;
 		inline operator glm::u32vec4() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector4u(const DirectX::XMVECTOR& v) noexcept;
 		Vector4u(DirectX::XMVECTOR&& v) noexcept;
@@ -445,14 +445,14 @@ namespace LiteFX::Math {
 		inline Int32& operator[](const unsigned int& i) noexcept;
 		inline operator Array<Int32>() noexcept;
 
-#if defined(BUILD_ENABLE_GLM)
+#if defined(BUILD_WITH_GLM)
 	public:
 		Vector4i(const glm::i32vec4& v) noexcept;
 		Vector4i(glm::i32vec4&& v) noexcept;
 		inline operator glm::i32vec4() noexcept;
 #endif
 
-#if defined(BUILD_ENABLE_DIRECTX_MATH)
+#if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector4i(const DirectX::XMVECTOR& v) noexcept;
 		Vector4i(DirectX::XMVECTOR&& v) noexcept;
