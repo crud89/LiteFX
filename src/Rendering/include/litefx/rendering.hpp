@@ -22,6 +22,9 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	// Forward declarations.
+	class IPipelineLayout;
+	class IShaderModule;
+	class IShaderProgram;
 	class ITexture;
 	class ISwapChain;
 	class ISurface;
@@ -50,16 +53,48 @@ namespace LiteFX::Rendering {
 	enum class LITEFX_RENDERING_API Format {
 		None = 0x00000000,
 		B8G8R8A8_UNORM = 0x00000001,
-		B8G8R8A8_UNORM_SRGB = 0x00000011,
-		Other = 0x7FFFFFFF,
+		B8G8R8A8_UNORM_SRGB = 0x01000001,
+		Other = 0x7FFFFFFF
+	};
+
+	enum class LITEFX_RENDERING_API ShaderType {
+		Vertex = 0x00000001,
+		TessellationControl = 0x00000002,
+		TessellationEvaluation = 0x00000004,
+		Geometry = 0x00000008,
+		Fragment = 0x00000010,
+		Compute = 0x00000020,
+		Other = 0x7FFFFFFF
 	};
 
 	// Define flags.
 	LITEFX_DEFINE_FLAGS(QueueType);
+	LITEFX_DEFINE_FLAGS(ShaderType);
 	// ...
 
 
 	// Define interfaces.
+	class LITEFX_RENDERING_API IPipelineLayout {
+	public:
+		virtual ~IPipelineLayout() noexcept = default;
+	};
+
+	class LITEFX_RENDERING_API IShaderModule {
+	public:
+		virtual ~IShaderModule() noexcept = default;
+
+	public:
+		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
+		virtual const ShaderType& getType() const noexcept = 0;
+		virtual const String& getFileName() const noexcept = 0;
+		virtual const String& getEntryPoint() const noexcept = 0;
+	};
+
+	class LITEFX_RENDERING_API IShaderProgram {
+	public:
+		virtual ~IShaderProgram() noexcept = default;
+	};
+
 	class LITEFX_RENDERING_API ITexture {
 	public:
 		virtual ~ITexture() noexcept = default;
@@ -107,6 +142,7 @@ namespace LiteFX::Rendering {
 
 	public:
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const = 0;
+		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const = 0;
 	};
 
 	class LITEFX_RENDERING_API IGraphicsAdapter {

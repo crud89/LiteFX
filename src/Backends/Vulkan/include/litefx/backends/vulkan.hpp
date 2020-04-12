@@ -29,6 +29,27 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanBackend;
 
 	// Class definitions.
+	
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanShaderModule : public IShaderModule, public IResource<VkShaderModule> {
+		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl)
+
+	public:
+		VulkanShaderModule(const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint = "main");
+		virtual ~VulkanShaderModule() noexcept;
+
+	public:
+		virtual const IGraphicsDevice* getDevice() const noexcept override;
+		virtual const String& getFileName() const noexcept override;
+		virtual const String& getEntryPoint() const noexcept override;
+		virtual const ShaderType& getType() const noexcept override;
+
+	public:
+		virtual VkPipelineShaderStageCreateInfo getShaderStageDefinition() const noexcept;
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>
@@ -99,6 +120,7 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const override;
 		virtual UniquePtr<ITexture> makeTexture2d(VkImage image, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const;
+		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const override;
 
 	public:
 		virtual VkImageView vkCreateImageView(const VkImage& image, const Format& format) const;

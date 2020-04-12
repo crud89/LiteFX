@@ -32,6 +32,9 @@ SET(VULKAN_BACKEND_SOURCES
     "src/surface.cpp"
     "src/swapchain.cpp"
     "src/texture.cpp"
+    "src/shader_module.cpp"
+    "src/shader_program.cpp"
+    "src/pipeline_layout.cpp"
 )
 
 # Add shared library project.
