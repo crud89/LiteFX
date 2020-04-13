@@ -65,8 +65,10 @@ namespace LiteFX {
 		virtual void run() = 0;
 
 	public:
-		template <typename TApp>
-		static AppBuilder build() { return AppBuilder::make<TApp, AppBuilder>(); }
+		template <typename TApp, typename ...TArgs>
+		static AppBuilder build(TArgs&&... _args) { 
+			return AppBuilder::make<TApp, AppBuilder>(std::forward<TArgs>(_args)...); 
+		}
 	};
 
 	class AppBuilder : public Builder<App> {

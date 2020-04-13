@@ -6,14 +6,6 @@
 #include <CLI/CLI.hpp>
 #include <iostream>
 
-struct GlfwWindowDeleter {
-	void operator()(GLFWwindow* ptr) noexcept {
-		::glfwDestroyWindow(ptr);
-	}
-};
-
-typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
-
 int main(const int argc, const char** argv)
 {
 	// Parse the command line parameters.
@@ -67,29 +59,23 @@ int main(const int argc, const char** argv)
 	// Create the app.
 	try 
 	{
-		
-		auto sample = App::build<SampleApp>()
+		const auto windowPtr = window.get();
+
+		auto sample = App::build<SampleApp>(std::move(window))
 			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
-				.withSurface([&](const VkInstance& instance) {
-						VkSurfaceKHR surface;
+				.withSurface([&windowPtr](const VkInstance& instance) {
+					VkSurfaceKHR surface;
 					
-						if (::glfwCreateWindowSurface(instance, window.get(), nullptr, &surface) != VK_SUCCESS)
-							throw std::runtime_error("Unable to create GLFW window surface.");
+					if (::glfwCreateWindowSurface(instance, windowPtr, nullptr, &surface) != VK_SUCCESS)
+						throw std::runtime_error("Unable to create GLFW window surface.");
 					
-						return surface;
-					})
+					return surface;
+				})
 				.withAdapterOrDefault(adapterId)
 				.go()
 			.go();
 		
 		sample->run();
-
-		// TODO:
-		// Build a device instance.
-		//m_device = m_renderBackend->buildDevice()
-		//	.forSurface(m_surface.get())
-		//	.useAdapterOrDefault(adapterId)
-		//	.go();
 	}
 	catch (const LiteFX::Exception& ex)
 	{
