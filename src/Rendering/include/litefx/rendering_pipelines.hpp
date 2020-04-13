@@ -31,28 +31,28 @@ namespace LiteFX::Rendering {
         virtual ~IShaderProgram() noexcept = default;
     };
 
-    class LITEFX_RENDERING_API RenderPipelineBuilder : public IBuilder<IRenderPipeline> {
-        LITEFX_IMPLEMENTATION(RenderPipelineBuilderImpl)
+    //class LITEFX_RENDERING_API RenderPipelineBuilder : public Builder<IRenderPipeline> {
+    //    LITEFX_IMPLEMENTATION(RenderPipelineBuilderImpl)
 
-    public:
-        explicit RenderPipelineBuilder(const IGraphicsDevice* device, const String& name);
-        RenderPipelineBuilder(const RenderPipelineBuilder&&) = delete;
-        RenderPipelineBuilder(RenderPipelineBuilder&) = delete;
-        virtual ~RenderPipelineBuilder() noexcept;
+    //public:
+    //    explicit RenderPipelineBuilder(const IGraphicsDevice* device, const String& name);
+    //    RenderPipelineBuilder(const RenderPipelineBuilder&&) = delete;
+    //    RenderPipelineBuilder(RenderPipelineBuilder&) = delete;
+    //    virtual ~RenderPipelineBuilder() noexcept;
 
-    public:
-        virtual const IGraphicsDevice* getDevice() const noexcept;
-        virtual const String& getName() const noexcept;
-        virtual Array<UniquePtr<IShaderModule>> shaderModules() noexcept;
+    //public:
+    //    virtual const IGraphicsDevice* getDevice() const noexcept;
+    //    virtual const String& getName() const noexcept;
+    //    virtual Array<UniquePtr<IShaderModule>> shaderModules() noexcept;
 
-    public:
-        virtual RenderPipelineBuilder& addShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main");
-        virtual RenderPipelineBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main");
-        virtual RenderPipelineBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main");
-        virtual RenderPipelineBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main");
-        virtual RenderPipelineBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main");
-        virtual RenderPipelineBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main");
-        virtual RenderPipelineBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main");
-    };
+    //public:
+    //    virtual RenderPipelineBuilder& addShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main");
+    //    virtual RenderPipelineBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main");
+    //    virtual RenderPipelineBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main");
+    //    virtual RenderPipelineBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main");
+    //    virtual RenderPipelineBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main");
+    //    virtual RenderPipelineBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main");
+    //    virtual RenderPipelineBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main");
+    //};
 
 }

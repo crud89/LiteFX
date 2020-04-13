@@ -20,14 +20,10 @@ using namespace LiteFX::Rendering::Backends;
 class SampleApp : public LiteFX::App {
 public:
 	static String name() noexcept { return "LiteFX Sample: Basic Rendering"; }
-	String getName() const noexcept override { return this->name(); }
+	String getName() const noexcept override { return name(); }
 
 	static AppVersion version() noexcept { return AppVersion(1, 0, 0, 0); }
-	AppVersion getVersion() const noexcept override { return this->version(); }
-
-public:
-	SampleApp(const Platform& platform) noexcept : App(platform) { }
-	static AppBuilder<SampleApp> build() { return App::build<SampleApp>(); }
+	AppVersion getVersion() const noexcept override { return version(); }
 
 public:
 	virtual void run() override;

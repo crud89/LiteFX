@@ -5,17 +5,11 @@ using namespace LiteFX;
 class App::AppImpl {
 private:
 	Dictionary<BackendType, UniquePtr<IBackend>> m_backends;
-	Platform m_platform;
 
 public:
-	AppImpl(const Platform& platform) noexcept : m_platform(platform) { }
+	AppImpl() = default;
 
 public:
-	const Platform& getPlatform() const noexcept
-	{
-		return m_platform;
-	}
-
 	const IBackend* findBackend(const BackendType& type)
 	{
 		return m_backends.find(type) == m_backends.end() ? nullptr : m_backends[type].get();
@@ -29,16 +23,17 @@ public:
 	}
 };
 
-App::App(const Platform& platform) noexcept :
-	m_impl(makePimpl<AppImpl>(platform))
-{
-}
+App::App() : m_impl(makePimpl<AppImpl>()) { }
 
 App::~App() noexcept = default;
 
-const Platform& App::getPlatform() const noexcept
+Platform App::getPlatform() const noexcept
 {
-	return m_impl->getPlatform();
+#if defined(_WIN32) || defined(WINCE)
+	return Platform::Win32;
+#else
+	return Platform::Other;
+#endif
 }
 
 const IBackend* App::findBackend(const BackendType& type) const

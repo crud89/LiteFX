@@ -43,7 +43,7 @@ UniquePtr<ISurface> VulkanSurface::createSurface(const VulkanBackend& backend, s
         throw std::runtime_error("The backend is not initialized.");
 
     auto surface = predicate(instance);
-    return UniquePtr<ISurface>(new VulkanSurface(surface, instance));
+    return std::move(UniquePtr<ISurface>(new VulkanSurface(surface, instance)));
 }
 
 // ------------------------------------------------------------------------------------------------

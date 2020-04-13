@@ -29,7 +29,6 @@ SET(RENDERING_HEADERS
 SET(RENDERING_SOURCES
     "src/backend.cpp"
     "src/device.cpp"
-    "src/device_builder.cpp"
     "src/pipeline_builder.cpp"
 )
 

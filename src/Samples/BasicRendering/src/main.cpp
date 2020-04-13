@@ -67,17 +67,19 @@ int main(const int argc, const char** argv)
 	// Create the app.
 	try 
 	{
-		auto sample  = SampleApp::build()
-			.backend<VulkanBackend>(requiredExtensions, enabledLayers)
-				//.createSurface([&](const VkInstance& instance) {
-				//	VkSurfaceKHR surface;
-				//
-				//	if (::glfwCreateWindowSurface(instance, m_window.get(), nullptr, &surface) != VK_SUCCESS)
-				//		throw std::runtime_error("Unable to create GLFW window surface.");
-				//
-				//	return surface;
-				//})
-				.use()
+		
+		auto sample = App::build<SampleApp>()
+			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
+				.withSurface([&](const VkInstance& instance) {
+						VkSurfaceKHR surface;
+					
+						if (::glfwCreateWindowSurface(instance, window.get(), nullptr, &surface) != VK_SUCCESS)
+							throw std::runtime_error("Unable to create GLFW window surface.");
+					
+						return surface;
+					})
+				.withAdapterOrDefault(adapterId)
+				.go()
 			.go();
 		
 		sample->run();

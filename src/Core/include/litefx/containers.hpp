@@ -139,33 +139,83 @@ namespace LiteFX {
 	};
 
 	template <typename T>
-	class IBuilder {
+	class Builder {
+	private:
+		UniquePtr<T> m_instance;
+
+	protected:
+		T* instance() const noexcept { return m_instance.get(); }
+
 	public:
-		///
-		/// TODO: Use this everywhere and rename this project to goFX!
-		///
-		virtual UniquePtr<T> go() = 0;
+		Builder(UniquePtr<T>&& instance) noexcept : m_instance(std::move(instance)) { }
+
+	public:
+		Builder(const Builder&) = delete;
+		Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
+		virtual ~Builder() noexcept = default;
+
+	public:
+		template <typename TBuilder = Builder<T>, typename ...TArgs>
+		static TBuilder make(TArgs&&... _args) {
+			return TBuilder(makeUnique<T>(std::forward<TArgs>(_args)...));
+		}
+
+		template <typename TDerived, typename TBuilder = Builder<TDerived>, typename ...TArgs>
+		static TBuilder make(TArgs&&... _args) {
+			return TBuilder(makeUnique<TDerived>(std::forward<TArgs>(_args)...));
+		}
+
+	public:
+		virtual UniquePtr<T> go() {
+			return std::move(m_instance);
+		}
+
+		template <typename TDerived>
+		UniquePtr<TDerived> goFor() {
+			return UniquePtr<TDerived>(dynamic_cast<TDerived*>(this->go().release()));
+		}
 	};
 
-	template <typename T, typename TBuilder>
+	template <typename T, typename TParent>
 	class Initializer {
-	public:
-		using type = T;
-		using builder_type = TBuilder;
-		using initializer_type = Initializer<type, builder_type>;
-
 	private:
-		UniquePtr<type> m_instance;
-		TBuilder& m_builder;
+		UniquePtr<T> m_instance;
+		TParent& m_parent;
+
+	protected:
+		const T* instance() const noexcept { return m_instance.get(); }
+		const TParent& parent() const noexcept { return m_parent; }
 
 	public:
-		Initializer(TBuilder& builder, UniquePtr<T>&& instance) noexcept : m_builder(std::move(builder)), m_instance(std::move(instance)) { }
+		Initializer(TParent& parent, UniquePtr<T>&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
+	
+	public:
 		Initializer(const Initializer&) = delete;
-		Initializer(Initializer&&) = delete;
+		Initializer(Initializer&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
 		virtual ~Initializer() noexcept = default;
 
 	public:
-		virtual TBuilder& use() { m_builder.use(std::move(m_instance)); return m_builder; }
+		template <typename TInitializer = Initializer<T, TParent>, typename ...TArgs>
+		static TInitializer make(TParent& parent, TArgs&&... _args) {
+			return TInitializer(parent, makeUnique<T>(std::forward<TArgs>(_args)...));
+		}
+
+		template <typename TDerived, typename TInitializer = Initializer<TDerived, TParent>, typename ...TArgs>
+		static TInitializer makeFor(TParent& parent, TArgs&&... _args) {
+			return TInitializer(parent, makeUnique<TDerived>(std::forward<TArgs>(_args)...));
+		}
+
+	public:
+		virtual TParent& go() {
+			m_parent.use(std::move(m_instance)); 
+			return m_parent;
+		}
+
+		template <typename TDerived>
+		TParent goFor() {
+			m_parent.use(UniquePtr<TDerived>(dynamic_cast<TDerived*>(this->go().release())));
+			return m_parent;
+		}
 	};
 
 }
