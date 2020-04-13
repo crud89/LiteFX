@@ -172,3 +172,8 @@ const ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType
 {
     return m_impl->findQueue(queueType);
 }
+
+const ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType, const VulkanSurface* forSurface) const
+{
+    return m_impl->findQueue(*this, queueType, forSurface);
+}

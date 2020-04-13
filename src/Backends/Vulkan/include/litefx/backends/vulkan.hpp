@@ -135,6 +135,7 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const override;
 		virtual const ICommandQueue* findQueue(const QueueType& queueType) const override;
+		virtual const ICommandQueue* findQueue(const QueueType& queueType, const VulkanSurface* forSurface) const;
 	};
 
 	/// <summary>

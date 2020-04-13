@@ -21,6 +21,7 @@ namespace LiteFX::Rendering::Backends {
 		VulkanBackendInitializer& withSurface(VulkanSurface::surface_callback callback);
 		VulkanBackendInitializer& withAdapter(const UInt32& adapterId);
 		VulkanBackendInitializer& withAdapterOrDefault(const Optional<UInt32>& adapterId = std::nullopt);
+		VulkanBackendInitializer& useDeviceFormat(const Format& format);
 	};
 
 }

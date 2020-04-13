@@ -72,6 +72,7 @@ int main(const int argc, const char** argv)
 					return surface;
 				})
 				.withAdapterOrDefault(adapterId)
+				.useDeviceFormat(Format::B8G8R8A8_UNORM_SRGB)
 				.go()
 			.go();
 		

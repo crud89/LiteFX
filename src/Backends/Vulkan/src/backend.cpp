@@ -71,11 +71,14 @@ public:
         ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, nullptr);
 
         Array<VkPhysicalDevice> handles(adapters);
+        Array<UniquePtr<IGraphicsAdapter>> instances(adapters);
 
         ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, handles.data());
-        std::generate(m_adapters.begin(), m_adapters.end(), [this, &handles, i = 0]() mutable {
+        std::generate(instances.begin(), instances.end(), [this, &handles, i = 0]() mutable {
             return makeUnique<VulkanGraphicsAdapter>(handles[i++]);
         });
+
+        m_adapters = std::move(instances);
     }
 
 public:
