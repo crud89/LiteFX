@@ -6,7 +6,6 @@ class VulkanBackendInitializer::VulkanBackendInitializerImpl {
 private:
     UniquePtr<ISurface> m_surface = nullptr;
     const IGraphicsAdapter* m_adapter = nullptr;
-    Format m_format = Format::B8G8R8A8_UNORM_SRGB;
 
 public:
     VulkanBackendInitializerImpl() = default;
@@ -16,13 +15,20 @@ public:
     void setSurface(UniquePtr<ISurface>&& surface) noexcept { m_surface = std::move(surface); }
     const IGraphicsAdapter* getAdapter() const noexcept { return m_adapter; }
     void setAdapter(const IGraphicsAdapter* adapter) noexcept { m_adapter = adapter; }
-    const Format& getFormat() const noexcept { return m_format; }
-    void setFormat(const Format& format) noexcept { m_format = format; }
 };
 
 VulkanBackendInitializer::VulkanBackendInitializer(builder_type& parent, UniquePtr<backend_type>&& instance) noexcept :
     BackendInitializer(parent, std::move(instance)), m_impl(makePimpl<VulkanBackendInitializerImpl>())
 {
+}
+
+VulkanBackendInitializer::VulkanBackendInitializer(builder_type& parent, UniquePtr<backend_type>&& instance, const Optional<UInt32>& adapterId, UniquePtr<ISurface>&& surface) :
+    BackendInitializer(parent, std::move(instance)), m_impl(makePimpl<VulkanBackendInitializerImpl>())
+{
+    this->withAdapterOrDefault(adapterId);
+
+    if (surface != nullptr)
+        this->withSurface(std::move(surface));
 }
 
 VulkanBackendInitializer::~VulkanBackendInitializer() noexcept = default;
@@ -80,11 +86,5 @@ VulkanBackendInitializer& VulkanBackendInitializer::withAdapterOrDefault(const O
         adapter = this->instance()->getAdapter(std::nullopt);
 
     m_impl->setAdapter(adapter);
-    return *this;
-}
-
-VulkanBackendInitializer& VulkanBackendInitializer::useDeviceFormat(const Format& format)
-{
-    m_impl->setFormat(format);
     return *this;
 }

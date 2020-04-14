@@ -11,6 +11,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		VulkanBackendInitializer(builder_type& parent, UniquePtr<backend_type>&& instance) noexcept;
+		VulkanBackendInitializer(builder_type& parent, UniquePtr<backend_type>&& instance, const Optional<UInt32>& adapterId, UniquePtr<ISurface>&& surface = nullptr);
 		virtual ~VulkanBackendInitializer() noexcept;
 
 	public:
@@ -21,7 +22,6 @@ namespace LiteFX::Rendering::Backends {
 		VulkanBackendInitializer& withSurface(VulkanSurface::surface_callback callback);
 		VulkanBackendInitializer& withAdapter(const UInt32& adapterId);
 		VulkanBackendInitializer& withAdapterOrDefault(const Optional<UInt32>& adapterId = std::nullopt);
-		VulkanBackendInitializer& useDeviceFormat(const Format& format);
 	};
 
 }
