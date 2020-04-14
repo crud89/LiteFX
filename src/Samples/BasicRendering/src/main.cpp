@@ -60,8 +60,9 @@ int main(const int argc, const char** argv)
 	// Create the app.
 	try 
 	{
-		UniquePtr<SampleApp> app = App::build<SampleApp>(std::move(window))
+		App::build<SampleApp>(std::move(window))
 			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
+				.withAdapterOrDefault(adapterId)
 				.withSurface([&windowPtr](const VkInstance& instance) {
 					VkSurfaceKHR surface;
 					
@@ -69,11 +70,9 @@ int main(const int argc, const char** argv)
 						throw std::runtime_error("Unable to create GLFW window surface.");
 					
 					return surface;
-				})
-				.withAdapterOrDefault(adapterId)
-				.useDeviceFormat(Format::B8G8R8A8_UNORM_SRGB)
-				.go()
-			.goFor<SampleApp>();
+				}).go()
+			//.goFor<SampleApp>();
+			.go();
 	}
 	catch (const LiteFX::Exception& ex)
 	{

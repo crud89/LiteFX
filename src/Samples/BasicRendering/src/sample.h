@@ -40,5 +40,8 @@ public:
 	SampleApp(GlfwWindowPtr&& window) : m_window(std::move(window)) { }
 
 public:
+	virtual const IRenderBackend* getRenderBackend() const noexcept {
+		return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
+	}
 	virtual void run() override;
 };

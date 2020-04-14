@@ -148,8 +148,6 @@ namespace LiteFX {
 
 	public:
 		Builder(UniquePtr<T>&& instance) noexcept : m_instance(std::move(instance)) { }
-
-	public:
 		Builder(const Builder&) = delete;
 		Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
 		virtual ~Builder() noexcept = default;
@@ -188,8 +186,6 @@ namespace LiteFX {
 
 	public:
 		Initializer(TParent& parent, UniquePtr<T>&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
-	
-	public:
 		Initializer(const Initializer&) = delete;
 		Initializer(Initializer&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
 		virtual ~Initializer() noexcept = default;
