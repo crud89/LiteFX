@@ -30,6 +30,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/backend_initializer.cpp"
     "src/adaper.cpp"
     "src/device.cpp"
+    "src/device_builder.cpp"
     "src/queue.cpp"
     "src/surface.cpp"
     "src/swapchain.cpp"
