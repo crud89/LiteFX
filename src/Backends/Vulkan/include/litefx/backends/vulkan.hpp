@@ -90,6 +90,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		using builder = VulkanDeviceBuilder;
+		friend class VulkanDeviceBuilder;
 
 	public:
 		VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Array<String>& extensions = { });
@@ -112,9 +113,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual VkImageView vkCreateImageView(const VkImage& image, const Format& format) const;
 
 	public:
-		virtual void create(const Format& format, ICommandQueue* queue);
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
 		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
+
+	protected:
+		virtual void create(const Format& format, ICommandQueue* queue);
 	};
 
 	/// <summary>
