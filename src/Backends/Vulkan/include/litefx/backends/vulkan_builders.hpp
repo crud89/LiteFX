@@ -6,22 +6,22 @@
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Rendering;
 
-	class LITEFX_VULKAN_API VulkanBackendInitializer : public BackendInitializer<VulkanBackend> {
-		LITEFX_IMPLEMENTATION(VulkanBackendInitializerImpl)
+	class LITEFX_VULKAN_API VulkanBackendBuilder : public BackendBuilder<VulkanBackend> {
+		LITEFX_IMPLEMENTATION(VulkanBackendBuilderImpl)
 
 	public:
-		VulkanBackendInitializer(builder_type& parent, UniquePtr<backend_type>&& instance) noexcept;
-		VulkanBackendInitializer(builder_type& parent, UniquePtr<backend_type>&& instance, const Optional<UInt32>& adapterId, UniquePtr<ISurface>&& surface = nullptr);
-		virtual ~VulkanBackendInitializer() noexcept;
+		VulkanBackendBuilder(builder_type& parent, UniquePtr<backend_type>&& instance) noexcept;
+		VulkanBackendBuilder(builder_type& parent, UniquePtr<backend_type>&& instance, const Optional<UInt32>& adapterId, UniquePtr<ISurface>&& surface = nullptr);
+		virtual ~VulkanBackendBuilder() noexcept;
 
 	public:
 		virtual AppBuilder& go() override;
 
 	public:
-		VulkanBackendInitializer& withSurface(UniquePtr<ISurface>&& surface);
-		VulkanBackendInitializer& withSurface(VulkanSurface::surface_callback callback);
-		VulkanBackendInitializer& withAdapter(const UInt32& adapterId);
-		VulkanBackendInitializer& withAdapterOrDefault(const Optional<UInt32>& adapterId = std::nullopt);
+		VulkanBackendBuilder& withSurface(UniquePtr<ISurface>&& surface);
+		VulkanBackendBuilder& withSurface(VulkanSurface::surface_callback callback);
+		VulkanBackendBuilder& withAdapter(const UInt32& adapterId);
+		VulkanBackendBuilder& withAdapterOrDefault(const Optional<UInt32>& adapterId = std::nullopt);
 	};
 
 }

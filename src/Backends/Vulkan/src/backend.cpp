@@ -92,7 +92,7 @@ public:
         return m_layers;
     }
 
-    Array<const IGraphicsAdapter*> getAdapters() const noexcept
+    Array<const IGraphicsAdapter*> listAdapters() const noexcept
     {
         Array<const IGraphicsAdapter*> results(m_adapters.size());
         std::generate(results.begin(), results.end(), [&, i = 0]() mutable { return m_adapters[i++].get(); });
@@ -100,7 +100,7 @@ public:
         return results;
     }
 
-    const IGraphicsAdapter* getAdapter(const Optional<uint32_t> adapterId) const noexcept
+    const IGraphicsAdapter* findAdapter(const Optional<uint32_t> adapterId) const noexcept
     {
         auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<IGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
 
@@ -131,14 +131,14 @@ VulkanBackend::~VulkanBackend() noexcept
     ::vkDestroyInstance(this->handle(), nullptr);
 }
 
-Array<const IGraphicsAdapter*> VulkanBackend::getAdapters() const
+Array<const IGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
-    return m_impl->getAdapters();
+    return m_impl->listAdapters();
 }
 
-const IGraphicsAdapter* VulkanBackend::getAdapter(const Optional<uint32_t>& adapterId) const
+const IGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& adapterId) const
 {
-    return m_impl->getAdapter(adapterId);
+    return m_impl->findAdapter(adapterId);
 }
 
 // ------------------------------------------------------------------------------------------------

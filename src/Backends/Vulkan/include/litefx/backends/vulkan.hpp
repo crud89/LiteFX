@@ -145,7 +145,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
 	public:
-		using initializer = VulkanBackendInitializer;
+		using initializer = VulkanBackendBuilder;
 
 	public:
 		explicit VulkanBackend(const App& app, const Array<String>& extensions = { }, const Array<String>& validationLayers = { });
@@ -154,8 +154,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanBackend();
 
 	public:
-		virtual Array<const IGraphicsAdapter*> getAdapters() const override;
-		virtual const IGraphicsAdapter* getAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
+		virtual Array<const IGraphicsAdapter*> listAdapters() const override;
+		virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
 
 	public:
 		static bool validateExtensions(const Array<String>& extensions) noexcept;
