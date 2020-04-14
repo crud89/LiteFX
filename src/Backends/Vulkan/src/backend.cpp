@@ -10,7 +10,9 @@ class VulkanBackend::VulkanBackendImpl {
 private:
     Array<String> m_extensions;
     Array<String> m_layers;
-    Array<UniquePtr<IGraphicsAdapter>> m_adapters;
+    Array<UniquePtr<IGraphicsAdapter>> m_adapters{ };
+    const IGraphicsAdapter* m_adapter{ nullptr };
+    UniquePtr<ISurface> m_surface{ nullptr };
 
 public:
     VulkanBackendImpl(const Array<String>& extensions, const Array<String>& validationLayers) noexcept :
@@ -109,6 +111,26 @@ public:
         
         return nullptr;
     }
+
+    const IGraphicsAdapter* getAdapter() const noexcept
+    {
+        return m_adapter;
+    }
+
+    void setAdapter(const IGraphicsAdapter* adapter) noexcept
+    {
+        m_adapter = adapter;
+    }
+
+    const ISurface* getSurface() const noexcept
+    {
+        return m_surface.get();
+    }
+
+    void setSurface(UniquePtr<ISurface>&& surface) noexcept
+    {
+        m_surface = std::move(surface);
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -139,6 +161,29 @@ Array<const IGraphicsAdapter*> VulkanBackend::listAdapters() const
 const IGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& adapterId) const
 {
     return m_impl->findAdapter(adapterId);
+}
+
+const ISurface* VulkanBackend::getSurface() const noexcept
+{
+    return m_impl->getSurface();
+}
+
+const IGraphicsAdapter* VulkanBackend::getAdapter() const noexcept
+{
+    return m_impl->getAdapter();
+}
+
+void VulkanBackend::use(const IGraphicsAdapter* adapter)
+{
+    if (adapter == nullptr)
+        throw std::invalid_argument("The adapter must be initialized.");
+
+    m_impl->setAdapter(adapter);
+}
+
+void VulkanBackend::use(UniquePtr<ISurface>&& surface)
+{
+    m_impl->setSurface(std::move(surface));
 }
 
 // ------------------------------------------------------------------------------------------------

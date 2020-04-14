@@ -1,6 +1,16 @@
-#include <litefx/rendering_backends.hpp>
+#include <litefx/rendering.hpp>
 
 using namespace LiteFX::Rendering;
+
+// TODO:
+//// Find a graphics queue.
+//auto queue = adapter->findQueue(QueueType::Graphics, surface);
+//
+//if (queue == nullptr)
+//    throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
+
+
+
 
 //class GraphicsDeviceBuilder::GraphicsDeviceBuilderImpl {
 //private:

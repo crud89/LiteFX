@@ -87,6 +87,8 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
+	public:
+		using builder = VulkanDeviceBuilder;
 
 	public:
 		VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, VulkanQueue* deviceQueue, const Format& format, const Array<String>& extensions = { });
@@ -156,6 +158,12 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual Array<const IGraphicsAdapter*> listAdapters() const override;
 		virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
+		virtual const ISurface* getSurface() const noexcept override;
+		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
+
+	public:
+		virtual void use(const IGraphicsAdapter* adapter) override;
+		virtual void use(UniquePtr<ISurface>&& surface) override;
 
 	public:
 		static bool validateExtensions(const Array<String>& extensions) noexcept;

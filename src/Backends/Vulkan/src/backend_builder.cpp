@@ -4,30 +4,21 @@ using namespace LiteFX::Rendering::Backends;
 
 AppBuilder& VulkanBackendBuilder::go()
 {
-    //auto adapter = this->instance()->getAdapter();
-    //auto surface = this->instance()->getSurface();
+    auto adapter = this->instance()->getAdapter();
+    auto surface = this->instance()->getSurface();
 
-    //if (adapter == nullptr)
-    //    throw std::runtime_error("No adapter has been defined to use for this backend.");
+    if (adapter == nullptr)
+        throw std::runtime_error("No adapter has been defined to use for this backend.");
 
-    //if (surface == nullptr)
-    //    throw std::runtime_error("No surface has been defined to use for this backend.");
-
-    //// TODO:
-    ////// Find a graphics queue.
-    ////auto queue = adapter->findQueue(QueueType::Graphics, surface);
-    ////
-    ////if (queue == nullptr)
-    ////    throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
-    ////
-    ////this->instance()->useDevice(makeUnique<VulkanDevice>(adapter, surface, queue, m_impl->getFormat(), this->instance()->getExtensions()));
+    if (surface == nullptr)
+        throw std::runtime_error("No surface has been defined to use for this backend.");
 
     return builder_type::go();
 }
 
 VulkanBackendBuilder& VulkanBackendBuilder::withSurface(UniquePtr<ISurface>&& surface)
 {
-    //m_impl->setSurface(std::move(surface));
+    this->instance()->use(std::move(surface));
     return *this;
 }
 
@@ -43,7 +34,7 @@ VulkanBackendBuilder& VulkanBackendBuilder::withAdapter(const UInt32& adapterId)
     if (adapter == nullptr)
         throw std::invalid_argument("The argument `adapterId` is invalid.");
     
-    //m_impl->setAdapter(adapter);
+    this->instance()->use(adapter);
     return *this;
 }
 
@@ -54,6 +45,6 @@ VulkanBackendBuilder& VulkanBackendBuilder::withAdapterOrDefault(const Optional<
     if (adapter == nullptr)
         adapter = this->instance()->findAdapter(std::nullopt);
 
-    //m_impl->setAdapter(adapter);
+    this->instance()->use(adapter);
     return *this;
 }

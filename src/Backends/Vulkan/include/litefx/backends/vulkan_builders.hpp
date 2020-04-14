@@ -6,6 +6,17 @@
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Rendering;
 
+	class LITEFX_VULKAN_API VulkanDeviceBuilder : public GraphicsDeviceBuilder {
+	public:
+		using GraphicsDeviceBuilder::GraphicsDeviceBuilder;
+
+	//public:
+	//	VulkanDeviceBuilder
+
+	public:
+		virtual GraphicsDeviceBuilder& withFormat(const Format& format) override { return GraphicsDeviceBuilder::withFormat(format); };
+	};
+
 	class LITEFX_VULKAN_API VulkanBackendBuilder : public Builder<VulkanBackendBuilder, VulkanBackend, AppBuilder> {
 	public:
 		using builder_type::Builder;
