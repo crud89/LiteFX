@@ -156,7 +156,8 @@ namespace LiteFX {
 		using builder_type = Builder<derived_type, instance_type, parent_type>;
 
 	protected:
-		T* instance() const noexcept { return m_instance.get(); }
+		const T* instance() const noexcept { return m_instance.get(); }
+		T* instance() noexcept { return m_instance.get(); }
 
 	public:
 		Builder(UniquePtr<T>&& instance) noexcept : m_instance(std::move(instance)) { }
@@ -171,14 +172,8 @@ namespace LiteFX {
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
-		template <typename TInstance, typename ...TArgs, std::enable_if_t<!rtti::has_builder_v<TInstance>, int> = 0, typename TBuilder = Builder<TInstance, builder_type>>
-		TBuilder make(TArgs&&... _args) {
-			static_assert(std::is_convertible_v<TDerived*, typename TBuilder::parent_type*>, "The provided builder requires a different parent.");
-			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
-		}
-
 		template <typename TInstance>
-		void use(UniquePtr<TInstance>&&) { throw std::runtime_error("The usage overload provided for this type."); }
+		void use(UniquePtr<TInstance>&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
 		virtual UniquePtr<T> go() {
 			return std::move(m_instance);
@@ -204,6 +199,7 @@ namespace LiteFX {
 
 	protected:
 		const T* instance() const noexcept { return m_instance.get(); }
+		T* instance() noexcept { return m_instance.get(); }
 		//const TParent& parent() const noexcept { return m_parent; }
 
 	public:
@@ -213,13 +209,10 @@ namespace LiteFX {
 		virtual ~Builder() noexcept = default;
 
 	public:
-		template <typename TInstance, typename ...TArgs, std::enable_if_t<rtti::has_builder_v<TInstance>, int> = 0, typename TBuilder = TInstance::builder>
-		TBuilder make(TArgs&&... _args) {
-			static_assert(std::is_convertible_v<TDerived*, typename TBuilder::parent_type*>, "The provided builder requires a different parent.");
-			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
-		}
+		template <typename TInstance>
+		void use(UniquePtr<TInstance>&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
-		template <typename TInstance, typename ...TArgs, std::enable_if_t<!rtti::has_builder_v<TInstance>, int> = 0, typename TBuilder = Builder<TInstance, builder_type>>
+		template <typename TInstance, typename ...TArgs, std::enable_if_t<rtti::has_builder_v<TInstance>, int> = 0, typename TBuilder = TInstance::builder>
 		TBuilder make(TArgs&&... _args) {
 			static_assert(std::is_convertible_v<TDerived*, typename TBuilder::parent_type*>, "The provided builder requires a different parent.");
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
