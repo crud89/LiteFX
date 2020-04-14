@@ -14,6 +14,7 @@ SET(APP_MODEL_HEADERS
 
 SET(APP_MODEL_SOURCES
     "src/app.cpp"
+    "src/app_builder.cpp"
     "src/appversion.cpp"
  )
 

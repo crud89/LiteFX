@@ -73,22 +73,16 @@ namespace LiteFX {
 		}
 	};
 
-	class AppBuilder : public Builder<AppBuilder, App> {
+	class LITEFX_APPMODEL_API AppBuilder : public Builder<AppBuilder, App> {
 	public:
 		using builder_type::Builder;
 
 	protected:
-		virtual const IBackend* findBackend(const BackendType& type) const noexcept { return this->instance()->operator[](type); }
+		virtual const IBackend* findBackend(const BackendType& type) const noexcept;
 
 	public:
-		void use(UniquePtr<IBackend>&& backend) {
-			this->instance()->use(std::move(backend));
-		}
-
-		virtual UniquePtr<App> go() override {
-			this->instance()->run();
-			return builder_type::go();
-		}
+		void use(UniquePtr<IBackend>&& backend);
+		virtual UniquePtr<App> go() override;
 	};
 
 	class LITEFX_APPMODEL_API AppVersion {
