@@ -61,7 +61,7 @@ namespace LiteFX {
 		virtual const IBackend* operator[](const BackendType& type) const;
 
 	public:
-		virtual void useBackend(UniquePtr<IBackend>&& backend);
+		virtual void use(UniquePtr<IBackend>&& backend);
 		virtual void run() = 0;
 
 	public:
@@ -80,7 +80,7 @@ namespace LiteFX {
 
 	public:
 		void use(UniquePtr<IBackend>&& backend) {
-			this->instance()->useBackend(std::move(backend)); 
+			this->instance()->use(std::move(backend));
 		}
 
 		virtual UniquePtr<App> go() override {
@@ -89,12 +89,12 @@ namespace LiteFX {
 		}
 
 		template <typename TBackend, typename ...TArgs, std::enable_if_t<rtti::has_initializer_v<TBackend>, int> = 0, typename TBuilder = TBackend::initializer>
-		TBuilder useBackend(TArgs&&... _args) {
+		TBuilder makeBackend(TArgs&&... _args) {
 			return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
 		}
 
 		template <typename TBackend, typename ...TArgs, std::enable_if_t<!rtti::has_initializer_v<TBackend>, int> = 0, typename TBuilder = Builder<TBackend, AppBuilder>>
-		TBuilder useBackend(TArgs&&... _args) {
+		TBuilder makeBackend(TArgs&&... _args) {
 			return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
 		}
 	};

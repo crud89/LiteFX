@@ -61,7 +61,7 @@ int main(const int argc, const char** argv)
 	try 
 	{
 		App::build<SampleApp>(std::move(window))
-			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
+			.makeBackend<VulkanBackend>(requiredExtensions, enabledLayers)
 				.withAdapterOrDefault(adapterId)
 				.withSurface([&windowPtr](const VkInstance& instance) {
 					VkSurfaceKHR surface;

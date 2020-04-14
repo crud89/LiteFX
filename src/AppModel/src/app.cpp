@@ -46,7 +46,7 @@ const IBackend* App::operator[](const BackendType& type) const
 	return this->findBackend(type);
 }
 
-void App::useBackend(UniquePtr<IBackend>&& backend)
+void App::use(UniquePtr<IBackend>&& backend)
 {
 	return m_impl->useBackend(std::move(backend));
 }

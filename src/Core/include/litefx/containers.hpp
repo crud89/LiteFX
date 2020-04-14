@@ -168,6 +168,9 @@ namespace LiteFX {
 		}
 
 	public:
+		template <typename TInstance>
+		void use(UniquePtr<TInstance>&&) { throw std::runtime_error("The invoked method is not implemented."); }
+
 		virtual UniquePtr<T> go() {
 			return std::move(m_instance);
 		}
@@ -208,13 +211,7 @@ namespace LiteFX {
 
 	public:
 		virtual TParent& go() {
-			m_parent.use(std::move(m_instance)); 
-			return m_parent;
-		}
-
-		template <typename TDerived>
-		TParent goFor() {
-			m_parent.use(UniquePtr<TDerived>(dynamic_cast<TDerived*>(this->go().release())));
+			m_parent.use(std::move(m_instance));
 			return m_parent;
 		}
 	};
