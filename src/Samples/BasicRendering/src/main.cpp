@@ -47,6 +47,7 @@ int main(const int argc, const char** argv)
 	::glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	auto window = GlfwWindowPtr(::glfwCreateWindow(800, 600, appName.c_str(), nullptr, nullptr));
+	const auto windowPtr = window.get();
 
 	// Get the required extensions from glfw.
 	uint32_t extensions = 0;
@@ -59,9 +60,7 @@ int main(const int argc, const char** argv)
 	// Create the app.
 	try 
 	{
-		const auto windowPtr = window.get();
-
-		auto sample = App::build<SampleApp>(std::move(window))
+		UniquePtr<SampleApp> app = App::build<SampleApp>(std::move(window))
 			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
 				.withSurface([&windowPtr](const VkInstance& instance) {
 					VkSurfaceKHR surface;
@@ -74,9 +73,7 @@ int main(const int argc, const char** argv)
 				.withAdapterOrDefault(adapterId)
 				.useDeviceFormat(Format::B8G8R8A8_UNORM_SRGB)
 				.go()
-			.go();
-		
-		sample->run();
+			.goFor<SampleApp>();
 	}
 	catch (const LiteFX::Exception& ex)
 	{

@@ -161,7 +161,7 @@ namespace LiteFX {
 		}
 
 		template <typename TDerived, typename TBuilder = Builder<TDerived>, typename ...TArgs>
-		static TBuilder make(TArgs&&... _args) {
+		static TBuilder makeFor(TArgs&&... _args) {
 			return TBuilder(makeUnique<TDerived>(std::forward<TArgs>(_args)...));
 		}
 

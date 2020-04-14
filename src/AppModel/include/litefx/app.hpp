@@ -67,7 +67,7 @@ namespace LiteFX {
 	public:
 		template <typename TApp, typename ...TArgs>
 		static AppBuilder build(TArgs&&... _args) { 
-			return AppBuilder::make<TApp, AppBuilder>(std::forward<TArgs>(_args)...); 
+			return AppBuilder::makeFor<TApp, AppBuilder>(std::forward<TArgs>(_args)...); 
 		}
 	};
 
@@ -75,11 +75,19 @@ namespace LiteFX {
 	public:
 		using Builder<App>::Builder;
 
-	public:
+	protected:
 		virtual const IBackend* findBackend(const BackendType& type) const noexcept { return this->instance()->operator[](type); }
-		void use(UniquePtr<IBackend>&& backend) { this->instance()->useBackend(std::move(backend)); }
 
 	public:
+		void use(UniquePtr<IBackend>&& backend) {
+			this->instance()->useBackend(std::move(backend)); 
+		}
+
+		virtual UniquePtr<App> go() override {
+			this->instance()->run();
+			return Builder<App>::go();
+		}
+
 		template <typename TBackend, typename ...TArgs, std::enable_if_t<rtti::has_initializer_v<TBackend>, int> = 0, typename TInitializer = TBackend::initializer>
 		TInitializer useBackend(TArgs&&... _args) {
 			return TInitializer::makeFor<TBackend, TInitializer>(*this, *this->instance(), std::forward<TArgs>(_args)...);
