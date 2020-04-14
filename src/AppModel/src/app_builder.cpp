@@ -4,7 +4,7 @@ using namespace LiteFX;
 
 const IBackend* AppBuilder::findBackend(const BackendType& type) const noexcept 
 { 
-	return this->instance()->operator[](type); 
+	return this->instance()->operator[](type);
 }
 
 void AppBuilder::use(UniquePtr<IBackend>&& backend)

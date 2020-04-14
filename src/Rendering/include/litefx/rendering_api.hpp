@@ -20,8 +20,6 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX;
 
 	// Forward declarations.
-	class GraphicsDeviceBuilder;
-
     class IRenderPipeline;
     class IRenderPipelineLayout;
     class IShaderModule;
