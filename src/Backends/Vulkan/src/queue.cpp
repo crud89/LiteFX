@@ -16,7 +16,7 @@ public:
 		m_type(type), m_id(id) { }
 
 public:
-	void createDeviceQueue(const VulkanDevice* device, VkQueue& queue) noexcept
+	void createDeviceQueue(const VulkanDevice* device, VkQueue& queue) const noexcept
 	{
 		::vkGetDeviceQueue(device->handle(), m_id, 0, &queue);
 	}

@@ -76,7 +76,7 @@ int main(const int argc, const char** argv)
 	}
 	catch (const LiteFX::Exception& ex)
 	{
-		std::cerr << "Unhandled exception: " << ex.what() << std::endl;
+		std::cerr << "\033[3;41;37mUnhandled exception: " << ex.what() << "\033[0m" << std::endl;
 
 		return EXIT_FAILURE;
 	}

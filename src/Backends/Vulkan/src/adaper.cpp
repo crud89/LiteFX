@@ -168,12 +168,17 @@ UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ISurface* s
     return m_impl->createDevice(*this, dynamic_cast<const VulkanSurface*>(surface), format, extensions);
 }
 
-const ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const
+ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const
 {
     return m_impl->findQueue(queueType);
 }
 
-const ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType, const VulkanSurface* forSurface) const
+ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType, const ISurface* surface) const
 {
+    auto forSurface = dynamic_cast<const VulkanSurface*>(surface);
+
+    if (forSurface == nullptr)
+        throw std::invalid_argument("The provided surface is not a valid Vulkan surface.");
+
     return m_impl->findQueue(*this, queueType, forSurface);
 }

@@ -87,11 +87,13 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
+
 	public:
 		using builder = VulkanDeviceBuilder;
 
 	public:
-		VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, VulkanQueue* deviceQueue, const Format& format, const Array<String>& extensions = { });
+		VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Array<String>& extensions = { });
+		VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, ICommandQueue* deviceQueue, const Format& format, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
@@ -110,6 +112,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual VkImageView vkCreateImageView(const VkImage& image, const Format& format) const;
 
 	public:
+		virtual void create(const Format& format, ICommandQueue* queue);
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
 		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
 	};
@@ -136,8 +139,8 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const override;
-		virtual const ICommandQueue* findQueue(const QueueType& queueType) const override;
-		virtual const ICommandQueue* findQueue(const QueueType& queueType, const VulkanSurface* forSurface) const;
+		virtual ICommandQueue* findQueue(const QueueType& queueType) const override;
+		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const override;
 	};
 
 	/// <summary>

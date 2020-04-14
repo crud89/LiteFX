@@ -74,7 +74,8 @@ namespace LiteFX::Rendering {
 
 	public:
 		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const = 0;
-		virtual const ICommandQueue* findQueue(const QueueType& queueType) const = 0;
+		virtual ICommandQueue* findQueue(const QueueType& queueType) const = 0;
+		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const = 0;
 	};
 
 	// Base classes.
@@ -92,12 +93,14 @@ namespace LiteFX::Rendering {
 		virtual const ISurface* getSurface() const noexcept override;
 	};
 
-	class LITEFX_RENDERING_API GraphicsDeviceBuilder : public Builder<GraphicsDeviceBuilder, IGraphicsDevice> {
+	template <typename TDerived, typename TDevice>
+	class GraphicsDeviceBuilder : public Builder<TDerived, TDevice> {
 	public:
 		using builder_type::Builder;
 
 	public:
-		virtual GraphicsDeviceBuilder& withFormat(const Format& format) { throw; }
+		virtual TDerived& withFormat(const Format& format) = 0;
+		virtual TDerived& withQueue(const QueueType& queueType) = 0;
 	};
 
 	// Rendering backends
@@ -117,9 +120,8 @@ namespace LiteFX::Rendering {
 
 	public:
 		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IGraphicsDevice*>, int> = 0, typename TBuilder = T::builder>
-		TBuilder build() {
-			//return TBuilder(std::make_unique<IGraphicsDevice>std::move())
-			throw;
+		TBuilder build(TArgs&&... _args) const {
+			return TBuilder(makeUnique<T>(this->getAdapter(), this->getSurface(), std::forward<TArgs>(_args)...));
 		}
 	};
 

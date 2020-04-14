@@ -9,12 +9,11 @@ using namespace LiteFX::Rendering::Backends;
 class VulkanDevice::VulkanDeviceImpl {
 private:
 	UniquePtr<VulkanSwapChain> m_swapChain;
-	VulkanQueue* m_queue;
 	Array<String> m_extensions;
 
 public:
-	VulkanDeviceImpl(VulkanQueue* queue, const Array<String>& extensions = { }) noexcept :
-		m_queue(queue), m_extensions(extensions) { this->defineMandatoryExtensions(); }
+	VulkanDeviceImpl(const Array<String>& extensions = { }) noexcept :
+		m_extensions(extensions) { this->defineMandatoryExtensions(); }
 
 private:
 	void defineMandatoryExtensions() noexcept
@@ -66,7 +65,7 @@ public:
 	}
 
 public:
-	VkDevice initialize(const VulkanDevice& parent, const Format& format)
+	VkDevice initialize(const VulkanDevice& parent, const Format& format, const VulkanQueue* deviceQueue)
 	{
 		auto adapter = this->getAdapter(parent);
 
@@ -85,7 +84,7 @@ public:
 		const float queuePriority = 1.0f;
 		VkDeviceQueueCreateInfo queueCreateInfo = {};
 		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = m_queue->getId();
+		queueCreateInfo.queueFamilyIndex = deviceQueue->getId();
 		queueCreateInfo.queueCount = 1;
 		queueCreateInfo.pQueuePriorities = &queuePriority;
 
@@ -113,11 +112,6 @@ public:
 	void createSwapChain(const VulkanDevice& parent, const Format& format)
 	{
 		m_swapChain = makeUnique<VulkanSwapChain>(&parent, format);
-	}
-
-	void initDeviceQueue(const VulkanDevice& parent)
-	{
-		m_queue->initDeviceQueue(&parent);
 	}
 
 public:
@@ -159,16 +153,15 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter* adapter, const VulkanSurface* surface, VulkanQueue* deviceQueue, const Format& format, const Array<String>& extensions) :
-	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(deviceQueue, extensions)), GraphicsDevice(adapter, surface)
+VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, ICommandQueue* deviceQueue, const Format& format, const Array<String>& extensions) :
+	VulkanDevice(adapter, surface, extensions)
 {
-	if (deviceQueue == nullptr)
-		throw std::invalid_argument("The argument `deviceQueue` must be initialized.");
-	
-	this->handle() = m_impl->initialize(*this, format);
+	this->create(format, deviceQueue);
+}
 
-	m_impl->createSwapChain(*this, format);
-	m_impl->initDeviceQueue(*this);
+VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Array<String>& extensions) :
+	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(extensions)), GraphicsDevice(adapter, surface)
+{
 }
 
 VulkanDevice::~VulkanDevice() noexcept
@@ -191,6 +184,25 @@ Array<Format> VulkanDevice::getSurfaceFormats() const
 const ISwapChain* VulkanDevice::getSwapChain() const noexcept
 {
 	return m_impl->getSwapChain();
+}
+
+void VulkanDevice::create(const Format& format, ICommandQueue* queue)
+{
+	auto deviceQueue = dynamic_cast<VulkanQueue*>(queue);
+
+	if (deviceQueue == nullptr)
+		throw std::invalid_argument("The argument `deviceQueue` is not a valid Vulkan queue.");
+
+	// TODO: Check the null-test.
+	auto& h = this->handle();
+	
+	if (h != nullptr)
+		throw std::runtime_error("The device can only be created once.");
+
+	this->handle() = m_impl->initialize(*this, format, deviceQueue);
+
+	m_impl->createSwapChain(*this, format);
+	deviceQueue->initDeviceQueue(this);
 }
 
 bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) const noexcept
