@@ -27,7 +27,7 @@ SET(VULKAN_BACKEND_HEADERS
 SET(VULKAN_BACKEND_SOURCES
     "src/convert.cpp"
     "src/backend.cpp"
-    "src/backend_initializer.cpp"
+    "src/backend_builder.cpp"
     "src/adaper.cpp"
     "src/device.cpp"
     "src/device_builder.cpp"

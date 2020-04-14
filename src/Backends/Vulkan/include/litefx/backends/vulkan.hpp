@@ -145,7 +145,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
 	public:
-		using initializer = VulkanBackendBuilder;
+		using builder = VulkanBackendBuilder;
 
 	public:
 		explicit VulkanBackend(const App& app, const Array<String>& extensions = { }, const Array<String>& validationLayers = { });

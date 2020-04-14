@@ -9,40 +9,26 @@ namespace LiteFX::Rendering {
     //class LITEFX_RENDERING_API GraphicsDeviceBuilder : public Builder<IGraphicsDevice> {
     //    LITEFX_IMPLEMENTATION(GraphicsDeviceBuilderImpl)
     //public:
-    //    using Builder<App>::Builder;
+    //    using Builder<IGraphicsDevice>::Builder;
 
     //public:
-    //    virtual GraphicsDeviceBuilder& go() override;
+    //    //void use(UniquePtr<IBackend>&& backend) {
+    //    //    this->instance()->use(std::move(backend));
+    //    //}
 
-    ////public:
-    ////    VulkanBackendBuilder& withSurface(UniquePtr<ISurface>&& surface);
-    ////    VulkanBackendBuilder& withSurface(VulkanSurface::surface_callback callback);
-    ////    VulkanBackendBuilder& withAdapter(const UInt32& adapterId);
-    ////    VulkanBackendBuilder& withAdapterOrDefault(const Optional<UInt32>& adapterId = std::nullopt);
+    //    //virtual UniquePtr<App> go() override {
+    //    //    return Builder<App>::go();
+    //    //}
 
-    ////protected:
-    ////    virtual const IBackend* findBackend(const BackendType& type) const noexcept { return this->instance()->operator[](type); }
+    //    template <typename TBackend, typename ...TArgs, std::enable_if_t<rtti::has_builder_v<TBackend>, int> = 0, typename TBuilder = TBackend::builder>
+    //    TBuilder makeBackend(TArgs&&... _args) {
+    //        return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
+    //    }
 
-    ////public:
-    ////    void use(UniquePtr<IBackend>&& backend) {
-    ////        this->instance()->useBackend(std::move(backend));
-    ////    }
-
-    ////    virtual UniquePtr<App> go() override {
-    ////        this->instance()->run();
-    ////        return Builder<App>::go();
-    ////    }
-
-    ////public:
-    ////    template <typename TBackend, typename ...TArgs, std::enable_if_t<rtti::has_initializer_v<TBackend>, int> = 0, typename TBuilder = TBackend::initializer>
-    ////    TBuilder useBackend(TArgs&&... _args) {
-    ////        return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
-    ////    }
-
-    ////    template <typename TBackend, typename ...TArgs, std::enable_if_t<!rtti::has_initializer_v<TBackend>, int> = 0, typename TBuilder = Builder<TBackend, AppBuilder>>
-    ////    TBuilder useBackend(TArgs&&... _args) {
-    ////        return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
-    ////    }
+    //    template <typename TBackend, typename ...TArgs, std::enable_if_t<!rtti::has_builder_v<TBackend>, int> = 0, typename TBuilder = Builder<TBackend, AppBuilder>>
+    //    TBuilder makeBackend(TArgs&&... _args) {
+    //        return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
+    //    }
 
     //};
 
@@ -54,8 +40,12 @@ namespace LiteFX::Rendering {
     public:
         virtual Array<const IGraphicsAdapter*> listAdapters() const = 0;
         virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
-        //virtual const ISurface* getSurface() const noexcept;
-        //virtual const IGraphicsAdapter* getAdapter() const noexcept;
+        //virtual const ISurface* getSurface() const noexcept = 0;
+        //virtual const IGraphicsAdapter* getAdapter() const noexcept = 0;
+
+    public:
+        //virtual void use(UniquePtr<IGraphicsAdapter>&& adapter) const noexcept = 0;
+        //virtual void use(UniquePtr<ISurface>&& surface) const noexcept = 0;
 
     public:
         //virtual GraphicsDeviceBuilder& buildDevice() const = 0;

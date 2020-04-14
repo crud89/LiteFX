@@ -37,7 +37,7 @@ private:
 	GlfwWindowPtr m_window;
 
 public:
-	SampleApp(GlfwWindowPtr&& window) : m_window(std::move(window)) { }
+	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) { }
 
 public:
 	virtual const IRenderBackend* getRenderBackend() const noexcept {

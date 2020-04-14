@@ -6,13 +6,9 @@
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Rendering;
 
-	class LITEFX_VULKAN_API VulkanBackendBuilder : public BackendBuilder<VulkanBackend> {
-		LITEFX_IMPLEMENTATION(VulkanBackendBuilderImpl)
-
+	class LITEFX_VULKAN_API VulkanBackendBuilder : public Builder<VulkanBackendBuilder, VulkanBackend, AppBuilder> {
 	public:
-		VulkanBackendBuilder(builder_type& parent, UniquePtr<backend_type>&& instance) noexcept;
-		VulkanBackendBuilder(builder_type& parent, UniquePtr<backend_type>&& instance, const Optional<UInt32>& adapterId, UniquePtr<ISurface>&& surface = nullptr);
-		virtual ~VulkanBackendBuilder() noexcept;
+		using builder_type::Builder;
 
 	public:
 		virtual AppBuilder& go() override;
