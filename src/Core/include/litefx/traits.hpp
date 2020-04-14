@@ -21,11 +21,11 @@ namespace LiteFX::rtti {
     /// </summary>
     /// <example>
     /// <code>
-    /// template <typename T, std::enable_if_t<rtti::has_initializer_v<T>, int> = 0, typename TInitializer = T::initializer>
-    /// TInitializer makeInitializer() { return TInitializer(); }
+    /// template <typename T, std::enable_if_t<rtti::has_initializer_v<T>, int> = 0, typename TBuilder = T::initializer>
+    /// TBuilder makeBuilder() { return TBuilder(); }
     ///
-    /// template <typename T, typename TBuilder, std::enable_if_t<!rtti::has_initializer<T>, int> = 0, typename TInitializer = Initializer<T, TBuilder>>
-    /// TInitializer makeInitializer() { return TInitializer(); }
+    /// template <typename T, typename TBuilder, std::enable_if_t<!rtti::has_initializer<T>, int> = 0, typename TBuilder = Builder<T, TBuilder>>
+    /// TBuilder makeBuilder() { return TBuilder(); }
     /// </code>
     /// </example>
     /// <typeparam name="T">The type to check for an initializer.</typeparam>

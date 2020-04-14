@@ -2,13 +2,13 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-class VulkanBackendInitializer::VulkanBackendInitializerImpl {
+class VulkanBackendBuilder::VulkanBackendBuilderImpl {
 private:
     UniquePtr<ISurface> m_surface = nullptr;
     const IGraphicsAdapter* m_adapter = nullptr;
 
 public:
-    VulkanBackendInitializerImpl() = default;
+    VulkanBackendBuilderImpl() = default;
 
 public:
     const ISurface* getSurface() const noexcept { return m_surface.get(); }
@@ -17,13 +17,13 @@ public:
     void setAdapter(const IGraphicsAdapter* adapter) noexcept { m_adapter = adapter; }
 };
 
-VulkanBackendInitializer::VulkanBackendInitializer(builder_type& parent, UniquePtr<backend_type>&& instance) noexcept :
-    BackendInitializer(parent, std::move(instance)), m_impl(makePimpl<VulkanBackendInitializerImpl>())
+VulkanBackendBuilder::VulkanBackendBuilder(builder_type& parent, UniquePtr<backend_type>&& instance) noexcept :
+    BackendBuilder(parent, std::move(instance)), m_impl(makePimpl<VulkanBackendBuilderImpl>())
 {
 }
 
-VulkanBackendInitializer::VulkanBackendInitializer(builder_type& parent, UniquePtr<backend_type>&& instance, const Optional<UInt32>& adapterId, UniquePtr<ISurface>&& surface) :
-    BackendInitializer(parent, std::move(instance)), m_impl(makePimpl<VulkanBackendInitializerImpl>())
+VulkanBackendBuilder::VulkanBackendBuilder(builder_type& parent, UniquePtr<backend_type>&& instance, const Optional<UInt32>& adapterId, UniquePtr<ISurface>&& surface) :
+    BackendBuilder(parent, std::move(instance)), m_impl(makePimpl<VulkanBackendBuilderImpl>())
 {
     this->withAdapterOrDefault(adapterId);
 
@@ -31,9 +31,9 @@ VulkanBackendInitializer::VulkanBackendInitializer(builder_type& parent, UniqueP
         this->withSurface(std::move(surface));
 }
 
-VulkanBackendInitializer::~VulkanBackendInitializer() noexcept = default;
+VulkanBackendBuilder::~VulkanBackendBuilder() noexcept = default;
 
-AppBuilder& VulkanBackendInitializer::go()
+AppBuilder& VulkanBackendBuilder::go()
 {
     auto adapter = m_impl->getAdapter();
     auto surface = m_impl->getSurface();
@@ -53,23 +53,23 @@ AppBuilder& VulkanBackendInitializer::go()
     //
     //this->instance()->useDevice(makeUnique<VulkanDevice>(adapter, surface, queue, m_impl->getFormat(), this->instance()->getExtensions()));
 
-    return BackendInitializer<VulkanBackend>::go();
+    return BackendBuilder<VulkanBackend>::go();
 }
 
-VulkanBackendInitializer& VulkanBackendInitializer::withSurface(UniquePtr<ISurface>&& surface)
+VulkanBackendBuilder& VulkanBackendBuilder::withSurface(UniquePtr<ISurface>&& surface)
 {
     m_impl->setSurface(std::move(surface));
     return *this;
 }
 
-VulkanBackendInitializer& VulkanBackendInitializer::withSurface(VulkanSurface::surface_callback callback)
+VulkanBackendBuilder& VulkanBackendBuilder::withSurface(VulkanSurface::surface_callback callback)
 {
     return this->withSurface(std::move(VulkanSurface::createSurface(*this->instance(), callback)));
 }
 
-VulkanBackendInitializer& VulkanBackendInitializer::withAdapter(const UInt32& adapterId)
+VulkanBackendBuilder& VulkanBackendBuilder::withAdapter(const UInt32& adapterId)
 {
-    auto adapter = this->instance()->getAdapter(adapterId);
+    auto adapter = this->instance()->findAdapter(adapterId);
     
     if (adapter == nullptr)
         throw std::invalid_argument("The argument `adapterId` is invalid.");
@@ -78,12 +78,12 @@ VulkanBackendInitializer& VulkanBackendInitializer::withAdapter(const UInt32& ad
     return *this;
 }
 
-VulkanBackendInitializer& VulkanBackendInitializer::withAdapterOrDefault(const Optional<UInt32>& adapterId)
+VulkanBackendBuilder& VulkanBackendBuilder::withAdapterOrDefault(const Optional<UInt32>& adapterId)
 {
-    auto adapter = this->instance()->getAdapter(adapterId);
+    auto adapter = this->instance()->findAdapter(adapterId);
     
     if (adapter == nullptr)
-        adapter = this->instance()->getAdapter(std::nullopt);
+        adapter = this->instance()->findAdapter(std::nullopt);
 
     m_impl->setAdapter(adapter);
     return *this;

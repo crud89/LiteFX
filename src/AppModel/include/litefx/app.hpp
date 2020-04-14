@@ -88,25 +88,25 @@ namespace LiteFX {
 			return Builder<App>::go();
 		}
 
-		template <typename TBackend, typename ...TArgs, std::enable_if_t<rtti::has_initializer_v<TBackend>, int> = 0, typename TInitializer = TBackend::initializer>
-		TInitializer useBackend(TArgs&&... _args) {
-			return TInitializer::makeFor<TBackend, TInitializer>(*this, *this->instance(), std::forward<TArgs>(_args)...);
+		template <typename TBackend, typename ...TArgs, std::enable_if_t<rtti::has_initializer_v<TBackend>, int> = 0, typename TBuilder = TBackend::initializer>
+		TBuilder useBackend(TArgs&&... _args) {
+			return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
 		}
 
-		template <typename TBackend, typename ...TArgs, std::enable_if_t<!rtti::has_initializer_v<TBackend>, int> = 0, typename TInitializer = Initializer<TBackend, AppBuilder>>
-		TInitializer useBackend(TArgs&&... _args) {
-			return TInitializer::makeFor<TBackend, TInitializer>(*this, *this->instance(), std::forward<TArgs>(_args)...);
+		template <typename TBackend, typename ...TArgs, std::enable_if_t<!rtti::has_initializer_v<TBackend>, int> = 0, typename TBuilder = Builder<TBackend, AppBuilder>>
+		TBuilder useBackend(TArgs&&... _args) {
+			return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
 		}
 	};
 
 	template <typename TBackend>
-	class BackendInitializer : public Initializer<TBackend, AppBuilder> {
+	class BackendBuilder : public Builder<TBackend, AppBuilder> {
 	public:
 		typedef TBackend backend_type;
 		typedef AppBuilder builder_type;
 
 	public:
-		using Initializer<TBackend, AppBuilder>::Initializer;
+		using Builder<TBackend, AppBuilder>::Builder;
 	};
 
 	class LITEFX_APPMODEL_API AppVersion {

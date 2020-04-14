@@ -15,10 +15,10 @@ namespace LiteFX::Rendering {
     //    virtual GraphicsDeviceBuilder& go() override;
 
     ////public:
-    ////    VulkanBackendInitializer& withSurface(UniquePtr<ISurface>&& surface);
-    ////    VulkanBackendInitializer& withSurface(VulkanSurface::surface_callback callback);
-    ////    VulkanBackendInitializer& withAdapter(const UInt32& adapterId);
-    ////    VulkanBackendInitializer& withAdapterOrDefault(const Optional<UInt32>& adapterId = std::nullopt);
+    ////    VulkanBackendBuilder& withSurface(UniquePtr<ISurface>&& surface);
+    ////    VulkanBackendBuilder& withSurface(VulkanSurface::surface_callback callback);
+    ////    VulkanBackendBuilder& withAdapter(const UInt32& adapterId);
+    ////    VulkanBackendBuilder& withAdapterOrDefault(const Optional<UInt32>& adapterId = std::nullopt);
 
     ////protected:
     ////    virtual const IBackend* findBackend(const BackendType& type) const noexcept { return this->instance()->operator[](type); }
@@ -34,14 +34,14 @@ namespace LiteFX::Rendering {
     ////    }
 
     ////public:
-    ////    template <typename TBackend, typename ...TArgs, std::enable_if_t<rtti::has_initializer_v<TBackend>, int> = 0, typename TInitializer = TBackend::initializer>
-    ////    TInitializer useBackend(TArgs&&... _args) {
-    ////        return TInitializer::makeFor<TBackend, TInitializer>(*this, *this->instance(), std::forward<TArgs>(_args)...);
+    ////    template <typename TBackend, typename ...TArgs, std::enable_if_t<rtti::has_initializer_v<TBackend>, int> = 0, typename TBuilder = TBackend::initializer>
+    ////    TBuilder useBackend(TArgs&&... _args) {
+    ////        return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
     ////    }
 
-    ////    template <typename TBackend, typename ...TArgs, std::enable_if_t<!rtti::has_initializer_v<TBackend>, int> = 0, typename TInitializer = Initializer<TBackend, AppBuilder>>
-    ////    TInitializer useBackend(TArgs&&... _args) {
-    ////        return TInitializer::makeFor<TBackend, TInitializer>(*this, *this->instance(), std::forward<TArgs>(_args)...);
+    ////    template <typename TBackend, typename ...TArgs, std::enable_if_t<!rtti::has_initializer_v<TBackend>, int> = 0, typename TBuilder = Builder<TBackend, AppBuilder>>
+    ////    TBuilder useBackend(TArgs&&... _args) {
+    ////        return TBuilder::makeFor<TBackend, TBuilder>(*this, *this->instance(), std::forward<TArgs>(_args)...);
     ////    }
 
     //};
@@ -52,8 +52,10 @@ namespace LiteFX::Rendering {
         virtual ~IRenderBackend() noexcept = default;
 
     public:
-        virtual Array<const IGraphicsAdapter*> getAdapters() const = 0;
-        virtual const IGraphicsAdapter* getAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+        virtual Array<const IGraphicsAdapter*> listAdapters() const = 0;
+        virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+        //virtual const ISurface* getSurface() const noexcept;
+        //virtual const IGraphicsAdapter* getAdapter() const noexcept;
 
     public:
         //virtual GraphicsDeviceBuilder& buildDevice() const = 0;
