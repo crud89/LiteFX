@@ -1,10 +1,9 @@
 #pragma once
 
-#include <litefx/rendering_api.hpp>
-#include <litefx/rendering_backends.hpp>
-#include <litefx/rendering_pipelines.hpp>
-
+#include <litefx/app.hpp>
 #include <litefx/math.hpp>
+#include <litefx/rendering_api.hpp>
+#include <litefx/rendering_pipelines.hpp>
 
 namespace LiteFX::Rendering {
 	using namespace LiteFX;
@@ -93,4 +92,48 @@ namespace LiteFX::Rendering {
 		virtual const ISurface* getSurface() const noexcept override;
 	};
 
+	class LITEFX_RENDERING_API GraphicsDeviceBuilder : public Builder<GraphicsDeviceBuilder, IGraphicsDevice> {
+	public:
+		using builder_type::Builder;
+
+	public:
+		virtual GraphicsDeviceBuilder& withFormat(const Format& format) { throw; }
+	};
+
+	// Rendering backends
+	class LITEFX_RENDERING_API IRenderBackend : public IBackend {
+	public:
+		virtual ~IRenderBackend() noexcept = default;
+
+	public:
+		virtual Array<const IGraphicsAdapter*> listAdapters() const = 0;
+		virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+		virtual const ISurface* getSurface() const noexcept = 0;
+		virtual const IGraphicsAdapter* getAdapter() const noexcept = 0;
+
+	public:
+		virtual void use(const IGraphicsAdapter* adapter) = 0;
+		virtual void use(UniquePtr<ISurface>&& surface) = 0;
+
+	public:
+		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IGraphicsDevice*>, int> = 0, typename TBuilder = T::builder>
+		TBuilder build() {
+			//return TBuilder(std::make_unique<IGraphicsDevice>std::move())
+			throw;
+		}
+	};
+
+	class LITEFX_RENDERING_API RenderBackend : public IRenderBackend {
+		LITEFX_IMPLEMENTATION(RenderBackendImpl)
+
+	public:
+		explicit RenderBackend(const App& app) noexcept;
+		RenderBackend(const RenderBackend&) noexcept = delete;
+		RenderBackend(RenderBackend&&) noexcept = delete;
+		virtual ~RenderBackend() noexcept;
+
+	public:
+		virtual BackendType getType() const noexcept override;
+		const App& getApp() const noexcept;
+	};
 }

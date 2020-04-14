@@ -22,7 +22,6 @@ ENDIF(BUILD_WITH_GLM)
 SET(RENDERING_HEADERS
     "include/litefx/rendering_api.hpp"
     "include/litefx/rendering_pipelines.hpp"
-    "include/litefx/rendering_backends.hpp"
     "include/litefx/rendering.hpp"
 )
 
