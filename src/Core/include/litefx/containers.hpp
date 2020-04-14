@@ -138,7 +138,7 @@ namespace LiteFX {
 		THandle& handle() noexcept { return m_handle; }
 
 	public:
-		THandle handle() const noexcept { return m_handle; }
+		const THandle& handle() const noexcept { return m_handle; }
 	};
 
 	template <typename TDerived, typename T, typename TParent = std::nullptr_t>
