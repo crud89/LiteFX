@@ -45,7 +45,7 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.AppModel
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.AppModel
-    PUBLIC LiteFX.Core
+    PUBLIC LiteFX.Core LiteFX.Logging
     PRIVATE ${PRIVATE_LINK_LIBS}
 )
 
