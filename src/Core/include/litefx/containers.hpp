@@ -17,6 +17,7 @@
 #include <variant>
 
 #include "traits.hpp"
+#include "string.hpp"
 
 #ifndef LITEFX_DEFINE_FLAGS
 #  define LITEFX_DEFINE_FLAGS(T) \
@@ -32,7 +33,6 @@
 
 namespace LiteFX {
 
-	using String = std::string;
 	using Exception = std::exception;
 	using Handle = void*;
 
