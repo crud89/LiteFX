@@ -21,6 +21,7 @@ INCLUDE("${CMAKE_SOURCE_DIR}/cmake/shaders.cmake")
 
 # Include sub-projects.
 ADD_SUBDIRECTORY(Core)
+ADD_SUBDIRECTORY(Logging)
 ADD_SUBDIRECTORY(AppModel)
 ADD_SUBDIRECTORY(Math)
 ADD_SUBDIRECTORY(Rendering)
