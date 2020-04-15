@@ -69,7 +69,7 @@ namespace LiteFX {
 
 	template <class T>
 	SharedPtr<T> makeShared() {
-		return std::make_shared<T>()
+		return std::make_shared<T>();
 	}
 
 	template <class T, class... TArgs>
