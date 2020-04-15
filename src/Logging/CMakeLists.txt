@@ -21,6 +21,9 @@ SET(LOGGING_HEADERS
 
 SET(LOGGING_SOURCES
     "src/logger.cpp"
+    "src/logger_factory.cpp"
+    "src/console.cpp"
+    "src/rolling_file.cpp"
 )
 
 # Add shared library project.
