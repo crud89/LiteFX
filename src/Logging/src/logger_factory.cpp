@@ -3,21 +3,25 @@
 
 using namespace LiteFX::Logging;
 
+static std::once_flag isInitialized;
+static UniquePtr<Logger> m_instance;
+
 class Logger::LoggerImpl {
 private:
-    static std::once_flag isInitialized;
-    static UniquePtr<Logger> m_instance;
+    Array<spdlog::sink_ptr> m_sinks;
 
 private:
-    static void initialize()
-    {
-        m_instance = UniquePtr<Logger>();
-    }
+    static void initialize() { m_instance = UniquePtr<Logger>(); }
 
 public:
     static Logger& getLogger() noexcept {
-        std::call_once(LoggerImpl::isInitialized, LoggerImpl::initialize);
-        return *LoggerImpl::m_instance.get();
+        std::call_once(isInitialized, LoggerImpl::initialize);
+        return *m_instance.get();
+    }
+
+    static Array<spdlog::sink_ptr>& getSinks() noexcept {
+        std::call_once(isInitialized, LoggerImpl::initialize);
+        return m_instance->m_impl->m_sinks;
     }
 };
 
@@ -29,10 +33,8 @@ Log Logger::get(const String& name)
     // If it does not exist, create it from the current sinks.
     if (log == nullptr)
     {
-        // TODO: create log
-        //LoggerImpl::getLogger().sinks()
-        //spdlog::register_logger(logger);
-        throw;
+        const auto& sinks = LoggerImpl::getSinks();
+        spdlog::register_logger(makeShared<spdlog::logger>(name, std::begin(sinks), std::end(sinks)));
     }
 
     return Log(name);
@@ -41,6 +43,5 @@ Log Logger::get(const String& name)
 template <typename TSink, std::enable_if_t<std::is_convertible_v<TSink*, ISink*>, int>, typename ...TArgs>
 static void Logger::sinkTo(const LogLevel& level, const String& name, const String& pattern, TArgs&&... args)
 {
-    //LoggerImpl::getLogger().sinks().push_back(TSink(level, name, pattern, std::forward<TArgs>(args)...));
-    throw;
+    LoggerImpl::getSinks().push_back(TSink(level, name, pattern, std::forward<TArgs>(args)...));
 }

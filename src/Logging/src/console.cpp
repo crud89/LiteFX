@@ -29,7 +29,7 @@ public:
         return m_pattern;
     }
 
-    SharedPtr<spdlog::sinks::sink> get() const
+    spdlog::sink_ptr get() const
     {
         return m_sink;
     }
@@ -57,7 +57,7 @@ const String& ConsoleSink::getPattern() const
     return m_impl->getPattern();
 }
 
-SharedPtr<spdlog::sinks::sink> ConsoleSink::get() const
+spdlog::sink_ptr ConsoleSink::get() const
 {
     return m_impl->get();
 }

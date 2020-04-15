@@ -50,7 +50,7 @@ namespace LiteFX::Logging {
 
     protected:
         friend class Logger;
-        virtual SharedPtr<spdlog::sinks::sink> get() const = 0;
+        virtual spdlog::sink_ptr get() const = 0;
     };
 
     class LITEFX_LOGGING_API ConsoleSink : public ISink {
@@ -73,7 +73,7 @@ namespace LiteFX::Logging {
         virtual const String& getPattern() const override;
 
     protected:
-        virtual SharedPtr<spdlog::sinks::sink> get() const override;
+        virtual spdlog::sink_ptr get() const override;
     };
 
     class LITEFX_LOGGING_API RollingFileSink : public ISink {
@@ -102,7 +102,7 @@ namespace LiteFX::Logging {
         virtual int getMaxFiles() const;
 
     protected:
-        virtual SharedPtr<spdlog::sinks::sink> get() const override;
+        virtual spdlog::sink_ptr get() const override;
     };
 
     class LITEFX_LOGGING_API Log {

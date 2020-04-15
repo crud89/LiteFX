@@ -48,7 +48,7 @@ public:
         return m_maxFiles;
     }
 
-    SharedPtr<spdlog::sinks::sink> get() const
+    spdlog::sink_ptr get() const
     {
         return m_sink;
     }
@@ -91,7 +91,7 @@ int RollingFileSink::getMaxFiles() const
     return m_impl->getMaxFiles();
 }
 
-SharedPtr<spdlog::sinks::sink> RollingFileSink::get() const
+spdlog::sink_ptr RollingFileSink::get() const
 {
     return m_impl->get();
 }
