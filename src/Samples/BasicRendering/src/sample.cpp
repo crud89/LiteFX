@@ -8,11 +8,16 @@ void SampleApp::run()
         .withQueue(QueueType::Graphics)
         .go();
 
-    while (!::glfwWindowShouldClose(m_window.get())) 
-    {
-    	::glfwPollEvents();
-    }
+    while (!::glfwWindowShouldClose(m_window.get()))
+        this->handleEvents();
 
     ::glfwDestroyWindow(m_window.get());
     ::glfwTerminate();
+}
+
+void SampleApp::handleEvents()
+{
+    ::glfwPollEvents();
+
+    // TODO: Write event handlers.
 }

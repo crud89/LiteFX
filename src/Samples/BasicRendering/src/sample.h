@@ -44,4 +44,5 @@ public:
 		return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
 	}
 	virtual void run() override;
+	void handleEvents();
 };
