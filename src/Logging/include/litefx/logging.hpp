@@ -36,17 +36,17 @@ namespace LiteFX::Logging {
         /// <summary>
         /// Gets the minimum log level for messages to get written to the log.
         /// </summary>
-        virtual const LogLevel& getLevel() const = 0;
+        virtual LogLevel getLevel() const = 0;
 
         /// <summary>
         /// Gets the name of the sink.
         /// </summary>
-        virtual const String& getName() const = 0;
+        virtual String getName() const = 0;
 
         /// <summary>
         /// Gets the pattern used to format the messages for the sink.
         /// </summary>
-        virtual const String& getPattern() const = 0;
+        virtual String getPattern() const = 0;
 
     protected:
         friend class Logger;
@@ -64,13 +64,13 @@ namespace LiteFX::Logging {
 
     public:
         /// <inheritdoc />
-        virtual const LogLevel& getLevel() const override;
+        virtual LogLevel getLevel() const override;
 
         /// <inheritdoc />
-        virtual const String& getName() const override;
+        virtual String getName() const override;
 
         /// <inheritdoc />
-        virtual const String& getPattern() const override;
+        virtual String getPattern() const override;
 
     protected:
         virtual spdlog::sink_ptr get() const override;
@@ -87,15 +87,15 @@ namespace LiteFX::Logging {
 
     public:
         /// <inheritdoc />
-        virtual const LogLevel& getLevel() const override;
+        virtual LogLevel getLevel() const override;
 
         /// <inheritdoc />
-        virtual const String& getName() const override;
+        virtual String getName() const override;
 
         /// <inheritdoc />
-        virtual const String& getPattern() const override;
+        virtual String getPattern() const override;
 
-        virtual const String& getFileName() const;
+        virtual String getFileName() const;
 
         virtual bool getTruncate() const;
 
@@ -126,40 +126,37 @@ namespace LiteFX::Logging {
     public:
         template<typename ...TArgs>
         void log(const LogLevel& level, const String& format, TArgs&&... args) {
-            spdlog::memory_buf_t message;
-            fmt::format_to(message, format, std::forward<TArgs>(args)...);
-
-            this->log(level, message);
+            this->log(level, fmt::format(format, std::forward<TArgs>(args)...));
         }
 
         template<typename ...TArgs>
         void trace(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Trace, format, std::forward<TArgs>(_args)...);
+            return this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
         void debug(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Debug, format, std::forward<TArgs>(_args)...);
+            return this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
         void info(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Info, format, std::forward<TArgs>(_args)...);
+            return this->log(LogLevel::Info, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
         void warning(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Warning, format, std::forward<TArgs>(_args)...);
+            return this->log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
         void error(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Error, format, std::forward<TArgs>(_args)...);
+            return this->log(LogLevel::Error, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
         void fatal(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Fatal, format, std::forward<TArgs>(_args)...);
+            return this->log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
         }
     };
 

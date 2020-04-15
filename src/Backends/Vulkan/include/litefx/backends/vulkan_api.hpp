@@ -26,6 +26,8 @@ namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
 
+    constexpr char VULKAN_LOG[] = "Backend::Vulkan";
+
     // Conversion helpers.
     /// <summary>
     /// 

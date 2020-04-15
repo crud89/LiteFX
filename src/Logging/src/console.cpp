@@ -41,17 +41,17 @@ ConsoleSink::ConsoleSink(const LogLevel& level, const String& pattern) noexcept 
 
 ConsoleSink::~ConsoleSink() noexcept = default;
 
-const String& ConsoleSink::getName() const
+String ConsoleSink::getName() const
 {
     return "spdlog::sinks::ansicolor_stdout_sink_mt";
 }
 
-const LogLevel& ConsoleSink::getLevel() const
+LogLevel ConsoleSink::getLevel() const
 {
     return m_impl->getLevel();
 }
 
-const String& ConsoleSink::getPattern() const
+String ConsoleSink::getPattern() const
 {
     return m_impl->getPattern();
 }

@@ -60,22 +60,22 @@ RollingFileSink::RollingFileSink(const String& fileName, const LogLevel& level, 
 
 RollingFileSink::~RollingFileSink() noexcept = default;
 
-const String& RollingFileSink::getName() const
+String RollingFileSink::getName() const
 {
     return "spdlog::sinks::daily_file_sink_mt";
 }
 
-const LogLevel& RollingFileSink::getLevel() const
+LogLevel RollingFileSink::getLevel() const
 {
     return m_impl->getLevel();
 }
 
-const String& RollingFileSink::getFileName() const
+String RollingFileSink::getFileName() const
 {
     return m_impl->getFileName();
 }
 
-const String& RollingFileSink::getPattern() const
+String RollingFileSink::getPattern() const
 {
     return m_impl->getPattern();
 }
