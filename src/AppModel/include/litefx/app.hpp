@@ -15,9 +15,11 @@
 #endif
 
 #include <litefx/core.h>
-#include <iostream>
+#include <litefx/logging.hpp>
 
 namespace LiteFX {
+	using namespace LiteFX::Logging;
+
 	class IBackend;
 	class AppVersion;
 	class App;
@@ -83,6 +85,13 @@ namespace LiteFX {
 	public:
 		void use(UniquePtr<IBackend>&& backend);
 		virtual UniquePtr<App> go() override;
+
+		template <typename TSink, std::enable_if_t<std::is_convertible_v<TSink*, ISink*>, int> = 0, typename ...TArgs>
+		AppBuilder& logTo(TArgs&&... args) {
+			auto sink = makeUnique<TSink>(std::forward<TArgs>(args)...);
+			Logger::sinkTo(sink.get());
+			return *this;
+		}
 	};
 
 	class LITEFX_APPMODEL_API AppVersion {
