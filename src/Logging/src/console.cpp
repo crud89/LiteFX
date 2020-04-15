@@ -5,23 +5,22 @@ using namespace LiteFX::Logging;
 
 class ConsoleSink::ConsoleSinkImpl {
 private:
-    String m_name, m_pattern;
+    String m_pattern;
     LogLevel m_level;
     SharedPtr<spdlog::sinks::ansicolor_stdout_sink_mt> m_sink;
 
 public:
-    ConsoleSinkImpl(const LogLevel& level, const String& name, const String& pattern) :
-        m_name(name), m_pattern(pattern), m_level(level), m_sink(makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>()) { }
+    ConsoleSinkImpl(const LogLevel& level, const String& pattern) : 
+        m_pattern(pattern), m_level(level), m_sink(makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>()) 
+    { 
+        m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
+        m_sink->set_pattern(pattern);
+    }
 
 public:
     const LogLevel& getLevel() const
     {
         return m_level;
-    }
-
-    const String& getName() const
-    {
-        return m_name;
     }
 
     const String& getPattern() const
@@ -35,8 +34,8 @@ public:
     }
 };
 
-ConsoleSink::ConsoleSink(const LogLevel& level, const String& name, const String& pattern) noexcept :
-    m_impl(makePimpl<ConsoleSinkImpl>(level, name, pattern))
+ConsoleSink::ConsoleSink(const LogLevel& level, const String& pattern) noexcept :
+    m_impl(makePimpl<ConsoleSinkImpl>(level, pattern))
 {
 }
 
@@ -44,7 +43,7 @@ ConsoleSink::~ConsoleSink() noexcept = default;
 
 const String& ConsoleSink::getName() const
 {
-    return m_impl->getName();
+    return "spdlog::sinks::ansicolor_stdout_sink_mt";
 }
 
 const LogLevel& ConsoleSink::getLevel() const

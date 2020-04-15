@@ -16,18 +16,18 @@
 
 #include <litefx/core.h>
 #include <spdlog/sinks/sink.h>
-#include <mutex>
 
 namespace LiteFX::Logging {
     using namespace LiteFX;
 
     enum class LITEFX_LOGGING_API LogLevel {
-        Trace = 0x01,
-        Debug = 0x02,
-        Info = 0x03,
-        Warning = 0x04,
-        Error = 0x05,
-        Fatal = 0x06,
+        Trace = SPDLOG_LEVEL_TRACE,
+        Debug = SPDLOG_LEVEL_DEBUG,
+        Info = SPDLOG_LEVEL_INFO,
+        Warning = SPDLOG_LEVEL_WARN,
+        Error = SPDLOG_LEVEL_ERROR,
+        Fatal = SPDLOG_LEVEL_CRITICAL,
+        Off = SPDLOG_LEVEL_OFF,
         Invalid = 0xFF
     };
 
@@ -57,7 +57,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(ConsoleSinkImpl)
 
     public:
-        ConsoleSink(const LogLevel& level, const String& name, const String& pattern) noexcept;
+        ConsoleSink(const LogLevel& level = LogLevel::Info, const String& pattern = "%+") noexcept;
         ConsoleSink(const ConsoleSink&) = delete;
         ConsoleSink(ConsoleSink&&) = delete;
         virtual ~ConsoleSink() noexcept;
@@ -80,7 +80,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(RollingFileSinkImpl)
 
     public:
-        RollingFileSink(const LogLevel& level, const String& name, const String& pattern, const String& fileName, const bool& truncate = false, const int& maxFiles = 0) noexcept;
+        RollingFileSink(const String& fileName, const LogLevel& level = LogLevel::Info, const String& pattern = "%+", const bool& truncate = false, const int& maxFiles = 0) noexcept;
         RollingFileSink(const RollingFileSink&) = delete;
         RollingFileSink(RollingFileSink&&) = delete;
         virtual ~RollingFileSink() noexcept;
@@ -125,25 +125,42 @@ namespace LiteFX::Logging {
 
     public:
         template<typename ...TArgs>
-        void log(const LogLevel& level, const String& format, TArgs&&... args);
+        void log(const LogLevel& level, const String& format, TArgs&&... args) {
+            spdlog::memory_buf_t message;
+            fmt::format_to(message, format, std::forward<TArgs>(args)...);
+
+            this->log(level, message);
+        }
 
         template<typename ...TArgs>
-        void trace(const String& format, TArgs&&... args);
+        void trace(const String& format, TArgs&&... args) {
+            return this->log(LogLevel::Trace, format, std::forward<TArgs>(_args)...);
+        }
 
         template<typename ...TArgs>
-        void debug(const String& format, TArgs&&... args);
+        void debug(const String& format, TArgs&&... args) {
+            return this->log(LogLevel::Debug, format, std::forward<TArgs>(_args)...);
+        }
 
         template<typename ...TArgs>
-        void info(const String& format, TArgs&&... args);
+        void info(const String& format, TArgs&&... args) {
+            return this->log(LogLevel::Info, format, std::forward<TArgs>(_args)...);
+        }
 
         template<typename ...TArgs>
-        void warning(const String& format, TArgs&&... args);
+        void warning(const String& format, TArgs&&... args) {
+            return this->log(LogLevel::Warning, format, std::forward<TArgs>(_args)...);
+        }
 
         template<typename ...TArgs>
-        void error(const String& format, TArgs&&... args);
+        void error(const String& format, TArgs&&... args) {
+            return this->log(LogLevel::Error, format, std::forward<TArgs>(_args)...);
+        }
 
         template<typename ...TArgs>
-        void fatal(const String& format, TArgs&&... args);
+        void fatal(const String& format, TArgs&&... args) {
+            return this->log(LogLevel::Fatal, format, std::forward<TArgs>(_args)...);
+        }
     };
 
     class LITEFX_LOGGING_API Logger {
@@ -161,10 +178,7 @@ namespace LiteFX::Logging {
     public:
         // TODO: Cache logs by name and return them, instead of re-creating them with each call.
         static Log get(const String & name);
-
-        // Adds a sink.
-        template <typename TSink, std::enable_if_t<std::is_convertible_v<TSink*, ISink*>, int> = 0, typename ...TArgs>
-        static void sinkTo(const LogLevel & level, const String & name, const String & pattern, TArgs &&... args);
+        static void sinkTo(const ISink* sink);
     };
 
 }

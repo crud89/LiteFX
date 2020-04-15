@@ -12,6 +12,7 @@ MESSAGE (STATUS "Installing package dependencies...")
 VCPKG_INSTALL (spdlog)
 
 # Resolve package dependencies.
+# NOTE: spdlog also imports the fmt::fmt target.
 FIND_PACKAGE(spdlog CONFIG REQUIRED)
 
 # Collect header & source files.
@@ -53,9 +54,10 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Logging
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Logging
-    PUBLIC LiteFX.Core
-    PRIVATE spdlog::spdlog spdlog::spdlog_header_only
+    PUBLIC LiteFX.Core spdlog::spdlog
+    PRIVATE spdlog::spdlog_header_only
 )
+
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)
     TARGET_PRECOMPILE_HEADERS(LiteFX.Logging REUSE_FROM LiteFX.Core)
@@ -71,6 +73,11 @@ INSTALL(TARGETS LiteFX.Logging EXPORT LiteFXLoggingConfig
 
 INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
 INSTALL(EXPORT LiteFXLoggingConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+
+# Install GLFW
+SET (FMT_LOCATION "")
+GET_TARGET_PROPERTY(FMT_LOCATION fmt::fmt LOCATION)
+INSTALL(FILES ${FMT_LOCATION} DESTINATION ${CMAKE_INSTALL_BINARY_DIR})
 
 # Export config.
 EXPORT(TARGETS LiteFX.Logging FILE LiteFXLoggingConfig.cmake)
