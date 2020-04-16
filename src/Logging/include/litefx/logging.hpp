@@ -185,3 +185,15 @@ namespace LiteFX::Logging {
     };
 
 }
+
+#ifndef NDEBUG
+#define LITEFX_TRACE(log, format, ...) LiteFX::Logging::Logger::get(log).trace(format, __VA_ARGS__)
+#define LITEFX_DEBUG(log, format, ...) LiteFX::Logging::Logger::get(log).debug(format, __VA_ARGS__)
+#else
+#define LITEFX_TRACE(log, format, ...) 
+#define LITEFX_DEBUG(log, format, ...) 
+#endif
+#define LITEFX_INFO(log, format, ...) LiteFX::Logging::Logger::get(log).info(format, __VA_ARGS__)
+#define LITEFX_WARNING(log, format, ...) LiteFX::Logging::Logger::get(log).warning(format, __VA_ARGS__)
+#define LITEFX_ERROR(log, format, ...) LiteFX::Logging::Logger::get(log).error(format, __VA_ARGS__)
+#define LITEFX_FATAL_ERROR(log, format, ...) LiteFX::Logging::Logger::get(log).fatal(format, __VA_ARGS__)
