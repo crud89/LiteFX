@@ -48,5 +48,6 @@ const IBackend* App::operator[](const BackendType& type) const
 
 void App::use(UniquePtr<IBackend>&& backend)
 {
+	Logger::get(this->getName()).trace("Using backend {0} (current backend: {1})...", fmt::ptr(backend.get()), fmt::ptr(m_impl->findBackend(backend->getType())));
 	return m_impl->useBackend(std::move(backend));
 }

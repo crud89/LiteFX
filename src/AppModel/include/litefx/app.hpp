@@ -1,42 +1,10 @@
 #pragma once
 
-#if !defined (LITEFX_APPMODEL_API)
-#  if defined(LiteFX_AppModel_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_APPMODEL_API __declspec(dllexport)
-#  elif (defined(LiteFX_AppModel_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_APPMODEL_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_AppModel_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_APPMODEL_API __declspec(dllimport)
-#  endif
-#endif
-
-#ifndef LITEFX_APPMODEL_API
-#  define LITEFX_APPMODEL_API
-#endif
-
-#include <litefx/core.h>
-#include <litefx/logging.hpp>
+#include <litefx/app_api.hpp>
+#include <litefx/app_formatters.hpp>
 
 namespace LiteFX {
 	using namespace LiteFX::Logging;
-
-	class IBackend;
-	class AppVersion;
-	class App;
-	class AppBuilder;
-
-	enum class LITEFX_APPMODEL_API Platform {
-		None = 0x00000000,
-		Win32 = 0x00000001,
-		// TODO: ...
-		Other = 0x7FFFFFFF
-	};
-
-	enum class LITEFX_APPMODEL_API BackendType {
-		Rendering = 0x01,
-		//Physics = 0x02,
-		Other = 0xFF
-	};
 
 	class IBackend {
 	public:
@@ -117,3 +85,30 @@ namespace LiteFX {
 	};
 
 }
+
+template <>
+struct fmt::formatter<LiteFX::AppVersion> {
+	bool engineVersion = false;
+
+	constexpr auto parse(format_parse_context& ctx) {
+		auto it = ctx.begin(), end = ctx.end();
+
+		if (it != end && (*it == 'e'))
+		{
+			engineVersion = true;
+			it++;
+		}
+
+		if (it != end && *it != '}')
+			throw format_error("Invalid version format: expected: `}`.");
+
+		return it;
+	}
+
+	template <typename FormatContext>
+	auto format(const LiteFX::AppVersion& app, FormatContext& ctx) {
+		return engineVersion ?
+			format_to(ctx.out(), "{} Version {}", app.getEngineIdentifier(), app.getEngineVersion()) :
+			format_to(ctx.out(), "{}.{}.{}.{}", app.getMajor(), app.getMinor(), app.getPatch(), app.getRevision());
+	}
+};

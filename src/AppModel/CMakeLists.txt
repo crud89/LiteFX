@@ -10,12 +10,13 @@ MESSAGE(STATUS "Initializing: LiteFX.AppModel...")
 # Collect header & source files.
 SET(APP_MODEL_HEADERS
     "include/litefx/app.hpp"
+    "include/litefx/app_api.hpp"
 )
 
 SET(APP_MODEL_SOURCES
     "src/app.cpp"
-    "src/app_builder.cpp"
     "src/appversion.cpp"
+    "src/app_builder.cpp"
  )
 
 ADD_LIBRARY(LiteFX.AppModel SHARED
