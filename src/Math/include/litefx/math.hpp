@@ -589,10 +589,6 @@ namespace LiteFX::Math {
 	public:
 		inline Vector<size_t, 2> position() const noexcept;
 		inline Size2d extent() const noexcept;
-		inline const size_t& x() const noexcept;
-		inline size_t& x() noexcept;
-		inline const size_t& y() const noexcept;
-		inline size_t& y() noexcept;
 		inline const size_t& width() const noexcept;
 		inline size_t& width() noexcept;
 		inline const size_t& height() const noexcept;
@@ -615,10 +611,6 @@ namespace LiteFX::Math {
 	public:
 		inline Vector<Float, 2> position() const noexcept;
 		inline Size2d extent() const noexcept;
-		inline const Float& x() const noexcept;
-		inline Float& x() noexcept;
-		inline const Float& y() const noexcept;
-		inline Float& y() noexcept;
 		inline const Float& width() const noexcept;
 		inline Float& width() noexcept;
 		inline const Float& height() const noexcept;

@@ -45,22 +45,6 @@ Size2d Rect::extent() const noexcept {
 	return Size2d(this->z(), this->w());
 }
 
-const size_t& Rect::x() const noexcept {
-	return this->x();
-}
-
-size_t& Rect::x() noexcept {
-	return this->x();
-}
-
-const size_t& Rect::y() const noexcept {
-	return this->y();
-}
-
-size_t& Rect::y() noexcept {
-	return this->y();
-}
-
 const size_t& Rect::width() const noexcept {
 	return this->z();
 }
@@ -115,22 +99,6 @@ Vector<Float, 2> RectF::position() const noexcept {
 
 Size2d RectF::extent() const noexcept {
 	return Size2d(this->z(), this->w());
-}
-
-const Float& RectF::x() const noexcept {
-	return this->x();
-}
-
-Float& RectF::x() noexcept {
-	return this->x();
-}
-
-const Float& RectF::y() const noexcept {
-	return this->y();
-}
-
-Float& RectF::y() noexcept {
-	return this->y();
 }
 
 const Float& RectF::width() const noexcept {
