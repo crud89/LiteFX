@@ -15,6 +15,8 @@
 #endif
 
 #include <litefx/core.h>
+#include <fmt/core.h>
+#include <spdlog/spdlog.h>
 #include <spdlog/sinks/sink.h>
 
 namespace LiteFX::Logging {
