@@ -118,6 +118,8 @@ public:
 		// -VK_PRESENT_MODE_MAILBOX_KHR: to enable triple buffering
 		createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} (images: {1}, extent: {2}x{3} Px).", fmt::ptr(m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height);
+
 		// Create the swap chain instance.
 		VkSwapchainKHR swapChain;
 

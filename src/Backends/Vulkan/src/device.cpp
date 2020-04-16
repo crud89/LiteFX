@@ -188,12 +188,13 @@ const ISwapChain* VulkanDevice::getSwapChain() const noexcept
 
 void VulkanDevice::create(const Format& format, ICommandQueue* queue)
 {
+	LITEFX_DEBUG(VULKAN_LOG, "Creating device on surface {0} (adapterId: {1}, format: {2}, extensions: {3})...", fmt::ptr(this->getSurface()), this->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
+
 	auto deviceQueue = dynamic_cast<VulkanQueue*>(queue);
 
 	if (deviceQueue == nullptr)
 		throw std::invalid_argument("The argument `deviceQueue` is not a valid Vulkan queue.");
 
-	// TODO: Check the null-test.
 	auto& h = this->handle();
 	
 	if (h != nullptr)

@@ -21,14 +21,23 @@ template <>
 struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::QueueType> : formatter<string_view> {
 	template <typename FormatContext>
 	auto format(LiteFX::Rendering::QueueType t, FormatContext& ctx) {
-		string_view name = "Invalid";
-		switch (t) {
-		case LiteFX::Rendering::QueueType::Compute: name = "Compute"; break;
-		case LiteFX::Rendering::QueueType::Graphics: name = "Graphics"; break;
-		case LiteFX::Rendering::QueueType::Transfer: name = "Transfer"; break;
-		case LiteFX::Rendering::QueueType::Other: name = "Other"; break;
-		case LiteFX::Rendering::QueueType::None: name = "None"; break;
+		Array<String> names;
+
+		if (t == LiteFX::Rendering::QueueType::None)
+			names.push_back("None");
+		else if(t == LiteFX::Rendering::QueueType::Other)
+			names.push_back("Other");
+		else 
+		{
+			if ((t & LiteFX::Rendering::QueueType::Compute) == LiteFX::Rendering::QueueType::Compute)
+				names.push_back("Compute");
+			if ((t & LiteFX::Rendering::QueueType::Graphics) == LiteFX::Rendering::QueueType::Graphics)
+				names.push_back("Graphics");
+			if ((t & LiteFX::Rendering::QueueType::Transfer) == LiteFX::Rendering::QueueType::Transfer)
+				names.push_back("Transfer");
 		}
+
+		String name = Join(names, " | ");
 		return formatter<string_view>::format(name, ctx);
 	}
 };
@@ -52,16 +61,27 @@ template <>
 struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::ShaderType> : formatter<string_view> {
 	template <typename FormatContext>
 	auto format(LiteFX::Rendering::ShaderType t, FormatContext& ctx) {
-		string_view name = "Invalid";
-		switch (t) {
-		case LiteFX::Rendering::ShaderType::Vertex: name = "Vertex"; break;
-		case LiteFX::Rendering::ShaderType::TessellationControl: name = "Tessellation Control"; break;
-		case LiteFX::Rendering::ShaderType::TessellationEvaluation: name = "Tessellation Evaluation"; break;
-		case LiteFX::Rendering::ShaderType::Geometry: name = "Geometry"; break;
-		case LiteFX::Rendering::ShaderType::Fragment: name = "Fragment"; break;
-		case LiteFX::Rendering::ShaderType::Compute: name = "Compute"; break;
-		case LiteFX::Rendering::ShaderType::Other: name = "Other"; break;
+		Array<String> names;
+		
+		if (t == LiteFX::Rendering::ShaderType::Other)
+			names.push_back("Other");
+		else
+		{
+			if ((t & LiteFX::Rendering::ShaderType::Vertex) == LiteFX::Rendering::ShaderType::Vertex)
+				names.push_back("Vertex");
+			if ((t & LiteFX::Rendering::ShaderType::TessellationControl) == LiteFX::Rendering::ShaderType::TessellationControl)
+				names.push_back("Tessellation Control");
+			if ((t & LiteFX::Rendering::ShaderType::TessellationEvaluation) == LiteFX::Rendering::ShaderType::TessellationEvaluation)
+				names.push_back("Tessellation Evaluation");
+			if ((t & LiteFX::Rendering::ShaderType::Geometry) == LiteFX::Rendering::ShaderType::Geometry)
+				names.push_back("Geometry");
+			if ((t & LiteFX::Rendering::ShaderType::Fragment) == LiteFX::Rendering::ShaderType::Fragment)
+				names.push_back("Fragment");
+			if ((t & LiteFX::Rendering::ShaderType::Compute) == LiteFX::Rendering::ShaderType::Compute)
+				names.push_back("Compute");
 		}
+
+		String name = Join(names, " | ");
 		return formatter<string_view>::format(name, ctx);
 	}
 };

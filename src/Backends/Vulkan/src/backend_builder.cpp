@@ -30,7 +30,7 @@ AppBuilder& VulkanBackendBuilder::go()
 
 VulkanBackendBuilder& VulkanBackendBuilder::withSurface(UniquePtr<ISurface>&& surface)
 {
-    Logger::get(VULKAN_LOG).trace("Settings surface...");
+    Logger::get(VULKAN_LOG).trace("Setting surface...");
     this->instance()->use(std::move(surface));
     return *this;
 }

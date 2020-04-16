@@ -52,6 +52,7 @@ void VulkanQueue::initDeviceQueue(const VulkanDevice* device)
 	if (this->handle() != nullptr)
 		throw std::runtime_error("The queue is already initialized.");
 
+	LITEFX_TRACE(VULKAN_LOG, "Initializing device queue for device {0} (id: {1}, type: {2})...", fmt::ptr(device), this->getId(), this->getType());
 	 m_impl->createDeviceQueue(device, this->handle());
 }
 
