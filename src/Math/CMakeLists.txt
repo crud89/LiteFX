@@ -10,12 +10,12 @@ MESSAGE(STATUS "Initializing: LiteFX.Math...")
 # Install packages.
 MESSAGE(STATUS "Installing package dependencies...")
 
-SET(PRIVATE_LINK_LIBS "")
+SET(TARGET_LINK_LIBS "")
 
 IF(BUILD_WITH_GLM)
     VCPKG_INSTALL(glm)
     FIND_PACKAGE(glm CONFIG REQUIRED)
-    LIST(APPEND PRIVATE_LINK_LIBS "glm")
+    LIST(APPEND TARGET_LINK_LIBS "glm")
 ENDIF(BUILD_WITH_GLM)
 
 # Collect header & source files.
@@ -58,8 +58,7 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Math
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Math
-    PUBLIC LiteFX.Core
-    PRIVATE ${PRIVATE_LINK_LIBS}
+    PUBLIC LiteFX.Core ${TARGET_LINK_LIBS}
 )
 
 # Re-use pre-compiled core header.
