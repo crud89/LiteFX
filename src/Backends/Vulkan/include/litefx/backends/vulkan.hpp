@@ -11,7 +11,32 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	// Class definitions.
-	
+	class LITEFX_VULKAN_API VulkanInputAssembler : public IInputAssembler {
+		LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl)
+
+	public:
+		VulkanInputAssembler() noexcept;
+		VulkanInputAssembler(UniquePtr<BufferLayout>&&) noexcept;
+		VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
+		VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
+		virtual ~VulkanInputAssembler() noexcept;
+
+	public:
+		virtual const BufferLayout* getLayout() const override;
+		virtual void use(UniquePtr<BufferLayout>&& layout) const override;
+	};
+
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public IRenderPipelineLayout {
+
+	public:
+		
+	};
+
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public IRenderPipeline {
+	public:
+		//const IRenderPipelineLayout* getLayout() const noexcept override;
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>
