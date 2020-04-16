@@ -10,7 +10,7 @@ namespace LiteFX {
 
     // Based on: https://stackoverflow.com/a/5289170/1254352
     template <typename TStrings, typename Value = typename TStrings::value_type>
-    String Join(const TStrings& elements, const String& delimiter) 
+    String Join(const TStrings& elements, const String& delimiter = "") 
     {
         std::ostringstream stream;
 
