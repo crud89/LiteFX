@@ -30,6 +30,8 @@ SET(RENDERING_SOURCES
     "src/backend.cpp"
     "src/device.cpp"
     "src/pipeline_builder.cpp"
+    "src/buffer_attribute.cpp"
+    "src/buffer_layout.cpp"
 )
 
 # Add shared library project.
