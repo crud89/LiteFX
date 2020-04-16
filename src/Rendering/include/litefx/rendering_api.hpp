@@ -66,6 +66,24 @@ namespace LiteFX::Rendering {
 		Other = 0x7FFFFFFF
 	};
 
+	enum class LITEFX_RENDERING_API PolygonMode {
+		Solid = 0x00000001,
+		Wireframe = 0x00000002,
+		Point = 0x00000004
+	};
+
+	enum class LITEFX_RENDERING_API CullMode {
+		FrontFaces = 0x00000001,
+		BackFaces = 0x00000002,
+		Both = 0x00000004,
+		Disabled = 0x0000000F
+	};
+
+	enum class LITEFX_RENDERING_API CullOrder {
+		ClockWise = 0x00000001,
+		CounterClockWise = 0x00000002
+	};
+
 	// Define flags.
 	LITEFX_DEFINE_FLAGS(QueueType);
 	LITEFX_DEFINE_FLAGS(ShaderType);

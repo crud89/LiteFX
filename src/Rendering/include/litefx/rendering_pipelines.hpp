@@ -31,6 +31,7 @@ namespace LiteFX::Rendering {
         virtual ~IShaderProgram() noexcept = default;
     };
 
+    // TODO: Rename to ShaderProgramBuilder
     //class LITEFX_RENDERING_API RenderPipelineBuilder : public Builder<IRenderPipeline> {
     //    LITEFX_IMPLEMENTATION(RenderPipelineBuilderImpl)
 

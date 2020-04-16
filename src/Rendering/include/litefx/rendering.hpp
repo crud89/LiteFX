@@ -11,6 +11,32 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	// Define interfaces.
+	class LITEFX_RENDERING_API IRasterizer {
+	public:
+		virtual ~IRasterizer() noexcept = default;
+
+	public:
+		virtual PolygonMode getPolygonMode() const noexcept = 0;
+		virtual void setPolygonMode(const PolygonMode& mode) noexcept = 0;
+		virtual CullMode getCullMode() const noexcept = 0;
+		virtual void setCullMode(const CullMode& mode) noexcept = 0;
+		virtual CullOrder getCullOrder() const noexcept = 0;
+		virtual void setCullOrder(const CullOrder& order) noexcept = 0;
+		virtual Float getLineWidth() const noexcept = 0;
+		virtual void setLineWidth(const Float& width) noexcept = 0;
+	};
+
+	class LITEFX_RENDERING_API IViewport {
+	public:
+		virtual ~IViewport() noexcept = default;
+
+	public:
+		virtual RectF getRectangle() const noexcept = 0;
+		virtual void setRectangle(const RectF& rectangle) const noexcept = 0;
+		virtual const Array<RectF>& getScissors() const noexcept = 0;
+		virtual Array<RectF>& getScissors() noexcept = 0;
+	};
+
 	class LITEFX_RENDERING_API ITexture {
 	public:
 		virtual ~ITexture() noexcept = default;
