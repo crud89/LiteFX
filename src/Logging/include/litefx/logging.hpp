@@ -131,32 +131,36 @@ namespace LiteFX::Logging {
 
         template<typename ...TArgs>
         void trace(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
+#ifndef NDEBUG
+            this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
+#endif
         }
 
         template<typename ...TArgs>
         void debug(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
+#ifndef NDEBUG
+            this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
+#endif
         }
 
         template<typename ...TArgs>
         void info(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Info, format, std::forward<TArgs>(args)...);
+            this->log(LogLevel::Info, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
         void warning(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
+            this->log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
         void error(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Error, format, std::forward<TArgs>(args)...);
+            this->log(LogLevel::Error, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
         void fatal(const String& format, TArgs&&... args) {
-            return this->log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
+            this->log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
         }
     };
 
