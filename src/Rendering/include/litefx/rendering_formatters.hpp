@@ -62,7 +62,7 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::ShaderType> : form
 	template <typename FormatContext>
 	auto format(LiteFX::Rendering::ShaderType t, FormatContext& ctx) {
 		Array<String> names;
-		
+
 		if (t == LiteFX::Rendering::ShaderType::Other)
 			names.push_back("Other");
 		else
@@ -82,6 +82,119 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::ShaderType> : form
 		}
 
 		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferFormat> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::BufferFormat t, FormatContext& ctx) {
+		Array<String> names;
+
+		switch (::getBufferFormatChannels(t))
+		{
+		case 1:
+			names.push_back("X");
+		case 2:
+			names.push_back("Y");
+		case 3:
+			names.push_back("Z");
+		case 4:
+			names.push_back("W");
+			break;
+		default:
+			return formatter<string_view>::format("Invalid", ctx);
+		}
+
+		switch (::getBufferFormatSize(t))
+		{
+		case 8:
+			names.push_back("8");
+			break;
+		case 16:
+			names.push_back("16");
+			break;
+		case 32:
+			names.push_back("32");
+			break;
+		case 64:
+			names.push_back("64");
+			break;
+		default:
+			return formatter<string_view>::format("Invalid", ctx);
+		}
+
+		switch (::getBufferFormatType(t))
+		{
+		case 0x01:
+			names.push_back("F");
+			break;
+		case 0x02:
+			names.push_back("I");
+			break;
+		case 0x04:
+			names.push_back("S");
+			break;
+		default:
+			return formatter<string_view>::format("Invalid", ctx);
+		}
+
+		String name = Join(names);
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::PolygonMode> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::PolygonMode t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::PolygonMode::Solid: name = "Solid"; break;
+		case LiteFX::Rendering::PolygonMode::Wireframe: name = "Wireframe"; break;
+		case LiteFX::Rendering::PolygonMode::Point: name = "Point"; break;
+		default: name = "Invalid"; break;
+		}
+
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::CullMode> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::CullMode t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::CullMode::FrontFaces: name = "FrontFaces"; break;
+		case LiteFX::Rendering::CullMode::BackFaces: name = "BackFaces"; break;
+		case LiteFX::Rendering::CullMode::Both: name = "Both"; break;
+		case LiteFX::Rendering::CullMode::Disabled: name = "Disabled"; break;
+		default: name = "Invalid"; break;
+		}
+
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::CullOrder> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::CullOrder t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::CullOrder::ClockWise: name = "ClockWise"; break;
+		case LiteFX::Rendering::CullOrder::CounterClockWise: name = "CounterClockWise"; break;
+		default: name = "Invalid"; break;
+		}
+
 		return formatter<string_view>::format(name, ctx);
 	}
 };

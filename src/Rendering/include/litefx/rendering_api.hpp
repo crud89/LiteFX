@@ -15,11 +15,15 @@
 #endif
 
 #include <litefx/core.h>
+#include <litefx/math.hpp>
 
 namespace LiteFX::Rendering {
 	using namespace LiteFX;
+	using namespace LiteFX::Math;
 
 	// Forward declarations.
+	class IRasterizer;
+	class IViewport;
     class IRenderPipeline;
     class IRenderPipelineLayout;
     class IShaderModule;
@@ -56,6 +60,34 @@ namespace LiteFX::Rendering {
 		Other = 0x7FFFFFFF
 	};
 
+	enum class LITEFX_RENDERING_API BufferFormat {
+		None = 0x00000000,
+		X16F = 0x10000101,
+		X16I = 0x10000201,
+		X16U = 0x10000401,
+		XY16F = 0x10000102,
+		XY16I = 0x10000202,
+		XY16U = 0x10000402,
+		XYZ16F = 0x10000103,
+		XYZ16I = 0x10000203,
+		XYZ16U = 0x10000403,
+		XYZW16F = 0x10000104,
+		XYZW16I = 0x10000204,
+		XYZW16U = 0x10000404,
+		X32F = 0x20000101,
+		X32I = 0x20000201,
+		X32U = 0x20000401,
+		XY32F = 0x20000102,
+		XY32I = 0x20000202,
+		XY32U = 0x20000402,
+		XYZ32F = 0x20000103,
+		XYZ32I = 0x20000203,
+		XYZ32U = 0x20000403,
+		XYZW32F = 0x20000104,
+		XYZW32I = 0x20000204,
+		XYZW32U = 0x20000404
+	};
+
 	enum class LITEFX_RENDERING_API ShaderType {
 		Vertex = 0x00000001,
 		TessellationControl = 0x00000002,
@@ -87,6 +119,18 @@ namespace LiteFX::Rendering {
 	// Define flags.
 	LITEFX_DEFINE_FLAGS(QueueType);
 	LITEFX_DEFINE_FLAGS(ShaderType);
-	// ...
+	LITEFX_DEFINE_FLAGS(BufferFormat);
 
+	// Helper functions.
+	inline UInt32 getBufferFormatChannels(const BufferFormat& format) {
+		return static_cast<UInt32>(format) & 0x000000FF;
+	}
+
+	inline UInt32 getBufferFormatChannelSize(const BufferFormat& format) {
+		return (static_cast<UInt32>(format) & 0xFF000000) >> 24;
+	}
+
+	inline UInt32 getBufferFormatType(const BufferFormat& format) {
+		return static_cast<UInt32>(format) & 0x0000FF00 >> 8;
+	}
 }
