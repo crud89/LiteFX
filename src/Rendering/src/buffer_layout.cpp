@@ -15,9 +15,19 @@ public:
         m_attributes.push_back(std::move(attribute));
     }
 
-    void remove(const BufferAttribute* attribute) 
+    UniquePtr<BufferAttribute> remove(const BufferAttribute* attribute)
     {
-        std::remove_if(std::begin(m_attributes), std::end(m_attributes), [attribute](const UniquePtr<BufferAttribute>& a) {return a.get() == attribute; });
+        auto it = std::find_if(m_attributes.begin(), m_attributes.end(), [attribute](const UniquePtr<BufferAttribute>& a) { return a.get() == attribute; });
+
+        if (it == m_attributes.end())
+            return UniquePtr<BufferAttribute>();
+        else
+        {
+            auto result = std::move(*it);
+            m_attributes.erase(it);
+
+            return std::move(result);
+        }
     }
 
     Array<const BufferAttribute*> getAttributes() const noexcept
