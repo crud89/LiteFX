@@ -21,6 +21,7 @@ ENDIF(BUILD_WITH_GLM)
 # Collect header & source files.
 SET(RENDERING_HEADERS
     "include/litefx/rendering_api.hpp"
+    "include/litefx/rendering_formatters.hpp"
     "include/litefx/rendering_pipelines.hpp"
     "include/litefx/rendering.hpp"
 )

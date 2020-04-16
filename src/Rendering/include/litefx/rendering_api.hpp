@@ -70,4 +70,5 @@ namespace LiteFX::Rendering {
 	LITEFX_DEFINE_FLAGS(QueueType);
 	LITEFX_DEFINE_FLAGS(ShaderType);
 	// ...
+
 }
