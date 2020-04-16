@@ -28,6 +28,7 @@ SET(VULKAN_MATH_HEADERS
 SET(VULKAN_MATH_SOURCES
     "src/vector.cpp"
     "src/size.cpp"
+    "src/rect.cpp"
 )
 
 # Add shared library project.

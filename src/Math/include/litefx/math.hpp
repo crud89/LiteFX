@@ -571,4 +571,58 @@ namespace LiteFX::Math {
 		inline size_t& alpha() noexcept;
 	};
 #pragma endregion
+
+#pragma region Rectangle
+	class LITEFX_MATH_API Rect : public Vector<size_t, 4> {
+	public:
+		Rect() noexcept;
+		Rect(const Vector<size_t, 2>& pos, const size_t& w, const size_t& h) noexcept;
+		Rect(const size_t& x, const size_t& y, const size_t& w, const size_t& h) noexcept;
+		Rect(const Rect&) noexcept;
+		Rect(Rect&&) noexcept;
+		virtual ~Rect() noexcept = default;
+
+	public:
+		inline Rect& operator=(const Rect& _other) noexcept;
+		inline Rect& operator=(Rect&& _other) noexcept;
+
+	public:
+		inline Vector<size_t, 2> position() const noexcept;
+		inline Size2d extent() const noexcept;
+		inline const size_t& x() const noexcept;
+		inline size_t& x() noexcept;
+		inline const size_t& y() const noexcept;
+		inline size_t& y() noexcept;
+		inline const size_t& width() const noexcept;
+		inline size_t& width() noexcept;
+		inline const size_t& height() const noexcept;
+		inline size_t& height() noexcept;
+	};
+
+	class LITEFX_MATH_API RectF : public Vector<Float, 4> {
+	public:
+		RectF() noexcept;
+		RectF(const Vector<Float, 2>& pos, const Float& w, const Float& h) noexcept;
+		RectF(const Float& x, const Float& y, const Float& w, const Float& h) noexcept;
+		RectF(const RectF&) noexcept;
+		RectF(RectF&&) noexcept;
+		virtual ~RectF() noexcept = default;
+
+	public:
+		inline RectF& operator=(const RectF& _other) noexcept;
+		inline RectF& operator=(RectF&& _other) noexcept;
+
+	public:
+		inline Vector<Float, 2> position() const noexcept;
+		inline Size2d extent() const noexcept;
+		inline const Float& x() const noexcept;
+		inline Float& x() noexcept;
+		inline const Float& y() const noexcept;
+		inline Float& y() noexcept;
+		inline const Float& width() const noexcept;
+		inline Float& width() noexcept;
+		inline const Float& height() const noexcept;
+		inline Float& height() noexcept;
+	};
+#pragma endregion
 }
