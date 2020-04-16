@@ -180,8 +180,8 @@ namespace LiteFX::Logging {
 
     public:
         // TODO: Cache logs by name and return them, instead of re-creating them with each call.
-        static inline Log get(const String & name);
-        static inline void sinkTo(const ISink* sink);
+        static Log get(const String & name);
+        static void sinkTo(const ISink* sink);
     };
 
 }
