@@ -58,7 +58,12 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Rendering
 )
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Rendering PUBLIC LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Logging PRIVATE ${PRIVATE_LINK_LIBS})
+TARGET_LINK_LIBRARIES(LiteFX.Rendering 
+    PUBLIC 
+        LiteFX.Core LiteFX.Math LiteFX.Graphics LiteFX.AppModel LiteFX.Logging 
+    PRIVATE 
+        ${PRIVATE_LINK_LIBS}
+)
 
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)

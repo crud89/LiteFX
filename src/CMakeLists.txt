@@ -24,6 +24,7 @@ ADD_SUBDIRECTORY(Core)
 ADD_SUBDIRECTORY(Logging)
 ADD_SUBDIRECTORY(AppModel)
 ADD_SUBDIRECTORY(Math)
+ADD_SUBDIRECTORY(Graphics)
 ADD_SUBDIRECTORY(Rendering)
 
 # Include optional modules.
