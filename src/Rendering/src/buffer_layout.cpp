@@ -7,12 +7,12 @@ private:
     Array<UniquePtr<BufferAttribute>> m_attributes;
 
 public:
-    BufferLayoutImpl() = default;
+    BufferLayoutImpl() noexcept = default;
 
 public:
     void add(UniquePtr<BufferAttribute>&& attribute)
     {
-        m_attributes.push_back(attribute);
+        m_attributes.push_back(std::move(attribute));
     }
 
     void remove(const BufferAttribute* attribute) 
@@ -29,7 +29,7 @@ public:
     }
 };
 
-BufferLayout::BufferLayout() : 
+BufferLayout::BufferLayout() noexcept : 
     m_impl(makePimpl<BufferLayoutImpl>())
 {
 }

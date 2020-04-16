@@ -11,6 +11,15 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	// Define interfaces.
+	class LITEFX_RENDERING_API IInputAssembler {
+	public:
+		virtual ~IInputAssembler() noexcept = default;
+
+	public:
+		virtual const BufferLayout* getLayout() const = 0;
+		virtual void use(UniquePtr<BufferLayout>&& layout) const = 0;
+	};
+
 	class LITEFX_RENDERING_API IRasterizer {
 	public:
 		virtual ~IRasterizer() noexcept = default;
@@ -24,6 +33,14 @@ namespace LiteFX::Rendering {
 		virtual void setCullOrder(const CullOrder& order) noexcept = 0;
 		virtual Float getLineWidth() const noexcept = 0;
 		virtual void setLineWidth(const Float& width) noexcept = 0;
+		virtual bool getDepthBiasEnabled() const noexcept = 0;
+		virtual void setDepthBiasEnabled(const bool& enable) noexcept = 0;
+		virtual float getDepthBiasClamp() const noexcept = 0;
+		virtual void setDepthBiasClamp(const float& clamp) noexcept = 0;
+		virtual float getDepthBiasConstantFactor() const noexcept = 0;
+		virtual void setDepthBiasConstantFactor(const float& factor) noexcept = 0;
+		virtual float getDepthBiasSlopeFactor() const noexcept = 0;
+		virtual void setDepthBiasSlopeFactor(const float& factor) noexcept = 0;
 	};
 
 	class LITEFX_RENDERING_API IViewport {
