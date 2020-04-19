@@ -314,4 +314,74 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TPipeline>
+    class RenderPipelineBuilder : public Builder<TDerived, TPipeline> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        void use(UniquePtr<IRenderPipelineLayout>&& layout);
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TPipelineLayout>
+    class RenderPipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        void use(UniquePtr<IRasterizer>&& rasterizer);
+        void use(UniquePtr<IInputAssembler>&& inputAssembler);
+        void use(UniquePtr<IViewport>&& viewport);
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TRasterizer>
+    class RasterizerBuilder : public Builder<TDerived, TRasterizer> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual TDerived& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) = 0;
+        virtual TDerived& withCullMode(const CullMode& cullMode = CullMode::BackFaces) = 0;
+        virtual TDerived& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) = 0;
+        virtual TDerived& withLineWidth(const Float& lineWidth = 1.f) = 0;
+        virtual TDerived& withDepthBias(const bool& enable = false) = 0;
+        virtual TDerived& withDepthBiasClamp(const Float& clamp = 0.f) = 0;
+        virtual TDerived& withDepthBiasConstantFactor(const Float& factor = 0.f) = 0;
+        virtual TDerived& withDepthBiasSlopeFactor(const Float& factor = 0.f) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TInputAssembler>
+    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual TDerived& withBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TViewport>
+    class ViewportBuilder : public Builder<TDerived, TViewport> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual TDerived& withRectangle(const RectF& rectangle) = 0;
+        virtual TDerived& addScissor(const RectF& scissor) = 0;
+    };
+
 }
