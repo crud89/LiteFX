@@ -74,23 +74,23 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(UniquePtr<IViewport>&& viewport) override;
 	};
 
-	///// <summary>
-	///// 
-	///// </summary>
-	//class LITEFX_VULKAN_API VulkanRasterizerBuilder : public RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineLayoutBuilder> {
-	//public:
-	//	using RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineLayoutBuilder>::RasterizerBuilder;
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanRasterizerBuilder : public RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineLayoutBuilder> {
+	public:
+		using RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineLayoutBuilder>::RasterizerBuilder;
 
-	//public:
-	//	virtual VulkanRasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) override;
-	//	virtual VulkanRasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
-	//	virtual VulkanRasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
-	//	virtual VulkanRasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
-	//	virtual VulkanRasterizerBuilder& withDepthBias(const bool& enable = false) override;
-	//	virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
-	//	virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
-	//	virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
-	//};
+	public:
+		virtual VulkanRasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) override;
+		virtual VulkanRasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
+		virtual VulkanRasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
+		virtual VulkanRasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
+		virtual VulkanRasterizerBuilder& withDepthBias(const bool& enable = false) override;
+		virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
+		virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
+		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
+	};
 
 	///// <summary>
 	///// 

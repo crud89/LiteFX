@@ -11,6 +11,18 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	// Class definitions.
+	class LITEFX_VULKAN_API VulkanRasterizer : public Rasterizer {
+	public:
+		using builder = VulkanRasterizerBuilder;
+		friend class VulkanRasterizerBuilder;
+
+	public:
+		VulkanRasterizer(const VulkanRenderPipelineLayout& layout) noexcept;
+		VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
+		VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
+		virtual ~VulkanRasterizer() noexcept;
+	};
+
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public RenderPipelineLayout, public IResource<VkPipelineLayout> {
 	public:
 		using builder = VulkanRenderPipelineLayoutBuilder;
