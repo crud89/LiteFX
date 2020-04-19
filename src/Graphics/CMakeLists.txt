@@ -10,6 +10,7 @@ MESSAGE(STATUS "Initializing: LiteFX.Graphics...")
 # Collect header & source files.
 SET(GRAPHICS_HEADERS
     "include/litefx/graphics_api.hpp"
+    "include/litefx/graphics_formatters.hpp"
     "include/litefx/graphics.hpp"
 )
 
@@ -43,7 +44,9 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Graphics
 )
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Graphics PUBLIC LiteFX.Core LiteFX.Math PRIVATE ${PRIVATE_LINK_LIBS})
+TARGET_LINK_LIBRARIES(LiteFX.Graphics 
+    PUBLIC LiteFX.Core LiteFX.Logging LiteFX.Math
+)
 
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)

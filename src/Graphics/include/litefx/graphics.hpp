@@ -1,6 +1,7 @@
 #pragma once
 
 #include <litefx/graphics_api.hpp>
+#include <litefx/graphics_formatters.hpp>
 #include <litefx/math.hpp>
 
 namespace LiteFX::Graphics {

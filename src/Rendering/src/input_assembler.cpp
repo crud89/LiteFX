@@ -5,11 +5,22 @@ using namespace LiteFX::Rendering;
 class InputAssembler::InputAssemblerImpl {
 private:
     UniquePtr<BufferLayout> m_layout;
+    PrimitiveTopology m_topology = PrimitiveTopology::TriangleStrip;
 
 public: 
     InputAssemblerImpl() noexcept = default;
 
 public:
+    const PrimitiveTopology getTopology() const noexcept
+    {
+        return m_topology;
+    }
+
+    void setTopology(const PrimitiveTopology& topology)
+    {
+        m_topology = topology;
+    }
+
     const BufferLayout* getLayout() const
     {
         return m_layout.get();
@@ -33,6 +44,16 @@ InputAssembler::InputAssembler(UniquePtr<BufferLayout>&& _other) noexcept :
 }
 
 InputAssembler::~InputAssembler() noexcept = default;
+
+const PrimitiveTopology InputAssembler::getTopology() const noexcept
+{
+    return m_impl->getTopology();
+}
+
+void InputAssembler::setTopology(const PrimitiveTopology& topology)
+{
+    m_impl->setTopology(topology);
+}
 
 const BufferLayout* InputAssembler::getLayout() const
 {

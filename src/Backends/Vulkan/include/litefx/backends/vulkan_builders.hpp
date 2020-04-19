@@ -69,6 +69,9 @@ namespace LiteFX::Rendering::Backends {
 		using RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder>::RenderPipelineLayoutBuilder;
 
 	public:
+		virtual VulkanRenderPipelineBuilder& go() override;
+
+	public:
 		virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
 		virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
 		virtual void use(UniquePtr<IViewport>&& viewport) override;

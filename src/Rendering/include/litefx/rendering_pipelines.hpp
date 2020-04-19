@@ -5,6 +5,7 @@
 namespace LiteFX::Rendering {
     using namespace LiteFX;
     using namespace LiteFX::Math;
+    using namespace LiteFX::Graphics;
 
     /// <summary>
     /// 
@@ -82,6 +83,7 @@ namespace LiteFX::Rendering {
         virtual ~IRenderPipeline() noexcept = default;
     
     public:
+        virtual const IGraphicsDevice* getDevice() const noexcept = 0;
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
     };
@@ -165,6 +167,8 @@ namespace LiteFX::Rendering {
         virtual ~IInputAssembler() noexcept = default;
 
     public:
+        virtual const PrimitiveTopology getTopology() const noexcept = 0;
+        virtual void setTopology(const PrimitiveTopology& topology) = 0;
         virtual const BufferLayout* getLayout() const = 0;
         virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
     };
@@ -254,6 +258,8 @@ namespace LiteFX::Rendering {
         virtual ~InputAssembler() noexcept;
 
     public:
+        virtual const PrimitiveTopology getTopology() const noexcept override;
+        virtual void setTopology(const PrimitiveTopology& topology) override;
         virtual const BufferLayout* getLayout() const override;
         virtual void use(UniquePtr<BufferLayout>&& layout) override;
     };
@@ -308,12 +314,14 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(RenderPipelineImpl)
 
     public:
-        RenderPipeline() noexcept;
+        RenderPipeline(const IGraphicsDevice* device);
+        explicit RenderPipeline(const IGraphicsDevice* device, UniquePtr<IRenderPipelineLayout>&& layout);
         RenderPipeline(RenderPipeline&&) noexcept = delete;
         RenderPipeline(const RenderPipeline&) noexcept = delete;
         virtual ~RenderPipeline() noexcept;
 
     public:
+        virtual const IGraphicsDevice* getDevice() const noexcept override;
         virtual const IRenderPipelineLayout* getLayout() const noexcept override;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
     };

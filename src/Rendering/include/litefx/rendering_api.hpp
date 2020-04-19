@@ -16,6 +16,7 @@
 
 #include <litefx/core.h>
 #include <litefx/math.hpp>
+#include <litefx/graphics.hpp>
 
 namespace LiteFX::Rendering {
 	using namespace LiteFX;

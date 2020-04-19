@@ -48,15 +48,21 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public RenderPipelineLayout, public IResource<VkPipelineLayout> {
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl)
+
 	public:
 		using builder = VulkanRenderPipelineLayoutBuilder;
 		friend class VulkanRenderPipelineLayoutBuilder;
 
 	public:
-		VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept;
+		VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline);
+		explicit VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, const BufferLayout& bufferLayout);
 		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) noexcept = delete;
 		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) noexcept = delete;
 		virtual ~VulkanRenderPipelineLayout() noexcept;
+
+	public:
+		virtual void create();
 	};
 
 	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline, public IResource<VkPipeline> {
@@ -67,14 +73,14 @@ namespace LiteFX::Rendering::Backends {
 		friend class VulkanRenderPipelineBuilder;
 
 	public:
-		VulkanRenderPipeline() noexcept;
-		explicit VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout) noexcept;
+		VulkanRenderPipeline(const IGraphicsDevice* device);
+		explicit VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout, const IGraphicsDevice* device);
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
 
 	public:
-		virtual void create(UniquePtr<IRenderPipelineLayout>&& layout);
+		virtual void create();
 	};
 
 	/// <summary>

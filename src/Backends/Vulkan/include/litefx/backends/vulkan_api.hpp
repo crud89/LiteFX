@@ -39,6 +39,36 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     VkFormat LITEFX_VULKAN_API getFormat(const Format& format);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    PolygonMode LITEFX_VULKAN_API getPolygonMode(const VkPolygonMode& mode);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkPolygonMode LITEFX_VULKAN_API getPolygonMode(const PolygonMode& mode);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    CullMode LITEFX_VULKAN_API getCullMode(const VkCullModeFlags& mode);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkCullModeFlags LITEFX_VULKAN_API getCullMode(const CullMode& mode);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    PrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const VkPrimitiveTopology& topology);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const PrimitiveTopology& topology);
+
     // Forward declarations.
     class VulkanTexture;
     class VulkanSwapChain;

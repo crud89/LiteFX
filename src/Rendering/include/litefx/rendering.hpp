@@ -131,7 +131,7 @@ namespace LiteFX::Rendering {
 		/// <typeparam name="T">The type of the render pipeline. The type must implement <see cref="IRenderPipeline" /> interface.</typeparam>
 		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IRenderPipeline*>, int> = 0, typename TBuilder = T::builder>
 		TBuilder build(TArgs&&... _args) const {
-			return TBuilder(makeUnique<T>(std::forward<TArgs>(_args)...));
+			return TBuilder(makeUnique<T>(this, std::forward<TArgs>(_args)...));
 		}
 	};
 
