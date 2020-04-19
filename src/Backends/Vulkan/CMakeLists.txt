@@ -37,6 +37,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/texture.cpp"
     "src/shader_module.cpp"
     "src/shader_program.cpp"
+    "src/pipeline.cpp"
     "src/pipeline_layout.cpp"
     "src/input_assembler.cpp"
     "src/rasterizer.cpp"

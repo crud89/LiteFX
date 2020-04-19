@@ -90,8 +90,17 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	class LITEFX_VULKAN_API VulkanRenderPipeline : public IRenderPipeline {
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl)
+
 	public:
-		//const IRenderPipelineLayout* getLayout() const noexcept override;
+		VulkanRenderPipeline() noexcept;
+		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
+		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
+		virtual ~VulkanRenderPipeline() noexcept;
+
+	public:
+		virtual const IRenderPipelineLayout* getLayout() const noexcept override;
+		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
 	};
 
 	/// <summary>
