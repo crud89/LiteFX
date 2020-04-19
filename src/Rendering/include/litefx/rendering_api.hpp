@@ -22,6 +22,7 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	// Forward declarations.
+	class IInputAssembler;
 	class IRasterizer;
 	class IViewport;
     class IRenderPipeline;

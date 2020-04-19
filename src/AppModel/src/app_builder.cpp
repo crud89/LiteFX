@@ -14,8 +14,8 @@ void AppBuilder::use(UniquePtr<IBackend>&& backend)
 
 UniquePtr<App> AppBuilder::go()
 {
-	Logger::get(this->instance()->getName()).trace("Starting app (version {1}) on platform {0}. ", this->instance()->getPlatform(), this->instance()->getVersion());
-	Logger::get(this->instance()->getName()).trace("Engine: {0:e}.", this->instance()->getVersion());
+	Logger::get(this->instance()->getName()).info("Starting app (Version {1}) on platform {0}...", this->instance()->getPlatform(), this->instance()->getVersion());
+	Logger::get(this->instance()->getName()).debug("Using engine: {0:e}.", this->instance()->getVersion());
 
 	this->instance()->run();
 	return builder_type::go();

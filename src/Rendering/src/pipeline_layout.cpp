@@ -11,6 +11,7 @@ private:
 	Array<UniquePtr<IViewport>> m_viewports;
 	UniquePtr<IRasterizer> m_rasterizer;
 	UniquePtr<IShaderProgram> m_shaderProgram;
+	UniquePtr<IInputAssembler> m_inputAssembler;
 
 public:
 	RenderPipelineLayoutImpl() noexcept = default;
@@ -51,6 +52,16 @@ public:
 	void use(UniquePtr<IRasterizer>&& rasterizer) 
 	{
 		m_rasterizer = std::move(rasterizer);
+	}
+
+	const IInputAssembler* getInputAssembler() const noexcept
+	{
+		return m_inputAssembler.get();
+	}
+
+	void use(UniquePtr<IInputAssembler>&& inputAssembler)
+	{
+		m_inputAssembler = std::move(inputAssembler);
 	}
 	
 	const IShaderProgram* getProgram() const noexcept 
@@ -98,6 +109,16 @@ const IRasterizer* RenderPipelineLayout::getRasterizer() const noexcept
 void RenderPipelineLayout::use(UniquePtr<IRasterizer>&& rasterizer) 
 {
 	m_impl->use(std::move(rasterizer));
+}
+
+const IInputAssembler* RenderPipelineLayout::getInputAssembler() const noexcept
+{
+	return m_impl->getInputAssembler();
+}
+
+void RenderPipelineLayout::use(UniquePtr<IInputAssembler>&& inputAssembler)
+{
+	m_impl->use(std::move(inputAssembler));
 }
 
 const IShaderProgram* RenderPipelineLayout::getProgram() const noexcept 

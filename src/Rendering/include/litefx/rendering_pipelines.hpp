@@ -99,6 +99,8 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept = 0;
         virtual const IRasterizer* getRasterizer() const noexcept = 0;
         virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
+        virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
+        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
         virtual const IShaderProgram* getProgram() const noexcept = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
     };
@@ -293,6 +295,8 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept override;
         virtual const IRasterizer* getRasterizer() const noexcept override;
         virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
+        virtual const IInputAssembler* getInputAssembler() const noexcept override;
+        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
         virtual const IShaderProgram* getProgram() const noexcept override;
         virtual void use(UniquePtr<IShaderProgram>&& program) override;
     };

@@ -24,12 +24,10 @@ void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IRasterizer>&& rasterizer)
 
 void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IInputAssembler>&& inputAssembler)
 {
-    //this->instance()->use(std::move(inputAssembler));
-    throw;
+    this->instance()->use(std::move(inputAssembler));
 }
 
 void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IViewport>&& viewport)
 {
-    //this->instance()->use(std::move(viewport));
-    throw;
+    this->instance()->use(std::move(viewport));
 }
