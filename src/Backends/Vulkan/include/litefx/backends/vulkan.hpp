@@ -68,6 +68,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		VulkanRenderPipeline() noexcept;
+		VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout) noexcept;
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;

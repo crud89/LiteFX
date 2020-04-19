@@ -22,6 +22,12 @@ VulkanRenderPipeline::VulkanRenderPipeline() noexcept :
 {
 }
 
+VulkanRenderPipeline::VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout) noexcept :
+	VulkanRenderPipeline()
+{
+	this->create(std::move(layout));
+}
+
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept = default;
 
 void VulkanRenderPipeline::create(UniquePtr<IRenderPipelineLayout>&& layout)
@@ -35,7 +41,7 @@ void VulkanRenderPipeline::create(UniquePtr<IRenderPipelineLayout>&& layout)
 
 	if (h != nullptr)
 	{
-		LITEFX_WARNING(VULKAN_LOG, "The render pipeline is already created and will be rebuilt. Consider using `IRenderPipeline::rebuild` instead.");
+		LITEFX_WARNING(VULKAN_LOG, "The render pipeline is already created and hence will be rebuilt. Consider using `IRenderPipeline::rebuild` instead.");
 		//this->rebuild(std::move(layout));
 		throw;
 	}
