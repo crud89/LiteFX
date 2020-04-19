@@ -71,9 +71,22 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public IRenderPipelineLayout {
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl)
 
 	public:
-		
+		VulkanRenderPipelineLayout() noexcept;
+		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) = delete;
+		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) = delete;
+		virtual ~VulkanRenderPipelineLayout() noexcept;
+
+	public:
+		virtual Array<const IViewport*> getViewports() const noexcept override;
+		virtual void use(UniquePtr<IViewport>&& viewport) override;
+		virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept override;
+		virtual const IRasterizer* getRasterizer() const noexcept override;
+		virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
+		virtual const IShaderProgram* getProgram() const noexcept override;
+		virtual void use(UniquePtr<IShaderProgram>&& program) override;
 	};
 
 	class LITEFX_VULKAN_API VulkanRenderPipeline : public IRenderPipeline {

@@ -6,6 +6,9 @@ namespace LiteFX::Rendering {
     using namespace LiteFX;
     using namespace LiteFX::Math;
 
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API BufferAttribute {
         LITEFX_IMPLEMENTATION(BufferAttributeImpl)
 
@@ -23,6 +26,9 @@ namespace LiteFX::Rendering {
         virtual const UInt32& getOffset() const noexcept;
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API BufferLayout {
         LITEFX_IMPLEMENTATION(BufferLayoutImpl)
 
@@ -38,6 +44,9 @@ namespace LiteFX::Rendering {
         virtual Array<const BufferAttribute*> getAttributes() const noexcept;
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API IBuffer {
     public:
         virtual ~IBuffer() noexcept = default;
@@ -46,6 +55,9 @@ namespace LiteFX::Rendering {
         virtual const BufferLayout* getLayout() const noexcept = 0;
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
     template <typename T>
     class Buffer : public IBuffer {
     private:
@@ -62,6 +74,9 @@ namespace LiteFX::Rendering {
         virtual Array<T>& elements() noexcept = 0 { return m_elements; }
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API IRenderPipeline {
     public:
         virtual ~IRenderPipeline() noexcept = default;
@@ -71,6 +86,9 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API IRenderPipelineLayout {
     public:
         virtual ~IRenderPipelineLayout() noexcept = default;
@@ -78,13 +96,16 @@ namespace LiteFX::Rendering {
     public:
         virtual Array<const IViewport*> getViewports() const noexcept = 0;
         virtual void use(UniquePtr<IViewport>&& viewport) = 0;
-        virtual void remove(const IViewport* viewport) const noexcept = 0;
+        virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept = 0;
         virtual const IRasterizer* getRasterizer() const noexcept = 0;
         virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
         virtual const IShaderProgram* getProgram() const noexcept = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API IShaderModule {
     public:
         virtual ~IShaderModule() noexcept = default;
@@ -96,6 +117,9 @@ namespace LiteFX::Rendering {
         virtual const String& getEntryPoint() const noexcept = 0;
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API IShaderProgram {
     public:
         virtual ~IShaderProgram() noexcept = default;
