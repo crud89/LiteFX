@@ -11,6 +11,18 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	// Class definitions.
+	class LITEFX_VULKAN_API VulkanInputAssembler : public InputAssembler {
+	public:
+		using builder = VulkanInputAssemblerBuilder;
+		friend class VulkanInputAssemblerBuilder;
+
+	public:
+		VulkanInputAssembler(const VulkanRenderPipelineLayout& layout) noexcept;
+		VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
+		VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
+		virtual ~VulkanInputAssembler() noexcept;
+	};
+
 	class LITEFX_VULKAN_API VulkanViewport : public Viewport {
 	public:
 		using builder = VulkanViewportBuilder;
