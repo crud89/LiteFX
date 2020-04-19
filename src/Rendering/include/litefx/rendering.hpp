@@ -11,6 +11,9 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	// Define interfaces.
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API IInputAssembler {
 	public:
 		virtual ~IInputAssembler() noexcept = default;
@@ -20,6 +23,9 @@ namespace LiteFX::Rendering {
 		virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API IRasterizer {
 	public:
 		virtual ~IRasterizer() noexcept = default;
@@ -43,6 +49,9 @@ namespace LiteFX::Rendering {
 		virtual void setDepthBiasSlopeFactor(const float& factor) noexcept = 0;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API IViewport {
 	public:
 		virtual ~IViewport() noexcept = default;
@@ -54,6 +63,9 @@ namespace LiteFX::Rendering {
 		virtual Array<RectF>& getScissors() noexcept = 0;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API ITexture {
 	public:
 		virtual ~ITexture() noexcept = default;
@@ -63,6 +75,9 @@ namespace LiteFX::Rendering {
 		virtual Format getFormat() const noexcept = 0;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API ISwapChain {
 	public:
 		virtual ~ISwapChain() noexcept = default;
@@ -71,16 +86,25 @@ namespace LiteFX::Rendering {
 		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API ISurface {
 	public:
 		virtual ~ISurface() noexcept = default;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API ICommandPool {
 	public:
 		virtual ~ICommandPool() noexcept = default;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API ICommandQueue {
 	public:
 		virtual ~ICommandQueue() noexcept = default;
@@ -89,6 +113,9 @@ namespace LiteFX::Rendering {
 		virtual QueueType getType() const noexcept = 0;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API IGraphicsDevice {
 	public:
 		virtual ~IGraphicsDevice() noexcept = default;
@@ -104,6 +131,9 @@ namespace LiteFX::Rendering {
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const = 0;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API IGraphicsAdapter {
 	public:
 		virtual ~IGraphicsAdapter() noexcept = default;
@@ -122,7 +152,9 @@ namespace LiteFX::Rendering {
 		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const = 0;
 	};
 
-	// Base classes.
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API GraphicsDevice : public IGraphicsDevice {
 		LITEFX_IMPLEMENTATION(GraphicsDeviceImpl)
 
@@ -137,6 +169,9 @@ namespace LiteFX::Rendering {
 		virtual const ISurface* getSurface() const noexcept override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	template <typename TDerived, typename TDevice>
 	class GraphicsDeviceBuilder : public Builder<TDerived, TDevice> {
 	public:
@@ -147,7 +182,9 @@ namespace LiteFX::Rendering {
 		virtual TDerived& withQueue(const QueueType& queueType) = 0;
 	};
 
-	// Rendering backends
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API IRenderBackend : public IBackend {
 	public:
 		virtual ~IRenderBackend() noexcept = default;
@@ -169,6 +206,9 @@ namespace LiteFX::Rendering {
 		}
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API RenderBackend : public IRenderBackend {
 		LITEFX_IMPLEMENTATION(RenderBackendImpl)
 
