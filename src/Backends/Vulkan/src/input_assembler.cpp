@@ -15,7 +15,7 @@ public:
         return m_layout.get();
     }
 
-    void use(UniquePtr<BufferLayout>&& layout) const
+    void use(UniquePtr<BufferLayout>&& layout)
     {
         m_layout = std::move(layout);
     }
@@ -34,12 +34,12 @@ VulkanInputAssembler::VulkanInputAssembler(UniquePtr<BufferLayout>&& _other) noe
 
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
-const BufferLayout* VulkanInputAssembler::getLayout() const override
+const BufferLayout* VulkanInputAssembler::getLayout() const
 {
     return m_impl->getLayout();
 }
 
-void VulkanInputAssembler::use(UniquePtr<BufferLayout>&& layout) const override
+void VulkanInputAssembler::use(UniquePtr<BufferLayout>&& layout)
 {
     m_impl->use(std::move(layout));
 }

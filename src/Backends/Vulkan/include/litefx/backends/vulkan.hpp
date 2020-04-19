@@ -11,6 +11,34 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	// Class definitions.
+	class LITEFX_VULKAN_API VulkanRasterizer : public IRasterizer {
+		LITEFX_IMPLEMENTATION(VulkanRasterizerImpl)
+
+	public:
+		VulkanRasterizer() noexcept;
+		VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
+		VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
+		virtual ~VulkanRasterizer() noexcept;
+
+	public:
+		virtual PolygonMode getPolygonMode() const noexcept override;
+		virtual void setPolygonMode(const PolygonMode& mode) noexcept override;
+		virtual CullMode getCullMode() const noexcept override;
+		virtual void setCullMode(const CullMode& mode) noexcept override;
+		virtual CullOrder getCullOrder() const noexcept override;
+		virtual void setCullOrder(const CullOrder& order) noexcept override;
+		virtual Float getLineWidth() const noexcept override;
+		virtual void setLineWidth(const Float& width) noexcept override;
+		virtual bool getDepthBiasEnabled() const noexcept override;
+		virtual void setDepthBiasEnabled(const bool& enable) noexcept override;
+		virtual float getDepthBiasClamp() const noexcept override;
+		virtual void setDepthBiasClamp(const float& clamp) noexcept override;
+		virtual float getDepthBiasConstantFactor() const noexcept override;
+		virtual void setDepthBiasConstantFactor(const float& factor) noexcept override;
+		virtual float getDepthBiasSlopeFactor() const noexcept override;
+		virtual void setDepthBiasSlopeFactor(const float& factor) noexcept override;
+	};
+
 	class LITEFX_VULKAN_API VulkanInputAssembler : public IInputAssembler {
 		LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl)
 
@@ -23,7 +51,23 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual const BufferLayout* getLayout() const override;
-		virtual void use(UniquePtr<BufferLayout>&& layout) const override;
+		virtual void use(UniquePtr<BufferLayout>&& layout) override;
+	};
+
+	class LITEFX_VULKAN_API VulkanViewport : public IViewport {
+		LITEFX_IMPLEMENTATION(VulkanViewportImpl)
+
+	public:
+		VulkanViewport(const RectF& clientRect = { }) noexcept;
+		VulkanViewport(VulkanViewport&&) noexcept = delete;
+		VulkanViewport(const VulkanViewport&) noexcept = delete;
+		virtual ~VulkanViewport() noexcept;
+
+	public:
+		virtual RectF getRectangle() const noexcept override;
+		virtual void setRectangle(const RectF& rectangle) noexcept override;
+		virtual const Array<RectF>& getScissors() const noexcept override;
+		virtual Array<RectF>& getScissors() noexcept override;
 	};
 
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public IRenderPipelineLayout {

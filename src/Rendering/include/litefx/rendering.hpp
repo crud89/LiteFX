@@ -17,7 +17,7 @@ namespace LiteFX::Rendering {
 
 	public:
 		virtual const BufferLayout* getLayout() const = 0;
-		virtual void use(UniquePtr<BufferLayout>&& layout) const = 0;
+		virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
 	};
 
 	class LITEFX_RENDERING_API IRasterizer {
@@ -49,7 +49,7 @@ namespace LiteFX::Rendering {
 
 	public:
 		virtual RectF getRectangle() const noexcept = 0;
-		virtual void setRectangle(const RectF& rectangle) const noexcept = 0;
+		virtual void setRectangle(const RectF& rectangle) noexcept = 0;
 		virtual const Array<RectF>& getScissors() const noexcept = 0;
 		virtual Array<RectF>& getScissors() noexcept = 0;
 	};

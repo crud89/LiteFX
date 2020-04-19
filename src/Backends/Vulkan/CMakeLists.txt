@@ -38,6 +38,9 @@ SET(VULKAN_BACKEND_SOURCES
     "src/shader_module.cpp"
     "src/shader_program.cpp"
     "src/pipeline_layout.cpp"
+    "src/input_assembler.cpp"
+    "src/rasterizer.cpp"
+    "src/viewport.cpp"
 )
 
 # Add shared library project.
