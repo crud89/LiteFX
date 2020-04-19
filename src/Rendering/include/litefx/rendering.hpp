@@ -14,58 +14,6 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_RENDERING_API IInputAssembler {
-	public:
-		virtual ~IInputAssembler() noexcept = default;
-
-	public:
-		virtual const BufferLayout* getLayout() const = 0;
-		virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_RENDERING_API IRasterizer {
-	public:
-		virtual ~IRasterizer() noexcept = default;
-
-	public:
-		virtual PolygonMode getPolygonMode() const noexcept = 0;
-		virtual void setPolygonMode(const PolygonMode& mode) noexcept = 0;
-		virtual CullMode getCullMode() const noexcept = 0;
-		virtual void setCullMode(const CullMode& mode) noexcept = 0;
-		virtual CullOrder getCullOrder() const noexcept = 0;
-		virtual void setCullOrder(const CullOrder& order) noexcept = 0;
-		virtual Float getLineWidth() const noexcept = 0;
-		virtual void setLineWidth(const Float& width) noexcept = 0;
-		virtual bool getDepthBiasEnabled() const noexcept = 0;
-		virtual void setDepthBiasEnabled(const bool& enable) noexcept = 0;
-		virtual float getDepthBiasClamp() const noexcept = 0;
-		virtual void setDepthBiasClamp(const float& clamp) noexcept = 0;
-		virtual float getDepthBiasConstantFactor() const noexcept = 0;
-		virtual void setDepthBiasConstantFactor(const float& factor) noexcept = 0;
-		virtual float getDepthBiasSlopeFactor() const noexcept = 0;
-		virtual void setDepthBiasSlopeFactor(const float& factor) noexcept = 0;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_RENDERING_API IViewport {
-	public:
-		virtual ~IViewport() noexcept = default;
-
-	public:
-		virtual RectF getRectangle() const noexcept = 0;
-		virtual void setRectangle(const RectF& rectangle) noexcept = 0;
-		virtual const Array<RectF>& getScissors() const noexcept = 0;
-		virtual Array<RectF>& getScissors() noexcept = 0;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_RENDERING_API ITexture {
 	public:
 		virtual ~ITexture() noexcept = default;

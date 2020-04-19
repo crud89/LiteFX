@@ -29,9 +29,13 @@ SET(RENDERING_HEADERS
 SET(RENDERING_SOURCES
     "src/backend.cpp"
     "src/device.cpp"
-    "src/pipeline_builder.cpp"
     "src/buffer_attribute.cpp"
     "src/buffer_layout.cpp"
+    "src/pipeline.cpp"
+    "src/pipeline_layout.cpp"
+    "src/input_assembler.cpp"
+    "src/rasterizer.cpp"
+    "src/viewport.cpp"
 )
 
 # Add shared library project.

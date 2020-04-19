@@ -1,19 +1,19 @@
-#include <litefx/backends/vulkan.hpp>
+#include <litefx/rendering.hpp>
 
-using namespace LiteFX::Rendering::Backends;
+using namespace LiteFX::Rendering;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPipelineLayout::VulkanRenderPipelineLayoutImpl {
+class RenderPipelineLayout::RenderPipelineLayoutImpl {
 private:
 	Array<UniquePtr<IViewport>> m_viewports;
 	UniquePtr<IRasterizer> m_rasterizer;
 	UniquePtr<IShaderProgram> m_shaderProgram;
 
 public:
-	VulkanRenderPipelineLayoutImpl() noexcept = default;
+	RenderPipelineLayoutImpl() noexcept = default;
 
 public:
 	Array<const IViewport*> getViewports() const noexcept 
@@ -68,44 +68,44 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineLayout::VulkanRenderPipelineLayout() noexcept :
-	m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>())
+RenderPipelineLayout::RenderPipelineLayout() noexcept :
+	m_impl(makePimpl<RenderPipelineLayoutImpl>())
 {
 }
 
-VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept = default;
+RenderPipelineLayout::~RenderPipelineLayout() noexcept = default;
 
-Array<const IViewport*> VulkanRenderPipelineLayout::getViewports() const noexcept 
+Array<const IViewport*> RenderPipelineLayout::getViewports() const noexcept 
 {
 	return m_impl->getViewports();
 }
 
-void VulkanRenderPipelineLayout::use(UniquePtr<IViewport>&& viewport) 
+void RenderPipelineLayout::use(UniquePtr<IViewport>&& viewport) 
 {
 	return m_impl->use(std::move(viewport));
 }
 
-UniquePtr<IViewport> VulkanRenderPipelineLayout::remove(const IViewport* viewport) noexcept
+UniquePtr<IViewport> RenderPipelineLayout::remove(const IViewport* viewport) noexcept
 {
 	return m_impl->remove(viewport);
 }
 
-const IRasterizer* VulkanRenderPipelineLayout::getRasterizer() const noexcept 
+const IRasterizer* RenderPipelineLayout::getRasterizer() const noexcept 
 {
 	return m_impl->getRasterizer();
 }
 
-void VulkanRenderPipelineLayout::use(UniquePtr<IRasterizer>&& rasterizer) 
+void RenderPipelineLayout::use(UniquePtr<IRasterizer>&& rasterizer) 
 {
 	m_impl->use(std::move(rasterizer));
 }
 
-const IShaderProgram* VulkanRenderPipelineLayout::getProgram() const noexcept 
+const IShaderProgram* RenderPipelineLayout::getProgram() const noexcept 
 {
 	return m_impl->getProgram();
 }
 
-void VulkanRenderPipelineLayout::use(UniquePtr<IShaderProgram>&& program) 
+void RenderPipelineLayout::use(UniquePtr<IShaderProgram>&& program) 
 {
 	m_impl->use(std::move(program));
 }

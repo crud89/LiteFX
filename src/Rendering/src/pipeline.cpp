@@ -1,23 +1,23 @@
-#include <litefx/backends/vulkan.hpp>
+#include <litefx/rendering.hpp>
 
-using namespace LiteFX::Rendering::Backends;
+using namespace LiteFX::Rendering;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPipeline::VulkanRenderPipelineImpl {
+class RenderPipeline::RenderPipelineImpl {
 private:
     UniquePtr<IRenderPipelineLayout> m_layout;
 
 public:
-    VulkanRenderPipelineImpl(UniquePtr<IRenderPipelineLayout>&& layout) noexcept :
+    RenderPipelineImpl(UniquePtr<IRenderPipelineLayout>&& layout) noexcept :
         m_layout(std::move(layout))
     {
     }
 
-    VulkanRenderPipelineImpl() noexcept :
-        m_layout(makeUnique<VulkanRenderPipelineLayout>())
+    RenderPipelineImpl() noexcept :
+        m_layout(makeUnique<RenderPipelineLayout>())
     {
     }
 
@@ -37,19 +37,19 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline() noexcept :
-    m_impl(makePimpl<VulkanRenderPipelineImpl>())
+RenderPipeline::RenderPipeline() noexcept :
+    m_impl(makePimpl<RenderPipelineImpl>())
 {
 }
 
-VulkanRenderPipeline::~VulkanRenderPipeline() noexcept = default;
+RenderPipeline::~RenderPipeline() noexcept = default;
 
-const IRenderPipelineLayout* VulkanRenderPipeline::getLayout() const noexcept
+const IRenderPipelineLayout* RenderPipeline::getLayout() const noexcept
 {
     return m_impl->getLayout();
 }
 
-void VulkanRenderPipeline::use(UniquePtr<IRenderPipelineLayout>&& layout)
+void RenderPipeline::use(UniquePtr<IRenderPipelineLayout>&& layout)
 {
     m_impl->setLayout(std::move(layout));
 }

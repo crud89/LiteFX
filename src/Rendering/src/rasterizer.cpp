@@ -1,8 +1,8 @@
-#include <litefx/backends/vulkan.hpp>
+#include <litefx/rendering.hpp>
 
-using namespace LiteFX::Rendering::Backends;
+using namespace LiteFX::Rendering;
 
-class VulkanRasterizer::VulkanRasterizerImpl {
+class Rasterizer::RasterizerImpl {
 private:
     PolygonMode m_polygonMode = PolygonMode::Solid;
     CullMode m_cullMode = CullMode::BackFaces;
@@ -12,7 +12,7 @@ private:
     bool m_depthBias = false;
 
 public:
-    VulkanRasterizerImpl() noexcept = default;
+    RasterizerImpl() noexcept = default;
     
 public:
     PolygonMode getPolygonMode() const noexcept
@@ -97,89 +97,89 @@ public:
 };
 
 
-VulkanRasterizer::VulkanRasterizer() noexcept :
-    m_impl(makePimpl<VulkanRasterizerImpl>())
+Rasterizer::Rasterizer() noexcept :
+    m_impl(makePimpl<RasterizerImpl>())
 {
 }
 
-VulkanRasterizer::~VulkanRasterizer() noexcept = default;
+Rasterizer::~Rasterizer() noexcept = default;
 
-PolygonMode VulkanRasterizer::getPolygonMode() const noexcept 
+PolygonMode Rasterizer::getPolygonMode() const noexcept 
 {
     return m_impl->getPolygonMode();
 }
 
-void VulkanRasterizer::setPolygonMode(const PolygonMode& mode) noexcept
+void Rasterizer::setPolygonMode(const PolygonMode& mode) noexcept
 {
     m_impl->setPolygonMode(mode);
 }
 
-CullMode VulkanRasterizer::getCullMode() const noexcept 
+CullMode Rasterizer::getCullMode() const noexcept 
 {
     return m_impl->getCullMode();
 }
 
-void VulkanRasterizer::setCullMode(const CullMode& mode) noexcept 
+void Rasterizer::setCullMode(const CullMode& mode) noexcept 
 {
     m_impl->setCullMode(mode);
 }
 
-CullOrder VulkanRasterizer::getCullOrder() const noexcept 
+CullOrder Rasterizer::getCullOrder() const noexcept 
 {
     return m_impl->getCullOrder();
 }
 
-void VulkanRasterizer::setCullOrder(const CullOrder& order) noexcept 
+void Rasterizer::setCullOrder(const CullOrder& order) noexcept 
 {
     m_impl->setCullOrder(order);
 }
 
-Float VulkanRasterizer::getLineWidth() const noexcept 
+Float Rasterizer::getLineWidth() const noexcept 
 {
     return m_impl->getLineWidth();
 }
 
-void VulkanRasterizer::setLineWidth(const Float& width) noexcept 
+void Rasterizer::setLineWidth(const Float& width) noexcept 
 {
     m_impl->setLineWidth(width);
 }
 
-bool VulkanRasterizer::getDepthBiasEnabled() const noexcept 
+bool Rasterizer::getDepthBiasEnabled() const noexcept 
 {
     return m_impl->getDepthBiasEnabled();
 }
 
-void VulkanRasterizer::setDepthBiasEnabled(const bool& enable) noexcept
+void Rasterizer::setDepthBiasEnabled(const bool& enable) noexcept
 {
     m_impl->setDepthBiasEnabled(enable);
 }
 
-float VulkanRasterizer::getDepthBiasClamp() const noexcept 
+float Rasterizer::getDepthBiasClamp() const noexcept 
 {
     return m_impl->getDepthBiasClamp();
 }
 
-void VulkanRasterizer::setDepthBiasClamp(const Float& clamp) noexcept
+void Rasterizer::setDepthBiasClamp(const Float& clamp) noexcept
 {
     m_impl->setDepthBiasClamp(clamp);
 }
 
-float VulkanRasterizer::getDepthBiasConstantFactor() const noexcept 
+float Rasterizer::getDepthBiasConstantFactor() const noexcept 
 {
     return m_impl->getDepthBiasConstantFactor();
 }
 
-void VulkanRasterizer::setDepthBiasConstantFactor(const Float& factor) noexcept
+void Rasterizer::setDepthBiasConstantFactor(const Float& factor) noexcept
 {
     m_impl->setDepthBiasConstantFactor(factor);
 }
 
-float VulkanRasterizer::getDepthBiasSlopeFactor() const noexcept
+float Rasterizer::getDepthBiasSlopeFactor() const noexcept
 {
     return m_impl->getDepthBiasSlopeFactor();
 }
 
-void VulkanRasterizer::setDepthBiasSlopeFactor(const Float& factor) noexcept
+void Rasterizer::setDepthBiasSlopeFactor(const Float& factor) noexcept
 {
     m_impl->setDepthBiasSlopeFactor(factor);
 }
