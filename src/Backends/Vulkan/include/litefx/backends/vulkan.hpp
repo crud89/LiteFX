@@ -68,7 +68,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		VulkanRenderPipeline() noexcept;
-		VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout) noexcept;
+		explicit VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout) noexcept;
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -162,7 +162,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Array<String>& extensions = { });
-		VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, ICommandQueue* deviceQueue, const Format& format, const Array<String>& extensions = { });
+		explicit VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, ICommandQueue* deviceQueue, const Format& format, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
