@@ -92,17 +92,17 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
 	};
 
-	///// <summary>
-	///// 
-	///// </summary>
-	//class LITEFX_VULKAN_API VulkanViewportBuilder : public ViewportBuilder<VulkanViewportBuilder, VulkanViewport, VulkanRenderPipelineLayoutBuilder> {
-	//public:
-	//	using ViewportBuilder<VulkanViewportBuilder, VulkanViewport, VulkanRenderPipelineLayoutBuilder>::ViewportBuilder;
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanViewportBuilder : public ViewportBuilder<VulkanViewportBuilder, VulkanViewport, VulkanRenderPipelineLayoutBuilder> {
+	public:
+		using ViewportBuilder<VulkanViewportBuilder, VulkanViewport, VulkanRenderPipelineLayoutBuilder>::ViewportBuilder;
 
-	//public:
-	//	virtual VulkanViewportBuilder& withRectangle(const RectF& rectangle) override;
-	//	virtual VulkanViewportBuilder& addScissor(const RectF& scissor) override;
-	//};
+	public:
+		virtual VulkanViewportBuilder& withRectangle(const RectF& rectangle) override;
+		virtual VulkanViewportBuilder& addScissor(const RectF& scissor) override;
+	};
 
 	///// <summary>
 	///// 
