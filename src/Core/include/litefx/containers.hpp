@@ -145,7 +145,7 @@ namespace LiteFX {
 	class Builder;
 
 	template <typename TDerived, typename T>
-	class Builder<typename TDerived, T, std::nullptr_t> {
+	class Builder<TDerived, T, std::nullptr_t> {
 	private:
 		UniquePtr<T> m_instance;
 

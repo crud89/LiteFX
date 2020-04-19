@@ -8,9 +8,10 @@ void SampleApp::run()
         .withQueue(QueueType::Graphics)
         .go();
 
-    //auto pipeline = device->build<VulkanRenderPipeline>()
+    auto pipeline = device->build<VulkanRenderPipeline>()
+        .make<VulkanRenderPipelineLayout>()
     //    .withTopology(PrimitiveTopology::TriangleStrip)
-    //    .make<VulkanViewport>()
+    //    .add<VulkanViewport>()
     //        //.addScissor(RectF(0, 0, device->getFrameBuffer()->getWidth(), device->getFrameBuffer()->getHeight()))
     //        .go()
     //    .make<VulkanRasterizer>()
@@ -19,8 +20,10 @@ void SampleApp::run()
     //        .withCullOrder(CullOrder::CounterClockWise)
     //        .withLineWidth(1.f)
     //        .go()
-    //    .go();
-
+    //    .use(shaderProgram)
+    //    .make<VulkanShaderProgram>()
+            .go()
+        .go();
 
     while (!::glfwWindowShouldClose(m_window.get()))
         this->handleEvents();

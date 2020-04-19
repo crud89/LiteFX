@@ -323,28 +323,28 @@ namespace LiteFX::Rendering {
         using builder_type::Builder;
 
     public:
-        void use(UniquePtr<IRenderPipelineLayout>&& layout);
+        virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
     };
 
     /// <summary>
     /// 
     /// </summary>
-    template <typename TDerived, typename TPipelineLayout>
-    class RenderPipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout> {
+    template <typename TDerived, typename TPipelineLayout, typename TParent>
+    class RenderPipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
     public:
         using builder_type::Builder;
 
     public:
-        void use(UniquePtr<IRasterizer>&& rasterizer);
-        void use(UniquePtr<IInputAssembler>&& inputAssembler);
-        void use(UniquePtr<IViewport>&& viewport);
+        virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
+        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
+        virtual void use(UniquePtr<IViewport>&& viewport) = 0;
     };
 
     /// <summary>
     /// 
     /// </summary>
-    template <typename TDerived, typename TRasterizer>
-    class RasterizerBuilder : public Builder<TDerived, TRasterizer> {
+    template <typename TDerived, typename TRasterizer, typename TParent>
+    class RasterizerBuilder : public Builder<TDerived, TRasterizer, TParent> {
     public:
         using builder_type::Builder;
 
@@ -362,26 +362,26 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    template <typename TDerived, typename TInputAssembler>
-    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler> {
-    public:
-        using builder_type::Builder;
-
-    public:
-        virtual TDerived& withBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TViewport>
-    class ViewportBuilder : public Builder<TDerived, TViewport> {
+    template <typename TDerived, typename TViewport, typename TParent>
+    class ViewportBuilder : public Builder<TDerived, TViewport, TParent> {
     public:
         using builder_type::Builder;
 
     public:
         virtual TDerived& withRectangle(const RectF& rectangle) = 0;
         virtual TDerived& addScissor(const RectF& scissor) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TInputAssembler, typename TParent>
+    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual TDerived& withBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
     };
 
 }

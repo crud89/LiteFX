@@ -11,6 +11,35 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	// Class definitions.
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public RenderPipelineLayout, public IResource<VkPipelineLayout> {
+	public:
+		using builder = VulkanRenderPipelineLayoutBuilder;
+		friend class VulkanRenderPipelineLayoutBuilder;
+
+	public:
+		VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept;
+		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) noexcept = delete;
+		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) noexcept = delete;
+		virtual ~VulkanRenderPipelineLayout() noexcept;
+	};
+
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline, public IResource<VkPipeline> {
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl)
+
+	public:
+		using builder = VulkanRenderPipelineBuilder;
+		friend class VulkanRenderPipelineBuilder;
+
+	public:
+		VulkanRenderPipeline() noexcept;
+		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
+		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
+		virtual ~VulkanRenderPipeline() noexcept;
+
+	public:
+		virtual void create(UniquePtr<IRenderPipelineLayout>&& layout);
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>

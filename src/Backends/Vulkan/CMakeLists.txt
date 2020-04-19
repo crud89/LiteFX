@@ -27,16 +27,16 @@ SET(VULKAN_BACKEND_HEADERS
 SET(VULKAN_BACKEND_SOURCES
     "src/convert.cpp"
     "src/backend.cpp"
-    "src/backend_builder.cpp"
     "src/adaper.cpp"
     "src/device.cpp"
-    "src/device_builder.cpp"
     "src/queue.cpp"
     "src/surface.cpp"
     "src/swapchain.cpp"
     "src/texture.cpp"
     "src/shader_module.cpp"
     "src/shader_program.cpp"
+    "src/pipeline.cpp"
+    "src/pipeline_layout.cpp"
 )
 
 # Add shared library project.

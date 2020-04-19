@@ -115,6 +115,17 @@ namespace LiteFX::Rendering {
 	public:
 		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
 		virtual const ISurface* getSurface() const noexcept override;
+
+	public:
+		/// <summary>
+		/// Initializes a new render pipeline of type <typeparamref name="T"/> and returns a builder instance for it.
+		/// </summary>
+		/// <param name="_args">The arguments which are passed to the constructor of the render pipeline.</param>
+		/// <typeparam name="T">The type of the render pipeline. The type must implement <see cref="IRenderPipeline" /> interface.</typeparam>
+		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IRenderPipeline*>, int> = 0, typename TBuilder = T::builder>
+		TBuilder build(TArgs&&... _args) const {
+			return TBuilder(makeUnique<T>(std::forward<TArgs>(_args)...));
+		}
 	};
 
 	/// <summary>
