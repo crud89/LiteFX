@@ -124,6 +124,9 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual const IGraphicsDevice* getDevice() const noexcept override;
+		virtual const Size2d& getBufferSize() const noexcept override;
+		virtual size_t getWidth() const noexcept override;
+		virtual size_t getHeight() const noexcept override;
 	};
 
 	/// <summary>
@@ -162,6 +165,10 @@ namespace LiteFX::Rendering::Backends {
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
+
+	public:
+		virtual size_t getBufferWidth() const noexcept override;
+		virtual size_t getBufferHeight() const noexcept override;
 
 	public:
 		virtual const Array<String>& getExtensions() const noexcept;

@@ -171,6 +171,16 @@ VulkanDevice::~VulkanDevice() noexcept
 	::vkDestroyDevice(this->handle(), nullptr);
 }
 
+size_t VulkanDevice::getBufferWidth() const noexcept
+{
+	return m_impl->getSwapChain()->getWidth();
+}
+
+size_t VulkanDevice::getBufferHeight() const noexcept
+{
+	return m_impl->getSwapChain()->getHeight();
+}
+
 const Array<String>& VulkanDevice::getExtensions() const noexcept
 {
 	return m_impl->getExtensions();

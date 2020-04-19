@@ -32,6 +32,9 @@ namespace LiteFX::Rendering {
 
 	public:
 		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
+		virtual const Size2d& getBufferSize() const noexcept = 0;
+		virtual size_t getWidth() const noexcept = 0;
+		virtual size_t getHeight() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -73,6 +76,10 @@ namespace LiteFX::Rendering {
 		virtual const ISurface* getSurface() const noexcept = 0;
 		virtual const ISwapChain* getSwapChain() const noexcept = 0;
 		virtual Array<Format> getSurfaceFormats() const = 0;
+
+	public:
+		virtual size_t getBufferWidth() const noexcept = 0;
+		virtual size_t getBufferHeight() const noexcept = 0;
 
 	public:
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const = 0;

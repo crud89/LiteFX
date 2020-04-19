@@ -10,6 +10,7 @@ class VulkanSwapChain::VulkanSwapChainImpl {
 private:
 	Array<UniquePtr<ITexture>> m_frameBuffers;
 	const VulkanDevice* m_device;
+	Size2d m_size = { };
 
 public:
 	VulkanSwapChainImpl(const VulkanDevice* device) noexcept :
@@ -30,6 +31,7 @@ private:
 		});
 
 		m_frameBuffers = std::move(textures);
+		m_size = Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height));
 	}
 
 private:
@@ -135,6 +137,11 @@ public:
 	{
 		return m_device;
 	}
+
+	const Size2d& getSize() const noexcept
+	{
+		return m_size;
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -161,4 +168,19 @@ VulkanSwapChain::~VulkanSwapChain() noexcept
 const IGraphicsDevice* VulkanSwapChain::getDevice() const noexcept
 {
 	return m_impl->getDevice();
+}
+
+const Size2d& VulkanSwapChain::getBufferSize() const noexcept
+{
+	return m_impl->getSize();
+}
+
+size_t VulkanSwapChain::getWidth() const noexcept
+{
+	return m_impl->getSize().width();
+}
+
+size_t VulkanSwapChain::getHeight() const noexcept
+{
+	return m_impl->getSize().height();
 }
