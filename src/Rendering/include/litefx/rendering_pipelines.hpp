@@ -198,6 +198,7 @@ namespace LiteFX::Rendering {
     public:
         virtual void addTarget(UniquePtr<IRenderTarget>&& target) = 0;
         virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
+        virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;
     };
 
     /// <summary>
