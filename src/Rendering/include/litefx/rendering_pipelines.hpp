@@ -191,6 +191,18 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
+    class LITEFX_RENDERING_API IRenderPass {
+    public:
+        virtual ~IRenderPass() noexcept = default;
+
+    public:
+        virtual void addTarget(UniquePtr<IRenderTarget>&& target) = 0;
+        virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API Rasterizer : public IRasterizer {
         LITEFX_IMPLEMENTATION(RasterizerImpl)
 

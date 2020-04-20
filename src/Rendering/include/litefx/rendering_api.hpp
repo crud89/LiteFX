@@ -37,7 +37,9 @@ namespace LiteFX::Rendering {
     class ICommandQueue;
     class IGraphicsDevice;
     class IGraphicsAdapter;
-    class IRenderBackend;
+	class IRenderBackend;
+	class IRenderPass;
+	class IRenderTarget;
 
 	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {
@@ -116,6 +118,31 @@ namespace LiteFX::Rendering {
 	enum class LITEFX_RENDERING_API CullOrder {
 		ClockWise = 0x00000001,
 		CounterClockWise = 0x00000002
+	};
+
+	enum class LITEFX_RENDERING_API RenderTargetType {
+		/// <summary>
+		/// Represents a color target.
+		/// </summary>
+		Color = 0x00000001,
+
+		/// <summary>
+		/// Represents a depth/stencil target.
+		/// </summary>
+		Depth = 0x00000002,
+
+		/// <summary>
+		/// Represents a color target that should be presented.
+		/// </summary>
+		/// <remarks>
+		/// This is similar to <see cref="RenderTargetType::Color" />, but is used to optimize the memory layout of the target for it to be pushed to a swap chain.
+		/// </remarks>
+		Present = 0x00000004,
+
+		/// <summary>
+		/// Represents a target that should receive a copy of another image through a transfer operation.
+		/// </summary>
+		Transfer = 0x00000008
 	};
 
 	// Define flags.

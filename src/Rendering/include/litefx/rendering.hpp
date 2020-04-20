@@ -10,7 +10,42 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX;
 	using namespace LiteFX::Math;
 
-	// Define interfaces.
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API IRenderTarget {
+	public:
+		virtual ~IRenderTarget() noexcept = default;
+
+	public:
+		virtual RenderTargetType getType() const noexcept = 0;
+		virtual void setType(const RenderTargetType& type) = 0;
+		virtual int getSamples() const noexcept = 0;
+		virtual void setSamples(const int& samples = 1) = 0;
+		virtual bool getClearBuffer() const noexcept = 0;
+		virtual void setClearBuffer(const bool& clear = true) = 0;
+		virtual bool getClearStencil() const noexcept = 0;
+		virtual void setClearStencil(const bool& clear = true) = 0;
+
+		/// <summary>
+		/// Gets whether the target should be made persistent for access after the render pass has finished.
+		/// </summary>
+		/// <remarks>
+		/// A render target can be marked as volatile if it does not need to be accessed after the render pass has finished. This can be used to optimize away unnecessary GPU/CPU 
+		/// memory round-trips. For example a depth buffer may only be used as an input for the lighting stage of a deferred renderer, but is not required after this. So instead
+		/// of reading it from the GPU after the lighting pass has finished and then discarding it anyway, it can be marked as volatile in order to prevent it from being read from
+		/// the GPU memory again in the first place.
+		/// </remarks>
+		/// <seealso cref="IRenderTarget::setVolatile" />
+		virtual bool getVolatile() const noexcept = 0;
+
+		/// <summary>
+		/// Sets whether the target should be made persistent for access after the render pass has finished.
+		/// </summary>
+		/// <seealso cref="IRenderTarget::getVolatile" />
+		virtual void setVolatile(const bool& isVolatile = false) = 0;
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>
