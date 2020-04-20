@@ -69,6 +69,16 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const PrimitiveTopology& topology);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    ShaderType LITEFX_VULKAN_API getStageType(const VkPipelineStageFlags& shaderType);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkPipelineStageFlags LITEFX_VULKAN_API getStageType(const ShaderType& shaderType);
+
     // Forward declarations.
     class VulkanTexture;
     class VulkanSwapChain;

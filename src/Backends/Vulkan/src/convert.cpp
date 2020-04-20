@@ -24,7 +24,7 @@ VkFormat LiteFX::Rendering::Backends::getFormat(const Format& format)
 	case Format::B8G8R8A8_UNORM_SRGB:
 		return VK_FORMAT_B8G8R8A8_SRGB;
 	default:
-		return VK_FORMAT_MAX_ENUM;
+		throw std::invalid_argument("Unsupported format.");
 	}
 }
 
@@ -37,8 +37,9 @@ PolygonMode LiteFX::Rendering::Backends::getPolygonMode(const VkPolygonMode& mod
 	case VkPolygonMode::VK_POLYGON_MODE_POINT:
 		return PolygonMode::Point;
 	case VkPolygonMode::VK_POLYGON_MODE_FILL:
-	default:
 		return PolygonMode::Solid;
+	default:
+		throw std::invalid_argument("Unsupported polygon mode.");
 	}
 }
 
@@ -53,7 +54,7 @@ VkPolygonMode LiteFX::Rendering::Backends::getPolygonMode(const PolygonMode& mod
 	case PolygonMode::Point:
 		return VkPolygonMode::VK_POLYGON_MODE_POINT;
 	default:
-		return VkPolygonMode::VK_POLYGON_MODE_POINT;
+		throw std::invalid_argument("Unsupported polygon mode.");
 	}
 }
 
@@ -68,8 +69,9 @@ CullMode LiteFX::Rendering::Backends::getCullMode(const VkCullModeFlags& mode)
 	case VkCullModeFlagBits::VK_CULL_MODE_FRONT_AND_BACK:
 		return CullMode::Both;
 	case VkCullModeFlagBits::VK_CULL_MODE_NONE:
-	default:
 		return CullMode::Disabled;
+	default:
+		throw std::invalid_argument("Unsupported cull mode.");
 	}
 }
 
@@ -84,8 +86,9 @@ VkCullModeFlags LiteFX::Rendering::Backends::getCullMode(const CullMode& mode)
 	case CullMode::Both:
 		return VkCullModeFlagBits::VK_CULL_MODE_FRONT_AND_BACK;
 	case CullMode::Disabled:
-	default:
 		return VkCullModeFlagBits::VK_CULL_MODE_NONE;
+	default:
+		throw std::invalid_argument("Unsupported cull mode.");
 	}
 }
 
@@ -102,8 +105,9 @@ PrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const VkPrim
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
 		return PrimitiveTopology::TriangleStrip;
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-	default:
 		return PrimitiveTopology::PointList;
+	default:
+		throw std::invalid_argument("Unsupported primitive topology.");
 	}
 }
 
@@ -122,6 +126,49 @@ VkPrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const Prim
 	case PrimitiveTopology::TriangleStrip:
 		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	default:
-		return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+		throw std::invalid_argument("Unsupported primitive topology.");
+	}
+}
+
+ShaderType LiteFX::Rendering::Backends::getStageType(const VkPipelineStageFlags& shaderType)
+{
+	switch (shaderType)
+	{
+	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT:
+		return ShaderType::Vertex;
+	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT:
+		return ShaderType::TessellationControl;
+	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT:
+		return ShaderType::TessellationEvaluation;
+	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT:
+		return ShaderType::Geometry;
+	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT:
+		return ShaderType::Fragment;
+	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT:
+		return ShaderType::Compute;
+	default:
+		return ShaderType::Other;
+	}
+}
+
+VkPipelineStageFlags LiteFX::Rendering::Backends::getStageType(const ShaderType& shaderType)
+{
+	switch (shaderType)
+	{
+	case ShaderType::Vertex:
+		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+	case ShaderType::TessellationControl:
+		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+	case ShaderType::TessellationEvaluation:
+		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	case ShaderType::Geometry:
+		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	case ShaderType::Fragment:
+		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	case ShaderType::Compute:
+		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	case ShaderType::Other:
+	default:
+		throw std::invalid_argument("Unsupported shader type.");
 	}
 }
