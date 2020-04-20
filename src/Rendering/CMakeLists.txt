@@ -36,6 +36,7 @@ SET(RENDERING_SOURCES
     "src/input_assembler.cpp"
     "src/rasterizer.cpp"
     "src/viewport.cpp"
+    "src/render_target.cpp"
 )
 
 # Add shared library project.

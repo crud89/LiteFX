@@ -46,6 +46,47 @@ namespace LiteFX::Rendering {
 		virtual void setVolatile(const bool& isVolatile = false) = 0;
 	};
 
+	class LITEFX_RENDERING_API RenderTarget : public IRenderTarget{
+		LITEFX_IMPLEMENTATION(RenderTargetImpl)
+
+	public:
+		RenderTarget();
+		RenderTarget(const RenderTarget&) = delete;
+		RenderTarget(RenderTarget&&) = delete;
+		virtual ~RenderTarget() noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual RenderTargetType getType() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setType(const RenderTargetType& type) override;
+
+		/// <inheritdoc />
+		virtual int getSamples() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setSamples(const int& samples = 1) override;
+
+		/// <inheritdoc />
+		virtual bool getClearBuffer() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setClearBuffer(const bool& clear = true) override;
+
+		/// <inheritdoc />
+		virtual bool getClearStencil() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setClearStencil(const bool& clear = true) override;
+
+		/// <inheritdoc />
+		virtual bool getVolatile() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setVolatile(const bool& isVolatile = false) override;
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>
