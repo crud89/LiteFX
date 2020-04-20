@@ -79,6 +79,16 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(const ShaderType& shaderType);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    MultiSamplingLevel LITEFX_VULKAN_API getSamples(const VkSampleCountFlagBits& samples);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
+
     // Forward declarations.
     class VulkanTexture;
     class VulkanSwapChain;

@@ -172,3 +172,49 @@ VkShaderStageFlagBits LiteFX::Rendering::Backends::getShaderStage(const ShaderTy
 		throw std::invalid_argument("Unsupported shader type.");
 	}
 }
+
+MultiSamplingLevel LiteFX::Rendering::Backends::getSamples(const VkSampleCountFlagBits& samples)
+{
+	switch (samples)
+	{
+	case VkSampleCountFlagBits::VK_SAMPLE_COUNT_1_BIT:
+		return MultiSamplingLevel::x1;
+	case VkSampleCountFlagBits::VK_SAMPLE_COUNT_2_BIT:
+		return MultiSamplingLevel::x2;
+	case VkSampleCountFlagBits::VK_SAMPLE_COUNT_4_BIT:
+		return MultiSamplingLevel::x4;
+	case VkSampleCountFlagBits::VK_SAMPLE_COUNT_8_BIT:
+		return MultiSamplingLevel::x8;
+	case VkSampleCountFlagBits::VK_SAMPLE_COUNT_16_BIT:
+		return MultiSamplingLevel::x16;
+	case VkSampleCountFlagBits::VK_SAMPLE_COUNT_32_BIT:
+		return MultiSamplingLevel::x32;
+	case VkSampleCountFlagBits::VK_SAMPLE_COUNT_64_BIT:
+		return MultiSamplingLevel::x64;
+	default:
+		throw std::invalid_argument("Unsupported number of samples.");
+	}
+}
+
+VkSampleCountFlagBits LiteFX::Rendering::Backends::getSamples(const MultiSamplingLevel& samples)
+{
+	switch (samples)
+	{
+	case MultiSamplingLevel::x1:
+		return VkSampleCountFlagBits::VK_SAMPLE_COUNT_1_BIT;
+	case MultiSamplingLevel::x2:
+		return VkSampleCountFlagBits::VK_SAMPLE_COUNT_2_BIT;
+	case MultiSamplingLevel::x4:
+		return VkSampleCountFlagBits::VK_SAMPLE_COUNT_4_BIT;
+	case MultiSamplingLevel::x8:
+		return VkSampleCountFlagBits::VK_SAMPLE_COUNT_8_BIT;
+	case MultiSamplingLevel::x16:
+		return VkSampleCountFlagBits::VK_SAMPLE_COUNT_16_BIT;
+	case MultiSamplingLevel::x32:
+		return VkSampleCountFlagBits::VK_SAMPLE_COUNT_32_BIT;
+	case MultiSamplingLevel::x64:
+		return VkSampleCountFlagBits::VK_SAMPLE_COUNT_64_BIT;
+	default:
+		throw std::invalid_argument("Unsupported number of samples.");
+	}
+}

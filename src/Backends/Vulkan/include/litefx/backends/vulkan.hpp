@@ -13,6 +13,27 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
+	class LITEFX_VULKAN_API VulkanRenderPass : public IRenderPass, public IResource<VkRenderPass> {
+		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl)
+
+	public:
+		VulkanRenderPass(const VulkanRenderPipeline& pipeline);
+		VulkanRenderPass(const VulkanRenderPass&) = delete;
+		VulkanRenderPass(VulkanRenderPass&&) = delete;
+		virtual ~VulkanRenderPass() noexcept;
+
+	public:
+		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
+		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
+		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
+
+	public:
+		virtual void create();
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanInputAssembler : public InputAssembler {
 	public:
 		using builder = VulkanInputAssemblerBuilder;

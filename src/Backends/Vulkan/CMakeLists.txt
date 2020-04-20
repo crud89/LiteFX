@@ -40,6 +40,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/rasterizer.cpp"
     "src/viewport.cpp"
     "src/input_assembler.cpp"
+    "src/render_pass.cpp"
 )
 
 # Add shared library project.
