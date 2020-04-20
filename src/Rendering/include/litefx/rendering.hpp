@@ -26,6 +26,8 @@ namespace LiteFX::Rendering {
 		virtual void setClearBuffer(const bool& clear = true) = 0;
 		virtual bool getClearStencil() const noexcept = 0;
 		virtual void setClearStencil(const bool& clear = true) = 0;
+		virtual Format getFormat() const noexcept = 0;
+		virtual void setFormat(const Format& format) = 0;
 
 		/// <summary>
 		/// Gets whether the target should be made persistent for access after the render pass has finished.
@@ -79,6 +81,12 @@ namespace LiteFX::Rendering {
 
 		/// <inheritdoc />
 		virtual void setClearStencil(const bool& clear = true) override;
+
+		/// <inheritdoc />
+		virtual Format getFormat() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setFormat(const Format& format) override;
 
 		/// <inheritdoc />
 		virtual bool getVolatile() const noexcept override;

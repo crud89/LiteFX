@@ -9,6 +9,7 @@ using namespace LiteFX::Rendering;
 class RenderTarget::RenderTargetImpl {
 private:
     RenderTargetType m_type = RenderTargetType::Color;
+    Format m_format = Format::B8G8R8A8_UNORM_SRGB;
     int m_samples = 1;
     bool m_clearBuffer = false, m_clearStencil = false, m_volatile = false;
 
@@ -54,6 +55,16 @@ public:
     void setClearStencil(const bool& clear)
     {
         m_clearStencil = clear;
+    }
+
+    Format getFormat() const noexcept
+    {
+        return m_format;
+    }
+
+    void setFormat(const Format& format)
+    {
+        m_format = format;
     }
 
     bool getVolatile() const noexcept
@@ -116,6 +127,16 @@ bool RenderTarget::getClearStencil() const noexcept
 void RenderTarget::setClearStencil(const bool& clear) 
 {
     m_impl->setClearStencil(clear);
+}
+
+Format RenderTarget::getFormat() const noexcept
+{
+    return m_impl->getFormat();
+}
+
+void RenderTarget::setFormat(const Format& format)
+{
+    m_impl->setFormat(format);
 }
 
 bool RenderTarget::getVolatile() const noexcept 
