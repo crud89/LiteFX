@@ -86,6 +86,7 @@ namespace LiteFX::Rendering {
         virtual const IGraphicsDevice* getDevice() const noexcept = 0;
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
+        virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
     };
 
     /// <summary>
@@ -131,33 +132,8 @@ namespace LiteFX::Rendering {
     public:
         virtual Array<const IShaderModule*> getModules() const noexcept = 0;
         virtual void use(UniquePtr<IShaderModule>&& module) = 0;
-        virtual void remove(const IShaderModule* module) const noexcept = 0;
+        virtual UniquePtr<IShaderModule> remove(const IShaderModule* module) = 0;
     };
-
-    // TODO: Rename to ShaderProgramBuilder
-    //class LITEFX_RENDERING_API RenderPipelineBuilder : public Builder<IRenderPipeline> {
-    //    LITEFX_IMPLEMENTATION(RenderPipelineBuilderImpl)
-
-    //public:
-    //    explicit RenderPipelineBuilder(const IGraphicsDevice* device, const String& name);
-    //    RenderPipelineBuilder(const RenderPipelineBuilder&&) = delete;
-    //    RenderPipelineBuilder(RenderPipelineBuilder&) = delete;
-    //    virtual ~RenderPipelineBuilder() noexcept;
-
-    //public:
-    //    virtual const IGraphicsDevice* getDevice() const noexcept;
-    //    virtual const String& getName() const noexcept;
-    //    virtual Array<UniquePtr<IShaderModule>> shaderModules() noexcept;
-
-    //public:
-    //    virtual RenderPipelineBuilder& addShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main");
-    //    virtual RenderPipelineBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main");
-    //    virtual RenderPipelineBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main");
-    //    virtual RenderPipelineBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main");
-    //    virtual RenderPipelineBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main");
-    //    virtual RenderPipelineBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main");
-    //    virtual RenderPipelineBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main");
-    //};
 
     /// <summary>
     /// 
@@ -324,6 +300,7 @@ namespace LiteFX::Rendering {
         virtual const IGraphicsDevice* getDevice() const noexcept override;
         virtual const IRenderPipelineLayout* getLayout() const noexcept override;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
+        virtual void use(UniquePtr<IShaderProgram>&& program) override;
     };
 
     /// <summary>
@@ -336,6 +313,25 @@ namespace LiteFX::Rendering {
 
     public:
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
+        virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TShaderProgram, typename TParent>
+    class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual ShaderProgramBuilder& addShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") = 0;
+        virtual ShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual ShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual ShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
     };
 
     /// <summary>

@@ -9,6 +9,7 @@ using namespace LiteFX::Rendering;
 class RenderPipeline::RenderPipelineImpl {
 private:
     UniquePtr<IRenderPipelineLayout> m_layout;
+    UniquePtr<IShaderProgram> m_program;
     const IGraphicsDevice* m_device;
 
 public:
@@ -24,7 +25,7 @@ public:
         return m_device;
     }
 
-    const IRenderPipelineLayout* getLayout() const noexcept 
+    const IRenderPipelineLayout* getLayout() const noexcept
     {
         return m_layout.get();
     }
@@ -32,6 +33,16 @@ public:
     void setLayout(UniquePtr<IRenderPipelineLayout>&& layout)
     {
         m_layout = std::move(layout);
+    }
+
+    const IShaderProgram* getProgram() const noexcept
+    {
+        return m_program.get();
+    }
+
+    void setProgram(UniquePtr<IShaderProgram>&& program)
+    {
+        m_program = std::move(program);
     }
 };
 
@@ -67,5 +78,16 @@ const IRenderPipelineLayout* RenderPipeline::getLayout() const noexcept
 
 void RenderPipeline::use(UniquePtr<IRenderPipelineLayout>&& layout)
 {
+    if (layout == nullptr)
+        throw std::invalid_argument("The layout must be initialized.");
+
     m_impl->setLayout(std::move(layout));
+}
+
+void RenderPipeline::use(UniquePtr<IShaderProgram>&& program)
+{
+    if (program == nullptr)
+        throw std::invalid_argument("The program must be initialized.");
+
+    m_impl->setProgram(std::move(program));
 }

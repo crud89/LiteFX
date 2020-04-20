@@ -75,15 +75,24 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineLayoutBuilder::go()
 
 void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IRasterizer>&& rasterizer)
 {
+    if (rasterizer == nullptr)
+        throw std::invalid_argument("The rasterizer must be initialized.");
+
     this->instance()->use(std::move(rasterizer));
 }
 
 void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IInputAssembler>&& inputAssembler)
 {
+    if (inputAssembler == nullptr)
+        throw std::invalid_argument("The input assembler must be initialized.");
+
     this->instance()->use(std::move(inputAssembler));
 }
 
 void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IViewport>&& viewport)
 {
+    if (viewport == nullptr)
+        throw std::invalid_argument("The viewport must be initialized.");
+
     this->instance()->use(std::move(viewport));
 }

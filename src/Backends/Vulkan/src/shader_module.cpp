@@ -72,7 +72,7 @@ public:
 };
 
 // ------------------------------------------------------------------------------------------------
-// Shared interface.
+// Interface.
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint) :

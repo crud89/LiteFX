@@ -115,7 +115,8 @@ public:
 		viewportState.scissorCount = static_cast<UInt32>(scissors.size());
 		viewportState.pScissors = scissors.data();
 
-		// TODO: Setup multisampling state.
+		// Setup multisampling state.
+		// TODO: Abstract me!
 		VkPipelineMultisampleStateCreateInfo multisampling = {};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
@@ -126,6 +127,7 @@ public:
 		multisampling.alphaToOneEnable = VK_FALSE;
 
 		// Setup color blend state.
+		// TODO: Abstract me!
 		VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		colorBlendAttachment.blendEnable = VK_FALSE;
@@ -155,7 +157,6 @@ public:
 		pipelineInfo.pMultisampleState = &multisampling;
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.layout = layout->handle();
-		pipelineInfo.renderPass = nullptr;
 		//pipelineInfo.renderPass = renderPass;
 		pipelineInfo.subpass = 0;
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -212,6 +213,7 @@ void VulkanRenderPipeline::create()
 class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl {
 private:
 	UniquePtr<IRenderPipelineLayout> m_layout;
+	UniquePtr<IShaderProgram> m_program;
 
 public:
 	VulkanRenderPipelineBuilderImpl() noexcept = default;
@@ -225,6 +227,16 @@ public:
 	void setLayout(UniquePtr<IRenderPipelineLayout>&& layout)
 	{
 		m_layout = std::move(layout);
+	}
+
+	UniquePtr<IShaderProgram> useProgram() noexcept
+	{
+		return std::move(m_program);
+	}
+
+	void setProgram(UniquePtr<IShaderProgram>&& program)
+	{
+		m_program = std::move(program);
 	}
 };
 
@@ -241,6 +253,7 @@ VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
 
 UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
 {
+	this->instance()->use(std::move(m_impl->useProgram()));
 	this->instance()->use(std::move(m_impl->useLayout()));
 	this->instance()->create();
 
@@ -249,5 +262,16 @@ UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
 
 void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout> && layout)
 {
+    if (layout == nullptr)
+        throw std::invalid_argument("The layout must be initialized.");
+
 	m_impl->setLayout(std::move(layout));
+}
+
+void VulkanRenderPipelineBuilder::use(UniquePtr<IShaderProgram>&& program)
+{
+	if (program == nullptr)
+		throw std::invalid_argument("The program must be initialized.");
+
+	m_impl->setProgram(std::move(program));
 }

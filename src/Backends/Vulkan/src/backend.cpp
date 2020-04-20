@@ -183,6 +183,9 @@ void VulkanBackend::use(const IGraphicsAdapter* adapter)
 
 void VulkanBackend::use(UniquePtr<ISurface>&& surface)
 {
+    if (surface == nullptr)
+        throw std::invalid_argument("The surface must be initialized.");
+
     m_impl->setSurface(std::move(surface));
 }
 

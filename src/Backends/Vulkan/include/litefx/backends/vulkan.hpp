@@ -10,7 +10,9 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
-	// Class definitions.
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanInputAssembler : public InputAssembler {
 	public:
 		using builder = VulkanInputAssemblerBuilder;
@@ -23,6 +25,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanInputAssembler() noexcept;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanViewport : public Viewport {
 	public:
 		using builder = VulkanViewportBuilder;
@@ -35,6 +40,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanViewport() noexcept;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanRasterizer : public Rasterizer {
 	public:
 		using builder = VulkanRasterizerBuilder;
@@ -47,6 +55,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanRasterizer() noexcept;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public RenderPipelineLayout, public IResource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl)
 
@@ -65,6 +76,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual void create();
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline, public IResource<VkPipeline> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl)
 
@@ -101,6 +115,26 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual VkPipelineShaderStageCreateInfo getShaderStageDefinition() const;
+	};
+
+	class LITEFX_VULKAN_API VulkanShaderProgram : public IShaderProgram {
+		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl)
+
+	public:
+		using builder = VulkanShaderProgramBuilder;
+		friend class VulkanShaderProgramBuilder;
+
+	public:
+		VulkanShaderProgram(const VulkanRenderPipeline& pipeline);
+		VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
+		VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
+		virtual ~VulkanShaderProgram() noexcept;
+
+	public:
+		virtual Array<const IShaderModule*> getModules() const noexcept override;
+		virtual void use(UniquePtr<IShaderModule>&& module) override;
+		virtual UniquePtr<IShaderModule> remove(const IShaderModule* module) override;
+		virtual const VulkanDevice* getDevice() const noexcept;
 	};
 
 	/// <summary>
