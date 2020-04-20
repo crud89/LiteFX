@@ -20,8 +20,8 @@ namespace LiteFX::Rendering {
 	public:
 		virtual RenderTargetType getType() const noexcept = 0;
 		virtual void setType(const RenderTargetType& type) = 0;
-		virtual int getSamples() const noexcept = 0;
-		virtual void setSamples(const int& samples = 1) = 0;
+		virtual MultiSamplingLevel getSamples() const noexcept = 0;
+		virtual void setSamples(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;
 		virtual bool getClearBuffer() const noexcept = 0;
 		virtual void setClearBuffer(const bool& clear = true) = 0;
 		virtual bool getClearStencil() const noexcept = 0;
@@ -48,7 +48,7 @@ namespace LiteFX::Rendering {
 		virtual void setVolatile(const bool& isVolatile = false) = 0;
 	};
 
-	class LITEFX_RENDERING_API RenderTarget : public IRenderTarget{
+	class LITEFX_RENDERING_API RenderTarget : public IRenderTarget {
 		LITEFX_IMPLEMENTATION(RenderTargetImpl)
 
 	public:
@@ -65,10 +65,10 @@ namespace LiteFX::Rendering {
 		virtual void setType(const RenderTargetType& type) override;
 
 		/// <inheritdoc />
-		virtual int getSamples() const noexcept override;
+		virtual MultiSamplingLevel getSamples() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setSamples(const int& samples = 1) override;
+		virtual void setSamples(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) override;
 
 		/// <inheritdoc />
 		virtual bool getClearBuffer() const noexcept override;

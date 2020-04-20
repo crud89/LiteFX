@@ -10,7 +10,7 @@ class RenderTarget::RenderTargetImpl {
 private:
     RenderTargetType m_type = RenderTargetType::Color;
     Format m_format = Format::B8G8R8A8_UNORM_SRGB;
-    int m_samples = 1;
+    MultiSamplingLevel m_samples = MultiSamplingLevel::x1;
     bool m_clearBuffer = false, m_clearStencil = false, m_volatile = false;
 
 public:
@@ -27,12 +27,12 @@ public:
         m_type = type;
     }
 
-    int getSamples() const noexcept
+    MultiSamplingLevel getSamples() const noexcept
     {
         return m_samples;
     }
 
-    void setSamples(const int& samples)
+    void setSamples(const MultiSamplingLevel& samples)
     {
         m_samples = samples;
     }
@@ -99,12 +99,12 @@ void RenderTarget::setType(const RenderTargetType& type)
     m_impl->setType(type);
 }
 
-int RenderTarget::getSamples() const noexcept 
+MultiSamplingLevel RenderTarget::getSamples() const noexcept
 {
     return m_impl->getSamples();
 }
 
-void RenderTarget::setSamples(const int& samples) 
+void RenderTarget::setSamples(const MultiSamplingLevel& samples)
 {
     m_impl->setSamples(samples);
 }
