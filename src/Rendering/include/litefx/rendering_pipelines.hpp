@@ -86,8 +86,10 @@ namespace LiteFX::Rendering {
         virtual const IGraphicsDevice* getDevice() const noexcept = 0;
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual const IShaderProgram* getProgram() const noexcept = 0;
+        virtual Array<const IRenderPass*> getRenderPasses() const noexcept = 0;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
+        virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;
     };
 
     /// <summary>
@@ -310,8 +312,10 @@ namespace LiteFX::Rendering {
         virtual const IGraphicsDevice* getDevice() const noexcept override;
         virtual const IRenderPipelineLayout* getLayout() const noexcept override;
         virtual const IShaderProgram* getProgram() const noexcept override;
+        virtual Array<const IRenderPass*> getRenderPasses() const noexcept override;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
         virtual void use(UniquePtr<IShaderProgram>&& program) override;
+        virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
     };
 
     /// <summary>

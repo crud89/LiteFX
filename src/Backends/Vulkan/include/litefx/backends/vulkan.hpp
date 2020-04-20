@@ -138,6 +138,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual VkPipelineShaderStageCreateInfo getShaderStageDefinition() const;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanShaderProgram : public IShaderProgram {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl)
 
