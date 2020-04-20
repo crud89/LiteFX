@@ -217,3 +217,25 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::RenderTargetType> 
 		return formatter<string_view>::format(name, ctx);
 	}
 };
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::MultiSamplingLevel> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::MultiSamplingLevel t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::MultiSamplingLevel::x1: name = "1"; break;
+		case LiteFX::Rendering::MultiSamplingLevel::x2: name = "2"; break;
+		case LiteFX::Rendering::MultiSamplingLevel::x4: name = "4"; break;
+		case LiteFX::Rendering::MultiSamplingLevel::x8: name = "8"; break;
+		case LiteFX::Rendering::MultiSamplingLevel::x16: name = "16"; break;
+		case LiteFX::Rendering::MultiSamplingLevel::x32: name = "32"; break;
+		case LiteFX::Rendering::MultiSamplingLevel::x64: name = "64"; break;
+		default: name = "Invalid"; break;
+		}
+
+		return formatter<string_view>::format(name, ctx);
+	}
+};

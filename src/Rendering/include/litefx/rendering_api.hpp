@@ -145,6 +145,16 @@ namespace LiteFX::Rendering {
 		Transfer = 0x00000008
 	};
 
+	enum class LITEFX_RENDERING_API MultiSamplingLevel {
+		x1 = 0x00000001,
+		x2 = 0x00000002,
+		x4 = 0x00000004,
+		x8 = 0x00000008,
+		x16 = 0x00000010,
+		x32 = 0x00000020,
+		x64 = 0x00000040
+	};
+
 	// Define flags.
 	LITEFX_DEFINE_FLAGS(QueueType);
 	LITEFX_DEFINE_FLAGS(ShaderType);
