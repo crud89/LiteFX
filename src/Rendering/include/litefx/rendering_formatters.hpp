@@ -198,3 +198,22 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::CullOrder> : forma
 		return formatter<string_view>::format(name, ctx);
 	}
 };
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::RenderTargetType> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::RenderTargetType t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::RenderTargetType::Color: name = "Color"; break;
+		case LiteFX::Rendering::RenderTargetType::Depth: name = "Depth"; break;
+		case LiteFX::Rendering::RenderTargetType::Present: name = "Present"; break;
+		case LiteFX::Rendering::RenderTargetType::Transfer: name = "Transfer"; break;
+		default: name = "Invalid"; break;
+		}
+
+		return formatter<string_view>::format(name, ctx);
+	}
+};
