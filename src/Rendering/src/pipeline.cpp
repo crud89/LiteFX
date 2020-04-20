@@ -76,6 +76,11 @@ const IRenderPipelineLayout* RenderPipeline::getLayout() const noexcept
     return m_impl->getLayout();
 }
 
+const IShaderProgram* RenderPipeline::getProgram() const noexcept
+{
+    return m_impl->getProgram();
+}
+
 void RenderPipeline::use(UniquePtr<IRenderPipelineLayout>&& layout)
 {
     if (layout == nullptr)

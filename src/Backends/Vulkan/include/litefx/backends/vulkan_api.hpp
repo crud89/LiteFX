@@ -72,12 +72,12 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
-    ShaderType LITEFX_VULKAN_API getStageType(const VkPipelineStageFlags& shaderType);
+    ShaderType LITEFX_VULKAN_API getShaderStage(const VkShaderStageFlagBits& shaderType);
 
     /// <summary>
     /// 
     /// </summary>
-    VkPipelineStageFlags LITEFX_VULKAN_API getStageType(const ShaderType& shaderType);
+    VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(const ShaderType& shaderType);
 
     // Forward declarations.
     class VulkanTexture;

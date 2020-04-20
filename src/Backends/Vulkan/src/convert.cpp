@@ -130,43 +130,43 @@ VkPrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const Prim
 	}
 }
 
-ShaderType LiteFX::Rendering::Backends::getStageType(const VkPipelineStageFlags& shaderType)
+ShaderType LiteFX::Rendering::Backends::getShaderStage(const VkShaderStageFlagBits& shaderType)
 {
 	switch (shaderType)
 	{
-	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT:
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT:
 		return ShaderType::Vertex;
-	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT:
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT:
 		return ShaderType::TessellationControl;
-	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT:
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT:
 		return ShaderType::TessellationEvaluation;
-	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT:
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT:
 		return ShaderType::Geometry;
-	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT:
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT:
 		return ShaderType::Fragment;
-	case VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT:
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT:
 		return ShaderType::Compute;
 	default:
 		return ShaderType::Other;
 	}
 }
 
-VkPipelineStageFlags LiteFX::Rendering::Backends::getStageType(const ShaderType& shaderType)
+VkShaderStageFlagBits LiteFX::Rendering::Backends::getShaderStage(const ShaderType& shaderType)
 {
 	switch (shaderType)
 	{
 	case ShaderType::Vertex:
-		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
 	case ShaderType::TessellationControl:
-		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
 	case ShaderType::TessellationEvaluation:
-		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
 	case ShaderType::Geometry:
-		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
 	case ShaderType::Fragment:
-		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
 	case ShaderType::Compute:
-		return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
 	case ShaderType::Other:
 	default:
 		throw std::invalid_argument("Unsupported shader type.");

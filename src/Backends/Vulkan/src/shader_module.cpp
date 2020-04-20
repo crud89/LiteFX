@@ -112,30 +112,7 @@ VkPipelineShaderStageCreateInfo VulkanShaderModule::getShaderStageDefinition() c
 	shaderStageDefinition.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shaderStageDefinition.module = this->handle();
 	shaderStageDefinition.pName = this->getEntryPoint().c_str();
-
-	switch (this->getType())
-	{
-	case ShaderType::Vertex:
-		shaderStageDefinition.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		break;
-	case ShaderType::TessellationControl:
-		shaderStageDefinition.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-		break;
-	case ShaderType::TessellationEvaluation:
-		shaderStageDefinition.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-		break;
-	case ShaderType::Geometry:
-		shaderStageDefinition.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
-		break;
-	case ShaderType::Fragment:
-		shaderStageDefinition.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		break;
-	case ShaderType::Compute:
-		shaderStageDefinition.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-		break;
-	default:
-		throw std::runtime_error("Unsupported shader type detected.");
-	}
+	shaderStageDefinition.stage = getShaderStage(this->getType());
 
 	return shaderStageDefinition;
 }

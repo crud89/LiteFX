@@ -28,9 +28,13 @@ public:
 		auto rasterizer = layout->getRasterizer();
 		auto inputAssembler = layout->getInputAssembler();
 		auto views = layout->getViewports();
+		auto program = parent.getProgram();
 
 		if (rasterizer == nullptr)
 			throw std::invalid_argument("The pipeline layout does not contain a rasterizer.");
+
+		if (program == nullptr)
+			throw std::invalid_argument("The pipeline shader program must be initialized.");		
 
 		// Setup rasterizer state.
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {};
@@ -143,13 +147,9 @@ public:
 		colorBlending.blendConstants[2] = 0.0f;
 		colorBlending.blendConstants[3] = 0.0f;
 
-		// TODO: Implement shader stages.
-		// TODO: Implement render passes / sub-passes.
+		// Setup pipeline state.
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.stageCount = 0;
-		//pipelineInfo.stageCount = 2;
-		//pipelineInfo.pStages = shaderStages;
 		pipelineInfo.pVertexInputState = &inputState;
 		pipelineInfo.pInputAssemblyState = &inputAssembly;
 		pipelineInfo.pViewportState = &viewportState;
@@ -157,9 +157,31 @@ public:
 		pipelineInfo.pMultisampleState = &multisampling;
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.layout = layout->handle();
+		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+		// Setup shader stages.
+		auto modules = program->getModules();
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(program), modules.size());
+		Array<VkPipelineShaderStageCreateInfo> shaderStages(modules.size());
+
+		std::generate(std::begin(shaderStages), std::end(shaderStages), [&, i = 0]() mutable {
+			auto module = dynamic_cast<const VulkanShaderModule*>(modules[i++]);
+
+			if (module == nullptr)
+				throw std::invalid_argument("The provided shader module is not a valid Vulkan shader.");
+
+			LITEFX_TRACE(VULKAN_LOG, "Module {0}/{1} (\"{4}\") state: {{ Type: {2}, EntryPoint: {3}}}", i, modules.size(), module->getType(), module->getEntryPoint(), module->getFileName());
+			
+			return module->getShaderStageDefinition();
+		});
+
+		pipelineInfo.stageCount = modules.size();
+		pipelineInfo.pStages = shaderStages.data();
+
+		// Setup render pass state.
+		// TODO: Implement render passes / sub-passes.
 		//pipelineInfo.renderPass = renderPass;
 		pipelineInfo.subpass = 0;
-		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 		VkPipeline pipeline;
 

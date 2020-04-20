@@ -85,6 +85,7 @@ namespace LiteFX::Rendering {
     public:
         virtual const IGraphicsDevice* getDevice() const noexcept = 0;
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
+        virtual const IShaderProgram* getProgram() const noexcept = 0;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
     };
@@ -104,8 +105,6 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
         virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
         virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
-        virtual const IShaderProgram* getProgram() const noexcept = 0;
-        virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
     };
 
     /// <summary>
@@ -279,8 +278,6 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
         virtual const IInputAssembler* getInputAssembler() const noexcept override;
         virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
-        virtual const IShaderProgram* getProgram() const noexcept override;
-        virtual void use(UniquePtr<IShaderProgram>&& program) override;
     };
 
     /// <summary>
@@ -299,6 +296,7 @@ namespace LiteFX::Rendering {
     public:
         virtual const IGraphicsDevice* getDevice() const noexcept override;
         virtual const IRenderPipelineLayout* getLayout() const noexcept override;
+        virtual const IShaderProgram* getProgram() const noexcept override;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
         virtual void use(UniquePtr<IShaderProgram>&& program) override;
     };
