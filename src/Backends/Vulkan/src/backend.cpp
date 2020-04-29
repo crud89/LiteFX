@@ -18,6 +18,43 @@ public:
     VulkanBackendImpl(const Array<String>& extensions, const Array<String>& validationLayers) noexcept :
         m_extensions(extensions), m_layers(validationLayers) { }
 
+#ifndef NDEBUG
+private:
+    VkDebugUtilsMessengerEXT m_debugMessenger{ nullptr };
+    VkInstance m_instance{ nullptr };
+    PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger{ nullptr };
+    PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger{ nullptr };
+
+private:    
+    static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData) 
+    {
+        switch (severity)
+        {
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+            LITEFX_WARNING(VULKAN_LOG, "{0}", callbackData->pMessage);
+            break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+            LITEFX_ERROR(VULKAN_LOG, "{0}", callbackData->pMessage);
+            break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+            LITEFX_DEBUG(VULKAN_LOG, "{0}", callbackData->pMessage);
+            break;
+        default:
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+            LITEFX_TRACE(VULKAN_LOG, "{0}", callbackData->pMessage);
+            break;
+        }
+
+        return VK_FALSE;
+    }
+
+public:
+    ~VulkanBackendImpl() {
+        if (m_debugMessenger != nullptr && vkDestroyDebugUtilsMessenger != nullptr)
+            vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, nullptr);
+    }
+#endif
+
 public:
     VkInstance initialize(const VulkanBackend& parent)
     {
@@ -58,10 +95,41 @@ public:
         createInfo.enabledLayerCount = static_cast<uint32_t>(m_layers.size());
         createInfo.ppEnabledLayerNames = m_layers.size() == 0 ? nullptr : enabledLayers.data();
 
+#ifndef NDEBUG
+        VkDebugUtilsMessengerCreateInfoEXT debugCallbackInfo = {};
+        debugCallbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        debugCallbackInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        debugCallbackInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugCallbackInfo.pfnUserCallback = onDebugMessage;
+
+        createInfo.pNext = &debugCallbackInfo;
+#endif
         VkInstance instance;
 
         if (::vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
             throw std::runtime_error("Unable to create Vulkan instance.");
+
+#ifndef NDEBUG
+        vkCreateDebugUtilsMessenger = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+        vkDestroyDebugUtilsMessenger = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+
+        if (vkCreateDebugUtilsMessenger == nullptr)
+            LITEFX_WARNING(VULKAN_LOG, "The debug messenger factory \"vkCreateDebugUtilsMessengerEXT\" could not be loaded. Debug utilities will not be enabled.");
+        else if (vkDestroyDebugUtilsMessenger == nullptr)
+            LITEFX_WARNING(VULKAN_LOG, "The debug messenger factory \"vkDestroyDebugUtilsMessengerEXT\" could not be loaded. Debug utilities will not be enabled.");
+        else
+        {
+            auto result = vkCreateDebugUtilsMessenger(instance, &debugCallbackInfo, nullptr, &m_debugMessenger);
+
+            if (result == VK_ERROR_EXTENSION_NOT_PRESENT)
+                LITEFX_WARNING(VULKAN_LOG, "The extension \"{0}\" is not present. Debug utilities will not be enabled.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            else if (result != VK_SUCCESS)
+                throw std::runtime_error(fmt::format("Unable to initialize debug callback ({0}).", result));
+
+            // Remember the instance so we can destroy the debug messenger.
+            m_instance = instance;
+        }
+#endif
 
         // Return the instance.
         return instance;
