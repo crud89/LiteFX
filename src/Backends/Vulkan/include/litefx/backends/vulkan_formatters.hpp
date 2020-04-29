@@ -49,21 +49,3 @@ struct LITEFX_VULKAN_API fmt::formatter<VkResult> : formatter<string_view> {
 		return formatter<string_view>::format(name, ctx);
 	}
 };
-
-template <>
-struct LITEFX_VULKAN_API fmt::formatter<VkDebugUtilsMessageTypeFlagsEXT> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(VkDebugUtilsMessageTypeFlagsEXT t, FormatContext& ctx) {
-        string_view name;
-
-        switch (t)
-        {
-        case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: name = "VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT"; break;
-        case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: name = "VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT"; break;
-        case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: name = "VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT"; break;
-        default: name = "Message type: unknown"; break;
-        }
-
-        return formatter<string_view>::format(name, ctx);
-    }
-};

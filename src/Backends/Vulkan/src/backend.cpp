@@ -28,21 +28,23 @@ private:
 private:    
     static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData) 
     {
+        String t = "";
+
+        switch (type)
+        {
+        case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: t = "GENERAL"; break;
+        case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: t = "VALIDATION"; break;
+        case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: t = "PERFORMANCE"; break;
+        default: break;
+        }
+
         switch (severity)
         {
-        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-            LITEFX_WARNING(VULKAN_LOG, "{0}", callbackData->pMessage);
-            break;
-        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-            LITEFX_ERROR(VULKAN_LOG, "{0}", callbackData->pMessage);
-            break;
-        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-            LITEFX_DEBUG(VULKAN_LOG, "{0}", callbackData->pMessage);
-            break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: LITEFX_WARNING(VULKAN_LOG, "{1}: {0}", callbackData->pMessage, t); break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: LITEFX_ERROR(VULKAN_LOG, "{1}: {0}", callbackData->pMessage, t); break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: LITEFX_DEBUG(VULKAN_LOG, "{1}: {0}", callbackData->pMessage, t); break;
         default:
-        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-            LITEFX_TRACE(VULKAN_LOG, "{0}", callbackData->pMessage);
-            break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: LITEFX_TRACE(VULKAN_LOG, "{1}: {0}", callbackData->pMessage, t); break;
         }
 
         return VK_FALSE;
