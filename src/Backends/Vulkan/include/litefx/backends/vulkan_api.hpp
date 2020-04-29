@@ -98,6 +98,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanBackend;
     class VulkanRenderPipeline;
     class VulkanRenderPipelineLayout;
+    class VulkanRenderPass;
     class VulkanRasterizer;
     class VulkanViewport;
     class VulkanInputAssembler;

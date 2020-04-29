@@ -17,6 +17,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl)
 
 	public:
+		using builder = VulkanRenderPassBuilder;
+		friend class VulkanRenderPassBuilder;
+
+	public:
 		VulkanRenderPass(const VulkanRenderPipeline& pipeline);
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;

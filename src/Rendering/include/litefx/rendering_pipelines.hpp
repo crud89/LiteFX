@@ -89,7 +89,7 @@ namespace LiteFX::Rendering {
         virtual Array<const IRenderPass*> getRenderPasses() const noexcept = 0;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
-        virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;
+        virtual void use(Array<UniquePtr<IRenderPass>>&& renderPasses) = 0;
     };
 
     /// <summary>
@@ -315,7 +315,7 @@ namespace LiteFX::Rendering {
         virtual Array<const IRenderPass*> getRenderPasses() const noexcept override;
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
         virtual void use(UniquePtr<IShaderProgram>&& program) override;
-        virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
+        virtual void use(Array<UniquePtr<IRenderPass>>&& renderPass) override;
     };
 
     /// <summary>
@@ -329,6 +329,7 @@ namespace LiteFX::Rendering {
     public:
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
+        virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;
     };
 
     /// <summary>
@@ -347,6 +348,18 @@ namespace LiteFX::Rendering {
         virtual ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
         virtual ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
         virtual ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TRenderPass, typename TParent>
+    class RenderPassBuilder : public Builder<TDerived, TRenderPass, TParent> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual void use(UniquePtr<IRenderTarget>&& target) = 0;
     };
 
     /// <summary>

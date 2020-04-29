@@ -158,3 +158,12 @@ void VulkanRenderPass::create()
 {
     this->handle() = m_impl->initialize(*this);
 }
+
+// ------------------------------------------------------------------------------------------------
+// Builder interface.
+// ------------------------------------------------------------------------------------------------
+
+void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
+{
+    this->instance()->addTarget(std::move(target));
+}

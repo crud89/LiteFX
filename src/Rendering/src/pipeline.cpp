@@ -49,14 +49,14 @@ public:
     Array<const IRenderPass*> getRenderPasses() const noexcept
     {
         Array<const IRenderPass*> renderPasses(m_renderPasses.size());
-        std::generate(std::begin(renderPasses), std::end(renderPasses), [&, i = 0]() mutable { return m_renderPasses[i++].get() });
+        std::generate(std::begin(renderPasses), std::end(renderPasses), [&, i = 0]() mutable { return m_renderPasses[i++].get(); });
 
         return renderPasses;
     }
 
-    void addRenderPass(UniquePtr<IRenderPass>&& renderPass)
+    void useRenderPasses(Array<UniquePtr<IRenderPass>>&& renderPasses)
     {
-        m_renderPasses.push_back(std::move(renderPass));
+        m_renderPasses = std::move(renderPasses);
     }
 };
 
@@ -116,10 +116,10 @@ void RenderPipeline::use(UniquePtr<IShaderProgram>&& program)
     m_impl->setProgram(std::move(program));
 }
 
-void RenderPipeline::use(UniquePtr<IRenderPass>&& renderPass)
+void RenderPipeline::use(Array<UniquePtr<IRenderPass>>&& renderPasses)
 {
-    if (renderPass == nullptr)
-        throw std::invalid_argument("The render pass must be initialized.");
+    if (std::find_if(std::begin(renderPasses), std::end(renderPasses), [](UniquePtr<IRenderPass>& renderPass) -> bool { return renderPass == nullptr; }) != renderPasses.end())
+        throw std::invalid_argument("All render passes must be initialized.");
 
-    m_impl->addRenderPass(std::move(renderPass));
+    m_impl->useRenderPasses(std::move(renderPasses));
 }

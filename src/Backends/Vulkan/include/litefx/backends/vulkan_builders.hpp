@@ -60,6 +60,7 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
 		virtual void use(UniquePtr<IShaderProgram>&& program) override;
+		virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
 	};
 
 	/// <summary>
@@ -77,6 +78,17 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanRenderPassBuilder : public RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass, VulkanRenderPipelineBuilder> {
+	public:
+		using RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass, VulkanRenderPipelineBuilder>::RenderPassBuilder;
+
+	public:
+		virtual void use(UniquePtr<IRenderTarget>&& target) override;
 	};
 
 	/// <summary>

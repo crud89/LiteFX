@@ -27,6 +27,10 @@ void SampleApp::run()
             .addVertexShaderModule("shaders/default.vert.spv")
             .addFragmentShaderModule("shaders/default.frag.spv")
             .go()
+        .make<VulkanRenderPass>()
+            //.make<VulkanFrameBufferTarget>(device)
+            //.make<VulkanTextureTarget>(device, texture)
+            .go()
         .go();
 
     while (!::glfwWindowShouldClose(m_window.get()))

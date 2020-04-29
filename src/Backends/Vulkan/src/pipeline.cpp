@@ -234,6 +234,7 @@ void VulkanRenderPipeline::create()
 
 class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl {
 private:
+	Array<UniquePtr<IRenderPass>> m_renderPasses;
 	UniquePtr<IRenderPipelineLayout> m_layout;
 	UniquePtr<IShaderProgram> m_program;
 
@@ -260,6 +261,16 @@ public:
 	{
 		m_program = std::move(program);
 	}
+
+	Array<UniquePtr<IRenderPass>> useRenderPasses() noexcept
+	{
+		return std::move(m_renderPasses);
+	}
+
+	void addRenderPass(UniquePtr<IRenderPass>&& renderPass)
+	{
+		m_renderPasses.push_back(std::move(renderPass));
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -277,6 +288,8 @@ UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
 {
 	this->instance()->use(std::move(m_impl->useProgram()));
 	this->instance()->use(std::move(m_impl->useLayout()));
+	this->instance()->use(std::move(m_impl->useRenderPasses()));
+
 	this->instance()->create();
 
 	return RenderPipelineBuilder::go();
@@ -296,4 +309,12 @@ void VulkanRenderPipelineBuilder::use(UniquePtr<IShaderProgram>&& program)
 		throw std::invalid_argument("The program must be initialized.");
 
 	m_impl->setProgram(std::move(program));
+}
+
+void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPass>&& renderPass)
+{
+	if (renderPass == nullptr)
+		throw std::invalid_argument("The render pass must be initialized.");
+
+	m_impl->addRenderPass(std::move(renderPass));
 }
