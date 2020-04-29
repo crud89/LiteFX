@@ -8,7 +8,7 @@ using namespace LiteFX::Rendering;
 
 class RenderPipeline::RenderPipelineImpl {
 private:
-    Array<UniquePtr<IRenderPass>> m_renderPasses;
+    UniquePtr<IRenderPass> m_renderPass;
     UniquePtr<IRenderPipelineLayout> m_layout;
     UniquePtr<IShaderProgram> m_program;
     const IGraphicsDevice* m_device;
@@ -46,17 +46,14 @@ public:
         m_program = std::move(program);
     }
 
-    Array<const IRenderPass*> getRenderPasses() const noexcept
+    const IRenderPass* getRenderPass() const noexcept
     {
-        Array<const IRenderPass*> renderPasses(m_renderPasses.size());
-        std::generate(std::begin(renderPasses), std::end(renderPasses), [&, i = 0]() mutable { return m_renderPasses[i++].get(); });
-
-        return renderPasses;
+        return m_renderPass.get();
     }
 
-    void useRenderPasses(Array<UniquePtr<IRenderPass>>&& renderPasses)
+    void useRenderPass(UniquePtr<IRenderPass>&& renderPass)
     {
-        m_renderPasses = std::move(renderPasses);
+        m_renderPass = std::move(renderPass);
     }
 };
 
@@ -95,9 +92,9 @@ const IShaderProgram* RenderPipeline::getProgram() const noexcept
     return m_impl->getProgram();
 }
 
-Array<const IRenderPass*> RenderPipeline::getRenderPasses() const noexcept
+const IRenderPass* RenderPipeline::getRenderPass() const noexcept
 {
-    return m_impl->getRenderPasses();
+    return m_impl->getRenderPass();
 }
 
 void RenderPipeline::use(UniquePtr<IRenderPipelineLayout>&& layout)
@@ -116,10 +113,10 @@ void RenderPipeline::use(UniquePtr<IShaderProgram>&& program)
     m_impl->setProgram(std::move(program));
 }
 
-void RenderPipeline::use(Array<UniquePtr<IRenderPass>>&& renderPasses)
+void RenderPipeline::use(UniquePtr<IRenderPass>&& renderPass)
 {
-    if (std::find_if(std::begin(renderPasses), std::end(renderPasses), [](UniquePtr<IRenderPass>& renderPass) -> bool { return renderPass == nullptr; }) != renderPasses.end())
-        throw std::invalid_argument("All render passes must be initialized.");
+    if (renderPass == nullptr)
+        throw std::invalid_argument("The render pass must be initialized.");
 
-    m_impl->useRenderPasses(std::move(renderPasses));
+    m_impl->useRenderPass(std::move(renderPass));
 }

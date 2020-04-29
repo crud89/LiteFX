@@ -43,7 +43,7 @@ public:
 
 		VkShaderModule module;
 
-		if (vkCreateShaderModule(m_device->handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
+		if (::vkCreateShaderModule(m_device->handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
 			throw std::runtime_error("Unable to compile shader file.");
 
 		return module;

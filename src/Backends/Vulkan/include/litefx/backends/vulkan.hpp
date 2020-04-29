@@ -5,6 +5,7 @@
 #include "vulkan_api.hpp"
 #include "vulkan_platform.hpp"
 #include "vulkan_builders.hpp"
+#include "vulkan_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;

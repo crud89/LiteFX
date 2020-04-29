@@ -34,7 +34,7 @@ public:
 			throw std::invalid_argument("The pipeline layout does not contain a rasterizer.");
 
 		if (program == nullptr)
-			throw std::invalid_argument("The pipeline shader program must be initialized.");		
+			throw std::invalid_argument("The pipeline shader program must be initialized.");
 
 		// Setup rasterizer state.
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {};
@@ -179,14 +179,19 @@ public:
 		pipelineInfo.pStages = shaderStages.data();
 
 		// Setup render pass state.
-		// TODO: Implement render passes / sub-passes.
-		//pipelineInfo.renderPass = renderPass;
+		auto renderPass = dynamic_cast<const VulkanRenderPass*>(parent.getRenderPass());
+
+		if (renderPass == nullptr)
+			throw std::invalid_argument("The specified render pass is not a valid Vulkan render pass.");
+
+		pipelineInfo.renderPass = renderPass->handle();
 		pipelineInfo.subpass = 0;
 
 		VkPipeline pipeline;
+		auto result = ::vkCreateGraphicsPipelines(device->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
 
-		if (::vkCreateGraphicsPipelines(device->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS)
-			throw std::runtime_error("Unable to create render pipeline.");
+		if (result != VK_SUCCESS)
+			throw std::runtime_error(fmt::format("Unable to create render pipeline: {0}", result));
 
 		return pipeline;
 	}
@@ -234,7 +239,7 @@ void VulkanRenderPipeline::create()
 
 class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl {
 private:
-	Array<UniquePtr<IRenderPass>> m_renderPasses;
+	UniquePtr<IRenderPass> m_renderPass;
 	UniquePtr<IRenderPipelineLayout> m_layout;
 	UniquePtr<IShaderProgram> m_program;
 
@@ -262,14 +267,14 @@ public:
 		m_program = std::move(program);
 	}
 
-	Array<UniquePtr<IRenderPass>> useRenderPasses() noexcept
+	UniquePtr<IRenderPass> useRenderPass() noexcept
 	{
-		return std::move(m_renderPasses);
+		return std::move(m_renderPass);
 	}
 
-	void addRenderPass(UniquePtr<IRenderPass>&& renderPass)
+	void setRenderPass(UniquePtr<IRenderPass>&& renderPass)
 	{
-		m_renderPasses.push_back(std::move(renderPass));
+		m_renderPass = std::move(renderPass);
 	}
 };
 
@@ -288,7 +293,7 @@ UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
 {
 	this->instance()->use(std::move(m_impl->useProgram()));
 	this->instance()->use(std::move(m_impl->useLayout()));
-	this->instance()->use(std::move(m_impl->useRenderPasses()));
+	this->instance()->use(std::move(m_impl->useRenderPass()));
 
 	this->instance()->create();
 
@@ -316,5 +321,5 @@ void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPass>&& renderPass)
 	if (renderPass == nullptr)
 		throw std::invalid_argument("The render pass must be initialized.");
 
-	m_impl->addRenderPass(std::move(renderPass));
+	m_impl->setRenderPass(std::move(renderPass));
 }
