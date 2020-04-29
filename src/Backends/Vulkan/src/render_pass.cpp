@@ -163,6 +163,12 @@ void VulkanRenderPass::create()
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
+VulkanRenderPipelineBuilder& VulkanRenderPassBuilder::go()
+{
+    this->instance()->create();
+    return RenderPassBuilder::go();
+}
+
 void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
 {
     this->instance()->addTarget(std::move(target));

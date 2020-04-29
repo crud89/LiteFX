@@ -88,6 +88,9 @@ namespace LiteFX::Rendering::Backends {
 		using RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass, VulkanRenderPipelineBuilder>::RenderPassBuilder;
 
 	public:
+		virtual VulkanRenderPipelineBuilder& go() override;
+
+	public:
 		virtual void use(UniquePtr<IRenderTarget>&& target) override;
 	};
 
