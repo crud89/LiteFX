@@ -100,7 +100,7 @@ FUNCTION(DXC_COMPILE_SPIRV shader_file file_out)
   ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 
   ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to DXIL..."
+    COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to SPIR-V..."
     DEPENDS ${shader_file} 
     COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${file_in}
   )
@@ -128,7 +128,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name)
 
       IF(BUILD_DXC_SPIRV)
 	    SET(output_file ${CMAKE_CURRENT_BINARY_DIR}/shaders/${shader_name}.spv)
-        DXC_COMPILE_DXIL(${shader_source} ${output_file})
+        DXC_COMPILE_SPIRV(${shader_source} ${output_file})
         LIST(APPEND compiled_shaders ${output_file})
       ENDIF(BUILD_DXC_SPIRV)
     ENDFOREACH(shader_source ${SHADER_SOURCES})
@@ -145,7 +145,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name)
   SET(compiled_shaders "")
 
   IF(BUILD_USE_DXC)
-    MESSAGE(SEND_ERROR "Glsl shader can not be build when using DXC.")
+    MESSAGE(SEND_ERROR "Glsl shader can not be build using DXC.")
   ELSE()
     FOREACH(SHADER_SOURCE ${SHADER_SOURCES})
       GET_FILENAME_COMPONENT(shader_name ${shader_source} NAME)
