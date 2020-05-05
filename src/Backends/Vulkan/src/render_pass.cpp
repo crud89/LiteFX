@@ -7,6 +7,9 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 class VulkanRenderPass::VulkanRenderPassImpl {
+public:
+    friend class VulkanRenderPassBuilder;
+
 private:
     const VulkanDevice* m_device;
     Array<UniquePtr<IRenderTarget>> m_targets;
@@ -172,4 +175,27 @@ VulkanRenderPipelineBuilder& VulkanRenderPassBuilder::go()
 void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
 {
     this->instance()->addTarget(std::move(target));
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::withColorTarget(const MultiSamplingLevel& samples)
+{
+    auto swapChain = this->instance()->m_impl->m_device->getSwapChain();
+    this->addTarget(RenderTargetType::Color, swapChain->getFormat(), samples, true, true, false);
+    
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, bool clearColor, bool clearStencil, bool isVolatile)
+{
+    UniquePtr<IRenderTarget> target = makeUnique<RenderTarget>();
+    target->setType(type);
+    target->setFormat(format);
+    target->setSamples(samples);
+    target->setClearBuffer(clearColor);
+    target->setClearStencil(clearStencil);
+    target->setVolatile(isVolatile);
+
+    this->use(std::move(target));
+
+    return *this;
 }

@@ -360,6 +360,9 @@ namespace LiteFX::Rendering {
 
     public:
         virtual void use(UniquePtr<IRenderTarget>&& target) = 0;
+        virtual TDerived& withColorTarget(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;
+        //virtual TDerived& withDepthTarget() = 0;
+        virtual TDerived& addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
     };
 
     /// <summary>

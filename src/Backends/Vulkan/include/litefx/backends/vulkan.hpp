@@ -11,11 +11,6 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
-	//class LITEFX_VULKAN_API VulkanRenderTarget : public IRenderTarget {
-	//	LITEFX_IMPLEMENTATION(VulkanRenderTaretImpl);
-	//	LITEFX_BUILDER(VulkanRenderTargetBuilder);
-	//};
-
 	/// <summary>
 	/// 
 	/// </summary>
@@ -184,6 +179,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const Size2d& getBufferSize() const noexcept override;
 		virtual size_t getWidth() const noexcept override;
 		virtual size_t getHeight() const noexcept override;
+		virtual const Format& getFormat() const noexcept override;
 	};
 
 	/// <summary>

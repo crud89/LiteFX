@@ -10,7 +10,8 @@ class VulkanSwapChain::VulkanSwapChainImpl {
 private:
 	Array<UniquePtr<ITexture>> m_frameBuffers;
 	const VulkanDevice* m_device;
-	Size2d m_size = { };
+	Size2d m_size { };
+	Format m_format{ Format::None };
 
 public:
 	VulkanSwapChainImpl(const VulkanDevice* device) noexcept :
@@ -32,6 +33,7 @@ private:
 
 		m_frameBuffers = std::move(textures);
 		m_size = Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height));
+		m_format = format;
 	}
 
 private:
@@ -55,7 +57,7 @@ private:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		auto match = std::find_if(availableFormats.begin(), availableFormats.end(), [format](const VkSurfaceFormatKHR& surfaceFormat) { return surfaceFormat.format == getFormat(format); });
+		auto match = std::find_if(availableFormats.begin(), availableFormats.end(), [format](const VkSurfaceFormatKHR& surfaceFormat) { return surfaceFormat.format == ::getFormat(format); });
 
 		if (match == availableFormats.end())
 			return VK_COLOR_SPACE_MAX_ENUM_KHR;
@@ -99,8 +101,8 @@ public:
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		createInfo.surface = surface;
 		createInfo.minImageCount = images;
-		createInfo.imageFormat = getFormat(*selectedFormat);
-		createInfo.imageColorSpace = findColorSpace(adapter, surface, *selectedFormat);
+		createInfo.imageFormat = ::getFormat(*selectedFormat);
+		createInfo.imageColorSpace = this->findColorSpace(adapter, surface, *selectedFormat);
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -141,6 +143,11 @@ public:
 	const Size2d& getSize() const noexcept
 	{
 		return m_size;
+	}
+
+	const Format& getFormat() const noexcept
+	{
+		return m_format;
 	}
 };
 
@@ -183,4 +190,9 @@ size_t VulkanSwapChain::getWidth() const noexcept
 size_t VulkanSwapChain::getHeight() const noexcept
 {
 	return m_impl->getSize().height();
+}
+
+const Format& VulkanSwapChain::getFormat() const noexcept
+{
+	return m_impl->getFormat();
 }

@@ -119,6 +119,7 @@ namespace LiteFX::Rendering {
 		virtual const Size2d& getBufferSize() const noexcept = 0;
 		virtual size_t getWidth() const noexcept = 0;
 		virtual size_t getHeight() const noexcept = 0;
+		virtual const Format& getFormat() const noexcept = 0;
 	};
 
 	/// <summary>

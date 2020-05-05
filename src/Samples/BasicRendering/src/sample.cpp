@@ -28,9 +28,7 @@ void SampleApp::run()
             .addFragmentShaderModule("shaders/default.frag.spv")
             .go()
         .make<VulkanRenderPass>()
-            //.make<VulkanFrameBuffer>()
-            //    //.addTarget()
-            //    .go()
+            .withColorTarget()
             .go()
         .go();
 
