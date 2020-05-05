@@ -85,7 +85,7 @@ FUNCTION(DXC_COMPILE_SPIRV shader_file file_out)
   #  SET(shader_profile "ds_6_3")
   
   ELSEIF(${shader_type} STREQUAL ".frag")
-    SET(shader_profile "ps_6_3_0")
+    SET(shader_profile "ps_6_3")
 
   #ELSEIF(${shader_type} STREQUAL ".slib")
   #  SET(shader_profile "lib_6_3")
