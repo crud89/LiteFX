@@ -224,4 +224,10 @@ namespace LiteFX {
 		}
 	};
 
+#if !defined(LITEFX_BUILDER)
+#	define LITEFX_BUILDER(BuilderType) public: \
+		using builder = BuilderType; \
+		friend class BuilderType;
+#endif
+
 }

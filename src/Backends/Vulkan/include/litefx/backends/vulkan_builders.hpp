@@ -27,7 +27,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanDeviceBuilder : public GraphicsDeviceBuilder<VulkanDeviceBuilder, VulkanDevice> {
-		LITEFX_IMPLEMENTATION(VulkanDeviceBuilderImpl)
+		LITEFX_IMPLEMENTATION(VulkanDeviceBuilderImpl);
 
 	public:
 		typedef std::function<VkSurfaceKHR(const VkInstance&)> surface_callback;

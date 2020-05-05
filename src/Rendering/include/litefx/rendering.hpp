@@ -49,7 +49,7 @@ namespace LiteFX::Rendering {
 	};
 
 	class LITEFX_RENDERING_API RenderTarget : public IRenderTarget {
-		LITEFX_IMPLEMENTATION(RenderTargetImpl)
+		LITEFX_IMPLEMENTATION(RenderTargetImpl);
 
 	public:
 		RenderTarget();
@@ -195,7 +195,7 @@ namespace LiteFX::Rendering {
 	/// 
 	/// </summary>
 	class LITEFX_RENDERING_API GraphicsDevice : public IGraphicsDevice {
-		LITEFX_IMPLEMENTATION(GraphicsDeviceImpl)
+		LITEFX_IMPLEMENTATION(GraphicsDeviceImpl);
 
 	public:
 		GraphicsDevice(const IGraphicsAdapter* adapter, const ISurface* surface);
@@ -260,7 +260,7 @@ namespace LiteFX::Rendering {
 	/// 
 	/// </summary>
 	class LITEFX_RENDERING_API RenderBackend : public IRenderBackend {
-		LITEFX_IMPLEMENTATION(RenderBackendImpl)
+		LITEFX_IMPLEMENTATION(RenderBackendImpl);
 
 	public:
 		explicit RenderBackend(const App& app) noexcept;

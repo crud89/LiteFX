@@ -11,7 +11,7 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     class LITEFX_RENDERING_API BufferAttribute {
-        LITEFX_IMPLEMENTATION(BufferAttributeImpl)
+        LITEFX_IMPLEMENTATION(BufferAttributeImpl);
 
     public:
         BufferAttribute() noexcept;
@@ -31,7 +31,7 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     class LITEFX_RENDERING_API BufferLayout {
-        LITEFX_IMPLEMENTATION(BufferLayoutImpl)
+        LITEFX_IMPLEMENTATION(BufferLayoutImpl);
 
     public:
         BufferLayout() noexcept;
@@ -207,7 +207,7 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     class LITEFX_RENDERING_API Rasterizer : public IRasterizer {
-        LITEFX_IMPLEMENTATION(RasterizerImpl)
+        LITEFX_IMPLEMENTATION(RasterizerImpl);
 
     public:
         Rasterizer() noexcept;
@@ -238,7 +238,7 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     class LITEFX_RENDERING_API InputAssembler : public IInputAssembler {
-        LITEFX_IMPLEMENTATION(InputAssemblerImpl)
+        LITEFX_IMPLEMENTATION(InputAssemblerImpl);
 
     public:
         InputAssembler() noexcept;
@@ -258,7 +258,7 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     class LITEFX_RENDERING_API Viewport : public IViewport {
-        LITEFX_IMPLEMENTATION(ViewportImpl)
+        LITEFX_IMPLEMENTATION(ViewportImpl);
 
     public:
         Viewport(const RectF& clientRect = { }) noexcept;
@@ -277,7 +277,7 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     class LITEFX_RENDERING_API RenderPipelineLayout : public IRenderPipelineLayout {
-        LITEFX_IMPLEMENTATION(RenderPipelineLayoutImpl)
+        LITEFX_IMPLEMENTATION(RenderPipelineLayoutImpl);
 
     public:
         RenderPipelineLayout() noexcept;
@@ -299,7 +299,7 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     class LITEFX_RENDERING_API RenderPipeline : public IRenderPipeline {
-        LITEFX_IMPLEMENTATION(RenderPipelineImpl)
+        LITEFX_IMPLEMENTATION(RenderPipelineImpl);
 
     public:
         RenderPipeline(const IGraphicsDevice* device);

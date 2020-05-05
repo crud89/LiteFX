@@ -15,9 +15,8 @@ namespace LiteFX {
 	};
 
 	class LITEFX_APPMODEL_API App {
-		LITEFX_IMPLEMENTATION(AppImpl)
-	public:
-		using builder = AppBuilder;
+		LITEFX_IMPLEMENTATION(AppImpl);
+		LITEFX_BUILDER(AppBuilder);
 
 	public:
 		App();
@@ -63,7 +62,7 @@ namespace LiteFX {
 	};
 
 	class LITEFX_APPMODEL_API AppVersion {
-		LITEFX_IMPLEMENTATION(AppVersionImpl)
+		LITEFX_IMPLEMENTATION(AppVersionImpl);
 
 	public:
 		explicit AppVersion(int major = 1, int minor = 0, int patch = 0, int revision = 0) noexcept;

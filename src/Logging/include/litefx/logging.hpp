@@ -56,7 +56,7 @@ namespace LiteFX::Logging {
     };
 
     class LITEFX_LOGGING_API ConsoleSink : public ISink {
-        LITEFX_IMPLEMENTATION(ConsoleSinkImpl)
+        LITEFX_IMPLEMENTATION(ConsoleSinkImpl);
 
     public:
         ConsoleSink(const LogLevel& level = LogLevel::Info, const String& pattern = "%+") noexcept;
@@ -79,7 +79,7 @@ namespace LiteFX::Logging {
     };
 
     class LITEFX_LOGGING_API RollingFileSink : public ISink {
-        LITEFX_IMPLEMENTATION(RollingFileSinkImpl)
+        LITEFX_IMPLEMENTATION(RollingFileSinkImpl);
 
     public:
         RollingFileSink(const String& fileName, const LogLevel& level = LogLevel::Info, const String& pattern = "%+", const bool& truncate = false, const int& maxFiles = 0) noexcept;
@@ -108,7 +108,7 @@ namespace LiteFX::Logging {
     };
 
     class LITEFX_LOGGING_API Log {
-        LITEFX_IMPLEMENTATION(LogImpl)
+        LITEFX_IMPLEMENTATION(LogImpl);
 
     public:
         Log(const String& name) noexcept;
@@ -167,7 +167,7 @@ namespace LiteFX::Logging {
     };
 
     class LITEFX_LOGGING_API Logger {
-        LITEFX_IMPLEMENTATION(LoggerImpl)
+        LITEFX_IMPLEMENTATION(LoggerImpl);
 
     public:
         Logger(Logger&&) = delete;

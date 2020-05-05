@@ -11,15 +11,17 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
+	//class LITEFX_VULKAN_API VulkanRenderTarget : public IRenderTarget {
+	//	LITEFX_IMPLEMENTATION(VulkanRenderTaretImpl);
+	//	LITEFX_BUILDER(VulkanRenderTargetBuilder);
+	//};
+
 	/// <summary>
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPass : public IRenderPass, public IResource<VkRenderPass> {
-		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl)
-
-	public:
-		using builder = VulkanRenderPassBuilder;
-		friend class VulkanRenderPassBuilder;
+		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
+		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
 	public:
 		VulkanRenderPass(const VulkanRenderPipeline& pipeline);
@@ -40,9 +42,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanInputAssembler : public InputAssembler {
-	public:
-		using builder = VulkanInputAssemblerBuilder;
-		friend class VulkanInputAssemblerBuilder;
+		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
 	public:
 		VulkanInputAssembler(const VulkanRenderPipelineLayout& layout) noexcept;
@@ -55,9 +55,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanViewport : public Viewport {
-	public:
-		using builder = VulkanViewportBuilder;
-		friend class VulkanViewportBuilder;
+		LITEFX_BUILDER(VulkanViewportBuilder);
 
 	public:
 		VulkanViewport(const VulkanRenderPipelineLayout& layout) noexcept;
@@ -70,9 +68,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanRasterizer : public Rasterizer {
-	public:
-		using builder = VulkanRasterizerBuilder;
-		friend class VulkanRasterizerBuilder;
+		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
 	public:
 		VulkanRasterizer(const VulkanRenderPipelineLayout& layout) noexcept;
@@ -85,11 +81,8 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public RenderPipelineLayout, public IResource<VkPipelineLayout> {
-		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl)
-
-	public:
-		using builder = VulkanRenderPipelineLayoutBuilder;
-		friend class VulkanRenderPipelineLayoutBuilder;
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl);
+		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 
 	public:
 		VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline);
@@ -106,11 +99,8 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline, public IResource<VkPipeline> {
-		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl)
-
-	public:
-		using builder = VulkanRenderPipelineBuilder;
-		friend class VulkanRenderPipelineBuilder;
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
+		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
 	public:
 		VulkanRenderPipeline(const IGraphicsDevice* device);
@@ -127,7 +117,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanShaderModule : public IShaderModule, public IResource<VkShaderModule> {
-		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl)
+		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
 	public:
 		VulkanShaderModule(const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint = "main");
@@ -147,11 +137,8 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanShaderProgram : public IShaderProgram {
-		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl)
-
-	public:
-		using builder = VulkanShaderProgramBuilder;
-		friend class VulkanShaderProgramBuilder;
+		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
+		LITEFX_BUILDER(VulkanShaderProgramBuilder);
 
 	public:
 		VulkanShaderProgram(const VulkanRenderPipeline& pipeline);
@@ -170,7 +157,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanTexture : public ITexture, public IResource<VkImage> {
-		LITEFX_IMPLEMENTATION(VulkanTextureImpl)
+		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
 		//VulkanTexture() noexcept = default;
@@ -186,7 +173,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanSwapChain : public ISwapChain, public IResource<VkSwapchainKHR> {
-		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl)
+		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
 		VulkanSwapChain(const VulkanDevice* device, const Format& format = Format::B8G8R8A8_UNORM_SRGB);
@@ -203,7 +190,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanQueue : public ICommandQueue, public IResource<VkQueue> {
-		LITEFX_IMPLEMENTATION(VulkanQueueImpl)
+		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	
 	public:
 		VulkanQueue(const QueueType& type, const uint32_t id) noexcept;
@@ -223,11 +210,8 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice, public IResource<VkDevice> {
-		LITEFX_IMPLEMENTATION(VulkanDeviceImpl)
-
-	public:
-		using builder = VulkanDeviceBuilder;
-		friend class VulkanDeviceBuilder;
+		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
+		LITEFX_BUILDER(VulkanDeviceBuilder);
 
 	public:
 		VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Array<String>& extensions = { });
@@ -265,7 +249,7 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
-		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl)
+		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
 
 	public:
 		VulkanGraphicsAdapter(VkPhysicalDevice adapter);
@@ -292,9 +276,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend, public IResource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
-
-	public:
-		using builder = VulkanBackendBuilder;
+		LITEFX_BUILDER(VulkanBackendBuilder);
 
 	public:
 		explicit VulkanBackend(const App& app, const Array<String>& extensions = { }, const Array<String>& validationLayers = { });
