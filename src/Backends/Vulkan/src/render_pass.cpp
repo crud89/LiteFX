@@ -89,9 +89,41 @@ public:
         // Create the render pass.
         VkRenderPass renderPass;
 
-        if (vkCreateRenderPass(m_device->handle(), &renderPassState, nullptr, &renderPass) != VK_SUCCESS)
+        if (::vkCreateRenderPass(m_device->handle(), &renderPassState, nullptr, &renderPass) != VK_SUCCESS)
             throw std::runtime_error("Unable to create render pass.");
 
+        // Initialize frame buffers.
+        auto frames = m_device->getSwapChain()->getFrames();
+        Array<VkFramebuffer> frameBuffers(frames.size());
+
+        LITEFX_TRACE(VULKAN_LOG, "Initializing {0} frame buffers...", frames.size());
+        
+        std::generate(std::begin(frameBuffers), std::end(frameBuffers), [&, i = 0]() mutable {
+            auto frame = dynamic_cast<const VulkanTexture*>(frames[i++]);
+
+            if (frame == nullptr)
+                throw std::invalid_argument("A frame of the provided swap chain is not a valid Vulkan texture.");
+            
+            VkImageView attachments[]{ frame->getView() };
+
+            VkFramebufferCreateInfo frameBufferInfo{};
+            frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            frameBufferInfo.renderPass = renderPass;
+            frameBufferInfo.attachmentCount = 1;
+            frameBufferInfo.pAttachments = attachments;
+            frameBufferInfo.width = frame->getSize().width();
+            frameBufferInfo.height = frame->getSize().height();
+            frameBufferInfo.layers = 1;
+
+            VkFramebuffer frameBuffer;
+
+            if (::vkCreateFramebuffer(m_device->handle(), &frameBufferInfo, nullptr, &frameBuffer) != VK_SUCCESS)
+                throw std::runtime_error("Unable to create frame buffer from swap chain frame.");
+
+            return frameBuffer;
+        });
+
+        // Return the render pass.
         return renderPass;
     }
 

@@ -8,7 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanSwapChain::VulkanSwapChainImpl {
 private:
-	Array<UniquePtr<ITexture>> m_frameBuffers;
+	Array<UniquePtr<ITexture>> m_frames;
 	const VulkanDevice* m_device;
 	Size2d m_size { };
 	Format m_format{ Format::None };
@@ -31,7 +31,7 @@ private:
 			return m_device->makeTexture2d(imageChain[i++], format, Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height)));
 		});
 
-		m_frameBuffers = std::move(textures);
+		m_frames = std::move(textures);
 		m_size = Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height));
 		m_format = format;
 	}
@@ -149,6 +149,14 @@ public:
 	{
 		return m_format;
 	}
+
+	Array<const ITexture*> getFrames() const noexcept
+	{
+		Array<const ITexture*> frames(m_frames.size());
+		std::generate(std::begin(frames), std::end(frames), [&, i = 0]() mutable { return m_frames[i++].get(); });
+
+		return frames;
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -195,4 +203,9 @@ size_t VulkanSwapChain::getHeight() const noexcept
 const Format& VulkanSwapChain::getFormat() const noexcept
 {
 	return m_impl->getFormat();
+}
+
+Array<const ITexture*> VulkanSwapChain::getFrames() const noexcept
+{
+	return m_impl->getFrames();
 }

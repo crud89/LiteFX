@@ -162,6 +162,9 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual Size2d getSize() const noexcept override;
 		virtual Format getFormat() const noexcept override;
+
+	public:
+		virtual VkImageView getView() const noexcept;
 	};
 
 	/// <summary>
@@ -180,6 +183,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getWidth() const noexcept override;
 		virtual size_t getHeight() const noexcept override;
 		virtual const Format& getFormat() const noexcept override;
+		virtual Array<const ITexture*> getFrames() const noexcept override;
 	};
 
 	/// <summary>

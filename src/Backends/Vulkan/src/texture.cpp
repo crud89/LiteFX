@@ -37,6 +37,11 @@ public:
 	{
 		return m_format;
 	}
+
+	VkImageView getView() const noexcept
+	{
+		return m_view;
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -62,4 +67,9 @@ Size2d VulkanTexture::getSize() const noexcept
 Format VulkanTexture::getFormat() const noexcept
 {
 	return m_impl->getFormat();
+}
+
+VkImageView VulkanTexture::getView() const noexcept
+{
+	return m_impl->getView();
 }
