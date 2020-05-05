@@ -33,7 +33,10 @@ void SampleApp::run()
         .go();
 
     while (!::glfwWindowShouldClose(m_window.get()))
+    {
         this->handleEvents();
+        this->drawFrame();
+    }
 
     ::glfwDestroyWindow(m_window.get());
     ::glfwTerminate();
@@ -44,4 +47,9 @@ void SampleApp::handleEvents()
     ::glfwPollEvents();
 
     // TODO: Write event handlers.
+}
+
+void SampleApp::drawFrame()
+{
+    // TODO: Write draw logic.
 }

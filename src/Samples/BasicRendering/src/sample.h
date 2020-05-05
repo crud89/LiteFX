@@ -45,4 +45,5 @@ public:
 	}
 	virtual void run() override;
 	void handleEvents();
+	void drawFrame();
 };
