@@ -7,7 +7,11 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 class VulkanDevice::VulkanDeviceImpl {
+public:
+	friend class VulkanDevice;
+
 private:
+	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
 	Array<String> m_extensions;
 
@@ -106,6 +110,15 @@ public:
 		if (::vkCreateDevice(adapter, &createInfo, nullptr, &device) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create Vulkan device.");
 
+		// Create command pool.
+		VkCommandPoolCreateInfo poolInfo = {};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.queueFamilyIndex = deviceQueue->getId();
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+
+		if (::vkCreateCommandPool(device, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
+			throw std::runtime_error("Unable to create command pool.");
+
 		return device;
 	}
 
@@ -166,8 +179,10 @@ VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surf
 
 VulkanDevice::~VulkanDevice() noexcept
 {
+	auto commandPool = m_impl->m_commandPool;
 	m_impl.destroy();
 
+	::vkDestroyCommandPool(this->handle(), commandPool, nullptr);
 	::vkDestroyDevice(this->handle(), nullptr);
 }
 

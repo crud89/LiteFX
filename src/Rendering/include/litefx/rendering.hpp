@@ -134,14 +134,6 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_RENDERING_API ICommandPool {
-	public:
-		virtual ~ICommandPool() noexcept = default;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_RENDERING_API ICommandQueue {
 	public:
 		virtual ~ICommandQueue() noexcept = default;

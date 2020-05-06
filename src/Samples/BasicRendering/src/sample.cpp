@@ -32,6 +32,9 @@ void SampleApp::run()
             .go()
         .go();
 
+    //auto commandPool = renderBackend->build<VulkanCommandPool>()
+    //    .go();
+
     while (!::glfwWindowShouldClose(m_window.get()))
     {
         this->handleEvents();

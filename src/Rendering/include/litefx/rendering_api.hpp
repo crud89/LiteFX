@@ -33,8 +33,7 @@ namespace LiteFX::Rendering {
     class ITexture;
     class ISwapChain;
     class ISurface;
-    class ICommandPool;
-    class ICommandQueue;
+	class ICommandQueue;
     class IGraphicsDevice;
     class IGraphicsAdapter;
 	class IRenderBackend;
