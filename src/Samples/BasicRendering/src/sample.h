@@ -45,5 +45,5 @@ public:
 	}
 	virtual void run() override;
 	void handleEvents();
-	void drawFrame();
+	void drawFrame(UniquePtr<VulkanRenderPipeline>& pipeline);
 };

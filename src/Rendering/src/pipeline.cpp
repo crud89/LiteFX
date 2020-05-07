@@ -120,3 +120,17 @@ void RenderPipeline::use(UniquePtr<IRenderPass>&& renderPass)
 
     m_impl->useRenderPass(std::move(renderPass));
 }
+
+void RenderPipeline::beginFrame() const
+{
+    m_impl->getRenderPass()->begin();
+
+    // TODO: In case there are multiple render passes the caller should be able to advance instead of handling only beginning/ending the entire frame.
+}
+
+void RenderPipeline::endFrame() const
+{
+    m_impl->getRenderPass()->end();
+
+    // TODO: Swap front and back buffer.
+}

@@ -35,7 +35,7 @@ void SampleApp::run()
     while (!::glfwWindowShouldClose(m_window.get()))
     {
         this->handleEvents();
-        this->drawFrame();
+        this->drawFrame(pipeline);
     }
 
     ::glfwDestroyWindow(m_window.get());
@@ -49,7 +49,11 @@ void SampleApp::handleEvents()
     // TODO: Write event handlers.
 }
 
-void SampleApp::drawFrame()
+void SampleApp::drawFrame(UniquePtr<VulkanRenderPipeline>& pipeline)
 {
+    pipeline->beginFrame();
+
     // TODO: Write draw logic.
+
+    pipeline->endFrame();
 }

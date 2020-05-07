@@ -11,17 +11,23 @@ public:
     friend class VulkanRenderPassBuilder;
 
 private:
-    const VulkanDevice* m_device;
+    const VulkanRenderPipeline& m_pipeline;
+    const VulkanDevice* m_device{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
     Array<VkFramebuffer> m_frameBuffers;
-    Array<UniquePtr<ICommandBuffer>> m_commandBuffers;
+    UniquePtr<const VulkanCommandBuffer> m_commandBuffer;
 
 public:
-    VulkanRenderPassImpl(const VulkanDevice* device)  noexcept : m_device(device) {}
+    VulkanRenderPassImpl(const VulkanRenderPipeline& pipeline) noexcept : m_pipeline(pipeline) {}
 
 public:
     VkRenderPass initialize(const VulkanRenderPass& parent)
     {
+        m_device = dynamic_cast<const VulkanDevice*>(m_pipeline.getDevice());
+
+        if (m_device == nullptr)
+            throw std::invalid_argument("The provided pipelines' device is not a valid Vulkan device.");
+
         // Setup the attachments.
         Array<VkAttachmentDescription> attachments(m_targets.size());
 
@@ -128,12 +134,54 @@ public:
         // Store the buffers.
         m_frameBuffers = frameBuffers;
 
-        // Initialize primary command buffers for each frame buffer.
-        m_commandBuffers = std::move(m_device->createCommandBuffers(frames.size()));
+        // Create a command buffer.
+        auto commandBuffer = m_device->createCommandBuffer();
+        auto vulkanCommandBuffer = dynamic_cast<const VulkanCommandBuffer*>(commandBuffer.get());
 
+        if (vulkanCommandBuffer == nullptr)
+            throw std::runtime_error("The device has not returned a valid Vulkan command buffer.");
+        else
+        {
+            m_commandBuffer = UniquePtr<const VulkanCommandBuffer>(vulkanCommandBuffer);
+            commandBuffer.release();
+        }
 
         // Return the render pass.
         return renderPass;
+    }
+
+    void begin(const VulkanRenderPass& parent) const
+    {
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        if (::vkBeginCommandBuffer(m_commandBuffer->handle(), &beginInfo) != VK_SUCCESS)
+            throw std::runtime_error("Unable to begin render pass on command buffer.");
+
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = parent.handle();
+        renderPassInfo.framebuffer = m_frameBuffers[0];     // TODO: Select current back buffer.
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent.width = static_cast<UInt32>(m_device->getBufferWidth());
+        renderPassInfo.renderArea.extent.height = static_cast<UInt32>(m_device->getBufferHeight());
+
+        // VkClearValue backColor = m_device->getBackColor();
+        VkClearValue backColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+        renderPassInfo.clearValueCount = 1;
+        renderPassInfo.pClearValues = &backColor;
+
+        ::vkCmdBeginRenderPass(m_commandBuffer->handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+        ::vkCmdBindPipeline(m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle());
+    }
+
+    void end() const
+    {
+        ::vkCmdEndRenderPass(m_commandBuffer->handle());
+
+        if (::vkEndCommandBuffer(m_commandBuffer->handle()) != VK_SUCCESS)
+            throw std::runtime_error("Unable to end render pass on command buffer.");
     }
 
 public:
@@ -171,14 +219,8 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::VulkanRenderPass(const VulkanRenderPipeline& pipeline) :
-    IResource<VkRenderPass>(nullptr)
+    IResource<VkRenderPass>(nullptr), m_impl(makePimpl<VulkanRenderPassImpl>(pipeline))
 {
-    auto device = dynamic_cast<const VulkanDevice*>(pipeline.getDevice());
-
-    if (device == nullptr)
-        throw std::invalid_argument("The pipeline device is not a valid Vulkan device.");
-
-    m_impl = makePimpl<VulkanRenderPassImpl>(device);
 }
 
 VulkanRenderPass::~VulkanRenderPass() noexcept = default;
@@ -203,6 +245,16 @@ void VulkanRenderPass::create()
     this->handle() = m_impl->initialize(*this);
 }
 
+void VulkanRenderPass::begin() const
+{
+    m_impl->begin(*this);
+}
+
+void VulkanRenderPass::end() const
+{
+    m_impl->end();
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
@@ -220,7 +272,7 @@ void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::withColorTarget(const MultiSamplingLevel& samples)
 {
-    auto swapChain = this->instance()->m_impl->m_device->getSwapChain();
+    auto swapChain = this->instance()->m_impl->m_pipeline.getDevice()->getSwapChain();
     this->addTarget(RenderTargetType::Color, swapChain->getFormat(), samples, true, true, false);
     
     return *this;

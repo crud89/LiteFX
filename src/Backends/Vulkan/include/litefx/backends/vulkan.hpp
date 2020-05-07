@@ -41,6 +41,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
 		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
 		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
+		virtual void begin() const override;
+		virtual void end() const override;
 
 	public:
 		virtual void create();
@@ -246,7 +248,7 @@ namespace LiteFX::Rendering::Backends {
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const override;
 		virtual UniquePtr<ITexture> makeTexture2d(VkImage image, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const override;
-		virtual Array<UniquePtr<ICommandBuffer>> createCommandBuffers(const int& buffers = 1) const override;
+		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
 
 	public:
 		virtual VkCommandPool getCommandPool() const noexcept;

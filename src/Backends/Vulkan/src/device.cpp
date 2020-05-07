@@ -128,17 +128,6 @@ public:
 		m_swapChain = makeUnique<VulkanSwapChain>(&parent, format);
 	}
 
-	Array<UniquePtr<ICommandBuffer>> createCommandBuffers(const VulkanDevice& parent, const int& buffers)
-	{
-		Array<UniquePtr<ICommandBuffer>> commandBuffers(buffers);
-
-		std::generate(std::begin(commandBuffers), std::end(commandBuffers), [&, i = 0]() mutable {
-			return std::move(makeUnique<VulkanCommandBuffer>(&parent));
-		});
-
-		return commandBuffers;
-	}
-
 public:
 	Array<Format> getSurfaceFormats(const VulkanDevice& parent) const
 	{
@@ -308,9 +297,9 @@ UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderType& type, 
 	return makeUnique<VulkanShaderModule>(this, type, fileName, entryPoint);
 }
 
-Array<UniquePtr<ICommandBuffer>> VulkanDevice::createCommandBuffers(const int& buffers) const
+UniquePtr<ICommandBuffer> VulkanDevice::createCommandBuffer() const
 {
-	return m_impl->createCommandBuffers(*this, buffers);
+	return makeUnique<VulkanCommandBuffer>(this);
 }
 
 // ------------------------------------------------------------------------------------------------

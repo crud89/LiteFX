@@ -163,11 +163,13 @@ namespace LiteFX::Rendering {
 	public:
 		virtual size_t getBufferWidth() const noexcept = 0;
 		virtual size_t getBufferHeight() const noexcept = 0;
+		//virtual Color getBackColor() const noexcept = 0;
+		//virtual void setBackColor(const Color& color) = 0;
 
 	public:
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const = 0;
-		virtual Array<UniquePtr<ICommandBuffer>> createCommandBuffers(const int& buffers = 1) const = 0;
+		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const = 0;
 	};
 
 	/// <summary>
