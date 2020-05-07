@@ -34,6 +34,7 @@ namespace LiteFX::Rendering {
     class ISwapChain;
     class ISurface;
 	class ICommandQueue;
+	class ICommandBuffer;
     class IGraphicsDevice;
     class IGraphicsAdapter;
 	class IRenderBackend;

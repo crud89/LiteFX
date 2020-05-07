@@ -10,6 +10,11 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX;
 	using namespace LiteFX::Math;
 
+	class LITEFX_RENDERING_API ICommandBuffer {
+	public:
+		virtual ~ICommandBuffer() noexcept = default;
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>
@@ -162,6 +167,7 @@ namespace LiteFX::Rendering {
 	public:
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const = 0;
+		virtual Array<UniquePtr<ICommandBuffer>> createCommandBuffers(const int& buffers = 1) const = 0;
 	};
 
 	/// <summary>

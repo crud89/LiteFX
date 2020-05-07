@@ -114,7 +114,8 @@ public:
 		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.queueFamilyIndex = deviceQueue->getId();
-		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+		//poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+		poolInfo.flags = 0;
 
 		if (::vkCreateCommandPool(device, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create command pool.");
@@ -125,6 +126,17 @@ public:
 	void createSwapChain(const VulkanDevice& parent, const Format& format)
 	{
 		m_swapChain = makeUnique<VulkanSwapChain>(&parent, format);
+	}
+
+	Array<UniquePtr<ICommandBuffer>> createCommandBuffers(const VulkanDevice& parent, const int& buffers)
+	{
+		Array<UniquePtr<ICommandBuffer>> commandBuffers(buffers);
+
+		std::generate(std::begin(commandBuffers), std::end(commandBuffers), [&, i = 0]() mutable {
+			return std::move(makeUnique<VulkanCommandBuffer>(&parent));
+		});
+
+		return commandBuffers;
 	}
 
 public:
@@ -241,6 +253,11 @@ Array<String> VulkanDevice::getAvailableDeviceExtensions() const noexcept
 	return m_impl->getAvailableDeviceExtensions(*this);
 }
 
+VkCommandPool VulkanDevice::getCommandPool() const noexcept
+{
+	return m_impl->m_commandPool;
+}
+
 // ------------------------------------------------------------------------------------------------
 // Factory.
 // ------------------------------------------------------------------------------------------------
@@ -289,6 +306,11 @@ VkImageView VulkanDevice::vkCreateImageView(const VkImage& image, const Format& 
 UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint) const
 {
 	return makeUnique<VulkanShaderModule>(this, type, fileName, entryPoint);
+}
+
+Array<UniquePtr<ICommandBuffer>> VulkanDevice::createCommandBuffers(const int& buffers) const
+{
+	return m_impl->createCommandBuffers(*this, buffers);
 }
 
 // ------------------------------------------------------------------------------------------------

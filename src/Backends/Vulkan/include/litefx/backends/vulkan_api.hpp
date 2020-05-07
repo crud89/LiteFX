@@ -104,5 +104,6 @@ namespace LiteFX::Rendering::Backends {
     class VulkanInputAssembler;
     class VulkanShaderModule;
     class VulkanShaderProgram;
+    class VulkanCommandBuffer;
 
 }

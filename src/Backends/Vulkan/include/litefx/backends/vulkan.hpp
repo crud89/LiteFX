@@ -14,6 +14,19 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
+	class LITEFX_VULKAN_API VulkanCommandBuffer : public ICommandBuffer, public IResource<VkCommandBuffer> {
+		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
+
+	public:
+		VulkanCommandBuffer(const VulkanDevice* device);
+		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
+		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
+		virtual ~VulkanCommandBuffer() noexcept;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPass : public IRenderPass, public IResource<VkRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
@@ -233,8 +246,10 @@ namespace LiteFX::Rendering::Backends {
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const override;
 		virtual UniquePtr<ITexture> makeTexture2d(VkImage image, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const override;
+		virtual Array<UniquePtr<ICommandBuffer>> createCommandBuffers(const int& buffers = 1) const override;
 
 	public:
+		virtual VkCommandPool getCommandPool() const noexcept;
 		virtual VkImageView vkCreateImageView(const VkImage& image, const Format& format) const;
 
 	public:

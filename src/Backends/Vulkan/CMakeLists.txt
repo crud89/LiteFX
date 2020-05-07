@@ -42,6 +42,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/viewport.cpp"
     "src/input_assembler.cpp"
     "src/render_pass.cpp"
+    "src/command_buffer.cpp"
 )
 
 # Add shared library project.

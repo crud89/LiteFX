@@ -13,6 +13,8 @@ public:
 private:
     const VulkanDevice* m_device;
     Array<UniquePtr<IRenderTarget>> m_targets;
+    Array<VkFramebuffer> m_frameBuffers;
+    Array<UniquePtr<ICommandBuffer>> m_commandBuffers;
 
 public:
     VulkanRenderPassImpl(const VulkanDevice* device)  noexcept : m_device(device) {}
@@ -122,6 +124,13 @@ public:
 
             return frameBuffer;
         });
+
+        // Store the buffers.
+        m_frameBuffers = frameBuffers;
+
+        // Initialize primary command buffers for each frame buffer.
+        m_commandBuffers = std::move(m_device->createCommandBuffers(frames.size()));
+
 
         // Return the render pass.
         return renderPass;
