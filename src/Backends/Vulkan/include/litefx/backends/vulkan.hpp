@@ -42,7 +42,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
 		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
 		virtual void begin() const override;
-		virtual void end() const override;
+		virtual void end() override;
 
 	public:
 		virtual void create();

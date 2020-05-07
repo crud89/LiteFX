@@ -7,6 +7,9 @@ using namespace LiteFX::Rendering;
 // ------------------------------------------------------------------------------------------------
 
 class RenderPipeline::RenderPipelineImpl {
+public:
+    friend class RenderPipeline;
+
 private:
     UniquePtr<IRenderPass> m_renderPass;
     UniquePtr<IRenderPipelineLayout> m_layout;
@@ -128,9 +131,7 @@ void RenderPipeline::beginFrame() const
     // TODO: In case there are multiple render passes the caller should be able to advance instead of handling only beginning/ending the entire frame.
 }
 
-void RenderPipeline::endFrame() const
+void RenderPipeline::endFrame()
 {
-    m_impl->getRenderPass()->end();
-
-    // TODO: Swap front and back buffer.
+    m_impl->m_renderPass->end();
 }

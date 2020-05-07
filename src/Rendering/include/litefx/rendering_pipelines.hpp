@@ -91,7 +91,7 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
         virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;
         virtual void beginFrame() const = 0;
-        virtual void endFrame() const = 0;
+        virtual void endFrame() = 0;
     };
 
     /// <summary>
@@ -204,7 +204,7 @@ namespace LiteFX::Rendering {
         virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
         virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;
         virtual void begin() const = 0;
-        virtual void end() const = 0;
+        virtual void end() = 0;
     };
 
     /// <summary>
@@ -321,7 +321,7 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IShaderProgram>&& program) override;
         virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
         virtual void beginFrame() const override;
-        virtual void endFrame() const override;
+        virtual void endFrame() override;
     };
 
     /// <summary>

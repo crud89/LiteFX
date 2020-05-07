@@ -177,14 +177,14 @@ public:
         ::vkCmdBindPipeline(m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle());
     }
 
-    void end() const
+    void end()
     {
         ::vkCmdEndRenderPass(m_commandBuffer->handle());
 
         if (::vkEndCommandBuffer(m_commandBuffer->handle()) != VK_SUCCESS)
             throw std::runtime_error("Unable to end render pass on command buffer.");
 
-        auto image = m_device->getSwapChain()->swapFrontBuffer();
+        m_currentFrameBuffer = m_device->getSwapChain()->swapFrontBuffer();
     }
 
 public:
@@ -253,7 +253,7 @@ void VulkanRenderPass::begin() const
     m_impl->begin(*this);
 }
 
-void VulkanRenderPass::end() const
+void VulkanRenderPass::end()
 {
     m_impl->end();
 }
