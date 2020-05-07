@@ -16,6 +16,7 @@ private:
     Array<UniquePtr<IRenderTarget>> m_targets;
     Array<VkFramebuffer> m_frameBuffers;
     UniquePtr<const VulkanCommandBuffer> m_commandBuffer;
+    UInt32 m_currentFrameBuffer{ 0 };
 
 public:
     VulkanRenderPassImpl(const VulkanRenderPipeline& pipeline) noexcept : m_pipeline(pipeline) {}
@@ -182,6 +183,8 @@ public:
 
         if (::vkEndCommandBuffer(m_commandBuffer->handle()) != VK_SUCCESS)
             throw std::runtime_error("Unable to end render pass on command buffer.");
+
+        auto image = m_device->getSwapChain()->swapFrontBuffer();
     }
 
 public:

@@ -12,10 +12,16 @@ private:
 	const VulkanDevice* m_device;
 	Size2d m_size { };
 	Format m_format{ Format::None };
+	VkSemaphore m_swapSemaphore;
 
 public:
 	VulkanSwapChainImpl(const VulkanDevice* device) noexcept :
 		m_device(device) { }
+	
+	~VulkanSwapChainImpl()
+	{
+		::vkDestroySemaphore(m_device->handle(), m_swapSemaphore, nullptr);
+	}
 
 private:
 	void loadImages(const VkSwapchainKHR& swapChain, const Format& format, const VkExtent2D& extent)
@@ -131,7 +137,25 @@ public:
 			throw std::runtime_error("Swap chain could not be created.");
 
 		this->loadImages(swapChain, format, deviceCaps.currentExtent);
+
+		// Create a semaphore for swapping images.
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		if (::vkCreateSemaphore(m_device->handle(), &semaphoreInfo, nullptr, &m_swapSemaphore) != VK_SUCCESS)
+			throw std::runtime_error("Unable to create swap semaphore.");
+
 		return swapChain;
+	}
+
+	UInt32 swapFrontBuffer(const VulkanSwapChain& parent) const
+	{
+		UInt32 imageIndex;
+
+		if (::vkAcquireNextImageKHR(m_device->handle(), parent.handle(), UINT64_MAX, m_swapSemaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+			throw std::runtime_error("Unable to swap front buffer.");
+
+		return imageIndex;
 	}
 
 public:
@@ -208,4 +232,9 @@ const Format& VulkanSwapChain::getFormat() const noexcept
 Array<const ITexture*> VulkanSwapChain::getFrames() const noexcept
 {
 	return m_impl->getFrames();
+}
+
+UInt32 VulkanSwapChain::swapFrontBuffer() const
+{
+	return m_impl->swapFrontBuffer(*this);
 }
