@@ -213,7 +213,7 @@ public:
         m_currentFrameBuffer = m_swapChain->swapFrontBuffer();
 
         VkSemaphore waitForSemaphores[] = { m_swapChain->getSemaphore() };
-        VkPipelineStageFlags waitForStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT }; 
+        VkPipelineStageFlags waitForStages[] = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
         VkSemaphore signalSemaphores[] = { m_semaphore };
 
         // Submit the command buffer.
