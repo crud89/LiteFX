@@ -26,27 +26,6 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDeviceBuilder : public GraphicsDeviceBuilder<VulkanDeviceBuilder, VulkanDevice> {
-		LITEFX_IMPLEMENTATION(VulkanDeviceBuilderImpl);
-
-	public:
-		typedef std::function<VkSurfaceKHR(const VkInstance&)> surface_callback;
-
-	public:
-		VulkanDeviceBuilder(UniquePtr<VulkanDevice>&& instance) noexcept;
-		virtual ~VulkanDeviceBuilder() noexcept;
-
-	public:
-		virtual UniquePtr<VulkanDevice> go() override;
-
-	public:
-		virtual VulkanDeviceBuilder& withFormat(const Format& format);
-		virtual VulkanDeviceBuilder& withQueue(const QueueType& queueType);
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineBuilderImpl)
 

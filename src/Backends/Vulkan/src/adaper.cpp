@@ -47,13 +47,7 @@ public:
         if (surface == nullptr)
             throw std::invalid_argument("The provided surface is not initialized or not a valid Vulkan surface.");
 
-        // Create a graphics device.
-        auto queue = this->findQueue(parent, QueueType::Graphics, surface);
-
-        if (queue == nullptr)
-            throw std::runtime_error("The adapter does not provide a graphics device.");
-
-        return makeUnique<VulkanDevice>(&parent, surface, queue, format, extensions);
+        return makeUnique<VulkanDevice>(&parent, surface,  format, extensions);
     }
 
     VulkanQueue* findQueue(const QueueType& type) const noexcept

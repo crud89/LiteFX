@@ -159,6 +159,7 @@ namespace LiteFX::Rendering {
 		virtual const IGraphicsAdapter* getAdapter() const noexcept= 0;
 		virtual const ISurface* getSurface() const noexcept = 0;
 		virtual const ISwapChain* getSwapChain() const noexcept = 0;
+		virtual const ICommandQueue* getQueue() const noexcept = 0;
 		virtual Array<Format> getSurfaceFormats() const = 0;
 
 	public:
@@ -209,6 +210,10 @@ namespace LiteFX::Rendering {
 	public:
 		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
 		virtual const ISurface* getSurface() const noexcept override;
+		virtual const ICommandQueue* getQueue() const noexcept override;
+
+	protected:
+		virtual void setQueue(ICommandQueue* queue) noexcept;
 
 	public:
 		/// <summary>
@@ -220,19 +225,6 @@ namespace LiteFX::Rendering {
 		TBuilder build(TArgs&&... _args) const {
 			return TBuilder(makeUnique<T>(this, std::forward<TArgs>(_args)...));
 		}
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	template <typename TDerived, typename TDevice>
-	class GraphicsDeviceBuilder : public Builder<TDerived, TDevice> {
-	public:
-		using builder_type::Builder;
-
-	public:
-		virtual TDerived& withFormat(const Format& format) = 0;
-		virtual TDerived& withQueue(const QueueType& queueType) = 0;
 	};
 
 	/// <summary>
@@ -253,9 +245,9 @@ namespace LiteFX::Rendering {
 		virtual void use(UniquePtr<ISurface>&& surface) = 0;
 
 	public:
-		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IGraphicsDevice*>, int> = 0, typename TBuilder = T::builder>
-		TBuilder build(TArgs&&... _args) const {
-			return TBuilder(makeUnique<T>(this->getAdapter(), this->getSurface(), std::forward<TArgs>(_args)...));
+		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IGraphicsDevice*>, int> = 0>
+		UniquePtr<T> createDevice(TArgs&&... _args) const {
+			return makeUnique<T>(this->getAdapter(), this->getSurface(), std::forward<TArgs>(_args)...);
 		}
 	};
 

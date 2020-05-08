@@ -200,6 +200,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual const Format& getFormat() const noexcept override;
 		virtual Array<const ITexture*> getFrames() const noexcept override;
 		virtual UInt32 swapFrontBuffer() const override;
+
+	public:
+		virtual VkSemaphore getSemaphore() const noexcept;
 	};
 
 	/// <summary>
@@ -227,11 +230,9 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
-		LITEFX_BUILDER(VulkanDeviceBuilder);
 
 	public:
-		VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Array<String>& extensions = { });
-		explicit VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, ICommandQueue* deviceQueue, const Format& format, const Array<String>& extensions = { });
+		explicit VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Format& format, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
@@ -258,9 +259,6 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
 		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
-
-	protected:
-		virtual void create(const Format& format, ICommandQueue* queue);
 	};
 
 	/// <summary>

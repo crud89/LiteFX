@@ -11,6 +11,7 @@ public:
 	friend class VulkanDevice;
 
 private:
+	const VulkanQueue* m_graphicsQueue{ nullptr };
 	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
 	Array<String> m_extensions;
@@ -120,6 +121,9 @@ public:
 		if (::vkCreateCommandPool(device, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create command pool.");
 
+		// Store the queue.
+		m_graphicsQueue = deviceQueue;
+
 		return device;
 	}
 
@@ -167,15 +171,26 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, ICommandQueue* deviceQueue, const Format& format, const Array<String>& extensions) :
-	VulkanDevice(adapter, surface, extensions)
-{
-	this->create(format, deviceQueue);
-}
-
-VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Array<String>& extensions) :
+VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Format& format, const Array<String>& extensions) :
 	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(extensions)), GraphicsDevice(adapter, surface)
 {
+	LITEFX_DEBUG(VULKAN_LOG, "Creating device on surface {0} (adapterId: {1}, format: {2}, extensions: {3})...", fmt::ptr(this->getSurface()), this->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
+	
+	auto queue = dynamic_cast<VulkanQueue*>(adapter->findQueue(QueueType::Graphics, surface));
+
+	if (queue == nullptr)
+		throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
+
+	auto& h = this->handle();
+
+	if (h != nullptr)
+		throw std::runtime_error("The device can only be created once.");
+
+	this->handle() = m_impl->initialize(*this, format, queue);
+
+	m_impl->createSwapChain(*this, format);
+	queue->initDeviceQueue(this);
+	this->setQueue(queue);
 }
 
 VulkanDevice::~VulkanDevice() noexcept
@@ -210,26 +225,6 @@ Array<Format> VulkanDevice::getSurfaceFormats() const
 const ISwapChain* VulkanDevice::getSwapChain() const noexcept
 {
 	return m_impl->getSwapChain();
-}
-
-void VulkanDevice::create(const Format& format, ICommandQueue* queue)
-{
-	LITEFX_DEBUG(VULKAN_LOG, "Creating device on surface {0} (adapterId: {1}, format: {2}, extensions: {3})...", fmt::ptr(this->getSurface()), this->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
-
-	auto deviceQueue = dynamic_cast<VulkanQueue*>(queue);
-
-	if (deviceQueue == nullptr)
-		throw std::invalid_argument("The argument `deviceQueue` is not a valid Vulkan queue.");
-
-	auto& h = this->handle();
-	
-	if (h != nullptr)
-		throw std::runtime_error("The device can only be created once.");
-
-	this->handle() = m_impl->initialize(*this, format, deviceQueue);
-
-	m_impl->createSwapChain(*this, format);
-	deviceQueue->initDeviceQueue(this);
 }
 
 bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) const noexcept
@@ -300,74 +295,4 @@ UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderType& type, 
 UniquePtr<ICommandBuffer> VulkanDevice::createCommandBuffer() const
 {
 	return makeUnique<VulkanCommandBuffer>(this);
-}
-
-// ------------------------------------------------------------------------------------------------
-// Builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanDeviceBuilder::VulkanDeviceBuilderImpl {
-private:
-	QueueType m_queueType;
-	Format m_format;
-
-public:
-	VulkanDeviceBuilderImpl() : m_queueType(QueueType::Graphics), m_format(Format::B8G8R8A8_UNORM_SRGB) { }
-
-public:
-	void setQueue(const QueueType& queueType)
-	{
-		m_queueType = queueType;
-	}
-
-	const QueueType& getQueue()
-	{
-		return m_queueType;
-	}
-
-	void setFormat(const Format& format)
-	{
-		m_format = format;
-	}
-
-	const Format& getFormat()
-	{
-		return m_format;
-	}
-};
-
-// ------------------------------------------------------------------------------------------------
-// Builder interface.
-// ------------------------------------------------------------------------------------------------
-
-VulkanDeviceBuilder::VulkanDeviceBuilder(UniquePtr<VulkanDevice>&& instance) noexcept :
-	GraphicsDeviceBuilder(std::move(instance)), m_impl(makePimpl<VulkanDeviceBuilderImpl>())
-{
-}
-
-VulkanDeviceBuilder::~VulkanDeviceBuilder() noexcept = default;
-
-UniquePtr<VulkanDevice> VulkanDeviceBuilder::go()
-{
-	auto surface = this->instance()->getSurface();
-	auto queue = this->instance()->getAdapter()->findQueue(m_impl->getQueue(), surface);
-
-	if (queue == nullptr)
-		throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
-
-	this->instance()->create(m_impl->getFormat(), queue);
-
-	return GraphicsDeviceBuilder::go();
-}
-
-VulkanDeviceBuilder& VulkanDeviceBuilder::withFormat(const Format & format)
-{
-	m_impl->setFormat(format);
-	return *this;
-}
-
-VulkanDeviceBuilder& VulkanDeviceBuilder::withQueue(const QueueType & queueType)
-{
-	m_impl->setQueue(queueType);
-	return *this;
 }

@@ -7,6 +7,9 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 class VulkanSwapChain::VulkanSwapChainImpl {
+public:
+	friend class VulkanSwapChain;
+
 private:
 	Array<UniquePtr<ITexture>> m_frames;
 	const VulkanDevice* m_device;
@@ -237,4 +240,9 @@ Array<const ITexture*> VulkanSwapChain::getFrames() const noexcept
 UInt32 VulkanSwapChain::swapFrontBuffer() const
 {
 	return m_impl->swapFrontBuffer(*this);
+}
+
+VkSemaphore VulkanSwapChain::getSemaphore() const noexcept
+{
+	return m_impl->m_swapSemaphore;
 }

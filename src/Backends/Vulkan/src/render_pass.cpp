@@ -13,21 +13,40 @@ public:
 private:
     const VulkanRenderPipeline& m_pipeline;
     const VulkanDevice* m_device{ nullptr };
+    const VulkanSwapChain* m_swapChain{ nullptr };
+    const VulkanQueue* m_queue{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
     Array<VkFramebuffer> m_frameBuffers;
     UniquePtr<const VulkanCommandBuffer> m_commandBuffer;
     UInt32 m_currentFrameBuffer{ 0 };
+    VkSemaphore m_semaphore;
 
 public:
     VulkanRenderPassImpl(const VulkanRenderPipeline& pipeline) noexcept : m_pipeline(pipeline) {}
 
+    ~VulkanRenderPassImpl()
+    {
+        ::vkDestroySemaphore(m_device->handle(), m_semaphore, nullptr);
+    }
+
 public:
     VkRenderPass initialize(const VulkanRenderPass& parent)
     {
+        // Get the device and swap chain.
         m_device = dynamic_cast<const VulkanDevice*>(m_pipeline.getDevice());
 
         if (m_device == nullptr)
             throw std::invalid_argument("The provided pipelines' device is not a valid Vulkan device.");
+
+        m_swapChain = dynamic_cast<const VulkanSwapChain*>(m_device->getSwapChain());
+
+        if (m_swapChain == nullptr)
+            throw std::invalid_argument("The device swap chain is not a valid Vulkan swap chain.");
+        
+        m_queue = dynamic_cast<const VulkanQueue*>(m_device->getQueue());
+
+        if (m_queue == nullptr)
+            throw std::invalid_argument("The device queue is not a valid Vulkan command queue.");
 
         // Setup the attachments.
         Array<VkAttachmentDescription> attachments(m_targets.size());
@@ -102,7 +121,7 @@ public:
             throw std::runtime_error("Unable to create render pass.");
 
         // Initialize frame buffers.
-        auto frames = m_device->getSwapChain()->getFrames();
+        auto frames = m_swapChain->getFrames();
         Array<VkFramebuffer> frameBuffers(frames.size());
 
         LITEFX_TRACE(VULKAN_LOG, "Initializing {0} frame buffers...", frames.size());
@@ -147,6 +166,13 @@ public:
             commandBuffer.release();
         }
 
+        // Create a semaphore that signals if the render pass has finished.
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        if (::vkCreateSemaphore(m_device->handle(), &semaphoreInfo, nullptr, &m_semaphore) != VK_SUCCESS)
+            throw std::runtime_error("Unable to create render pass semaphore.");
+
         // Return the render pass.
         return renderPass;
     }
@@ -184,7 +210,25 @@ public:
         if (::vkEndCommandBuffer(m_commandBuffer->handle()) != VK_SUCCESS)
             throw std::runtime_error("Unable to end render pass on command buffer.");
 
-        m_currentFrameBuffer = m_device->getSwapChain()->swapFrontBuffer();
+        m_currentFrameBuffer = m_swapChain->swapFrontBuffer();
+
+        VkSemaphore waitForSemaphores[] = { m_swapChain->getSemaphore() };
+        VkPipelineStageFlags waitForStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT }; 
+        VkSemaphore signalSemaphores[] = { m_semaphore };
+
+        // Submit the command buffer.
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.pWaitSemaphores = waitForSemaphores;
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitDstStageMask = waitForStages;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &m_commandBuffer->handle();
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+
+        if (::vkQueueSubmit(m_queue->handle(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+            throw std::runtime_error("Fail to submit render pass to device queue!");
     }
 
 public:

@@ -3,11 +3,7 @@
 void SampleApp::run() 
 {
     auto renderBackend = this->getRenderBackend();
-    auto device = renderBackend->build<VulkanDevice>()
-        .withFormat(Format::B8G8R8A8_UNORM_SRGB)
-        .withQueue(QueueType::Graphics)
-        .go();
-
+    auto device = renderBackend->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
     auto pipeline = device->build<VulkanRenderPipeline>()
         .make<VulkanRenderPipelineLayout>()
             .make<VulkanRasterizer>()
@@ -55,5 +51,7 @@ void SampleApp::drawFrame(UniquePtr<VulkanRenderPipeline>& pipeline)
 
     // TODO: Write draw logic.
 
+    // NOTE: This is actually an asynchronous operation, meaning that it does not wait for the frame to be actually rendered and presented.
+    //       We need to implement a way around this, so that there are no race conditions.
     pipeline->endFrame();
 }
