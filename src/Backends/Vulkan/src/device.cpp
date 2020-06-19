@@ -132,6 +132,12 @@ public:
 		m_swapChain = makeUnique<VulkanSwapChain>(&parent, format);
 	}
 
+	void shutDown(const VulkanDevice& parent)
+	{
+		if (::vkDeviceWaitIdle(parent.handle()) != VK_SUCCESS)
+			throw std::runtime_error("Unable to wait for the device.");
+	}
+
 public:
 	Array<Format> getSurfaceFormats(const VulkanDevice& parent) const
 	{
@@ -240,6 +246,11 @@ Array<String> VulkanDevice::getAvailableDeviceExtensions() const noexcept
 VkCommandPool VulkanDevice::getCommandPool() const noexcept
 {
 	return m_impl->m_commandPool;
+}
+
+void VulkanDevice::shutDown()
+{
+	m_impl->shutDown(*this);
 }
 
 // ------------------------------------------------------------------------------------------------

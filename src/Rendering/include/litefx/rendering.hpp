@@ -167,6 +167,7 @@ namespace LiteFX::Rendering {
 		virtual size_t getBufferHeight() const noexcept = 0;
 		//virtual Color getBackColor() const noexcept = 0;
 		//virtual void setBackColor(const Color& color) = 0;
+		virtual void shutDown() = 0;
 
 	public:
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const = 0;

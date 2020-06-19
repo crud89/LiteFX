@@ -240,6 +240,7 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual size_t getBufferWidth() const noexcept override;
 		virtual size_t getBufferHeight() const noexcept override;
+		virtual void shutDown() override;
 
 	public:
 		virtual const Array<String>& getExtensions() const noexcept;

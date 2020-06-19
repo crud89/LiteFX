@@ -34,6 +34,10 @@ void SampleApp::run()
         this->drawFrame(pipeline);
     }
 
+    // Shut down the device.
+    device->shutDown();
+
+    // Destroy the window.
     ::glfwDestroyWindow(m_window.get());
     ::glfwTerminate();
 }
