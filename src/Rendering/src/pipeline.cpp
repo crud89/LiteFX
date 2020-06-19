@@ -126,12 +126,12 @@ void RenderPipeline::use(UniquePtr<IRenderPass>&& renderPass)
 
 void RenderPipeline::beginFrame() const
 {
-    m_impl->getRenderPass()->begin();
+    m_impl->m_renderPass->begin();
 
     // TODO: In case there are multiple render passes the caller should be able to advance instead of handling only beginning/ending the entire frame.
 }
 
 void RenderPipeline::endFrame()
 {
-    m_impl->m_renderPass->end();
+    m_impl->m_renderPass->end(true);
 }

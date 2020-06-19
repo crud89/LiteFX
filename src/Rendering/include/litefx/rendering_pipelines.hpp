@@ -204,7 +204,7 @@ namespace LiteFX::Rendering {
         virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
         virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;
         virtual void begin() const = 0;
-        virtual void end() = 0;
+        virtual void end(const bool& present = false) = 0;
     };
 
     /// <summary>

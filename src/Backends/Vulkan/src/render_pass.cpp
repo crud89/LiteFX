@@ -203,7 +203,7 @@ public:
         ::vkCmdBindPipeline(m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle());
     }
 
-    void end()
+    void end(const bool present = false)
     {
         ::vkCmdEndRenderPass(m_commandBuffer->handle());
 
@@ -228,7 +228,25 @@ public:
         submitInfo.pSignalSemaphores = signalSemaphores;
 
         if (::vkQueueSubmit(m_queue->handle(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
-            throw std::runtime_error("Fail to submit render pass to device queue!");
+            throw std::runtime_error("Failed to submit render pass to device queue!");
+
+        // Draw the frame, if the result of the render pass it should be presented to the swap chain.
+        if (present)
+        {
+            VkPresentInfoKHR presentInfo{};
+            presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+            presentInfo.pWaitSemaphores = signalSemaphores;
+            presentInfo.waitSemaphoreCount = 1;
+            presentInfo.pImageIndices = &m_currentFrameBuffer;
+            presentInfo.pResults = nullptr;
+
+            VkSwapchainKHR swapChains[] = { m_swapChain->handle() };
+            presentInfo.pSwapchains = swapChains;
+            presentInfo.swapchainCount = 1;
+
+            if (::vkQueuePresentKHR(m_queue->handle(), &presentInfo) != VK_SUCCESS)
+                throw std::runtime_error("Unable to present swap chain.");
+        }
     }
 
 public:
@@ -297,9 +315,9 @@ void VulkanRenderPass::begin() const
     m_impl->begin(*this);
 }
 
-void VulkanRenderPass::end()
+void VulkanRenderPass::end(const bool& present)
 {
-    m_impl->end();
+    m_impl->end(present);
 }
 
 // ------------------------------------------------------------------------------------------------
