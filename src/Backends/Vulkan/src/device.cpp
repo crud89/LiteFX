@@ -132,7 +132,7 @@ public:
 		m_swapChain = makeUnique<VulkanSwapChain>(&parent, format);
 	}
 
-	void shutDown(const VulkanDevice& parent)
+	void wait(const VulkanDevice& parent)
 	{
 		if (::vkDeviceWaitIdle(parent.handle()) != VK_SUCCESS)
 			throw std::runtime_error("Unable to wait for the device.");
@@ -248,9 +248,9 @@ VkCommandPool VulkanDevice::getCommandPool() const noexcept
 	return m_impl->m_commandPool;
 }
 
-void VulkanDevice::shutDown()
+void VulkanDevice::wait()
 {
-	m_impl->shutDown(*this);
+	m_impl->wait(*this);
 }
 
 // ------------------------------------------------------------------------------------------------

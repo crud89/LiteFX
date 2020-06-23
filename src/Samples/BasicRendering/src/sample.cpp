@@ -35,7 +35,7 @@ void SampleApp::run()
     }
 
     // Shut down the device.
-    device->shutDown();
+    device->wait();
 
     // Destroy the window.
     ::glfwDestroyWindow(m_window.get());
