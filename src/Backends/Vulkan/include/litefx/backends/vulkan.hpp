@@ -241,6 +241,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getBufferWidth() const noexcept override;
 		virtual size_t getBufferHeight() const noexcept override;
 		virtual void wait() override;
+		virtual void resize(int width, int height) override;
 
 	public:
 		virtual const Array<String>& getExtensions() const noexcept;

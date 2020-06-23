@@ -34,6 +34,10 @@ namespace LiteFX {
 	public:
 		virtual void use(UniquePtr<IBackend>&& backend);
 		virtual void run() = 0;
+		virtual void initialize() = 0;
+
+	public:
+		virtual void resize(int width, int height);
 
 	public:
 		template <typename TApp, typename ...TArgs>

@@ -138,6 +138,13 @@ public:
 			throw std::runtime_error("Unable to wait for the device.");
 	}
 
+	void resize(const VulkanDevice& parent, int width, int height)
+	{
+		this->wait(parent);
+
+		throw;
+	}
+
 public:
 	Array<Format> getSurfaceFormats(const VulkanDevice& parent) const
 	{
@@ -251,6 +258,11 @@ VkCommandPool VulkanDevice::getCommandPool() const noexcept
 void VulkanDevice::wait()
 {
 	m_impl->wait(*this);
+}
+
+void VulkanDevice::resize(int width, int height)
+{
+	m_impl->resize(*this, width, height);
 }
 
 // ------------------------------------------------------------------------------------------------

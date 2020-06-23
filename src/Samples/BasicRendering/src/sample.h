@@ -35,15 +35,22 @@ public:
 
 private:
 	GlfwWindowPtr m_window;
+	UniquePtr<VulkanDevice> m_device;
 
 public:
-	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) { }
+	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {
+		::glfwSetWindowUserPointer(m_window.get(), this);
+
+		this->initialize();
+	}
 
 public:
 	virtual const IRenderBackend* getRenderBackend() const noexcept {
 		return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
 	}
 	virtual void run() override;
+	virtual void initialize() override;
+	virtual void resize(int width, int height) override;
 	void handleEvents();
 	void drawFrame(UniquePtr<VulkanRenderPipeline>& pipeline);
 };

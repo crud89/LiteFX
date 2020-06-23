@@ -51,3 +51,8 @@ void App::use(UniquePtr<IBackend>&& backend)
 	Logger::get(this->getName()).trace("Using backend {0} (current backend: {1})...", fmt::ptr(backend.get()), fmt::ptr(m_impl->findBackend(backend->getType())));
 	return m_impl->useBackend(std::move(backend));
 }
+
+void App::resize(int width, int height)
+{
+	Logger::get(this->getName()).trace("OnResize (width = {0}, height = {1}).", width, height);
+}

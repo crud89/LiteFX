@@ -1,10 +1,15 @@
 #include "sample.h"
 
+static void onResize(GLFWwindow* window, int width, int height)
+{
+    auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+    app->resize(width, height);
+}
+
 void SampleApp::run() 
 {
-    auto renderBackend = this->getRenderBackend();
-    auto device = renderBackend->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
-    auto pipeline = device->build<VulkanRenderPipeline>()
+    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
+    auto pipeline = m_device->build<VulkanRenderPipeline>()
         .make<VulkanRenderPipelineLayout>()
             .make<VulkanRasterizer>()
                 .withPolygonMode(PolygonMode::Solid)
@@ -13,8 +18,8 @@ void SampleApp::run()
                 .withLineWidth(1.f)
                 .go()
             .make<VulkanViewport>()
-                .withRectangle(RectF(0.f, 0.f, static_cast<Float>(device->getBufferWidth()), static_cast<Float>(device->getBufferHeight())))
-                //.addScissor(RectF(0.f, 0.f, static_cast<Float>(device->getBufferWidth()), static_cast<Float>(device->getBufferHeight())))
+                .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                //.addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
                 .go()
             .make<VulkanInputAssembler>()
                 .go()
@@ -35,18 +40,32 @@ void SampleApp::run()
     }
 
     // Shut down the device.
-    device->wait();
+    m_device->wait();
+    m_device = nullptr;
 
     // Destroy the window.
     ::glfwDestroyWindow(m_window.get());
     ::glfwTerminate();
 }
 
+void SampleApp::initialize()
+{
+    ::glfwSetFramebufferSizeCallback(m_window.get(), ::onResize);
+}
+
+void SampleApp::resize(int width, int height)
+{
+    App::resize(width, height);
+
+    if (m_device == nullptr)
+        return;
+    else
+        m_device->resize(width, height);
+}
+
 void SampleApp::handleEvents()
 {
     ::glfwPollEvents();
-
-    // TODO: Write event handlers.
 }
 
 void SampleApp::drawFrame(UniquePtr<VulkanRenderPipeline>& pipeline)
