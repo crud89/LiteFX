@@ -86,7 +86,7 @@ private:
 	}
 
 public:
-	VkSwapchainKHR initialize(const VulkanSwapChain& parent, const Format& format)
+	VkSwapchainKHR initialize(const Format& format)
 	{
 		if (format == Format::Other || format == Format::None)
 			throw std::invalid_argument("The provided surface format it not a valid value.");
@@ -162,18 +162,18 @@ public:
 		return swapChain;
 	}
 
-	void reset(VulkanSwapChain& parent)
+	void reset()
 	{
 		// Cleanup and re-initialize.
 		this->cleanup();
-		parent.handle() = this->initialize(parent, m_format);
+		m_parent->handle() = this->initialize(m_format);
 	}
 
-	UInt32 swapFrontBuffer(const VulkanSwapChain& parent) const
+	UInt32 swapFrontBuffer() const
 	{
 		UInt32 imageIndex;
 
-		if (::vkAcquireNextImageKHR(m_device->handle(), parent.handle(), UINT64_MAX, m_swapSemaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		if (::vkAcquireNextImageKHR(m_device->handle(), m_parent->handle(), UINT64_MAX, m_swapSemaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 			throw std::runtime_error("Unable to swap front buffer.");
 
 		return imageIndex;
@@ -199,7 +199,7 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& forma
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");
 
-	this->handle() = m_impl->initialize(*this, format);
+	this->handle() = m_impl->initialize(format);
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept 
@@ -242,12 +242,12 @@ Array<const ITexture*> VulkanSwapChain::getFrames() const noexcept
 
 UInt32 VulkanSwapChain::swapFrontBuffer() const
 {
-	return m_impl->swapFrontBuffer(*this);
+	return m_impl->swapFrontBuffer();
 }
 
 void VulkanSwapChain::reset()
 {
-	m_impl->reset(*this);
+	m_impl->reset();
 }
 
 VkSemaphore VulkanSwapChain::getSemaphore() const noexcept

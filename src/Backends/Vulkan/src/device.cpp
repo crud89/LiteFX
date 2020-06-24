@@ -30,22 +30,22 @@ private:
 	}
 
 private:
-	VkSurfaceKHR getSurface(const VulkanDevice& parent) const noexcept
+	VkSurfaceKHR getSurface() const noexcept
 	{
-		auto surface = dynamic_cast<const VulkanSurface*>(parent.getSurface());
+		auto surface = dynamic_cast<const VulkanSurface*>(m_parent->getSurface());
 		return surface ? surface->handle() : nullptr;
 	}
 
-	VkPhysicalDevice getAdapter(const VulkanDevice& parent) const noexcept
+	VkPhysicalDevice getAdapter() const noexcept
 	{
-		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(parent.getAdapter());
+		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_parent->getAdapter());
 		return adapter ? adapter->handle() : nullptr;
 	}
 
 public:
-	bool validateDeviceExtensions(const VulkanDevice& parent, const Array<String>& extensions) const noexcept
+	bool validateDeviceExtensions(const Array<String>& extensions) const noexcept
 	{
-		auto availableExtensions = this->getAvailableDeviceExtensions(parent);
+		auto availableExtensions = this->getAvailableDeviceExtensions();
 
 		return std::all_of(extensions.begin(), extensions.end(), [&availableExtensions](const String& extension) {
 			return std::find_if(availableExtensions.begin(), availableExtensions.end(), [&extension](String& str) {
@@ -56,9 +56,9 @@ public:
 			});
 	}
 
-	Array<String> getAvailableDeviceExtensions(const VulkanDevice& parent) const noexcept
+	Array<String> getAvailableDeviceExtensions() const noexcept
 	{
-		auto adapter = this->getAdapter(parent);
+		auto adapter = this->getAdapter();
 
 		uint32_t extensions = 0;
 		::vkEnumerateDeviceExtensionProperties(adapter, nullptr, &extensions, nullptr);
@@ -73,14 +73,14 @@ public:
 	}
 
 public:
-	VkDevice initialize(const VulkanDevice& parent, const Format& format, const VulkanQueue* deviceQueue)
+	VkDevice initialize(const Format& format, const VulkanQueue* deviceQueue)
 	{
-		auto adapter = this->getAdapter(parent);
+		auto adapter = this->getAdapter();
 
 		if (adapter == nullptr)
 			throw std::invalid_argument("The argument `adapter` must be initialized.");
 
-		if (!this->validateDeviceExtensions(parent, m_extensions))
+		if (!this->validateDeviceExtensions(m_extensions))
 			throw std::runtime_error("Some required device extensions are not supported by the system.");
 
 		// Parse the extensions.
@@ -130,21 +130,21 @@ public:
 		return device;
 	}
 
-	void createSwapChain(const VulkanDevice& parent, const Format& format)
+	void createSwapChain(const Format& format)
 	{
-		m_swapChain = makeUnique<VulkanSwapChain>(&parent, format);
+		m_swapChain = makeUnique<VulkanSwapChain>(m_parent, format);
 	}
 
-	void wait(const VulkanDevice& parent)
+	void wait()
 	{
-		if (::vkDeviceWaitIdle(parent.handle()) != VK_SUCCESS)
+		if (::vkDeviceWaitIdle(m_parent->handle()) != VK_SUCCESS)
 			throw std::runtime_error("Unable to wait for the device.");
 	}
 
-	void resize(const VulkanDevice& parent, int width, int height)
+	void resize(int width, int height)
 	{
 		// Wait for the device to be idle.
-		this->wait(parent);
+		this->wait();
 
 		// Reset the swap chain.
 		m_swapChain->reset();
@@ -153,10 +153,10 @@ public:
 	}
 
 public:
-	Array<Format> getSurfaceFormats(const VulkanDevice& parent) const
+	Array<Format> getSurfaceFormats() const
 	{
-		auto adapter = this->getAdapter(parent);
-		auto surface = this->getSurface(parent);
+		auto adapter = this->getAdapter();
+		auto surface = this->getSurface();
 
 		if (adapter == nullptr)
 			throw std::runtime_error("The adapter is not a valid Vulkan adapter.");
@@ -196,9 +196,9 @@ VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surf
 	if (h != nullptr)
 		throw std::runtime_error("The device can only be created once.");
 
-	this->handle() = m_impl->initialize(*this, format, queue);
+	this->handle() = m_impl->initialize(format, queue);
 
-	m_impl->createSwapChain(*this, format);
+	m_impl->createSwapChain(format);
 	queue->initDeviceQueue(this);
 	this->setQueue(queue);
 }
@@ -229,7 +229,7 @@ const Array<String>& VulkanDevice::getExtensions() const noexcept
 
 Array<Format> VulkanDevice::getSurfaceFormats() const
 {
-	return m_impl->getSurfaceFormats(*this);
+	return m_impl->getSurfaceFormats();
 }
 
 const ISwapChain* VulkanDevice::getSwapChain() const noexcept
@@ -239,12 +239,12 @@ const ISwapChain* VulkanDevice::getSwapChain() const noexcept
 
 bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) const noexcept
 {
-	return m_impl->validateDeviceExtensions(*this, extensions);
+	return m_impl->validateDeviceExtensions(extensions);
 }
 
 Array<String> VulkanDevice::getAvailableDeviceExtensions() const noexcept
 {
-	return m_impl->getAvailableDeviceExtensions(*this);
+	return m_impl->getAvailableDeviceExtensions();
 }
 
 VkCommandPool VulkanDevice::getCommandPool() const noexcept
@@ -254,12 +254,12 @@ VkCommandPool VulkanDevice::getCommandPool() const noexcept
 
 void VulkanDevice::wait()
 {
-	m_impl->wait(*this);
+	m_impl->wait();
 }
 
 void VulkanDevice::resize(int width, int height)
 {
-	m_impl->resize(*this, width, height);
+	m_impl->resize(width, height);
 }
 
 // ------------------------------------------------------------------------------------------------

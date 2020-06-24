@@ -31,7 +31,7 @@ public:
     }
 
 public:
-    VkRenderPass initialize(const VulkanRenderPass& parent)
+    VkRenderPass initialize()
     {
         // Get the device and swap chain.
         m_device = dynamic_cast<const VulkanDevice*>(m_pipeline.getDevice());
@@ -178,7 +178,7 @@ public:
         return renderPass;
     }
 
-    void begin(const VulkanRenderPass& parent) const
+    void begin() const
     {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -189,7 +189,7 @@ public:
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = parent.handle();
+        renderPassInfo.renderPass = m_parent->handle();
         renderPassInfo.framebuffer = m_frameBuffers[0];     // TODO: Select current back buffer.
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent.width = static_cast<UInt32>(m_device->getBufferWidth());
@@ -308,12 +308,12 @@ UniquePtr<IRenderTarget> VulkanRenderPass::removeTarget(const IRenderTarget* tar
 
 void VulkanRenderPass::create()
 {
-    this->handle() = m_impl->initialize(*this);
+    this->handle() = m_impl->initialize();
 }
 
 void VulkanRenderPass::begin() const
 {
-    m_impl->begin(*this);
+    m_impl->begin();
 }
 
 void VulkanRenderPass::end(const bool& present)

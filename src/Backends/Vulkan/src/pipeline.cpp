@@ -14,13 +14,13 @@ public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : base(parent) { }
 
 public:
-	VkPipeline initialize(VulkanRenderPipeline& parent, const VulkanRenderPipelineLayout* layout)
+	VkPipeline initialize(const VulkanRenderPipelineLayout* layout)
 	{
 		if (layout == nullptr)
 			throw std::invalid_argument("The pipeline layout must be initialized.");
 
 		// Get the device.
-		auto device = dynamic_cast<const VulkanDevice*>(parent.getDevice());
+		auto device = dynamic_cast<const VulkanDevice*>(m_parent->getDevice());
 
 		if (device == nullptr)
 			throw std::invalid_argument("The pipeline device is not a valid Vulkan device.");
@@ -29,7 +29,7 @@ public:
 		auto rasterizer = layout->getRasterizer();
 		auto inputAssembler = layout->getInputAssembler();
 		auto views = layout->getViewports();
-		auto program = parent.getProgram();
+		auto program = m_parent->getProgram();
 
 		if (rasterizer == nullptr)
 			throw std::invalid_argument("The pipeline layout does not contain a rasterizer.");
@@ -180,7 +180,7 @@ public:
 		pipelineInfo.pStages = shaderStages.data();
 
 		// Setup render pass state.
-		auto renderPass = dynamic_cast<const VulkanRenderPass*>(parent.getRenderPass());
+		auto renderPass = dynamic_cast<const VulkanRenderPass*>(m_parent->getRenderPass());
 
 		if (renderPass == nullptr)
 			throw std::invalid_argument("The specified render pass is not a valid Vulkan render pass.");
@@ -225,7 +225,7 @@ void VulkanRenderPipeline::create()
 	auto& h = this->handle();
 
 	if (h == nullptr)
-		h = m_impl->initialize(*this, layout);
+		h = m_impl->initialize(layout);
 	else
 	{
 		LITEFX_WARNING(VULKAN_LOG, "The render pipeline is already created and hence will be rebuilt. Consider using `IRenderPipeline::rebuild` instead.");

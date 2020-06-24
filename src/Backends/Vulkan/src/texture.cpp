@@ -26,9 +26,9 @@ public:
 	}
 
 public:
-	void initialize(const VulkanTexture& parent)
+	void initialize()
 	{
-		m_view = m_device->vkCreateImageView(parent.handle(), m_format);
+		m_view = m_device->vkCreateImageView(m_parent->handle(), m_format);
 	}
 };
 
@@ -42,7 +42,7 @@ VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Fo
 	if (image == nullptr)
 		throw std::invalid_argument("The argument `image` is not initialized.");
 
-	m_impl->initialize(*this);
+	m_impl->initialize();
 }
 
 VulkanTexture::~VulkanTexture() noexcept = default;

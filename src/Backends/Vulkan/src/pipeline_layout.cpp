@@ -18,9 +18,9 @@ public:
         base(parent), m_device(device) { }
 
 public:
-    VkPipelineLayout initialize(VulkanRenderPipelineLayout& parent)
+    VkPipelineLayout initialize()
     {
-        LITEFX_DEBUG(VULKAN_LOG, "Creating render pipeline layout {0}...", fmt::ptr(&parent));
+        LITEFX_DEBUG(VULKAN_LOG, "Creating render pipeline layout {0}...", fmt::ptr(m_parent));
 
         // TODO: Implement me!
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -62,7 +62,7 @@ VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept = default;
 
 void VulkanRenderPipelineLayout::create() 
 {
-    this->handle() = m_impl->initialize(*this);
+    this->handle() = m_impl->initialize();
 }
 
 // ------------------------------------------------------------------------------------------------

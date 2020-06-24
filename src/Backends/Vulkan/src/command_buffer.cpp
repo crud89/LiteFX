@@ -15,10 +15,14 @@ private:
 
 public:
 	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanDevice* device) :
-		base(parent), m_device(device) { }
+		base(parent), m_device(device) 
+	{
+		if (device == nullptr)
+			throw std::invalid_argument("The argument `device` must be initialized.");
+	}
 
 public:
-	VkCommandBuffer initialize(const VulkanCommandBuffer& parent)
+	VkCommandBuffer initialize()
 	{
 		VkCommandBufferAllocateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -40,12 +44,8 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanDevice* device) :
-	m_impl(makePimpl<VulkanCommandBufferImpl>(this, device)), IResource(nullptr)
+	m_impl(makePimpl<VulkanCommandBufferImpl>(this, device)), IResource(m_impl->initialize())
 {
-	if (device == nullptr)
-		throw std::invalid_argument("The argument `device` must be initialized.");
-
-	this->handle() = m_impl->initialize(*this);
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default;

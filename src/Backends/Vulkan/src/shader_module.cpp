@@ -35,7 +35,7 @@ private:
 	}
 
 public:
-	VkShaderModule initialize(const VulkanShaderModule& parent)
+	VkShaderModule initialize()
 	{
 		String fileContents = this->readFileContents(m_fileName);
 
@@ -63,7 +63,7 @@ VulkanShaderModule::VulkanShaderModule(const VulkanDevice* device, const ShaderT
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");
 
-	this->handle() = m_impl->initialize(*this);
+	this->handle() = m_impl->initialize();
 }
 
 VulkanShaderModule::~VulkanShaderModule() noexcept = default;

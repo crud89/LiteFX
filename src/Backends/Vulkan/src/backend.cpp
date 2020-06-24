@@ -61,7 +61,7 @@ public:
 #endif
 
 public:
-    VkInstance initialize(const VulkanBackend& parent)
+    VkInstance initialize()
     {
         // Parse the extensions.
         std::vector<const char*> requiredExtensions(m_extensions.size()), enabledLayers(m_layers.size());
@@ -77,7 +77,7 @@ public:
             throw std::invalid_argument("Some required Vulkan layers are not supported by the system.");
 
         // Get the app instance.
-        auto& app = parent.getApp();
+        auto& app = m_parent->getApp();
         auto appName = app.getName();
 
         // Define Vulkan app.
@@ -140,15 +140,15 @@ public:
         return instance;
     }
 
-    void loadAdapters(const VulkanBackend& parent) noexcept
+    void loadAdapters() noexcept
     {
         uint32_t adapters = 0;
-        ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, nullptr);
+        ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, nullptr);
 
         Array<VkPhysicalDevice> handles(adapters);
         Array<UniquePtr<IGraphicsAdapter>> instances(adapters);
 
-        ::vkEnumeratePhysicalDevices(parent.handle(), &adapters, handles.data());
+        ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, handles.data());
         std::generate(instances.begin(), instances.end(), [this, &handles, i = 0]() mutable {
             return makeUnique<VulkanGraphicsAdapter>(handles[i++]);
         });
@@ -181,12 +181,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
-    RenderBackend(app), IResource(nullptr), m_impl(makePimpl<VulkanBackendImpl>(this, extensions, validationLayers))
+    RenderBackend(app), m_impl(makePimpl<VulkanBackendImpl>(this, extensions, validationLayers)), IResource(m_impl->initialize())
 {
-    this->handle() = m_impl->initialize(*this);
-
-    // Load adapters.
-    m_impl->loadAdapters(*this);
+    m_impl->loadAdapters();
 }
 
 VulkanBackend::~VulkanBackend() noexcept 
