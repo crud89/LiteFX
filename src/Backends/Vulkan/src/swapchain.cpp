@@ -29,12 +29,14 @@ public:
 private:
 	void cleanup()
 	{
-		// Destroy the image swap semaphore.
-		::vkDestroySemaphore(m_device->handle(), m_swapSemaphore, nullptr);
+		// Clear the frame buffers.
+		m_frames.clear();
 
 		// Destroy the swap chain itself.
-		//::vkDestroySwapchainKHR(m_device->handle(), m_s)
-		throw;
+		::vkDestroySwapchainKHR(m_device->handle(), m_parent->handle(), nullptr);
+
+		// Destroy the image swap semaphore.
+		::vkDestroySemaphore(m_device->handle(), m_swapSemaphore, nullptr);
 	}
 
 private:
@@ -202,13 +204,7 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& forma
 	this->handle() = m_impl->initialize(format);
 }
 
-VulkanSwapChain::~VulkanSwapChain() noexcept 
-{
-	auto device = m_impl->m_device->handle();
-	m_impl.destroy();
-
-	::vkDestroySwapchainKHR(device, this->handle(), nullptr);
-}
+VulkanSwapChain::~VulkanSwapChain() noexcept = default;
 
 const IGraphicsDevice* VulkanSwapChain::getDevice() const noexcept
 {

@@ -148,8 +148,6 @@ public:
 
 		// Reset the swap chain.
 		m_swapChain->reset();
-
-		throw;
 	}
 
 public:
