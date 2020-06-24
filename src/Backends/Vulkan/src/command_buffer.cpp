@@ -44,8 +44,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanDevice* device) :
-	m_impl(makePimpl<VulkanCommandBufferImpl>(this, device)), IResource(m_impl->initialize())
+	m_impl(makePimpl<VulkanCommandBufferImpl>(this, device)), IResource(nullptr)
 {
+	this->handle() = m_impl->initialize();
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default;

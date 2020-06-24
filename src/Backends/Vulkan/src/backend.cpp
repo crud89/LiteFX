@@ -181,8 +181,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
-    RenderBackend(app), m_impl(makePimpl<VulkanBackendImpl>(this, extensions, validationLayers)), IResource(m_impl->initialize())
+    RenderBackend(app), m_impl(makePimpl<VulkanBackendImpl>(this, extensions, validationLayers)), IResource(nullptr)
 {
+    this->handle() = m_impl->initialize();
     m_impl->loadAdapters();
 }
 
