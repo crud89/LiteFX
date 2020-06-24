@@ -6,9 +6,8 @@ static void onResize(GLFWwindow* window, int width, int height)
     app->resize(width, height);
 }
 
-void SampleApp::run() 
+void SampleApp::createPipeline()
 {
-    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
     m_pipeline = m_device->build<VulkanRenderPipeline>()
         .make<VulkanRenderPipelineLayout>()
             .make<VulkanRasterizer>()
@@ -32,6 +31,12 @@ void SampleApp::run()
             .withColorTarget()
             .go()
         .go();
+}
+
+void SampleApp::run() 
+{
+    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
+    this->createPipeline();
 
     while (!::glfwWindowShouldClose(m_window.get()))
     {
@@ -62,8 +67,11 @@ void SampleApp::resize(int width, int height)
         return;
     else
     {
+        // Resize the device.
         m_device->resize(width, height);
-        //m_pipeline->reset();
+
+        // Recreate the pipeline.
+        this->createPipeline();
     }
 }
 

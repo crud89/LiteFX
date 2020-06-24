@@ -12,18 +12,44 @@ public:
 
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : base(parent) { }
-
-public:
-	VkPipeline initialize(const VulkanRenderPipelineLayout* layout)
+	
+	~VulkanRenderPipelineImpl()
 	{
-		if (layout == nullptr)
-			throw std::invalid_argument("The pipeline layout must be initialized.");
+		this->cleanup();
+	}
 
-		// Get the device.
+private:
+	const VulkanDevice* getDevice() const
+	{
 		auto device = dynamic_cast<const VulkanDevice*>(m_parent->getDevice());
 
 		if (device == nullptr)
 			throw std::invalid_argument("The pipeline device is not a valid Vulkan device.");
+		
+		return device;
+	}
+
+	void cleanup()
+	{
+		// Get the device.
+		auto device = this->getDevice();
+
+		// Destroy the pipeline.
+		::vkDestroyPipeline(device->handle(), m_parent->handle(), nullptr);
+	}
+
+public:
+	VkPipeline initialize()
+	{
+		auto layout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_parent->getLayout());
+
+		if (layout == nullptr)
+			throw std::invalid_argument("The pipeline layout must be initialized.");
+
+		LITEFX_DEBUG(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(layout));
+
+		// Get the device.
+		auto device = this->getDevice();
 
 		// Request configuration interface.
 		auto rasterizer = layout->getRasterizer();
@@ -219,19 +245,12 @@ VulkanRenderPipeline::~VulkanRenderPipeline() noexcept = default;
 
 void VulkanRenderPipeline::create()
 {
-	auto layout = dynamic_cast<const VulkanRenderPipelineLayout*>(this->getLayout());
-	LITEFX_DEBUG(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(layout));
-
 	auto& h = this->handle();
 
-	if (h == nullptr)
-		h = m_impl->initialize(layout);
-	else
-	{
-		LITEFX_WARNING(VULKAN_LOG, "The render pipeline is already created and hence will be rebuilt. Consider using `IRenderPipeline::rebuild` instead.");
-		//this->rebuild(std::move(layout));
-		throw;
-	}
+	if (h != nullptr)
+		throw std::runtime_error("The render pipeline is already created and hence will be rebuilt. Consider using `IRenderPipeline::reset` instead.");
+
+	h = m_impl->initialize();
 }
 
 // ------------------------------------------------------------------------------------------------

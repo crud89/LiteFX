@@ -45,6 +45,9 @@ public:
 		this->initialize();
 	}
 
+private:
+	void createPipeline();
+
 public:
 	virtual const IRenderBackend* getRenderBackend() const noexcept {
 		return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
