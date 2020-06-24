@@ -36,6 +36,7 @@ public:
 private:
 	GlfwWindowPtr m_window;
 	UniquePtr<VulkanDevice> m_device;
+	UniquePtr<VulkanRenderPipeline> m_pipeline;
 
 public:
 	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {

@@ -9,7 +9,7 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::run() 
 {
     m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
-    auto pipeline = m_device->build<VulkanRenderPipeline>()
+    m_pipeline = m_device->build<VulkanRenderPipeline>()
         .make<VulkanRenderPipelineLayout>()
             .make<VulkanRasterizer>()
                 .withPolygonMode(PolygonMode::Solid)
@@ -36,11 +36,12 @@ void SampleApp::run()
     while (!::glfwWindowShouldClose(m_window.get()))
     {
         this->handleEvents();
-        this->drawFrame(pipeline);
+        this->drawFrame(m_pipeline);
     }
 
     // Shut down the device.
     m_device->wait();
+    m_pipeline = nullptr;
     m_device = nullptr;
 
     // Destroy the window.
@@ -60,7 +61,10 @@ void SampleApp::resize(int width, int height)
     if (m_device == nullptr)
         return;
     else
+    {
         m_device->resize(width, height);
+        //m_pipeline->reset();
+    }
 }
 
 void SampleApp::handleEvents()
