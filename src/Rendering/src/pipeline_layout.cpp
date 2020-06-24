@@ -6,14 +6,17 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class RenderPipelineLayout::RenderPipelineLayoutImpl {
+class RenderPipelineLayout::RenderPipelineLayoutImpl : public Implement<RenderPipelineLayout> {
+public:
+	friend class RenderPipelineLayout;
+
 private:
 	Array<UniquePtr<IViewport>> m_viewports;
 	UniquePtr<IRasterizer> m_rasterizer;
 	UniquePtr<IInputAssembler> m_inputAssembler;
 
 public:
-	RenderPipelineLayoutImpl() noexcept = default;
+	RenderPipelineLayoutImpl(RenderPipelineLayout* parent) : base(parent) { }
 
 public:
 	Array<const IViewport*> getViewports() const noexcept 
@@ -23,7 +26,7 @@ public:
 		return viewports;
 	}
 	
-	void use(UniquePtr<IViewport>&& viewport) 
+	void add(UniquePtr<IViewport>&& viewport) 
 	{
 		m_viewports.push_back(std::move(viewport));
 	}
@@ -42,34 +45,14 @@ public:
 			return std::move(result);
 		}
 	}
-	
-	const IRasterizer* getRasterizer() const noexcept 
-	{
-		return m_rasterizer.get();
-	}
-	
-	void use(UniquePtr<IRasterizer>&& rasterizer) 
-	{
-		m_rasterizer = std::move(rasterizer);
-	}
-
-	const IInputAssembler* getInputAssembler() const noexcept
-	{
-		return m_inputAssembler.get();
-	}
-
-	void use(UniquePtr<IInputAssembler>&& inputAssembler)
-	{
-		m_inputAssembler = std::move(inputAssembler);
-	}
 };
 
 // ------------------------------------------------------------------------------------------------
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-RenderPipelineLayout::RenderPipelineLayout() noexcept :
-	m_impl(makePimpl<RenderPipelineLayoutImpl>())
+RenderPipelineLayout::RenderPipelineLayout() :
+	m_impl(makePimpl<RenderPipelineLayoutImpl>(this))
 {
 }
 
@@ -82,7 +65,7 @@ Array<const IViewport*> RenderPipelineLayout::getViewports() const noexcept
 
 void RenderPipelineLayout::use(UniquePtr<IViewport>&& viewport) 
 {
-	return m_impl->use(std::move(viewport));
+	return m_impl->add(std::move(viewport));
 }
 
 UniquePtr<IViewport> RenderPipelineLayout::remove(const IViewport* viewport) noexcept
@@ -92,20 +75,20 @@ UniquePtr<IViewport> RenderPipelineLayout::remove(const IViewport* viewport) noe
 
 const IRasterizer* RenderPipelineLayout::getRasterizer() const noexcept 
 {
-	return m_impl->getRasterizer();
+	return m_impl->m_rasterizer.get();
 }
 
 void RenderPipelineLayout::use(UniquePtr<IRasterizer>&& rasterizer) 
 {
-	m_impl->use(std::move(rasterizer));
+	m_impl->m_rasterizer = std::move(rasterizer);
 }
 
 const IInputAssembler* RenderPipelineLayout::getInputAssembler() const noexcept
 {
-	return m_impl->getInputAssembler();
+	return m_impl->m_inputAssembler.get();
 }
 
 void RenderPipelineLayout::use(UniquePtr<IInputAssembler>&& inputAssembler)
 {
-	m_impl->use(std::move(inputAssembler));
+	m_impl->m_inputAssembler = std::move(inputAssembler);
 }

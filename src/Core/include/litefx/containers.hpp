@@ -121,6 +121,26 @@ namespace LiteFX {
 	PimplPtr<impl> m_impl;
 #endif
 
+	template <class TInterface>
+	class Implement {
+	public:
+		using interface_type = TInterface;
+		using base = Implement<interface_type>;
+
+	protected:
+		TInterface* m_parent{ nullptr };
+
+	public:
+		Implement(TInterface* parent) : m_parent(parent) {
+			if (parent == nullptr)
+				throw std::runtime_error("Initializing an implementation requires the parent to be provided.");
+		}
+
+		Implement(Implement<TInterface>&&) = delete;
+		Implement(const Implement<TInterface>&) = delete;
+		virtual ~Implement() = default;
+	};
+
 	template <class THandle>
 	class IResource {
 	private:

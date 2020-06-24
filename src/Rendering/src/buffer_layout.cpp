@@ -2,12 +2,15 @@
 
 using namespace LiteFX::Rendering;
 
-class BufferLayout::BufferLayoutImpl {
+class BufferLayout::BufferLayoutImpl : public Implement<BufferLayout> {
+public:
+    friend class BufferLayout;
+
 private:
     Array<UniquePtr<BufferAttribute>> m_attributes;
 
 public:
-    BufferLayoutImpl() noexcept = default;
+    BufferLayoutImpl(BufferLayout* parent) : base(parent) { }
 
 public:
     void add(UniquePtr<BufferAttribute>&& attribute)
@@ -39,8 +42,8 @@ public:
     }
 };
 
-BufferLayout::BufferLayout() noexcept : 
-    m_impl(makePimpl<BufferLayoutImpl>())
+BufferLayout::BufferLayout() : 
+    m_impl(makePimpl<BufferLayoutImpl>(this))
 {
 }
 

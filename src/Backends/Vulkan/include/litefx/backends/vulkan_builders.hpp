@@ -30,7 +30,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineBuilderImpl)
 
 	public:
-		VulkanRenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>&& instance) noexcept;
+		VulkanRenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>&& instance);
 		virtual ~VulkanRenderPipelineBuilder() noexcept;
 
 	public:

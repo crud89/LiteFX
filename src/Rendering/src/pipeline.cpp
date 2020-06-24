@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class RenderPipeline::RenderPipelineImpl {
+class RenderPipeline::RenderPipelineImpl : public Implement<RenderPipeline> {
 public:
     friend class RenderPipeline;
 
@@ -17,47 +17,11 @@ private:
     const IGraphicsDevice* m_device;
 
 public:
-    RenderPipelineImpl(UniquePtr<IRenderPipelineLayout>&& layout, const IGraphicsDevice* device) noexcept :
-        m_layout(std::move(layout)), m_device(device) { }
+    RenderPipelineImpl(RenderPipeline* parent, UniquePtr<IRenderPipelineLayout>&& layout, const IGraphicsDevice* device) :
+        base(parent), m_layout(std::move(layout)), m_device(device) { }
 
-    RenderPipelineImpl(const IGraphicsDevice* device) noexcept :
-        m_layout(makeUnique<RenderPipelineLayout>()), m_device(device) { }
-
-public:
-    const IGraphicsDevice* getDevice() const noexcept
-    {
-        return m_device;
-    }
-
-    const IRenderPipelineLayout* getLayout() const noexcept
-    {
-        return m_layout.get();
-    }
-
-    void setLayout(UniquePtr<IRenderPipelineLayout>&& layout)
-    {
-        m_layout = std::move(layout);
-    }
-
-    const IShaderProgram* getProgram() const noexcept
-    {
-        return m_program.get();
-    }
-
-    void setProgram(UniquePtr<IShaderProgram>&& program)
-    {
-        m_program = std::move(program);
-    }
-
-    const IRenderPass* getRenderPass() const noexcept
-    {
-        return m_renderPass.get();
-    }
-
-    void useRenderPass(UniquePtr<IRenderPass>&& renderPass)
-    {
-        m_renderPass = std::move(renderPass);
-    }
+    RenderPipelineImpl(RenderPipeline* parent, const IGraphicsDevice* device) :
+        base(parent), m_layout(makeUnique<RenderPipelineLayout>()), m_device(device) { }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -65,14 +29,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 RenderPipeline::RenderPipeline(const IGraphicsDevice* device) :
-    m_impl(makePimpl<RenderPipelineImpl>(device))
+    m_impl(makePimpl<RenderPipelineImpl>(this, device))
 {
     if (device == nullptr)
         throw std::invalid_argument("The graphics device must be initialized.");
 }
 
 RenderPipeline::RenderPipeline(const IGraphicsDevice* device, UniquePtr<IRenderPipelineLayout>&& layout) :
-    m_impl(makePimpl<RenderPipelineImpl>(std::move(layout), device))
+    m_impl(makePimpl<RenderPipelineImpl>(this, std::move(layout), device))
 {
     if (device == nullptr)
         throw std::invalid_argument("The graphics device must be initialized.");
@@ -82,22 +46,22 @@ RenderPipeline::~RenderPipeline() noexcept = default;
 
 const IGraphicsDevice* RenderPipeline::getDevice() const noexcept
 {
-    return m_impl->getDevice();
+    return m_impl->m_device;
 }
 
 const IRenderPipelineLayout* RenderPipeline::getLayout() const noexcept
 {
-    return m_impl->getLayout();
+    return m_impl->m_layout.get();
 }
 
 const IShaderProgram* RenderPipeline::getProgram() const noexcept
 {
-    return m_impl->getProgram();
+    return m_impl->m_program.get();
 }
 
 const IRenderPass* RenderPipeline::getRenderPass() const noexcept
 {
-    return m_impl->getRenderPass();
+    return m_impl->m_renderPass.get();
 }
 
 void RenderPipeline::use(UniquePtr<IRenderPipelineLayout>&& layout)
@@ -105,7 +69,7 @@ void RenderPipeline::use(UniquePtr<IRenderPipelineLayout>&& layout)
     if (layout == nullptr)
         throw std::invalid_argument("The layout must be initialized.");
 
-    m_impl->setLayout(std::move(layout));
+    m_impl->m_layout = std::move(layout);
 }
 
 void RenderPipeline::use(UniquePtr<IShaderProgram>&& program)
@@ -113,7 +77,7 @@ void RenderPipeline::use(UniquePtr<IShaderProgram>&& program)
     if (program == nullptr)
         throw std::invalid_argument("The program must be initialized.");
 
-    m_impl->setProgram(std::move(program));
+    m_impl->m_program = std::move(program);
 }
 
 void RenderPipeline::use(UniquePtr<IRenderPass>&& renderPass)
@@ -121,7 +85,7 @@ void RenderPipeline::use(UniquePtr<IRenderPass>&& renderPass)
     if (renderPass == nullptr)
         throw std::invalid_argument("The render pass must be initialized.");
 
-    m_impl->useRenderPass(std::move(renderPass));
+    m_impl->m_renderPass = std::move(renderPass);
 }
 
 void RenderPipeline::beginFrame() const

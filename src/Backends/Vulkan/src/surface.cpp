@@ -6,33 +6,30 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanSurface::VulkanSurfaceImpl {
+class VulkanSurface::VulkanSurfaceImpl : public Implement<VulkanSurface> {
+public:
+    friend class VulkanSurface;
+
 private:
 	VkInstance m_instance;
 
 public:
-	VulkanSurfaceImpl(const VkInstance& instance) noexcept :
-		m_instance(instance) { }
-
-public:
-	const VkInstance& getInstance() const
-	{
-		return m_instance;
-	}
+	VulkanSurfaceImpl(VulkanSurface* parent, const VkInstance& instance) :
+		base(parent), m_instance(instance) { }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSurface::VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent) noexcept :
-	IResource(surface), m_impl(makePimpl<VulkanSurfaceImpl>(parent))
+VulkanSurface::VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent) :
+	IResource(surface), m_impl(makePimpl<VulkanSurfaceImpl>(this, parent))
 {
 }
 
 VulkanSurface::~VulkanSurface() noexcept
 {
-	::vkDestroySurfaceKHR(m_impl->getInstance(), this->handle(), nullptr);
+	::vkDestroySurfaceKHR(m_impl->m_instance, this->handle(), nullptr);
 }
 
 UniquePtr<ISurface> VulkanSurface::createSurface(const VulkanBackend& backend, surface_callback predicate)

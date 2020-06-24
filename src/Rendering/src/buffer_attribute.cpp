@@ -2,75 +2,58 @@
 
 using namespace LiteFX::Rendering;
 
-class BufferAttribute::BufferAttributeImpl {
+class BufferAttribute::BufferAttributeImpl : public Implement<BufferAttribute> {
+public:
+    friend class BufferAttribute;
+
 private:
     UInt32 m_location, m_binding, m_offset;
     BufferFormat m_format;
 
 public:
-    BufferAttributeImpl(const UInt32& location = 0, const UInt32& binding = 0, const UInt32& offset = 0, const BufferFormat& format = BufferFormat::None) noexcept :
-        m_location(location), m_binding(binding), m_offset(offset), m_format(format) { }
-
-public:
-    const UInt32& getLocation() const noexcept
-    {
-        return m_location;
-    }
-
-    const UInt32& getBinding() const noexcept
-    {
-        return m_binding;
-    }
-
-    const BufferFormat& getFormat() const noexcept
-    {
-        return m_format;
-    }
-
-    const UInt32& getOffset() const noexcept
-    {
-        return m_offset;
-    }
+    BufferAttributeImpl(BufferAttribute* parent, const UInt32& location = 0, const UInt32& binding = 0, const UInt32& offset = 0, const BufferFormat& format = BufferFormat::None) :
+        base(parent), m_location(location), m_binding(binding), m_offset(offset), m_format(format) { }
 };
 
-BufferAttribute::BufferAttribute() noexcept :
-    m_impl(makePimpl<BufferAttributeImpl>())
+BufferAttribute::BufferAttribute() :
+    m_impl(makePimpl<BufferAttributeImpl>(this))
 {
 }
 
-BufferAttribute::BufferAttribute(const UInt32& location, const UInt32& binding, const UInt32& offset, const BufferFormat& format) noexcept :
-    m_impl(makePimpl<BufferAttributeImpl>(location, binding, offset, format))
+BufferAttribute::BufferAttribute(const UInt32& location, const UInt32& binding, const UInt32& offset, const BufferFormat& format) :
+    m_impl(makePimpl<BufferAttributeImpl>(this, location, binding, offset, format))
 {
 }
 
-BufferAttribute::BufferAttribute(const BufferAttribute& _other) noexcept :
-    m_impl(makePimpl<BufferAttributeImpl>(_other.getLocation(), _other.getBinding(), _other.getOffset(), _other.getFormat()))
+BufferAttribute::BufferAttribute(const BufferAttribute& _other) :
+    m_impl(makePimpl<BufferAttributeImpl>(this, _other.getLocation(), _other.getBinding(), _other.getOffset(), _other.getFormat()))
 {
 }
 
 BufferAttribute::BufferAttribute(BufferAttribute&& _other) noexcept :
     m_impl(std::move(_other.m_impl))
 {
+    m_impl->m_parent = this;
 }
 
 BufferAttribute::~BufferAttribute() noexcept = default;
 
 const UInt32& BufferAttribute::getLocation() const noexcept
 {
-    return m_impl->getLocation();
+    return m_impl->m_location;
 }
 
 const UInt32& BufferAttribute::getBinding() const noexcept
 {
-    return m_impl->getBinding();
+    return m_impl->m_binding;
 }
 
 const BufferFormat& BufferAttribute::getFormat() const noexcept
 {
-    return m_impl->getFormat();
+    return m_impl->m_format;
 }
 
 const UInt32& BufferAttribute::getOffset() const noexcept
 {
-    return m_impl->getOffset();
+    return m_impl->m_offset;
 }

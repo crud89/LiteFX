@@ -2,38 +2,20 @@
 
 using namespace LiteFX;
 
-class AppVersion::AppVersionImpl {
+class AppVersion::AppVersionImpl : public Implement<AppVersion> {
+public:
+	friend class AppVersion;
+
 private:
 	int m_major, m_minor, m_patch, m_revision;
 
 public:
-	AppVersionImpl::AppVersionImpl(int major, int minor, int patch, int revision) noexcept :
-		m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) { }
-
-public:
-	int getMajor() const noexcept
-	{
-		return m_major;
-	}
-
-	int getMinor() const noexcept
-	{
-		return m_minor;
-	}
-
-	int getPatch() const noexcept
-	{
-		return m_patch;
-	}
-
-	int getRevision() const noexcept
-	{
-		return m_revision;
-	}
+	AppVersionImpl::AppVersionImpl(AppVersion* parent, int major, int minor, int patch, int revision) : 
+		base(parent), m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) { }
 };
 
 AppVersion::AppVersion(int major, int minor, int patch, int revision) noexcept :
-	m_impl(makePimpl<AppVersionImpl>(major, minor, patch, revision))
+	m_impl(makePimpl<AppVersionImpl>(this, major, minor, patch, revision))
 {
 }
 
@@ -41,22 +23,22 @@ AppVersion::~AppVersion() noexcept = default;
 
 int AppVersion::getMajor() const noexcept
 {
-	return m_impl->getMajor();
+	return m_impl->m_major;
 }
 
 int AppVersion::getMinor() const noexcept
 {
-	return m_impl->getMinor();
+	return m_impl->m_minor;
 }
 
 int AppVersion::getPatch() const noexcept
 {
-	return m_impl->getPatch();
+	return m_impl->m_patch;
 }
 
 int AppVersion::getRevision() const noexcept
 {
-	return m_impl->getRevision();
+	return m_impl->m_revision;
 }
 
 int AppVersion::getEngineMajor() const noexcept

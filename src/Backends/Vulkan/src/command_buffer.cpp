@@ -6,13 +6,16 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanCommandBuffer::VulkanCommandBufferImpl {
+class VulkanCommandBuffer::VulkanCommandBufferImpl : public Implement<VulkanCommandBuffer> {
+public:
+	friend class VulkanCommandBuffer;
+
 private:
 	const VulkanDevice* m_device;
 
 public:
-	VulkanCommandBufferImpl(const VulkanDevice* device) noexcept :
-		m_device(device) { }
+	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanDevice* device) :
+		base(parent), m_device(device) { }
 
 public:
 	VkCommandBuffer initialize(const VulkanCommandBuffer& parent)
@@ -37,7 +40,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanDevice* device) :
-	m_impl(makePimpl<VulkanCommandBufferImpl>(device)), IResource(nullptr)
+	m_impl(makePimpl<VulkanCommandBufferImpl>(this, device)), IResource(nullptr)
 {
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");

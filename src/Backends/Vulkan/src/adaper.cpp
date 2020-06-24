@@ -6,12 +6,15 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanGraphicsAdapter::VulkanGraphicsAdapterImpl {
+class VulkanGraphicsAdapter::VulkanGraphicsAdapterImpl : public Implement<VulkanGraphicsAdapter> {
+public:
+    friend class VulkanGraphicsAdapter;
+
 private:
     Array<UniquePtr<VulkanQueue>> m_queues;
 
 public:
-    VulkanGraphicsAdapterImpl() noexcept = default;
+    VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : base(parent) { }
 
 public:
     void initialize(const VulkanGraphicsAdapter& parent)
@@ -103,7 +106,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
-	IResource(adapter), m_impl(makePimpl<VulkanGraphicsAdapterImpl>())
+	IResource(adapter), m_impl(makePimpl<VulkanGraphicsAdapterImpl>(this))
 {
     m_impl->initialize(*this);
 }

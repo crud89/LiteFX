@@ -6,11 +6,12 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPipeline::VulkanRenderPipelineImpl {
-private:
+class VulkanRenderPipeline::VulkanRenderPipelineImpl : public Implement<VulkanRenderPipeline> {
+public:
+	friend class VulkanRenderPipeline;
 
 public:
-	VulkanRenderPipelineImpl() noexcept = default;
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : base(parent) { }
 
 public:
 	VkPipeline initialize(VulkanRenderPipeline& parent, const VulkanRenderPipelineLayout* layout)
@@ -202,14 +203,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipeline::VulkanRenderPipeline(const IGraphicsDevice* device) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>()), RenderPipeline(device), IResource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), RenderPipeline(device), IResource<VkPipeline>(nullptr)
 {
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");
 }
 
 VulkanRenderPipeline::VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout, const IGraphicsDevice* device) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>()), RenderPipeline(device, std::move(layout)), IResource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), RenderPipeline(device, std::move(layout)), IResource<VkPipeline>(nullptr)
 {
 	this->create();
 }
@@ -237,53 +238,26 @@ void VulkanRenderPipeline::create()
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl {
+class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl : public Implement<VulkanRenderPipelineBuilder> {
+public:
+	friend class VulkanRenderPipelineBuilder;
+
 private:
 	UniquePtr<IRenderPass> m_renderPass;
 	UniquePtr<IRenderPipelineLayout> m_layout;
 	UniquePtr<IShaderProgram> m_program;
 
 public:
+	VulkanRenderPipelineBuilderImpl(VulkanRenderPipelineBuilder* parent) : base(parent) { }
 	VulkanRenderPipelineBuilderImpl() noexcept = default;
-
-public:
-	UniquePtr<IRenderPipelineLayout> useLayout() noexcept
-	{
-		return std::move(m_layout);
-	}
-
-	void setLayout(UniquePtr<IRenderPipelineLayout>&& layout)
-	{
-		m_layout = std::move(layout);
-	}
-
-	UniquePtr<IShaderProgram> useProgram() noexcept
-	{
-		return std::move(m_program);
-	}
-
-	void setProgram(UniquePtr<IShaderProgram>&& program)
-	{
-		m_program = std::move(program);
-	}
-
-	UniquePtr<IRenderPass> useRenderPass() noexcept
-	{
-		return std::move(m_renderPass);
-	}
-
-	void setRenderPass(UniquePtr<IRenderPass>&& renderPass)
-	{
-		m_renderPass = std::move(renderPass);
-	}
 };
 
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>&& instance) noexcept :
-	RenderPipelineBuilder(std::move(instance)), m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>())
+VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>&& instance) :
+	RenderPipelineBuilder(std::move(instance)), m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this))
 {
 }
 
@@ -291,9 +265,9 @@ VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
 
 UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
 {
-	this->instance()->use(std::move(m_impl->useProgram()));
-	this->instance()->use(std::move(m_impl->useLayout()));
-	this->instance()->use(std::move(m_impl->useRenderPass()));
+	this->instance()->use(std::move(m_impl->m_program));
+	this->instance()->use(std::move(m_impl->m_layout));
+	this->instance()->use(std::move(m_impl->m_renderPass));
 
 	this->instance()->create();
 
@@ -305,7 +279,7 @@ void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout> && layout
     if (layout == nullptr)
         throw std::invalid_argument("The layout must be initialized.");
 
-	m_impl->setLayout(std::move(layout));
+	m_impl->m_layout = std::move(layout);
 }
 
 void VulkanRenderPipelineBuilder::use(UniquePtr<IShaderProgram>&& program)
@@ -313,7 +287,7 @@ void VulkanRenderPipelineBuilder::use(UniquePtr<IShaderProgram>&& program)
 	if (program == nullptr)
 		throw std::invalid_argument("The program must be initialized.");
 
-	m_impl->setProgram(std::move(program));
+	m_impl->m_program = std::move(program);
 }
 
 void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPass>&& renderPass)
@@ -321,5 +295,5 @@ void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPass>&& renderPass)
 	if (renderPass == nullptr)
 		throw std::invalid_argument("The render pass must be initialized.");
 
-	m_impl->setRenderPass(std::move(renderPass));
+	m_impl->m_renderPass = std::move(renderPass);
 }

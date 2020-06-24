@@ -3,39 +3,26 @@
 
 using namespace LiteFX::Logging;
 
-class ConsoleSink::ConsoleSinkImpl {
+class ConsoleSink::ConsoleSinkImpl : public Implement<ConsoleSink> {
+public:
+    friend class ConsoleSink;
+
 private:
     String m_pattern;
     LogLevel m_level;
     SharedPtr<spdlog::sinks::ansicolor_stdout_sink_mt> m_sink;
 
 public:
-    ConsoleSinkImpl(const LogLevel& level, const String& pattern) : 
-        m_pattern(pattern), m_level(level), m_sink(makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>()) 
+    ConsoleSinkImpl(ConsoleSink* parent, const LogLevel& level, const String& pattern) : 
+        base(parent), m_pattern(pattern), m_level(level), m_sink(makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>()) 
     { 
         m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
         m_sink->set_pattern(pattern);
     }
-
-public:
-    const LogLevel& getLevel() const
-    {
-        return m_level;
-    }
-
-    const String& getPattern() const
-    {
-        return m_pattern;
-    }
-
-    spdlog::sink_ptr get() const
-    {
-        return m_sink;
-    }
 };
 
-ConsoleSink::ConsoleSink(const LogLevel& level, const String& pattern) noexcept :
-    m_impl(makePimpl<ConsoleSinkImpl>(level, pattern))
+ConsoleSink::ConsoleSink(const LogLevel& level, const String& pattern) :
+    m_impl(makePimpl<ConsoleSinkImpl>(this, level, pattern))
 {
 }
 
@@ -48,15 +35,15 @@ String ConsoleSink::getName() const
 
 LogLevel ConsoleSink::getLevel() const
 {
-    return m_impl->getLevel();
+    return m_impl->m_level;
 }
 
 String ConsoleSink::getPattern() const
 {
-    return m_impl->getPattern();
+    return m_impl->m_pattern;
 }
 
 spdlog::sink_ptr ConsoleSink::get() const
 {
-    return m_impl->get();
+    return m_impl->m_sink;
 }

@@ -2,12 +2,15 @@
 
 using namespace LiteFX;
 
-class App::AppImpl {
+class App::AppImpl : public Implement<App> {
+public:
+	friend class App;
+
 private:
 	Dictionary<BackendType, UniquePtr<IBackend>> m_backends;
 
 public:
-	AppImpl() = default;
+	AppImpl(App* parent) : base(parent) { }
 
 public:
 	const IBackend* findBackend(const BackendType& type)
@@ -23,7 +26,7 @@ public:
 	}
 };
 
-App::App() : m_impl(makePimpl<AppImpl>()) { }
+App::App() : m_impl(makePimpl<AppImpl>(this)) { }
 
 App::~App() noexcept = default;
 

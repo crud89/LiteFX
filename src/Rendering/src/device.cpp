@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class GraphicsDevice::GraphicsDeviceImpl {
+class GraphicsDevice::GraphicsDeviceImpl : public Implement<GraphicsDevice> {
 public:
 	friend class GraphicsDevice;
 
@@ -16,8 +16,8 @@ private:
 	const ICommandQueue* m_queue;
 
 public:
-	GraphicsDeviceImpl(const IGraphicsAdapter* adapter, const ISurface* surface) noexcept :
-		m_adapter(adapter), m_surface(surface), m_queue(nullptr) { }
+	GraphicsDeviceImpl(GraphicsDevice* parent, const IGraphicsAdapter* adapter, const ISurface* surface) noexcept :
+		base(parent), m_adapter(adapter), m_surface(surface), m_queue(nullptr) { }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 GraphicsDevice::GraphicsDevice(const IGraphicsAdapter* adapter, const ISurface* surface) :
-	m_impl(makePimpl<GraphicsDeviceImpl>(adapter, surface))
+	m_impl(makePimpl<GraphicsDeviceImpl>(this, adapter, surface))
 {
 	if (adapter == nullptr)
 		throw std::invalid_argument("The argument `adapter` must be initialized.");

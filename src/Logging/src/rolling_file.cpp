@@ -4,7 +4,10 @@
 
 using namespace LiteFX::Logging;
 
-class RollingFileSink::RollingFileSinkImpl {
+class RollingFileSink::RollingFileSinkImpl : public Implement<RollingFileSink> {
+public:
+    friend class RollingFileSink;
+
 private:
     String m_pattern, m_fileName;
     LogLevel m_level;
@@ -13,48 +16,17 @@ private:
     SharedPtr<spdlog::sinks::daily_file_sink_mt> m_sink;
 
 public:
-    RollingFileSinkImpl(const LogLevel& level, const String& fileName, const String& pattern, bool truncate, int maxFiles) :
-        m_pattern(pattern), m_level(level), m_fileName(fileName), m_truncate(truncate), m_maxFiles(maxFiles),
+    RollingFileSinkImpl(RollingFileSink* parent, const LogLevel& level, const String& fileName, const String& pattern, bool truncate, int maxFiles) :
+        base(parent), m_pattern(pattern), m_level(level), m_fileName(fileName), m_truncate(truncate), m_maxFiles(maxFiles), 
         m_sink(makeShared<spdlog::sinks::daily_file_sink_mt>(fileName, 23, 59, truncate, maxFiles)) 
     {
         m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
         m_sink->set_pattern(pattern);
     }
-
-public:
-    const LogLevel& getLevel() const
-    {
-        return m_level;
-    }
-
-    const String& getPattern() const
-    {
-        return m_pattern;
-    }
-
-    const String& getFileName() const
-    {
-        return m_fileName;
-    }
-
-    const bool& getTruncate() const 
-    {
-        return m_truncate;
-    }
-
-    const int& getMaxFiles() const
-    {
-        return m_maxFiles;
-    }
-
-    spdlog::sink_ptr get() const
-    {
-        return m_sink;
-    }
 };
 
-RollingFileSink::RollingFileSink(const String& fileName, const LogLevel& level, const String& pattern, const bool& truncate, const int& maxFiles) noexcept :
-    m_impl(makePimpl<RollingFileSinkImpl>(level, fileName, pattern, truncate, maxFiles))
+RollingFileSink::RollingFileSink(const String& fileName, const LogLevel& level, const String& pattern, const bool& truncate, const int& maxFiles) :
+    m_impl(makePimpl<RollingFileSinkImpl>(this, level, fileName, pattern, truncate, maxFiles))
 {
 }
 
@@ -67,30 +39,30 @@ String RollingFileSink::getName() const
 
 LogLevel RollingFileSink::getLevel() const
 {
-    return m_impl->getLevel();
+    return m_impl->m_level;
 }
 
 String RollingFileSink::getFileName() const
 {
-    return m_impl->getFileName();
+    return m_impl->m_fileName;
 }
 
 String RollingFileSink::getPattern() const
 {
-    return m_impl->getPattern();
+    return m_impl->m_pattern;
 }
 
 bool RollingFileSink::getTruncate() const
 {
-    return m_impl->getTruncate();
+    return m_impl->m_truncate;
 }
 
 int RollingFileSink::getMaxFiles() const
 {
-    return m_impl->getMaxFiles();
+    return m_impl->m_maxFiles;
 }
 
 spdlog::sink_ptr RollingFileSink::get() const
 {
-    return m_impl->get();
+    return m_impl->m_sink;
 }

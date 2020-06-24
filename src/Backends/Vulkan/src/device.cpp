@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanDevice::VulkanDeviceImpl {
+class VulkanDevice::VulkanDeviceImpl : public Implement<VulkanDevice> {
 public:
 	friend class VulkanDevice;
 
@@ -17,8 +17,11 @@ private:
 	Array<String> m_extensions;
 
 public:
-	VulkanDeviceImpl(const Array<String>& extensions = { }) noexcept :
-		m_extensions(extensions) { this->defineMandatoryExtensions(); }
+	VulkanDeviceImpl(VulkanDevice* parent, const Array<String>& extensions = { }) :
+		base(parent), m_extensions(extensions) 
+	{
+		this->defineMandatoryExtensions(); 
+	}
 
 private:
 	void defineMandatoryExtensions() noexcept
@@ -140,7 +143,11 @@ public:
 
 	void resize(const VulkanDevice& parent, int width, int height)
 	{
+		// Wait for the device to be idle.
 		this->wait(parent);
+
+		// Reset the swap chain.
+		m_swapChain->reset();
 
 		throw;
 	}
@@ -168,16 +175,6 @@ public:
 
 		return surfaceFormats;
 	}
-
-	const Array<String>& getExtensions() const noexcept 
-	{
-		return m_extensions;
-	}
-
-	const VulkanSwapChain* getSwapChain() const noexcept
-	{
-		return m_swapChain.get();
-	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -185,7 +182,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Format& format, const Array<String>& extensions) :
-	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(extensions)), GraphicsDevice(adapter, surface)
+	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, extensions)), GraphicsDevice(adapter, surface)
 {
 	LITEFX_DEBUG(VULKAN_LOG, "Creating device on surface {0} (adapterId: {1}, format: {2}, extensions: {3})...", fmt::ptr(this->getSurface()), this->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
 	
@@ -217,17 +214,17 @@ VulkanDevice::~VulkanDevice() noexcept
 
 size_t VulkanDevice::getBufferWidth() const noexcept
 {
-	return m_impl->getSwapChain()->getWidth();
+	return m_impl->m_swapChain->getWidth();
 }
 
 size_t VulkanDevice::getBufferHeight() const noexcept
 {
-	return m_impl->getSwapChain()->getHeight();
+	return m_impl->m_swapChain->getHeight();
 }
 
 const Array<String>& VulkanDevice::getExtensions() const noexcept
 {
-	return m_impl->getExtensions();
+	return m_impl->m_extensions;
 }
 
 Array<Format> VulkanDevice::getSurfaceFormats() const
@@ -237,7 +234,7 @@ Array<Format> VulkanDevice::getSurfaceFormats() const
 
 const ISwapChain* VulkanDevice::getSwapChain() const noexcept
 {
-	return m_impl->getSwapChain();
+	return m_impl->m_swapChain.get();
 }
 
 bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) const noexcept

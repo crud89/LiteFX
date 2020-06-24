@@ -14,10 +14,10 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(BufferAttributeImpl);
 
     public:
-        BufferAttribute() noexcept;
-        BufferAttribute(const UInt32& location, const UInt32& binding, const UInt32& offset, const BufferFormat& format) noexcept;
+        BufferAttribute();
+        BufferAttribute(const UInt32& location, const UInt32& binding, const UInt32& offset, const BufferFormat& format);
         BufferAttribute(BufferAttribute&&) noexcept;
-        BufferAttribute(const BufferAttribute&) noexcept;
+        BufferAttribute(const BufferAttribute&);
         virtual ~BufferAttribute() noexcept;
 
     public:
@@ -34,7 +34,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(BufferLayoutImpl);
 
     public:
-        BufferLayout() noexcept;
+        BufferLayout();
         BufferLayout(BufferLayout&&) = delete;
         BufferLayout(const BufferLayout&) = delete;
         virtual ~BufferLayout() noexcept;
@@ -214,7 +214,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(RasterizerImpl);
 
     public:
-        Rasterizer() noexcept;
+        Rasterizer();
         Rasterizer(Rasterizer&&) noexcept = delete;
         Rasterizer(const Rasterizer&) noexcept = delete;
         virtual ~Rasterizer() noexcept;
@@ -245,8 +245,8 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(InputAssemblerImpl);
 
     public:
-        InputAssembler() noexcept;
-        InputAssembler(UniquePtr<BufferLayout>&&) noexcept;
+        InputAssembler();
+        InputAssembler(UniquePtr<BufferLayout>&&);
         InputAssembler(InputAssembler&&) noexcept = delete;
         InputAssembler(const InputAssembler&) noexcept = delete;
         virtual ~InputAssembler() noexcept;
@@ -265,7 +265,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(ViewportImpl);
 
     public:
-        Viewport(const RectF& clientRect = { }) noexcept;
+        Viewport(const RectF& clientRect = { });
         Viewport(Viewport&&) noexcept = delete;
         Viewport(const Viewport&) noexcept = delete;
         virtual ~Viewport() noexcept;
@@ -284,7 +284,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(RenderPipelineLayoutImpl);
 
     public:
-        RenderPipelineLayout() noexcept;
+        RenderPipelineLayout();
         RenderPipelineLayout(RenderPipelineLayout&&) = delete;
         RenderPipelineLayout(const RenderPipelineLayout&) = delete;
         virtual ~RenderPipelineLayout() noexcept;

@@ -2,25 +2,18 @@
 
 using namespace LiteFX::Rendering;
 
-class InputAssembler::InputAssemblerImpl {
+class InputAssembler::InputAssemblerImpl : public Implement<InputAssembler> {
+public:
+    friend class InputAssembler;
+
 private:
     UniquePtr<BufferLayout> m_layout;
     PrimitiveTopology m_topology = PrimitiveTopology::TriangleStrip;
 
 public: 
-    InputAssemblerImpl() noexcept = default;
+    InputAssemblerImpl(InputAssembler* parent) : base(parent) { }
 
 public:
-    const PrimitiveTopology getTopology() const noexcept
-    {
-        return m_topology;
-    }
-
-    void setTopology(const PrimitiveTopology& topology)
-    {
-        m_topology = topology;
-    }
-
     const BufferLayout* getLayout() const
     {
         return m_layout.get();
@@ -32,13 +25,13 @@ public:
     }
 };
 
-InputAssembler::InputAssembler() noexcept : 
-    m_impl(makePimpl<InputAssemblerImpl>())
+InputAssembler::InputAssembler() : 
+    m_impl(makePimpl<InputAssemblerImpl>(this))
 {
 }
 
-InputAssembler::InputAssembler(UniquePtr<BufferLayout>&& _other) noexcept :
-    m_impl(makePimpl<InputAssemblerImpl>())
+InputAssembler::InputAssembler(UniquePtr<BufferLayout>&& _other) :
+    m_impl(makePimpl<InputAssemblerImpl>(this))
 {
     this->use(std::move(_other));
 }
@@ -47,12 +40,12 @@ InputAssembler::~InputAssembler() noexcept = default;
 
 const PrimitiveTopology InputAssembler::getTopology() const noexcept
 {
-    return m_impl->getTopology();
+    return m_impl->m_topology;
 }
 
 void InputAssembler::setTopology(const PrimitiveTopology& topology)
 {
-    m_impl->setTopology(topology);
+    m_impl->m_topology = topology;
 }
 
 const BufferLayout* InputAssembler::getLayout() const

@@ -6,14 +6,17 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanShaderProgram::VulkanShaderProgramImpl {
+class VulkanShaderProgram::VulkanShaderProgramImpl : public Implement<VulkanShaderProgram> {
+public:
+    friend class VulkanShaderProgram;
+
 private:
     const VulkanDevice* m_device;
     Array<UniquePtr<IShaderModule>> m_modules;
 
 public:
-    VulkanShaderProgramImpl(const VulkanDevice* device) :
-        m_device(device) { }
+    VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice* device) :
+        base(parent), m_device(device) { }
 
 public:
     void addShader(UniquePtr<IShaderModule>&& module)
@@ -43,11 +46,6 @@ public:
             return std::move(result);
         }
     }
-
-    const VulkanDevice* getDevice() const noexcept
-    {
-        return m_device;
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -61,7 +59,7 @@ VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipeline& pipeline)
     if (device == nullptr)
         throw std::invalid_argument("The pipeline device is not a valid Vulkan device.");
 
-    m_impl = makePimpl<VulkanShaderProgramImpl>(device);
+    m_impl = makePimpl<VulkanShaderProgramImpl>(this, device);
 }
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
@@ -86,7 +84,7 @@ UniquePtr<IShaderModule> VulkanShaderProgram::remove(const IShaderModule* module
 
 const VulkanDevice* VulkanShaderProgram::getDevice() const noexcept
 {
-    return m_impl->getDevice();
+    return m_impl->m_device;
 }
 
 // ------------------------------------------------------------------------------------------------

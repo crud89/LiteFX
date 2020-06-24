@@ -6,9 +6,10 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPass::VulkanRenderPassImpl {
+class VulkanRenderPass::VulkanRenderPassImpl : public Implement<VulkanRenderPass> {
 public:
     friend class VulkanRenderPassBuilder;
+    friend class VulkanRenderPass;
 
 private:
     const VulkanRenderPipeline& m_pipeline;
@@ -22,7 +23,7 @@ private:
     VkSemaphore m_semaphore;
 
 public:
-    VulkanRenderPassImpl(const VulkanRenderPipeline& pipeline) noexcept : m_pipeline(pipeline) {}
+    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanRenderPipeline& pipeline) : base(parent), m_pipeline(pipeline) { }
 
     ~VulkanRenderPassImpl()
     {
@@ -284,7 +285,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::VulkanRenderPass(const VulkanRenderPipeline& pipeline) :
-    IResource<VkRenderPass>(nullptr), m_impl(makePimpl<VulkanRenderPassImpl>(pipeline))
+    IResource<VkRenderPass>(nullptr), m_impl(makePimpl<VulkanRenderPassImpl>(this, pipeline))
 {
 }
 

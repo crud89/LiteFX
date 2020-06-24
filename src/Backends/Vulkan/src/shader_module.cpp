@@ -8,15 +8,18 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanShaderModule::VulkanShaderModuleImpl {
+class VulkanShaderModule::VulkanShaderModuleImpl : public Implement<VulkanShaderModule> {
+public:
+	friend class VulkanShaderModule;
+
 private:
 	const VulkanDevice* m_device;
 	ShaderType m_type;
 	String m_fileName, m_entryPoint;
 
 public:
-	VulkanShaderModuleImpl(const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint) noexcept :
-		m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) { }
+	VulkanShaderModuleImpl(VulkanShaderModule* parent, const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint) :
+		base(parent), m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) { }
 
 private:
 	String readFileContents(const String& fileName) {
@@ -48,27 +51,6 @@ public:
 
 		return module;
 	}
-
-public:
-	const IGraphicsDevice* getDevice() const noexcept 
-	{
-		return m_device;
-	}
-
-	const ShaderType& getType() const noexcept
-	{
-		return m_type;
-	}
-
-	const String& getFileName() const noexcept
-	{
-		return m_fileName;
-	}
-
-	const String& getEntryPoint() const noexcept
-	{
-		return m_entryPoint;
-	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -76,7 +58,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint) :
-	IResource(nullptr), m_impl(makePimpl<VulkanShaderModuleImpl>(device, type, fileName, entryPoint))
+	IResource(nullptr), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, fileName, entryPoint))
 {
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");
@@ -88,22 +70,22 @@ VulkanShaderModule::~VulkanShaderModule() noexcept = default;
 
 const IGraphicsDevice* VulkanShaderModule::getDevice() const noexcept
 {
-	return m_impl->getDevice();
+	return m_impl->m_device;
 }
 
 const ShaderType& VulkanShaderModule::getType() const noexcept
 {
-	return m_impl->getType();
+	return m_impl->m_type;
 }
 
 const String& VulkanShaderModule::getFileName() const noexcept
 {
-	return m_impl->getFileName();
+	return m_impl->m_fileName;
 }
 
 const String& VulkanShaderModule::getEntryPoint() const noexcept
 {
-	return m_impl->getEntryPoint();
+	return m_impl->m_entryPoint;
 }
 
 VkPipelineShaderStageCreateInfo VulkanShaderModule::getShaderStageDefinition() const

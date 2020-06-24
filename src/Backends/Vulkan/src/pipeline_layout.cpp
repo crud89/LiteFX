@@ -6,13 +6,16 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPipelineLayout::VulkanRenderPipelineLayoutImpl {
+class VulkanRenderPipelineLayout::VulkanRenderPipelineLayoutImpl : public Implement<VulkanRenderPipelineLayout> {
+public:
+    friend class VulkanRenderPipelineLayout;
+
 private:
     const VulkanDevice* m_device;
 
 public:
-    VulkanRenderPipelineLayoutImpl(const VulkanDevice* device) noexcept :
-        m_device(device) { }
+    VulkanRenderPipelineLayoutImpl(VulkanRenderPipelineLayout* parent, const VulkanDevice* device) :
+        base(parent), m_device(device) { }
 
 public:
     VkPipelineLayout initialize(VulkanRenderPipelineLayout& parent)
@@ -46,7 +49,7 @@ VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipelin
     if (device == nullptr)
         throw std::invalid_argument("The pipeline is not bound to a valid Vulkan device.");
 
-    m_impl = makePimpl<VulkanRenderPipelineLayoutImpl>(device);
+    m_impl = makePimpl<VulkanRenderPipelineLayoutImpl>(this, device);
 }
 
 VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, const BufferLayout& bufferLayout) :
@@ -56,7 +59,6 @@ VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipelin
 }
 
 VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept = default;
-
 
 void VulkanRenderPipelineLayout::create() 
 {

@@ -6,30 +6,22 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanQueue::VulkanQueueImpl {
+class VulkanQueue::VulkanQueueImpl : public Implement<VulkanQueue> {
+public:
+	friend class VulkanQueue;
+
 private:
 	QueueType m_type;
 	uint32_t m_id;
 
 public:
-	VulkanQueueImpl(const QueueType& type, const uint32_t id) noexcept :
-		m_type(type), m_id(id) { }
+	VulkanQueueImpl(VulkanQueue* parent, const QueueType& type, const uint32_t id) :
+		base(parent), m_type(type), m_id(id) { }
 
 public:
 	void createDeviceQueue(const VulkanDevice* device, VkQueue& queue) const noexcept
 	{
 		::vkGetDeviceQueue(device->handle(), m_id, 0, &queue);
-	}
-
-public:
-	uint32_t getId() const noexcept
-	{
-		return m_id;
-	}
-
-	QueueType getType() const noexcept
-	{
-		return m_type;
 	}
 };
 
@@ -37,8 +29,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanQueue::VulkanQueue(const QueueType& type, const uint32_t id) noexcept :
-	IResource(nullptr), m_impl(makePimpl<VulkanQueueImpl>(type, id))
+VulkanQueue::VulkanQueue(const QueueType& type, const uint32_t id) :
+	IResource(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, type, id))
 {
 }
 
@@ -58,10 +50,10 @@ void VulkanQueue::initDeviceQueue(const VulkanDevice* device)
 
 uint32_t VulkanQueue::getId() const noexcept
 {
-	return m_impl->getId();
+	return m_impl->m_id;
 }
 
 QueueType VulkanQueue::getType() const noexcept
 {
-	return m_impl->getType();
+	return m_impl->m_type;
 }

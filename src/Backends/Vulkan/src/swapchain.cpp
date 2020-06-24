@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanSwapChain::VulkanSwapChainImpl {
+class VulkanSwapChain::VulkanSwapChainImpl : public Implement<VulkanSwapChain> {
 public:
 	friend class VulkanSwapChain;
 
@@ -18,12 +18,23 @@ private:
 	VkSemaphore m_swapSemaphore;
 
 public:
-	VulkanSwapChainImpl(const VulkanDevice* device) noexcept :
-		m_device(device) { }
+	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice* device) :
+		base(parent), m_device(device) { }
 	
 	~VulkanSwapChainImpl()
 	{
+		this->cleanup();
+	}
+
+private:
+	void cleanup()
+	{
+		// Destroy the image swap semaphore.
 		::vkDestroySemaphore(m_device->handle(), m_swapSemaphore, nullptr);
+
+		// Destroy the swap chain itself.
+		//::vkDestroySwapchainKHR(m_device->handle(), m_s)
+		throw;
 	}
 
 private:
@@ -151,6 +162,13 @@ public:
 		return swapChain;
 	}
 
+	void reset(VulkanSwapChain& parent)
+	{
+		// Cleanup and re-initialize.
+		this->cleanup();
+		parent.handle() = this->initialize(parent, m_format);
+	}
+
 	UInt32 swapFrontBuffer(const VulkanSwapChain& parent) const
 	{
 		UInt32 imageIndex;
@@ -162,21 +180,6 @@ public:
 	}
 
 public:
-	const VulkanDevice* getDevice() const noexcept
-	{
-		return m_device;
-	}
-
-	const Size2d& getSize() const noexcept
-	{
-		return m_size;
-	}
-
-	const Format& getFormat() const noexcept
-	{
-		return m_format;
-	}
-
 	Array<const ITexture*> getFrames() const noexcept
 	{
 		Array<const ITexture*> frames(m_frames.size());
@@ -191,7 +194,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& format) :
-	m_impl(makePimpl<VulkanSwapChainImpl>(device)), IResource(nullptr)
+	m_impl(makePimpl<VulkanSwapChainImpl>(this, device)), IResource(nullptr)
 {
 	if (device == nullptr)
 		throw std::invalid_argument("The argument `device` must be initialized.");
@@ -201,7 +204,7 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& forma
 
 VulkanSwapChain::~VulkanSwapChain() noexcept 
 {
-	auto device = m_impl->getDevice()->handle();
+	auto device = m_impl->m_device->handle();
 	m_impl.destroy();
 
 	::vkDestroySwapchainKHR(device, this->handle(), nullptr);
@@ -209,27 +212,27 @@ VulkanSwapChain::~VulkanSwapChain() noexcept
 
 const IGraphicsDevice* VulkanSwapChain::getDevice() const noexcept
 {
-	return m_impl->getDevice();
+	return m_impl->m_device;
 }
 
 const Size2d& VulkanSwapChain::getBufferSize() const noexcept
 {
-	return m_impl->getSize();
+	return m_impl->m_size;
 }
 
 size_t VulkanSwapChain::getWidth() const noexcept
 {
-	return m_impl->getSize().width();
+	return m_impl->m_size.width();
 }
 
 size_t VulkanSwapChain::getHeight() const noexcept
 {
-	return m_impl->getSize().height();
+	return m_impl->m_size.height();
 }
 
 const Format& VulkanSwapChain::getFormat() const noexcept
 {
-	return m_impl->getFormat();
+	return m_impl->m_format;
 }
 
 Array<const ITexture*> VulkanSwapChain::getFrames() const noexcept
@@ -240,6 +243,11 @@ Array<const ITexture*> VulkanSwapChain::getFrames() const noexcept
 UInt32 VulkanSwapChain::swapFrontBuffer() const
 {
 	return m_impl->swapFrontBuffer(*this);
+}
+
+void VulkanSwapChain::reset()
+{
+	m_impl->reset(*this);
 }
 
 VkSemaphore VulkanSwapChain::getSemaphore() const noexcept

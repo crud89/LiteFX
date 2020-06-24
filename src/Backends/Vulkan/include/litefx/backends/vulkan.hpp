@@ -200,6 +200,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const Format& getFormat() const noexcept override;
 		virtual Array<const ITexture*> getFrames() const noexcept override;
 		virtual UInt32 swapFrontBuffer() const override;
+		virtual void reset() override;
 
 	public:
 		virtual VkSemaphore getSemaphore() const noexcept;
@@ -212,7 +213,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	
 	public:
-		VulkanQueue(const QueueType& type, const uint32_t id) noexcept;
+		VulkanQueue(const QueueType& type, const uint32_t id);
 		virtual ~VulkanQueue() noexcept;
 
 	public:

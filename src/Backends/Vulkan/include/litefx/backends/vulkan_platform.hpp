@@ -15,7 +15,7 @@ namespace LiteFX::Rendering::Backends {
 		typedef std::function<VkSurfaceKHR(const VkInstance&)> surface_callback;
 
 	protected:
-		VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent = nullptr) noexcept;
+		VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent = nullptr);
 
 	public:
 		virtual ~VulkanSurface() noexcept;

@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class RenderTarget::RenderTargetImpl {
+class RenderTarget::RenderTargetImpl : public Implement<RenderTarget> {
 private:
     RenderTargetType m_type = RenderTargetType::Color;
     Format m_format = Format::B8G8R8A8_UNORM_SRGB;
@@ -14,7 +14,7 @@ private:
     bool m_clearBuffer = false, m_clearStencil = false, m_volatile = false;
 
 public:
-    RenderTargetImpl() = default;
+    RenderTargetImpl(RenderTarget* parent) : base(parent) { }
 
 public:
     RenderTargetType getType() const noexcept
@@ -83,7 +83,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 RenderTarget::RenderTarget() :
-    m_impl(makePimpl<RenderTargetImpl>())
+    m_impl(makePimpl<RenderTargetImpl>(this))
 {
 }
 

@@ -59,7 +59,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(ConsoleSinkImpl);
 
     public:
-        ConsoleSink(const LogLevel& level = LogLevel::Info, const String& pattern = "%+") noexcept;
+        ConsoleSink(const LogLevel& level = LogLevel::Info, const String& pattern = "%+");
         ConsoleSink(const ConsoleSink&) = delete;
         ConsoleSink(ConsoleSink&&) = delete;
         virtual ~ConsoleSink() noexcept;
@@ -82,7 +82,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(RollingFileSinkImpl);
 
     public:
-        RollingFileSink(const String& fileName, const LogLevel& level = LogLevel::Info, const String& pattern = "%+", const bool& truncate = false, const int& maxFiles = 0) noexcept;
+        RollingFileSink(const String& fileName, const LogLevel& level = LogLevel::Info, const String& pattern = "%+", const bool& truncate = false, const int& maxFiles = 0);
         RollingFileSink(const RollingFileSink&) = delete;
         RollingFileSink(RollingFileSink&&) = delete;
         virtual ~RollingFileSink() noexcept;
@@ -111,7 +111,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(LogImpl);
 
     public:
-        Log(const String& name) noexcept;
+        Log(const String& name);
         Log(Log&&) = delete;
         Log(const Log&) = delete;
         virtual ~Log() noexcept;
@@ -193,6 +193,7 @@ namespace LiteFX::Logging {
 #define LITEFX_TRACE(log, format, ...) 
 #define LITEFX_DEBUG(log, format, ...) 
 #endif
+
 #define LITEFX_INFO(log, format, ...) LiteFX::Logging::Logger::get(log).info(format, __VA_ARGS__)
 #define LITEFX_WARNING(log, format, ...) LiteFX::Logging::Logger::get(log).warning(format, __VA_ARGS__)
 #define LITEFX_ERROR(log, format, ...) LiteFX::Logging::Logger::get(log).error(format, __VA_ARGS__)

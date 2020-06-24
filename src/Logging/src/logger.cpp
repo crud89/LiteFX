@@ -3,22 +3,20 @@
 
 using namespace LiteFX::Logging;
 
-class Log::LogImpl {
+class Log::LogImpl : public Implement<Log> {
+public:
+    friend class Log;
+
 private:
     String m_name;
 
 public:
-    LogImpl(const String& name) noexcept : m_name(name) { }
-
-public:
-    const String& getName() const noexcept
-    {
-        return m_name;
-    }
+    LogImpl(Log* parent, const String& name) : 
+        base(parent), m_name(name) { }
 };
 
-Log::Log(const String& name) noexcept :
-    m_impl(makePimpl<LogImpl>(name))
+Log::Log(const String& name) :
+    m_impl(makePimpl<LogImpl>(this, name))
 {
 }
 
@@ -26,7 +24,7 @@ Log::~Log() noexcept = default;
 
 const String& Log::getName() const noexcept
 {
-    return m_impl->getName();
+    return m_impl->m_name;
 }
 
 void Log::log(const LogLevel& level, const String& message)

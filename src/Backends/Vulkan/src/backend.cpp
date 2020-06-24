@@ -6,7 +6,10 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanBackend::VulkanBackendImpl {
+class VulkanBackend::VulkanBackendImpl : public Implement<VulkanBackend> {
+public:
+    friend class VulkanBackend;
+
 private:
     Array<String> m_extensions;
     Array<String> m_layers;
@@ -15,8 +18,8 @@ private:
     UniquePtr<ISurface> m_surface{ nullptr };
 
 public:
-    VulkanBackendImpl(const Array<String>& extensions, const Array<String>& validationLayers) noexcept :
-        m_extensions(extensions), m_layers(validationLayers) { }
+    VulkanBackendImpl(VulkanBackend* parent, const Array<String>& extensions, const Array<String>& validationLayers) :
+        base(parent), m_extensions(extensions), m_layers(validationLayers) { }
 
 #ifndef NDEBUG
 private:
@@ -154,16 +157,6 @@ public:
     }
 
 public:
-    const Array<String>& getExtensions() const noexcept
-    {
-        return m_extensions;
-    }
-
-    const Array<String>& getLayers() const noexcept
-    {
-        return m_layers;
-    }
-
     Array<const IGraphicsAdapter*> listAdapters() const noexcept
     {
         Array<const IGraphicsAdapter*> results(m_adapters.size());
@@ -181,26 +174,6 @@ public:
         
         return nullptr;
     }
-
-    const IGraphicsAdapter* getAdapter() const noexcept
-    {
-        return m_adapter;
-    }
-
-    void setAdapter(const IGraphicsAdapter* adapter) noexcept
-    {
-        m_adapter = adapter;
-    }
-
-    const ISurface* getSurface() const noexcept
-    {
-        return m_surface.get();
-    }
-
-    void setSurface(UniquePtr<ISurface>&& surface) noexcept
-    {
-        m_surface = std::move(surface);
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -208,7 +181,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
-    RenderBackend(app), IResource(nullptr), m_impl(makePimpl<VulkanBackendImpl>(extensions, validationLayers))
+    RenderBackend(app), IResource(nullptr), m_impl(makePimpl<VulkanBackendImpl>(this, extensions, validationLayers))
 {
     this->handle() = m_impl->initialize(*this);
 
@@ -235,12 +208,12 @@ const IGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& ada
 
 const ISurface* VulkanBackend::getSurface() const noexcept
 {
-    return m_impl->getSurface();
+    return m_impl->m_surface.get();
 }
 
 const IGraphicsAdapter* VulkanBackend::getAdapter() const noexcept
 {
-    return m_impl->getAdapter();
+    return m_impl->m_adapter;
 }
 
 void VulkanBackend::use(const IGraphicsAdapter* adapter)
@@ -248,7 +221,7 @@ void VulkanBackend::use(const IGraphicsAdapter* adapter)
     if (adapter == nullptr)
         throw std::invalid_argument("The adapter must be initialized.");
 
-    m_impl->setAdapter(adapter);
+    m_impl->m_adapter = adapter;
 }
 
 void VulkanBackend::use(UniquePtr<ISurface>&& surface)
@@ -256,7 +229,7 @@ void VulkanBackend::use(UniquePtr<ISurface>&& surface)
     if (surface == nullptr)
         throw std::invalid_argument("The surface must be initialized.");
 
-    m_impl->setSurface(std::move(surface));
+    m_impl->m_surface = std::move(surface);
 }
 
 // ------------------------------------------------------------------------------------------------

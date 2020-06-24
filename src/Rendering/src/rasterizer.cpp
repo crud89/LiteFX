@@ -2,7 +2,10 @@
 
 using namespace LiteFX::Rendering;
 
-class Rasterizer::RasterizerImpl {
+class Rasterizer::RasterizerImpl : public Implement<Rasterizer> {
+public:
+    friend class Rasterizer;
+
 private:
     PolygonMode m_polygonMode = PolygonMode::Solid;
     CullMode m_cullMode = CullMode::BackFaces;
@@ -12,93 +15,11 @@ private:
     bool m_depthBias = false;
 
 public:
-    RasterizerImpl() noexcept = default;
-    
-public:
-    PolygonMode getPolygonMode() const noexcept
-    {
-        return m_polygonMode;
-    }
-
-    void setPolygonMode(const PolygonMode& mode) noexcept
-    {
-        m_polygonMode = mode;
-    }
-
-    CullMode getCullMode() const noexcept
-    {
-        return m_cullMode;
-    }
-
-    void setCullMode(const CullMode& mode) noexcept
-    {
-        m_cullMode = mode;
-    }
-
-    CullOrder getCullOrder() const noexcept
-    {
-        return m_cullOrder;
-    }
-
-    void setCullOrder(const CullOrder& order) noexcept
-    {
-        m_cullOrder = order;
-    }
-
-    Float getLineWidth() const noexcept
-    {
-        return m_lineWidth;
-    }
-
-    void setLineWidth(const Float& width) noexcept
-    {
-        m_lineWidth = width;
-    }
-
-    bool getDepthBiasEnabled() const noexcept
-    {
-        return m_depthBias;
-    }
-
-    void setDepthBiasEnabled(const bool& enable) noexcept
-    {
-        m_depthBias = enable;
-    }
-
-    float getDepthBiasClamp() const noexcept
-    {
-        return m_depthBiasClamp;
-    }
-
-    void setDepthBiasClamp(const Float& clamp) noexcept
-    {
-        m_depthBiasClamp = clamp;
-    }
-
-    float getDepthBiasConstantFactor() const noexcept
-    {
-        return m_depthBiasConstantFactor;
-    }
-
-    void setDepthBiasConstantFactor(const Float& factor) noexcept
-    {
-        m_depthBiasConstantFactor = factor;
-    }
-
-    float getDepthBiasSlopeFactor() const noexcept
-    {
-        return m_depthBiasSlopeFactor;
-    }
-
-    void setDepthBiasSlopeFactor(const Float& factor) noexcept
-    {
-        m_depthBiasSlopeFactor = factor;
-    }
+    RasterizerImpl(Rasterizer* parent) : base(parent) { }
 };
 
-
-Rasterizer::Rasterizer() noexcept :
-    m_impl(makePimpl<RasterizerImpl>())
+Rasterizer::Rasterizer() :
+    m_impl(makePimpl<RasterizerImpl>(this))
 {
 }
 
@@ -106,80 +27,80 @@ Rasterizer::~Rasterizer() noexcept = default;
 
 PolygonMode Rasterizer::getPolygonMode() const noexcept 
 {
-    return m_impl->getPolygonMode();
+    return m_impl->m_polygonMode;
 }
 
 void Rasterizer::setPolygonMode(const PolygonMode& mode) noexcept
 {
-    m_impl->setPolygonMode(mode);
+    m_impl->m_polygonMode = mode;
 }
 
 CullMode Rasterizer::getCullMode() const noexcept 
 {
-    return m_impl->getCullMode();
+    return m_impl->m_cullMode;
 }
 
 void Rasterizer::setCullMode(const CullMode& mode) noexcept 
 {
-    m_impl->setCullMode(mode);
+    m_impl->m_cullMode = mode;
 }
 
 CullOrder Rasterizer::getCullOrder() const noexcept 
 {
-    return m_impl->getCullOrder();
+    return m_impl->m_cullOrder;
 }
 
 void Rasterizer::setCullOrder(const CullOrder& order) noexcept 
 {
-    m_impl->setCullOrder(order);
+    m_impl->m_cullOrder = order;
 }
 
 Float Rasterizer::getLineWidth() const noexcept 
 {
-    return m_impl->getLineWidth();
+    return m_impl->m_lineWidth;
 }
 
 void Rasterizer::setLineWidth(const Float& width) noexcept 
 {
-    m_impl->setLineWidth(width);
+    m_impl->m_lineWidth = width;
 }
 
 bool Rasterizer::getDepthBiasEnabled() const noexcept 
 {
-    return m_impl->getDepthBiasEnabled();
+    return m_impl->m_depthBias;
 }
 
 void Rasterizer::setDepthBiasEnabled(const bool& enable) noexcept
 {
-    m_impl->setDepthBiasEnabled(enable);
+    m_impl->m_depthBias = enable;
 }
 
 float Rasterizer::getDepthBiasClamp() const noexcept 
 {
-    return m_impl->getDepthBiasClamp();
+    return m_impl->m_depthBiasClamp;
 }
 
 void Rasterizer::setDepthBiasClamp(const Float& clamp) noexcept
 {
-    m_impl->setDepthBiasClamp(clamp);
+    m_impl->m_depthBiasClamp = clamp;
 }
 
 float Rasterizer::getDepthBiasConstantFactor() const noexcept 
 {
-    return m_impl->getDepthBiasConstantFactor();
+    return m_impl->m_depthBiasConstantFactor;
 }
 
 void Rasterizer::setDepthBiasConstantFactor(const Float& factor) noexcept
 {
-    m_impl->setDepthBiasConstantFactor(factor);
+    m_impl->m_depthBiasConstantFactor = factor;
 }
 
 float Rasterizer::getDepthBiasSlopeFactor() const noexcept
 {
-    return m_impl->getDepthBiasSlopeFactor();
+    return m_impl->m_depthBiasSlopeFactor;
 }
 
 void Rasterizer::setDepthBiasSlopeFactor(const Float& factor) noexcept
 {
-    m_impl->setDepthBiasSlopeFactor(factor);
+    m_impl->m_depthBiasSlopeFactor = factor;
 }

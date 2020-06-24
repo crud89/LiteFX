@@ -127,6 +127,7 @@ namespace LiteFX::Rendering {
 		virtual const Format& getFormat() const noexcept = 0;
 		virtual Array<const ITexture*> getFrames() const noexcept = 0;
 		virtual UInt32 swapFrontBuffer() const = 0;
+		virtual void reset() = 0;
 	};
 
 	/// <summary>
@@ -260,7 +261,7 @@ namespace LiteFX::Rendering {
 		LITEFX_IMPLEMENTATION(RenderBackendImpl);
 
 	public:
-		explicit RenderBackend(const App& app) noexcept;
+		explicit RenderBackend(const App& app);
 		RenderBackend(const RenderBackend&) noexcept = delete;
 		RenderBackend(RenderBackend&&) noexcept = delete;
 		virtual ~RenderBackend() noexcept;
