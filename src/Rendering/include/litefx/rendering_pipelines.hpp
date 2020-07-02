@@ -30,7 +30,23 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API BufferLayout {
+    class LITEFX_RENDERING_API IBufferLayout {
+    public:
+        virtual UniquePtr<IBuffer> makeBuffer() const = 0;
+        
+    public:
+        template <typename TElement>
+        UniquePtr<IBuffer> makeBuffer(const Array<TElement>& elements) { 
+            auto buffer = this->makeBuffer();
+            buffer->map<TElement>(elements);
+            return buffer;
+        }
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API BufferLayout : public IBufferLayout {
         LITEFX_IMPLEMENTATION(BufferLayoutImpl);
 
     public:
@@ -52,6 +68,9 @@ namespace LiteFX::Rendering {
     public:
         virtual ~IBuffer() noexcept = default;
 
+    protected:
+        virtual void map(const void* const pMemory, const size_t& size) = 0;
+
     public:
         virtual const BufferLayout* getLayout() const noexcept = 0;
     };
@@ -59,20 +78,30 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    template <typename T>
-    class Buffer : public IBuffer {
+    class LITEFX_RENDERING_API Buffer : public IBuffer {
     private:
-        Array<T> m_elements;
+        const BufferLayout* m_layout{ nullptr };
 
     public:
-        Buffer(Array<T>&& elements) noexcept : m_elements(std::move(_other.m_elements)) {}
-        Buffer(const Buffer& _other) noexcept : m_elements(std::copy(_other.m_elements)) {}
-        Buffer(Buffer&& _other) noexcept : m_elements(std::move(_other.m_elements)) {}
+        Buffer(const BufferLayout* layout) : m_layout(layout) {
+            if (layout == nullptr)
+                throw std::runtime_error("The buffer layout must be initialized.");
+        }
+
+        Buffer(const Buffer& _other) = delete;
+        Buffer(Buffer&& _other) = delete;
+        //Buffer(const Buffer& _other) noexcept : m_elements(std::copy(_other.m_elements)) {}
+        //Buffer(Buffer&& _other) noexcept : m_elements(std::move(_other.m_elements)) {}
         virtual ~Buffer() noexcept = default;
 
     public:
-        virtual const Array<T>& getElements() const noexcept { return m_elements; }
-        virtual Array<T>& elements() noexcept = 0 { return m_elements; }
+        template <typename TElement>
+        void map(const Array<TElement>& elements) {
+            this->map(reinterpret_cast<void*>(elements.data()), elements.size() * sizeof(TElement));
+        }
+
+    public:
+        virtual const BufferLayout* getLayout() const noexcept override { return m_layout; }
     };
 
     /// <summary>
@@ -150,6 +179,12 @@ namespace LiteFX::Rendering {
         virtual void setTopology(const PrimitiveTopology& topology) = 0;
         virtual const BufferLayout* getLayout() const = 0;
         virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
+
+    public:
+        template <typename TElement>
+        UniquePtr<Buffer> getBuffer(const Array<TElement>& elements) const {
+            return this->getLayout()->makeBuffer(elements);
+        }
     };
 
     /// <summary>
@@ -427,6 +462,18 @@ namespace LiteFX::Rendering {
 
     public:
         virtual TDerived& withBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TBufferLayout, typename TParent>
+    class BufferLayoutBuilder : public Builder<TDerived, TBufferLayout, TParent> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual TDerived& addAttribute(UniquePtr<BufferAttribute>&& attribute) = 0;
     };
 
 }

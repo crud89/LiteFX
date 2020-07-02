@@ -132,4 +132,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanInputAssemblerBuilder& withBufferLayout(UniquePtr<BufferLayout>&& layout) override;
 	};
 
+	///// <summary>
+	///// 
+	///// </summary>
+	//class LITEFX_VULKAN_API VulkanBufferLayoutBuilder : public BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanInputAssemblerBuilder> {
+	//public:
+	//	using BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanInputAssemblerBuilder>::BufferLayoutBuilder;
+
+	//public:
+	//	virtual VulkanBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+	//};
 }

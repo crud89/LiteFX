@@ -42,10 +42,7 @@ public:
     }
 };
 
-BufferLayout::BufferLayout() : 
-    m_impl(makePimpl<BufferLayoutImpl>(this))
-{
-}
+BufferLayout::BufferLayout() : m_impl(makePimpl<BufferLayoutImpl>(this)) { }
 
 BufferLayout::~BufferLayout() noexcept = default;
 

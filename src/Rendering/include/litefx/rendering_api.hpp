@@ -40,6 +40,8 @@ namespace LiteFX::Rendering {
 	class IRenderBackend;
 	class IRenderPass;
 	class IRenderTarget;
+	class IBuffer;
+	class IBufferLayout;
 
 	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {
