@@ -28,6 +28,63 @@ VkFormat LiteFX::Rendering::Backends::getFormat(const Format& format)
 	}
 }
 
+VkFormat LITEFX_VULKAN_API LiteFX::Rendering::Backends::getFormat(const BufferFormat& format)
+{
+	switch (format)
+	{
+	case BufferFormat::X16F:
+		return VK_FORMAT_R16_SFLOAT;
+	case BufferFormat::X16I:
+		return VK_FORMAT_R16_SINT;
+	case BufferFormat::X16U:
+		return VK_FORMAT_R16_UINT;
+	case BufferFormat::XY16F:
+		return VK_FORMAT_R16G16_SFLOAT;
+	case BufferFormat::XY16I:
+		return VK_FORMAT_R16G16_SINT;
+	case BufferFormat::XY16U:
+		return VK_FORMAT_R16G16_UINT;
+	case BufferFormat::XYZ16F:
+		return VK_FORMAT_R16G16B16_SFLOAT;
+	case BufferFormat::XYZ16I:
+		return VK_FORMAT_R16G16B16_SINT;
+	case BufferFormat::XYZ16U:
+		return VK_FORMAT_R16G16B16_UINT;
+	case BufferFormat::XYZW16F:
+		return VK_FORMAT_R16G16B16A16_SFLOAT;
+	case BufferFormat::XYZW16I:
+		return VK_FORMAT_R16G16B16A16_SINT;
+	case BufferFormat::XYZW16U:
+		return VK_FORMAT_R16G16B16A16_UINT;
+	case BufferFormat::X32F:
+		return VK_FORMAT_R32_SFLOAT;
+	case BufferFormat::X32I:
+		return VK_FORMAT_R32_SINT;
+	case BufferFormat::X32U:
+		return VK_FORMAT_R32_UINT;
+	case BufferFormat::XY32F:
+		return VK_FORMAT_R32G32_SFLOAT;
+	case BufferFormat::XY32I:
+		return VK_FORMAT_R32G32_SINT;
+	case BufferFormat::XY32U:
+		return VK_FORMAT_R32G32_UINT;
+	case BufferFormat::XYZ32F:
+		return VK_FORMAT_R32G32B32_SFLOAT;
+	case BufferFormat::XYZ32I:
+		return VK_FORMAT_R32G32B32_SINT;
+	case BufferFormat::XYZ32U:
+		return VK_FORMAT_R32G32B32_UINT;
+	case BufferFormat::XYZW32F:
+		return VK_FORMAT_R32G32B32A32_SFLOAT;
+	case BufferFormat::XYZW32I:
+		return VK_FORMAT_R32G32B32A32_SINT;
+	case BufferFormat::XYZW32U:
+		return VK_FORMAT_R32G32B32A32_UINT;
+	default:
+		throw std::invalid_argument("Unsupported format.");
+	}
+}
+
 PolygonMode LiteFX::Rendering::Backends::getPolygonMode(const VkPolygonMode& mode)
 {
 	switch (mode)

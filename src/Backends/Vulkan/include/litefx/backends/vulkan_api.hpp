@@ -42,6 +42,16 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
+    //BufferFormat LITEFX_VULKAN_API getFormat(const VkFormat& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkFormat LITEFX_VULKAN_API getFormat(const BufferFormat& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
     PolygonMode LITEFX_VULKAN_API getPolygonMode(const VkPolygonMode& mode);
 
     /// <summary>
@@ -105,5 +115,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanShaderModule;
     class VulkanShaderProgram;
     class VulkanCommandBuffer;
+    class VulkanBufferLayout;
+    class VulkanBuffer;
 
 }
