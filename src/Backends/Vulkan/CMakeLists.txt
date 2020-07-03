@@ -9,12 +9,13 @@ MESSAGE(STATUS "Initializing: LiteFX.Backends.Vulkan...")
 
 # Install packages.
 MESSAGE (STATUS "Installing package dependencies...")
-VCPKG_INSTALL (glm glad vulkan)
+VCPKG_INSTALL (glm glad vulkan vulkan-memory-allocator)
 
 # Resolve package dependencies.
 FIND_PACKAGE(glm CONFIG REQUIRED)
 FIND_PACKAGE(glad CONFIG REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
+FIND_PACKAGE(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 
 # Collect header & source files.
 SET(VULKAN_BACKEND_HEADERS
@@ -44,6 +45,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/render_pass.cpp"
     "src/command_buffer.cpp"
     "src/buffer_layout.cpp"
+    "src/buffer.cpp"
 )
 
 # Add shared library project.
@@ -74,7 +76,7 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Backends.Vulkan
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Backends.Vulkan
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
-    PRIVATE glm glad::glad Vulkan::Vulkan
+    PRIVATE glm glad::glad Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
 )
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)
