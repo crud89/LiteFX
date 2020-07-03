@@ -172,6 +172,6 @@ namespace LiteFX::Rendering {
 	}
 
 	inline UInt32 getBufferFormatType(const BufferFormat& format) {
-		return static_cast<UInt32>(format) & 0x0000FF00 >> 8;
+		return (static_cast<UInt32>(format) & 0x0000FF00) >> 8;
 	}
 }
