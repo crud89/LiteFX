@@ -107,7 +107,7 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferFormat> : fo
 			return formatter<string_view>::format("Invalid", ctx);
 		}
 
-		switch (::getBufferFormatSize(t))
+		switch (::getBufferFormatChannelSize(t))
 		{
 		case 8:
 			names.push_back("8");
