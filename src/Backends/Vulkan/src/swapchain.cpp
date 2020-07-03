@@ -61,13 +61,13 @@ private:
 private:
 	VkSurfaceKHR getSurface() const noexcept
 	{
-		auto surface = dynamic_cast<const VulkanSurface*>(m_device->getSurface());
+		auto surface = dynamic_cast<const VulkanSurface*>(m_device->getBackend()->getSurface());
 		return surface ? surface->handle() : nullptr;
 	}
 
 	VkPhysicalDevice getAdapter() const noexcept
 	{
-		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_device->getAdapter());
+		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_device->getBackend()->getAdapter());
 		return adapter ? adapter->handle() : nullptr;
 	}
 

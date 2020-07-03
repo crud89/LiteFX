@@ -33,6 +33,7 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IBufferLayout {
     public:
         virtual UniquePtr<IBuffer> makeBuffer() const = 0;
+        virtual const size_t& getElementSize() const noexcept = 0;
         
     public:
         template <typename TElement>
@@ -50,7 +51,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(BufferLayoutImpl);
 
     public:
-        BufferLayout();
+        BufferLayout(const size_t& elementSize);
         BufferLayout(BufferLayout&&) = delete;
         BufferLayout(const BufferLayout&) = delete;
         virtual ~BufferLayout() noexcept;
@@ -59,6 +60,7 @@ namespace LiteFX::Rendering {
         virtual void add(UniquePtr<BufferAttribute>&& attribute);
         virtual void remove(const BufferAttribute* attribute);
         virtual Array<const BufferAttribute*> getAttributes() const noexcept;
+        virtual const size_t& getElementSize() const noexcept override;
     };
 
     /// <summary>
@@ -462,6 +464,9 @@ namespace LiteFX::Rendering {
 
     public:
         virtual TDerived& withBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
+        virtual void use(UniquePtr<BufferLayout>&& layout) {
+            this->withBufferLayout(std::move(layout));
+        }
     };
 
     /// <summary>

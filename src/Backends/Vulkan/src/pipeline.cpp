@@ -80,15 +80,18 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer->getPolygonMode(), rasterizer->getCullMode(), rasterizer->getCullOrder(), rasterizer->getLineWidth());
 		
 		if (rasterizerState.depthBiasEnable)
-			LITEFX_TRACE(VULKAN_LOG, "Rasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer->getDepthBiasClamp(), rasterizer->getDepthBiasConstantFactor(), rasterizer->getDepthBiasSlopeFactor());
+			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer->getDepthBiasClamp(), rasterizer->getDepthBiasConstantFactor(), rasterizer->getDepthBiasSlopeFactor());
 		else
-			LITEFX_TRACE(VULKAN_LOG, "Rasterizer depth bias disabled.");
+			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias disabled.");
 
 		// Setup input assembler state.
 		VkPipelineVertexInputStateCreateInfo inputState = {};
 		inputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+
+		Array<VkVertexInputBindingDescription> bindings;
+		Array<VkVertexInputAttributeDescription> attributes;
 
 		if (inputAssembler != nullptr)
 		{
@@ -97,14 +100,45 @@ public:
 			inputAssembly.topology = getPrimitiveTopology(inputAssembler->getTopology());
 			inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-			// TODO: Implement me!
-			inputState.vertexBindingDescriptionCount = 0;
-			inputState.vertexAttributeDescriptionCount = 0;
+			auto vertexBufferLayout = inputAssembler->getLayout();
+
+			if (vertexBufferLayout != nullptr)
+			{
+				// TODO: Implement multiple bindings.
+				auto bufferAttributes = vertexBufferLayout->getAttributes();
+				LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout with {0} attributes in {1} bytes per element...", bufferAttributes.size(), vertexBufferLayout->getElementSize());
+
+				bindings.resize(1);
+				bindings[0].binding = 0;
+				bindings[0].stride = static_cast<UInt32>(vertexBufferLayout->getElementSize());
+				bindings[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+				attributes.resize(bufferAttributes.size());
+
+				std::generate(std::begin(attributes), std::end(attributes), [&, i = 0]() mutable {
+					auto attribute = bufferAttributes[i++];
+
+					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Binding: {2}, Location: {3}, Offset: {4}, Format: {5} }}", i, bufferAttributes.size(), attribute->getBinding(), attribute->getLocation(), attribute->getOffset(), attribute->getFormat());
+
+					VkVertexInputAttributeDescription descriptor{};
+					descriptor.binding = attribute->getBinding();
+					descriptor.location = attribute->getLocation();
+					descriptor.offset = attribute->getOffset();
+					descriptor.format = getFormat(attribute->getFormat());
+
+					return descriptor;
+				});
+			}
 		}
 		else
 		{
 			LITEFX_TRACE(VULKAN_LOG, "No input assembler provided.");
 		}
+
+		inputState.vertexBindingDescriptionCount = static_cast<UInt32>(bindings.size());
+		inputState.pVertexBindingDescriptions = bindings.data();
+		inputState.vertexAttributeDescriptionCount = static_cast<UInt32>(attributes.size());
+		inputState.pVertexAttributeDescriptions = attributes.data();
 
 		// Setup viewport state.
 		Array<VkViewport> viewports;
@@ -197,7 +231,7 @@ public:
 			if (module == nullptr)
 				throw std::invalid_argument("The provided shader module is not a valid Vulkan shader.");
 
-			LITEFX_TRACE(VULKAN_LOG, "Module {0}/{1} (\"{4}\") state: {{ Type: {2}, EntryPoint: {3} }}", i, modules.size(), module->getType(), module->getEntryPoint(), module->getFileName());
+			LITEFX_TRACE(VULKAN_LOG, "\tModule {0}/{1} (\"{4}\") state: {{ Type: {2}, EntryPoint: {3} }}", i, modules.size(), module->getType(), module->getEntryPoint(), module->getFileName());
 			
 			return module->getShaderStageDefinition();
 		});

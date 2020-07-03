@@ -52,7 +52,7 @@ VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipelin
     m_impl = makePimpl<VulkanRenderPipelineLayoutImpl>(this, device);
 }
 
-VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, const BufferLayout& bufferLayout) :
+VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, const VulkanBufferLayout& bufferLayout) :
     VulkanRenderPipelineLayout(pipeline)
 {
     this->create();

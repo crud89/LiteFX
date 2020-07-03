@@ -1,5 +1,9 @@
 #include <litefx/backends/vulkan.hpp>
 
+// Include Vulkan Memory Allocator.
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
@@ -15,12 +19,19 @@ private:
 	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
 	Array<String> m_extensions;
+	VmaAllocator m_allocator{ nullptr };
 
 public:
 	VulkanDeviceImpl(VulkanDevice* parent, const Array<String>& extensions = { }) :
 		base(parent), m_extensions(extensions) 
 	{
-		this->defineMandatoryExtensions(); 
+		this->defineMandatoryExtensions();
+	}
+
+	~VulkanDeviceImpl()
+	{
+		if (m_allocator != nullptr)
+			::vmaDestroyAllocator(m_allocator);
 	}
 
 private:
@@ -32,14 +43,20 @@ private:
 private:
 	VkSurfaceKHR getSurface() const noexcept
 	{
-		auto surface = dynamic_cast<const VulkanSurface*>(m_parent->getSurface());
+		auto surface = dynamic_cast<const VulkanSurface*>(m_parent->getBackend()->getSurface());
 		return surface ? surface->handle() : nullptr;
 	}
 
 	VkPhysicalDevice getAdapter() const noexcept
 	{
-		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_parent->getAdapter());
+		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_parent->getBackend()->getAdapter());
 		return adapter ? adapter->handle() : nullptr;
+	}
+
+	VkInstance getInstance() const noexcept
+	{
+		auto backend = dynamic_cast<const VulkanBackend*>(m_parent->getBackend());
+		return backend ? backend->handle() : nullptr;
 	}
 
 public:
@@ -83,6 +100,11 @@ public:
 		if (!this->validateDeviceExtensions(m_extensions))
 			throw std::runtime_error("Some required device extensions are not supported by the system.");
 
+		auto instance = this->getInstance();
+
+		if (instance == nullptr)
+			throw std::invalid_argument("The parent backend is not initialized.");
+
 		// Parse the extensions.
 		// NOTE: For legacy support we should also set the device validation layers here.
 		std::vector<const char*> requiredExtensions(m_extensions.size());
@@ -113,6 +135,15 @@ public:
 
 		if (::vkCreateDevice(adapter, &createInfo, nullptr, &device) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create Vulkan device.");
+
+		// Create an buffer allocator.
+		VmaAllocatorCreateInfo allocatorInfo = {};
+		allocatorInfo.physicalDevice = adapter;
+		allocatorInfo.device = device;
+		allocatorInfo.instance = instance;
+
+		if (::vmaCreateAllocator(&allocatorInfo, &m_allocator) != VK_SUCCESS)
+			throw std::runtime_error("Unable to create Vulkan memory allocator.");
 
 		// Create command pool.
 		VkCommandPoolCreateInfo poolInfo = {};
@@ -179,12 +210,12 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Format& format, const Array<String>& extensions) :
-	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, extensions)), GraphicsDevice(adapter, surface)
+VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, const Array<String>& extensions) :
+	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, extensions)), GraphicsDevice(backend)
 {
-	LITEFX_DEBUG(VULKAN_LOG, "Creating device on surface {0} (adapterId: {1}, format: {2}, extensions: {3})...", fmt::ptr(this->getSurface()), this->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Creating device on backend {0} (surface: {1}, adapter: {2}, format: {3}, extensions: {4})...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
 	
-	auto queue = dynamic_cast<VulkanQueue*>(adapter->findQueue(QueueType::Graphics, surface));
+	auto queue = dynamic_cast<VulkanQueue*>(backend->getAdapter()->findQueue(QueueType::Graphics, backend->getSurface()));
 
 	if (queue == nullptr)
 		throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");

@@ -48,14 +48,6 @@ public:
     }
 
 public:
-    UniquePtr<VulkanDevice> createDevice(const VulkanSurface* surface, const Format& format, const Array<String>& extensions = { })
-    {
-        if (surface == nullptr)
-            throw std::invalid_argument("The provided surface is not initialized or not a valid Vulkan surface.");
-
-        return makeUnique<VulkanDevice>(m_parent, surface,  format, extensions);
-    }
-
     VulkanQueue* findQueue(const QueueType& type) const noexcept
     {
         auto match = std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return (queue->getType() & type) == type; });
@@ -160,11 +152,6 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.apiVersion;
-}
-
-UniquePtr<IGraphicsDevice> VulkanGraphicsAdapter::createDevice(const ISurface* surface, const Format& format, const Array<String>& extensions) const
-{
-    return m_impl->createDevice(dynamic_cast<const VulkanSurface*>(surface), format, extensions);
 }
 
 ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const

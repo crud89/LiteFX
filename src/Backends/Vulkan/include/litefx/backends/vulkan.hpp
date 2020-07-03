@@ -11,6 +11,36 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
+	class LITEFX_VULKAN_API VulkanBuffer : public Buffer, IResource<VkBuffer> {
+		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
+
+	public:
+		VulkanBuffer();
+		VulkanBuffer(VulkanBuffer&&) = delete;
+		VulkanBuffer(const VulkanBuffer&) = delete;
+		virtual ~VulkanBuffer() noexcept;
+
+	public:
+		virtual void map(const void* const pMemory, const size_t& size) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanBufferLayout : public BufferLayout {
+		LITEFX_IMPLEMENTATION(VulkanBufferLayoutImpl);
+		LITEFX_BUILDER(VulkanBufferLayoutBuilder);
+
+	public:
+		VulkanBufferLayout(const VulkanInputAssembler& inputAssembler, const size_t& elementSize);
+		VulkanBufferLayout(VulkanBufferLayout&&) = delete;
+		VulkanBufferLayout(const VulkanBufferLayout&) = delete;
+		virtual ~VulkanBufferLayout() noexcept;
+
+	public:
+		virtual UniquePtr<IBuffer> makeBuffer() const override;
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>
@@ -96,7 +126,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline);
-		explicit VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, const BufferLayout& bufferLayout);
+		explicit VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, const VulkanBufferLayout& bufferLayout);
 		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) noexcept = delete;
 		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) noexcept = delete;
 		virtual ~VulkanRenderPipelineLayout() noexcept;
@@ -233,7 +263,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
-		explicit VulkanDevice(const IGraphicsAdapter* adapter, const ISurface* surface, const Format& format, const Array<String>& extensions = { });
+		explicit VulkanDevice(const IRenderBackend* backend, const Format& format, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
@@ -243,6 +273,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getBufferHeight() const noexcept override;
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
+		// TODO: allocateBuffer();
 
 	public:
 		virtual const Array<String>& getExtensions() const noexcept;
@@ -285,7 +316,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual uint32_t getApiVersion() const noexcept override;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const override;
 		virtual ICommandQueue* findQueue(const QueueType& queueType) const override;
 		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const override;
 	};

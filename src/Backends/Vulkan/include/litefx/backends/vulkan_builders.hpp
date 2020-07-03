@@ -132,14 +132,23 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanInputAssemblerBuilder& withBufferLayout(UniquePtr<BufferLayout>&& layout) override;
 	};
 
-	///// <summary>
-	///// 
-	///// </summary>
-	//class LITEFX_VULKAN_API VulkanBufferLayoutBuilder : public BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanInputAssemblerBuilder> {
-	//public:
-	//	using BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanInputAssemblerBuilder>::BufferLayoutBuilder;
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanBufferLayoutBuilder : public BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanInputAssemblerBuilder> {
+	public:
+		using BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanInputAssemblerBuilder>::BufferLayoutBuilder;
 
-	//public:
-	//	virtual VulkanBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
-	//};
+	public:
+		virtual VulkanBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <reamrks>
+		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
+		/// </reamrks>
+		virtual VulkanBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset);
+		virtual VulkanBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset);
+	};
 }

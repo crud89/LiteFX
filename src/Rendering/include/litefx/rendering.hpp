@@ -157,8 +157,7 @@ namespace LiteFX::Rendering {
 		virtual ~IGraphicsDevice() noexcept = default;
 
 	public:
-		virtual const IGraphicsAdapter* getAdapter() const noexcept= 0;
-		virtual const ISurface* getSurface() const noexcept = 0;
+		virtual const IRenderBackend* getBackend() const noexcept = 0;
 		virtual const ISwapChain* getSwapChain() const noexcept = 0;
 		virtual const ICommandQueue* getQueue() const noexcept = 0;
 		virtual Array<Format> getSurfaceFormats() const = 0;
@@ -193,7 +192,6 @@ namespace LiteFX::Rendering {
 		virtual uint32_t getApiVersion() const noexcept = 0;
 
 	public:
-		virtual UniquePtr<IGraphicsDevice> createDevice(const ISurface* surface, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Array<String>& extensions = { }) const = 0;
 		virtual ICommandQueue* findQueue(const QueueType& queueType) const = 0;
 		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const = 0;
 	};
@@ -205,14 +203,13 @@ namespace LiteFX::Rendering {
 		LITEFX_IMPLEMENTATION(GraphicsDeviceImpl);
 
 	public:
-		GraphicsDevice(const IGraphicsAdapter* adapter, const ISurface* surface);
+		GraphicsDevice(const IRenderBackend* backend);
 		GraphicsDevice(const GraphicsDevice&) noexcept = delete;
 		GraphicsDevice(GraphicsDevice&&) noexcept = delete;
 		virtual ~GraphicsDevice() noexcept;
 
 	public:
-		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
-		virtual const ISurface* getSurface() const noexcept override;
+		virtual const IRenderBackend* getBackend() const noexcept override;
 		virtual const ICommandQueue* getQueue() const noexcept override;
 
 	protected:
@@ -250,7 +247,7 @@ namespace LiteFX::Rendering {
 	public:
 		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IGraphicsDevice*>, int> = 0>
 		UniquePtr<T> createDevice(TArgs&&... _args) const {
-			return makeUnique<T>(this->getAdapter(), this->getSurface(), std::forward<TArgs>(_args)...);
+			return makeUnique<T>(this, std::forward<TArgs>(_args)...);
 		}
 	};
 

@@ -11,39 +11,36 @@ public:
 	friend class GraphicsDevice;
 
 private:
-	const IGraphicsAdapter* m_adapter;
-	const ISurface* m_surface;
+	const IRenderBackend* m_backend;
 	const ICommandQueue* m_queue;
 
 public:
-	GraphicsDeviceImpl(GraphicsDevice* parent, const IGraphicsAdapter* adapter, const ISurface* surface) noexcept :
-		base(parent), m_adapter(adapter), m_surface(surface), m_queue(nullptr) { }
+	GraphicsDeviceImpl(GraphicsDevice* parent, const IRenderBackend* backend) noexcept :
+		base(parent), m_backend(backend), m_queue(nullptr) { }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-GraphicsDevice::GraphicsDevice(const IGraphicsAdapter* adapter, const ISurface* surface) :
-	m_impl(makePimpl<GraphicsDeviceImpl>(this, adapter, surface))
+GraphicsDevice::GraphicsDevice(const IRenderBackend* backend) :
+	m_impl(makePimpl<GraphicsDeviceImpl>(this, backend))
 {
-	if (adapter == nullptr)
-		throw std::invalid_argument("The argument `adapter` must be initialized.");
+	if (backend == nullptr)
+		throw std::invalid_argument("The argument `backend` must be initialized.");
 
-	if (surface == nullptr)
-		throw std::invalid_argument("The argument `surface` must be initialized.");
+	if (backend->getAdapter() == nullptr)
+		throw std::invalid_argument("The backend must use an adapter to create a device.");
+
+	if (backend->getSurface() == nullptr)
+		throw std::invalid_argument("The backend muse use a surface to create a device.");
 }
 
 GraphicsDevice::~GraphicsDevice() noexcept = default;
 
-const IGraphicsAdapter* GraphicsDevice::getAdapter() const noexcept
+const IRenderBackend* GraphicsDevice::getBackend() const noexcept
 {
-	return m_impl->m_adapter;
-}
-
-const ISurface* GraphicsDevice::getSurface() const noexcept
-{
-	return m_impl->m_surface;
+	return m_impl->m_backend;
 }
 
 const ICommandQueue* GraphicsDevice::getQueue() const noexcept
