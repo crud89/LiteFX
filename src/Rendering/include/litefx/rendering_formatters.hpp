@@ -96,12 +96,15 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferFormat> : fo
 		{
 		case 1:
 			names.push_back("X");
+			break;
 		case 2:
-			names.push_back("Y");
+			names.push_back("XY");
+			break;
 		case 3:
-			names.push_back("Z");
+			names.push_back("XYZ");
+			break;
 		case 4:
-			names.push_back("W");
+			names.push_back("XYZW");
 			break;
 		default:
 			return formatter<string_view>::format("Invalid", ctx);
