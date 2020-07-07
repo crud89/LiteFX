@@ -94,6 +94,76 @@ namespace LiteFX::Rendering {
 		XYZW32U = 0x20000404
 	};
 
+	enum class LITEFX_RENDERING_API BufferType {
+		Uniform = 0x00000010,
+		Storage = 0x00000020,
+		Index = 0x00000040,
+		Vertex = 0x00000080
+	};
+
+	/// <summary>
+	/// Defines how a buffer is used and describes how its memory is managed.
+	/// </summary>
+	/// <remarks>
+	/// There are three common buffer usage scenarios that are supported by the library:
+	///
+	/// <list type="number">
+	/// <item>
+	/// <description>
+	/// <strong>Static resources</strong>: such as vertex/index/constant buffers, textures or other infrequently updated buffers. In this case, the most efficient 
+	/// approach is to create a buffer using <see cref="BufferUsage::Staging" /> and map it from the CPU. Create a second buffer using 
+	/// <see cref="BufferUsage::Resource" /> and transfer the staging buffer into it.
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description>
+	/// <strong>Dynamic resources</strong>: such as deformable meshes or buffers that need to be updated every frame. For such buffers use the
+	/// <see cref="BufferUsage::Dynamic" /> mode to prevent regular transfer overhead.
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description>
+	/// <strong>Readbacks</strong>: or resources that are written on the GPU and read by the CPU. The usage mode <see cref="BufferUsage::Readback" /> is designed to 
+	/// provide the best performance for this special case.
+	/// </description>
+	/// </item>
+	/// </list>
+	/// </remarks>
+	enum class LITEFX_RENDERING_API BufferUsage {
+		/// <summary>
+		/// Creates a buffer that can optimally be mapped from the CPU in order to be transferred to the GPU later.
+		/// </summary>
+		/// <remarks>
+		/// The memory for the buffer will be allocated in the DRAM (CPU or host memory). It can be optimally accessed by the CPU in order to be written. However,
+		/// reading it from the GPU may be inefficient. This usage mode should be used to create a staging buffer, i.e. a buffer that is written infrequently and
+		/// then transferred to another buffer, that uses <see cref="BufferUsage::Resource" />.
+		/// </remarks>
+		Staging = 0x00000001,
+
+		/// <summary>
+		/// Creates a buffer that can optimally be read by the GPU.
+		/// </summary>
+		/// <remarks>
+		/// The memory for the buffer will be allocated on the VRAM (GPU or device memory). It can be optimally accessed by the GPU in order to be read frequently.
+		/// It can be written by a transfer call. Note that those come with an overhead and should only occur infrequently.
+		/// </remarks>
+		Resource = 0x00000002,
+
+		/// <summary>
+		/// Creates a buffer that can be optimally mapped by the CPU and is preferred to be optimally read by the GPU.
+		/// </summary>
+		/// <remarks>
+		/// Dynamic buffers are used when the content is expected to be changed every frame. They do not require transfer calls, but may not be read as efficiently
+		/// as <see cref="BufferUsage::Resource" /> buffers.
+		/// </remarks>
+		Dynamic = 0x00000010,
+
+		/// <summary>
+		/// Creates a buffer that can be written by the GPU and read by the CPU.
+		/// </summary>
+		Readback = 0x00000100
+	};
+
 	enum class LITEFX_RENDERING_API ShaderType {
 		Vertex = 0x00000001,
 		TessellationControl = 0x00000002,

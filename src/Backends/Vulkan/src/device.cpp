@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include "buffer.h"
 
 // Include Vulkan Memory Allocator.
 #define VMA_IMPLEMENTATION
@@ -289,6 +290,53 @@ void VulkanDevice::wait()
 void VulkanDevice::resize(int width, int height)
 {
 	m_impl->resize(width, height);
+}
+
+UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const BufferLayout* layout, const UInt32& elements) const
+{
+	if (layout == nullptr)
+		throw std::invalid_argument("The buffer layout must be initialized.");
+
+	auto bufferSize = layout->getElementSize() * elements;
+
+	LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2}}}...", type, usage, bufferSize);
+
+	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+	bufferInfo.size = bufferSize;
+
+	// Deduct the usage buffer bit based on the type.
+	VkBufferUsageFlags usageFlags;
+
+	switch (type)
+	{
+	case BufferType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
+	case BufferType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; break;
+	case BufferType::Vertex:  usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;  break;
+	case BufferType::Index:   usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;   break;
+	default: LITEFX_WARNING(VULKAN_LOG, "Invalid buffer type: {0}", type);      break;
+	}
+
+	// Staging buffers also receive the transfer source, resource buffers the transfer destination bits.
+	if (usage == BufferUsage::Staging)
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	else if (usage == BufferUsage::Resource)
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+	bufferInfo.usage = usageFlags;
+
+	// Deduct the allocation usage from the buffer usage scenario.
+	VmaAllocationCreateInfo allocInfo = {};
+	
+	switch (usage)
+	{
+	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	}
+
+	// Create a buffer using VMA.
+	return _VMABuffer::makeBuffer(layout, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 // ------------------------------------------------------------------------------------------------

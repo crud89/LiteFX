@@ -58,6 +58,38 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::Format> : formatte
 };
 
 template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferType> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::BufferType t, FormatContext& ctx) {
+		string_view name = "Invalid";
+		switch (t)
+		{
+		case LiteFX::Rendering::BufferType::Uniform: name = "Uniform"; break;
+		case LiteFX::Rendering::BufferType::Storage: name = "Storage"; break;
+		case LiteFX::Rendering::BufferType::Index:   name = "Index";   break;
+		case LiteFX::Rendering::BufferType::Vertex:  name = "Vertex";  break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferUsage> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::BufferUsage t, FormatContext& ctx) {
+		string_view name = "Invalid";
+		switch (t)
+		{
+		case LiteFX::Rendering::BufferUsage::Staging:  name = "Staging";  break;
+		case LiteFX::Rendering::BufferUsage::Resource: name = "Resource"; break;
+		case LiteFX::Rendering::BufferUsage::Dynamic:  name = "Dynamic";  break;
+		case LiteFX::Rendering::BufferUsage::Readback: name = "Readback"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
 struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::ShaderType> : formatter<string_view> {
 	template <typename FormatContext>
 	auto format(LiteFX::Rendering::ShaderType t, FormatContext& ctx) {

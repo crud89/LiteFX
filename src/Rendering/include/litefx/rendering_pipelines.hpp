@@ -32,16 +32,8 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API IBufferLayout {
     public:
-        virtual UniquePtr<IBuffer> makeBuffer() const = 0;
+        virtual Array<const BufferAttribute*> getAttributes() const noexcept = 0;
         virtual const size_t& getElementSize() const noexcept = 0;
-        
-    public:
-        template <typename TElement>
-        UniquePtr<IBuffer> makeBuffer(const Array<TElement>& elements) { 
-            auto buffer = this->makeBuffer();
-            buffer->map<TElement>(elements);
-            return buffer;
-        }
     };
 
     /// <summary>
@@ -59,7 +51,7 @@ namespace LiteFX::Rendering {
     public:
         virtual void add(UniquePtr<BufferAttribute>&& attribute);
         virtual void remove(const BufferAttribute* attribute);
-        virtual Array<const BufferAttribute*> getAttributes() const noexcept;
+        virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
         virtual const size_t& getElementSize() const noexcept override;
     };
 
@@ -72,6 +64,7 @@ namespace LiteFX::Rendering {
 
     protected:
         virtual void map(const void* const pMemory, const size_t& size) = 0;
+        virtual void transfer(IBuffer* target) const = 0;
 
     public:
         virtual const BufferLayout* getLayout() const noexcept = 0;
@@ -92,8 +85,6 @@ namespace LiteFX::Rendering {
 
         Buffer(const Buffer& _other) = delete;
         Buffer(Buffer&& _other) = delete;
-        //Buffer(const Buffer& _other) noexcept : m_elements(std::copy(_other.m_elements)) {}
-        //Buffer(Buffer&& _other) noexcept : m_elements(std::move(_other.m_elements)) {}
         virtual ~Buffer() noexcept = default;
 
     public:
@@ -172,21 +163,25 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IInputAssembler {
+    class LITEFX_RENDERING_API IDescriptorSet {
+    public:
+        virtual ~IDescriptorSet() noexcept = default;
+
+    public:
+        virtual const BufferLayout* getLayout() const = 0;
+        virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API IInputAssembler : public IDescriptorSet {
     public:
         virtual ~IInputAssembler() noexcept = default;
 
     public:
         virtual const PrimitiveTopology getTopology() const noexcept = 0;
         virtual void setTopology(const PrimitiveTopology& topology) = 0;
-        virtual const BufferLayout* getLayout() const = 0;
-        virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
-
-    public:
-        template <typename TElement>
-        UniquePtr<Buffer> getBuffer(const Array<TElement>& elements) const {
-            return this->getLayout()->makeBuffer(elements);
-        }
     };
 
     /// <summary>

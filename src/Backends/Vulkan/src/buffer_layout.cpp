@@ -25,11 +25,6 @@ VulkanBufferLayout::VulkanBufferLayout(const VulkanInputAssembler& inputAssemble
 
 VulkanBufferLayout::~VulkanBufferLayout() noexcept = default;
 
-UniquePtr<IBuffer> VulkanBufferLayout::makeBuffer() const
-{
-    throw;
-}
-
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
