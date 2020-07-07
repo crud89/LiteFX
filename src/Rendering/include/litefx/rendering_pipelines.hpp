@@ -62,12 +62,10 @@ namespace LiteFX::Rendering {
     public:
         virtual ~IBuffer() noexcept = default;
 
-    protected:
-        virtual void map(const void* const pMemory, const size_t& size) = 0;
-        virtual void transfer(IBuffer* target) const = 0;
-
     public:
         virtual const BufferLayout* getLayout() const noexcept = 0;
+        virtual void map(const void* const data, const size_t& size) = 0;
+        virtual void transfer(IBuffer* target) const = 0;
     };
 
     /// <summary>
@@ -114,6 +112,7 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;
         virtual void beginFrame() const = 0;
         virtual void endFrame() = 0;
+        virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements) const = 0;
     };
 
     /// <summary>
@@ -163,6 +162,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
+    // TODO: Rename to IDescriptorSetLayout?
     class LITEFX_RENDERING_API IDescriptorSet {
     public:
         virtual ~IDescriptorSet() noexcept = default;
@@ -354,6 +354,7 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
         virtual void beginFrame() const override;
         virtual void endFrame() override;
+        virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements) const override;
     };
 
     /// <summary>

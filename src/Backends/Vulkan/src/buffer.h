@@ -23,7 +23,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~_VMABuffer() noexcept;
 
 	public:
-		virtual void map(const void* const pMemory, const size_t& size) override;
+		virtual void map(const void* const data, const size_t& size) override;
 		virtual void transfer(IBuffer* target) const override;
 	};
 

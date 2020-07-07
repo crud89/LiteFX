@@ -37,6 +37,7 @@ private:
 	GlfwWindowPtr m_window;
 	UniquePtr<VulkanDevice> m_device;
 	UniquePtr<VulkanRenderPipeline> m_pipeline;
+	UniquePtr<IBuffer> m_vertexBuffer;
 
 public:
 	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {
@@ -47,6 +48,7 @@ public:
 
 private:
 	void createPipeline();
+	void initBuffers();
 
 public:
 	virtual const IRenderBackend* getRenderBackend() const noexcept {

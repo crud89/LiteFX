@@ -99,3 +99,8 @@ void RenderPipeline::endFrame()
 {
     m_impl->m_renderPass->end(true);
 }
+
+UniquePtr<IBuffer> RenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements) const
+{
+    return m_impl->m_device->createBuffer(BufferType::Vertex, usage, m_impl->m_layout->getInputAssembler()->getLayout(), elements);
+}

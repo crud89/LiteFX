@@ -30,6 +30,7 @@ void SampleApp::createPipeline()
         .make<VulkanShaderProgram>()
             .addVertexShaderModule("shaders/default.vert.spv")
             .addFragmentShaderModule("shaders/default.frag.spv")
+            //TODO: .make<VulkanDescriptorPool> ? (Collecting UBO layouts here)
             .go()
         .make<VulkanRenderPass>()
             .withColorTarget()
@@ -37,10 +38,24 @@ void SampleApp::createPipeline()
         .go();
 }
 
+void SampleApp::initBuffers()
+{
+    const Array<Vertex> vertices = 
+    {
+        { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+        { { 0.5f, 0.5f, 0.0f },  { 0.0f, 1.0f, 0.0f, 1.0f } },
+        { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+    };
+
+    m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, 3);
+    m_vertexBuffer->map(vertices.data(), vertices.size() * sizeof(Vertex));
+}
+
 void SampleApp::run() 
 {
     m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
     this->createPipeline();
+    this->initBuffers();
 
     while (!::glfwWindowShouldClose(m_window.get()))
     {
@@ -50,6 +65,11 @@ void SampleApp::run()
 
     // Shut down the device.
     m_device->wait();
+
+    // Destroy all buffers.
+    m_vertexBuffer = nullptr;
+
+    // Destroy the pipeline and the device.
     m_pipeline = nullptr;
     m_device = nullptr;
 

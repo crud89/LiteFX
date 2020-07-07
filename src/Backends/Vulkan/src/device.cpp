@@ -299,13 +299,13 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 
 	auto bufferSize = layout->getElementSize() * elements;
 
-	LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2}}}...", type, usage, bufferSize);
+	LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2} }}...", type, usage, bufferSize);
 
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = bufferSize;
 
 	// Deduct the usage buffer bit based on the type.
-	VkBufferUsageFlags usageFlags;
+	VkBufferUsageFlags usageFlags = {};
 
 	switch (type)
 	{
