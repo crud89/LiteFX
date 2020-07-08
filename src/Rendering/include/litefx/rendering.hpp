@@ -154,6 +154,7 @@ namespace LiteFX::Rendering {
 		virtual ~ICommandQueue() noexcept = default;
 
 	public:
+		virtual UInt32 getId() const noexcept = 0;
 		virtual QueueType getType() const noexcept = 0;
 		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
 

@@ -318,6 +318,17 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 
 	bufferInfo.usage = usageFlags;
 
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	else
+	{
+		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = 2;
+		bufferInfo.pQueueFamilyIndices = queues;
+	}
+
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 	

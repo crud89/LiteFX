@@ -252,10 +252,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanQueue() noexcept;
 
 	public:
-		virtual uint32_t getId() const noexcept;
 		virtual VkCommandPool getCommandPool() const noexcept;
 
 	public:
+		virtual UInt32 getId() const noexcept override;
 		virtual QueueType getType() const noexcept override;
 		virtual const IGraphicsDevice* getDevice() const noexcept override;
 
