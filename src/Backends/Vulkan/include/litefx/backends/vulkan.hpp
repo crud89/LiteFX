@@ -13,7 +13,7 @@ namespace LiteFX::Rendering::Backends {
 
 	class LITEFX_VULKAN_API VulkanBuffer : public Buffer, public IResource<VkBuffer> {
 	public:
-		VulkanBuffer(const BufferLayout* layout, VkBuffer buffer) : Buffer(layout), IResource(buffer) { }
+		VulkanBuffer(const BufferType& type, const BufferLayout* layout, VkBuffer buffer) : Buffer(type, layout), IResource(buffer) { }
 		VulkanBuffer(VulkanBuffer&&) = delete;
 		VulkanBuffer(const VulkanBuffer&) = delete;
 		virtual ~VulkanBuffer() noexcept = default;
@@ -60,11 +60,16 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanRenderPass() noexcept;
 
 	public:
+		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
+
+	public:
 		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
 		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
 		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
 		virtual void begin() const override;
 		virtual void end(const bool& present = false) override;
+		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
+		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
 
 	public:
 		virtual void create();

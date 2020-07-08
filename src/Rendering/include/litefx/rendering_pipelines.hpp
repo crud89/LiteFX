@@ -64,8 +64,12 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const BufferLayout* getLayout() const noexcept = 0;
+        virtual const BufferType& getType() const noexcept = 0;
+
+    public:
         virtual void map(const void* const data, const size_t& size) = 0;
         virtual void transfer(IBuffer* target) const = 0;
+        virtual void bind(const IRenderPass* renderPass) const = 0;
     };
 
     /// <summary>
@@ -74,9 +78,10 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API Buffer : public IBuffer {
     private:
         const BufferLayout* m_layout{ nullptr };
+        const BufferType m_type {};
 
     public:
-        Buffer(const BufferLayout* layout) : m_layout(layout) {
+        Buffer(const BufferType& type, const BufferLayout* layout) : m_type(type), m_layout(layout) {
             if (layout == nullptr)
                 throw std::runtime_error("The buffer layout must be initialized.");
         }
@@ -93,6 +98,7 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const BufferLayout* getLayout() const noexcept override { return m_layout; }
+        virtual const BufferType& getType() const noexcept override { return m_type; }
     };
 
     /// <summary>
@@ -232,11 +238,16 @@ namespace LiteFX::Rendering {
         virtual ~IRenderPass() noexcept = default;
 
     public:
+        virtual const ICommandBuffer* getCommandBuffer() const noexcept = 0;
+
+    public:
         virtual void addTarget(UniquePtr<IRenderTarget>&& target) = 0;
         virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
         virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;
         virtual void begin() const = 0;
         virtual void end(const bool& present = false) = 0;
+        virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
+        virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
     };
 
     /// <summary>

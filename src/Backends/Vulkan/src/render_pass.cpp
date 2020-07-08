@@ -291,6 +291,11 @@ VulkanRenderPass::VulkanRenderPass(const VulkanRenderPipeline& pipeline) :
 
 VulkanRenderPass::~VulkanRenderPass() noexcept = default;
 
+const ICommandBuffer* VulkanRenderPass::getCommandBuffer() const noexcept
+{
+    return m_impl->m_commandBuffer.get();
+}
+
 void VulkanRenderPass::addTarget(UniquePtr<IRenderTarget>&& target)
 {
     m_impl->addTarget(std::move(target));
@@ -319,6 +324,16 @@ void VulkanRenderPass::begin() const
 void VulkanRenderPass::end(const bool& present)
 {
     m_impl->end(present);
+}
+
+void VulkanRenderPass::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
+{
+    ::vkCmdDraw(m_impl->m_commandBuffer->handle(), vertices, instances, firstVertex, firstInstance);
+}
+
+void VulkanRenderPass::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const
+{
+    ::vkCmdDrawIndexed(m_impl->m_commandBuffer->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
 // ------------------------------------------------------------------------------------------------

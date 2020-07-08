@@ -336,7 +336,7 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 	}
 
 	// Create a buffer using VMA.
-	return _VMABuffer::makeBuffer(layout, m_impl->m_allocator, bufferInfo, allocInfo);
+	return _VMABuffer::makeBuffer(type, layout, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 // ------------------------------------------------------------------------------------------------

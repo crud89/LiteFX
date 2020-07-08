@@ -1,5 +1,18 @@
 #include "sample.h"
 
+struct Vertex
+{
+    glm::vec3 position;
+    glm::vec4 color;
+};
+
+const Array<::Vertex> vertices =
+{
+    { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+    { { 0.5f, 0.5f, 0.0f },  { 0.0f, 1.0f, 0.0f, 1.0f } },
+    { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }
+};
+
 static void onResize(GLFWwindow* window, int width, int height)
 {
     auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
@@ -21,9 +34,9 @@ void SampleApp::createPipeline()
                 //.addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
                 .go()
             .make<VulkanInputAssembler>()
-                .make<VulkanBufferLayout>(sizeof(Vertex))
-                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                .make<VulkanBufferLayout>(sizeof(::Vertex))
+                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(::Vertex, position))
+                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(::Vertex, color))
                     .go()
                 .go()
             .go()
@@ -40,15 +53,9 @@ void SampleApp::createPipeline()
 
 void SampleApp::initBuffers()
 {
-    const Array<Vertex> vertices = 
-    {
-        { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-        { { 0.5f, 0.5f, 0.0f },  { 0.0f, 1.0f, 0.0f, 1.0f } },
-        { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-    };
-
-    m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, 3);
-    m_vertexBuffer->map(vertices.data(), vertices.size() * sizeof(Vertex));
+    //m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
+    m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Dynamic, vertices.size());
+    m_vertexBuffer->map(vertices.data(), vertices.size() * sizeof(::Vertex));
 }
 
 void SampleApp::run() 
@@ -60,7 +67,7 @@ void SampleApp::run()
     while (!::glfwWindowShouldClose(m_window.get()))
     {
         this->handleEvents();
-        this->drawFrame(m_pipeline);
+        this->drawFrame();
     }
 
     // Shut down the device.
@@ -104,13 +111,16 @@ void SampleApp::handleEvents()
     ::glfwPollEvents();
 }
 
-void SampleApp::drawFrame(UniquePtr<VulkanRenderPipeline>& pipeline)
+void SampleApp::drawFrame()
 {
-    pipeline->beginFrame();
+    m_pipeline->beginFrame();
 
-    // TODO: Write draw logic.
+    // Bind the buffers.
+    auto renderPass = m_pipeline->getRenderPass();
+    m_vertexBuffer->bind(renderPass);
+    renderPass->draw(vertices.size());
 
     // NOTE: This is actually an asynchronous operation, meaning that it does not wait for the frame to be actually rendered and presented.
     //       We need to implement a way around this, so that there are no race conditions.
-    pipeline->endFrame();
+    m_pipeline->endFrame();
 }

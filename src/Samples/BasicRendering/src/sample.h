@@ -58,5 +58,5 @@ public:
 	virtual void initialize() override;
 	virtual void resize(int width, int height) override;
 	void handleEvents();
-	void drawFrame(UniquePtr<VulkanRenderPipeline>& pipeline);
+	void drawFrame();
 };

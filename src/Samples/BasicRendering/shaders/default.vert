@@ -25,7 +25,7 @@ VertexData main(in VertexInput input)
     VertexData vertex;
     
     //vertex.Position = mul(float4(input.Position, 1.0), transform.WorldViewProjection);
-    vertex.Position = float4(input.Position, 1.0);
+    vertex.Position = float4(input.Position.xy, 0.0, 1.0);
     vertex.Color = input.Color;
  
     return vertex;
