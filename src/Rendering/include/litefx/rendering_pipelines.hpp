@@ -468,6 +468,7 @@ namespace LiteFX::Rendering {
 
     public:
         virtual TDerived& withBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
+        virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
         virtual void use(UniquePtr<BufferLayout>&& layout) {
             this->withBufferLayout(std::move(layout));
         }

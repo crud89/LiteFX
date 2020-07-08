@@ -10,11 +10,11 @@ const Array<::Vertex> vertices =
 {
     { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f } },
     { { 0.5f, -0.5f, 0.0f },  { 0.0f, 1.0f, 1.0f, 1.0f } },
-    { { 0.5f, 0.5f, 0.0f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
-    { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }
+    { { 0.5f, 0.5f, 0.0f },   { 1.0f, 0.0f, 1.0f, 1.0f } },
+    { { -0.5f, 0.5f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f } }
 };
 
-const Array<UInt16> indices = { 0, 1, 2, 2, 3, 0 };
+const Array<UInt16> indices = { 2, 1, 0, 3, 2, 0 };
 
 static void onResize(GLFWwindow* window, int width, int height)
 {
@@ -37,6 +37,7 @@ void SampleApp::createPipeline()
                 //.addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
                 .go()
             .make<VulkanInputAssembler>()
+                .withTopology(PrimitiveTopology::TriangleList)
                 .make<VulkanBufferLayout>(sizeof(::Vertex))
                     .addAttribute(0, BufferFormat::XYZ32F, offsetof(::Vertex, position))
                     .addAttribute(1, BufferFormat::XYZW32F, offsetof(::Vertex, color))
@@ -134,7 +135,8 @@ void SampleApp::drawFrame()
     // Bind the buffers.
     auto renderPass = m_pipeline->getRenderPass();
     m_vertexBuffer->bind(renderPass);
-    renderPass->draw(vertices.size());
+    m_indexBuffer->bind(renderPass);
+    renderPass->drawIndexed(indices.size());
 
     // NOTE: This is actually an asynchronous operation, meaning that it does not wait for the frame to be actually rendered and presented.
     //       We need to implement a way around this, so that there are no race conditions.

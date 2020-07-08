@@ -22,3 +22,9 @@ VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withBufferLayout(Uniqu
     this->instance()->use(std::move(layout));
     return *this;
 }
+
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withTopology(const PrimitiveTopology& topology)
+{
+    this->instance()->setTopology(topology);
+    return *this;
+}

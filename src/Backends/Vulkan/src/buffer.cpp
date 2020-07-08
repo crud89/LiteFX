@@ -83,11 +83,18 @@ void _VMABuffer::bind(const IRenderPass* renderPass) const
 
     // Depending on the type, bind the buffer accordingly.
     constexpr VkDeviceSize offsets[] = { 0 };
+    auto elementSize = this->getElementSize();
 
     switch (this->getType())
     {
     case BufferType::Vertex:
         ::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &this->handle(), offsets);
+        break;
+    case BufferType::Index:
+        if (elementSize != 4 && elementSize != 2)
+            throw std::runtime_error("Unsupported index buffer element size.");
+
+        ::vkCmdBindIndexBuffer(commandBuffer->handle(), this->handle(), 0, elementSize == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
         break;
     default:
         throw std::runtime_error("The buffer could not be bound: unsupported buffer type.");
