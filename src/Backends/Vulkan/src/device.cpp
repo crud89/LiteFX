@@ -231,8 +231,8 @@ VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, 
 VulkanDevice::~VulkanDevice() noexcept
 {
 	// Release the command queues first.
-	this->getGraphicsQueue()->release();
-	this->getTransferQueue()->release();
+	this->graphicsQueue()->release();
+	this->transferQueue()->release();
 
 	// Destroy the implementation.
 	m_impl.destroy();

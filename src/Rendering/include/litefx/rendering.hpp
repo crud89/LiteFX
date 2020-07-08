@@ -225,8 +225,8 @@ namespace LiteFX::Rendering {
 		virtual ~GraphicsDevice() noexcept;
 
 	protected:
-		ICommandQueue* getGraphicsQueue() noexcept;
-		ICommandQueue* getTransferQueue() noexcept;
+		ICommandQueue* graphicsQueue() noexcept;
+		ICommandQueue* transferQueue() noexcept;
 
 	public:
 		virtual const IRenderBackend* getBackend() const noexcept override;

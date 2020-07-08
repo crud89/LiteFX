@@ -53,8 +53,10 @@ void SampleApp::createPipeline()
 
 void SampleApp::initBuffers()
 {
-    m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
-    m_vertexBuffer->map(vertices.data(), vertices.size() * sizeof(::Vertex));
+    auto stagingBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
+    stagingBuffer->map(vertices.data(), vertices.size() * sizeof(::Vertex));
+    m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
+    stagingBuffer->transfer(m_device->getTransferQueue(), m_vertexBuffer.get(), vertices.size() * sizeof(::Vertex));
 }
 
 void SampleApp::run() 

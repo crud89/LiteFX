@@ -49,7 +49,7 @@ const ICommandQueue* GraphicsDevice::getGraphicsQueue() const noexcept
 	return m_impl->m_graphicsQueue;
 }
 
-ICommandQueue* GraphicsDevice::getGraphicsQueue() noexcept
+ICommandQueue* GraphicsDevice::graphicsQueue() noexcept
 {
 	return m_impl->m_graphicsQueue;
 }
@@ -59,7 +59,7 @@ const ICommandQueue* GraphicsDevice::getTransferQueue() const noexcept
 	return m_impl->m_transferQueue;
 }
 
-ICommandQueue* GraphicsDevice::getTransferQueue() noexcept
+ICommandQueue* GraphicsDevice::transferQueue() noexcept
 {
 	return m_impl->m_transferQueue;
 }
