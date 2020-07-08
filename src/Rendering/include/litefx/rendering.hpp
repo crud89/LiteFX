@@ -126,7 +126,7 @@ namespace LiteFX::Rendering {
 		virtual size_t getHeight() const noexcept = 0;
 		virtual const Format& getFormat() const noexcept = 0;
 		virtual Array<const ITexture*> getFrames() const noexcept = 0;
-		virtual UInt32 swapFrontBuffer() const = 0;
+		virtual UInt32 swapBackBuffer() const = 0;
 		virtual void reset() = 0;
 	};
 

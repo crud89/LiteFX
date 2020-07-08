@@ -226,7 +226,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getHeight() const noexcept override;
 		virtual const Format& getFormat() const noexcept override;
 		virtual Array<const ITexture*> getFrames() const noexcept override;
-		virtual UInt32 swapFrontBuffer() const override;
+		virtual UInt32 swapBackBuffer() const override;
 		virtual void reset() override;
 
 	public:

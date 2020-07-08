@@ -178,7 +178,7 @@ public:
         return renderPass;
     }
 
-    void begin() const
+    void begin()
     {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -187,10 +187,14 @@ public:
         if (::vkBeginCommandBuffer(m_commandBuffer->handle(), &beginInfo) != VK_SUCCESS)
             throw std::runtime_error("Unable to begin render pass on command buffer.");
 
+        // Swap out the back buffer.
+        m_currentFrameBuffer = m_swapChain->swapBackBuffer();
+
+        // Begin the render pass.
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_parent->handle();
-        renderPassInfo.framebuffer = m_frameBuffers[0];     // TODO: Select current back buffer.
+        renderPassInfo.framebuffer = m_frameBuffers[m_currentFrameBuffer];
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent.width = static_cast<UInt32>(m_device->getBufferWidth());
         renderPassInfo.renderArea.extent.height = static_cast<UInt32>(m_device->getBufferHeight());
@@ -210,8 +214,6 @@ public:
 
         if (::vkEndCommandBuffer(m_commandBuffer->handle()) != VK_SUCCESS)
             throw std::runtime_error("Unable to end render pass on command buffer.");
-
-        m_currentFrameBuffer = m_swapChain->swapFrontBuffer();
 
         VkSemaphore waitForSemaphores[] = { m_swapChain->getSemaphore() };
         VkPipelineStageFlags waitForStages[] = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };

@@ -171,7 +171,7 @@ public:
 		m_parent->handle() = this->initialize(m_format);
 	}
 
-	UInt32 swapFrontBuffer() const
+	UInt32 swapBackBuffer() const
 	{
 		UInt32 imageIndex;
 
@@ -236,9 +236,9 @@ Array<const ITexture*> VulkanSwapChain::getFrames() const noexcept
 	return m_impl->getFrames();
 }
 
-UInt32 VulkanSwapChain::swapFrontBuffer() const
+UInt32 VulkanSwapChain::swapBackBuffer() const
 {
-	return m_impl->swapFrontBuffer();
+	return m_impl->swapBackBuffer();
 }
 
 void VulkanSwapChain::reset()
