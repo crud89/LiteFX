@@ -164,6 +164,11 @@ namespace LiteFX::Rendering {
 		Readback = 0x00000100
 	};
 
+	enum class LITEFX_RENDERING_API IndexType {
+		UInt16 = 0x00000010,
+		UInt32 = 0x00000020
+	};
+
 	enum class LITEFX_RENDERING_API ShaderType {
 		Vertex = 0x00000001,
 		TessellationControl = 0x00000002,

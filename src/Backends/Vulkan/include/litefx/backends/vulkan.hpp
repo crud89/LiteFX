@@ -13,7 +13,7 @@ namespace LiteFX::Rendering::Backends {
 
 	class LITEFX_VULKAN_API VulkanBuffer : public Buffer, public IResource<VkBuffer> {
 	public:
-		VulkanBuffer(const BufferType& type, const BufferLayout* layout, VkBuffer buffer) : Buffer(type, layout), IResource(buffer) { }
+		VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize) : Buffer(type, elements, elementSize), IResource(buffer) { }
 		VulkanBuffer(VulkanBuffer&&) = delete;
 		VulkanBuffer(const VulkanBuffer&) = delete;
 		virtual ~VulkanBuffer() noexcept = default;
@@ -282,7 +282,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getBufferHeight() const noexcept override;
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
-		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const BufferLayout* layout, const UInt32& elements = 0) const override;
+		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const BufferLayout* layout, const UInt32& elements) const override;
+		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements) const override;
 
 	public:
 		virtual const Array<String>& getExtensions() const noexcept;

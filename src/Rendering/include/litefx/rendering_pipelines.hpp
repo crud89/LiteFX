@@ -63,7 +63,9 @@ namespace LiteFX::Rendering {
         virtual ~IBuffer() noexcept = default;
 
     public:
-        virtual const BufferLayout* getLayout() const noexcept = 0;
+        virtual const UInt32& getElementSize() const noexcept = 0;
+        virtual const UInt32& getElements() const noexcept = 0;
+        virtual const UInt32 getSize() const noexcept = 0;
         virtual const BufferType& getType() const noexcept = 0;
 
     public:
@@ -77,28 +79,21 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API Buffer : public IBuffer {
     private:
-        const BufferLayout* m_layout{ nullptr };
         const BufferType m_type {};
+        const UInt32 m_elementSize{ 0 }, m_elements{ 0 };
 
     public:
-        Buffer(const BufferType& type, const BufferLayout* layout) : m_type(type), m_layout(layout) {
-            if (layout == nullptr)
-                throw std::runtime_error("The buffer layout must be initialized.");
-        }
-
+        Buffer(const BufferType& type, const UInt32& elements, const UInt32& elementSize) : 
+            m_type(type), m_elementSize(elementSize), m_elements(elements) { }
         Buffer(const Buffer& _other) = delete;
         Buffer(Buffer&& _other) = delete;
         virtual ~Buffer() noexcept = default;
 
     public:
-        template <typename TElement>
-        void map(const Array<TElement>& elements) {
-            this->map(reinterpret_cast<void*>(elements.data()), elements.size() * sizeof(TElement));
-        }
-
-    public:
-        virtual const BufferLayout* getLayout() const noexcept override { return m_layout; }
-        virtual const BufferType& getType() const noexcept override { return m_type; }
+        virtual const UInt32& getElementSize() const noexcept override { return m_elementSize; }
+        virtual const UInt32& getElements() const noexcept override    { return m_elements; }
+        virtual const UInt32 getSize() const noexcept override         { return m_elementSize * m_elements; }
+        virtual const BufferType& getType() const noexcept override    { return m_type; }
     };
 
     /// <summary>
@@ -119,6 +114,7 @@ namespace LiteFX::Rendering {
         virtual void beginFrame() const = 0;
         virtual void endFrame() = 0;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
     };
 
     /// <summary>
@@ -366,6 +362,7 @@ namespace LiteFX::Rendering {
         virtual void beginFrame() const override;
         virtual void endFrame() override;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements) const override;
+        virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
     };
 
     /// <summary>

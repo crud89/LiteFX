@@ -6,8 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-_VMABuffer::_VMABuffer(const BufferType& type, const BufferLayout* layout, VkBuffer buffer, VmaAllocator& allocator, VmaAllocation allocation) :
-    VulkanBuffer(type, layout, buffer), m_allocator(allocator), m_allocationInfo(allocation)
+_VMABuffer::_VMABuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize, VmaAllocator& allocator, VmaAllocation allocation) :
+    VulkanBuffer(buffer, type, elements, elementSize), m_allocator(allocator), m_allocationInfo(allocation)
 {
 }
 
@@ -24,17 +24,15 @@ void _VMABuffer::map(const void* const data, const size_t& size)
     if (::vmaMapMemory(m_allocator, m_allocationInfo, &buffer) != VK_SUCCESS)
         throw std::runtime_error("Unable to map buffer memory.");
 
-    // TODO: Figure out why calling m_allocationInfo->GetSize() produces a C2027 error. 
-    //auto result = ::memcpy_s(buffer, m_allocationInfo->GetSize(), data, size);
-    ::memcpy(buffer, data, size);
+    auto result = ::memcpy_s(buffer, this->getSize(), data, size);
+
+    if (result != 0)
+    {
+        LITEFX_ERROR(VULKAN_LOG, "Error mapping buffer to device memory: {#X}.", result);
+        throw std::runtime_error("Error mapping buffer to device memory.");
+    }
+
     ::vmaUnmapMemory(m_allocator, m_allocationInfo);
-
-    //if (result != 0)
-    //{
-    //    LITEFX_ERROR(VULKAN_LOG, "Error mapping buffer to device memory: {#X}", result);
-    //    throw std::runtime_error("Error mapping buffer to device memory.");
-    //}
-
     LITEFX_TRACE(VULKAN_LOG, "Mapped {1} bytes to buffer {0} {{ Type: {2} }}", fmt::ptr(this->handle()), size, this->getType());
 }
 
@@ -100,11 +98,8 @@ void _VMABuffer::bind(const IRenderPass* renderPass) const
 // Factory.
 // ------------------------------------------------------------------------------------------------
 
-UniquePtr<IBuffer> _VMABuffer::makeBuffer(const BufferType& type, const BufferLayout* layout, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IBuffer> _VMABuffer::makeBuffer(const BufferType& type, const UInt32& elements, const UInt32& elementSize, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-    if (layout == nullptr)
-        throw std::invalid_argument("The buffer layout must be initialized.");
-
 	// Allocate the buffer.
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -112,7 +107,7 @@ UniquePtr<IBuffer> _VMABuffer::makeBuffer(const BufferType& type, const BufferLa
 	if (::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult) != VK_SUCCESS)
 		throw std::runtime_error("Unable to allocate buffer.");
 
-    LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} for layout {1} {{ Type: {2} }}", fmt::ptr(buffer), fmt::ptr(layout), type);
+    LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), type, elements, elementSize, elements * elementSize);
 
-    return makeUnique<_VMABuffer>(type, layout, buffer, allocator, allocation);
+    return makeUnique<_VMABuffer>(buffer, type, elements, elementSize, allocator, allocation);
 }

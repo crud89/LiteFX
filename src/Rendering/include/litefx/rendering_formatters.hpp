@@ -90,6 +90,20 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferUsage> : for
 };
 
 template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::IndexType> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::IndexType t, FormatContext& ctx) {
+		string_view name = "Invalid";
+		switch (t)
+		{
+		case LiteFX::Rendering::IndexType::UInt16: name = "UInt16"; break;
+		case LiteFX::Rendering::IndexType::UInt32: name = "UInt32"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
 struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::ShaderType> : formatter<string_view> {
 	template <typename FormatContext>
 	auto format(LiteFX::Rendering::ShaderType t, FormatContext& ctx) {

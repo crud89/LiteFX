@@ -291,7 +291,12 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 	if (layout == nullptr)
 		throw std::invalid_argument("The buffer layout must be initialized.");
 
-	auto bufferSize = layout->getElementSize() * elements;
+	return this->createBuffer(type, usage, layout->getElementSize(), elements);
+}
+
+UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements) const
+{
+	auto bufferSize = elementSize * elements;
 
 	LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2} }}...", type, usage, bufferSize);
 
@@ -331,7 +336,7 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
-	
+
 	switch (usage)
 	{
 	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
@@ -341,7 +346,7 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 	}
 
 	// Create a buffer using VMA.
-	return _VMABuffer::makeBuffer(type, layout, m_impl->m_allocator, bufferInfo, allocInfo);
+	return _VMABuffer::makeBuffer(type, elements, elementSize, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -104,3 +104,16 @@ UniquePtr<IBuffer> RenderPipeline::makeVertexBuffer(const BufferUsage& usage, co
 {
     return m_impl->m_device->createBuffer(BufferType::Vertex, usage, m_impl->m_layout->getInputAssembler()->getLayout(), elements);
 }
+
+UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
+{
+    switch (indexType)
+    {
+    case IndexType::UInt16:
+        return m_impl->m_device->createBuffer(BufferType::Index, usage, 2, elements);       // 16 bit = 2 bytes per index.
+    case IndexType::UInt32:
+        return m_impl->m_device->createBuffer(BufferType::Index, usage, 4, elements);       // 32 bit = 4 bytes per index.
+    default:
+        throw std::invalid_argument("Unsupported index type.");
+    }
+}

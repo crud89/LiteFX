@@ -14,10 +14,10 @@ namespace LiteFX::Rendering::Backends {
 		VmaAllocation m_allocationInfo;
 
 	public:
-		static UniquePtr<IBuffer> makeBuffer(const BufferType& type, const BufferLayout* layout, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IBuffer> makeBuffer(const BufferType& type, const UInt32& elements, const UInt32& elementSize, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 
 	public:
-		_VMABuffer(const BufferType& type, const BufferLayout* layout, VkBuffer buffer, VmaAllocator& allocator, VmaAllocation allocation);
+		_VMABuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize, VmaAllocator& allocator, VmaAllocation allocation);
 		_VMABuffer(_VMABuffer&&) = delete;
 		_VMABuffer(const _VMABuffer&) = delete;
 		virtual ~_VMABuffer() noexcept;

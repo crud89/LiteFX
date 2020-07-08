@@ -8,10 +8,13 @@ struct Vertex
 
 const Array<::Vertex> vertices =
 {
-    { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-    { { 0.5f, 0.5f, 0.0f },  { 0.0f, 1.0f, 0.0f, 1.0f } },
-    { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }
+    { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f } },
+    { { 0.5f, -0.5f, 0.0f },  { 0.0f, 1.0f, 1.0f, 1.0f } },
+    { { 0.5f, 0.5f, 0.0f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
+    { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }
 };
+
+const Array<UInt16> indices = { 0, 1, 2, 2, 3, 0 };
 
 static void onResize(GLFWwindow* window, int width, int height)
 {
@@ -53,10 +56,21 @@ void SampleApp::createPipeline()
 
 void SampleApp::initBuffers()
 {
+    // Create the staging buffer.
     auto stagingBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
     stagingBuffer->map(vertices.data(), vertices.size() * sizeof(::Vertex));
+
+    // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
     stagingBuffer->transfer(m_device->getTransferQueue(), m_vertexBuffer.get(), vertices.size() * sizeof(::Vertex));
+    
+    // Create the staging buffer for the indices.
+    stagingBuffer = m_pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
+    stagingBuffer->map(indices.data(), indices.size() * sizeof(UInt16));
+
+    // Create the actual index buffer and transfer the staging buffer into it.
+    m_indexBuffer = m_pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
+    stagingBuffer->transfer(m_device->getTransferQueue(), m_indexBuffer.get(), indices.size() * sizeof(UInt16));
 }
 
 void SampleApp::run() 
@@ -76,6 +90,7 @@ void SampleApp::run()
 
     // Destroy all buffers.
     m_vertexBuffer = nullptr;
+    m_indexBuffer = nullptr;
 
     // Destroy the pipeline and the device.
     m_pipeline = nullptr;
