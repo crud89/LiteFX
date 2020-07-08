@@ -44,7 +44,7 @@ public:
         if (m_swapChain == nullptr)
             throw std::invalid_argument("The device swap chain is not a valid Vulkan swap chain.");
         
-        m_queue = dynamic_cast<const VulkanQueue*>(m_device->getQueue());
+        m_queue = dynamic_cast<const VulkanQueue*>(m_device->getGraphicsQueue());
 
         if (m_queue == nullptr)
             throw std::invalid_argument("The device queue is not a valid Vulkan command queue.");
@@ -156,16 +156,7 @@ public:
         m_frameBuffers = frameBuffers;
 
         // Create a command buffer.
-        auto commandBuffer = m_device->createCommandBuffer();
-        auto vulkanCommandBuffer = dynamic_cast<const VulkanCommandBuffer*>(commandBuffer.get());
-
-        if (vulkanCommandBuffer == nullptr)
-            throw std::runtime_error("The device has not returned a valid Vulkan command buffer.");
-        else
-        {
-            m_commandBuffer = UniquePtr<const VulkanCommandBuffer>(vulkanCommandBuffer);
-            commandBuffer.release();
-        }
+        m_commandBuffer = makeUnique<const VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_device->getGraphicsQueue()));
 
         // Create a semaphore that signals if the render pass has finished.
         VkSemaphoreCreateInfo semaphoreInfo{};
@@ -180,12 +171,7 @@ public:
 
     void begin()
     {
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        if (::vkBeginCommandBuffer(m_commandBuffer->handle(), &beginInfo) != VK_SUCCESS)
-            throw std::runtime_error("Unable to begin render pass on command buffer.");
+        m_commandBuffer->begin();
 
         // Swap out the back buffer.
         m_currentFrameBuffer = m_swapChain->swapBackBuffer();
@@ -211,9 +197,7 @@ public:
     void end(const bool present = false)
     {
         ::vkCmdEndRenderPass(m_commandBuffer->handle());
-
-        if (::vkEndCommandBuffer(m_commandBuffer->handle()) != VK_SUCCESS)
-            throw std::runtime_error("Unable to end render pass on command buffer.");
+        m_commandBuffer->end();
 
         VkSemaphore waitForSemaphores[] = { m_swapChain->getSemaphore() };
         VkPipelineStageFlags waitForStages[] = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };

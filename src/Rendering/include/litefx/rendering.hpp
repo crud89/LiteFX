@@ -13,6 +13,14 @@ namespace LiteFX::Rendering {
 	class LITEFX_RENDERING_API ICommandBuffer {
 	public:
 		virtual ~ICommandBuffer() noexcept = default;
+
+	public:
+		virtual const ICommandQueue* getQueue() const noexcept = 0;
+
+	public:
+		virtual void begin() const = 0;
+		virtual void end() const = 0;
+		virtual void submit(const bool& waitForQueue = false) const = 0;
 	};
 
 	/// <summary>
@@ -147,6 +155,12 @@ namespace LiteFX::Rendering {
 
 	public:
 		virtual QueueType getType() const noexcept = 0;
+		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
+
+	public:
+		virtual void bindDevice(const IGraphicsDevice* device) = 0;
+		virtual void release() = 0;
+		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const = 0;
 	};
 
 	/// <summary>
@@ -159,7 +173,8 @@ namespace LiteFX::Rendering {
 	public:
 		virtual const IRenderBackend* getBackend() const noexcept = 0;
 		virtual const ISwapChain* getSwapChain() const noexcept = 0;
-		virtual const ICommandQueue* getQueue() const noexcept = 0;
+		virtual const ICommandQueue* getGraphicsQueue() const noexcept = 0;
+		virtual const ICommandQueue* getTransferQueue() const noexcept = 0;
 		virtual Array<Format> getSurfaceFormats() const = 0;
 
 	public:
@@ -174,7 +189,6 @@ namespace LiteFX::Rendering {
 	public:
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const = 0;
-		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const = 0;
 	};
 
 	/// <summary>
@@ -209,12 +223,18 @@ namespace LiteFX::Rendering {
 		GraphicsDevice(GraphicsDevice&&) noexcept = delete;
 		virtual ~GraphicsDevice() noexcept;
 
+	protected:
+		ICommandQueue* getGraphicsQueue() noexcept;
+		ICommandQueue* getTransferQueue() noexcept;
+
 	public:
 		virtual const IRenderBackend* getBackend() const noexcept override;
-		virtual const ICommandQueue* getQueue() const noexcept override;
+		virtual const ICommandQueue* getGraphicsQueue() const noexcept override;
+		virtual const ICommandQueue* getTransferQueue() const noexcept override;
 
 	protected:
-		virtual void setQueue(ICommandQueue* queue) noexcept;
+		virtual void setGraphicsQueue(ICommandQueue* queue) noexcept;
+		virtual void setTransferQueue(ICommandQueue* queue) noexcept;
 
 	public:
 		/// <summary>

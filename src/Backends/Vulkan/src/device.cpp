@@ -16,7 +16,6 @@ public:
 	friend class VulkanDevice;
 
 private:
-	const VulkanQueue* m_graphicsQueue{ nullptr };
 	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
 	Array<String> m_extensions;
@@ -91,7 +90,7 @@ public:
 	}
 
 public:
-	VkDevice initialize(const Format& format, const VulkanQueue* deviceQueue)
+	VkDevice initialize(const Format& format, const VulkanQueue* deviceQueue, const VulkanQueue* transferQueue)
 	{
 		auto adapter = this->getAdapter();
 
@@ -112,12 +111,19 @@ public:
 		std::generate(requiredExtensions.begin(), requiredExtensions.end(), [this, i = 0]() mutable { return m_extensions[i++].data(); });
 
 		// Define a graphics queue for the device.
-		const float queuePriority = 1.0f;
-		VkDeviceQueueCreateInfo queueCreateInfo = {};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = deviceQueue->getId();
-		queueCreateInfo.queueCount = 1;
-		queueCreateInfo.pQueuePriorities = &queuePriority;
+		const float graphicsQueuePriority = 1.0f;
+		VkDeviceQueueCreateInfo queueCreateInfos[2] = {};
+		queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfos[0].queueFamilyIndex = deviceQueue->getId();
+		queueCreateInfos[0].queueCount = 1;
+		queueCreateInfos[0].pQueuePriorities = &graphicsQueuePriority;
+
+		// Define a transfer queue for the device.
+		const float transferQueuePriority = 0.9f;
+		queueCreateInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfos[1].queueFamilyIndex = transferQueue->getId();
+		queueCreateInfos[1].queueCount = 1;
+		queueCreateInfos[1].pQueuePriorities = &transferQueuePriority;
 
 		// Define the device features.
 		VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -125,8 +131,8 @@ public:
 		// Define the device itself.
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pQueueCreateInfos = &queueCreateInfo;
-		createInfo.queueCreateInfoCount = 1;
+		createInfo.pQueueCreateInfos = queueCreateInfos;
+		createInfo.queueCreateInfoCount = 2;
 		createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
 		createInfo.ppEnabledExtensionNames = requiredExtensions.data();
@@ -145,19 +151,6 @@ public:
 
 		if (::vmaCreateAllocator(&allocatorInfo, &m_allocator) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create Vulkan memory allocator.");
-
-		// Create command pool.
-		VkCommandPoolCreateInfo poolInfo = {};
-		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.queueFamilyIndex = deviceQueue->getId();
-		//poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-		poolInfo.flags = 0;
-
-		if (::vkCreateCommandPool(device, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
-			throw std::runtime_error("Unable to create command pool.");
-
-		// Store the queue.
-		m_graphicsQueue = deviceQueue;
 
 		return device;
 	}
@@ -214,31 +207,37 @@ public:
 VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, const Array<String>& extensions) :
 	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, extensions)), GraphicsDevice(backend)
 {
-	LITEFX_DEBUG(VULKAN_LOG, "Creating device on backend {0} (surface: {1}, adapter: {2}, format: {3}, extensions: {4})...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Creating device on backend {0} {{ Surface: {1}, Adapter: {2}, Format: {3}, Extensions: {4} }}...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
 	
-	auto queue = dynamic_cast<VulkanQueue*>(backend->getAdapter()->findQueue(QueueType::Graphics, backend->getSurface()));
+	auto graphicsQueue = dynamic_cast<VulkanQueue*>(backend->getAdapter()->findQueue(QueueType::Graphics, backend->getSurface()));
+	auto transferQueue = dynamic_cast<VulkanQueue*>(backend->getAdapter()->findQueue(QueueType::Transfer));
 
-	if (queue == nullptr)
+	if (graphicsQueue == nullptr)
 		throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
 
-	auto& h = this->handle();
+	if (transferQueue == nullptr)
+		throw std::runtime_error("Unable to find a dedicated transfer queue.");
 
-	if (h != nullptr)
-		throw std::runtime_error("The device can only be created once.");
-
-	this->handle() = m_impl->initialize(format, queue);
+	this->handle() = m_impl->initialize(format, graphicsQueue, transferQueue);
 
 	m_impl->createSwapChain(format);
-	queue->initDeviceQueue(this);
-	this->setQueue(queue);
+
+	graphicsQueue->bindDevice(this);
+	this->setGraphicsQueue(graphicsQueue);
+	transferQueue->bindDevice(this);
+	this->setTransferQueue(transferQueue);
 }
 
 VulkanDevice::~VulkanDevice() noexcept
 {
-	auto commandPool = m_impl->m_commandPool;
+	// Release the command queues first.
+	this->getGraphicsQueue()->release();
+	this->getTransferQueue()->release();
+
+	// Destroy the implementation.
 	m_impl.destroy();
 
-	::vkDestroyCommandPool(this->handle(), commandPool, nullptr);
+	// Destroy the device.
 	::vkDestroyDevice(this->handle(), nullptr);
 }
 
@@ -275,11 +274,6 @@ bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) con
 Array<String> VulkanDevice::getAvailableDeviceExtensions() const noexcept
 {
 	return m_impl->getAvailableDeviceExtensions();
-}
-
-VkCommandPool VulkanDevice::getCommandPool() const noexcept
-{
-	return m_impl->m_commandPool;
 }
 
 void VulkanDevice::wait()
@@ -387,9 +381,4 @@ VkImageView VulkanDevice::vkCreateImageView(const VkImage& image, const Format& 
 UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint) const
 {
 	return makeUnique<VulkanShaderModule>(this, type, fileName, entryPoint);
-}
-
-UniquePtr<ICommandBuffer> VulkanDevice::createCommandBuffer() const
-{
-	return makeUnique<VulkanCommandBuffer>(this);
 }

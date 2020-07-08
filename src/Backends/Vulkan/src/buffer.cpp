@@ -38,9 +38,37 @@ void _VMABuffer::map(const void* const data, const size_t& size)
     LITEFX_TRACE(VULKAN_LOG, "Mapped {1} bytes to buffer {0} {{ Type: {2} }}", fmt::ptr(this->handle()), size, this->getType());
 }
 
-void _VMABuffer::transfer(IBuffer* target) const
+void _VMABuffer::transfer(const ICommandQueue* q, IBuffer* t, const size_t& size, const size_t& offset, const size_t& targetOffset) const
 {
-    throw;
+    auto transferQueue = dynamic_cast<const VulkanQueue*>(q);
+    auto target = dynamic_cast<const VulkanBuffer*>(t);
+
+    if (target == nullptr)
+        throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
+
+    if (transferQueue == nullptr)
+        throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
+    
+    auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
+
+    if (device == nullptr)
+        throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
+
+    auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
+
+    // Begin the transfer recording.
+    commandBuffer->begin();
+
+    // Create a copy command and add it to the command buffer.
+    VkBufferCopy copyInfo{};
+    copyInfo.size = size;
+    copyInfo.srcOffset = offset;
+    copyInfo.dstOffset = targetOffset;
+    ::vkCmdCopyBuffer(commandBuffer->handle(), this->handle(), target->handle(), 1, &copyInfo);
+    
+    // End the transfer recording and submit the buffer.
+    commandBuffer->end();
+    commandBuffer->submit(true);
 }
 
 void _VMABuffer::bind(const IRenderPass* renderPass) const

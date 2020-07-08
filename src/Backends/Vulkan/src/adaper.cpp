@@ -50,7 +50,13 @@ public:
 public:
     VulkanQueue* findQueue(const QueueType& type) const noexcept
     {
-        auto match = std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return (queue->getType() & type) == type; });
+        decltype(m_queues)::const_iterator match;
+
+        // If a transfer queue is requested, look up for a queue that is explicitly *NOT* a graphics queue (since each queue implicitly supports transfer).
+        match = type == QueueType::Transfer ?
+            std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return (queue->getType() & QueueType::Graphics) == QueueType::None && (queue->getType() & type) == type; }) :
+            std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return (queue->getType() & type) == type; });
+
         return match == m_queues.end() ? nullptr : match->get();
     }
 

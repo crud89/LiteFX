@@ -24,7 +24,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual void map(const void* const data, const size_t& size) override;
-		virtual void transfer(IBuffer* target) const override; 
+		virtual void transfer(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& offset = 0, const size_t& targetOffset = 0) const override;
 		virtual void bind(const IRenderPass* renderPass) const override;
 	};
 

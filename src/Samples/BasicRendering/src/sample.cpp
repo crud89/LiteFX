@@ -53,8 +53,7 @@ void SampleApp::createPipeline()
 
 void SampleApp::initBuffers()
 {
-    //m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
-    m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Dynamic, vertices.size());
+    m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
     m_vertexBuffer->map(vertices.data(), vertices.size() * sizeof(::Vertex));
 }
 

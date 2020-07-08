@@ -40,10 +40,18 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
-		VulkanCommandBuffer(const VulkanDevice* device);
+		VulkanCommandBuffer(const VulkanQueue* queue);
 		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
 		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
 		virtual ~VulkanCommandBuffer() noexcept;
+
+	public:
+		virtual const ICommandQueue* getQueue() const noexcept override;
+
+	public:
+		virtual void begin() const override;
+		virtual void end() const override;
+		virtual void submit(const bool& waitForQueue = false) const override;
 	};
 
 	/// <summary>
@@ -245,12 +253,16 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual uint32_t getId() const noexcept;
-
-	public:
-		virtual void initDeviceQueue(const VulkanDevice* device);
+		virtual VkCommandPool getCommandPool() const noexcept;
 
 	public:
 		virtual QueueType getType() const noexcept override;
+		virtual const IGraphicsDevice* getDevice() const noexcept override;
+
+	public:
+		virtual void bindDevice(const IGraphicsDevice* device) override;
+		virtual void release() override;
+		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
 	};
 
 	/// <summary>
@@ -281,10 +293,8 @@ namespace LiteFX::Rendering::Backends {
 		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const override;
 		virtual UniquePtr<ITexture> makeTexture2d(VkImage image, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const override;
-		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
 
 	public:
-		virtual VkCommandPool getCommandPool() const noexcept;
 		virtual VkImageView vkCreateImageView(const VkImage& image, const Format& format) const;
 
 	public:
