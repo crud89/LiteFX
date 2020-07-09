@@ -27,7 +27,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanBufferLayoutBuilder);
 
 	public:
-		VulkanBufferLayout(const VulkanInputAssembler& inputAssembler, const size_t& elementSize, const UInt32& binding = 0);
+		VulkanBufferLayout(const VulkanInputAssembler& inputAssembler, const BufferType& type, const size_t& elementSize, const UInt32& binding = 0);
 		VulkanBufferLayout(VulkanBufferLayout&&) = delete;
 		VulkanBufferLayout(const VulkanBufferLayout&) = delete;
 		virtual ~VulkanBufferLayout() noexcept;

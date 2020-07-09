@@ -34,6 +34,7 @@ namespace LiteFX::Rendering {
         virtual Array<const BufferAttribute*> getAttributes() const noexcept = 0;
         virtual const size_t& getElementSize() const noexcept = 0;
         virtual const UInt32& getBinding() const noexcept = 0;
+        virtual const BufferType& getType() const noexcept = 0;
     };
 
     /// <summary>
@@ -43,7 +44,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(BufferLayoutImpl);
 
     public:
-        BufferLayout(const size_t& elementSize, const UInt32& binding = 0);
+        BufferLayout(const BufferType& type, const size_t& elementSize, const UInt32& binding = 0);
         BufferLayout(BufferLayout&&) = delete;
         BufferLayout(const BufferLayout&) = delete;
         virtual ~BufferLayout() noexcept;
@@ -56,6 +57,7 @@ namespace LiteFX::Rendering {
         virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
         virtual const size_t& getElementSize() const noexcept override;
         virtual const UInt32& getBinding() const noexcept override;
+        virtual const BufferType& getType() const noexcept override;
     };
 
     /// <summary>
@@ -187,14 +189,6 @@ namespace LiteFX::Rendering {
     public:
         virtual const PrimitiveTopology getTopology() const noexcept = 0;
         virtual void setTopology(const PrimitiveTopology& topology) = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_RENDERING_API IUniformBufferLayout : virtual public IDescriptorSetLayout {
-    public:
-        virtual ~IUniformBufferLayout() noexcept = default;
     };
 
     /// <summary>
