@@ -180,13 +180,21 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IInputAssembler : public IDescriptorSetLayout {
+    class LITEFX_RENDERING_API IInputAssembler : virtual public IDescriptorSetLayout {
     public:
         virtual ~IInputAssembler() noexcept = default;
 
     public:
         virtual const PrimitiveTopology getTopology() const noexcept = 0;
         virtual void setTopology(const PrimitiveTopology& topology) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API IUniformBufferLayout : virtual public IDescriptorSetLayout {
+    public:
+        virtual ~IUniformBufferLayout() noexcept = default;
     };
 
     /// <summary>
@@ -252,6 +260,24 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
+    class LITEFX_RENDERING_API DescriptorSetLayout : virtual public IDescriptorSetLayout {
+        LITEFX_IMPLEMENTATION(DescriptorSetLayoutImpl);
+
+    public:
+        DescriptorSetLayout();
+        DescriptorSetLayout(DescriptorSetLayout&&) = delete;
+        DescriptorSetLayout(const DescriptorSetLayout&) = delete;
+        virtual ~DescriptorSetLayout() noexcept;
+
+    public:
+        virtual Array<const BufferLayout*> getLayouts() const override;
+        virtual void use(UniquePtr<BufferLayout>&& layout) override;
+        virtual UniquePtr<BufferLayout> remove(const BufferLayout* layout) override;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API Rasterizer : public IRasterizer {
         LITEFX_IMPLEMENTATION(RasterizerImpl);
 
@@ -283,12 +309,11 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API InputAssembler : public IInputAssembler {
+    class LITEFX_RENDERING_API InputAssembler : public DescriptorSetLayout, public IInputAssembler {
         LITEFX_IMPLEMENTATION(InputAssemblerImpl);
 
     public:
         InputAssembler();
-        InputAssembler(UniquePtr<BufferLayout>&&);
         InputAssembler(InputAssembler&&) noexcept = delete;
         InputAssembler(const InputAssembler&) noexcept = delete;
         virtual ~InputAssembler() noexcept;
@@ -296,9 +321,6 @@ namespace LiteFX::Rendering {
     public:
         virtual const PrimitiveTopology getTopology() const noexcept override;
         virtual void setTopology(const PrimitiveTopology& topology) override;
-        virtual Array<const BufferLayout*> getLayouts() const override;
-        virtual void use(UniquePtr<BufferLayout>&& layout) override;
-        virtual UniquePtr<BufferLayout> remove(const BufferLayout* layout) override;
     };
 
     /// <summary>

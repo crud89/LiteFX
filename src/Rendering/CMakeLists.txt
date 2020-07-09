@@ -37,6 +37,7 @@ SET(RENDERING_SOURCES
     "src/rasterizer.cpp"
     "src/viewport.cpp"
     "src/render_target.cpp"
+    "src/descriptor_layout.cpp"
 )
 
 # Add shared library project.
