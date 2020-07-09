@@ -1,12 +1,6 @@
 #include "sample.h"
 
-struct Vertex
-{
-    glm::vec3 position;
-    glm::vec4 color;
-};
-
-const Array<::Vertex> vertices =
+const Array<Vertex> vertices =
 {
     { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f } },
     { { 0.5f, -0.5f, 0.0f },  { 0.0f, 1.0f, 1.0f, 1.0f } },
@@ -39,8 +33,8 @@ void SampleApp::createPipeline()
             .make<VulkanInputAssembler>()
                 .withTopology(PrimitiveTopology::TriangleList)
                 .make<VulkanBufferLayout>(sizeof(::Vertex))
-                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(::Vertex, position))
-                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(::Vertex, color))
+                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
                     .go()
                 .go()
             .go()

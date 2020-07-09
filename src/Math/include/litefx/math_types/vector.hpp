@@ -29,7 +29,7 @@ namespace LiteFX::Math {
 
 		inline Vector(const vec_type& _other) noexcept { operator=(_other); }
 		inline Vector(vec_type&& _other) noexcept { operator=(_other); }
-		virtual inline ~Vector() noexcept = default;
+		//virtual inline ~Vector() noexcept = default;
 
 	public:
 		Vector<T, DIM>& operator= (const Vector<T, DIM>& _other) noexcept {
