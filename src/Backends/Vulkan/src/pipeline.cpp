@@ -10,9 +10,6 @@ class VulkanRenderPipeline::VulkanRenderPipelineImpl : public Implement<VulkanRe
 public:
 	friend class VulkanRenderPipeline;
 
-private:
-	VkDescriptorSetLayout m_uniformBufferLayout;
-
 
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : base(parent) { }
@@ -38,9 +35,6 @@ private:
 		// Get the device.
 		auto device = this->getDevice();
 
-		// Destroy the uniform buffer descriptor layout.
-		::vkDestroyDescriptorSetLayout(device->handle(), m_uniformBufferLayout, nullptr);
-
 		// Destroy the pipeline.
 		::vkDestroyPipeline(device->handle(), m_parent->handle(), nullptr);
 	}
@@ -53,7 +47,7 @@ public:
 		if (layout == nullptr)
 			throw std::invalid_argument("The pipeline layout must be initialized.");
 
-		LITEFX_DEBUG(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(layout));
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(layout));
 
 		// Get the device.
 		auto device = this->getDevice();
@@ -69,6 +63,9 @@ public:
 
 		if (program == nullptr)
 			throw std::invalid_argument("The pipeline shader program must be initialized.");
+
+		if (inputAssembler == nullptr)
+			throw std::invalid_argument("The input assembler must be initialized.");
 
 		// Setup rasterizer state.
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {};
@@ -99,92 +96,55 @@ public:
 
 		Array<VkVertexInputBindingDescription> vertexInputBindings;
 		Array<VkVertexInputAttributeDescription> vertexInputAttributes;
-		Array<VkDescriptorSetLayoutBinding> uniformLayoutBindings;
 
-		if (inputAssembler != nullptr)
-		{
-			LITEFX_TRACE(VULKAN_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", inputAssembler->getTopology());
+		LITEFX_TRACE(VULKAN_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", inputAssembler->getTopology());
 
-			// Set primitive topology.
-			inputAssembly.topology = getPrimitiveTopology(inputAssembler->getTopology());
-			inputAssembly.primitiveRestartEnable = VK_FALSE;
+		// Set primitive topology.
+		inputAssembly.topology = getPrimitiveTopology(inputAssembler->getTopology());
+		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-			// Parse vertex input descriptors.
-			auto vertexBufferLayouts = inputAssembler->getLayouts(BufferType::Vertex);
-			vertexInputBindings.resize(vertexBufferLayouts.size());
+		// Parse vertex input descriptors.
+		auto vertexBufferLayouts = inputAssembler->getLayouts(BufferType::Vertex);
+		vertexInputBindings.resize(vertexBufferLayouts.size());
 
-			std::generate(std::begin(vertexInputBindings), std::end(vertexInputBindings), [&, i = 0]() mutable {
-				auto vertexBufferLayout = vertexBufferLayouts[i++];
-				auto bufferAttributes = vertexBufferLayout->getAttributes();
-				auto bindingPoint = vertexBufferLayout->getBinding();
+		std::generate(std::begin(vertexInputBindings), std::end(vertexInputBindings), [&, i = 0]() mutable {
+			auto vertexBufferLayout = vertexBufferLayouts[i++];
+			auto bufferAttributes = vertexBufferLayout->getAttributes();
+			auto bindingPoint = vertexBufferLayout->getBinding();
 
-				LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size {3} bytes, Binding: {4} }}...", i, vertexBufferLayouts.size(), bufferAttributes.size(), vertexBufferLayout->getElementSize(), bindingPoint);
+			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", i, vertexBufferLayouts.size(), bufferAttributes.size(), vertexBufferLayout->getElementSize(), bindingPoint);
 				
-				VkVertexInputBindingDescription binding = {};
-				binding.binding = bindingPoint;
-				binding.stride = static_cast<UInt32>(vertexBufferLayout->getElementSize());
-				binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			VkVertexInputBindingDescription binding = {};
+			binding.binding = bindingPoint;
+			binding.stride = static_cast<UInt32>(vertexBufferLayout->getElementSize());
+			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-				Array<VkVertexInputAttributeDescription> currentAttributes(bufferAttributes.size());
+			Array<VkVertexInputAttributeDescription> currentAttributes(bufferAttributes.size());
 
-				std::generate(std::begin(currentAttributes), std::end(currentAttributes), [&, i = 0]() mutable {
-					auto attribute = bufferAttributes[i++];
+			std::generate(std::begin(currentAttributes), std::end(currentAttributes), [&, i = 0]() mutable {
+				auto attribute = bufferAttributes[i++];
 
-					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", i, bufferAttributes.size(), attribute->getLocation(), attribute->getOffset(), attribute->getFormat());
+				LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", i, bufferAttributes.size(), attribute->getLocation(), attribute->getOffset(), attribute->getFormat());
 
-					VkVertexInputAttributeDescription descriptor{};
-					descriptor.binding = bindingPoint;
-					descriptor.location = attribute->getLocation();
-					descriptor.offset = attribute->getOffset();
-					descriptor.format = getFormat(attribute->getFormat());
+				VkVertexInputAttributeDescription descriptor{};
+				descriptor.binding = bindingPoint;
+				descriptor.location = attribute->getLocation();
+				descriptor.offset = attribute->getOffset();
+				descriptor.format = getFormat(attribute->getFormat());
 
-					return descriptor;
-				});
-
-				vertexInputAttributes.insert(std::end(vertexInputAttributes), std::begin(currentAttributes), std::end(currentAttributes));
-
-				return binding;
+				return descriptor;
 			});
 
-			// Parse uniform buffer descriptor sets.
-			auto uniformBufferLayouts = inputAssembler->getLayouts(BufferType::Uniform);
-			uniformLayoutBindings.resize(uniformBufferLayouts.size());
+			vertexInputAttributes.insert(std::end(vertexInputAttributes), std::begin(currentAttributes), std::end(currentAttributes));
 
-			std::generate(std::begin(uniformLayoutBindings), std::end(uniformLayoutBindings), [&, i = 0]() mutable {
-				auto uniformBufferLayout = uniformBufferLayouts[i++];
-				auto bindingPoint = uniformBufferLayout->getBinding();
-
-				LITEFX_TRACE(VULKAN_LOG, "Defining uniform buffer layout {0}/{1} {{ Size {2} bytes, Binding: {3} }}...", i, uniformBufferLayouts.size(), uniformBufferLayout->getElementSize(), bindingPoint);
-
-				VkDescriptorSetLayoutBinding binding = {};
-				binding.binding = bindingPoint;
-				binding.descriptorCount = 1;		// TODO: Implement support for uniform buffer arrays.
-				binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-				binding.pImmutableSamplers = nullptr;
-				binding.stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
-
-				return binding;
-			});
-		}
-		else
-		{
-			LITEFX_TRACE(VULKAN_LOG, "No input assembler provided.");
-		}
+			return binding;
+		});
 
 		// Define vertex input state.
 		inputState.vertexBindingDescriptionCount = static_cast<UInt32>(vertexInputBindings.size());
 		inputState.pVertexBindingDescriptions = vertexInputBindings.data();
 		inputState.vertexAttributeDescriptionCount = static_cast<UInt32>(vertexInputAttributes.size());
 		inputState.pVertexAttributeDescriptions = vertexInputAttributes.data();
-
-		// Create descriptor layouts.
-		VkDescriptorSetLayoutCreateInfo uniformBufferLayoutInfo{};
-		uniformBufferLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		uniformBufferLayoutInfo.bindingCount = uniformLayoutBindings.size();
-		uniformBufferLayoutInfo.pBindings = uniformLayoutBindings.data();
-
-		if (::vkCreateDescriptorSetLayout(device->handle(), &uniformBufferLayoutInfo, nullptr, &m_uniformBufferLayout) != VK_SUCCESS)
-			throw std::runtime_error("Unable to create uniform buffer descriptor set layout.");
 
 		// Setup viewport state.
 		Array<VkViewport> viewports;

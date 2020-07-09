@@ -102,11 +102,11 @@ void RenderPipeline::endFrame()
 
 UniquePtr<IBuffer> RenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
 {
-    auto layouts = m_impl->m_layout->getInputAssembler()->getLayouts();
+    auto layouts = m_impl->m_layout->getInputAssembler()->getLayouts(BufferType::Vertex);
     auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const BufferLayout* layout) { return layout->getBinding() == binding; });
 
     if (match == layouts.end())
-        throw std::invalid_argument("No layout has been defined for the provided binding.");
+        throw std::invalid_argument("No vertex layout has been defined for the provided binding.");
 
     return m_impl->m_device->createBuffer(BufferType::Vertex, usage, *match, elements);
 }
@@ -122,4 +122,15 @@ UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, con
     default:
         throw std::invalid_argument("Unsupported index type.");
     }
+}
+
+UniquePtr<IBuffer> RenderPipeline::makeUniformBuffer(const BufferUsage& usage, const UInt32& binding) const
+{
+    auto layouts = m_impl->m_layout->getInputAssembler()->getLayouts(BufferType::Uniform);
+    auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const BufferLayout* layout) { return layout->getBinding() == binding; });
+
+    if (match == layouts.end())
+        throw std::invalid_argument("No uniform layout has been defined for the provided binding.");
+
+    return m_impl->m_device->createBuffer(BufferType::Uniform, usage, *match, 1);
 }

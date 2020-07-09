@@ -1,4 +1,5 @@
 #include "sample.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 const Array<Vertex> vertices =
 {
@@ -10,8 +11,12 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 2, 1, 0, 3, 2, 0 };
 
-const struct TransformBuffer {
-    glm::mat4 WorldViewProjection;
+struct CameraBuffer {
+    glm::mat4 ViewProjection;
+} camera;
+
+struct TransformBuffer {
+    glm::mat4 World;
 } transform;
 
 static void onResize(GLFWwindow* window, int width, int height)
@@ -36,11 +41,13 @@ void SampleApp::createPipeline()
                 .go()
             .make<VulkanInputAssembler>()
                 .withTopology(PrimitiveTopology::TriangleList)
-                .make<VulkanBufferLayout>(BufferType::Vertex, sizeof(::Vertex), 0)
+                .make<VulkanBufferLayout>(BufferType::Vertex, sizeof(Vertex), 0)
                     .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
                     .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
                     .go()
-                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 0)
+                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(CameraBuffer), 0, 0)
+                    .go()
+                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 1, 1)
                     .go()
                 .go()
             .go()
@@ -71,6 +78,10 @@ void SampleApp::initBuffers()
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
     stagingBuffer->transfer(m_device->getTransferQueue(), m_indexBuffer.get(), indices.size() * sizeof(UInt16));
+
+    // Create a uniform buffers for the camera and transform information.
+    m_cameraBuffer = m_pipeline->makeUniformBuffer(BufferUsage::Dynamic, 0);
+    m_transformBuffer = m_pipeline->makeUniformBuffer(BufferUsage::Dynamic, 1);
 }
 
 void SampleApp::run() 
@@ -89,6 +100,8 @@ void SampleApp::run()
     m_device->wait();
 
     // Destroy all buffers.
+    m_transformBuffer = nullptr;
+    m_cameraBuffer = nullptr;
     m_vertexBuffer = nullptr;
     m_indexBuffer = nullptr;
 
@@ -129,12 +142,34 @@ void SampleApp::handleEvents()
 
 void SampleApp::drawFrame()
 {
+    // Begin rendering.
     m_pipeline->beginFrame();
-
-    // Bind the buffers.
     auto renderPass = m_pipeline->getRenderPass();
+
+    // Update transform buffer.
+    static auto start = std::chrono::high_resolution_clock::now();
+    auto now = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+    auto aspectRatio = static_cast<float>(m_device->getBufferWidth()) / static_cast<float>(m_device->getBufferHeight());
+
+    // Compute camera view and projection.
+    glm::mat4 view       = glm::lookAt(glm::vec3(4.2f, 4.2f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.0001f, 1000.0f);
+    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
+    camera.ViewProjection = projection * view;
+    m_cameraBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    m_cameraBuffer->bind(renderPass);
+
+    // Draw the model.
     m_vertexBuffer->bind(renderPass);
     m_indexBuffer->bind(renderPass);
+    
+    // Compute world transform.
+    // TODO: World transform can more efficiently handled using push constants.
+    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
+    m_transformBuffer->bind(renderPass);
+
     renderPass->drawIndexed(indices.size());
 
     // NOTE: This is actually an asynchronous operation, meaning that it does not wait for the frame to be actually rendered and presented.

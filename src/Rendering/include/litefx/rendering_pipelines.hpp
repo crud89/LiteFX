@@ -35,6 +35,7 @@ namespace LiteFX::Rendering {
         virtual const size_t& getElementSize() const noexcept = 0;
         virtual const UInt32& getBinding() const noexcept = 0;
         virtual const BufferType& getType() const noexcept = 0;
+        virtual const UInt32& getSet() const noexcept = 0;
     };
 
     /// <summary>
@@ -44,7 +45,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(BufferLayoutImpl);
 
     public:
-        BufferLayout(const BufferType& type, const size_t& elementSize, const UInt32& binding = 0);
+        BufferLayout(const BufferType& type, const size_t& elementSize, const UInt32& binding = 0, const UInt32& set = 0);
         BufferLayout(BufferLayout&&) = delete;
         BufferLayout(const BufferLayout&) = delete;
         virtual ~BufferLayout() noexcept;
@@ -58,6 +59,7 @@ namespace LiteFX::Rendering {
         virtual const size_t& getElementSize() const noexcept override;
         virtual const UInt32& getBinding() const noexcept override;
         virtual const BufferType& getType() const noexcept override;
+        virtual const UInt32& getSet() const noexcept override;
     };
 
     /// <summary>
@@ -120,6 +122,7 @@ namespace LiteFX::Rendering {
         virtual void endFrame() = 0;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
+        virtual UniquePtr<IBuffer> makeUniformBuffer(const BufferUsage& usage, const UInt32& binding) const = 0;
     };
 
     /// <summary>
@@ -385,6 +388,7 @@ namespace LiteFX::Rendering {
         virtual void endFrame() override;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
+        virtual UniquePtr<IBuffer> makeUniformBuffer(const BufferUsage& usage, const UInt32& binding) const override;
     };
 
     /// <summary>

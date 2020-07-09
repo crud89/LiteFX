@@ -79,7 +79,7 @@ void VulkanQueue::bindDevice(const IGraphicsDevice* d)
 	if (this->handle() != nullptr)
 		throw std::runtime_error("The queue is already bound to a device.");
 
-	LITEFX_TRACE(VULKAN_LOG, "Initializing device queue for device {0} {{ Id: {1}, type: {2} }}...", fmt::ptr(device), this->getId(), this->getType());
+	LITEFX_TRACE(VULKAN_LOG, "Initializing device queue for device {0} {{ Id: {1}, Type: {2} }}...", fmt::ptr(device), this->getId(), this->getType());
 	m_impl->bindDevice(device);
 }
 

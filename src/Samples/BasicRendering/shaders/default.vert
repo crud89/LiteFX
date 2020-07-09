@@ -13,19 +13,26 @@ struct VertexInput
     float4 Color : COLOR;
 };
 
-//struct TransformData
-//{
-//    float4x4 WorldViewProjection;
-//};
+struct CameraData
+{
+    float4x4 ViewProjection;
+};
 
-//ConstantBuffer<TransformData> transform : register(b0);
+struct TransformData
+{
+    float4x4 Model;
+};
+
+ConstantBuffer<CameraData> camera       : register(b0);
+ConstantBuffer<TransformData> transform : register(b1);
 
 VertexData main(in VertexInput input)
 {
     VertexData vertex;
     
-    //vertex.Position = mul(float4(input.Position, 1.0), transform.WorldViewProjection);
-    vertex.Position = float4(input.Position.xy, 0.0, 1.0);
+    float4 position = mul(float4(input.Position, 1.0), transform.Model);
+    vertex.Position = mul(position, camera.ViewProjection);
+    
     vertex.Color = input.Color;
  
     return vertex;

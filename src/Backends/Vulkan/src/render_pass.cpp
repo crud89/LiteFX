@@ -213,9 +213,14 @@ public:
         submitInfo.pCommandBuffers = &m_commandBuffer->handle();
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
+        
+        auto result = ::vkQueueSubmit(m_queue->handle(), 1, &submitInfo, VK_NULL_HANDLE);
 
-        if (::vkQueueSubmit(m_queue->handle(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+        if (result != VK_SUCCESS)
+        {
+            LITEFX_ERROR(VULKAN_LOG, "Error ({0}) submitting render pass to graphics queue.", result);
             throw std::runtime_error("Failed to submit render pass to device queue!");
+        }
 
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
         if (present)

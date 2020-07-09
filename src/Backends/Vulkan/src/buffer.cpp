@@ -33,7 +33,6 @@ void _VMABuffer::map(const void* const data, const size_t& size)
     }
 
     ::vmaUnmapMemory(m_allocator, m_allocationInfo);
-    LITEFX_TRACE(VULKAN_LOG, "Mapped {1} bytes to buffer {0} {{ Type: {2} }}", fmt::ptr(this->handle()), size, this->getType());
 }
 
 void _VMABuffer::transfer(const ICommandQueue* q, IBuffer* t, const size_t& size, const size_t& offset, const size_t& targetOffset) const
@@ -96,6 +95,7 @@ void _VMABuffer::bind(const IRenderPass* renderPass) const
 
         ::vkCmdBindIndexBuffer(commandBuffer->handle(), this->handle(), 0, elementSize == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
         break;
+    case BufferType::Uniform:
     default:
         throw std::runtime_error("The buffer could not be bound: unsupported buffer type.");
     }

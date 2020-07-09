@@ -10,11 +10,11 @@ private:
     Array<UniquePtr<BufferAttribute>> m_attributes;
     BufferType m_type;
     size_t m_stride;
-    UInt32 m_binding;
+    UInt32 m_binding, m_set;
 
 public:
-    BufferLayoutImpl(BufferLayout* parent, const BufferType& type, const size_t& stride, const UInt32& binding) :
-        base(parent), m_type(type), m_stride(stride), m_binding(binding) { }
+    BufferLayoutImpl(BufferLayout* parent, const BufferType& type, const size_t& stride, const UInt32& binding, const UInt32& set) :
+        base(parent), m_type(type), m_stride(stride), m_binding(binding), m_set(set) { }
 
 public:
     void add(UniquePtr<BufferAttribute>&& attribute)
@@ -46,8 +46,8 @@ public:
     }
 };
 
-BufferLayout::BufferLayout(const BufferType& type, const size_t& elementSize, const UInt32& binding) : 
-    m_impl(makePimpl<BufferLayoutImpl>(this, type, elementSize, binding)) 
+BufferLayout::BufferLayout(const BufferType& type, const size_t& elementSize, const UInt32& binding, const UInt32& set) :
+    m_impl(makePimpl<BufferLayoutImpl>(this, type, elementSize, binding, set)) 
 {
 }
 
@@ -81,4 +81,9 @@ const UInt32& BufferLayout::getBinding() const noexcept
 const BufferType& BufferLayout::getType() const noexcept
 {
     return m_impl->m_type;
+}
+
+const UInt32& BufferLayout::getSet() const noexcept
+{
+    return m_impl->m_set;
 }
