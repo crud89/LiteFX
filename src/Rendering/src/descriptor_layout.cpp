@@ -20,6 +20,17 @@ public:
         return layouts;
     }
 
+    Array<const BufferLayout*> getLayouts(const BufferType& type) const
+    {
+        Array<const BufferLayout*> layouts;
+        
+        for each (auto & layout in m_layouts)
+            if (layout->getType() == type)
+                layouts.push_back(layout.get());
+
+        return layouts;
+    }
+
     void use(UniquePtr<BufferLayout>&& layout)
     {
         m_layouts.push_back(std::move(layout));
@@ -50,6 +61,11 @@ DescriptorSetLayout::~DescriptorSetLayout() noexcept = default;
 Array<const BufferLayout*> DescriptorSetLayout::getLayouts() const
 {
     return m_impl->getLayouts();
+}
+
+Array<const BufferLayout*> DescriptorSetLayout::getLayouts(const BufferType& type) const
+{
+    return m_impl->getLayouts(type);
 }
 
 void DescriptorSetLayout::use(UniquePtr<BufferLayout> && layout)

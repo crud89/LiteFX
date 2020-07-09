@@ -175,6 +175,7 @@ namespace LiteFX::Rendering {
 
     public:
         virtual Array<const BufferLayout*> getLayouts() const = 0;
+        virtual Array<const BufferLayout*> getLayouts(const BufferType& type) const = 0;
         virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
         virtual UniquePtr<BufferLayout> remove(const BufferLayout* layout) = 0;
     };
@@ -265,6 +266,7 @@ namespace LiteFX::Rendering {
 
     public:
         virtual Array<const BufferLayout*> getLayouts() const override;
+        virtual Array<const BufferLayout*> getLayouts(const BufferType& type) const override;
         virtual void use(UniquePtr<BufferLayout>&& layout) override;
         virtual UniquePtr<BufferLayout> remove(const BufferLayout* layout) override;
     };
