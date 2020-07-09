@@ -7,21 +7,38 @@ public:
     friend class InputAssembler;
 
 private:
-    UniquePtr<BufferLayout> m_layout;
+    Array<UniquePtr<BufferLayout>> m_layouts;
     PrimitiveTopology m_topology = PrimitiveTopology::TriangleStrip;
 
 public: 
     InputAssemblerImpl(InputAssembler* parent) : base(parent) { }
 
 public:
-    const BufferLayout* getLayout() const
+    Array<const BufferLayout*> getLayouts() const
     {
-        return m_layout.get();
+        Array<const BufferLayout*> layouts(m_layouts.size());
+        std::generate(std::begin(layouts), std::end(layouts), [&, i = 0]() mutable { return m_layouts[i++].get(); });
+        return layouts;
     }
 
     void use(UniquePtr<BufferLayout>&& layout)
     {
-        m_layout = std::move(layout);
+        m_layouts.push_back(std::move(layout));
+    }
+
+    UniquePtr<BufferLayout> remove(const BufferLayout* layout)
+    {
+        auto it = std::find_if(m_layouts.begin(), m_layouts.end(), [layout](const UniquePtr<BufferLayout>& a) { return a.get() == layout; });
+
+        if (it == m_layouts.end())
+            return UniquePtr<BufferLayout>();
+        else
+        {
+            auto result = std::move(*it);
+            m_layouts.erase(it);
+
+            return std::move(result);
+        }
     }
 };
 
@@ -48,12 +65,17 @@ void InputAssembler::setTopology(const PrimitiveTopology& topology)
     m_impl->m_topology = topology;
 }
 
-const BufferLayout* InputAssembler::getLayout() const
+Array<const BufferLayout*> InputAssembler::getLayouts() const
 {
-    return m_impl->getLayout();
+    return m_impl->getLayouts();
 }
 
 void InputAssembler::use(UniquePtr<BufferLayout>&& layout)
 {
     m_impl->use(std::move(layout));
+}
+
+UniquePtr<BufferLayout> InputAssembler::remove(const BufferLayout* layout)
+{
+    return m_impl->remove(layout);
 }

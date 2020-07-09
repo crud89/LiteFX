@@ -116,7 +116,7 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;
         virtual void beginFrame() const = 0;
         virtual void endFrame() = 0;
-        virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
     };
 
@@ -167,20 +167,20 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    // TODO: Rename to IDescriptorSetLayout?
-    class LITEFX_RENDERING_API IDescriptorSet {
+    class LITEFX_RENDERING_API IDescriptorSetLayout {
     public:
-        virtual ~IDescriptorSet() noexcept = default;
+        virtual ~IDescriptorSetLayout() noexcept = default;
 
     public:
-        virtual const BufferLayout* getLayout() const = 0;
+        virtual Array<const BufferLayout*> getLayouts() const = 0;
         virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
+        virtual UniquePtr<BufferLayout> remove(const BufferLayout* layout) = 0;
     };
 
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IInputAssembler : public IDescriptorSet {
+    class LITEFX_RENDERING_API IInputAssembler : public IDescriptorSetLayout {
     public:
         virtual ~IInputAssembler() noexcept = default;
 
@@ -296,8 +296,9 @@ namespace LiteFX::Rendering {
     public:
         virtual const PrimitiveTopology getTopology() const noexcept override;
         virtual void setTopology(const PrimitiveTopology& topology) override;
-        virtual const BufferLayout* getLayout() const override;
+        virtual Array<const BufferLayout*> getLayouts() const override;
         virtual void use(UniquePtr<BufferLayout>&& layout) override;
+        virtual UniquePtr<BufferLayout> remove(const BufferLayout* layout) override;
     };
 
     /// <summary>
@@ -364,7 +365,7 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
         virtual void beginFrame() const override;
         virtual void endFrame() override;
-        virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements) const override;
+        virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
     };
 

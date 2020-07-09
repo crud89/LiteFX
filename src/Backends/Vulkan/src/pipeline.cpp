@@ -100,37 +100,41 @@ public:
 			inputAssembly.topology = getPrimitiveTopology(inputAssembler->getTopology());
 			inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-			auto vertexBufferLayout = inputAssembler->getLayout();
+			auto vertexBufferLayouts = inputAssembler->getLayouts();
+			bindings.resize(vertexBufferLayouts.size());
 
-			if (vertexBufferLayout != nullptr)
-			{
-				// TODO: Implement multiple bindings.
+			std::generate(std::begin(bindings), std::end(bindings), [&, i = 0]() mutable {
+				auto vertexBufferLayout = vertexBufferLayouts[i++];
 				auto bufferAttributes = vertexBufferLayout->getAttributes();
-				auto binding = vertexBufferLayout->getBinding();
+				auto bindingPoint = vertexBufferLayout->getBinding();
 
-				LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout with {0} attributes in {1} bytes per element...", bufferAttributes.size(), vertexBufferLayout->getElementSize());
+				LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} with {2} attributes in {3} bytes per element...", i, vertexBufferLayouts.size(), bufferAttributes.size(), vertexBufferLayout->getElementSize());
+				
+				VkVertexInputBindingDescription binding = {};
+				binding.binding = bindingPoint;
+				binding.stride = static_cast<UInt32>(vertexBufferLayout->getElementSize());
+				binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-				bindings.resize(1);
-				bindings[0].binding = binding;
-				bindings[0].stride = static_cast<UInt32>(vertexBufferLayout->getElementSize());
-				bindings[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+				Array<VkVertexInputAttributeDescription> currentAttributes(bufferAttributes.size());
 
-				attributes.resize(bufferAttributes.size());
-
-				std::generate(std::begin(attributes), std::end(attributes), [&, i = 0]() mutable {
+				std::generate(std::begin(currentAttributes), std::end(currentAttributes), [&, i = 0]() mutable {
 					auto attribute = bufferAttributes[i++];
 
-					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Binding: {2}, Location: {3}, Offset: {4}, Format: {5} }}", i, bufferAttributes.size(), binding, attribute->getLocation(), attribute->getOffset(), attribute->getFormat());
+					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Binding: {2}, Location: {3}, Offset: {4}, Format: {5} }}", i, bufferAttributes.size(), bindingPoint, attribute->getLocation(), attribute->getOffset(), attribute->getFormat());
 
 					VkVertexInputAttributeDescription descriptor{};
-					descriptor.binding = binding;
+					descriptor.binding = bindingPoint;
 					descriptor.location = attribute->getLocation();
 					descriptor.offset = attribute->getOffset();
 					descriptor.format = getFormat(attribute->getFormat());
 
 					return descriptor;
 				});
-			}
+
+				attributes.insert(std::end(attributes), std::begin(currentAttributes), std::end(currentAttributes));
+
+				return binding;
+			});
 		}
 		else
 		{
