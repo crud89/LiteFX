@@ -471,10 +471,10 @@ namespace LiteFX::Rendering {
         using builder_type::Builder;
 
     public:
-        virtual TDerived& withBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
+        virtual TDerived& addBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
         virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
         virtual void use(UniquePtr<BufferLayout>&& layout) {
-            this->withBufferLayout(std::move(layout));
+            this->addBufferLayout(std::move(layout));
         }
     };
 

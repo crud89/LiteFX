@@ -129,7 +129,7 @@ namespace LiteFX::Rendering::Backends {
 		using InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineLayoutBuilder>::InputAssemblerBuilder;
 
 	public:
-		virtual VulkanInputAssemblerBuilder& withBufferLayout(UniquePtr<BufferLayout>&& layout) override;
+		virtual VulkanInputAssemblerBuilder& addBufferLayout(UniquePtr<BufferLayout>&& layout) override;
 		virtual VulkanInputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
 	};
 
