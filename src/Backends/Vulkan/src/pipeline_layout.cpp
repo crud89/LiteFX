@@ -14,6 +14,7 @@ public:
 private:
     const VulkanDevice* m_device;
     Array<VkDescriptorSetLayout> m_descriptorSetLayouts;
+    Array<VkDescriptorSet> m_descriptorSets;
     VkDescriptorPool m_descriptorPool;
 
 public:
@@ -53,7 +54,7 @@ public:
             auto bindingPoint = uniformBufferLayout->getBinding();
             auto layoutSet = uniformBufferLayout->getSet();
 
-            LITEFX_TRACE(VULKAN_LOG, "Defining uniform buffer layout {0}/{1} {{ Size: {2} bytes, Binding point: {3}, Descriptor set: {4} }}...", ++i, uniformBufferLayouts.size(), uniformBufferLayout->getElementSize(), bindingPoint, layoutSet);
+            LITEFX_TRACE(VULKAN_LOG, "\tDefining uniform buffer layout {0}/{1} {{ Size: {2} bytes, Binding point: {3}, Descriptor set: {4} }}...", ++i, uniformBufferLayouts.size(), uniformBufferLayout->getElementSize(), bindingPoint, layoutSet);
 
             VkDescriptorSetLayoutBinding binding = {};
             binding.binding = bindingPoint;
@@ -69,7 +70,7 @@ public:
 
         // Create descriptor set layouts.
         std::for_each(std::begin(descriptorSetBindings), std::end(descriptorSetBindings), [&, i = 0](const auto& bindings) mutable {
-            LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set layout {0}/{1} {{ Bindings: {2} }}...", ++i, descriptorSetBindings.size(), bindings.second.size());
+            LITEFX_TRACE(VULKAN_LOG, "\tCreating descriptor set layout {0}/{1} {{ Bindings: {2} }}...", ++i, descriptorSetBindings.size(), bindings.second.size());
 
             VkDescriptorSetLayoutCreateInfo uniformBufferLayoutInfo{};
             uniformBufferLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -107,6 +108,12 @@ public:
         descriptorSetInfo.descriptorPool = m_descriptorPool;
         descriptorSetInfo.descriptorSetCount = m_descriptorSetLayouts.size();
         descriptorSetInfo.pSetLayouts = m_descriptorSetLayouts.data();
+
+        m_descriptorSets.resize(m_descriptorSetLayouts.size());
+        LITEFX_TRACE(VULKAN_LOG, "Allocating {0} descriptor sets...", m_descriptorSets.size());
+
+        if (::vkAllocateDescriptorSets(m_device->handle(), &descriptorSetInfo, m_descriptorSets.data()) != VK_SUCCESS)
+            throw std::runtime_error("Unable to allocate descriptor sets.");
 
         // Create the pipeline layout.
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};

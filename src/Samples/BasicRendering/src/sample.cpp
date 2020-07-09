@@ -1,6 +1,12 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+enum class DescriptorSets 
+{
+    PerFrame = 0,       // All buffers that are updated for each frame.
+    PerInstance = 1     // All buffers that are updated for each rendered instance.
+};
+
 const Array<Vertex> vertices =
 {
     { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f } },
@@ -45,9 +51,9 @@ void SampleApp::createPipeline()
                     .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
                     .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
                     .go()
-                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(CameraBuffer), 0, 0)
+                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(CameraBuffer), 0, DescriptorSets::PerFrame)
                     .go()
-                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 1, 1)
+                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 1, DescriptorSets::PerInstance)
                     .go()
                 .go()
             .go()
