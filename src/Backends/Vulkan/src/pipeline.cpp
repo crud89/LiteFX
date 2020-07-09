@@ -106,10 +106,12 @@ public:
 			{
 				// TODO: Implement multiple bindings.
 				auto bufferAttributes = vertexBufferLayout->getAttributes();
+				auto binding = vertexBufferLayout->getBinding();
+
 				LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout with {0} attributes in {1} bytes per element...", bufferAttributes.size(), vertexBufferLayout->getElementSize());
 
 				bindings.resize(1);
-				bindings[0].binding = 0;
+				bindings[0].binding = binding;
 				bindings[0].stride = static_cast<UInt32>(vertexBufferLayout->getElementSize());
 				bindings[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
@@ -118,10 +120,10 @@ public:
 				std::generate(std::begin(attributes), std::end(attributes), [&, i = 0]() mutable {
 					auto attribute = bufferAttributes[i++];
 
-					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Binding: {2}, Location: {3}, Offset: {4}, Format: {5} }}", i, bufferAttributes.size(), attribute->getBinding(), attribute->getLocation(), attribute->getOffset(), attribute->getFormat());
+					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Binding: {2}, Location: {3}, Offset: {4}, Format: {5} }}", i, bufferAttributes.size(), binding, attribute->getLocation(), attribute->getOffset(), attribute->getFormat());
 
 					VkVertexInputAttributeDescription descriptor{};
-					descriptor.binding = attribute->getBinding();
+					descriptor.binding = binding;
 					descriptor.location = attribute->getLocation();
 					descriptor.offset = attribute->getOffset();
 					descriptor.format = getFormat(attribute->getFormat());

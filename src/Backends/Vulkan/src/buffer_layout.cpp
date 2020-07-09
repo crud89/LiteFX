@@ -18,8 +18,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBufferLayout::VulkanBufferLayout(const VulkanInputAssembler& inputAssembler, const size_t& elementSize) :
-    m_impl(makePimpl<VulkanBufferLayoutImpl>(this)), BufferLayout(elementSize)
+VulkanBufferLayout::VulkanBufferLayout(const VulkanInputAssembler& inputAssembler, const size_t& elementSize, const UInt32& binding) :
+    m_impl(makePimpl<VulkanBufferLayoutImpl>(this)), BufferLayout(elementSize, binding)
 {
 }
 
@@ -37,10 +37,10 @@ VulkanBufferLayoutBuilder& VulkanBufferLayoutBuilder::addAttribute(UniquePtr<Buf
 
 VulkanBufferLayoutBuilder& VulkanBufferLayoutBuilder::addAttribute(const BufferFormat& format, const UInt32& offset)
 {
-    return this->addAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->getAttributes().size()), 0, offset, format)));
+    return this->addAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->getAttributes().size()), offset, format)));
 }
 
 VulkanBufferLayoutBuilder& VulkanBufferLayoutBuilder::addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset)
 {
-    return this->addAttribute(std::move(makeUnique<BufferAttribute>(location, 0, offset, format)));
+    return this->addAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format)));
 }

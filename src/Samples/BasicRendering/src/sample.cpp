@@ -10,6 +10,10 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 2, 1, 0, 3, 2, 0 };
 
+const struct TransformBuffer {
+    glm::mat4 WorldViewProjection;
+} transform;
+
 static void onResize(GLFWwindow* window, int width, int height)
 {
     auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
@@ -32,16 +36,17 @@ void SampleApp::createPipeline()
                 .go()
             .make<VulkanInputAssembler>()
                 .withTopology(PrimitiveTopology::TriangleList)
-                .make<VulkanBufferLayout>(sizeof(::Vertex))
+                .make<VulkanBufferLayout>(sizeof(::Vertex), 0)
                     .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
                     .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
                     .go()
                 .go()
+            //.make<VulkanDescriptorLayout>()
+            //    .go()
             .go()
         .make<VulkanShaderProgram>()
             .addVertexShaderModule("shaders/default.vert.spv")
             .addFragmentShaderModule("shaders/default.frag.spv")
-            //TODO: .make<VulkanDescriptorPool> ? (Collecting UBO layouts here)
             .go()
         .make<VulkanRenderPass>()
             .withColorTarget()

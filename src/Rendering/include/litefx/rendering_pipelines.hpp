@@ -15,14 +15,13 @@ namespace LiteFX::Rendering {
 
     public:
         BufferAttribute();
-        BufferAttribute(const UInt32& location, const UInt32& binding, const UInt32& offset, const BufferFormat& format);
+        BufferAttribute(const UInt32& location, const UInt32& offset, const BufferFormat& format);
         BufferAttribute(BufferAttribute&&) noexcept;
         BufferAttribute(const BufferAttribute&);
         virtual ~BufferAttribute() noexcept;
 
     public:
         virtual const UInt32& getLocation() const noexcept;
-        virtual const UInt32& getBinding() const noexcept;
         virtual const BufferFormat& getFormat() const noexcept;
         virtual const UInt32& getOffset() const noexcept;
     };
@@ -34,6 +33,7 @@ namespace LiteFX::Rendering {
     public:
         virtual Array<const BufferAttribute*> getAttributes() const noexcept = 0;
         virtual const size_t& getElementSize() const noexcept = 0;
+        virtual const UInt32& getBinding() const noexcept = 0;
     };
 
     /// <summary>
@@ -43,7 +43,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(BufferLayoutImpl);
 
     public:
-        BufferLayout(const size_t& elementSize);
+        BufferLayout(const size_t& elementSize, const UInt32& binding = 0);
         BufferLayout(BufferLayout&&) = delete;
         BufferLayout(const BufferLayout&) = delete;
         virtual ~BufferLayout() noexcept;
@@ -51,8 +51,11 @@ namespace LiteFX::Rendering {
     public:
         virtual void add(UniquePtr<BufferAttribute>&& attribute);
         virtual void remove(const BufferAttribute* attribute);
+
+    public:
         virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
         virtual const size_t& getElementSize() const noexcept override;
+        virtual const UInt32& getBinding() const noexcept override;
     };
 
     /// <summary>
