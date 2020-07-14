@@ -19,7 +19,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBufferLayout::VulkanBufferLayout(const VulkanBufferSet& bufferSet, const BufferType& type, const size_t& elementSize, const UInt32& binding) :
-    m_impl(makePimpl<VulkanBufferLayoutImpl>(this)), BufferLayout(type, elementSize, binding), RuntimeObject(bufferSet.getDevice())
+    m_impl(makePimpl<VulkanBufferLayoutImpl>(this)), BufferLayout(type, elementSize, binding), VulkanRuntimeObject(bufferSet.getDevice())
 {
 }
 

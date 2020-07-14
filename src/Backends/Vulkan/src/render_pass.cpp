@@ -276,7 +276,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::VulkanRenderPass(const VulkanRenderPipeline& pipeline) :
-    IResource<VkRenderPass>(nullptr), RuntimeObject(pipeline.getDevice()), m_impl(makePimpl<VulkanRenderPassImpl>(this, pipeline))
+    IResource<VkRenderPass>(nullptr), VulkanRuntimeObject(pipeline.getDevice()), m_impl(makePimpl<VulkanRenderPassImpl>(this, pipeline))
 {
 }
 

@@ -264,12 +264,12 @@ public:
 VulkanRenderPipeline::VulkanRenderPipeline(const IGraphicsDevice* device) : VulkanRenderPipeline(dynamic_cast<const VulkanDevice*>(device)) { }
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanDevice* device) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), RuntimeObject(device), RenderPipeline(device), IResource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject(device), RenderPipeline(device), IResource<VkPipeline>(nullptr)
 {
 }
 
 VulkanRenderPipeline::VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout, const VulkanDevice* device) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), RuntimeObject(device), RenderPipeline(device, std::move(layout)), IResource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject(device), RenderPipeline(device, std::move(layout)), IResource<VkPipeline>(nullptr)
 {
 	this->create();
 }

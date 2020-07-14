@@ -89,7 +89,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBufferSet::VulkanBufferSet(const VulkanInputAssembler& inputAssembler, const BufferSetType& type, const UInt32& id) :
-    m_impl(makePimpl<VulkanBufferSetImpl>(this)), RuntimeObject(inputAssembler.getDevice()), BufferSet(type, id), IResource<VkDescriptorSetLayout>(nullptr)
+    m_impl(makePimpl<VulkanBufferSetImpl>(this)), VulkanRuntimeObject(inputAssembler.getDevice()), BufferSet(type, id), IResource<VkDescriptorSetLayout>(nullptr)
 {
 }
 

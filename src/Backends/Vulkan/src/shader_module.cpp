@@ -57,7 +57,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint) :
-	IResource(nullptr), RuntimeObject(device), m_impl(makePimpl<VulkanShaderModuleImpl>(this, type, fileName, entryPoint))
+	IResource(nullptr), VulkanRuntimeObject(device), m_impl(makePimpl<VulkanShaderModuleImpl>(this, type, fileName, entryPoint))
 {
 	this->handle() = m_impl->initialize();
 }

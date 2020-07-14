@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 VulkanInputAssembler::VulkanInputAssembler(const VulkanRenderPipelineLayout& layout) noexcept :
-    InputAssembler(), RuntimeObject(layout.getDevice())
+    InputAssembler(), VulkanRuntimeObject(layout.getDevice())
 {
 }
 

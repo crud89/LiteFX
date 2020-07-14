@@ -51,7 +51,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipeline& pipeline) :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), RuntimeObject(pipeline.getDevice())
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject(pipeline.getDevice())
 {
 }
 

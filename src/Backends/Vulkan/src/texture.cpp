@@ -36,7 +36,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size) :
-	IResource(image), RuntimeObject(device), m_impl(makePimpl<VulkanTextureImpl>(this, format, size))
+	IResource(image), VulkanRuntimeObject(device), m_impl(makePimpl<VulkanTextureImpl>(this, format, size))
 {
 	if (image == nullptr)
 		throw std::invalid_argument("The argument `image` is not initialized.");

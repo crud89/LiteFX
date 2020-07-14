@@ -194,7 +194,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& format) :
-	m_impl(makePimpl<VulkanSwapChainImpl>(this)), RuntimeObject(device), IResource(nullptr)
+	m_impl(makePimpl<VulkanSwapChainImpl>(this)), VulkanRuntimeObject(device), IResource(nullptr)
 {
 	this->handle() = m_impl->initialize(format);
 }

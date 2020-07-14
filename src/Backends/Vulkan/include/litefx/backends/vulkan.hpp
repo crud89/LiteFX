@@ -11,18 +11,18 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
-	class LITEFX_VULKAN_API RuntimeObject {
+	class LITEFX_VULKAN_API VulkanRuntimeObject {
 	private:
 		const VulkanDevice* m_device;
 
 	public:
-		RuntimeObject(const VulkanDevice* device) : m_device(device) {
+		VulkanRuntimeObject(const VulkanDevice* device) : m_device(device) {
 			if (device == nullptr)
 				throw std::invalid_argument("The device must be initialized.");
 		}
-		RuntimeObject(RuntimeObject&&) = delete;
-		RuntimeObject(const RuntimeObject&) = delete;
-		virtual ~RuntimeObject() noexcept = default;
+		VulkanRuntimeObject(VulkanRuntimeObject&&) = delete;
+		VulkanRuntimeObject(const VulkanRuntimeObject&) = delete;
+		virtual ~VulkanRuntimeObject() noexcept = default;
 
 	public:
 		virtual const VulkanDevice* getDevice() const noexcept { return m_device; }
@@ -37,7 +37,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanBuffer() noexcept = default;
 	};
 
-	class LITEFX_VULKAN_API VulkanBufferPool : public RuntimeObject, public IBufferPool, public IResource<VkDescriptorPool> {
+	class LITEFX_VULKAN_API VulkanBufferPool : public VulkanRuntimeObject, public IBufferPool, public IResource<VkDescriptorPool> {
 		LITEFX_IMPLEMENTATION(VulkanBufferPoolImpl);
 
 	public:
@@ -53,7 +53,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBufferLayout : public RuntimeObject, public BufferLayout {
+	class LITEFX_VULKAN_API VulkanBufferLayout : public VulkanRuntimeObject, public BufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanBufferLayoutImpl);
 		LITEFX_BUILDER(VulkanBufferLayoutBuilder);
 
@@ -67,7 +67,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBufferSet : public RuntimeObject, public BufferSet, public IResource<VkDescriptorSetLayout> {
+	class LITEFX_VULKAN_API VulkanBufferSet : public VulkanRuntimeObject, public BufferSet, public IResource<VkDescriptorSetLayout> {
 		LITEFX_IMPLEMENTATION(VulkanBufferSetImpl);
 		LITEFX_BUILDER(VulkanBufferSetBuilder);
 
@@ -106,7 +106,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPass : public RuntimeObject, public IRenderPass, public IResource<VkRenderPass> {
+	class LITEFX_VULKAN_API VulkanRenderPass : public VulkanRuntimeObject, public IRenderPass, public IResource<VkRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
@@ -135,7 +135,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanInputAssembler : public RuntimeObject, public InputAssembler {
+	class LITEFX_VULKAN_API VulkanInputAssembler : public VulkanRuntimeObject, public InputAssembler {
 		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
 	public:
@@ -148,7 +148,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanViewport : public RuntimeObject, public Viewport {
+	class LITEFX_VULKAN_API VulkanViewport : public VulkanRuntimeObject, public Viewport {
 		LITEFX_BUILDER(VulkanViewportBuilder);
 
 	public:
@@ -161,7 +161,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRasterizer : public RuntimeObject, public Rasterizer {
+	class LITEFX_VULKAN_API VulkanRasterizer : public VulkanRuntimeObject, public Rasterizer {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
 	public:
@@ -174,7 +174,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public RuntimeObject, public RenderPipelineLayout, public IResource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public VulkanRuntimeObject, public RenderPipelineLayout, public IResource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 
@@ -192,7 +192,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public RuntimeObject, public RenderPipeline, public IResource<VkPipeline> {
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public VulkanRuntimeObject, public RenderPipeline, public IResource<VkPipeline> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -211,7 +211,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanShaderModule : public RuntimeObject, public IShaderModule, public IResource<VkShaderModule> {
+	class LITEFX_VULKAN_API VulkanShaderModule : public VulkanRuntimeObject, public IShaderModule, public IResource<VkShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
 	public:
@@ -230,7 +230,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanShaderProgram : public RuntimeObject, public IShaderProgram {
+	class LITEFX_VULKAN_API VulkanShaderProgram : public VulkanRuntimeObject, public IShaderProgram {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
 		LITEFX_BUILDER(VulkanShaderProgramBuilder);
 
@@ -249,7 +249,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanTexture : public RuntimeObject, public ITexture, public IResource<VkImage> {
+	class LITEFX_VULKAN_API VulkanTexture : public VulkanRuntimeObject, public ITexture, public IResource<VkImage> {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
@@ -268,7 +268,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSwapChain : public RuntimeObject, public ISwapChain, public IResource<VkSwapchainKHR> {
+	class LITEFX_VULKAN_API VulkanSwapChain : public VulkanRuntimeObject, public ISwapChain, public IResource<VkSwapchainKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
