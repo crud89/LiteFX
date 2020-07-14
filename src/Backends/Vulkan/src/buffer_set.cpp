@@ -97,9 +97,7 @@ VulkanBufferSet::~VulkanBufferSet() noexcept = default;
 
 void VulkanBufferSet::create()
 {
-    auto& h = this->handle();
-
-    if (h != nullptr)
+    if (this->handle() != nullptr)
         throw std::runtime_error("The buffer set can only created once.");
 
     this->handle() = m_impl->initialize();

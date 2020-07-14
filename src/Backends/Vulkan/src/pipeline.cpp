@@ -278,12 +278,10 @@ VulkanRenderPipeline::~VulkanRenderPipeline() noexcept = default;
 
 void VulkanRenderPipeline::create()
 {
-	auto& h = this->handle();
+    if (this->handle() != nullptr)
+        throw std::runtime_error("The render pipeline can only created once.");
 
-	if (h != nullptr)
-		throw std::runtime_error("The render pipeline can only be created once.");
-
-	h = m_impl->initialize();
+    this->handle() = m_impl->initialize();
 }
 
 // ------------------------------------------------------------------------------------------------

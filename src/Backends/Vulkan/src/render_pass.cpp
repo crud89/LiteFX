@@ -304,6 +304,9 @@ UniquePtr<IRenderTarget> VulkanRenderPass::removeTarget(const IRenderTarget* tar
 
 void VulkanRenderPass::create()
 {
+    if (this->handle() != nullptr)
+        throw std::runtime_error("The render pass can only created once.");
+
     this->handle() = m_impl->initialize();
 }
 

@@ -10,12 +10,8 @@ class VulkanRenderPipelineLayout::VulkanRenderPipelineLayoutImpl : public Implem
 public:
     friend class VulkanRenderPipelineLayout;
 
-private:
-    const VulkanDevice* m_device;
-
 public:
-    VulkanRenderPipelineLayoutImpl(VulkanRenderPipelineLayout* parent, const VulkanDevice* device) :
-        base(parent), m_device(device) { }
+    VulkanRenderPipelineLayoutImpl(VulkanRenderPipelineLayout* parent) : base(parent) { }
 
 public:
     VkPipelineLayout initialize()
@@ -25,7 +21,17 @@ public:
         if (inputAssembler == nullptr)
             throw std::runtime_error("The input assembler must be initialized.");
 
-        LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0}...", fmt::ptr(m_parent));
+        Array<VkDescriptorSetLayout> descriptorSetLayouts;
+        auto bufferSets = inputAssembler->getBufferSets();
+
+        std::for_each(std::begin(bufferSets), std::end(bufferSets), [&](const IBufferSet* bufferSet) { 
+            auto descriptorSetLayout = dynamic_cast<const VulkanBufferSet*>(bufferSet);
+
+            if (descriptorSetLayout != nullptr && descriptorSetLayout->handle() != nullptr)
+                descriptorSetLayouts.push_back(descriptorSetLayout->handle());
+        });
+
+        LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Sets: {1} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size());
 
         // TODO: Create a pool per "component" (i.e. camera or mesh) and pass the proper layout(s) to it.
         // NOTE: One object can contain multiple mesh components, that use different pipelines with different layouts.
@@ -62,21 +68,19 @@ public:
         //if (::vkAllocateDescriptorSets(m_device->handle(), &descriptorSetInfo, m_descriptorSets.data()) != VK_SUCCESS)
         //    throw std::runtime_error("Unable to allocate descriptor sets.");
 
+        // Create the pipeline layout.
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = descriptorSetLayouts.size();
+        pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
+        pipelineLayoutInfo.pushConstantRangeCount = 0;
 
-        throw;
-        //// Create the pipeline layout.
-        //VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-        //pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        //pipelineLayoutInfo.setLayoutCount = m_descriptorSetLayouts.size();
-        //pipelineLayoutInfo.pSetLayouts = m_descriptorSetLayouts.data();
-        //pipelineLayoutInfo.pushConstantRangeCount = 0;
+        VkPipelineLayout layout;
 
-        //VkPipelineLayout layout;
+        if (::vkCreatePipelineLayout(m_parent->getDevice()->handle(), &pipelineLayoutInfo, nullptr, &layout) != VK_SUCCESS)
+            throw std::runtime_error("Unable to create pipeline layout.");
 
-        //if (::vkCreatePipelineLayout(m_device->handle(), &pipelineLayoutInfo, nullptr, &layout) != VK_SUCCESS)
-        //    throw std::runtime_error("Unable to create pipeline layout.");
-
-        //return layout;
+        return layout;
     }
 };
 
@@ -87,12 +91,7 @@ public:
 VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) :
     RenderPipelineLayout(), RuntimeObject(pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr)
 {
-    auto device = dynamic_cast<const VulkanDevice*>(pipeline.getDevice());
-
-    if (device == nullptr)
-        throw std::invalid_argument("The pipeline is not bound to a valid Vulkan device.");
-
-    m_impl = makePimpl<VulkanRenderPipelineLayoutImpl>(this, device);
+    m_impl = makePimpl<VulkanRenderPipelineLayoutImpl>(this);
 }
 
 VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, const VulkanBufferLayout& bufferLayout) :
@@ -105,6 +104,9 @@ VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept = default;
 
 void VulkanRenderPipelineLayout::create() 
 {
+    if (this->handle() != nullptr)
+        throw std::runtime_error("The render pipeline layout can only created once.");
+
     this->handle() = m_impl->initialize();
 }
 
