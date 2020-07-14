@@ -30,7 +30,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBufferPool::VulkanBufferPool(const VulkanBufferSet& bufferSet) :
-    m_impl(makePimpl<VulkanBufferPoolImpl>(this)), VulkanRuntimeObject(bufferSet.getDevice()), IResource<VkDescriptorSetLayout>(nullptr)
+    m_impl(makePimpl<VulkanBufferPoolImpl>(this)), VulkanRuntimeObject(bufferSet.getDevice()), IResource<VkDescriptorPool>(nullptr)
 {
     this->handle() = m_impl->initialize(bufferSet);
 }
