@@ -79,7 +79,6 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual void create();
-		virtual Array<VkDescriptorSetLayout> getDescriptorSetLayouts() const noexcept;
 	};
 
 	/// <summary>
