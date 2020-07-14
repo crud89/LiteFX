@@ -68,7 +68,7 @@ public:
             bindings.push_back(binding);
         });
 
-        LITEFX_TRACE(VULKAN_LOG, "Creating buffer set {0} with {1} bindings {{ Uniform: {2}, Storage: {3}, Sampler: {4} }}...", m_parent->getSetId(), layouts.size(), 0, 0, 0);
+        LITEFX_TRACE(VULKAN_LOG, "Creating buffer set {0} with {1} bindings {{ Uniform: {2}, Storage: {3}, Sampler: {4} }}...", m_parent->getSetId(), layouts.size(), poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount);
 
         VkDescriptorSetLayoutCreateInfo uniformBufferLayoutInfo{};
         uniformBufferLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
