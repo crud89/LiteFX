@@ -37,6 +37,19 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanBuffer() noexcept = default;
 	};
 
+	class LITEFX_VULKAN_API VulkanBufferPool : public RuntimeObject, public IBufferPool, public IResource<VkDescriptorPool> {
+		LITEFX_IMPLEMENTATION(VulkanBufferPoolImpl);
+
+	public:
+		VulkanBufferPool(const VulkanBufferSet& bufferSet);
+		VulkanBufferPool(VulkanBufferPool&&) = delete;
+		VulkanBufferPool(const VulkanBufferPool&) = delete;
+		virtual ~VulkanBufferPool() noexcept;
+
+	public:
+		virtual IBuffer* getBuffer(const UInt32& binding) const noexcept override;
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>
@@ -66,6 +79,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual void create();
+		virtual Array<VkDescriptorSetLayout> getDescriptorSetLayouts() const noexcept;
 	};
 
 	/// <summary>

@@ -140,6 +140,14 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
+    class LITEFX_RENDERING_API IBufferPool {
+    public:
+        virtual IBuffer* getBuffer(const UInt32& binding) const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
     class LITEFX_RENDERING_API IRenderPipeline {
     public:
         virtual ~IRenderPipeline() noexcept = default;

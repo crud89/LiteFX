@@ -48,6 +48,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/command_buffer.cpp"
     "src/buffer_set.cpp"
     "src/buffer_layout.cpp"
+    "src/buffer_pool.cpp"
     "src/buffer.cpp"
 )
 
