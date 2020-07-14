@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 VulkanViewport::VulkanViewport(const VulkanRenderPipelineLayout& layout) noexcept :
-    Viewport()
+    Viewport(), RuntimeObject(layout.getDevice())
 {
 }
 

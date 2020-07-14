@@ -54,8 +54,8 @@ public:
 
         // If a transfer queue is requested, look up for a queue that is explicitly *NOT* a graphics queue (since each queue implicitly supports transfer).
         match = type == QueueType::Transfer ?
-            std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return (queue->getType() & QueueType::Graphics) == QueueType::None && (queue->getType() & type) == type; }) :
-            std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return (queue->getType() & type) == type; });
+            std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return queue->getDevice() == nullptr && (queue->getType() & QueueType::Graphics) == QueueType::None && (queue->getType() & type) == type; }) :
+            std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return queue->getDevice() == nullptr && (queue->getType() & type) == type; });
 
         return match == m_queues.end() ? nullptr : match->get();
     }
@@ -66,7 +66,7 @@ public:
             throw std::invalid_argument("The argument `surface` is not initialized.");
 
         auto match = std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable {
-            if ((queue->getType() & type) != type)
+            if (queue->getDevice() != nullptr && (queue->getType() & type) != type)
                 return false;
 
             VkBool32 canPresent = VK_FALSE;

@@ -12,14 +12,12 @@ public:
 
 private:
 	Array<UniquePtr<ITexture>> m_frames;
-	const VulkanDevice* m_device;
 	Size2d m_size { };
 	Format m_format{ Format::None };
 	VkSemaphore m_swapSemaphore;
 
 public:
-	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice* device) :
-		base(parent), m_device(device) { }
+	VulkanSwapChainImpl(VulkanSwapChain* parent) : base(parent) { }
 	
 	~VulkanSwapChainImpl()
 	{
@@ -33,24 +31,24 @@ private:
 		m_frames.clear();
 
 		// Destroy the swap chain itself.
-		::vkDestroySwapchainKHR(m_device->handle(), m_parent->handle(), nullptr);
+		::vkDestroySwapchainKHR(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
 
 		// Destroy the image swap semaphore.
-		::vkDestroySemaphore(m_device->handle(), m_swapSemaphore, nullptr);
+		::vkDestroySemaphore(m_parent->getDevice()->handle(), m_swapSemaphore, nullptr);
 	}
 
 private:
 	void loadImages(const VkSwapchainKHR& swapChain, const Format& format, const VkExtent2D& extent)
 	{
 		uint32_t images;
-		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, nullptr);
+		::vkGetSwapchainImagesKHR(m_parent->getDevice()->handle(), swapChain, &images, nullptr);
 
 		Array<VkImage> imageChain(images);
 		Array<UniquePtr<ITexture>> textures(images);
 
-		::vkGetSwapchainImagesKHR(m_device->handle(), swapChain, &images, imageChain.data());
+		::vkGetSwapchainImagesKHR(m_parent->getDevice()->handle(), swapChain, &images, imageChain.data());
 		std::generate(textures.begin(), textures.end(), [&, i = 0]() mutable { 
-			return m_device->makeTexture2d(imageChain[i++], format, Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height)));
+			return m_parent->getDevice()->makeTexture2d(imageChain[i++], format, Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height)));
 		});
 
 		m_frames = std::move(textures);
@@ -61,13 +59,13 @@ private:
 private:
 	VkSurfaceKHR getSurface() const noexcept
 	{
-		auto surface = dynamic_cast<const VulkanSurface*>(m_device->getBackend()->getSurface());
+		auto surface = dynamic_cast<const VulkanSurface*>(m_parent->getDevice()->getBackend()->getSurface());
 		return surface ? surface->handle() : nullptr;
 	}
 
 	VkPhysicalDevice getAdapter() const noexcept
 	{
-		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_device->getBackend()->getAdapter());
+		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_parent->getDevice()->getBackend()->getAdapter());
 		return adapter ? adapter->handle() : nullptr;
 	}
 
@@ -103,7 +101,7 @@ public:
 			throw std::runtime_error("The surface is not a valid Vulkan surface.");
 
 		// Query swap chain format.
-		auto surfaceFormats = m_device->getSurfaceFormats();
+		auto surfaceFormats = m_parent->getDevice()->getSurfaceFormats();
 		auto selectedFormat = std::find_if(surfaceFormats.begin(), surfaceFormats.end(), [format](const Format& surfaceFormat) { return surfaceFormat == format; });
 
 		if (selectedFormat == surfaceFormats.end())
@@ -144,12 +142,12 @@ public:
 		// -VK_PRESENT_MODE_MAILBOX_KHR: to enable triple buffering
 		createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 
-		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height);
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_parent->getDevice()), images, createInfo.imageExtent.width, createInfo.imageExtent.height);
 
 		// Create the swap chain instance.
 		VkSwapchainKHR swapChain;
 
-		if (::vkCreateSwapchainKHR(m_device->handle(), &createInfo, nullptr, &swapChain) != VK_SUCCESS)
+		if (::vkCreateSwapchainKHR(m_parent->getDevice()->handle(), &createInfo, nullptr, &swapChain) != VK_SUCCESS)
 			throw std::runtime_error("Swap chain could not be created.");
 
 		this->loadImages(swapChain, format, deviceCaps.currentExtent);
@@ -158,7 +156,7 @@ public:
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-		if (::vkCreateSemaphore(m_device->handle(), &semaphoreInfo, nullptr, &m_swapSemaphore) != VK_SUCCESS)
+		if (::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &m_swapSemaphore) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create swap semaphore.");
 
 		return swapChain;
@@ -175,7 +173,7 @@ public:
 	{
 		UInt32 imageIndex;
 
-		if (::vkAcquireNextImageKHR(m_device->handle(), m_parent->handle(), UINT64_MAX, m_swapSemaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		if (::vkAcquireNextImageKHR(m_parent->getDevice()->handle(), m_parent->handle(), UINT64_MAX, m_swapSemaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 			throw std::runtime_error("Unable to swap front buffer.");
 
 		return imageIndex;
@@ -196,20 +194,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& format) :
-	m_impl(makePimpl<VulkanSwapChainImpl>(this, device)), IResource(nullptr)
+	m_impl(makePimpl<VulkanSwapChainImpl>(this)), RuntimeObject(device), IResource(nullptr)
 {
-	if (device == nullptr)
-		throw std::invalid_argument("The argument `device` must be initialized.");
-
 	this->handle() = m_impl->initialize(format);
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;
-
-const IGraphicsDevice* VulkanSwapChain::getDevice() const noexcept
-{
-	return m_impl->m_device;
-}
 
 const Size2d& VulkanSwapChain::getBufferSize() const noexcept
 {

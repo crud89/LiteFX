@@ -30,7 +30,8 @@ namespace LiteFX::Rendering::Backends {
 
 	class LITEFX_VULKAN_API VulkanBuffer : public Buffer, public IResource<VkBuffer> {
 	public:
-		VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize) : Buffer(type, elements, elementSize), IResource(buffer) { }
+		VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize) : 
+			Buffer(type, elements, elementSize), IResource(buffer) { }
 		VulkanBuffer(VulkanBuffer&&) = delete;
 		VulkanBuffer(const VulkanBuffer&) = delete;
 		virtual ~VulkanBuffer() noexcept = default;
@@ -39,7 +40,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBufferLayout : public BufferLayout {
+	class LITEFX_VULKAN_API VulkanBufferLayout : public RuntimeObject, public BufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanBufferLayoutImpl);
 		LITEFX_BUILDER(VulkanBufferLayoutBuilder);
 
@@ -91,7 +92,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPass : public IRenderPass, public IResource<VkRenderPass> {
+	class LITEFX_VULKAN_API VulkanRenderPass : public RuntimeObject, public IRenderPass, public IResource<VkRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
@@ -133,7 +134,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanViewport : public Viewport {
+	class LITEFX_VULKAN_API VulkanViewport : public RuntimeObject, public Viewport {
 		LITEFX_BUILDER(VulkanViewportBuilder);
 
 	public:
@@ -146,7 +147,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRasterizer : public Rasterizer {
+	class LITEFX_VULKAN_API VulkanRasterizer : public RuntimeObject, public Rasterizer {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
 	public:
@@ -196,7 +197,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanShaderModule : public IShaderModule, public IResource<VkShaderModule> {
+	class LITEFX_VULKAN_API VulkanShaderModule : public RuntimeObject, public IShaderModule, public IResource<VkShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
 	public:
@@ -204,7 +205,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanShaderModule() noexcept;
 
 	public:
-		virtual const IGraphicsDevice* getDevice() const noexcept override;
 		virtual const String& getFileName() const noexcept override;
 		virtual const String& getEntryPoint() const noexcept override;
 		virtual const ShaderType& getType() const noexcept override;
@@ -216,7 +216,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanShaderProgram : public IShaderProgram {
+	class LITEFX_VULKAN_API VulkanShaderProgram : public RuntimeObject, public IShaderProgram {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
 		LITEFX_BUILDER(VulkanShaderProgramBuilder);
 
@@ -230,13 +230,12 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<const IShaderModule*> getModules() const noexcept override;
 		virtual void use(UniquePtr<IShaderModule>&& module) override;
 		virtual UniquePtr<IShaderModule> remove(const IShaderModule* module) override;
-		virtual const VulkanDevice* getDevice() const noexcept;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanTexture : public ITexture, public IResource<VkImage> {
+	class LITEFX_VULKAN_API VulkanTexture : public RuntimeObject, public ITexture, public IResource<VkImage> {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
@@ -255,7 +254,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSwapChain : public ISwapChain, public IResource<VkSwapchainKHR> {
+	class LITEFX_VULKAN_API VulkanSwapChain : public RuntimeObject, public ISwapChain, public IResource<VkSwapchainKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
@@ -263,7 +262,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanSwapChain() noexcept;
 
 	public:
-		virtual const IGraphicsDevice* getDevice() const noexcept override;
 		virtual const Size2d& getBufferSize() const noexcept override;
 		virtual size_t getWidth() const noexcept override;
 		virtual size_t getHeight() const noexcept override;

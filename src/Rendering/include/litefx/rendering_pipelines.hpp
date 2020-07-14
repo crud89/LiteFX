@@ -183,7 +183,6 @@ namespace LiteFX::Rendering {
         virtual ~IShaderModule() noexcept = default;
 
     public:
-        virtual const IGraphicsDevice* getDevice() const noexcept = 0;
         virtual const ShaderType& getType() const noexcept = 0;
         virtual const String& getFileName() const noexcept = 0;
         virtual const String& getEntryPoint() const noexcept = 0;

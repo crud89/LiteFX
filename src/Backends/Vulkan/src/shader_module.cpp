@@ -13,13 +13,12 @@ public:
 	friend class VulkanShaderModule;
 
 private:
-	const VulkanDevice* m_device;
 	ShaderType m_type;
 	String m_fileName, m_entryPoint;
 
 public:
-	VulkanShaderModuleImpl(VulkanShaderModule* parent, const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint) :
-		base(parent), m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) { }
+	VulkanShaderModuleImpl(VulkanShaderModule* parent, const ShaderType& type, const String& fileName, const String& entryPoint) :
+		base(parent), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) { }
 
 private:
 	String readFileContents(const String& fileName) {
@@ -46,7 +45,7 @@ public:
 
 		VkShaderModule module;
 
-		if (::vkCreateShaderModule(m_device->handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
+		if (::vkCreateShaderModule(m_parent->getDevice()->handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
 			throw std::runtime_error("Unable to compile shader file.");
 
 		return module;
@@ -58,20 +57,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint) :
-	IResource(nullptr), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, fileName, entryPoint))
+	IResource(nullptr), RuntimeObject(device), m_impl(makePimpl<VulkanShaderModuleImpl>(this, type, fileName, entryPoint))
 {
-	if (device == nullptr)
-		throw std::invalid_argument("The argument `device` must be initialized.");
-
 	this->handle() = m_impl->initialize();
 }
 
 VulkanShaderModule::~VulkanShaderModule() noexcept = default;
-
-const IGraphicsDevice* VulkanShaderModule::getDevice() const noexcept
-{
-	return m_impl->m_device;
-}
 
 const ShaderType& VulkanShaderModule::getType() const noexcept
 {

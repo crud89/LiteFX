@@ -11,12 +11,10 @@ public:
     friend class VulkanShaderProgram;
 
 private:
-    const VulkanDevice* m_device;
     Array<UniquePtr<IShaderModule>> m_modules;
 
 public:
-    VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice* device) :
-        base(parent), m_device(device) { }
+    VulkanShaderProgramImpl(VulkanShaderProgram* parent) : base(parent) { }
 
 public:
     void addShader(UniquePtr<IShaderModule>&& module)
@@ -52,14 +50,9 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipeline& pipeline)
+VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipeline& pipeline) :
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), RuntimeObject(pipeline.getDevice())
 {
-    auto device = dynamic_cast<const VulkanDevice*>(pipeline.getDevice());
-    
-    if (device == nullptr)
-        throw std::invalid_argument("The pipeline device is not a valid Vulkan device.");
-
-    m_impl = makePimpl<VulkanShaderProgramImpl>(this, device);
 }
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
@@ -80,11 +73,6 @@ void VulkanShaderProgram::use(UniquePtr<IShaderModule>&& module)
 UniquePtr<IShaderModule> VulkanShaderProgram::remove(const IShaderModule* module)
 {
     return m_impl->removeShader(module);
-}
-
-const VulkanDevice* VulkanShaderProgram::getDevice() const noexcept
-{
-    return m_impl->m_device;
 }
 
 // ------------------------------------------------------------------------------------------------

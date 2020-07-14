@@ -21,11 +21,8 @@ public:
 private:
 	void cleanup()
 	{
-		// Get the device.
-		auto device = m_parent->getDevice();
-
 		// Destroy the pipeline.
-		::vkDestroyPipeline(device->handle(), m_parent->handle(), nullptr);
+		::vkDestroyPipeline(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
 	}
 
 public:
