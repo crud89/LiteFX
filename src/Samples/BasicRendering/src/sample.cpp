@@ -1,7 +1,7 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-enum class DescriptorSets 
+enum DescriptorSets : UInt32
 {
     PerFrame = 0,       // All buffers that are updated for each frame.
     PerInstance = 1     // All buffers that are updated for each rendered instance.
@@ -47,13 +47,19 @@ void SampleApp::createPipeline()
                 .go()
             .make<VulkanInputAssembler>()
                 .withTopology(PrimitiveTopology::TriangleList)
-                .make<VulkanBufferLayout>(BufferType::Vertex, sizeof(Vertex), 0)
-                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                .make<VulkanBufferSet>(BufferSetType::VertexData)
+                    .make<VulkanBufferLayout>(BufferType::Vertex, sizeof(Vertex), 0)
+                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                        .go()
                     .go()
-                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(CameraBuffer), 0, DescriptorSets::PerFrame)
+                .make<VulkanBufferSet>(BufferSetType::Resource, DescriptorSets::PerFrame)
+                    .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(CameraBuffer), 0)
+                        .go()
                     .go()
-                .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 1, DescriptorSets::PerInstance)
+                .make<VulkanBufferSet>(BufferSetType::Resource, DescriptorSets::PerInstance)
+                    .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 1)
+                        .go()
                     .go()
                 .go()
             .go()

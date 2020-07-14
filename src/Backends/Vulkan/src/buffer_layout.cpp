@@ -18,8 +18,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBufferLayout::VulkanBufferLayout(const VulkanInputAssembler& inputAssembler, const BufferType& type, const size_t& elementSize, const UInt32& binding, const UInt32& set) :
-    m_impl(makePimpl<VulkanBufferLayoutImpl>(this)), BufferLayout(type, elementSize, binding, set)
+VulkanBufferLayout::VulkanBufferLayout(const VulkanBufferSet& bufferSet, const BufferType& type, const size_t& elementSize, const UInt32& binding) :
+    m_impl(makePimpl<VulkanBufferLayoutImpl>(this)), BufferLayout(type, elementSize, binding)
 {
 }
 

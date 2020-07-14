@@ -31,13 +31,13 @@ SET(RENDERING_SOURCES
     "src/device.cpp"
     "src/buffer_attribute.cpp"
     "src/buffer_layout.cpp"
+    "src/buffer_set.cpp"
     "src/pipeline.cpp"
     "src/pipeline_layout.cpp"
     "src/input_assembler.cpp"
     "src/rasterizer.cpp"
     "src/viewport.cpp"
     "src/render_target.cpp"
-    "src/descriptor_layout.cpp"
 )
 
 # Add shared library project.

@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 VulkanInputAssembler::VulkanInputAssembler(const VulkanRenderPipelineLayout& layout) noexcept :
-    InputAssembler()
+    InputAssembler(), RuntimeObject(layout.getDevice())
 {
 }
 
@@ -17,9 +17,9 @@ VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::addBufferLayout(UniquePtr<BufferLayout>&& layout)
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::addBufferSet(UniquePtr<IBufferSet>&& set)
 {
-    this->instance()->use(std::move(layout));
+    this->instance()->use(std::move(set));
     return *this;
 }
 

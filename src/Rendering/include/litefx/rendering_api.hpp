@@ -42,6 +42,7 @@ namespace LiteFX::Rendering {
 	class IRenderTarget;
 	class IBuffer;
 	class IBufferLayout;
+	class IBufferSet;
 
 	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {
@@ -92,6 +93,11 @@ namespace LiteFX::Rendering {
 		XYZW32F = 0x20000104,
 		XYZW32I = 0x20000204,
 		XYZW32U = 0x20000404
+	};
+
+	enum class LITEFX_RENDERING_API BufferSetType {
+		VertexData = 0x00000001,
+		Resource = 0x00000002
 	};
 
 	enum class LITEFX_RENDERING_API BufferType {

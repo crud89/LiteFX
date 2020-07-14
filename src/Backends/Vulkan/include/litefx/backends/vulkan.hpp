@@ -11,6 +11,23 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
+	class LITEFX_VULKAN_API RuntimeObject {
+	private:
+		const VulkanDevice* m_device;
+
+	public:
+		RuntimeObject(const VulkanDevice* device) : m_device(device) {
+			if (device == nullptr)
+				throw std::invalid_argument("The device must be initialized.");
+		}
+		RuntimeObject(RuntimeObject&&) = delete;
+		RuntimeObject(const RuntimeObject&) = delete;
+		virtual ~RuntimeObject() noexcept = default;
+
+	public:
+		virtual const VulkanDevice* getDevice() const noexcept { return m_device; }
+	};
+
 	class LITEFX_VULKAN_API VulkanBuffer : public Buffer, public IResource<VkBuffer> {
 	public:
 		VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize) : Buffer(type, elements, elementSize), IResource(buffer) { }
@@ -27,10 +44,27 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanBufferLayoutBuilder);
 
 	public:
-		VulkanBufferLayout(const VulkanInputAssembler& inputAssembler, const BufferType& type, const size_t& elementSize, const UInt32& binding = 0, const UInt32& set = 0);
+		VulkanBufferLayout(const VulkanBufferSet& bufferSet, const BufferType& type, const size_t& elementSize, const UInt32& binding = 0);
 		VulkanBufferLayout(VulkanBufferLayout&&) = delete;
 		VulkanBufferLayout(const VulkanBufferLayout&) = delete;
 		virtual ~VulkanBufferLayout() noexcept;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanBufferSet : public RuntimeObject, public BufferSet, public IResource<VkDescriptorSetLayout> {
+		LITEFX_IMPLEMENTATION(VulkanBufferSetImpl);
+		LITEFX_BUILDER(VulkanBufferSetBuilder);
+
+	public:
+		VulkanBufferSet(const VulkanInputAssembler& inputAssembler, const BufferSetType& type, const UInt32& id = 0);
+		VulkanBufferSet(VulkanBufferSet&&) = delete;
+		VulkanBufferSet(const VulkanBufferSet&) = delete;
+		virtual ~VulkanBufferSet() noexcept;
+
+	public:
+		virtual void create();
 	};
 
 	/// <summary>
@@ -86,7 +120,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanInputAssembler : public InputAssembler {
+	class LITEFX_VULKAN_API VulkanInputAssembler : public RuntimeObject, public InputAssembler {
 		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
 	public:
@@ -125,7 +159,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public RenderPipelineLayout, public IResource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public RuntimeObject, public RenderPipelineLayout, public IResource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 
@@ -143,13 +177,14 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline, public IResource<VkPipeline> {
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public RuntimeObject, public RenderPipeline, public IResource<VkPipeline> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
 	public:
-		VulkanRenderPipeline(const IGraphicsDevice* device);
-		explicit VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout, const IGraphicsDevice* device);
+		VulkanRenderPipeline(const IGraphicsDevice* device);	// Adapter for builder interface.
+		VulkanRenderPipeline(const VulkanDevice* device);
+		explicit VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout, const VulkanDevice* device);
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -282,7 +317,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getBufferHeight() const noexcept override;
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
-		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const BufferLayout* layout, const UInt32& elements) const override;
+		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const IBufferLayout* layout, const UInt32& elements) const override;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements) const override;
 
 	public:

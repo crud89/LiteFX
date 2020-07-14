@@ -35,7 +35,18 @@ namespace LiteFX::Rendering {
         virtual const size_t& getElementSize() const noexcept = 0;
         virtual const UInt32& getBinding() const noexcept = 0;
         virtual const BufferType& getType() const noexcept = 0;
-        virtual const UInt32& getSet() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API IBufferSet {
+    public:
+        virtual Array<const IBufferLayout*> getLayouts() const noexcept = 0;
+        virtual Array<const IBufferLayout*> getLayouts(const BufferType& type) const noexcept = 0;
+        virtual const IBufferLayout* getLayout(const UInt32& binding) const noexcept = 0;
+        virtual const UInt32& getSetId() const noexcept = 0;
+        virtual const BufferSetType& getType() const noexcept = 0;
     };
 
     /// <summary>
@@ -45,7 +56,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(BufferLayoutImpl);
 
     public:
-        BufferLayout(const BufferType& type, const size_t& elementSize, const UInt32& binding = 0, const UInt32& set = 0);
+        BufferLayout(const BufferType& type, const size_t& elementSize, const UInt32& binding = 0);
         BufferLayout(BufferLayout&&) = delete;
         BufferLayout(const BufferLayout&) = delete;
         virtual ~BufferLayout() noexcept;
@@ -59,7 +70,30 @@ namespace LiteFX::Rendering {
         virtual const size_t& getElementSize() const noexcept override;
         virtual const UInt32& getBinding() const noexcept override;
         virtual const BufferType& getType() const noexcept override;
-        virtual const UInt32& getSet() const noexcept override;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API BufferSet : public IBufferSet {
+        LITEFX_IMPLEMENTATION(BufferSetImpl);
+
+    public:
+        BufferSet(const BufferSetType& type, const UInt32& id = 0);
+        BufferSet(BufferSet&&) = delete;
+        BufferSet(const BufferSet&) = delete;
+        virtual ~BufferSet() noexcept;
+
+    public:
+        virtual void add(UniquePtr<IBufferLayout>&& layout);
+        virtual void remove(const IBufferLayout* layout);
+
+    public:
+        virtual Array<const IBufferLayout*> getLayouts() const noexcept override;
+        virtual Array<const IBufferLayout*> getLayouts(const BufferType& type) const noexcept override;
+        virtual const IBufferLayout* getLayout(const UInt32& binding) const noexcept override;
+        virtual const UInt32& getSetId() const noexcept override;
+        virtual const BufferSetType& getType() const noexcept override; 
     };
 
     /// <summary>
@@ -111,7 +145,6 @@ namespace LiteFX::Rendering {
         virtual ~IRenderPipeline() noexcept = default;
     
     public:
-        virtual const IGraphicsDevice* getDevice() const noexcept = 0;
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual const IShaderProgram* getProgram() const noexcept = 0;
         virtual const IRenderPass* getRenderPass() const noexcept = 0;
@@ -172,25 +205,16 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IDescriptorSetLayout {
-    public:
-        virtual ~IDescriptorSetLayout() noexcept = default;
-
-    public:
-        virtual Array<const BufferLayout*> getLayouts() const = 0;
-        virtual Array<const BufferLayout*> getLayouts(const BufferType& type) const = 0;
-        virtual void use(UniquePtr<BufferLayout>&& layout) = 0;
-        virtual UniquePtr<BufferLayout> remove(const BufferLayout* layout) = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_RENDERING_API IInputAssembler : virtual public IDescriptorSetLayout {
+    class LITEFX_RENDERING_API IInputAssembler {
     public:
         virtual ~IInputAssembler() noexcept = default;
 
     public:
+        virtual Array<const IBufferSet*> getBufferSets() const = 0;
+        virtual Array<const IBufferSet*> getBufferSets(const BufferSetType& type) const = 0;
+        virtual const IBufferSet* getBufferSet(const UInt32& setId) const = 0;
+        virtual void use(UniquePtr<IBufferSet>&& layout) = 0;
+        virtual UniquePtr<IBufferSet> remove(const IBufferSet* layout) = 0;
         virtual const PrimitiveTopology getTopology() const noexcept = 0;
         virtual void setTopology(const PrimitiveTopology& topology) = 0;
     };
@@ -258,25 +282,6 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API DescriptorSetLayout : virtual public IDescriptorSetLayout {
-        LITEFX_IMPLEMENTATION(DescriptorSetLayoutImpl);
-
-    public:
-        DescriptorSetLayout();
-        DescriptorSetLayout(DescriptorSetLayout&&) = delete;
-        DescriptorSetLayout(const DescriptorSetLayout&) = delete;
-        virtual ~DescriptorSetLayout() noexcept;
-
-    public:
-        virtual Array<const BufferLayout*> getLayouts() const override;
-        virtual Array<const BufferLayout*> getLayouts(const BufferType& type) const override;
-        virtual void use(UniquePtr<BufferLayout>&& layout) override;
-        virtual UniquePtr<BufferLayout> remove(const BufferLayout* layout) override;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
     class LITEFX_RENDERING_API Rasterizer : public IRasterizer {
         LITEFX_IMPLEMENTATION(RasterizerImpl);
 
@@ -308,7 +313,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API InputAssembler : public DescriptorSetLayout, public IInputAssembler {
+    class LITEFX_RENDERING_API InputAssembler : public IInputAssembler {
         LITEFX_IMPLEMENTATION(InputAssemblerImpl);
 
     public:
@@ -318,6 +323,11 @@ namespace LiteFX::Rendering {
         virtual ~InputAssembler() noexcept;
 
     public:
+        virtual Array<const IBufferSet*> getBufferSets() const override;
+        virtual Array<const IBufferSet*> getBufferSets(const BufferSetType& type) const override;
+        virtual const IBufferSet* getBufferSet(const UInt32& setId) const override;
+        virtual void use(UniquePtr<IBufferSet>&& layout) override;
+        virtual UniquePtr<IBufferSet> remove(const IBufferSet* layout) override;
         virtual const PrimitiveTopology getTopology() const noexcept override;
         virtual void setTopology(const PrimitiveTopology& topology) override;
     };
@@ -377,7 +387,6 @@ namespace LiteFX::Rendering {
         virtual ~RenderPipeline() noexcept;
 
     public:
-        virtual const IGraphicsDevice* getDevice() const noexcept override;
         virtual const IRenderPipelineLayout* getLayout() const noexcept override;
         virtual const IShaderProgram* getProgram() const noexcept override;
         virtual const IRenderPass* getRenderPass() const noexcept override;
@@ -493,10 +502,25 @@ namespace LiteFX::Rendering {
         using builder_type::Builder;
 
     public:
-        virtual TDerived& addBufferLayout(UniquePtr<BufferLayout>&& layout) = 0;
+        virtual TDerived& addBufferSet(UniquePtr<IBufferSet>&& set) = 0;
         virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
+        virtual void use(UniquePtr<IBufferSet>&& set) {
+            this->addBufferSet(std::move(set));
+        }
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TBufferSet, typename TParent>
+    class BufferSetBuilder : public Builder<TDerived, TBufferSet, TParent> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual TDerived& addLayout(UniquePtr<IBufferLayout>&& layout) = 0;
         virtual void use(UniquePtr<BufferLayout>&& layout) {
-            this->addBufferLayout(std::move(layout));
+            this->addLayout(std::move(layout));
         }
     };
 

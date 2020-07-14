@@ -58,6 +58,20 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::Format> : formatte
 };
 
 template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferSetType> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::BufferSetType t, FormatContext& ctx) {
+		string_view name = "Invalid";
+		switch (t)
+		{
+		case LiteFX::Rendering::BufferSetType::VertexData: name = "Vertex Data"; break;
+		case LiteFX::Rendering::BufferSetType::Resource: name = "Resource"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
 struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferType> : formatter<string_view> {
 	template <typename FormatContext>
 	auto format(LiteFX::Rendering::BufferType t, FormatContext& ctx) {

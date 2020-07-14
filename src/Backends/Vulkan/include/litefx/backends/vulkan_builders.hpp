@@ -129,16 +129,30 @@ namespace LiteFX::Rendering::Backends {
 		using InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineLayoutBuilder>::InputAssemblerBuilder;
 
 	public:
-		virtual VulkanInputAssemblerBuilder& addBufferLayout(UniquePtr<BufferLayout>&& layout) override;
+		virtual VulkanInputAssemblerBuilder& addBufferSet(UniquePtr<IBufferSet>&& set) override;
 		virtual VulkanInputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBufferLayoutBuilder : public BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanInputAssemblerBuilder> {
+	class LITEFX_VULKAN_API VulkanBufferSetBuilder : public BufferSetBuilder<VulkanBufferSetBuilder, VulkanBufferSet, VulkanInputAssemblerBuilder> {
 	public:
-		using BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanInputAssemblerBuilder>::BufferLayoutBuilder;
+		using BufferSetBuilder<VulkanBufferSetBuilder, VulkanBufferSet, VulkanInputAssemblerBuilder>::BufferSetBuilder;
+
+	public:
+		virtual VulkanInputAssemblerBuilder& go() override;
+
+	public:
+		virtual VulkanBufferSetBuilder& addLayout(UniquePtr<IBufferLayout>&& layout) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanBufferLayoutBuilder : public BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanBufferSetBuilder> {
+	public:
+		using BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanBufferSetBuilder>::BufferLayoutBuilder;
 
 	public:
 		virtual VulkanBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;

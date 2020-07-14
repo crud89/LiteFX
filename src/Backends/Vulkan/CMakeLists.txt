@@ -46,6 +46,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/input_assembler.cpp"
     "src/render_pass.cpp"
     "src/command_buffer.cpp"
+    "src/buffer_set.cpp"
     "src/buffer_layout.cpp"
     "src/buffer.cpp"
 )

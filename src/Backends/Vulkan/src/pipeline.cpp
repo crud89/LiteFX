@@ -10,7 +10,6 @@ class VulkanRenderPipeline::VulkanRenderPipelineImpl : public Implement<VulkanRe
 public:
 	friend class VulkanRenderPipeline;
 
-
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : base(parent) { }
 	
@@ -20,20 +19,10 @@ public:
 	}
 
 private:
-	const VulkanDevice* getDevice() const
-	{
-		auto device = dynamic_cast<const VulkanDevice*>(m_parent->getDevice());
-
-		if (device == nullptr)
-			throw std::invalid_argument("The pipeline device is not a valid Vulkan device.");
-		
-		return device;
-	}
-
 	void cleanup()
 	{
 		// Get the device.
-		auto device = this->getDevice();
+		auto device = m_parent->getDevice();
 
 		// Destroy the pipeline.
 		::vkDestroyPipeline(device->handle(), m_parent->handle(), nullptr);
@@ -50,7 +39,7 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(layout));
 
 		// Get the device.
-		auto device = this->getDevice();
+		auto device = m_parent->getDevice();
 
 		// Request configuration interface.
 		auto rasterizer = layout->getRasterizer();
@@ -104,7 +93,14 @@ public:
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		// Parse vertex input descriptors.
-		auto vertexBufferLayouts = inputAssembler->getLayouts(BufferType::Vertex);
+		auto bufferSets = inputAssembler->getBufferSets(BufferSetType::VertexData);
+
+		if (bufferSets.size() == 0)
+			throw std::runtime_error("No vertex input data has been defined for this pipeline.");
+		else if (bufferSets.size() > 1)
+			throw std::runtime_error("A render pipeline must only define one vertex input buffer set.");
+
+		auto vertexBufferLayouts = bufferSets.front()->getLayouts();
 		vertexInputBindings.resize(vertexBufferLayouts.size());
 
 		std::generate(std::begin(vertexInputBindings), std::end(vertexInputBindings), [&, i = 0]() mutable {
@@ -268,15 +264,15 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const IGraphicsDevice* device) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), RenderPipeline(device), IResource<VkPipeline>(nullptr)
+VulkanRenderPipeline::VulkanRenderPipeline(const IGraphicsDevice* device) : VulkanRenderPipeline(dynamic_cast<const VulkanDevice*>(device)) { }
+
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanDevice* device) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), RuntimeObject(device), RenderPipeline(device), IResource<VkPipeline>(nullptr)
 {
-	if (device == nullptr)
-		throw std::invalid_argument("The argument `device` must be initialized.");
 }
 
-VulkanRenderPipeline::VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout, const IGraphicsDevice* device) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), RenderPipeline(device, std::move(layout)), IResource<VkPipeline>(nullptr)
+VulkanRenderPipeline::VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout, const VulkanDevice* device) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), RuntimeObject(device), RenderPipeline(device, std::move(layout)), IResource<VkPipeline>(nullptr)
 {
 	this->create();
 }
@@ -288,7 +284,7 @@ void VulkanRenderPipeline::create()
 	auto& h = this->handle();
 
 	if (h != nullptr)
-		throw std::runtime_error("The render pipeline is already created and hence will be rebuilt. Consider using `IRenderPipeline::reset` instead.");
+		throw std::runtime_error("The render pipeline can only be created once.");
 
 	h = m_impl->initialize();
 }

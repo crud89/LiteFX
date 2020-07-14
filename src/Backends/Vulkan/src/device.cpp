@@ -286,7 +286,7 @@ void VulkanDevice::resize(int width, int height)
 	m_impl->resize(width, height);
 }
 
-UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const BufferLayout* layout, const UInt32& elements) const
+UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const IBufferLayout* layout, const UInt32& elements) const
 {
 	if (layout == nullptr)
 		throw std::invalid_argument("The buffer layout must be initialized.");

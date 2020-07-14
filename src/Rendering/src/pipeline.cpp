@@ -44,11 +44,6 @@ RenderPipeline::RenderPipeline(const IGraphicsDevice* device, UniquePtr<IRenderP
 
 RenderPipeline::~RenderPipeline() noexcept = default;
 
-const IGraphicsDevice* RenderPipeline::getDevice() const noexcept
-{
-    return m_impl->m_device;
-}
-
 const IRenderPipelineLayout* RenderPipeline::getLayout() const noexcept
 {
     return m_impl->m_layout.get();
@@ -102,8 +97,15 @@ void RenderPipeline::endFrame()
 
 UniquePtr<IBuffer> RenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
 {
-    auto layouts = m_impl->m_layout->getInputAssembler()->getLayouts(BufferType::Vertex);
-    auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const BufferLayout* layout) { return layout->getBinding() == binding; });
+    auto bufferSets = m_impl->m_layout->getInputAssembler()->getBufferSets(BufferSetType::VertexData);
+
+    if (bufferSets.size() == 0)
+        throw std::runtime_error("No vertex input data has been defined for this pipeline.");
+    else if (bufferSets.size() > 1)
+        throw std::runtime_error("A render pipeline must only define one vertex input buffer set.");
+
+    auto layouts = bufferSets.front()->getLayouts();
+    auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const IBufferLayout* layout) { return layout->getBinding() == binding; });
 
     if (match == layouts.end())
         throw std::invalid_argument("No vertex layout has been defined for the provided binding.");
@@ -126,11 +128,12 @@ UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, con
 
 UniquePtr<IBuffer> RenderPipeline::makeUniformBuffer(const BufferUsage& usage, const UInt32& binding) const
 {
-    auto layouts = m_impl->m_layout->getInputAssembler()->getLayouts(BufferType::Uniform);
-    auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const BufferLayout* layout) { return layout->getBinding() == binding; });
+    //auto layouts = m_impl->m_layout->getInputAssembler()->getLayouts(BufferType::Uniform);
+    //auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const BufferLayout* layout) { return layout->getBinding() == binding; });
 
-    if (match == layouts.end())
-        throw std::invalid_argument("No uniform layout has been defined for the provided binding.");
+    //if (match == layouts.end())
+    //    throw std::invalid_argument("No uniform layout has been defined for the provided binding.");
 
-    return m_impl->m_device->createBuffer(BufferType::Uniform, usage, *match, 1);
+    //return m_impl->m_device->createBuffer(BufferType::Uniform, usage, *match, 1);
+    throw;
 }
