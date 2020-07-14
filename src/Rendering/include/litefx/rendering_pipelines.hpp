@@ -47,6 +47,7 @@ namespace LiteFX::Rendering {
         virtual const IBufferLayout* getLayout(const UInt32& binding) const noexcept = 0;
         virtual const UInt32& getSetId() const noexcept = 0;
         virtual const BufferSetType& getType() const noexcept = 0;
+        virtual UniquePtr<IBufferPool> createBufferPool(const BufferUsage& usage) const noexcept = 0;
     };
 
     /// <summary>
@@ -93,7 +94,7 @@ namespace LiteFX::Rendering {
         virtual Array<const IBufferLayout*> getLayouts(const BufferType& type) const noexcept override;
         virtual const IBufferLayout* getLayout(const UInt32& binding) const noexcept override;
         virtual const UInt32& getSetId() const noexcept override;
-        virtual const BufferSetType& getType() const noexcept override; 
+        virtual const BufferSetType& getType() const noexcept override;
     };
 
     /// <summary>
@@ -106,6 +107,7 @@ namespace LiteFX::Rendering {
     public:
         virtual const UInt32& getElementSize() const noexcept = 0;
         virtual const UInt32& getElements() const noexcept = 0;
+        virtual const UInt32& getBinding() const noexcept = 0;
         virtual const UInt32 getSize() const noexcept = 0;
         virtual const BufferType& getType() const noexcept = 0;
 
@@ -121,11 +123,11 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API Buffer : public IBuffer {
     private:
         const BufferType m_type {};
-        const UInt32 m_elementSize{ 0 }, m_elements{ 0 };
+        const UInt32 m_elementSize{ 0 }, m_elements{ 0 }, m_binding{ 0 };
 
     public:
-        Buffer(const BufferType& type, const UInt32& elements, const UInt32& elementSize) : 
-            m_type(type), m_elementSize(elementSize), m_elements(elements) { }
+        Buffer(const BufferType& type, const UInt32& elements, const UInt32& elementSize, const UInt32& binding) :
+            m_type(type), m_elementSize(elementSize), m_elements(elements), m_binding(binding) { }
         Buffer(const Buffer& _other) = delete;
         Buffer(Buffer&& _other) = delete;
         virtual ~Buffer() noexcept = default;
@@ -133,6 +135,7 @@ namespace LiteFX::Rendering {
     public:
         virtual const UInt32& getElementSize() const noexcept override { return m_elementSize; }
         virtual const UInt32& getElements() const noexcept override    { return m_elements; }
+        virtual const UInt32& getBinding() const noexcept override     { return m_binding; }
         virtual const UInt32 getSize() const noexcept override         { return m_elementSize * m_elements; }
         virtual const BufferType& getType() const noexcept override    { return m_type; }
     };
@@ -142,7 +145,11 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API IBufferPool {
     public:
+        virtual ~IBufferPool() noexcept = default;
+
+    public:
         virtual IBuffer* getBuffer(const UInt32& binding) const noexcept = 0;
+        virtual const BufferUsage& getUsage() const noexcept = 0;
     };
 
     /// <summary>
@@ -163,7 +170,7 @@ namespace LiteFX::Rendering {
         virtual void endFrame() = 0;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
-        virtual UniquePtr<IBuffer> makeUniformBuffer(const BufferUsage& usage, const UInt32& binding) const = 0;
+        virtual UniquePtr<IBufferPool> makeBufferPool(const BufferUsage& usage, const UInt32& bufferSet) const = 0;
     };
 
     /// <summary>
@@ -404,7 +411,7 @@ namespace LiteFX::Rendering {
         virtual void endFrame() override;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
-        virtual UniquePtr<IBuffer> makeUniformBuffer(const BufferUsage& usage, const UInt32& binding) const override;
+        virtual UniquePtr<IBufferPool> makeBufferPool(const BufferUsage& usage, const UInt32& bufferSet) const override;
     };
 
     /// <summary>

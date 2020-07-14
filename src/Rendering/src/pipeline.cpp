@@ -110,7 +110,7 @@ UniquePtr<IBuffer> RenderPipeline::makeVertexBuffer(const BufferUsage& usage, co
     if (match == layouts.end())
         throw std::invalid_argument("No vertex layout has been defined for the provided binding.");
 
-    return m_impl->m_device->createBuffer(BufferType::Vertex, usage, *match, elements);
+    return m_impl->m_device->createBuffer(*match, usage, elements);
 }
 
 UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
@@ -118,22 +118,20 @@ UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, con
     switch (indexType)
     {
     case IndexType::UInt16:
-        return m_impl->m_device->createBuffer(BufferType::Index, usage, 2, elements);       // 16 bit = 2 bytes per index.
+        return m_impl->m_device->createBuffer(BufferType::Index, usage, 2, elements, 0);       // 16 bit = 2 bytes per index.
     case IndexType::UInt32:
-        return m_impl->m_device->createBuffer(BufferType::Index, usage, 4, elements);       // 32 bit = 4 bytes per index.
+        return m_impl->m_device->createBuffer(BufferType::Index, usage, 4, elements, 0);       // 32 bit = 4 bytes per index.
     default:
         throw std::invalid_argument("Unsupported index type.");
     }
 }
 
-UniquePtr<IBuffer> RenderPipeline::makeUniformBuffer(const BufferUsage& usage, const UInt32& binding) const
+UniquePtr<IBufferPool> RenderPipeline::makeBufferPool(const BufferUsage& usage, const UInt32& setId) const
 {
-    //auto layouts = m_impl->m_layout->getInputAssembler()->getLayouts(BufferType::Uniform);
-    //auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const BufferLayout* layout) { return layout->getBinding() == binding; });
+    auto bufferSet = this->getLayout()->getInputAssembler()->getBufferSet(setId);
+    
+    if (bufferSet == nullptr)
+        throw std::runtime_error("The requested buffer set could not be found.");
 
-    //if (match == layouts.end())
-    //    throw std::invalid_argument("No uniform layout has been defined for the provided binding.");
-
-    //return m_impl->m_device->createBuffer(BufferType::Uniform, usage, *match, 1);
-    throw;
+    return bufferSet->createBufferPool(usage);
 }

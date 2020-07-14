@@ -43,6 +43,7 @@ namespace LiteFX::Rendering {
 	class IBuffer;
 	class IBufferLayout;
 	class IBufferSet;
+	class IBufferPool;
 
 	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {

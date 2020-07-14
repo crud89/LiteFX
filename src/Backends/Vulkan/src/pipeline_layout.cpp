@@ -33,41 +33,6 @@ public:
 
         LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Sets: {1} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size());
 
-        // TODO: Create a pool per "component" (i.e. camera or mesh) and pass the proper layout(s) to it.
-        // NOTE: One object can contain multiple mesh components, that use different pipelines with different layouts.
-
-        // I.E.: new method: `createDescriptorPool` ?
-
-        //// Create a descriptor pool.
-        //VkDescriptorPoolCreateInfo poolInfo = {};
-        //poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        //poolInfo.poolSizeCount = poolSizes.size();
-        //poolInfo.pPoolSizes = poolSizes.data();
-
-        //// Currently there is only one descriptor set per pool, which means that for each draw call, the whole descriptor set needs to be re-written. This can be
-        //// inefficient. We should use an additional layout property (set) to determine the descriptor set a buffer belongs to. We can use multiple sets to group
-        //// writes by update frequency.
-        //// TODO: Use descriptor sets to group buffers by write frequency.
-        //poolInfo.maxSets = m_descriptorSetLayouts.size();
-
-        //LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool {{ Uniforms: {0}, Storages: {1}, Samplers: {2} }}...", poolSizes[0].descriptorCount, 0, 0);
-
-        //if (::vkCreateDescriptorPool(m_device->handle(), &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS)
-        //    throw std::runtime_error("Unable to create descriptor pool.");
-
-        //// Allocate the descriptor sets.
-        //VkDescriptorSetAllocateInfo descriptorSetInfo = {};
-        //descriptorSetInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        //descriptorSetInfo.descriptorPool = m_descriptorPool;
-        //descriptorSetInfo.descriptorSetCount = m_descriptorSetLayouts.size();
-        //descriptorSetInfo.pSetLayouts = m_descriptorSetLayouts.data();
-
-        //m_descriptorSets.resize(m_descriptorSetLayouts.size());
-        //LITEFX_TRACE(VULKAN_LOG, "Allocating {0} descriptor sets...", m_descriptorSets.size());
-
-        //if (::vkAllocateDescriptorSets(m_device->handle(), &descriptorSetInfo, m_descriptorSets.data()) != VK_SUCCESS)
-        //    throw std::runtime_error("Unable to allocate descriptor sets.");
-
         // Create the pipeline layout.
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

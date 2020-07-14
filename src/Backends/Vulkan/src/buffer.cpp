@@ -6,8 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-_VMABuffer::_VMABuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize, VmaAllocator& allocator, VmaAllocation allocation) :
-    VulkanBuffer(buffer, type, elements, elementSize), m_allocator(allocator), m_allocationInfo(allocation)
+_VMABuffer::_VMABuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize, const UInt32& binding, VmaAllocator& allocator, VmaAllocation allocation) :
+    VulkanBuffer(buffer, type, elements, elementSize, binding), m_allocator(allocator), m_allocationInfo(allocation)
 {
 }
 
@@ -105,7 +105,7 @@ void _VMABuffer::bind(const IRenderPass* renderPass) const
 // Factory.
 // ------------------------------------------------------------------------------------------------
 
-UniquePtr<IBuffer> _VMABuffer::makeBuffer(const BufferType& type, const UInt32& elements, const UInt32& elementSize, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IBuffer> _VMABuffer::makeBuffer(const BufferType& type, const UInt32& elements, const UInt32& elementSize, const UInt32& binding, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	// Allocate the buffer.
 	VkBuffer buffer;
@@ -116,5 +116,5 @@ UniquePtr<IBuffer> _VMABuffer::makeBuffer(const BufferType& type, const UInt32& 
 
     LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), type, elements, elementSize, elements * elementSize);
 
-    return makeUnique<_VMABuffer>(buffer, type, elements, elementSize, allocator, allocation);
+    return makeUnique<_VMABuffer>(buffer, type, elements, elementSize, binding, allocator, allocation);
 }

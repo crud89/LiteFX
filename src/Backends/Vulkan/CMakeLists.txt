@@ -29,6 +29,7 @@ SET(VULKAN_BACKEND_HEADERS
 SET(VULKAN_BACKEND_SOURCES
     "src/buffer.h"
 
+    "src/runtime_object.cpp"
     "src/convert.cpp"
     "src/backend.cpp"
     "src/adaper.cpp"

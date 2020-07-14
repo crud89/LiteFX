@@ -11,6 +11,14 @@ class VulkanBufferSet::VulkanBufferSetImpl : public Implement<VulkanBufferSet> {
 public:
     friend class VulkanBufferSet;
 
+private:
+    // TODO: Also count storage and sampler bindings.
+    Array<VkDescriptorPoolSize> m_poolSizes = {
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 0 },
+        { VK_DESCRIPTOR_TYPE_SAMPLER, 0 }
+    };
+
 public:
     VulkanBufferSetImpl(VulkanBufferSet* parent) : base(parent) { }
 
@@ -28,12 +36,6 @@ public:
 
         LITEFX_TRACE(VULKAN_LOG, "Defining buffer set {0} {{ {1} }}...", m_parent->getSetId(), m_parent->getType());
 
-        // TODO: Also count storage and sampler bindings.
-        Array<VkDescriptorPoolSize> poolSizes = {
-            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0 },
-            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 0 },
-            { VK_DESCRIPTOR_TYPE_SAMPLER, 0 }
-        };
 
         // Parse descriptor set layouts.
         auto layouts = m_parent->getLayouts();
@@ -56,7 +58,7 @@ public:
             {
             case BufferType::Uniform:
                 binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                poolSizes[0].descriptorCount++;
+                m_poolSizes[0].descriptorCount++;
                 break;
             case BufferType::Storage:
             case BufferType::Vertex:
@@ -68,7 +70,7 @@ public:
             bindings.push_back(binding);
         });
 
-        LITEFX_TRACE(VULKAN_LOG, "Creating buffer set {0} with {1} bindings {{ Uniform: {2}, Storage: {3}, Sampler: {4} }}...", m_parent->getSetId(), layouts.size(), poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount);
+        LITEFX_TRACE(VULKAN_LOG, "Creating buffer set {0} with {1} bindings {{ Uniform: {2}, Storage: {3}, Sampler: {4} }}...", m_parent->getSetId(), layouts.size(), m_poolSizes[0].descriptorCount, m_poolSizes[1].descriptorCount, m_poolSizes[2].descriptorCount);
 
         VkDescriptorSetLayoutCreateInfo uniformBufferLayoutInfo{};
         uniformBufferLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -95,12 +97,22 @@ VulkanBufferSet::VulkanBufferSet(const VulkanInputAssembler& inputAssembler, con
 
 VulkanBufferSet::~VulkanBufferSet() noexcept = default;
 
+UniquePtr<IBufferPool> VulkanBufferSet::createBufferPool(const BufferUsage& usage) const noexcept
+{
+    return makeUnique<VulkanBufferPool>(*this, usage);
+}
+
 void VulkanBufferSet::create()
 {
     if (this->handle() != nullptr)
         throw std::runtime_error("The buffer set can only created once.");
 
     this->handle() = m_impl->initialize();
+}
+
+const Array<VkDescriptorPoolSize>& VulkanBufferSet::getPoolSizes() const noexcept
+{
+    return m_impl->m_poolSizes;
 }
 
 // ------------------------------------------------------------------------------------------------

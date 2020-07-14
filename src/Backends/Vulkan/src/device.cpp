@@ -286,15 +286,15 @@ void VulkanDevice::resize(int width, int height)
 	m_impl->resize(width, height);
 }
 
-UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const IBufferLayout* layout, const UInt32& elements) const
+UniquePtr<IBuffer> VulkanDevice::createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	if (layout == nullptr)
 		throw std::invalid_argument("The buffer layout must be initialized.");
 
-	return this->createBuffer(type, usage, layout->getElementSize(), elements);
+	return this->createBuffer(layout->getType(), usage, layout->getElementSize(), elements, layout->getBinding());
 }
 
-UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements) const
+UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const UInt32& binding) const
 {
 	auto bufferSize = elementSize * elements;
 
@@ -346,7 +346,7 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 	}
 
 	// Create a buffer using VMA.
-	return _VMABuffer::makeBuffer(type, elements, elementSize, m_impl->m_allocator, bufferInfo, allocInfo);
+	return _VMABuffer::makeBuffer(type, elements, elementSize, binding, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 // ------------------------------------------------------------------------------------------------

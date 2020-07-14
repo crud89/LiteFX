@@ -3,8 +3,9 @@
 
 enum DescriptorSets : UInt32
 {
-    PerFrame = 0,       // All buffers that are updated for each frame.
-    PerInstance = 1     // All buffers that are updated for each rendered instance.
+    PerFrame = 0,                                       // All buffers that are updated for each frame.
+    PerInstance = 1,                                    // All buffers that are updated for each rendered instance.
+    VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
 };
 
 const Array<Vertex> vertices =
@@ -47,7 +48,7 @@ void SampleApp::createPipeline()
                 .go()
             .make<VulkanInputAssembler>()
                 .withTopology(PrimitiveTopology::TriangleList)
-                .make<VulkanBufferSet>(BufferSetType::VertexData)
+                .make<VulkanBufferSet>(BufferSetType::VertexData, DescriptorSets::VertexData)
                     .make<VulkanBufferLayout>(BufferType::Vertex, sizeof(Vertex), 0)
                         .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
                         .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
@@ -58,7 +59,7 @@ void SampleApp::createPipeline()
                         .go()
                     .go()
                 .make<VulkanBufferSet>(BufferSetType::Resource, DescriptorSets::PerInstance)
-                    .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 1)
+                    .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 0)
                         .go()
                     .go()
                 .go()
@@ -82,7 +83,7 @@ void SampleApp::initBuffers()
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
     stagingBuffer->transfer(m_device->getTransferQueue(), m_vertexBuffer.get(), vertices.size() * sizeof(::Vertex));
-    
+
     // Create the staging buffer for the indices.
     stagingBuffer = m_pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
     stagingBuffer->map(indices.data(), indices.size() * sizeof(UInt16));
@@ -92,10 +93,8 @@ void SampleApp::initBuffers()
     stagingBuffer->transfer(m_device->getTransferQueue(), m_indexBuffer.get(), indices.size() * sizeof(UInt16));
 
     // Create a uniform buffers for the camera and transform information.
-    ////m_cameraBuffer = m_pipeline->makeUniformBuffer(BufferUsage::Dynamic, 0);
-    //m_cameraBuffer = m_pipeline->makeBufferPool(DescriptorSets::PerFrame, BufferUsage::Dynamic);
-    ////m_transformBuffer = m_pipeline->makeUniformBuffer(BufferUsage::Dynamic, 1);
-    //m_transformBuffer = m_pipeline->makeBufferPool(DescriptorSets::PerInstance, BufferUsage::Dynamic);
+    m_cameraBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerFrame);
+    m_transformBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerInstance);
 }
 
 void SampleApp::run() 
@@ -130,7 +129,7 @@ void SampleApp::run()
 
 void SampleApp::initialize()
 {
-    ::glfwSetFramebufferSizeCallback(m_window.get(), ::onResize);
+    ::glfwSetFramebufferSizeCallback(m_window.get(), ::onResize); 
 }
 
 void SampleApp::resize(int width, int height)
@@ -171,8 +170,8 @@ void SampleApp::drawFrame()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.0001f, 1000.0f);
     projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
-    m_cameraBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->bind(renderPass);
+    m_cameraBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    //m_cameraBuffer->bind(renderPass);
 
     // Draw the model.
     m_vertexBuffer->bind(renderPass);
@@ -181,8 +180,8 @@ void SampleApp::drawFrame()
     // Compute world transform.
     // TODO: World transform can more efficiently handled using push constants.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
-    m_transformBuffer->bind(renderPass);
+    m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
+    //m_transformBuffer->bind(renderPass);
 
     renderPass->drawIndexed(indices.size());
 

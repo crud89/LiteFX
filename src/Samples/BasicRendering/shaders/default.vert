@@ -24,14 +24,15 @@ struct TransformData
 };
 
 ConstantBuffer<CameraData>    camera    : register(b0, space0);
-ConstantBuffer<TransformData> transform : register(b1, space1);
+ConstantBuffer<TransformData> transform : register(b0, space1);
 
 VertexData main(in VertexInput input)
 {
     VertexData vertex;
     
-    float4 position = mul(float4(input.Position, 1.0), transform.Model);
-    vertex.Position = mul(position, camera.ViewProjection);
+    //float4 position = mul(float4(input.Position, 1.0), transform.Model);
+    //vertex.Position = mul(position, camera.ViewProjection);
+    vertex.Position = float4(input.Position.xyz, 1.0);
     
     vertex.Color = input.Color;
  
