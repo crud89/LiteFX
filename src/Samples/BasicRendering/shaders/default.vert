@@ -1,3 +1,5 @@
+#pragma pack_matrix(row_major)
+
 struct VertexData 
 {
     float4 Position : SV_POSITION;
