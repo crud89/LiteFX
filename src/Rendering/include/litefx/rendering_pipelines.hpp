@@ -150,6 +150,7 @@ namespace LiteFX::Rendering {
         virtual ~IBufferPool() noexcept = default;
 
     public:
+        virtual const IBufferSet* getBufferSet() const noexcept = 0;
         virtual IBuffer* getBuffer(const UInt32& binding) const noexcept = 0;
         virtual const BufferUsage& getUsage() const noexcept = 0;
     };

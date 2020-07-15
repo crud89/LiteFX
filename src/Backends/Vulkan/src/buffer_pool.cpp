@@ -12,6 +12,7 @@ public:
     friend class VulkanBufferPool;
 
 private:
+    const IBufferSet* m_bufferSet{ nullptr };
     Array<UniquePtr<IBuffer>> m_buffers;
     VkDescriptorSet m_descriptorSet;
     BufferUsage m_usage;
@@ -97,6 +98,8 @@ public:
             return deviceBuffer;
         });
 
+        m_bufferSet = &bufferSet;
+
         return descriptorPool;
     }
 
@@ -120,6 +123,11 @@ VulkanBufferPool::VulkanBufferPool(const VulkanBufferSet& bufferSet, const Buffe
 VulkanBufferPool::~VulkanBufferPool() noexcept
 {
     ::vkDestroyDescriptorPool(this->getDevice()->handle(), this->handle(), nullptr);
+}
+
+const IBufferSet* VulkanBufferPool::getBufferSet() const noexcept
+{
+    return m_impl->m_bufferSet;
 }
 
 IBuffer* VulkanBufferPool::getBuffer(const UInt32& binding) const noexcept

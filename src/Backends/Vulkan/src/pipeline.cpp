@@ -332,9 +332,10 @@ void VulkanRenderPipeline::bind(const IBufferPool* b) const
 	auto renderPass = m_impl->m_renderPass;
 	auto commandBuffer = m_impl->m_commandBuffer;
 	auto pipelineLayout = m_impl->m_pipelineLayout;
+	auto bufferSet = pool->getBufferSet()->getSetId();
 	VkDescriptorSet descriptorSets[] = { pool->getDescriptorSet() };
 
-	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), 0, 1, descriptorSets, 0, nullptr);
+	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), bufferSet, 1, descriptorSets, 0, nullptr);
 }
 
 // ------------------------------------------------------------------------------------------------

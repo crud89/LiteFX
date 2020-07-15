@@ -39,7 +39,7 @@ void SampleApp::createPipeline()
             .make<VulkanRasterizer>()
                 .withPolygonMode(PolygonMode::Solid)
                 .withCullMode(CullMode::BackFaces)
-                .withCullOrder(CullOrder::CounterClockWise)
+                .withCullOrder(CullOrder::ClockWise)
                 .withLineWidth(1.f)
                 .go()
             .make<VulkanViewport>()
@@ -169,8 +169,8 @@ void SampleApp::drawFrame()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.0001f, 1000.0f);
     projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
-    //m_cameraBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    //m_pipeline->bind(m_cameraBuffer.get());
+    m_cameraBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    m_pipeline->bind(m_cameraBuffer.get());
 
     // Draw the model.
     m_pipeline->bind(m_vertexBuffer.get());
@@ -179,8 +179,8 @@ void SampleApp::drawFrame()
     // Compute world transform.
     // TODO: World transform can more efficiently handled using push constants.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    //m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
-    //m_pipeline->bind(m_transformBuffer.get());
+    m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
+    m_pipeline->bind(m_transformBuffer.get());
 
     // Draw the object.
     m_pipeline->getRenderPass()->drawIndexed(indices.size());

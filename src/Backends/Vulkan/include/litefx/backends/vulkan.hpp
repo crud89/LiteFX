@@ -43,6 +43,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanBufferPool() noexcept;
 
 	public:
+		virtual const IBufferSet* getBufferSet() const noexcept override;
 		virtual IBuffer* getBuffer(const UInt32& binding) const noexcept override;
 		virtual const BufferUsage& getUsage() const noexcept override;
 
