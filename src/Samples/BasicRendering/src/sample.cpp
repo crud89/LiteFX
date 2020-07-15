@@ -93,8 +93,8 @@ void SampleApp::initBuffers()
     stagingBuffer->transfer(m_device->getTransferQueue(), m_indexBuffer.get(), indices.size() * sizeof(UInt16));
 
     // Create a uniform buffers for the camera and transform information.
-    //m_cameraBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerFrame);
-    //m_transformBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerInstance);
+    m_cameraBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerFrame);
+    m_transformBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerInstance);
 }
 
 void SampleApp::run() 

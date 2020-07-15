@@ -57,8 +57,6 @@ public:
 
         // Allocate buffers.
         m_buffers.resize(layouts.size());
-        Array<VkDescriptorBufferInfo> bufferInfos;
-        Array<VkWriteDescriptorSet> descriptorWrites;
 
         std::generate(std::begin(m_buffers), std::end(m_buffers), [&, i = 0]() mutable {
             auto layout = layouts[i++];
@@ -71,12 +69,12 @@ public:
             if (buffer == nullptr)
                 throw std::runtime_error("The created buffer is not a valid Vulkan buffer.");
 
-            VkDescriptorBufferInfo bufferInfo{};
+            VkDescriptorBufferInfo bufferInfo { };
             bufferInfo.buffer = buffer->handle();
             bufferInfo.range = buffer->getSize();
             bufferInfo.offset = 0;
 
-            VkWriteDescriptorSet descriptorWrite{};
+            VkWriteDescriptorSet descriptorWrite { };
             descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrite.dstSet = m_descriptorSet;
             descriptorWrite.dstBinding = layout->getBinding();
@@ -93,14 +91,11 @@ public:
                 throw std::runtime_error("Unsupported buffer type.");
             }
 
-            bufferInfos.push_back(bufferInfo);
-            descriptorWrites.push_back(descriptorWrite);
+            // Update the descriptor set accordingly.
+            ::vkUpdateDescriptorSets(m_parent->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 
             return deviceBuffer;
         });
-
-        // Update the descriptor set accordingly.
-        ::vkUpdateDescriptorSets(m_parent->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 
         return descriptorPool;
     }
