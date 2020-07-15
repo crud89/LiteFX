@@ -95,7 +95,10 @@ VulkanBufferSet::VulkanBufferSet(const VulkanInputAssembler& inputAssembler, con
 {
 }
 
-VulkanBufferSet::~VulkanBufferSet() noexcept = default;
+VulkanBufferSet::~VulkanBufferSet() noexcept
+{
+    ::vkDestroyDescriptorSetLayout(this->getDevice()->handle(), this->handle(), nullptr);
+}
 
 UniquePtr<IBufferPool> VulkanBufferSet::createBufferPool(const BufferUsage& usage) const noexcept
 {
@@ -110,7 +113,7 @@ void VulkanBufferSet::create()
     this->handle() = m_impl->initialize();
 }
 
-const Array<VkDescriptorPoolSize>& VulkanBufferSet::getPoolSizes() const noexcept
+const Array<VkDescriptorPoolSize> VulkanBufferSet::getPoolSizes() const noexcept
 {
     return m_impl->m_poolSizes;
 }

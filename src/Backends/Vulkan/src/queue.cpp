@@ -44,10 +44,10 @@ public:
 		poolInfo.queueFamilyIndex = m_id;
 
 		// Transfer pools can be transient.
-		poolInfo.flags = 0;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 		if (m_type == QueueType::Transfer)
-			poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
 		if (::vkCreateCommandPool(device->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create command pool.");

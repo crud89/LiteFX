@@ -44,7 +44,7 @@ void SampleApp::createPipeline()
                 .go()
             .make<VulkanViewport>()
                 .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                //.addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
                 .go()
             .make<VulkanInputAssembler>()
                 .withTopology(PrimitiveTopology::TriangleList)
@@ -93,8 +93,8 @@ void SampleApp::initBuffers()
     stagingBuffer->transfer(m_device->getTransferQueue(), m_indexBuffer.get(), indices.size() * sizeof(UInt16));
 
     // Create a uniform buffers for the camera and transform information.
-    m_cameraBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerFrame);
-    m_transformBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerInstance);
+    //m_cameraBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerFrame);
+    //m_transformBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerInstance);
 }
 
 void SampleApp::run() 
@@ -157,7 +157,6 @@ void SampleApp::drawFrame()
 {
     // Begin rendering.
     m_pipeline->beginFrame();
-    auto renderPass = m_pipeline->getRenderPass();
 
     // Update transform buffer.
     static auto start = std::chrono::high_resolution_clock::now();
@@ -170,20 +169,21 @@ void SampleApp::drawFrame()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.0001f, 1000.0f);
     projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
-    m_cameraBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    //m_cameraBuffer->bind(renderPass);
+    //m_cameraBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    //m_pipeline->bind(m_cameraBuffer.get());
 
     // Draw the model.
-    m_vertexBuffer->bind(renderPass);
-    m_indexBuffer->bind(renderPass);
+    m_pipeline->bind(m_vertexBuffer.get());
+    m_pipeline->bind(m_indexBuffer.get());
     
     // Compute world transform.
     // TODO: World transform can more efficiently handled using push constants.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
-    //m_transformBuffer->bind(renderPass);
+    //m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
+    //m_pipeline->bind(m_transformBuffer.get());
 
-    renderPass->drawIndexed(indices.size());
+    // Draw the object.
+    m_pipeline->getRenderPass()->drawIndexed(indices.size());
 
     // NOTE: This is actually an asynchronous operation, meaning that it does not wait for the frame to be actually rendered and presented.
     //       We need to implement a way around this, so that there are no race conditions.

@@ -65,7 +65,10 @@ VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipelin
     this->create();
 }
 
-VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept = default;
+VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept
+{
+    ::vkDestroyPipelineLayout(this->getDevice()->handle(), this->handle(), nullptr);
+}
 
 void VulkanRenderPipelineLayout::create() 
 {

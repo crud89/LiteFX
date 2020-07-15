@@ -68,39 +68,6 @@ void _VMABuffer::transfer(const ICommandQueue* q, IBuffer* t, const size_t& size
     commandBuffer->submit(true);
 }
 
-void _VMABuffer::bind(const IRenderPass* renderPass) const
-{
-    if (renderPass == nullptr)
-        throw std::invalid_argument("The render pass must be initialized.");
-
-    // Get the command buffer from the render pass.
-    // TODO: We somehow need to get rid of this dynamic cast.
-    auto commandBuffer = dynamic_cast<const VulkanCommandBuffer*>(renderPass->getCommandBuffer());
-
-    if (commandBuffer == nullptr)
-        throw std::invalid_argument("The command buffer of the render pass is either not initialized or not a valid Vulkan command buffer.");
-
-    // Depending on the type, bind the buffer accordingly.
-    constexpr VkDeviceSize offsets[] = { 0 };
-    auto elementSize = this->getElementSize();
-
-    switch (this->getType())
-    {
-    case BufferType::Vertex:
-        ::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &this->handle(), offsets);
-        break;
-    case BufferType::Index:
-        if (elementSize != 4 && elementSize != 2)
-            throw std::runtime_error("Unsupported index buffer element size.");
-
-        ::vkCmdBindIndexBuffer(commandBuffer->handle(), this->handle(), 0, elementSize == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
-        break;
-    case BufferType::Uniform:
-    default:
-        throw std::runtime_error("The buffer could not be bound: unsupported buffer type.");
-    }
-}
-
 // ------------------------------------------------------------------------------------------------
 // Factory.
 // ------------------------------------------------------------------------------------------------

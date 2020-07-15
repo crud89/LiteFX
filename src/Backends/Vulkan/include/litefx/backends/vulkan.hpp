@@ -45,6 +45,9 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual IBuffer* getBuffer(const UInt32& binding) const noexcept override;
 		virtual const BufferUsage& getUsage() const noexcept override;
+
+	public:
+		virtual const VkDescriptorSet getDescriptorSet() const noexcept;
 	};
 
 	/// <summary>
@@ -79,7 +82,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual void create();
-		virtual const Array<VkDescriptorPoolSize>& getPoolSizes() const noexcept;
+		virtual const Array<VkDescriptorPoolSize> getPoolSizes() const noexcept;
 	};
 
 	/// <summary>
@@ -203,6 +206,10 @@ namespace LiteFX::Rendering::Backends {
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
+
+	public:
+		virtual void bind(const IBuffer* buffer) const override;
+		virtual void bind(const IBufferPool* buffer) const override;
 
 	public:
 		virtual void create();

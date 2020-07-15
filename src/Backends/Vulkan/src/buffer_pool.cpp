@@ -24,6 +24,11 @@ public:
     {
         auto poolSizes = bufferSet.getPoolSizes();
         auto layouts = bufferSet.getLayouts();
+
+        LITEFX_TRACE(VULKAN_LOG, "Allocating buffer pool {{ Uniforms: {0}, Storages: {1}, Samplers: {2} }}...", poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount);
+
+        // Remove pool sizes with no descriptors to be compatible with the specs.
+        poolSizes.erase(std::remove_if(std::begin(poolSizes), std::end(poolSizes), [](const VkDescriptorPoolSize& s) { return s.descriptorCount == 0; }), std::end(poolSizes));
         
         // Create a descriptor pool.
         // NOTE: Currently we only support one set to be created per pool. This makes managing allocation counts easier, since fragmentation is handled by the
@@ -34,8 +39,6 @@ public:
         poolInfo.poolSizeCount = poolSizes.size();
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = 1;
-
-        LITEFX_TRACE(VULKAN_LOG, "Allocating buffer pool {{ Uniforms: {0}, Storages: {1}, Samplers: {2} }}...", poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount);
 
         VkDescriptorPool descriptorPool;
 
@@ -132,4 +135,9 @@ IBuffer* VulkanBufferPool::getBuffer(const UInt32& binding) const noexcept
 const BufferUsage& VulkanBufferPool::getUsage() const noexcept
 {
     return m_impl->m_usage;
+}
+
+const VkDescriptorSet VulkanBufferPool::getDescriptorSet() const noexcept
+{
+    return m_impl->m_descriptorSet;
 }

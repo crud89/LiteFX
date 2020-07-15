@@ -42,6 +42,9 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API IBufferSet {
     public:
+        virtual ~IBufferSet() noexcept = default;
+
+    public:
         virtual Array<const IBufferLayout*> getLayouts() const noexcept = 0;
         virtual Array<const IBufferLayout*> getLayouts(const BufferType& type) const noexcept = 0;
         virtual const IBufferLayout* getLayout(const UInt32& binding) const noexcept = 0;
@@ -114,7 +117,6 @@ namespace LiteFX::Rendering {
     public:
         virtual void map(const void* const data, const size_t& size) = 0;
         virtual void transfer(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& offset = 0, const size_t& targetOffset = 0) const = 0;
-        virtual void bind(const IRenderPass* renderPass) const = 0;
     };
 
     /// <summary>
@@ -171,6 +173,8 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
         virtual UniquePtr<IBufferPool> makeBufferPool(const BufferUsage& usage, const UInt32& bufferSet) const = 0;
+        virtual void bind(const IBuffer* buffer) const = 0;
+        virtual void bind(const IBufferPool* buffer) const = 0;
     };
 
     /// <summary>

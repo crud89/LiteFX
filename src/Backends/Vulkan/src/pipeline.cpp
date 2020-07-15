@@ -10,6 +10,11 @@ class VulkanRenderPipeline::VulkanRenderPipelineImpl : public Implement<VulkanRe
 public:
 	friend class VulkanRenderPipeline;
 
+private:
+	const VulkanRenderPass* m_renderPass;
+	const VulkanCommandBuffer* m_commandBuffer;
+	const VulkanRenderPipelineLayout* m_pipelineLayout;
+
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : base(parent) { }
 	
@@ -28,20 +33,20 @@ private:
 public:
 	VkPipeline initialize()
 	{
-		auto layout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_parent->getLayout());
+		m_pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_parent->getLayout());
 
-		if (layout == nullptr)
+		if (m_pipelineLayout == nullptr)
 			throw std::invalid_argument("The pipeline layout must be initialized.");
 
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(layout));
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(m_pipelineLayout));
 
 		// Get the device.
 		auto device = m_parent->getDevice();
 
 		// Request configuration interface.
-		auto rasterizer = layout->getRasterizer();
-		auto inputAssembler = layout->getInputAssembler();
-		auto views = layout->getViewports();
+		auto rasterizer = m_pipelineLayout->getRasterizer();
+		auto inputAssembler = m_pipelineLayout->getInputAssembler();
+		auto views = m_pipelineLayout->getViewports();
 		auto program = m_parent->getProgram();
 
 		if (rasterizer == nullptr)
@@ -216,7 +221,7 @@ public:
 		pipelineInfo.pRasterizationState = &rasterizerState;
 		pipelineInfo.pMultisampleState = &multisampling;
 		pipelineInfo.pColorBlendState = &colorBlending;
-		pipelineInfo.layout = layout->handle();
+		pipelineInfo.layout = m_pipelineLayout->handle();
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 		// Setup shader stages.
@@ -239,12 +244,14 @@ public:
 		pipelineInfo.pStages = shaderStages.data();
 
 		// Setup render pass state.
-		auto renderPass = dynamic_cast<const VulkanRenderPass*>(m_parent->getRenderPass());
+		m_renderPass = dynamic_cast<const VulkanRenderPass*>(m_parent->getRenderPass());
 
-		if (renderPass == nullptr)
+		if (m_renderPass == nullptr)
 			throw std::invalid_argument("The specified render pass is not a valid Vulkan render pass.");
+		
+		m_commandBuffer = dynamic_cast<const VulkanCommandBuffer*>(m_renderPass->getCommandBuffer());
 
-		pipelineInfo.renderPass = renderPass->handle();
+		pipelineInfo.renderPass = m_renderPass->handle();
 		pipelineInfo.subpass = 0;
 
 		VkPipeline pipeline;
@@ -282,6 +289,52 @@ void VulkanRenderPipeline::create()
         throw std::runtime_error("The render pipeline can only created once.");
 
     this->handle() = m_impl->initialize();
+}
+
+void VulkanRenderPipeline::bind(const IBuffer* b) const
+{
+	auto buffer = dynamic_cast<const VulkanBuffer*>(b);
+
+	if (buffer == nullptr)
+		throw std::invalid_argument("The provided buffer is not a valid Vulkan buffer.");
+
+	auto renderPass = m_impl->m_renderPass;
+	auto commandBuffer = m_impl->m_commandBuffer;
+	auto pipelineLayout = m_impl->m_pipelineLayout;
+
+	// Depending on the type, bind the buffer accordingly.
+	constexpr VkDeviceSize offsets[] = { 0 };
+	auto elementSize = buffer->getElementSize();
+
+	switch (buffer->getType())
+	{
+	case BufferType::Vertex:
+		::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &buffer->handle(), offsets);
+		break;
+	case BufferType::Index:
+		if (elementSize != 4 && elementSize != 2)
+			throw std::runtime_error("Unsupported index buffer element size.");
+
+		::vkCmdBindIndexBuffer(commandBuffer->handle(), buffer->handle(), 0, elementSize == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+		break;
+	default:
+		throw std::runtime_error("The buffer could not be bound: unsupported buffer type. If the buffer originates from a buffer pool, bind the pool instance instead.");
+	}
+}
+
+void VulkanRenderPipeline::bind(const IBufferPool* b) const
+{
+	auto pool = dynamic_cast<const VulkanBufferPool*>(b);
+
+	if (pool == nullptr)
+		throw std::invalid_argument("The provided buffer pool is not a valid Vulkan buffer pool.");
+
+	auto renderPass = m_impl->m_renderPass;
+	auto commandBuffer = m_impl->m_commandBuffer;
+	auto pipelineLayout = m_impl->m_pipelineLayout;
+	VkDescriptorSet descriptorSets[] = { pool->getDescriptorSet() };
+
+	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), 0, 1, descriptorSets, 0, nullptr);
 }
 
 // ------------------------------------------------------------------------------------------------

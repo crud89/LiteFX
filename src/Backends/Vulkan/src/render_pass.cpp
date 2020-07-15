@@ -28,6 +28,10 @@ public:
     ~VulkanRenderPassImpl()
     {
         ::vkDestroySemaphore(m_device->handle(), m_semaphore, nullptr);
+        
+        std::for_each(std::begin(m_frameBuffers), std::end(m_frameBuffers), [&](VkFramebuffer& frameBuffer) {
+            ::vkDestroyFramebuffer(m_parent->getDevice()->handle(), frameBuffer, nullptr);
+        });
     }
 
 public:
@@ -280,7 +284,10 @@ VulkanRenderPass::VulkanRenderPass(const VulkanRenderPipeline& pipeline) :
 {
 }
 
-VulkanRenderPass::~VulkanRenderPass() noexcept = default;
+VulkanRenderPass::~VulkanRenderPass() noexcept
+{
+    ::vkDestroyRenderPass(this->getDevice()->handle(), this->handle(), nullptr);
+}
 
 const ICommandBuffer* VulkanRenderPass::getCommandBuffer() const noexcept
 {

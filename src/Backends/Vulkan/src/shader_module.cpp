@@ -62,7 +62,10 @@ VulkanShaderModule::VulkanShaderModule(const VulkanDevice* device, const ShaderT
 	this->handle() = m_impl->initialize();
 }
 
-VulkanShaderModule::~VulkanShaderModule() noexcept = default;
+VulkanShaderModule::~VulkanShaderModule() noexcept
+{
+	::vkDestroyShaderModule(this->getDevice()->handle(), this->handle(), nullptr);
+}
 
 const ShaderType& VulkanShaderModule::getType() const noexcept
 {
