@@ -22,11 +22,6 @@ private:
 public:
     VulkanBufferSetImpl(VulkanBufferSet* parent) : base(parent) { }
 
-    ~VulkanBufferSetImpl()
-    {
-        ::vkDestroyDescriptorSetLayout(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
-    }
-
 public:
     VkDescriptorSetLayout initialize()
     {
