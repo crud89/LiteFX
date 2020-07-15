@@ -214,6 +214,11 @@ const IGraphicsAdapter* VulkanBackend::getAdapter() const noexcept
     return m_impl->m_adapter;
 }
 
+const Array<String>& VulkanBackend::getEnabledValidationLayers() const noexcept
+{
+    return m_impl->m_layers;
+}
+
 void VulkanBackend::use(const IGraphicsAdapter* adapter)
 {
     if (adapter == nullptr)
@@ -303,8 +308,7 @@ AppBuilder& VulkanBackendBuilder::go()
     if (surface == nullptr)
         throw std::runtime_error("No surface has been defined to use for this backend.");
 
-    Logger::get(VULKAN_LOG).info("Creating Vulkan rendering backend for adapter {0} ({1}).",
-        adapter->getName(), adapter->getDeviceId());
+    Logger::get(VULKAN_LOG).info("Creating Vulkan rendering backend for adapter {0} ({1}).", adapter->getName(), adapter->getDeviceId());
 
     Logger::get(VULKAN_LOG).debug("--------------------------------------------------------------------------");
     Logger::get(VULKAN_LOG).debug("Vendor: {0:#0x}", adapter->getVendorId());
@@ -314,6 +318,9 @@ AppBuilder& VulkanBackendBuilder::go()
     Logger::get(VULKAN_LOG).debug("Available extensions: {0}", Join(VulkanBackend::getAvailableExtensions(), ", "));
     Logger::get(VULKAN_LOG).debug("Validation layers: {0}", Join(VulkanBackend::getValidationLayers(), ", "));
     Logger::get(VULKAN_LOG).debug("--------------------------------------------------------------------------");
+
+    if (this->instance()->getEnabledValidationLayers().size() > 0)
+        LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(this->instance()->getEnabledValidationLayers(), ", "));
 
     return builder_type::go();
 }

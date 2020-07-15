@@ -400,6 +400,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
 		virtual const ISurface* getSurface() const noexcept override;
 		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
+		virtual const Array<String>& getEnabledValidationLayers() const noexcept;
 
 	public:
 		virtual void use(const IGraphicsAdapter* adapter) override;
