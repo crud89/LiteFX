@@ -39,6 +39,7 @@ ENDIF(BUILD_VULKAN_BACKEND)
 # Include samples.
 IF(BUILD_EXAMPLES)
     IF(BUILD_SAMPLE_BASIC_RENDERING)
-        add_subdirectory(Samples/BasicRendering)
+        ADD_SUBDIRECTORY(Samples/BasicRendering)
+        ADD_SUBDIRECTORY(Samples/Textures)
     ENDIF(BUILD_SAMPLE_BASIC_RENDERING)
 ENDIF(BUILD_EXAMPLES)
