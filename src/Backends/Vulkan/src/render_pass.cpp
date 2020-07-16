@@ -212,36 +212,19 @@ public:
         ::vkCmdEndRenderPass(m_commandBuffer->handle());
         m_commandBuffer->end();
 
-        VkSemaphore waitForSemaphores[] = { m_swapChain->getSemaphore() };
-        VkPipelineStageFlags waitForStages[] = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
-        VkSemaphore signalSemaphores[] = { m_semaphore };
-
         // Submit the command buffer.
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.pWaitSemaphores = waitForSemaphores;
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitDstStageMask = waitForStages;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_commandBuffer->handle();
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
-        
-        auto result = ::vkQueueSubmit(m_queue->handle(), 1, &submitInfo, VK_NULL_HANDLE);
-
-        if (result != VK_SUCCESS)
-        {
-            LITEFX_ERROR(VULKAN_LOG, "Error ({0}) submitting render pass to graphics queue.", result);
-            throw std::runtime_error("Failed to submit render pass to device queue!");
-        }
+        Array<VkSemaphore> waitForSemaphores = { m_swapChain->getSemaphore() };
+        Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
+        Array<VkSemaphore> signalSemaphores = { m_semaphore };
+        m_commandBuffer->submit(waitForSemaphores, waitForStages, signalSemaphores, false);
 
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
         if (present)
         {
             VkPresentInfoKHR presentInfo{};
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            presentInfo.pWaitSemaphores = signalSemaphores;
-            presentInfo.waitSemaphoreCount = 1;
+            presentInfo.waitSemaphoreCount = signalSemaphores.size();
+            presentInfo.pWaitSemaphores = signalSemaphores.data();
             presentInfo.pImageIndices = &m_currentFrameBuffer;
             presentInfo.pResults = nullptr;
 

@@ -105,6 +105,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void begin() const override;
 		virtual void end() const override;
 		virtual void submit(const bool& waitForQueue = false) const override;
+		virtual void submit(const Array<VkSemaphore>& waitForSemaphores, const Array<VkPipelineStageFlags>& waitForStages, const Array<VkSemaphore>& signalSemaphores = { }, const bool& waitForQueue = false) const;
 	};
 
 	/// <summary>
