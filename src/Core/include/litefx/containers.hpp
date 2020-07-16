@@ -51,6 +51,9 @@ namespace LiteFX {
 	template <class T>
 	using SharedPtr = std::shared_ptr<T>;
 
+	template <class T>
+	using WeakPtr = std::weak_ptr<T>;
+
 	template <class... T>
 	using Tuple = std::tuple<T...>;
 
