@@ -164,13 +164,20 @@ namespace LiteFX::Rendering {
     
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
+        virtual IRenderPipelineLayout* getLayout() noexcept = 0;
         virtual const IShaderProgram* getProgram() const noexcept = 0;
         virtual const IRenderPass* getRenderPass() const noexcept = 0;
+        virtual IRenderPass* getRenderPass() noexcept = 0;
+
+    public:
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
         virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;
+
+    public:
         virtual void beginFrame() const = 0;
         virtual void endFrame() = 0;
+        virtual void reset() = 0;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
         virtual UniquePtr<IBufferPool> makeBufferPool(const BufferUsage& usage, const UInt32& bufferSet) const = 0;
@@ -186,10 +193,10 @@ namespace LiteFX::Rendering {
         virtual ~IRenderPipelineLayout() noexcept = default;
 
     public:
-        virtual Array<const IViewport*> getViewports() const noexcept = 0;
+        virtual Array<IViewport*> getViewports() const noexcept = 0;
         virtual void use(UniquePtr<IViewport>&& viewport) = 0;
         virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept = 0;
-        virtual const IRasterizer* getRasterizer() const noexcept = 0;
+        virtual IRasterizer* getRasterizer() const noexcept = 0;
         virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
         virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
         virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
@@ -294,6 +301,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;
         virtual void begin() const = 0;
         virtual void end(const bool& present = false) = 0;
+        virtual void reset() = 0;
         virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
     };
@@ -383,10 +391,10 @@ namespace LiteFX::Rendering {
         virtual ~RenderPipelineLayout() noexcept;
 
     public:
-        virtual Array<const IViewport*> getViewports() const noexcept override;
+        virtual Array<IViewport*> getViewports() const noexcept override;
         virtual void use(UniquePtr<IViewport>&& viewport) override;
         virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept override;
-        virtual const IRasterizer* getRasterizer() const noexcept override;
+        virtual IRasterizer* getRasterizer() const noexcept override;
         virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
         virtual const IInputAssembler* getInputAssembler() const noexcept override;
         virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
@@ -407,8 +415,12 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept override;
+        virtual IRenderPipelineLayout* getLayout() noexcept override;
         virtual const IShaderProgram* getProgram() const noexcept override;
         virtual const IRenderPass* getRenderPass() const noexcept override;
+        virtual IRenderPass* getRenderPass() noexcept override;
+
+    public:
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
         virtual void use(UniquePtr<IShaderProgram>&& program) override;
         virtual void use(UniquePtr<IRenderPass>&& renderPass) override;

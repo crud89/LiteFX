@@ -140,11 +140,19 @@ void SampleApp::resize(int width, int height)
         return;
     else
     {
-        // Resize the device.
+        // Resize the frame buffer and recreate the swap chain.
         m_device->resize(width, height);
 
+        // Resize the viewport.
+        auto layout = m_pipeline->getLayout();
+        auto viewport = layout->remove(layout->getViewports().front());
+        viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+        viewport->getScissors().clear();
+        viewport->getScissors().push_back(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+        layout->use(std::move(viewport));
+        
         // Recreate the pipeline.
-        this->createPipeline();
+        m_pipeline->reset();
     }
 }
 
@@ -165,7 +173,7 @@ void SampleApp::drawFrame()
     auto aspectRatio = static_cast<float>(m_device->getBufferWidth()) / static_cast<float>(m_device->getBufferHeight());
 
     // Compute camera view and projection.
-    glm::mat4 view       = glm::lookAt(glm::vec3(4.2f, 4.2f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 view       = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.0001f, 1000.0f);
     projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;

@@ -19,9 +19,9 @@ public:
 	RenderPipelineLayoutImpl(RenderPipelineLayout* parent) : base(parent) { }
 
 public:
-	Array<const IViewport*> getViewports() const noexcept 
+	Array<IViewport*> getViewports() const noexcept 
 	{
-		Array<const IViewport*> viewports(m_viewports.size());
+		Array<IViewport*> viewports(m_viewports.size());
 		std::generate(std::begin(viewports), std::end(viewports), [&, i = 0]() mutable { return m_viewports[i++].get(); });
 		return viewports;
 	}
@@ -58,7 +58,7 @@ RenderPipelineLayout::RenderPipelineLayout() :
 
 RenderPipelineLayout::~RenderPipelineLayout() noexcept = default;
 
-Array<const IViewport*> RenderPipelineLayout::getViewports() const noexcept 
+Array<IViewport*> RenderPipelineLayout::getViewports() const noexcept 
 {
 	return m_impl->getViewports();
 }
@@ -73,7 +73,7 @@ UniquePtr<IViewport> RenderPipelineLayout::remove(const IViewport* viewport) noe
 	return m_impl->remove(viewport);
 }
 
-const IRasterizer* RenderPipelineLayout::getRasterizer() const noexcept 
+IRasterizer* RenderPipelineLayout::getRasterizer() const noexcept 
 {
 	return m_impl->m_rasterizer.get();
 }

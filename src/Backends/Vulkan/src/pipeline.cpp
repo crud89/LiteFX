@@ -17,16 +17,10 @@ private:
 
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : base(parent) { }
-	
-	~VulkanRenderPipelineImpl()
-	{
-		this->cleanup();
-	}
 
 private:
 	void cleanup()
 	{
-		// Destroy the pipeline.
 		::vkDestroyPipeline(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
 	}
 
@@ -34,9 +28,17 @@ public:
 	VkPipeline initialize()
 	{
 		m_pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_parent->getLayout());
+		m_renderPass = dynamic_cast<const VulkanRenderPass*>(m_parent->getRenderPass());
+		m_commandBuffer = dynamic_cast<const VulkanCommandBuffer*>(m_renderPass->getCommandBuffer());
 
 		if (m_pipelineLayout == nullptr)
-			throw std::invalid_argument("The pipeline layout must be initialized.");
+			throw std::invalid_argument("The pipeline layout is not a valid Vulkan pipeline layout instance.");
+
+		if (m_renderPass == nullptr)
+			throw std::invalid_argument("The render pass is not a valid Vulkan render pass instance.");
+
+		if (m_commandBuffer == nullptr)
+			throw std::invalid_argument("The command buffer is not a valid Vulkan command buffer instance.");
 
 		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(m_pipelineLayout));
 
@@ -244,13 +246,6 @@ public:
 		pipelineInfo.pStages = shaderStages.data();
 
 		// Setup render pass state.
-		m_renderPass = dynamic_cast<const VulkanRenderPass*>(m_parent->getRenderPass());
-
-		if (m_renderPass == nullptr)
-			throw std::invalid_argument("The specified render pass is not a valid Vulkan render pass.");
-		
-		m_commandBuffer = dynamic_cast<const VulkanCommandBuffer*>(m_renderPass->getCommandBuffer());
-
 		pipelineInfo.renderPass = m_renderPass->handle();
 		pipelineInfo.subpass = 0;
 
@@ -281,7 +276,10 @@ VulkanRenderPipeline::VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& la
 	this->create();
 }
 
-VulkanRenderPipeline::~VulkanRenderPipeline() noexcept = default;
+VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
+{
+	m_impl->cleanup();
+}
 
 void VulkanRenderPipeline::create()
 {
@@ -289,6 +287,14 @@ void VulkanRenderPipeline::create()
         throw std::runtime_error("The render pipeline can only created once.");
 
     this->handle() = m_impl->initialize();
+}
+
+void VulkanRenderPipeline::reset()
+{
+	m_impl->cleanup();
+
+	this->getRenderPass()->reset();
+	this->handle() = m_impl->initialize();
 }
 
 void VulkanRenderPipeline::bind(const IBuffer* b) const

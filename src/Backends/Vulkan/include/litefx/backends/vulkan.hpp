@@ -129,6 +129,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
 		virtual void begin() const override;
 		virtual void end(const bool& present = false) override;
+		virtual void reset() override;
 		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
 		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
 
@@ -209,6 +210,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanRenderPipeline() noexcept;
 
 	public:
+		virtual void reset() override;
 		virtual void bind(const IBuffer* buffer) const override;
 		virtual void bind(const IBufferPool* buffer) const override;
 

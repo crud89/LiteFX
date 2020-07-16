@@ -49,12 +49,22 @@ const IRenderPipelineLayout* RenderPipeline::getLayout() const noexcept
     return m_impl->m_layout.get();
 }
 
+IRenderPipelineLayout* RenderPipeline::getLayout() noexcept
+{
+    return m_impl->m_layout.get();
+}
+
 const IShaderProgram* RenderPipeline::getProgram() const noexcept
 {
     return m_impl->m_program.get();
 }
 
 const IRenderPass* RenderPipeline::getRenderPass() const noexcept
+{
+    return m_impl->m_renderPass.get();
+}
+
+IRenderPass* RenderPipeline::getRenderPass() noexcept
 {
     return m_impl->m_renderPass.get();
 }

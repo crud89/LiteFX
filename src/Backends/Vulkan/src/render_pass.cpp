@@ -25,10 +25,12 @@ private:
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanRenderPipeline& pipeline) : base(parent), m_pipeline(pipeline) { }
 
-    ~VulkanRenderPassImpl()
+private:
+    void cleanup()
     {
+        ::vkDestroyRenderPass(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
         ::vkDestroySemaphore(m_device->handle(), m_semaphore, nullptr);
-        
+
         std::for_each(std::begin(m_frameBuffers), std::end(m_frameBuffers), [&](VkFramebuffer& frameBuffer) {
             ::vkDestroyFramebuffer(m_parent->getDevice()->handle(), frameBuffer, nullptr);
         });
@@ -160,7 +162,8 @@ public:
         m_frameBuffers = frameBuffers;
 
         // Create a command buffer.
-        m_commandBuffer = makeUnique<const VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_device->getGraphicsQueue()));
+        if (m_commandBuffer == nullptr)
+            m_commandBuffer = makeUnique<const VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_device->getGraphicsQueue()));
 
         // Create a semaphore that signals if the render pass has finished.
         VkSemaphoreCreateInfo semaphoreInfo{};
@@ -286,7 +289,7 @@ VulkanRenderPass::VulkanRenderPass(const VulkanRenderPipeline& pipeline) :
 
 VulkanRenderPass::~VulkanRenderPass() noexcept
 {
-    ::vkDestroyRenderPass(this->getDevice()->handle(), this->handle(), nullptr);
+    m_impl->cleanup();
 }
 
 const ICommandBuffer* VulkanRenderPass::getCommandBuffer() const noexcept
@@ -325,6 +328,12 @@ void VulkanRenderPass::begin() const
 void VulkanRenderPass::end(const bool& present)
 {
     m_impl->end(present);
+}
+
+void VulkanRenderPass::reset()
+{
+    m_impl->cleanup();
+    this->handle() = m_impl->initialize();
 }
 
 void VulkanRenderPass::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
