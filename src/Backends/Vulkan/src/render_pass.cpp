@@ -81,7 +81,6 @@ public:
                 break;
             case RenderTargetType::Present:
                 attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                //attachment.initialLayout  = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
                 attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
                 break;
             case RenderTargetType::Transfer:
@@ -100,7 +99,14 @@ public:
         std::generate(std::begin(references), std::end(references), [&, i = 0]() mutable {
             VkAttachmentReference reference{};
             reference.attachment = i;
-            reference.layout = attachments[i++].finalLayout;
+
+            auto attachment = attachments[i++];
+
+            // If the attachment should be presented, it must be converted into an optimal color attachment layout.
+            if (attachment.finalLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+                reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            else
+                reference.layout = attachment.finalLayout;
 
             return reference;
         });
@@ -361,10 +367,18 @@ void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
     this->instance()->addTarget(std::move(target));
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::withColorTarget(const MultiSamplingLevel& samples)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::withColorTarget()
 {
     auto swapChain = this->instance()->m_impl->m_pipeline.getDevice()->getSwapChain();
-    this->addTarget(RenderTargetType::Color, swapChain->getFormat(), samples, true, true, false);
+    this->addTarget(RenderTargetType::Color, swapChain->getFormat(), MultiSamplingLevel::x1, true, true, false);
+    
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::withPresentTarget(const MultiSamplingLevel& samples)
+{
+    auto swapChain = this->instance()->m_impl->m_pipeline.getDevice()->getSwapChain();
+    this->addTarget(RenderTargetType::Present, swapChain->getFormat(), samples, true, true, false);
     
     return *this;
 }

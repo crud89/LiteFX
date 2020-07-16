@@ -69,7 +69,7 @@ void SampleApp::createPipeline()
             .addFragmentShaderModule("shaders/default.frag.spv")
             .go()
         .make<VulkanRenderPass>()
-            .withColorTarget()
+            .withPresentTarget()
             .go()
         .go();
 }

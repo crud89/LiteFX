@@ -71,7 +71,8 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual void use(UniquePtr<IRenderTarget>&& target) override;
-		virtual VulkanRenderPassBuilder& withColorTarget(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) override;
+		virtual VulkanRenderPassBuilder& withColorTarget() override;
+		virtual VulkanRenderPassBuilder& withPresentTarget(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) override;
 		virtual VulkanRenderPassBuilder& addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 	};
 
