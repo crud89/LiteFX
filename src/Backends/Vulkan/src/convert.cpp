@@ -9,7 +9,7 @@ Format LiteFX::Rendering::Backends::getFormat(const VkFormat& format)
 	case VK_FORMAT_B8G8R8A8_UNORM:
 		return Format::B8G8R8A8_UNORM;
 	case VK_FORMAT_B8G8R8A8_SRGB:
-		return Format::B8G8R8A8_UNORM_SRGB;
+		return Format::B8G8R8A8_SRGB;
 	default:
 		return Format::Other;
 	}
@@ -21,7 +21,7 @@ VkFormat LiteFX::Rendering::Backends::getFormat(const Format& format)
 	{
 	case Format::B8G8R8A8_UNORM:
 		return VK_FORMAT_B8G8R8A8_UNORM;
-	case Format::B8G8R8A8_UNORM_SRGB:
+	case Format::B8G8R8A8_SRGB:
 		return VK_FORMAT_B8G8R8A8_SRGB;
 	default:
 		throw std::invalid_argument("Unsupported format.");

@@ -16,7 +16,7 @@ private:
 	Size2d m_size;
 
 public:
-	VulkanTextureImpl(VulkanTexture* parent, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) :
+	VulkanTextureImpl(VulkanTexture* parent, const Format& format = Format::B8G8R8A8_SRGB, const Size2d& size = Size2d(0)) :
 		base(parent), m_format(format), m_size(size), m_view(nullptr) { }
 
 	~VulkanTextureImpl() noexcept 

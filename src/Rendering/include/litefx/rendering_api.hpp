@@ -64,7 +64,7 @@ namespace LiteFX::Rendering {
 	enum class LITEFX_RENDERING_API Format {
 		None = 0x00000000,
 		B8G8R8A8_UNORM = 0x00000001,
-		B8G8R8A8_UNORM_SRGB = 0x01000001,
+		B8G8R8A8_SRGB = 0x01000001,
 		Other = 0x7FFFFFFF
 	};
 

@@ -94,7 +94,11 @@ void SampleApp::loadTexture()
     if (imageData == nullptr)
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
+    //auto pixels = width * height;
+    //m_pipeline->makeTexture()
 
+    //m_textureBuffer = m_pipeline->makeBufferPool(BufferUsage::Resource, DescriptorSets::PerMaterial);
+    //m_textureBuffer->getBuffer(0);
 }
 
 void SampleApp::initBuffers()
@@ -122,7 +126,7 @@ void SampleApp::initBuffers()
 
 void SampleApp::run() 
 {
-    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
+    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB);
     this->createPipeline();
     this->initBuffers();
     this->loadTexture();
@@ -212,6 +216,9 @@ void SampleApp::drawFrame()
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
     m_pipeline->bind(m_transformBuffer.get());
+
+    // Bind the texture buffer.
+    m_pipeline->bind(m_textureBuffer.get());
 
     // Draw the object.
     m_pipeline->getRenderPass()->drawIndexed(indices.size());

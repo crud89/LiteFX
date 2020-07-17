@@ -49,7 +49,7 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::Format> : formatte
 		string_view name = "Invalid";
 		switch (t) {
 		case LiteFX::Rendering::Format::B8G8R8A8_UNORM: name = "B8G8R8A8_UNORM"; break;
-		case LiteFX::Rendering::Format::B8G8R8A8_UNORM_SRGB: name = "B8G8R8A8_UNORM_SRGB"; break;
+		case LiteFX::Rendering::Format::B8G8R8A8_SRGB: name = "B8G8R8A8_SRGB"; break;
 		case LiteFX::Rendering::Format::None: name = "None"; break;
 		case LiteFX::Rendering::Format::Other: name = "Other"; break;
 		}

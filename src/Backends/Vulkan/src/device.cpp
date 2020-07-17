@@ -353,7 +353,7 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 // Factory.
 // ------------------------------------------------------------------------------------------------
 
-//UniquePtr<ITexture> VulkanDevice::createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const
+//UniquePtr<ITexture> VulkanDevice::createTexture2d(const Format& format = Format::B8G8R8A8_SRGB, const Size2d& size = Size2d(0)) const
 //{
 //  VkImage image;
 //  // TODO: ...

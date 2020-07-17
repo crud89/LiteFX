@@ -188,7 +188,7 @@ namespace LiteFX::Rendering {
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const UInt32& binding) const = 0;
 
 	public:
-		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const = 0;
+		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_SRGB, const Size2d& size = Size2d(0)) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const = 0;
 	};
 

@@ -99,7 +99,7 @@ void SampleApp::initBuffers()
 
 void SampleApp::run() 
 {
-    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
+    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB);
     this->createPipeline();
     this->initBuffers();
 

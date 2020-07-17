@@ -9,7 +9,7 @@ using namespace LiteFX::Rendering;
 class RenderTarget::RenderTargetImpl : public Implement<RenderTarget> {
 private:
     RenderTargetType m_type = RenderTargetType::Color;
-    Format m_format = Format::B8G8R8A8_UNORM_SRGB;
+    Format m_format = Format::B8G8R8A8_SRGB;
     MultiSamplingLevel m_samples = MultiSamplingLevel::x1;
     bool m_clearBuffer = false, m_clearStencil = false, m_volatile = false;
 

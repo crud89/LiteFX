@@ -283,7 +283,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
-		VulkanSwapChain(const VulkanDevice* device, const Format& format = Format::B8G8R8A8_UNORM_SRGB);
+		VulkanSwapChain(const VulkanDevice* device, const Format& format = Format::B8G8R8A8_SRGB);
 		virtual ~VulkanSwapChain() noexcept;
 
 	public:
@@ -349,8 +349,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual const ISwapChain* getSwapChain() const noexcept override;
 
 	public:
-		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const override;
-		virtual UniquePtr<ITexture> makeTexture2d(VkImage image, const Format& format = Format::B8G8R8A8_UNORM_SRGB, const Size2d& size = Size2d(0)) const;
+		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_SRGB, const Size2d& size = Size2d(0)) const override;
+		virtual UniquePtr<ITexture> makeTexture2d(VkImage image, const Format& format = Format::B8G8R8A8_SRGB, const Size2d& size = Size2d(0)) const;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const override;
 
 	public:
