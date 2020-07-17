@@ -82,6 +82,7 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferType> : form
 		case LiteFX::Rendering::BufferType::Storage: name = "Storage"; break;
 		case LiteFX::Rendering::BufferType::Index:   name = "Index";   break;
 		case LiteFX::Rendering::BufferType::Vertex:  name = "Vertex";  break;
+		case LiteFX::Rendering::BufferType::Sampler: name = "Sampler";  break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}

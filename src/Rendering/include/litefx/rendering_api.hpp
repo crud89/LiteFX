@@ -105,7 +105,8 @@ namespace LiteFX::Rendering {
 		Uniform = 0x00000010,
 		Storage = 0x00000020,
 		Index = 0x00000040,
-		Vertex = 0x00000080
+		Vertex = 0x00000080,
+		Sampler = 0x000000F0
 	};
 
 	/// <summary>
