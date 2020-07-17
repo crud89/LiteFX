@@ -14,10 +14,12 @@ private:
 	VkImageView m_view;
 	Format m_format;
 	Size2d m_size;
+	UInt32 m_levels;
+	MultiSamplingLevel m_samples;
 
 public:
-	VulkanTextureImpl(VulkanTexture* parent, const Format& format = Format::B8G8R8A8_SRGB, const Size2d& size = Size2d(0)) :
-		base(parent), m_format(format), m_size(size), m_view(nullptr) { }
+	VulkanTextureImpl(VulkanTexture* parent, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) :
+		base(parent), m_format(format), m_size(size), m_levels(levels), m_samples(samples), m_view(nullptr) { }
 
 	~VulkanTextureImpl() noexcept 
 	{
@@ -27,7 +29,24 @@ public:
 public:
 	void initialize()
 	{
-		m_view = m_parent->getDevice()->vkCreateImageView(m_parent->handle(), m_format);
+		VkImageViewCreateInfo createInfo = {};
+
+		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		createInfo.image = m_parent->handle();
+		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.format = ::getFormat(m_format);
+		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.levelCount = m_levels;
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.layerCount = 1;
+
+		if (::vkCreateImageView(m_parent->getDevice()->handle(), &createInfo, nullptr, &m_view) != VK_SUCCESS)
+			throw std::runtime_error("Unable to create image view!");
 	}
 };
 
@@ -35,8 +54,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding) :
-	IResource(image), VulkanRuntimeObject(device), Buffer(BufferType::Sampler, size.width() * size.height(), ::getSize(format), binding), m_impl(makePimpl<VulkanTextureImpl>(this, format, size))
+VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples) :
+	IResource(image), VulkanRuntimeObject(device), Buffer(BufferType::Sampler, size.width() * size.height(), ::getSize(format), binding), m_impl(makePimpl<VulkanTextureImpl>(this, format, size, levels, samples))
 {
 	if (image == nullptr)
 		throw std::invalid_argument("The argument `image` is not initialized.");
@@ -54,6 +73,16 @@ Size2d VulkanTexture::getExtent() const noexcept
 Format VulkanTexture::getFormat() const noexcept
 {
 	return m_impl->m_format;
+}
+
+MultiSamplingLevel VulkanTexture::getSamples() const noexcept
+{
+	return m_impl->m_samples;
+}
+
+const UInt32& VulkanTexture::getLevels() const noexcept
+{
+	return m_impl->m_levels;
 }
 
 void VulkanTexture::map(const void* const data, const size_t& size)

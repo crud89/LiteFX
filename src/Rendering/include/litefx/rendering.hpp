@@ -118,6 +118,8 @@ namespace LiteFX::Rendering {
 	public:
 		virtual Size2d getExtent() const noexcept = 0;
 		virtual Format getFormat() const noexcept = 0;
+		virtual MultiSamplingLevel getSamples() const noexcept = 0;
+		virtual const UInt32& getLevels() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -173,6 +175,7 @@ namespace LiteFX::Rendering {
 	public:
 		virtual const IRenderBackend* getBackend() const noexcept = 0;
 		virtual const ISwapChain* getSwapChain() const noexcept = 0;
+		virtual Array<UniquePtr<ITexture>> createSwapChainImages(const ISwapChain* swapChain) const = 0;
 		virtual const ICommandQueue* getGraphicsQueue() const noexcept = 0;
 		virtual const ICommandQueue* getTransferQueue() const noexcept = 0;
 		virtual Array<Format> getSurfaceFormats() const = 0;

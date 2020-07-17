@@ -6,8 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-_VMAImage::_VMAImage(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, VmaAllocator& allocator, VmaAllocation allocation) :
-    VulkanTexture(device, image, format, size, binding), m_allocator(allocator), m_allocationInfo(allocation)
+_VMAImage::_VMAImage(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, VmaAllocation allocation) :
+    VulkanTexture(device, image, format, size, binding, levels, samples), m_allocator(allocator), m_allocationInfo(allocation)
 {
 }
 
@@ -39,7 +39,7 @@ void _VMAImage::map(const void* const data, const size_t& size)
 // Factory.
 // ------------------------------------------------------------------------------------------------
 
-UniquePtr<ITexture> _VMAImage::makeImage(const VulkanDevice* device, const Format& format, const Size2d& size, const UInt32& binding, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<ITexture> _VMAImage::makeImage(const VulkanDevice* device, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
     if (device == nullptr)
         throw std::invalid_argument("The device must be initialized.");
@@ -57,5 +57,5 @@ UniquePtr<ITexture> _VMAImage::makeImage(const VulkanDevice* device, const Forma
     if (allocationResult != nullptr)
         *allocationResult = result;
 
-    return makeUnique<_VMAImage>(device, image, format, size, binding, allocator, allocation);
+    return makeUnique<_VMAImage>(device, image, format, size, binding, levels, samples, allocator, allocation);
 }

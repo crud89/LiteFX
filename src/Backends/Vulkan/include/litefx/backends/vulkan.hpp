@@ -264,7 +264,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
-		VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding);
+		VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1);
 		VulkanTexture(VulkanTexture&&) = delete;
 		VulkanTexture(const VulkanTexture&) = delete;
 		virtual ~VulkanTexture() noexcept;
@@ -272,6 +272,8 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual Size2d getExtent() const noexcept override;
 		virtual Format getFormat() const noexcept override;
+		virtual MultiSamplingLevel getSamples() const noexcept override;
+		virtual const UInt32& getLevels() const noexcept override;
 		virtual void map(const void* const data, const size_t& size) override;
 		virtual void transfer(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& offset = 0, const size_t& targetOffset = 0) const override;
 
@@ -347,15 +349,12 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const UInt32& binding) const override; 
 		virtual UniquePtr<ITexture> createTexture(const BufferUsage& usage, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const override;
+		virtual Array<UniquePtr<ITexture>> createSwapChainImages(const ISwapChain* swapChain) const override;
 
 	public:
 		virtual const Array<String>& getExtensions() const noexcept;
 		virtual Array<Format> getSurfaceFormats() const override;
 		virtual const ISwapChain* getSwapChain() const noexcept override;
-
-	public:
-		virtual Array<UniquePtr<ITexture>> createSwapChainImages(const VulkanSwapChain* swapChain) const;
-		virtual VkImageView vkCreateImageView(const VkImage& image, const Format& format) const;
 
 	public:
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;

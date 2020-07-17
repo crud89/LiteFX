@@ -14,10 +14,10 @@ namespace LiteFX::Rendering::Backends {
 		VmaAllocation m_allocationInfo;
 
 	public:
-		static UniquePtr<ITexture> makeImage(const VulkanDevice* device, const Format& format, const Size2d& size, const UInt32& binding, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<ITexture> makeImage(const VulkanDevice* device, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 
 	public:
-		_VMAImage(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, VmaAllocator& allocator, VmaAllocation allocation);
+		_VMAImage(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, VmaAllocation allocation);
 		_VMAImage(_VMAImage&&) = delete;
 		_VMAImage(const _VMAImage&) = delete;
 		virtual ~_VMAImage() noexcept;
