@@ -16,7 +16,7 @@ private:
     Array<VkDescriptorPoolSize> m_poolSizes = {
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0 },
         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 0 },
-        { VK_DESCRIPTOR_TYPE_SAMPLER, 0 }
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0 }
     };
 
 public:
@@ -30,7 +30,6 @@ public:
             return nullptr;
 
         LITEFX_TRACE(VULKAN_LOG, "Defining buffer set {0} {{ {1} }}...", m_parent->getSetId(), m_parent->getType());
-
 
         // Parse descriptor set layouts.
         auto layouts = m_parent->getLayouts();
@@ -54,6 +53,10 @@ public:
             case BufferType::Uniform:
                 binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                 m_poolSizes[0].descriptorCount++;
+                break;
+            case BufferType::Sampler:
+                binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                m_poolSizes[2].descriptorCount++;
                 break;
             case BufferType::Storage:
             case BufferType::Vertex:
