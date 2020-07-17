@@ -48,6 +48,7 @@ public:
 	}
 
 private:
+	void loadTexture();
 	void createPipeline();
 	void initBuffers();
 

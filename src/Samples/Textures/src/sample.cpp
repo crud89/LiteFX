@@ -77,6 +77,19 @@ void SampleApp::createPipeline()
         .go();
 }
 
+void SampleApp::loadTexture()
+{
+    using ImageDataPtr = UniquePtr<stbi_uc, decltype(&::stbi_image_free)>;
+    
+    int width, height, channels;
+    auto imageData = ImageDataPtr(::stbi_load("assets/logo_quad.tga", &width, &height, &channels, STBI_rgb_alpha), ::stbi_image_free);
+
+    if (imageData == nullptr)
+        throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
+
+
+}
+
 void SampleApp::initBuffers()
 {
     // Create the staging buffer.
@@ -105,6 +118,7 @@ void SampleApp::run()
     m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_UNORM_SRGB);
     this->createPipeline();
     this->initBuffers();
+    this->loadTexture();
 
     while (!::glfwWindowShouldClose(m_window.get()))
     {
@@ -177,7 +191,7 @@ void SampleApp::drawFrame()
 
     // Compute camera view and projection.
     glm::mat4 view       = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.0001f, 1000.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
     m_cameraBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
@@ -188,7 +202,7 @@ void SampleApp::drawFrame()
     m_pipeline->bind(m_indexBuffer.get());
     
     // Compute world transform.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
     m_pipeline->bind(m_transformBuffer.get());
 
