@@ -1,2 +1,8 @@
 # LiteFX
-An extensible computer graphics and rendering engine.
+
+An extensible, descriptive, modern computer graphics and rendering engine.
+
+<p align="center">
+  <img src="/docs/img/banner_s.jpg">
+</p>
+
