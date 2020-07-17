@@ -67,8 +67,7 @@ int main(const int argc, const char** argv)
 	{
 		App::build<SampleApp>(std::move(window))
 			.logTo<ConsoleSink>(LogLevel::Trace)
-			//.logTo<ConsoleSink>(LogLevel::Debug)
-			.logTo<RollingFileSink>("sample.log")
+			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
 			.make<VulkanBackend>(requiredExtensions, enabledLayers)
 				.withAdapterOrDefault(adapterId)
 				.withSurface([&windowPtr](const VkInstance& instance) {
@@ -79,7 +78,6 @@ int main(const int argc, const char** argv)
 					
 					return surface;
 				}).go()
-			//.goFor<SampleApp>();
 			.go();
 	}
 	catch (const LiteFX::Exception& ex)

@@ -188,7 +188,6 @@ void SampleApp::drawFrame()
     m_pipeline->bind(m_indexBuffer.get());
     
     // Compute world transform.
-    // TODO: World transform can more efficiently handled using push constants.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
     m_pipeline->bind(m_transformBuffer.get());
@@ -196,7 +195,6 @@ void SampleApp::drawFrame()
     // Draw the object.
     m_pipeline->getRenderPass()->drawIndexed(indices.size());
 
-    // NOTE: This is actually an asynchronous operation, meaning that it does not wait for the frame to be actually rendered and presented.
-    //       We need to implement a way around this, so that there are no race conditions.
+    // End the frame.
     m_pipeline->endFrame();
 }
