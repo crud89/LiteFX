@@ -218,7 +218,7 @@ void SampleApp::drawFrame()
     m_pipeline->bind(m_transformBuffer.get());
 
     // Bind the texture buffer.
-    m_pipeline->bind(m_textureBuffer.get());
+    //m_pipeline->bind(m_textureBuffer.get());
 
     // Draw the object.
     m_pipeline->getRenderPass()->drawIndexed(indices.size());

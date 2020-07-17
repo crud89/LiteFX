@@ -35,8 +35,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size) :
-	IResource(image), VulkanRuntimeObject(device), m_impl(makePimpl<VulkanTextureImpl>(this, format, size))
+VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding) :
+	IResource(image), VulkanRuntimeObject(device), Buffer(BufferType::Sampler, size.width() * size.height(), ::getSize(format), binding), m_impl(makePimpl<VulkanTextureImpl>(this, format, size))
 {
 	if (image == nullptr)
 		throw std::invalid_argument("The argument `image` is not initialized.");
@@ -46,7 +46,7 @@ VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Fo
 
 VulkanTexture::~VulkanTexture() noexcept = default;
 
-Size2d VulkanTexture::getSize() const noexcept
+Size2d VulkanTexture::getExtent() const noexcept
 {
 	return m_impl->m_size;
 }
@@ -54,6 +54,16 @@ Size2d VulkanTexture::getSize() const noexcept
 Format VulkanTexture::getFormat() const noexcept
 {
 	return m_impl->m_format;
+}
+
+void VulkanTexture::map(const void* const data, const size_t& size)
+{
+	throw std::runtime_error("No data can be mapped to this texture.");
+}
+
+void VulkanTexture::transfer(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& offset, const size_t& targetOffset) const
+{
+	throw;
 }
 
 VkImageView VulkanTexture::getView() const noexcept

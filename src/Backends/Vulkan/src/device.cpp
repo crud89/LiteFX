@@ -1,5 +1,6 @@
 #include <litefx/backends/vulkan.hpp>
 #include "buffer.h"
+#include "image.h"
 
 // Include Vulkan Memory Allocator.
 #define VMA_IMPLEMENTATION
@@ -198,6 +199,12 @@ public:
 
 		return surfaceFormats;
 	}
+
+public:
+	UniquePtr<ITexture> makeTexture(VkImage image, const Format& format, const Size2d& size, const UInt32& binding) const
+	{
+		return makeUnique<VulkanTexture>(m_parent, image, format, size, binding);
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -349,24 +356,71 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 	return _VMABuffer::makeBuffer(type, elements, elementSize, binding, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-// ------------------------------------------------------------------------------------------------
-// Factory.
-// ------------------------------------------------------------------------------------------------
-
-//UniquePtr<ITexture> VulkanDevice::createTexture2d(const Format& format = Format::B8G8R8A8_SRGB, const Size2d& size = Size2d(0)) const
-//{
-//  VkImage image;
-//  // TODO: ...
-//	return makeUnique<VulkanTexture>(this, image, format, size);
-//}
-
-UniquePtr<ITexture> VulkanDevice::makeTexture2d(VkImage image, const Format& format, const Size2d& size) const
+UniquePtr<ITexture> VulkanDevice::createTexture(const BufferUsage& usage, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
-	return makeUnique<VulkanTexture>(this, image, format, size);
+	VkImageCreateInfo imageInfo = {};
+	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageInfo.extent.width = static_cast<UInt32>(size.width());
+	imageInfo.extent.height = static_cast<UInt32>(size.height());
+	imageInfo.extent.depth = 1;	// TODO: Support volumetric textures.
+	imageInfo.mipLevels = levels;
+	imageInfo.arrayLayers = 1;	// TODO: Support texture arrays.
+	imageInfo.format = ::getFormat(format);
+	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.samples = ::getSamples(samples);
+	imageInfo.flags = 0;
+	
+	// Deduct the usage buffer bit based on the type.
+	VkBufferUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
+
+	if (usage == BufferUsage::Staging)
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	else if (usage == BufferUsage::Resource)
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+	imageInfo.usage = usageFlags;
+
+	// Deduct the allocation usage from the buffer usage scenario.
+	VmaAllocationCreateInfo allocInfo = {};
+
+	switch (usage)
+	{
+	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	}
+
+	return _VMAImage::makeImage(this, format, size, binding, m_impl->m_allocator, imageInfo, allocInfo);
+}
+
+Array<UniquePtr<ITexture>> VulkanDevice::createSwapChainImages(const VulkanSwapChain* swapChain) const
+{
+	uint32_t images;
+	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &images, nullptr);
+
+	Array<VkImage> imageChain(images);
+	Array<UniquePtr<ITexture>> textures(images);
+
+	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &images, imageChain.data());
+	std::generate(textures.begin(), textures.end(), [&, i = 0]() mutable {
+		auto texture = m_impl->makeTexture(imageChain[i], swapChain->getFormat(), swapChain->getBufferSize(), i);
+		i++;
+		return texture;
+	});
+
+	return textures;
 }
 
 VkImageView VulkanDevice::vkCreateImageView(const VkImage& image, const Format& format) const
 {
+	// TODO: Move into texture implementation.
+	//throw;
+
+
 	VkImageViewCreateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

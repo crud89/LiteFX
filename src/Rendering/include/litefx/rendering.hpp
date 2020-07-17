@@ -111,12 +111,12 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_RENDERING_API ITexture {
+	class LITEFX_RENDERING_API ITexture : public virtual IBuffer {
 	public:
 		virtual ~ITexture() noexcept = default;
 
 	public:
-		virtual Size2d getSize() const noexcept = 0;
+		virtual Size2d getExtent() const noexcept = 0;
 		virtual Format getFormat() const noexcept = 0;
 	};
 
@@ -186,9 +186,7 @@ namespace LiteFX::Rendering {
 		virtual void resize(int width, int height) = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const UInt32& binding) const = 0;
-
-	public:
-		//virtual UniquePtr<ITexture> createTexture2d(const Format& format = Format::B8G8R8A8_SRGB, const Size2d& size = Size2d(0)) const = 0;
+		virtual UniquePtr<ITexture> createTexture(const BufferUsage& usage, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const = 0;
 	};
 

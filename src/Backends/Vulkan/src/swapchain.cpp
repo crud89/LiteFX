@@ -38,22 +38,9 @@ private:
 	}
 
 private:
-	void loadImages(const VkSwapchainKHR& swapChain, const Format& format, const VkExtent2D& extent)
+	void loadImages()
 	{
-		uint32_t images;
-		::vkGetSwapchainImagesKHR(m_parent->getDevice()->handle(), swapChain, &images, nullptr);
-
-		Array<VkImage> imageChain(images);
-		Array<UniquePtr<ITexture>> textures(images);
-
-		::vkGetSwapchainImagesKHR(m_parent->getDevice()->handle(), swapChain, &images, imageChain.data());
-		std::generate(textures.begin(), textures.end(), [&, i = 0]() mutable { 
-			return m_parent->getDevice()->makeTexture2d(imageChain[i++], format, Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height)));
-		});
-
-		m_frames = std::move(textures);
-		m_size = Size2d(static_cast<size_t>(extent.width), static_cast<size_t>(extent.height));
-		m_format = format;
+		m_frames = m_parent->getDevice()->createSwapChainImages(m_parent);
 	}
 
 private:
@@ -150,14 +137,15 @@ public:
 		if (::vkCreateSwapchainKHR(m_parent->getDevice()->handle(), &createInfo, nullptr, &swapChain) != VK_SUCCESS)
 			throw std::runtime_error("Swap chain could not be created.");
 
-		this->loadImages(swapChain, format, deviceCaps.currentExtent);
-
 		// Create a semaphore for swapping images.
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
 		if (::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &m_swapSemaphore) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create swap semaphore.");
+
+		m_size = Size2d(static_cast<size_t>(deviceCaps.currentExtent.width), static_cast<size_t>(deviceCaps.currentExtent.height));
+		m_format = format;
 
 		return swapChain;
 	}
@@ -197,6 +185,7 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& forma
 	m_impl(makePimpl<VulkanSwapChainImpl>(this)), VulkanRuntimeObject(device), IResource(nullptr)
 {
 	this->handle() = m_impl->initialize(format);
+	m_impl->loadImages();
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;

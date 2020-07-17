@@ -122,7 +122,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API Buffer : public IBuffer {
+    class LITEFX_RENDERING_API Buffer : public virtual IBuffer {
     private:
         const BufferType m_type {};
         const UInt32 m_elementSize{ 0 }, m_elements{ 0 }, m_binding{ 0 };
@@ -181,6 +181,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
         virtual UniquePtr<IBufferPool> makeBufferPool(const BufferUsage& usage, const UInt32& bufferSet) const = 0;
+        virtual UniquePtr<ITexture> makeTexture(const BufferUsage& usage, const Format& format, const Size2d& size, const UInt32& levels = 1) const = 0;
         virtual void bind(const IBuffer* buffer) const = 0;
         virtual void bind(const IBufferPool* buffer) const = 0;
     };
@@ -429,6 +430,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
         virtual UniquePtr<IBufferPool> makeBufferPool(const BufferUsage& usage, const UInt32& bufferSet) const override;
+        virtual UniquePtr<ITexture> makeTexture(const BufferUsage& usage, const Format& format, const Size2d& size, const UInt32& levels = 1) const override;
     };
 
     /// <summary>

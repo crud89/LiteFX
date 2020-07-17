@@ -145,3 +145,12 @@ UniquePtr<IBufferPool> RenderPipeline::makeBufferPool(const BufferUsage& usage, 
 
     return bufferSet->createBufferPool(usage);
 }
+
+UniquePtr<ITexture> RenderPipeline::makeTexture(const BufferUsage& usage, const Format& format, const Size2d& size, const UInt32& levels) const
+{
+    if (levels < 1)
+        throw std::invalid_argument("The number of mip-map levels must be at least 1.");
+
+    //m_impl->m_device->
+    throw;
+}

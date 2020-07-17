@@ -28,6 +28,7 @@ SET(VULKAN_BACKEND_HEADERS
 
 SET(VULKAN_BACKEND_SOURCES
     "src/buffer.h"
+    "src/image.h"
 
     "src/runtime_object.cpp"
     "src/convert.cpp"
@@ -51,6 +52,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/buffer_layout.cpp"
     "src/buffer_pool.cpp"
     "src/buffer.cpp"
+    "src/image.cpp"
 )
 
 # Add shared library project.

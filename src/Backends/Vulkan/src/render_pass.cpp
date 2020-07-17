@@ -152,8 +152,8 @@ public:
             frameBufferInfo.renderPass = renderPass;
             frameBufferInfo.attachmentCount = 1;
             frameBufferInfo.pAttachments = attachments;
-            frameBufferInfo.width = frame->getSize().width();
-            frameBufferInfo.height = frame->getSize().height();
+            frameBufferInfo.width = frame->getExtent().width();
+            frameBufferInfo.height = frame->getExtent().height();
             frameBufferInfo.layers = 1;
 
             VkFramebuffer frameBuffer;
