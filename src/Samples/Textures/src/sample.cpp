@@ -8,6 +8,7 @@ enum DescriptorSets : UInt32
 {
     PerFrame = 0,                                       // All buffers that are updated for each frame.
     PerInstance = 1,                                    // All buffers that are updated for each rendered instance.
+    PerMaterial = 2,                                    // All buffers that are updated for each material.
     VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
 };
 
@@ -20,6 +21,8 @@ const Array<Vertex> vertices =
 };
 
 const Array<UInt16> indices = { 2, 1, 0, 3, 2, 0 };
+
+const UInt32 pixelSize = 4;
 
 struct CameraBuffer {
     glm::mat4 ViewProjection;
@@ -63,6 +66,10 @@ void SampleApp::createPipeline()
                     .go()
                 .make<VulkanBufferSet>(BufferSetType::Resource, DescriptorSets::PerInstance)
                     .make<VulkanBufferLayout>(BufferType::Uniform, sizeof(TransformBuffer), 0)
+                        .go()
+                    .go()
+                .make<VulkanBufferSet>(BufferSetType::Resource, DescriptorSets::PerMaterial)
+                    .make<VulkanBufferLayout>(BufferType::Sampler, pixelSize, 0)
                         .go()
                     .go()
                 .go()
