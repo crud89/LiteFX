@@ -12,26 +12,28 @@ An extensible, descriptive, modern computer graphics and rendering engine.
 
 LiteFX is a computer graphics engine, I've developed to learn about modern graphics APIs, like Vulkan 🌋 and DirectX 12 ❎. It follows an descriptive approach, which means that an application focuses on configuring what it needs and the engine then takes care of handling those requirements. To do this, the API provides a fluent interface. Here is an example of how to easily define a Vulkan graphics pipeline with a few lines of code:
 
-    auto pipeline = device->build<VulkanRenderPipeline>()
-        .make<VulkanRenderPipelineLayout>()
-            .make<VulkanRasterizer>()
-                .withCullMode(CullMode::BackFaces)
-                .withCullOrder(CullOrder::ClockWise)
-                .go()
-            .make<VulkanViewport>()
-                .withRectangle(RectF(0.f, 0.f, static_cast<Float>(800), static_cast<Float>(600)))
-                .go()
-            .make<VulkanInputAssembler>()
-                .withTopology(PrimitiveTopology::TriangleList)
+```cxx
+auto pipeline = device->build<VulkanRenderPipeline>()
+    .make<VulkanRenderPipelineLayout>()
+        .make<VulkanRasterizer>()
+            .withCullMode(CullMode::BackFaces)
+            .withCullOrder(CullOrder::ClockWise)
             .go()
-        .make<VulkanShaderProgram>()
-            .addVertexShaderModule("shaders/vertex.spv")
-            .addFragmentShaderModule("shaders/fragment.spv")
+        .make<VulkanViewport>()
+            .withRectangle(RectF(0.f, 0.f, 800.f, 600.f))
             .go()
-        .make<VulkanRenderPass>()
-            .withPresentTarget()
-            .go()
-        .go();
+        .make<VulkanInputAssembler>()
+            .withTopology(PrimitiveTopology::TriangleList)
+        .go()
+    .make<VulkanShaderProgram>()
+        .addVertexShaderModule("shaders/vertex.spv")
+        .addFragmentShaderModule("shaders/fragment.spv")
+        .go()
+    .make<VulkanRenderPass>()
+        .withPresentTarget()
+        .go()
+    .go();
+```
 
 The core of the fluent interface is a flexible [builder architecture](https://github.com/Aschratt/LiteFX/wiki/builder-guide), that allows to easily extent built-in types provide custom implementations. Furthermore it also allows to provide whole custom rendering backends.
 
