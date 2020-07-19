@@ -94,11 +94,12 @@ void SampleApp::loadTexture()
     if (imageData == nullptr)
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
-    //auto pixels = width * height;
-    //m_pipeline->makeTexture()
+    // Create a texture with 1 mip map.
+    
+    //auto textureBuffer = m_pipeline->makeBuffer()
 
     //m_textureBuffer = m_pipeline->makeBufferPool(BufferUsage::Resource, DescriptorSets::PerMaterial);
-    //m_textureBuffer->getBuffer(0);
+    //textureBuffer->transfer(m_device->getTransferQueue(), m_textureBuffer->getBuffer(0), textureBuffer->getSize());
 }
 
 void SampleApp::initBuffers()
@@ -122,6 +123,7 @@ void SampleApp::initBuffers()
     // Create a uniform buffers for the camera and transform information.
     m_cameraBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerFrame);
     m_transformBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerInstance);
+    m_textureBuffer = m_pipeline->makeBufferPool(BufferUsage::Resource, DescriptorSets::PerMaterial);
 }
 
 void SampleApp::run() 

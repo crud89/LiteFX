@@ -146,11 +146,11 @@ UniquePtr<IBufferPool> RenderPipeline::makeBufferPool(const BufferUsage& usage, 
     return bufferSet->createBufferPool(usage);
 }
 
-UniquePtr<ITexture> RenderPipeline::makeTexture(const BufferUsage& usage, const Format& format, const Size2d& size, const UInt32& levels) const
+UniquePtr<ITexture> RenderPipeline::makeTexture(const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
     if (levels < 1)
         throw std::invalid_argument("The number of mip-map levels must be at least 1.");
 
-    //m_impl->m_device->
-    throw;
+    // TODO: Do we actually need to provide the binding here?
+    return m_impl->m_device->createTexture(format, size, 0, levels, samples);
 }

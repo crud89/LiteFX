@@ -356,7 +356,7 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 	return _VMABuffer::makeBuffer(type, elements, elementSize, binding, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<ITexture> VulkanDevice::createTexture(const BufferUsage& usage, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<ITexture> VulkanDevice::createTexture(const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -372,27 +372,11 @@ UniquePtr<ITexture> VulkanDevice::createTexture(const BufferUsage& usage, const 
 	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 	imageInfo.samples = ::getSamples(samples);
 	imageInfo.flags = 0;
-	
-	// Deduct the usage buffer bit based on the type.
-	VkBufferUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
-
-	if (usage == BufferUsage::Staging)
-		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	else if (usage == BufferUsage::Resource)
-		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-	imageInfo.usage = usageFlags;
+	imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
-
-	switch (usage)
-	{
-	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
-	}
+	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
 	return _VMAImage::makeImage(this, format, size, binding, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
 }
