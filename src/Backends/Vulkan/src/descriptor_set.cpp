@@ -35,17 +35,17 @@ public:
         VkShaderStageFlags shaderStages = {};
 
         if ((m_stages & ShaderStage::Vertex) == ShaderStage::Vertex)
-            shaderStages &= VK_SHADER_STAGE_VERTEX_BIT;
+            shaderStages |= VK_SHADER_STAGE_VERTEX_BIT;
         if ((m_stages & ShaderStage::Geometry) == ShaderStage::Geometry)
-            shaderStages &= VK_SHADER_STAGE_GEOMETRY_BIT;
+            shaderStages |= VK_SHADER_STAGE_GEOMETRY_BIT;
         if ((m_stages & ShaderStage::Fragment) == ShaderStage::Fragment)
-            shaderStages &= VK_SHADER_STAGE_FRAGMENT_BIT;
+            shaderStages |= VK_SHADER_STAGE_FRAGMENT_BIT;
         if ((m_stages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
-            shaderStages &= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+            shaderStages |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         if ((m_stages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
-            shaderStages &= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+            shaderStages |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         if ((m_stages & ShaderStage::Compute) == ShaderStage::Compute)
-            shaderStages &= VK_SHADER_STAGE_COMPUTE_BIT;
+            shaderStages |= VK_SHADER_STAGE_COMPUTE_BIT;
 
         // Parse descriptor set layouts.
         Array<VkDescriptorSetLayoutBinding> bindings;
