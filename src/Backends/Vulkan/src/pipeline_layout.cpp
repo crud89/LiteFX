@@ -8,6 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanRenderPipelineLayout::VulkanRenderPipelineLayoutImpl : public Implement<VulkanRenderPipelineLayout> {
 public:
+    friend class VulkanRenderPipelineLayoutBuilder;
     friend class VulkanRenderPipelineLayout;
 
 public:
@@ -64,21 +65,15 @@ VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept
     ::vkDestroyPipelineLayout(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-void VulkanRenderPipelineLayout::create() 
-{
-    if (this->handle() != nullptr)
-        throw std::runtime_error("The render pipeline layout can only created once.");
-
-    this->handle() = m_impl->initialize();
-}
-
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipelineBuilder& VulkanRenderPipelineLayoutBuilder::go()
 {
-    this->instance()->create();
+    auto instance = this->instance();
+    instance->handle() = instance->m_impl->initialize();
+
     return RenderPipelineLayoutBuilder::go();
 }
 

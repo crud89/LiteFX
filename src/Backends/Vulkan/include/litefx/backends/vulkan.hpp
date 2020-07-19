@@ -241,9 +241,6 @@ namespace LiteFX::Rendering::Backends {
 		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) noexcept = delete;
 		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) noexcept = delete;
 		virtual ~VulkanRenderPipelineLayout() noexcept;
-
-	public:
-		virtual void create();
 	};
 
 	/// <summary>

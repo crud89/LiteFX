@@ -97,26 +97,17 @@ public:
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		// Parse vertex input descriptors.
-		auto bufferSets = inputAssembler->getDescriptorSetLayouts(DescriptorSetLayoutType::VertexData);
+		auto vertexLayouts = inputAssembler->getVertexBufferLayouts();
 
-		if (bufferSets.size() == 0)
-			throw std::runtime_error("No vertex input data has been defined for this pipeline.");
-		else if (bufferSets.size() > 1)
-			throw std::runtime_error("A render pipeline must only define one vertex input buffer set.");
+		std::for_each(std::begin(vertexLayouts), std::end(vertexLayouts), [&, l = 0](const IVertexBufferLayout* layout) mutable {
+			auto bufferAttributes = layout->getAttributes();
+			auto bindingPoint = layout->getBinding();
 
-		auto vertexBufferLayouts = bufferSets.front()->getLayouts();
-		vertexInputBindings.resize(vertexBufferLayouts.size());
+			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->getElementSize(), bindingPoint);
 
-		std::generate(std::begin(vertexInputBindings), std::end(vertexInputBindings), [&, i = 0]() mutable {
-			auto vertexBufferLayout = vertexBufferLayouts[i++];
-			auto bufferAttributes = vertexBufferLayout->getAttributes();
-			auto bindingPoint = vertexBufferLayout->getBinding();
-
-			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", i, vertexBufferLayouts.size(), bufferAttributes.size(), vertexBufferLayout->getElementSize(), bindingPoint);
-				
 			VkVertexInputBindingDescription binding = {};
 			binding.binding = bindingPoint;
-			binding.stride = static_cast<UInt32>(vertexBufferLayout->getElementSize());
+			binding.stride = static_cast<UInt32>(layout->getElementSize());
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 			Array<VkVertexInputAttributeDescription> currentAttributes(bufferAttributes.size());
@@ -136,8 +127,7 @@ public:
 			});
 
 			vertexInputAttributes.insert(std::end(vertexInputAttributes), std::begin(currentAttributes), std::end(currentAttributes));
-
-			return binding;
+			vertexInputBindings.push_back(binding);
 		});
 
 		// Define vertex input state.
