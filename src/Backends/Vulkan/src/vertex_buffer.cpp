@@ -41,17 +41,17 @@ VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanInputAssembler& i
 
 VulkanVertexBufferLayout::~VulkanVertexBufferLayout() noexcept = default;
 
-const size_t& VulkanVertexBufferLayout::getElementSize() const noexcept
+size_t VulkanVertexBufferLayout::getElementSize() const noexcept
 {
     return m_impl->m_vertexSize;
 }
 
-const UInt32& VulkanVertexBufferLayout::getBinding() const noexcept
+UInt32 VulkanVertexBufferLayout::getBinding() const noexcept
 {
     return m_impl->m_binding;
 }
 
-const BufferType& VulkanVertexBufferLayout::getType() const noexcept
+BufferType VulkanVertexBufferLayout::getType() const noexcept
 {
     return BufferType::Vertex;
 }

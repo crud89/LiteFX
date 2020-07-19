@@ -65,9 +65,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanVertexBufferLayout() noexcept;
 
 	public:
-		virtual const size_t& getElementSize() const noexcept override;
-		virtual const UInt32& getBinding() const noexcept override;
-		virtual const BufferType& getType() const noexcept override;
+		virtual size_t getElementSize() const noexcept override;
+		virtual UInt32 getBinding() const noexcept override;
+		virtual BufferType getType() const noexcept override;
 	
 	public:
 		virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
@@ -87,9 +87,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanIndexBufferLayout() noexcept;
 
 	public:
-		virtual const size_t& getElementSize() const noexcept override;
-		virtual const UInt32& getBinding() const noexcept override;
-		virtual const BufferType& getType() const noexcept override;
+		virtual size_t getElementSize() const noexcept override;
+		virtual UInt32 getBinding() const noexcept override;
+		virtual BufferType getType() const noexcept override;
 
 	public:
 		virtual const IndexType& getIndexType() const noexcept override;
@@ -109,9 +109,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDescriptorLayout() noexcept;
 
 	public:
-		virtual const size_t& getElementSize() const noexcept override;
-		virtual const UInt32& getBinding() const noexcept override;
-		virtual const BufferType& getType() const noexcept override;
+		virtual size_t getElementSize() const noexcept override;
+		virtual UInt32 getBinding() const noexcept override;
+		virtual BufferType getType() const noexcept override;
 
 	public:
 		virtual const DescriptorType& getDescriptorType() const noexcept override;

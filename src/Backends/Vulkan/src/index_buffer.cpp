@@ -28,7 +28,7 @@ VulkanIndexBufferLayout::VulkanIndexBufferLayout(const VulkanInputAssembler& inp
 
 VulkanIndexBufferLayout::~VulkanIndexBufferLayout() noexcept = default;
 
-const size_t& VulkanIndexBufferLayout::getElementSize() const noexcept
+size_t VulkanIndexBufferLayout::getElementSize() const noexcept
 {
     switch (m_impl->m_type)
     {
@@ -39,12 +39,12 @@ const size_t& VulkanIndexBufferLayout::getElementSize() const noexcept
     }
 }
 
-const UInt32& VulkanIndexBufferLayout::getBinding() const noexcept
+UInt32 VulkanIndexBufferLayout::getBinding() const noexcept
 {
     return 0;
 }
 
-const BufferType& VulkanIndexBufferLayout::getType() const noexcept
+BufferType VulkanIndexBufferLayout::getType() const noexcept
 {
     return BufferType::Index;
 }

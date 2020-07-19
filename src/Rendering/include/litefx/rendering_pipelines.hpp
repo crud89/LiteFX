@@ -34,9 +34,9 @@ namespace LiteFX::Rendering {
         virtual ~IBufferLayout() noexcept = default;
 
     public:
-        virtual const size_t& getElementSize() const noexcept = 0;
-        virtual const UInt32& getBinding() const noexcept = 0;
-        virtual const BufferType& getType() const noexcept = 0;
+        virtual size_t getElementSize() const noexcept = 0;
+        virtual UInt32 getBinding() const noexcept = 0;
+        virtual BufferType getType() const noexcept = 0;
     };
 
     /// <summary>
@@ -95,11 +95,11 @@ namespace LiteFX::Rendering {
         virtual ~IBuffer() noexcept = default;
 
     public:
-        virtual const UInt32& getElementSize() const noexcept = 0;
-        virtual const UInt32& getElements() const noexcept = 0;
-        virtual const UInt32& getBinding() const noexcept = 0;
-        virtual const UInt32 getSize() const noexcept = 0;
-        virtual const BufferType& getType() const noexcept = 0;
+        virtual UInt32 getElementSize() const noexcept = 0;
+        virtual UInt32 getElements() const noexcept = 0;
+        virtual UInt32 getBinding() const noexcept = 0;
+        virtual UInt32 getSize() const noexcept = 0;
+        virtual BufferType getType() const noexcept = 0;
 
     public:
         virtual void map(const void* const data, const size_t& size) = 0;
@@ -122,11 +122,11 @@ namespace LiteFX::Rendering {
         virtual ~Buffer() noexcept = default;
 
     public:
-        virtual const UInt32& getElementSize() const noexcept override { return m_elementSize; }
-        virtual const UInt32& getElements() const noexcept override    { return m_elements; }
-        virtual const UInt32& getBinding() const noexcept override     { return m_binding; }
-        virtual const UInt32 getSize() const noexcept override         { return m_elementSize * m_elements; }
-        virtual const BufferType& getType() const noexcept override    { return m_type; }
+        virtual UInt32 getElementSize() const noexcept override { return m_elementSize; }
+        virtual UInt32 getElements() const noexcept override    { return m_elements; }
+        virtual UInt32 getBinding() const noexcept override     { return m_binding; }
+        virtual UInt32 getSize() const noexcept override        { return m_elementSize * m_elements; }
+        virtual BufferType getType() const noexcept override    { return m_type; }
     };
 
     /// <summary>

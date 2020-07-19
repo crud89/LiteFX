@@ -31,17 +31,17 @@ VulkanDescriptorLayout::VulkanDescriptorLayout(const VulkanDescriptorSetLayout& 
 
 VulkanDescriptorLayout::~VulkanDescriptorLayout() noexcept = default;
 
-const size_t& VulkanDescriptorLayout::getElementSize() const noexcept
+size_t VulkanDescriptorLayout::getElementSize() const noexcept
 {
     return m_impl->m_elementSize;
 }
 
-const UInt32& VulkanDescriptorLayout::getBinding() const noexcept
+UInt32 VulkanDescriptorLayout::getBinding() const noexcept
 {
     return m_impl->m_binding;
 }
 
-const BufferType& VulkanDescriptorLayout::getType() const noexcept
+BufferType VulkanDescriptorLayout::getType() const noexcept
 {
     return BufferType::Descriptor;
 }
