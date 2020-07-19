@@ -83,9 +83,9 @@ public:
             descriptorWrite.descriptorCount = 1;
             descriptorWrite.pBufferInfo = &bufferInfo;
 
-            switch (layout->getType())
+            switch (layout->getDescriptorType())
             {
-            case BufferType::Uniform:
+            case DescriptorType::Uniform:
                 descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                 break;
             default:
