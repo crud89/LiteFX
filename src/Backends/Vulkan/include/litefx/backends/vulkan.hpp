@@ -90,6 +90,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual const size_t& getElementSize() const noexcept override;
 		virtual const UInt32& getBinding() const noexcept override;
 		virtual const BufferType& getType() const noexcept override;
+
+	public:
+		virtual const IndexType& getIndexType() const noexcept override;
 	};
 
 	/// <summary>

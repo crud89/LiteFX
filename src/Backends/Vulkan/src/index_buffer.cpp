@@ -48,3 +48,8 @@ const BufferType& VulkanIndexBufferLayout::getType() const noexcept
 {
     return BufferType::Index;
 }
+
+const IndexType& VulkanIndexBufferLayout::getIndexType() const noexcept
+{
+    return m_impl->m_type;
+}
