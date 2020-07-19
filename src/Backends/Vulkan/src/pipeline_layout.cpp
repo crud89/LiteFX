@@ -22,10 +22,10 @@ public:
             throw std::runtime_error("The input assembler must be initialized.");
 
         Array<VkDescriptorSetLayout> descriptorSetLayouts;
-        auto bufferSets = inputAssembler->getBufferSets();
+        auto bufferSets = inputAssembler->getDescriptorSetLayouts();
 
-        std::for_each(std::begin(bufferSets), std::end(bufferSets), [&](const IBufferSet* bufferSet) { 
-            auto descriptorSetLayout = dynamic_cast<const VulkanBufferSet*>(bufferSet);
+        std::for_each(std::begin(bufferSets), std::end(bufferSets), [&](const IDescriptorSetLayout* bufferSet) { 
+            auto descriptorSetLayout = dynamic_cast<const VulkanDescriptorSetLayout*>(bufferSet);
 
             if (descriptorSetLayout != nullptr && descriptorSetLayout->handle() != nullptr)
                 descriptorSetLayouts.push_back(descriptorSetLayout->handle());
@@ -57,12 +57,6 @@ VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipelin
     RenderPipelineLayout(), VulkanRuntimeObject(pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr)
 {
     m_impl = makePimpl<VulkanRenderPipelineLayoutImpl>(this);
-}
-
-VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, const VulkanBufferLayout& bufferLayout) :
-    VulkanRenderPipelineLayout(pipeline)
-{
-    this->create();
 }
 
 VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept

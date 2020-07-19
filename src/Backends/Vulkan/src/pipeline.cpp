@@ -97,7 +97,7 @@ public:
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		// Parse vertex input descriptors.
-		auto bufferSets = inputAssembler->getBufferSets(BufferSetType::VertexData);
+		auto bufferSets = inputAssembler->getDescriptorSetLayouts(DescriptorSetLayoutType::VertexData);
 
 		if (bufferSets.size() == 0)
 			throw std::runtime_error("No vertex input data has been defined for this pipeline.");
@@ -338,7 +338,7 @@ void VulkanRenderPipeline::bind(const IBufferPool* b) const
 	auto renderPass = m_impl->m_renderPass;
 	auto commandBuffer = m_impl->m_commandBuffer;
 	auto pipelineLayout = m_impl->m_pipelineLayout;
-	auto bufferSet = pool->getBufferSet()->getSetId();
+	auto bufferSet = pool->getDescriptorSetLayout()->getSetId();
 	VkDescriptorSet descriptorSets[] = { pool->getDescriptorSet() };
 
 	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), bufferSet, 1, descriptorSets, 0, nullptr);

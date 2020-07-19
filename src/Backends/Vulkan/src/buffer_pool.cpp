@@ -12,7 +12,7 @@ public:
     friend class VulkanBufferPool;
 
 private:
-    const IBufferSet* m_bufferSet{ nullptr };
+    const IDescriptorSetLayout* m_bufferSet{ nullptr };
     Array<UniquePtr<IBuffer>> m_buffers;
     VkDescriptorSet m_descriptorSet;
     BufferUsage m_usage;
@@ -21,7 +21,7 @@ public:
     VulkanBufferPoolImpl(VulkanBufferPool* parent, const BufferUsage& usage) : base(parent), m_usage(usage) { }
 
 public:
-    VkDescriptorPool initialize(const VulkanBufferSet& bufferSet)
+    VkDescriptorPool initialize(const VulkanDescriptorSetLayout& bufferSet)
     {
         auto poolSizes = bufferSet.getPoolSizes();
         auto layouts = bufferSet.getLayouts();
@@ -114,7 +114,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBufferPool::VulkanBufferPool(const VulkanBufferSet& bufferSet, const BufferUsage& usage) :
+VulkanBufferPool::VulkanBufferPool(const VulkanDescriptorSetLayout& bufferSet, const BufferUsage& usage) :
     m_impl(makePimpl<VulkanBufferPoolImpl>(this, usage)), VulkanRuntimeObject(bufferSet.getDevice()), IResource<VkDescriptorPool>(nullptr)
 {
     this->handle() = m_impl->initialize(bufferSet);
@@ -125,7 +125,7 @@ VulkanBufferPool::~VulkanBufferPool() noexcept
     ::vkDestroyDescriptorPool(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-const IBufferSet* VulkanBufferPool::getBufferSet() const noexcept
+const IDescriptorSetLayout* VulkanBufferPool::getDescriptorSetLayout() const noexcept
 {
     return m_impl->m_bufferSet;
 }

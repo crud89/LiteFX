@@ -190,7 +190,7 @@ namespace LiteFX::Rendering {
 		virtual UniquePtr<IBuffer> createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const UInt32& binding) const = 0;
 		virtual UniquePtr<ITexture> createTexture(const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
-		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") const = 0;
+		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const = 0;
 	};
 
 	/// <summary>

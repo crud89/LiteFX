@@ -79,7 +79,7 @@ UniquePtr<IShaderModule> VulkanShaderProgram::remove(const IShaderModule* module
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint)
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
 {
     auto device = this->instance()->getDevice();
     this->instance()->use(makeUnique<VulkanShaderModule>(device, type, fileName, entryPoint));
@@ -89,30 +89,30 @@ VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addShaderModule(const Sh
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addVertexShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderType::Vertex, fileName, entryPoint);
+    return this->addShaderModule(ShaderStage::Vertex, fileName, entryPoint);
 }
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addTessellationControlShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderType::TessellationControl, fileName, entryPoint);
+    return this->addShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
 }
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderType::TessellationEvaluation, fileName, entryPoint);
+    return this->addShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
 }
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addGeometryShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderType::Geometry, fileName, entryPoint);
+    return this->addShaderModule(ShaderStage::Geometry, fileName, entryPoint);
 }
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addFragmentShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderType::Fragment, fileName, entryPoint);
+    return this->addShaderModule(ShaderStage::Fragment, fileName, entryPoint);
 }
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addComputeShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderType::Compute, fileName, entryPoint);
+    return this->addShaderModule(ShaderStage::Compute, fileName, entryPoint);
 }

@@ -107,50 +107,42 @@ void RenderPipeline::endFrame()
 
 UniquePtr<IBuffer> RenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
 {
-    auto bufferSets = m_impl->m_layout->getInputAssembler()->getBufferSets(BufferSetType::VertexData);
+    auto layout = m_impl->m_layout->getInputAssembler()->getVertexBufferLayout(binding);
 
-    if (bufferSets.size() == 0)
-        throw std::runtime_error("No vertex input data has been defined for this pipeline.");
-    else if (bufferSets.size() > 1)
-        throw std::runtime_error("A render pipeline must only define one vertex input buffer set.");
+    if (layout == nullptr)
+        throw std::invalid_argument("No vertex buffer layout defined for the provided binding.");
 
-    auto layouts = bufferSets.front()->getLayouts();
-    auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const IBufferLayout* layout) { return layout->getBinding() == binding; });
-
-    if (match == layouts.end())
-        throw std::invalid_argument("No vertex layout has been defined for the provided binding.");
-
-    return m_impl->m_device->createBuffer(*match, usage, elements);
+    return m_impl->m_device->createBuffer(layout->getType(), usage, layout->getElementSize(), elements, binding);
 }
 
 UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
 {
-    switch (indexType)
-    {
-    case IndexType::UInt16:
-        return m_impl->m_device->createBuffer(BufferType::Index, usage, 2, elements, 0);       // 16 bit = 2 bytes per index.
-    case IndexType::UInt32:
-        return m_impl->m_device->createBuffer(BufferType::Index, usage, 4, elements, 0);       // 32 bit = 4 bytes per index.
-    default:
-        throw std::invalid_argument("Unsupported index type.");
-    }
+    auto layout = m_impl->m_layout->getInputAssembler()->getIndexBufferLayout();
+
+    if (layout == nullptr)
+        throw std::invalid_argument("No index buffer layout defined.");
+
+    return m_impl->m_device->createBuffer(layout->getType(), usage, layout->getElementSize(), elements, layout->getBinding());
 }
 
 UniquePtr<IBufferPool> RenderPipeline::makeBufferPool(const BufferUsage& usage, const UInt32& setId) const
 {
-    auto bufferSet = this->getLayout()->getInputAssembler()->getBufferSet(setId);
-    
-    if (bufferSet == nullptr)
-        throw std::runtime_error("The requested buffer set could not be found.");
+    //auto bufferSet = this->getLayout()->getInputAssembler()->getDescriptorSetLayout(setId);
+    //
+    //if (bufferSet == nullptr)
+    //    throw std::runtime_error("The requested buffer set could not be found.");
 
-    return bufferSet->createBufferPool(usage);
+    //return bufferSet->createBufferPool(usage);
+    throw;
 }
 
 UniquePtr<ITexture> RenderPipeline::makeTexture(const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
-    if (levels < 1)
-        throw std::invalid_argument("The number of mip-map levels must be at least 1.");
+    //if (levels < 1)
+    //    throw std::invalid_argument("The number of mip-map levels must be at least 1.");
 
-    // TODO: Do we actually need to provide the binding here?
-    return m_impl->m_device->createTexture(format, size, 0, levels, samples);
+    //// TODO: Do we actually need to provide the binding here?
+    //return m_impl->m_device->createTexture(format, size, 0, levels, samples);
+
+    throw;
 }

@@ -202,14 +202,15 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::Format> : formatte
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferSetType> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::DescriptorType> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(LiteFX::Rendering::BufferSetType t, FormatContext& ctx) {
+	auto format(LiteFX::Rendering::DescriptorType t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t)
 		{
-		case LiteFX::Rendering::BufferSetType::VertexData: name = "Vertex Data"; break;
-		case LiteFX::Rendering::BufferSetType::Resource: name = "Resource"; break;
+		case LiteFX::Rendering::DescriptorType::Sampler: name = "Sampler"; break;
+		case LiteFX::Rendering::DescriptorType::Storage: name = "Uniform"; break;
+		case LiteFX::Rendering::DescriptorType::Uniform: name = "Storage"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
@@ -222,11 +223,9 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferType> : form
 		string_view name = "Invalid";
 		switch (t)
 		{
-		case LiteFX::Rendering::BufferType::Uniform: name = "Uniform"; break;
-		case LiteFX::Rendering::BufferType::Storage: name = "Storage"; break;
-		case LiteFX::Rendering::BufferType::Index:   name = "Index";   break;
-		case LiteFX::Rendering::BufferType::Vertex:  name = "Vertex";  break;
-		case LiteFX::Rendering::BufferType::Sampler: name = "Sampler";  break;
+		case LiteFX::Rendering::BufferType::Descriptor: name = "Descriptor"; break;
+		case LiteFX::Rendering::BufferType::Index:      name = "Index";      break;
+		case LiteFX::Rendering::BufferType::Vertex:     name = "Vertex";     break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
@@ -263,26 +262,26 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::IndexType> : forma
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::ShaderType> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::ShaderStage> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(LiteFX::Rendering::ShaderType t, FormatContext& ctx) {
+	auto format(LiteFX::Rendering::ShaderStage t, FormatContext& ctx) {
 		Array<String> names;
 
-		if (t == LiteFX::Rendering::ShaderType::Other)
+		if (t == LiteFX::Rendering::ShaderStage::Other)
 			names.push_back("Other");
 		else
 		{
-			if ((t & LiteFX::Rendering::ShaderType::Vertex) == LiteFX::Rendering::ShaderType::Vertex)
+			if ((t & LiteFX::Rendering::ShaderStage::Vertex) == LiteFX::Rendering::ShaderStage::Vertex)
 				names.push_back("Vertex");
-			if ((t & LiteFX::Rendering::ShaderType::TessellationControl) == LiteFX::Rendering::ShaderType::TessellationControl)
+			if ((t & LiteFX::Rendering::ShaderStage::TessellationControl) == LiteFX::Rendering::ShaderStage::TessellationControl)
 				names.push_back("Tessellation Control");
-			if ((t & LiteFX::Rendering::ShaderType::TessellationEvaluation) == LiteFX::Rendering::ShaderType::TessellationEvaluation)
+			if ((t & LiteFX::Rendering::ShaderStage::TessellationEvaluation) == LiteFX::Rendering::ShaderStage::TessellationEvaluation)
 				names.push_back("Tessellation Evaluation");
-			if ((t & LiteFX::Rendering::ShaderType::Geometry) == LiteFX::Rendering::ShaderType::Geometry)
+			if ((t & LiteFX::Rendering::ShaderStage::Geometry) == LiteFX::Rendering::ShaderStage::Geometry)
 				names.push_back("Geometry");
-			if ((t & LiteFX::Rendering::ShaderType::Fragment) == LiteFX::Rendering::ShaderType::Fragment)
+			if ((t & LiteFX::Rendering::ShaderStage::Fragment) == LiteFX::Rendering::ShaderStage::Fragment)
 				names.push_back("Fragment");
-			if ((t & LiteFX::Rendering::ShaderType::Compute) == LiteFX::Rendering::ShaderType::Compute)
+			if ((t & LiteFX::Rendering::ShaderStage::Compute) == LiteFX::Rendering::ShaderStage::Compute)
 				names.push_back("Compute");
 		}
 

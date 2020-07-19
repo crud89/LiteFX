@@ -31,7 +31,9 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API IBufferLayout {
     public:
-        virtual Array<const BufferAttribute*> getAttributes() const noexcept = 0;
+        virtual ~IBufferLayout() noexcept = default;
+
+    public:
         virtual const size_t& getElementSize() const noexcept = 0;
         virtual const UInt32& getBinding() const noexcept = 0;
         virtual const BufferType& getType() const noexcept = 0;
@@ -40,64 +42,49 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IBufferSet {
+    class LITEFX_RENDERING_API IVertexBufferLayout : public IBufferLayout {
     public:
-        virtual ~IBufferSet() noexcept = default;
+        virtual ~IVertexBufferLayout() noexcept = default;
 
     public:
-        virtual Array<const IBufferLayout*> getLayouts() const noexcept = 0;
-        virtual Array<const IBufferLayout*> getLayouts(const BufferType& type) const noexcept = 0;
-        virtual const IBufferLayout* getLayout(const UInt32& binding) const noexcept = 0;
+        virtual Array<const BufferAttribute*> getAttributes() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API IIndexBufferLayout : public IBufferLayout {
+    public:
+        virtual ~IIndexBufferLayout() noexcept = default;
+
+    public:
+        virtual const IndexType& getIndexType() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API IDescriptorLayout : public IBufferLayout {
+    public:
+        virtual ~IDescriptorLayout() noexcept = default;
+
+    public:
+        virtual const DescriptorType& getDescriptorType() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API IDescriptorSetLayout {
+    public:
+        virtual ~IDescriptorSetLayout() noexcept = default;
+
+    public:
+        virtual Array<const IDescriptorLayout*> getLayouts() const noexcept = 0;
+        virtual const IDescriptorLayout* getLayout(const UInt32& binding) const noexcept = 0;
         virtual const UInt32& getSetId() const noexcept = 0;
-        virtual const BufferSetType& getType() const noexcept = 0;
+        virtual const ShaderStage& getShaderStages() const noexcept = 0;
         virtual UniquePtr<IBufferPool> createBufferPool(const BufferUsage& usage) const noexcept = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_RENDERING_API BufferLayout : public IBufferLayout {
-        LITEFX_IMPLEMENTATION(BufferLayoutImpl);
-
-    public:
-        BufferLayout(const BufferType& type, const size_t& elementSize, const UInt32& binding = 0);
-        BufferLayout(BufferLayout&&) = delete;
-        BufferLayout(const BufferLayout&) = delete;
-        virtual ~BufferLayout() noexcept;
-
-    public:
-        virtual void add(UniquePtr<BufferAttribute>&& attribute);
-        virtual void remove(const BufferAttribute* attribute);
-
-    public:
-        virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
-        virtual const size_t& getElementSize() const noexcept override;
-        virtual const UInt32& getBinding() const noexcept override;
-        virtual const BufferType& getType() const noexcept override;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_RENDERING_API BufferSet : public IBufferSet {
-        LITEFX_IMPLEMENTATION(BufferSetImpl);
-
-    public:
-        BufferSet(const BufferSetType& type, const UInt32& id = 0);
-        BufferSet(BufferSet&&) = delete;
-        BufferSet(const BufferSet&) = delete;
-        virtual ~BufferSet() noexcept;
-
-    public:
-        virtual void add(UniquePtr<IBufferLayout>&& layout);
-        virtual void remove(const IBufferLayout* layout);
-
-    public:
-        virtual Array<const IBufferLayout*> getLayouts() const noexcept override;
-        virtual Array<const IBufferLayout*> getLayouts(const BufferType& type) const noexcept override;
-        virtual const IBufferLayout* getLayout(const UInt32& binding) const noexcept override;
-        virtual const UInt32& getSetId() const noexcept override;
-        virtual const BufferSetType& getType() const noexcept override;
     };
 
     /// <summary>
@@ -150,7 +137,7 @@ namespace LiteFX::Rendering {
         virtual ~IBufferPool() noexcept = default;
 
     public:
-        virtual const IBufferSet* getBufferSet() const noexcept = 0;
+        virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept = 0;
         virtual IBuffer* getBuffer(const UInt32& binding) const noexcept = 0;
         virtual const BufferUsage& getUsage() const noexcept = 0;
     };
@@ -211,7 +198,7 @@ namespace LiteFX::Rendering {
         virtual ~IShaderModule() noexcept = default;
 
     public:
-        virtual const ShaderType& getType() const noexcept = 0;
+        virtual const ShaderStage& getType() const noexcept = 0;
         virtual const String& getFileName() const noexcept = 0;
         virtual const String& getEntryPoint() const noexcept = 0;
     };
@@ -237,13 +224,15 @@ namespace LiteFX::Rendering {
         virtual ~IInputAssembler() noexcept = default;
 
     public:
-        virtual Array<const IBufferSet*> getBufferSets() const = 0;
-        virtual Array<const IBufferSet*> getBufferSets(const BufferSetType& type) const = 0;
-        virtual const IBufferSet* getBufferSet(const UInt32& setId) const = 0;
-        virtual void use(UniquePtr<IBufferSet>&& layout) = 0;
-        virtual UniquePtr<IBufferSet> remove(const IBufferSet* layout) = 0;
+        virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const = 0;
+        virtual const IVertexBufferLayout* getVertexBufferLayout(const UInt32& binding) const = 0;
+        virtual const IIndexBufferLayout* getIndexBufferLayout() const = 0;
         virtual const PrimitiveTopology getTopology() const noexcept = 0;
         virtual void setTopology(const PrimitiveTopology& topology) = 0;
+
+    public:
+        virtual void use(UniquePtr<IVertexBufferLayout>&& layout) = 0;
+        virtual void use(UniquePtr<IIndexBufferLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -351,13 +340,15 @@ namespace LiteFX::Rendering {
         virtual ~InputAssembler() noexcept;
 
     public:
-        virtual Array<const IBufferSet*> getBufferSets() const override;
-        virtual Array<const IBufferSet*> getBufferSets(const BufferSetType& type) const override;
-        virtual const IBufferSet* getBufferSet(const UInt32& setId) const override;
-        virtual void use(UniquePtr<IBufferSet>&& layout) override;
-        virtual UniquePtr<IBufferSet> remove(const IBufferSet* layout) override;
+        virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const override;
+        virtual const IVertexBufferLayout* getVertexBufferLayout(const UInt32& binding) const override;
+        virtual const IIndexBufferLayout* getIndexBufferLayout() const override;
         virtual const PrimitiveTopology getTopology() const noexcept override;
         virtual void setTopology(const PrimitiveTopology& topology) override;
+
+    public:
+        virtual void use(UniquePtr<IVertexBufferLayout>&& layout) override;
+        virtual void use(UniquePtr<IIndexBufferLayout>&& layout) override;
     };
 
     /// <summary>
@@ -456,7 +447,7 @@ namespace LiteFX::Rendering {
         using builder_type::Builder;
 
     public:
-        virtual ShaderProgramBuilder& addShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") = 0;
+        virtual ShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
         virtual ShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
         virtual ShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
         virtual ShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
@@ -536,33 +527,30 @@ namespace LiteFX::Rendering {
         using builder_type::Builder;
 
     public:
-        virtual TDerived& addBufferSet(UniquePtr<IBufferSet>&& set) = 0;
         virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
-        virtual void use(UniquePtr<IBufferSet>&& set) {
-            this->addBufferSet(std::move(set));
-        }
     };
 
     /// <summary>
     /// 
     /// </summary>
-    template <typename TDerived, typename TBufferSet, typename TParent>
-    class BufferSetBuilder : public Builder<TDerived, TBufferSet, TParent> {
+    template <typename TDerived, typename TDescriptorSetLayout, typename TParent>
+    class DescriptorSetLayoutBuilder : public Builder<TDerived, TDescriptorSetLayout, TParent> {
     public:
         using builder_type::Builder;
 
     public:
-        virtual TDerived& addLayout(UniquePtr<IBufferLayout>&& layout) = 0;
-        virtual void use(UniquePtr<BufferLayout>&& layout) {
-            this->addLayout(std::move(layout));
+        virtual TDerived& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) = 0;
+        virtual TDerived& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) = 0;
+        virtual void use(UniquePtr<IDescriptorLayout>&& layout) {
+            this->addDescriptor(std::move(layout));
         }
     };
 
     /// <summary>
     /// 
     /// </summary>
-    template <typename TDerived, typename TBufferLayout, typename TParent>
-    class BufferLayoutBuilder : public Builder<TDerived, TBufferLayout, TParent> {
+    template <typename TDerived, typename TVertexBufferLayout, typename TParent>
+    class VertexBufferLayoutBuilder : public Builder<TDerived, TVertexBufferLayout, TParent> {
     public:
         using builder_type::Builder;
 

@@ -87,12 +87,12 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
-    ShaderType LITEFX_VULKAN_API getShaderStage(const VkShaderStageFlagBits& shaderType);
+    ShaderStage LITEFX_VULKAN_API getShaderStage(const VkShaderStageFlagBits& shaderType);
 
     /// <summary>
     /// 
     /// </summary>
-    VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(const ShaderType& shaderType);
+    VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(const ShaderStage& shaderType);
 
     /// <summary>
     /// 
@@ -120,8 +120,10 @@ namespace LiteFX::Rendering::Backends {
     class VulkanShaderModule;
     class VulkanShaderProgram;
     class VulkanCommandBuffer;
-    class VulkanBufferSet;
-    class VulkanBufferLayout;
+    class VulkanDescriptorSetLayout;
+    class VulkanVertexBufferLayout;
+    class VulkanIndexBufferLayout;
+    class VulkanDescriptorLayout;
     class VulkanBuffer;
 
 }

@@ -930,44 +930,44 @@ VkPrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const Prim
 	}
 }
 
-ShaderType LiteFX::Rendering::Backends::getShaderStage(const VkShaderStageFlagBits& shaderType)
+ShaderStage LiteFX::Rendering::Backends::getShaderStage(const VkShaderStageFlagBits& shaderType)
 {
 	switch (shaderType)
 	{
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT:
-		return ShaderType::Vertex;
+		return ShaderStage::Vertex;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT:
-		return ShaderType::TessellationControl;
+		return ShaderStage::TessellationControl;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT:
-		return ShaderType::TessellationEvaluation;
+		return ShaderStage::TessellationEvaluation;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT:
-		return ShaderType::Geometry;
+		return ShaderStage::Geometry;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT:
-		return ShaderType::Fragment;
+		return ShaderStage::Fragment;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT:
-		return ShaderType::Compute;
+		return ShaderStage::Compute;
 	default:
-		return ShaderType::Other;
+		return ShaderStage::Other;
 	}
 }
 
-VkShaderStageFlagBits LiteFX::Rendering::Backends::getShaderStage(const ShaderType& shaderType)
+VkShaderStageFlagBits LiteFX::Rendering::Backends::getShaderStage(const ShaderStage& shaderType)
 {
 	switch (shaderType)
 	{
-	case ShaderType::Vertex:
+	case ShaderStage::Vertex:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
-	case ShaderType::TessellationControl:
+	case ShaderStage::TessellationControl:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-	case ShaderType::TessellationEvaluation:
+	case ShaderStage::TessellationEvaluation:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-	case ShaderType::Geometry:
+	case ShaderStage::Geometry:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
-	case ShaderType::Fragment:
+	case ShaderStage::Fragment:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
-	case ShaderType::Compute:
+	case ShaderStage::Compute:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
-	case ShaderType::Other:
+	case ShaderStage::Other:
 	default:
 		throw std::invalid_argument("Unsupported shader type.");
 	}

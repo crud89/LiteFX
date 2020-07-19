@@ -13,11 +13,11 @@ public:
 	friend class VulkanShaderModule;
 
 private:
-	ShaderType m_type;
+	ShaderStage m_type;
 	String m_fileName, m_entryPoint;
 
 public:
-	VulkanShaderModuleImpl(VulkanShaderModule* parent, const ShaderType& type, const String& fileName, const String& entryPoint) :
+	VulkanShaderModuleImpl(VulkanShaderModule* parent, const ShaderStage& type, const String& fileName, const String& entryPoint) :
 		base(parent), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) { }
 
 private:
@@ -56,7 +56,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderModule::VulkanShaderModule(const VulkanDevice* device, const ShaderType& type, const String& fileName, const String& entryPoint) :
+VulkanShaderModule::VulkanShaderModule(const VulkanDevice* device, const ShaderStage& type, const String& fileName, const String& entryPoint) :
 	IResource(nullptr), VulkanRuntimeObject(device), m_impl(makePimpl<VulkanShaderModuleImpl>(this, type, fileName, entryPoint))
 {
 	this->handle() = m_impl->initialize();
@@ -67,7 +67,7 @@ VulkanShaderModule::~VulkanShaderModule() noexcept
 	::vkDestroyShaderModule(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-const ShaderType& VulkanShaderModule::getType() const noexcept
+const ShaderStage& VulkanShaderModule::getType() const noexcept
 {
 	return m_impl->m_type;
 }

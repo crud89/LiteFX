@@ -404,7 +404,7 @@ Array<UniquePtr<ITexture>> VulkanDevice::createSwapChainImages(const ISwapChain*
 	return textures;
 }
 
-UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint) const
+UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint) const
 {
 	return makeUnique<VulkanShaderModule>(this, type, fileName, entryPoint);
 }

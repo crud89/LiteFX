@@ -42,7 +42,10 @@ namespace LiteFX::Rendering {
 	class IRenderTarget;
 	class IBuffer;
 	class IBufferLayout;
-	class IBufferSet;
+	class IVertexBufferLayout;
+	class IIndexBufferLayout;
+	class IDescriptorLayout;
+	class IDescriptorSetLayout;
 	class IBufferPool;
 
 	// Define enumerations.
@@ -240,17 +243,16 @@ namespace LiteFX::Rendering {
 		XYZW32U = 0x20000404
 	};
 
-	enum class LITEFX_RENDERING_API BufferSetType {
-		VertexData = 0x00000001,
-		Resource = 0x00000002
+	enum class LITEFX_RENDERING_API DescriptorType {
+		Uniform = 0x00000001,
+		Storage = 0x00000002,
+		Sampler = 0x00000004
 	};
 
 	enum class LITEFX_RENDERING_API BufferType {
-		Uniform = 0x00000010,
-		Storage = 0x00000020,
-		Index = 0x00000040,
-		Vertex = 0x00000080,
-		Sampler = 0x000000F0
+		Vertex = 0x00000001,
+		Index = 0x00000002,
+		Descriptor = 0x00000004
 	};
 
 	/// <summary>
@@ -321,7 +323,7 @@ namespace LiteFX::Rendering {
 		UInt32 = 0x00000020
 	};
 
-	enum class LITEFX_RENDERING_API ShaderType {
+	enum class LITEFX_RENDERING_API ShaderStage {
 		Vertex = 0x00000001,
 		TessellationControl = 0x00000002,
 		TessellationEvaluation = 0x00000004,
@@ -386,7 +388,7 @@ namespace LiteFX::Rendering {
 
 	// Define flags.
 	LITEFX_DEFINE_FLAGS(QueueType);
-	LITEFX_DEFINE_FLAGS(ShaderType);
+	LITEFX_DEFINE_FLAGS(ShaderStage);
 	LITEFX_DEFINE_FLAGS(BufferFormat);
 
 	// Helper functions.

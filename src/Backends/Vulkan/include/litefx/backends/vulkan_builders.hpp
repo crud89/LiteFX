@@ -50,7 +50,7 @@ namespace LiteFX::Rendering::Backends {
 		using ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineBuilder>::ShaderProgramBuilder;
 
 	public:
-		virtual VulkanShaderProgramBuilder& addShaderModule(const ShaderType& type, const String& fileName, const String& entryPoint = "main") override;
+		virtual VulkanShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
@@ -130,33 +130,33 @@ namespace LiteFX::Rendering::Backends {
 		using InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineLayoutBuilder>::InputAssemblerBuilder;
 
 	public:
-		virtual VulkanInputAssemblerBuilder& addBufferSet(UniquePtr<IBufferSet>&& set) override;
 		virtual VulkanInputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBufferSetBuilder : public BufferSetBuilder<VulkanBufferSetBuilder, VulkanBufferSet, VulkanInputAssemblerBuilder> {
+	class LITEFX_VULKAN_API VulkanDescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<VulkanDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanShaderProgramBuilder> {
 	public:
-		using BufferSetBuilder<VulkanBufferSetBuilder, VulkanBufferSet, VulkanInputAssemblerBuilder>::BufferSetBuilder;
+		using DescriptorSetLayoutBuilder<VulkanDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanShaderProgramBuilder>::DescriptorSetLayoutBuilder;
 
 	public:
-		virtual VulkanInputAssemblerBuilder& go() override;
+		virtual VulkanShaderProgramBuilder& go() override;
 
 	public:
-		virtual VulkanBufferSetBuilder& addLayout(UniquePtr<IBufferLayout>&& layout) override;
+		virtual VulkanDescriptorSetLayoutBuilder& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) override;
+		virtual VulkanDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBufferLayoutBuilder : public BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanBufferSetBuilder> {
+	class LITEFX_VULKAN_API VulkanVertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
 	public:
-		using BufferLayoutBuilder<VulkanBufferLayoutBuilder, VulkanBufferLayout, VulkanBufferSetBuilder>::BufferLayoutBuilder;
+		using VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
 
 	public:
-		virtual VulkanBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+		virtual VulkanVertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
 
 		/// <summary>
 		/// 
@@ -164,7 +164,23 @@ namespace LiteFX::Rendering::Backends {
 		/// <reamrks>
 		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
 		/// </reamrks>
-		virtual VulkanBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset);
-		virtual VulkanBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset);
+		virtual VulkanVertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset);
+		virtual VulkanVertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset);
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanIndexBufferLayoutBuilder : public Builder<VulkanIndexBufferLayoutBuilder, VulkanIndexBufferLayout, VulkanInputAssemblerBuilder> {
+	public:
+		using Builder<VulkanIndexBufferLayoutBuilder, VulkanIndexBufferLayout, VulkanInputAssemblerBuilder>::Builder;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanDescriptorLayoutBuilder : public Builder<VulkanDescriptorLayoutBuilder, VulkanDescriptorLayout, VulkanDescriptorSetLayoutBuilder> {
+	public:
+		using Builder<VulkanDescriptorLayoutBuilder, VulkanDescriptorLayout, VulkanDescriptorSetLayoutBuilder>::Builder;
 	};
 }

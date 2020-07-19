@@ -17,7 +17,7 @@ VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::addBufferSet(UniquePtr<IBufferSet>&& set)
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::addDescriptorSetLayout(UniquePtr<IDescriptorSetLayout>&& set)
 {
     this->instance()->use(std::move(set));
     return *this;
