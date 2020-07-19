@@ -17,16 +17,16 @@ public:
 public:
     VkPipelineLayout initialize()
     {
-        auto inputAssembler = m_parent->getInputAssembler();
+        auto shaderProgram = m_parent->getProgram();
 
-        if (inputAssembler == nullptr)
-            throw std::runtime_error("The input assembler must be initialized.");
+        if (shaderProgram == nullptr)
+            throw std::runtime_error("The shader program must be initialized.");
 
         Array<VkDescriptorSetLayout> descriptorSetLayouts;
-        auto bufferSets = inputAssembler->getDescriptorSetLayouts();
+        auto layouts = shaderProgram->getLayouts();
 
-        std::for_each(std::begin(bufferSets), std::end(bufferSets), [&](const IDescriptorSetLayout* bufferSet) { 
-            auto descriptorSetLayout = dynamic_cast<const VulkanDescriptorSetLayout*>(bufferSet);
+        std::for_each(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) {
+            auto descriptorSetLayout = dynamic_cast<const VulkanDescriptorSetLayout*>(layout);
 
             if (descriptorSetLayout != nullptr && descriptorSetLayout->handle() != nullptr)
                 descriptorSetLayouts.push_back(descriptorSetLayout->handle());
@@ -99,4 +99,12 @@ void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IViewport>&& viewport)
         throw std::invalid_argument("The viewport must be initialized.");
 
     this->instance()->use(std::move(viewport));
+}
+
+void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& program)
+{
+    if (program == nullptr)
+        throw std::invalid_argument("The program must be initialized.");
+
+    this->instance()->use(std::move(program));
 }

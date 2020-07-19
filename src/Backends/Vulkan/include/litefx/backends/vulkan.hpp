@@ -262,9 +262,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual void reset() override;
 		virtual void bind(const IBuffer* buffer) const override;
 		virtual void bind(const IBufferPool* buffer) const override;
-
-	public:
-		virtual void create();
 	};
 
 	/// <summary>
@@ -294,7 +291,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanShaderProgramBuilder);
 
 	public:
-		VulkanShaderProgram(const VulkanRenderPipeline& pipeline);
+		VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout);
 		VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
 		VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
 		virtual ~VulkanShaderProgram() noexcept;

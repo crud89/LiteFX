@@ -54,11 +54,6 @@ IRenderPipelineLayout* RenderPipeline::getLayout() noexcept
     return m_impl->m_layout.get();
 }
 
-const IShaderProgram* RenderPipeline::getProgram() const noexcept
-{
-    return m_impl->m_program.get();
-}
-
 const IRenderPass* RenderPipeline::getRenderPass() const noexcept
 {
     return m_impl->m_renderPass.get();
@@ -75,14 +70,6 @@ void RenderPipeline::use(UniquePtr<IRenderPipelineLayout>&& layout)
         throw std::invalid_argument("The layout must be initialized.");
 
     m_impl->m_layout = std::move(layout);
-}
-
-void RenderPipeline::use(UniquePtr<IShaderProgram>&& program)
-{
-    if (program == nullptr)
-        throw std::invalid_argument("The program must be initialized.");
-
-    m_impl->m_program = std::move(program);
 }
 
 void RenderPipeline::use(UniquePtr<IRenderPass>&& renderPass)

@@ -14,6 +14,7 @@ private:
 	Array<UniquePtr<IViewport>> m_viewports;
 	UniquePtr<IRasterizer> m_rasterizer;
 	UniquePtr<IInputAssembler> m_inputAssembler;
+	UniquePtr<IShaderProgram> m_shaderProgram;
 
 public:
 	RenderPipelineLayoutImpl(RenderPipelineLayout* parent) : base(parent) { }
@@ -91,4 +92,14 @@ const IInputAssembler* RenderPipelineLayout::getInputAssembler() const noexcept
 void RenderPipelineLayout::use(UniquePtr<IInputAssembler>&& inputAssembler)
 {
 	m_impl->m_inputAssembler = std::move(inputAssembler);
+}
+
+const IShaderProgram* RenderPipelineLayout::getProgram() const noexcept
+{
+	return m_impl->m_shaderProgram.get();
+}
+
+void RenderPipelineLayout::use(UniquePtr<IShaderProgram>&& shaderProgram)
+{
+	m_impl->m_shaderProgram = std::move(shaderProgram);
 }

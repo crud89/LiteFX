@@ -40,8 +40,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipeline& pipeline) :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject(pipeline.getDevice())
+VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout) :
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject(pipelineLayout.getDevice())
 {
 }
 

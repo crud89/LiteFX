@@ -38,16 +38,32 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
-		virtual void use(UniquePtr<IShaderProgram>&& program) override;
 		virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanShaderProgramBuilder : public ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineBuilder> {
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {
 	public:
-		using ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineBuilder>::ShaderProgramBuilder;
+		using RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder>::RenderPipelineLayoutBuilder;
+
+	public:
+		virtual VulkanRenderPipelineBuilder& go() override;
+
+	public:
+		virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
+		virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
+		virtual void use(UniquePtr<IViewport>&& viewport) override;
+		virtual void use(UniquePtr<IShaderProgram>&& program) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanShaderProgramBuilder : public ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder> {
+	public:
+		using ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder>::ShaderProgramBuilder;
 
 	public:
 		virtual VulkanShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
@@ -75,22 +91,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRenderPassBuilder& withColorTarget() override;
 		virtual VulkanRenderPassBuilder& withPresentTarget(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) override;
 		virtual VulkanRenderPassBuilder& addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {
-	public:
-		using RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder>::RenderPipelineLayoutBuilder;
-
-	public:
-		virtual VulkanRenderPipelineBuilder& go() override;
-
-	public:
-		virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
-		virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
-		virtual void use(UniquePtr<IViewport>&& viewport) override;
 	};
 
 	/// <summary>
