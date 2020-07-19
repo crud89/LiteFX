@@ -35,5 +35,6 @@ void VulkanInputAssemblerBuilder::use(UniquePtr<IIndexBufferLayout>&& layout)
 
 VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withIndexType(const IndexType& type)
 {
-    this->instance()->use(makeUnique<VulkanIndexBufferLayout>(this->instance(), type));
+    this->instance()->use(makeUnique<VulkanIndexBufferLayout>(*this->instance(), type));
+    return *this;
 }
