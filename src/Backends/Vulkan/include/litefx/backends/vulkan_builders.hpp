@@ -57,6 +57,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual VulkanShaderProgramBuilder& use(UniquePtr<IDescriptorSetLayout>&& layout) override;
 	};
 
 	/// <summary>
@@ -131,6 +132,11 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual VulkanInputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
+		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) override;
+		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) override;
+
+	public:
+		virtual VulkanInputAssemblerBuilder& withIndexType(const IndexType& type);
 	};
 
 	/// <summary>

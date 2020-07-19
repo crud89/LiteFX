@@ -8,20 +8,17 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanShaderProgram::VulkanShaderProgramImpl : public Implement<VulkanShaderProgram> {
 public:
+    friend class VulkanShaderProgramBuilder;
     friend class VulkanShaderProgram;
 
 private:
     Array<UniquePtr<IShaderModule>> m_modules;
+    Array<UniquePtr<IDescriptorSetLayout>> m_layouts;
 
 public:
     VulkanShaderProgramImpl(VulkanShaderProgram* parent) : base(parent) { }
 
 public:
-    void addShader(UniquePtr<IShaderModule>&& module)
-    {
-        m_modules.push_back(std::move(module));
-    }
-
     Array<const IShaderModule*> getShaders() const noexcept
     {
         Array<const IShaderModule*> modules(m_modules.size());
@@ -30,19 +27,12 @@ public:
         return modules;
     }
 
-    UniquePtr<IShaderModule> removeShader(const IShaderModule* module) 
+    Array<const IDescriptorSetLayout*> getLayouts() const noexcept
     {
-        auto it = std::find_if(std::begin(m_modules), std::end(m_modules), [module](const UniquePtr<IShaderModule>& m) { return m.get() == module; });
+        Array<const IDescriptorSetLayout*> layous(m_layouts.size());
+        std::generate(std::begin(layous), std::end(layous), [&, i = 0]() mutable { return m_layouts[i++].get(); });
 
-        if (it == m_modules.end())
-            return UniquePtr<IShaderModule>();
-        else
-        {
-            auto result = std::move(*it);
-            m_modules.erase(it);
-
-            return std::move(result);
-        }
+        return layous;
     }
 };
 
@@ -62,17 +52,25 @@ Array<const IShaderModule*> VulkanShaderProgram::getModules() const noexcept
     return m_impl->getShaders();
 }
 
+Array<const IDescriptorSetLayout*> VulkanShaderProgram::getLayouts() const noexcept
+{
+    return m_impl->getLayouts();
+}
+
 void VulkanShaderProgram::use(UniquePtr<IShaderModule>&& module)
 {
     if (module == nullptr)
         throw std::invalid_argument("The shader module must be initialized.");
 
-    m_impl->addShader(std::move(module));
+    m_impl->m_modules.push_back(std::move(module));
 }
 
-UniquePtr<IShaderModule> VulkanShaderProgram::remove(const IShaderModule* module)
+void VulkanShaderProgram::use(UniquePtr<IDescriptorSetLayout>&& layout)
 {
-    return m_impl->removeShader(module);
+    if (layout == nullptr)
+        throw std::invalid_argument("The descriptor set layout must be initialized.");
+
+    m_impl->m_layouts.push_back(std::move(layout));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -115,4 +113,10 @@ VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addFragmentShaderModule(
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addComputeShaderModule(const String& fileName, const String& entryPoint)
 {
     return this->addShaderModule(ShaderStage::Compute, fileName, entryPoint);
+}
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::use(UniquePtr<IDescriptorSetLayout>&& layout)
+{
+    this->instance()->use(std::move(layout));
+    return *this;
 }

@@ -304,8 +304,9 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual Array<const IShaderModule*> getModules() const noexcept override;
+		virtual Array<const IDescriptorSetLayout*> getLayouts() const noexcept override;
 		virtual void use(UniquePtr<IShaderModule>&& module) override;
-		virtual UniquePtr<IShaderModule> remove(const IShaderModule* module) override;
+		virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) override;
 	};
 
 	/// <summary>

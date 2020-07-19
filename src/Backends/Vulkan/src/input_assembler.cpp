@@ -17,14 +17,23 @@ VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::addDescriptorSetLayout(UniquePtr<IDescriptorSetLayout>&& set)
-{
-    this->instance()->use(std::move(set));
-    return *this;
-}
-
 VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withTopology(const PrimitiveTopology& topology)
 {
     this->instance()->setTopology(topology);
     return *this;
+}
+
+void VulkanInputAssemblerBuilder::use(UniquePtr<IVertexBufferLayout>&& layout)
+{
+    this->instance()->use(std::move(layout));
+}
+
+void VulkanInputAssemblerBuilder::use(UniquePtr<IIndexBufferLayout>&& layout)
+{
+    this->instance()->use(std::move(layout));
+}
+
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withIndexType(const IndexType& type)
+{
+    this->instance()->use(makeUnique<VulkanIndexBufferLayout>(this->instance(), type));
 }

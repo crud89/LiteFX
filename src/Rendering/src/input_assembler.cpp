@@ -34,7 +34,7 @@ public:
 
     const IVertexBufferLayout* getVertexBufferLayout(const UInt32& binding) const noexcept
     {
-        auto match = std::find_if(std::begin(m_vertexBufferLayouts), std::end(m_vertexBufferLayouts), [&](UniquePtr<IVertexBufferLayout>& layout) { return layout->getBinding() == binding; });
+        auto match = std::find_if(std::begin(m_vertexBufferLayouts), std::end(m_vertexBufferLayouts), [&](const UniquePtr<IVertexBufferLayout>& layout) { return layout->getBinding() == binding; });
 
         return match == m_vertexBufferLayouts.end() ? nullptr : match->get();
     }

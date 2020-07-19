@@ -55,7 +55,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples) :
-	IResource(image), VulkanRuntimeObject(device), Buffer(BufferType::Sampler, size.width() * size.height(), ::getSize(format), binding), m_impl(makePimpl<VulkanTextureImpl>(this, format, size, levels, samples))
+	IResource(image), VulkanRuntimeObject(device), Buffer(BufferType::Descriptor, size.width() * size.height(), ::getSize(format), binding), m_impl(makePimpl<VulkanTextureImpl>(this, format, size, levels, samples))
 {
 	if (image == nullptr)
 		throw std::invalid_argument("The argument `image` is not initialized.");

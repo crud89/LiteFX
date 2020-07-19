@@ -212,8 +212,9 @@ namespace LiteFX::Rendering {
     
     public:
         virtual Array<const IShaderModule*> getModules() const noexcept = 0;
+        virtual Array<const IDescriptorSetLayout*> getLayouts() const noexcept = 0;
         virtual void use(UniquePtr<IShaderModule>&& module) = 0;
-        virtual UniquePtr<IShaderModule> remove(const IShaderModule* module) = 0;
+        virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -447,13 +448,14 @@ namespace LiteFX::Rendering {
         using builder_type::Builder;
 
     public:
-        virtual ShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
-        virtual ShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual ShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual ShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual TDerived& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
+        virtual TDerived& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual TDerived& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual TDerived& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual TDerived& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual TDerived& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual TDerived& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+        virtual TDerived& use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -528,6 +530,8 @@ namespace LiteFX::Rendering {
 
     public:
         virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
+        virtual void use(UniquePtr<IVertexBufferLayout>&& layout) = 0;
+        virtual void use(UniquePtr<IIndexBufferLayout>&& layout) = 0;
     };
 
     /// <summary>

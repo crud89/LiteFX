@@ -50,7 +50,7 @@ public:
         // Parse descriptor set layouts.
         Array<VkDescriptorSetLayoutBinding> bindings;
 
-        std::for_each(std::begin(m_layouts), std::end(m_layouts), [&, i = 0](const IDescriptorLayout* layout) mutable {
+        std::for_each(std::begin(m_layouts), std::end(m_layouts), [&, i = 0](const UniquePtr<IDescriptorLayout>& layout) mutable {
             auto bindingPoint = layout->getBinding();
             auto type = layout->getDescriptorType();
 
