@@ -95,11 +95,9 @@ namespace LiteFX::Rendering {
         virtual ~IBuffer() noexcept = default;
 
     public:
-        virtual UInt32 getElementSize() const noexcept = 0;
+        virtual const IBufferLayout* getLayout() const noexcept = 0;
         virtual UInt32 getElements() const noexcept = 0;
-        virtual UInt32 getBinding() const noexcept = 0;
         virtual UInt32 getSize() const noexcept = 0;
-        virtual BufferType getType() const noexcept = 0;
 
     public:
         virtual void map(const void* const data, const size_t& size) = 0;
@@ -110,23 +108,18 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     class LITEFX_RENDERING_API Buffer : public virtual IBuffer {
-    private:
-        const BufferType m_type {};
-        const UInt32 m_elementSize{ 0 }, m_elements{ 0 }, m_binding{ 0 };
+        LITEFX_IMPLEMENTATION(BufferImpl)
 
     public:
-        Buffer(const BufferType& type, const UInt32& elements, const UInt32& elementSize, const UInt32& binding) :
-            m_type(type), m_elementSize(elementSize), m_elements(elements), m_binding(binding) { }
+        Buffer(const IBufferLayout* layout, const UInt32& elements);
         Buffer(const Buffer& _other) = delete;
         Buffer(Buffer&& _other) = delete;
-        virtual ~Buffer() noexcept = default;
+        virtual ~Buffer() noexcept;
 
     public:
-        virtual UInt32 getElementSize() const noexcept override { return m_elementSize; }
-        virtual UInt32 getElements() const noexcept override    { return m_elements; }
-        virtual UInt32 getBinding() const noexcept override     { return m_binding; }
-        virtual UInt32 getSize() const noexcept override        { return m_elementSize * m_elements; }
-        virtual BufferType getType() const noexcept override    { return m_type; }
+        virtual const IBufferLayout* getLayout() const noexcept override;
+        virtual UInt32 getElements() const noexcept override;
+        virtual UInt32 getSize() const noexcept override;
     };
 
     /// <summary>
