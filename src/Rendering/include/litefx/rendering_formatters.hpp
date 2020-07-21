@@ -211,6 +211,8 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::DescriptorType> : 
 		case LiteFX::Rendering::DescriptorType::Sampler: name = "Sampler"; break;
 		case LiteFX::Rendering::DescriptorType::Storage: name = "Uniform"; break;
 		case LiteFX::Rendering::DescriptorType::Uniform: name = "Storage"; break;
+		case LiteFX::Rendering::DescriptorType::Image:   name = "Image"; break;
+		case LiteFX::Rendering::DescriptorType::InputAttachment: name = "Input Attachment"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
@@ -440,6 +442,61 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::MultiSamplingLevel
 		case LiteFX::Rendering::MultiSamplingLevel::x16: name = "16"; break;
 		case LiteFX::Rendering::MultiSamplingLevel::x32: name = "32"; break;
 		case LiteFX::Rendering::MultiSamplingLevel::x64: name = "64"; break;
+		default: name = "Invalid"; break;
+		}
+
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::FilterMode> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::FilterMode t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::FilterMode::Nearest: name = "Nearest"; break;
+		case LiteFX::Rendering::FilterMode::Linear: name = "Linear"; break;
+		default: name = "Invalid"; break;
+		}
+
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::MipMapMode> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::MipMapMode t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::MipMapMode::Nearest: name = "Nearest"; break;
+		case LiteFX::Rendering::MipMapMode::Linear: name = "Linear"; break;
+		default: name = "Invalid"; break;
+		}
+
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BorderMode> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::BorderMode t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::BorderMode::Repeat: name = "Repeat"; break;
+		case LiteFX::Rendering::BorderMode::ClampToEdge: name = "ClampToEdge"; break;
+		case LiteFX::Rendering::BorderMode::ClampToBorder: name = "ClampToBorder"; break;
+		case LiteFX::Rendering::BorderMode::RepeatMirrored: name = "RepeatMirrored"; break;
+		case LiteFX::Rendering::BorderMode::ClampToEdgeMirrored: name = "ClampToEdgeMirrored"; break;
+		case LiteFX::Rendering::BorderMode::ClampToBorderMirrored: name = "ClampToBorderMirrored"; break;
 		default: name = "Invalid"; break;
 		}
 

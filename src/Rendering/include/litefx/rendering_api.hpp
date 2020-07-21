@@ -47,6 +47,7 @@ namespace LiteFX::Rendering {
 	class IDescriptorLayout;
 	class IDescriptorSetLayout;
 	class IBufferPool;
+	class ISampler;
 
 	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {
@@ -244,9 +245,11 @@ namespace LiteFX::Rendering {
 	};
 
 	enum class LITEFX_RENDERING_API DescriptorType {
-		Uniform = 0x00000001,
-		Storage = 0x00000002,
-		Sampler = 0x00000004
+		Uniform         = 0x00000001,
+		Storage         = 0x00000002,
+		Image           = 0x00000003,
+		Sampler         = 0x00000004,
+		InputAttachment = 0x00000005
 	};
 
 	enum class LITEFX_RENDERING_API BufferType {
@@ -384,6 +387,25 @@ namespace LiteFX::Rendering {
 		x16 = 0x00000010,
 		x32 = 0x00000020,
 		x64 = 0x00000040
+	};
+
+	enum class LITEFX_RENDERING_API FilterMode {
+		Nearest = 0x00000001,
+		Linear = 0x00000002
+	};
+
+	enum class LITEFX_RENDERING_API MipMapMode {
+		Nearest = 0x00000001,
+		Linear = 0x00000002
+	};
+
+	enum class LITEFX_RENDERING_API BorderMode {
+		Repeat = 0x00000001,
+		RepeatMirrored = 0x00010001,
+		ClampToEdge = 0x00000002,
+		ClampToEdgeMirrored = 0x00010002,
+		ClampToBorder = 0x00000003,
+		ClampToBorderMirrored = 0x00010003
 	};
 
 	// Define flags.
