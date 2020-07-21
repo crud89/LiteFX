@@ -548,8 +548,8 @@ namespace LiteFX::Rendering {
         virtual TDerived& addStorage(const UInt32& binding, const UInt32& descriptorSize) {
             return this->addDescriptor(DescriptorType::Storage, binding, descriptorSize);
         }
-        virtual TDerived& addImage(const UInt32& binding, const UInt32& pixelSize) {
-            return this->addDescriptor(DescriptorType::Image, binding, pixelSize);
+        virtual TDerived& addImage(const UInt32& binding) {
+            return this->addDescriptor(DescriptorType::Image, binding, 0);
         }
         virtual TDerived& addSampler(const UInt32& binding) {
             return this->addDescriptor(DescriptorType::Sampler, binding, 0);

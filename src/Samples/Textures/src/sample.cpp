@@ -22,8 +22,6 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 2, 1, 0, 3, 2, 0 };
 
-const UInt32 pixelSize = 4;
-
 struct CameraBuffer {
     glm::mat4 ViewProjection;
 } camera;
@@ -70,7 +68,7 @@ void SampleApp::createPipeline()
                     .addUniform(0, sizeof(TransformBuffer))
                     .go()
                 .make<VulkanDescriptorSetLayout>(DescriptorSets::PerMaterial, ShaderStage::Fragment)
-                    .addImage(0, pixelSize)
+                    .addImage(0)
                     .addSampler(1)
                     .go()
                 .go()
