@@ -30,15 +30,7 @@ VulkanIndexBufferLayout::~VulkanIndexBufferLayout() noexcept = default;
 
 size_t VulkanIndexBufferLayout::getElementSize() const noexcept
 {
-    switch (m_impl->m_type)
-    {
-    case IndexType::UInt16:
-        return 2;
-    case IndexType::UInt32:
-        return 4;
-    default:
-        throw std::runtime_error("Unsupported index type.");
-    }
+    return static_cast<UInt32>(m_impl->m_type) >> 3;
 }
 
 UInt32 VulkanIndexBufferLayout::getBinding() const noexcept

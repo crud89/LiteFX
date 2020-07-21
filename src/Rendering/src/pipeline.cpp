@@ -112,24 +112,13 @@ UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, con
     return m_impl->m_device->createBuffer(layout, usage, elements);
 }
 
-UniquePtr<IBufferPool> RenderPipeline::makeBufferPool(const BufferUsage& usage, const UInt32& setId) const
+UniquePtr<IBufferPool> RenderPipeline::makeBufferPool(const UInt32& setId) const
 {
-    //auto bufferSet = this->getLayout()->getInputAssembler()->getDescriptorSetLayout(setId);
-    //
-    //if (bufferSet == nullptr)
-    //    throw std::runtime_error("The requested buffer set could not be found.");
+    auto layouts = this->getLayout()->getProgram()->getLayouts();
+    auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) { return layout->getSetId() == setId; });
 
-    //return bufferSet->createBufferPool(usage);
-    throw;
-}
+    if (match == layouts.end())
+        throw std::invalid_argument("The requested buffer set is not defined.");
 
-UniquePtr<ITexture> RenderPipeline::makeTexture(const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
-{
-    //if (levels < 1)
-    //    throw std::invalid_argument("The number of mip-map levels must be at least 1.");
-
-    //// TODO: Do we actually need to provide the binding here?
-    //return m_impl->m_device->createTexture(format, size, 0, levels, samples);
-
-    throw;
+    return (*match)->createBufferPool();
 }

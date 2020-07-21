@@ -91,7 +91,19 @@ const VkDescriptorSet VulkanBufferPool::getDescriptorSet() const noexcept
     return m_impl->m_descriptorSet;
 }
 
-void VulkanBufferPool::bind(const IBuffer* b) const
+UniquePtr<IBuffer> VulkanBufferPool::makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements) const noexcept
+{
+    auto layout = this->getDescriptorSetLayout()->getLayout(binding);
+    return this->getDevice()->createBuffer(layout, usage, elements);
+}
+
+UniquePtr<ITexture> VulkanBufferPool::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const noexcept
+{
+    auto layout = this->getDescriptorSetLayout()->getLayout(binding);
+    return this->getDevice()->createTexture(layout, format, size, levels, samples);
+}
+
+void VulkanBufferPool::update(const IBuffer* b) const
 {
     auto buffer = dynamic_cast<const VulkanBuffer*>(b);
 
@@ -115,7 +127,7 @@ void VulkanBufferPool::bind(const IBuffer* b) const
     if (descriptorType == DescriptorType::Image)
     {
         LITEFX_WARNING(VULKAN_LOG, "Binding a texture {0} using the `IBuffer` interface. Consider using the specialized `bind(ITexture*)` overload for better performance.", fmt::ptr(b));
-        this->bind(dynamic_cast<const ITexture*>(b));
+        this->update(dynamic_cast<const ITexture*>(b));
     }
 
     VkDescriptorBufferInfo bufferInfo{ };
@@ -141,7 +153,7 @@ void VulkanBufferPool::bind(const IBuffer* b) const
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanBufferPool::bind(const ITexture* texture) const
+void VulkanBufferPool::update(const ITexture* texture) const
 {
     auto image = dynamic_cast<const VulkanTexture*>(texture);
 
@@ -164,7 +176,7 @@ void VulkanBufferPool::bind(const ITexture* texture) const
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanBufferPool::bind(const UInt32& bindingPoint, const ISampler* s) const
+void VulkanBufferPool::update(const UInt32& bindingPoint, const ISampler* s) const
 {
     auto sampler = dynamic_cast<const VulkanSampler*>(s);
 

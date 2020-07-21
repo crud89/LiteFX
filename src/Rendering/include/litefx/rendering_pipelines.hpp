@@ -138,9 +138,12 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept = 0;
-        virtual void bind(const IBuffer* buffer) const = 0;
-        virtual void bind(const ITexture* texture) const = 0;
-        virtual void bind(const UInt32& bindingPoint, const ISampler* sampler) const = 0;
+        virtual UniquePtr<IBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept = 0;
+        virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept = 0;
+        //virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, ...) const noexcept = 0;
+        virtual void update(const IBuffer* buffer) const = 0;
+        virtual void update(const ITexture* texture) const = 0;
+        virtual void update(const UInt32& bindingPoint, const ISampler* sampler) const = 0;
     };
 
     /// <summary>
@@ -166,8 +169,7 @@ namespace LiteFX::Rendering {
         virtual void reset() = 0;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
-        virtual UniquePtr<IBufferPool> makeBufferPool(const BufferUsage& usage, const UInt32& bufferSet) const = 0;
-        virtual UniquePtr<ITexture> makeTexture(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+        virtual UniquePtr<IBufferPool> makeBufferPool(const UInt32& bufferSet) const = 0;
         virtual void bind(const IBuffer* buffer) const = 0;
         virtual void bind(const IBufferPool* buffer) const = 0;
     };
@@ -426,8 +428,7 @@ namespace LiteFX::Rendering {
         virtual void endFrame() override;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
-        virtual UniquePtr<IBufferPool> makeBufferPool(const BufferUsage& usage, const UInt32& bufferSet) const override;
-        virtual UniquePtr<ITexture> makeTexture(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+        virtual UniquePtr<IBufferPool> makeBufferPool(const UInt32& bufferSet) const override;
     };
 
     /// <summary>

@@ -44,9 +44,11 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept override;
-		virtual void bind(const IBuffer* buffer) const override;
-		virtual void bind(const ITexture* texture) const override;
-		virtual void bind(const UInt32& bindingPoint, const ISampler* sampler) const override;
+		virtual UniquePtr<IBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept override;
+		virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept override;
+		virtual void update(const IBuffer* buffer) const override;
+		virtual void update(const ITexture* texture) const override;
+		virtual void update(const UInt32& bindingPoint, const ISampler* sampler) const override;
 
 	public:
 		virtual const VkDescriptorSet getDescriptorSet() const noexcept;

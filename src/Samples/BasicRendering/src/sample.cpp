@@ -59,10 +59,10 @@ void SampleApp::createPipeline()
                 .addVertexShaderModule("shaders/default.vert.spv")
                 .addFragmentShaderModule("shaders/default.frag.spv")
                 .make<VulkanDescriptorSetLayout>(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-                    .addDescriptor(DescriptorType::Uniform, 0, sizeof(CameraBuffer))
+                    .addUniform(0, sizeof(CameraBuffer))
                     .go()
                 .make<VulkanDescriptorSetLayout>(DescriptorSets::PerInstance, ShaderStage::Vertex)
-                    .addDescriptor(DescriptorType::Uniform, 0, sizeof(TransformBuffer))
+                    .addUniform(0, sizeof(TransformBuffer))
                     .go()
                 .go()
             .go()
@@ -91,8 +91,10 @@ void SampleApp::initBuffers()
     stagingBuffer->transfer(m_device->getTransferQueue(), m_indexBuffer.get(), indices.size() * sizeof(UInt16));
 
     // Create a uniform buffers for the camera and transform information.
-    m_cameraBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerFrame);
-    m_transformBuffer = m_pipeline->makeBufferPool(BufferUsage::Dynamic, DescriptorSets::PerInstance);
+    m_perFrameBindings = m_pipeline->makeBufferPool(DescriptorSets::PerFrame);
+    m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
+    m_perObjectBindings = m_pipeline->makeBufferPool(DescriptorSets::PerInstance);
+    m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
 }
 
 void SampleApp::run() 
@@ -111,8 +113,10 @@ void SampleApp::run()
     m_device->wait();
 
     // Destroy all buffers.
-    m_transformBuffer = nullptr;
+    m_perObjectBindings = nullptr;
+    m_perFrameBindings = nullptr;
     m_cameraBuffer = nullptr;
+    m_transformBuffer = nullptr;
     m_vertexBuffer = nullptr;
     m_indexBuffer = nullptr;
 
@@ -175,8 +179,9 @@ void SampleApp::drawFrame()
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
-    m_cameraBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_pipeline->bind(m_cameraBuffer.get());
+    m_cameraBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    m_perFrameBindings->update(m_cameraBuffer.get());
+    m_pipeline->bind(m_perFrameBindings.get());
 
     // Draw the model.
     m_pipeline->bind(m_vertexBuffer.get());
@@ -184,8 +189,9 @@ void SampleApp::drawFrame()
     
     // Compute world transform.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    m_transformBuffer->getBuffer(0)->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
-    m_pipeline->bind(m_transformBuffer.get());
+    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
+    m_perObjectBindings->update(m_transformBuffer.get());
+    m_pipeline->bind(m_perObjectBindings.get());
 
     // Draw the object.
     m_pipeline->getRenderPass()->drawIndexed(indices.size());
