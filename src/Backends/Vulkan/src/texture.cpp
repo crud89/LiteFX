@@ -54,8 +54,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples) :
-	IResource(image), VulkanRuntimeObject(device), Buffer(BufferType::Descriptor, size.width() * size.height(), ::getSize(format), binding), m_impl(makePimpl<VulkanTextureImpl>(this, format, size, levels, samples))
+VulkanTexture::VulkanTexture(const VulkanDevice* device, const IBufferLayout* layout, VkImage image, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) :
+	IResource(image), VulkanRuntimeObject(device), Buffer(layout, size.width() * size.height()), m_impl(makePimpl<VulkanTextureImpl>(this, format, size, levels, samples))
 {
 	if (image == nullptr)
 		throw std::invalid_argument("The argument `image` is not initialized.");
@@ -64,6 +64,11 @@ VulkanTexture::VulkanTexture(const VulkanDevice* device, VkImage image, const Fo
 }
 
 VulkanTexture::~VulkanTexture() noexcept = default;
+
+UInt32 VulkanTexture::getSize() const noexcept
+{
+	return static_cast<UInt32>(::getSize(m_impl->m_format) * (m_impl->m_size.width() * m_impl->m_size.height()));
+}
 
 Size2d VulkanTexture::getExtent() const noexcept
 {

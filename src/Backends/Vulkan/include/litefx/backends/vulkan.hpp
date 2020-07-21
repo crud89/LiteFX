@@ -313,12 +313,13 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
-		VulkanTexture(const VulkanDevice* device, VkImage image, const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1);
+		VulkanTexture(const VulkanDevice* device, const IBufferLayout* layout, VkImage image, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1);
 		VulkanTexture(VulkanTexture&&) = delete;
 		VulkanTexture(const VulkanTexture&) = delete;
 		virtual ~VulkanTexture() noexcept;
 
 	public:
+		virtual UInt32 getSize() const noexcept override;
 		virtual Size2d getExtent() const noexcept override;
 		virtual Format getFormat() const noexcept override;
 		virtual MultiSamplingLevel getSamples() const noexcept override;
