@@ -405,7 +405,6 @@ namespace LiteFX::Rendering {
 		ClampToEdge = 0x00000002,
 		ClampToEdgeMirrored = 0x00010002,
 		ClampToBorder = 0x00000003,
-		ClampToBorderMirrored = 0x00010003
 	};
 
 	// Define flags.

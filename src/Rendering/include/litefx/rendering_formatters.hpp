@@ -496,7 +496,6 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BorderMode> : form
 		case LiteFX::Rendering::BorderMode::ClampToBorder: name = "ClampToBorder"; break;
 		case LiteFX::Rendering::BorderMode::RepeatMirrored: name = "RepeatMirrored"; break;
 		case LiteFX::Rendering::BorderMode::ClampToEdgeMirrored: name = "ClampToEdgeMirrored"; break;
-		case LiteFX::Rendering::BorderMode::ClampToBorderMirrored: name = "ClampToBorderMirrored"; break;
 		default: name = "Invalid"; break;
 		}
 
