@@ -26,8 +26,8 @@ namespace LiteFX::Rendering::Backends {
 
 	class LITEFX_VULKAN_API VulkanBuffer : public Buffer, public IResource<VkBuffer> {
 	public:
-		VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& elementSize, const UInt32& binding) : 
-			Buffer(type, elements, elementSize, binding), IResource(buffer) { }
+		VulkanBuffer(VkBuffer buffer, const IBufferLayout* layout, const UInt32& elements) :
+			Buffer(layout, elements), IResource(buffer) { }
 		VulkanBuffer(VulkanBuffer&&) = delete;
 		VulkanBuffer(const VulkanBuffer&) = delete;
 		virtual ~VulkanBuffer() noexcept = default;
