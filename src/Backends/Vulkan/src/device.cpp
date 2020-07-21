@@ -298,66 +298,77 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const IBufferLayout* layout, const
 	if (layout == nullptr)
 		throw std::invalid_argument("The buffer layout must be initialized.");
 
-	return this->createBuffer(layout->getType(), usage, layout->getElementSize(), elements, layout->getBinding());
+	auto bufferSize = elements * layout->getElementSize();
+	auto bufferType = layout->getType();
+	LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2} }}...", bufferType, usage, bufferSize);
+
+	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+	bufferInfo.size = bufferSize;
+
+	// Deduct the usage buffer bit based on the type.
+	VkBufferUsageFlags usageFlags = {};
+
+	if (bufferType == BufferType::Vertex)
+		usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	else if (bufferType == BufferType::Index)
+		usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	else if (bufferType == BufferType::Descriptor)
+	{
+#ifndef _NDEBUG
+		auto descriptorLayout = dynamic_cast<const IDescriptorLayout*>(layout);
+
+		if (descriptorLayout == nullptr)
+			throw std::runtime_error("The provided buffer layout defines a descriptor, however it does not implement `IDescriptorLayout`.");
+
+		auto descriptorType = descriptorLayout->getDescriptorType();
+#else
+		auto descriptorType = static_cast<const IDescriptorLayout*>(layout)->getDescriptorType();
+#endif
+		
+		switch (descriptorType)
+		{
+		case DescriptorType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		case DescriptorType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		}
+	}
+	else
+		throw std::invalid_argument("The provided buffer type is not supported.");
+
+	// Staging buffers also receive the transfer source, resource buffers the transfer destination bits.
+	if (usage == BufferUsage::Staging)
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	else if (usage == BufferUsage::Resource)
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+	bufferInfo.usage = usageFlags;
+
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	else
+	{
+		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = 2;
+		bufferInfo.pQueueFamilyIndices = queues;
+	}
+
+	// Deduct the allocation usage from the buffer usage scenario.
+	VmaAllocationCreateInfo allocInfo = {};
+
+	switch (usage)
+	{
+	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	}
+
+	// Create a buffer using VMA.
+	return _VMABuffer::makeBuffer(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const UInt32& binding) const
-{
-	//auto bufferSize = elementSize * elements;
-
-	//LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2} }}...", type, usage, bufferSize);
-
-	//VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	//bufferInfo.size = bufferSize;
-
-	//// Deduct the usage buffer bit based on the type.
-	//VkBufferUsageFlags usageFlags = {};
-
-	//switch (type)
-	//{
-	//case BufferType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
-	//case BufferType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; break;
-	//case BufferType::Vertex:  usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;  break;
-	//case BufferType::Index:   usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;   break;
-	//default: LITEFX_WARNING(VULKAN_LOG, "Invalid buffer type: {0}", type);      break;
-	//}
-
-	//// Staging buffers also receive the transfer source, resource buffers the transfer destination bits.
-	//if (usage == BufferUsage::Staging)
-	//	usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	//else if (usage == BufferUsage::Resource)
-	//	usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-	//bufferInfo.usage = usageFlags;
-
-	//// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
-	//if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
-	//	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	//else
-	//{
-	//	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
-	//	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-	//	bufferInfo.queueFamilyIndexCount = 2;
-	//	bufferInfo.pQueueFamilyIndices = queues;
-	//}
-
-	//// Deduct the allocation usage from the buffer usage scenario.
-	//VmaAllocationCreateInfo allocInfo = {};
-
-	//switch (usage)
-	//{
-	//case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	//case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	//case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	//case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
-	//}
-
-	//// Create a buffer using VMA.
-	//return _VMABuffer::makeBuffer(type, elements, elementSize, binding, m_impl->m_allocator, bufferInfo, allocInfo);
-	throw;
-}
-
-UniquePtr<ITexture> VulkanDevice::createTexture(const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<ITexture> VulkanDevice::createTexture(const IBufferLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -379,7 +390,7 @@ UniquePtr<ITexture> VulkanDevice::createTexture(const Format& format, const Size
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return _VMAImage::makeImage(this, format, size, binding, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
+	return _VMAImage::makeImage(this, layout, format, size, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 Array<UniquePtr<ITexture>> VulkanDevice::createSwapChainImages(const ISwapChain* sc) const

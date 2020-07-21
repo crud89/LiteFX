@@ -294,21 +294,31 @@ void VulkanRenderPipeline::bind(const IBuffer* b) const
 
 	// Depending on the type, bind the buffer accordingly.
 	constexpr VkDeviceSize offsets[] = { 0 };
-	auto elementSize = buffer->getElementSize();
+	auto layout = buffer->getLayout();
 
-	switch (buffer->getType())
+	switch (layout->getType())
 	{
 	case BufferType::Vertex:
 		::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &buffer->handle(), offsets);
 		break;
 	case BufferType::Index:
-		if (elementSize != 4 && elementSize != 2)
-			throw std::runtime_error("Unsupported index buffer element size.");
+	{
+#ifndef _NDEBUG
+		auto indexBufferLayout = dynamic_cast<const IIndexBufferLayout*>(layout);
 
-		::vkCmdBindIndexBuffer(commandBuffer->handle(), buffer->handle(), 0, elementSize == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+		if (indexBufferLayout == nullptr)
+			throw std::invalid_argument("The input buffer is an index buffer, but its layout does not implement `IIndexBufferLayout`.");
+#else
+		auto indexBufferLayout = static_cast<const IIndexBufferLayout*>(layout);
+#endif
+
+		::vkCmdBindIndexBuffer(commandBuffer->handle(), buffer->handle(), 0, indexBufferLayout->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 		break;
+	}
+	case BufferType::Descriptor:
+		throw std::invalid_argument("Descriptors cannot be bound individually. Instead, they must be bound together with their descriptor set.");
 	default:
-		throw std::runtime_error("The buffer could not be bound: unsupported buffer type. If the buffer originates from a buffer pool, bind the pool instance instead.");
+		throw std::runtime_error("The buffer could not be bound: unsupported buffer type.");
 	}
 }
 
@@ -325,6 +335,7 @@ void VulkanRenderPipeline::bind(const IBufferPool* b) const
 	auto bufferSet = pool->getDescriptorSetLayout()->getSetId();
 	VkDescriptorSet descriptorSets[] = { pool->getDescriptorSet() };
 
+	// TODO: Synchronize with possible update calls on this command buffer, first.
 	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), bufferSet, 1, descriptorSets, 0, nullptr);
 }
 

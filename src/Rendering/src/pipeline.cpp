@@ -99,7 +99,7 @@ UniquePtr<IBuffer> RenderPipeline::makeVertexBuffer(const BufferUsage& usage, co
     if (layout == nullptr)
         throw std::invalid_argument("No vertex buffer layout defined for the provided binding.");
 
-    return m_impl->m_device->createBuffer(layout->getType(), usage, layout->getElementSize(), elements, binding);
+    return m_impl->m_device->createBuffer(layout, usage, elements);
 }
 
 UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
@@ -109,7 +109,7 @@ UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, con
     if (layout == nullptr)
         throw std::invalid_argument("No index buffer layout defined.");
 
-    return m_impl->m_device->createBuffer(layout->getType(), usage, layout->getElementSize(), elements, layout->getBinding());
+    return m_impl->m_device->createBuffer(layout, usage, elements);
 }
 
 UniquePtr<IBufferPool> RenderPipeline::makeBufferPool(const BufferUsage& usage, const UInt32& setId) const
