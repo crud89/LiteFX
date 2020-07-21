@@ -542,6 +542,18 @@ namespace LiteFX::Rendering {
     public:
         virtual TDerived& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) = 0;
         virtual TDerived& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) = 0;
+        virtual TDerived& addUniform(const UInt32& binding, const UInt32& descriptorSize) {
+            return this->addDescriptor(DescriptorType::Uniform, binding, descriptorSize);
+        }
+        virtual TDerived& addStorage(const UInt32& binding, const UInt32& descriptorSize) {
+            return this->addDescriptor(DescriptorType::Storage, binding, descriptorSize);
+        }
+        virtual TDerived& addImage(const UInt32& binding, const UInt32& pixelSize) {
+            return this->addDescriptor(DescriptorType::Image, binding, pixelSize);
+        }
+        virtual TDerived& addSampler(const UInt32& binding) {
+            return this->addDescriptor(DescriptorType::Sampler, binding, 0);
+        }
         virtual void use(UniquePtr<IDescriptorLayout>&& layout) {
             this->addDescriptor(std::move(layout));
         }
