@@ -125,5 +125,6 @@ namespace LiteFX::Rendering::Backends {
     class VulkanIndexBufferLayout;
     class VulkanDescriptorLayout;
     class VulkanBuffer;
+    class VulkanSampler;
 
 }

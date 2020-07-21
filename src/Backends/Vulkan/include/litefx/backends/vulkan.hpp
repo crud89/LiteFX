@@ -333,6 +333,42 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
+	class LITEFX_VULKAN_API VulkanSampler : public VulkanRuntimeObject, public virtual ISampler, public IResource<VkSampler> {
+		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
+
+	public:
+		VulkanSampler(
+			const VulkanDevice* device,
+			const FilterMode& magFilter = FilterMode::Nearest, 
+			const FilterMode& minFilter = FilterMode::Nearest, 
+			const BorderMode& borderU = BorderMode::Repeat, 
+			const BorderMode& borderV = BorderMode::Repeat, 
+			const BorderMode& borderW = BorderMode::Repeat, 
+			const MipMapMode& mipMapMode = MipMapMode::Nearest, 
+			const Float& mipMapBias = 0.f, 
+			const Float& maxLod = std::numeric_limits<Float>::max(), 
+			const Float& minLod = 0.f, 
+			const Float& anisotropy = 0.f);
+		VulkanSampler(VulkanSampler&&) = delete;
+		VulkanSampler(const VulkanSampler&) = delete;
+		virtual ~VulkanSampler() noexcept;
+
+	public:
+		virtual const FilterMode& getMinifyingFilter() const noexcept override;
+		virtual const FilterMode& getMagnifyingFilter() const noexcept override;
+		virtual const BorderMode& getBorderModeU() const noexcept override;
+		virtual const BorderMode& getBorderModeV() const noexcept override;
+		virtual const BorderMode& getBorderModeW() const noexcept override;
+		virtual const Float& getAnisotropy() const noexcept override;
+		virtual const MipMapMode& getMipMapMode() const noexcept override;
+		virtual const Float& getMipMapBias() const noexcept override;
+		virtual const Float& getMaxLOD() const noexcept override;
+		virtual const Float& getMinLOD() const noexcept override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanSwapChain : public virtual VulkanRuntimeObject, public ISwapChain, public IResource<VkSwapchainKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
@@ -395,7 +431,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
 		virtual UniquePtr<IBuffer> createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
-		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const UInt32& binding) const override; 
 		virtual UniquePtr<ITexture> createTexture(const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const override;
 		virtual Array<UniquePtr<ITexture>> createSwapChainImages(const ISwapChain* swapChain) const override;

@@ -55,6 +55,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/buffer_pool.cpp"
     "src/buffer.cpp"
     "src/image.cpp"
+    "src/sampler.cpp"
 )
 
 # Add shared library project.

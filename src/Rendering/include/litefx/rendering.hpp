@@ -122,6 +122,23 @@ namespace LiteFX::Rendering {
 		virtual const UInt32& getLevels() const noexcept = 0;
 	};
 
+	class LITEFX_RENDERING_API ISampler {
+	public:
+		virtual ~ISampler() noexcept = default;
+
+	public:
+		virtual const FilterMode& getMinifyingFilter() const noexcept = 0;
+		virtual const FilterMode& getMagnifyingFilter() const noexcept = 0;
+		virtual const BorderMode& getBorderModeU() const noexcept = 0;
+		virtual const BorderMode& getBorderModeV() const noexcept = 0;
+		virtual const BorderMode& getBorderModeW() const noexcept = 0;
+		virtual const Float& getAnisotropy() const noexcept = 0;
+		virtual const MipMapMode& getMipMapMode() const noexcept = 0;
+		virtual const Float& getMipMapBias() const noexcept = 0;
+		virtual const Float& getMaxLOD() const noexcept = 0;
+		virtual const Float& getMinLOD() const noexcept = 0;
+	};
+
 	/// <summary>
 	/// 
 	/// </summary>
@@ -188,7 +205,6 @@ namespace LiteFX::Rendering {
 		virtual void wait() = 0;
 		virtual void resize(int width, int height) = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const UInt32& binding) const = 0;
 		virtual UniquePtr<ITexture> createTexture(const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const = 0;
 	};
