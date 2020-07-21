@@ -117,7 +117,9 @@ void SampleApp::initBuffers()
 
     // Create a uniform buffers for the camera and transform information.
     m_perFrameBindings = m_pipeline->makeBufferPool(DescriptorSets::PerFrame);
+    m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
     m_perObjectBindings = m_pipeline->makeBufferPool(DescriptorSets::PerInstance);
+    m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
     m_perMaterialBindings = m_pipeline->makeBufferPool(DescriptorSets::PerMaterial);
 }
 
