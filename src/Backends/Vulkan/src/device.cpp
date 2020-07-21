@@ -19,12 +19,13 @@ public:
 private:
 	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
+	UniquePtr<VulkanSwapChainImageLayout> m_swapChainImageLayout;
 	Array<String> m_extensions;
 	VmaAllocator m_allocator{ nullptr };
 
 public:
 	VulkanDeviceImpl(VulkanDevice* parent, const Array<String>& extensions = { }) :
-		base(parent), m_extensions(extensions) 
+		base(parent), m_extensions(extensions), m_swapChainImageLayout(makeUnique<VulkanSwapChainImageLayout>(*parent))
 	{
 		this->defineMandatoryExtensions();
 	}
@@ -201,9 +202,9 @@ public:
 	}
 
 public:
-	UniquePtr<ITexture> makeTexture(VkImage image, const Format& format, const Size2d& size, const UInt32& binding) const
+	UniquePtr<ITexture> makeTexture(VkImage image, const Format& format, const Size2d& size) const
 	{
-		return makeUnique<VulkanTexture>(m_parent, image, format, size, binding);
+		return makeUnique<VulkanTexture>(m_parent, m_swapChainImageLayout.get(), image, format, size);
 	}
 };
 
@@ -408,9 +409,7 @@ Array<UniquePtr<ITexture>> VulkanDevice::createSwapChainImages(const ISwapChain*
 
 	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &images, imageChain.data());
 	std::generate(textures.begin(), textures.end(), [&, i = 0]() mutable {
-		auto texture = m_impl->makeTexture(imageChain[i], swapChain->getFormat(), swapChain->getBufferSize(), i);
-		i++;
-		return texture;
+		return m_impl->makeTexture(imageChain[i++], swapChain->getFormat(), swapChain->getBufferSize());
 	});
 
 	return textures;

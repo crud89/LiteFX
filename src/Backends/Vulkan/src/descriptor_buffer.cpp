@@ -46,7 +46,7 @@ BufferType VulkanDescriptorLayout::getType() const noexcept
     return BufferType::Descriptor;
 }
 
-const DescriptorType& VulkanDescriptorLayout::getDescriptorType() const noexcept
+DescriptorType VulkanDescriptorLayout::getDescriptorType() const noexcept
 {
     return m_impl->m_type;
 }

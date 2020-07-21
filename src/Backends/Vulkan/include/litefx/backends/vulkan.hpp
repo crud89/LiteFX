@@ -37,15 +37,16 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanBufferPoolImpl);
 
 	public:
-		VulkanBufferPool(const VulkanDescriptorSetLayout& bufferSet, const BufferUsage& usage);
+		VulkanBufferPool(const VulkanDescriptorSetLayout& bufferSet);
 		VulkanBufferPool(VulkanBufferPool&&) = delete;
 		VulkanBufferPool(const VulkanBufferPool&) = delete;
 		virtual ~VulkanBufferPool() noexcept;
 
 	public:
 		virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept override;
-		virtual IBuffer* getBuffer(const UInt32& binding) const noexcept override;
-		virtual const BufferUsage& getUsage() const noexcept override;
+		virtual void bind(const IBuffer* buffer) const override;
+		virtual void bind(const ITexture* texture) const override;
+		virtual void bind(const UInt32& bindingPoint, const ISampler* sampler) const override;
 
 	public:
 		virtual const VkDescriptorSet getDescriptorSet() const noexcept;
@@ -114,7 +115,26 @@ namespace LiteFX::Rendering::Backends {
 		virtual BufferType getType() const noexcept override;
 
 	public:
-		virtual const DescriptorType& getDescriptorType() const noexcept override;
+		virtual DescriptorType getDescriptorType() const noexcept override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanSwapChainImageLayout : public virtual VulkanRuntimeObject, public IDescriptorLayout {
+	public:
+		VulkanSwapChainImageLayout(const VulkanDevice& device);
+		VulkanSwapChainImageLayout(VulkanSwapChainImageLayout&&) = delete;
+		VulkanSwapChainImageLayout(const VulkanSwapChainImageLayout&) = delete;
+		virtual ~VulkanSwapChainImageLayout() noexcept;
+
+	public:
+		virtual size_t getElementSize() const noexcept override;
+		virtual UInt32 getBinding() const noexcept override;
+		virtual BufferType getType() const noexcept override;
+
+	public:
+		virtual DescriptorType getDescriptorType() const noexcept override;
 	};
 
 	/// <summary>
@@ -135,10 +155,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual const IDescriptorLayout* getLayout(const UInt32& binding) const noexcept override;
 		virtual const UInt32& getSetId() const noexcept override;
 		virtual const ShaderStage& getShaderStages() const noexcept override;
-		virtual UniquePtr<IBufferPool> createBufferPool(const BufferUsage& usage) const noexcept override;
+		virtual UniquePtr<IBufferPool> createBufferPool() const noexcept override;
 
 	public:
-		virtual const Array<VkDescriptorPoolSize> getPoolSizes() const noexcept;
+		virtual UInt32 uniforms() const noexcept override;
+		virtual UInt32 storages() const noexcept override;
+		virtual UInt32 images() const noexcept override;
+		virtual UInt32 samplers() const noexcept override;
+		virtual UInt32 inputAttachments() const noexcept override;
 	};
 
 	/// <summary>
@@ -432,7 +456,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
 		virtual UniquePtr<IBuffer> createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
-		virtual UniquePtr<ITexture> createTexture(const Format& format, const Size2d& size, const UInt32& binding, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<ITexture> createTexture(const IBufferLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const override;
 		virtual Array<UniquePtr<ITexture>> createSwapChainImages(const ISwapChain* swapChain) const override;
 

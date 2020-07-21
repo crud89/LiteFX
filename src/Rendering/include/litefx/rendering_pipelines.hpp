@@ -69,7 +69,7 @@ namespace LiteFX::Rendering {
         virtual ~IDescriptorLayout() noexcept = default;
 
     public:
-        virtual const DescriptorType& getDescriptorType() const noexcept = 0;
+        virtual DescriptorType getDescriptorType() const noexcept = 0;
     };
 
     /// <summary>
@@ -84,7 +84,14 @@ namespace LiteFX::Rendering {
         virtual const IDescriptorLayout* getLayout(const UInt32& binding) const noexcept = 0;
         virtual const UInt32& getSetId() const noexcept = 0;
         virtual const ShaderStage& getShaderStages() const noexcept = 0;
-        virtual UniquePtr<IBufferPool> createBufferPool(const BufferUsage& usage) const noexcept = 0;
+        virtual UniquePtr<IBufferPool> createBufferPool() const noexcept = 0;
+
+    public:
+        virtual UInt32 uniforms() const noexcept = 0;
+        virtual UInt32 storages() const noexcept = 0;
+        virtual UInt32 images() const noexcept = 0;
+        virtual UInt32 samplers() const noexcept = 0;
+        virtual UInt32 inputAttachments() const noexcept = 0;
     };
 
     /// <summary>
@@ -131,8 +138,9 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept = 0;
-        virtual IBuffer* getBuffer(const UInt32& binding) const noexcept = 0;
-        virtual const BufferUsage& getUsage() const noexcept = 0;
+        virtual void bind(const IBuffer* buffer) const = 0;
+        virtual void bind(const ITexture* texture) const = 0;
+        virtual void bind(const UInt32& bindingPoint, const ISampler* sampler) const = 0;
     };
 
     /// <summary>

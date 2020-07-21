@@ -36,6 +36,8 @@ size_t VulkanIndexBufferLayout::getElementSize() const noexcept
         return 2;
     case IndexType::UInt32:
         return 4;
+    default:
+        throw std::runtime_error("Unsupported index type.");
     }
 }
 

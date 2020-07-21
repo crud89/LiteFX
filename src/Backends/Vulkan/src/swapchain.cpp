@@ -229,3 +229,35 @@ VkSemaphore VulkanSwapChain::getSemaphore() const noexcept
 {
 	return m_impl->m_swapSemaphore;
 }
+
+// ------------------------------------------------------------------------------------------------
+// Image Layout Interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanSwapChainImageLayout::VulkanSwapChainImageLayout(const VulkanDevice& device) : 
+	VulkanRuntimeObject(&device) 
+{
+}
+
+VulkanSwapChainImageLayout::~VulkanSwapChainImageLayout() noexcept = default;
+
+size_t VulkanSwapChainImageLayout::getElementSize() const noexcept
+{
+	return 0;
+}
+
+UInt32 VulkanSwapChainImageLayout::getBinding() const noexcept 
+{
+	return 0;
+}
+
+BufferType VulkanSwapChainImageLayout::getType() const noexcept
+{
+	return BufferType::Descriptor;
+}
+
+DescriptorType VulkanSwapChainImageLayout::getDescriptorType() const noexcept
+{
+	// TODO: This may still be invalid!
+	return DescriptorType::InputAttachment;
+}

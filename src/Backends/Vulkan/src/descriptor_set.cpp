@@ -15,10 +15,12 @@ public:
 private:
     UInt32 m_setId;
     ShaderStage m_stages;
-    Array<VkDescriptorPoolSize> m_poolSizes = {
-        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0 },
-        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 0 },
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0 }
+    Dictionary<DescriptorType, UInt32> m_poolSizes = {
+        { DescriptorType::Uniform, 0 },
+        { DescriptorType::Storage, 0 },
+        { DescriptorType::Image, 0 },
+        { DescriptorType::Sampler, 0 },
+        { DescriptorType::InputAttachment, 0 }
     };
     Array<UniquePtr<IDescriptorLayout>> m_layouts;
 
@@ -64,23 +66,19 @@ public:
 
             switch (type)
             {
-            case DescriptorType::Uniform:
-                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                m_poolSizes[0].descriptorCount++;
-                break;
-            case DescriptorType::Sampler:
-                binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                m_poolSizes[2].descriptorCount++;
-                break;
-            case DescriptorType::Storage:
-            default:
-                LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");
+            case DescriptorType::Uniform:         binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;   break;
+            case DescriptorType::Storage:         binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;   break;
+            case DescriptorType::Image:           binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;    break;
+            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;          break;
+            case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT; break;
+            default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");
             }
 
+            m_poolSizes[type]++;
             bindings.push_back(binding);
         });
 
-        LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Sampler: {4} }}...", m_setId, m_layouts.size(), m_poolSizes[0].descriptorCount, m_poolSizes[1].descriptorCount, m_poolSizes[2].descriptorCount);
+        LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input attachments: {6} }}...", m_setId, m_layouts.size(), m_poolSizes[DescriptorType::Uniform], m_poolSizes[DescriptorType::Storage], m_poolSizes[DescriptorType::Image], m_poolSizes[DescriptorType::Sampler], m_poolSizes[DescriptorType::InputAttachment]);
 
         VkDescriptorSetLayoutCreateInfo uniformBufferLayoutInfo{};
         uniformBufferLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -146,14 +144,34 @@ const ShaderStage& VulkanDescriptorSetLayout::getShaderStages() const noexcept
     return m_impl->m_stages;
 }
 
-UniquePtr<IBufferPool> VulkanDescriptorSetLayout::createBufferPool(const BufferUsage& usage) const noexcept
+UniquePtr<IBufferPool> VulkanDescriptorSetLayout::createBufferPool() const noexcept
 {
-    return makeUnique<VulkanBufferPool>(*this, usage);
+    return makeUnique<VulkanBufferPool>(*this);
 }
 
-const Array<VkDescriptorPoolSize> VulkanDescriptorSetLayout::getPoolSizes() const noexcept
+UInt32 VulkanDescriptorSetLayout::uniforms() const noexcept
 {
-    return m_impl->m_poolSizes;
+    return m_impl->m_poolSizes[DescriptorType::Uniform];
+}
+
+UInt32 VulkanDescriptorSetLayout::storages() const noexcept
+{
+    return m_impl->m_poolSizes[DescriptorType::Storage];
+}
+
+UInt32 VulkanDescriptorSetLayout::images() const noexcept
+{
+    return m_impl->m_poolSizes[DescriptorType::Image];
+}
+
+UInt32 VulkanDescriptorSetLayout::samplers() const noexcept
+{
+    return m_impl->m_poolSizes[DescriptorType::Sampler];
+}
+
+UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
+{
+    return m_impl->m_poolSizes[DescriptorType::InputAttachment];
 }
 
 // ------------------------------------------------------------------------------------------------

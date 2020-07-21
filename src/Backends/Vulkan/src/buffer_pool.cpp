@@ -12,21 +12,26 @@ public:
     friend class VulkanBufferPool;
 
 private:
-    const IDescriptorSetLayout* m_bufferSet{ nullptr };
-    Array<UniquePtr<IBuffer>> m_buffers;
+    const IDescriptorSetLayout* m_layout{ nullptr };
     VkDescriptorSet m_descriptorSet;
-    BufferUsage m_usage;
 
 public:
-    VulkanBufferPoolImpl(VulkanBufferPool* parent, const BufferUsage& usage) : base(parent), m_usage(usage) { }
+    VulkanBufferPoolImpl(VulkanBufferPool* parent) : base(parent) { }
 
 public:
-    VkDescriptorPool initialize(const VulkanDescriptorSetLayout& bufferSet)
+    VkDescriptorPool initialize(const VulkanDescriptorSetLayout& descriptorSetLayout)
     {
-        auto poolSizes = bufferSet.getPoolSizes();
-        auto layouts = bufferSet.getLayouts();
+        Array<VkDescriptorPoolSize> poolSizes = {
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,   descriptorSetLayout.uniforms() },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,   descriptorSetLayout.storages() },
+            { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,    descriptorSetLayout.images() },
+            { VK_DESCRIPTOR_TYPE_SAMPLER,          descriptorSetLayout.samplers() },
+            { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, descriptorSetLayout.inputAttachments() }
+        };
 
-        LITEFX_TRACE(VULKAN_LOG, "Allocating buffer pool {{ Uniforms: {0}, Storages: {1}, Samplers: {2} }}...", poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount);
+        auto descriptorLayouts = descriptorSetLayout.getLayouts();
+
+        LITEFX_TRACE(VULKAN_LOG, "Allocating buffer pool {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount, poolSizes[3].descriptorCount, poolSizes[4].descriptorCount);
 
         // Remove pool sizes with no descriptors to be compatible with the specs.
         poolSizes.erase(std::remove_if(std::begin(poolSizes), std::end(poolSizes), [](const VkDescriptorPoolSize& s) { return s.descriptorCount == 0; }), std::end(poolSizes));
@@ -51,62 +56,13 @@ public:
         descriptorSetInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         descriptorSetInfo.descriptorPool = descriptorPool;
         descriptorSetInfo.descriptorSetCount = 1;
-        descriptorSetInfo.pSetLayouts = &bufferSet.handle();
+        descriptorSetInfo.pSetLayouts = &descriptorSetLayout.handle();
 
         if (::vkAllocateDescriptorSets(m_parent->getDevice()->handle(), &descriptorSetInfo, &m_descriptorSet) != VK_SUCCESS)
             throw std::runtime_error("Unable to allocate descriptor sets.");
 
-        // Allocate buffers.
-        m_buffers.resize(layouts.size());
-
-        std::generate(std::begin(m_buffers), std::end(m_buffers), [&, i = 0]() mutable {
-            auto layout = layouts[i++];
-
-            // Create the buffer.
-            // TODO: Support object arrays (i.e. buffers with more than 1 element).
-            auto deviceBuffer = m_parent->getDevice()->createBuffer(layout, m_usage, 1);
-            auto buffer = dynamic_cast<const VulkanBuffer*>(deviceBuffer.get());
-
-            if (buffer == nullptr)
-                throw std::runtime_error("The created buffer is not a valid Vulkan buffer.");
-
-            VkDescriptorBufferInfo bufferInfo { };
-            bufferInfo.buffer = buffer->handle();
-            bufferInfo.range = buffer->getSize();
-            bufferInfo.offset = 0;
-
-            VkWriteDescriptorSet descriptorWrite { };
-            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet = m_descriptorSet;
-            descriptorWrite.dstBinding = layout->getBinding();
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pBufferInfo = &bufferInfo;
-
-            switch (layout->getDescriptorType())
-            {
-            case DescriptorType::Uniform:
-                descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                break;
-            default:
-                throw std::runtime_error("Unsupported buffer type.");
-            }
-
-            // Update the descriptor set accordingly.
-            ::vkUpdateDescriptorSets(m_parent->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
-
-            return deviceBuffer;
-        });
-
-        m_bufferSet = &bufferSet;
-
+        m_layout = &descriptorSetLayout;
         return descriptorPool;
-    }
-
-    IBuffer* getBuffer(const UInt32& binding) const
-    {
-        auto match = std::find_if(std::begin(m_buffers), std::end(m_buffers), [&](const UniquePtr<IBuffer>& buffer) { return buffer->getBinding() == binding; });
-        return match == m_buffers.end() ? nullptr : match->get();
     }
 };
 
@@ -114,8 +70,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBufferPool::VulkanBufferPool(const VulkanDescriptorSetLayout& bufferSet, const BufferUsage& usage) :
-    m_impl(makePimpl<VulkanBufferPoolImpl>(this, usage)), VulkanRuntimeObject(bufferSet.getDevice()), IResource<VkDescriptorPool>(nullptr)
+VulkanBufferPool::VulkanBufferPool(const VulkanDescriptorSetLayout& bufferSet) :
+    m_impl(makePimpl<VulkanBufferPoolImpl>(this)), VulkanRuntimeObject(bufferSet.getDevice()), IResource<VkDescriptorPool>(nullptr)
 {
     this->handle() = m_impl->initialize(bufferSet);
 }
@@ -127,20 +83,105 @@ VulkanBufferPool::~VulkanBufferPool() noexcept
 
 const IDescriptorSetLayout* VulkanBufferPool::getDescriptorSetLayout() const noexcept
 {
-    return m_impl->m_bufferSet;
-}
-
-IBuffer* VulkanBufferPool::getBuffer(const UInt32& binding) const noexcept
-{
-    return m_impl->getBuffer(binding);
-}
-
-const BufferUsage& VulkanBufferPool::getUsage() const noexcept
-{
-    return m_impl->m_usage;
+    return m_impl->m_layout;
 }
 
 const VkDescriptorSet VulkanBufferPool::getDescriptorSet() const noexcept
 {
     return m_impl->m_descriptorSet;
+}
+
+void VulkanBufferPool::bind(const IBuffer* b) const
+{
+    auto buffer = dynamic_cast<const VulkanBuffer*>(b);
+
+    if (buffer == nullptr)
+        throw std::invalid_argument("The buffer is not a valid Vulkan buffer.");
+
+    if (buffer->getLayout()->getType() != BufferType::Descriptor)
+        throw std::invalid_argument("The buffer is not a descriptor and cannot be bound to a descriptor set.");
+
+#ifndef _NDEBUG
+    auto layout = dynamic_cast<const IDescriptorLayout*>(buffer->getLayout());
+
+    if (layout == nullptr)
+        throw std::invalid_argument("The buffer is a descriptor, but its layout does not implement `IDescriptorLayout`.");
+#else
+    auto layout = static_cast<const IDescriptorLayout*>(buffer->getLayout());
+#endif
+
+    auto descriptorType = layout->getDescriptorType();
+
+    if (descriptorType == DescriptorType::Image)
+    {
+        LITEFX_WARNING(VULKAN_LOG, "Binding a texture {0} using the `IBuffer` interface. Consider using the specialized `bind(ITexture*)` overload for better performance.", fmt::ptr(b));
+        this->bind(dynamic_cast<const ITexture*>(b));
+    }
+
+    VkDescriptorBufferInfo bufferInfo{ };
+    bufferInfo.buffer = buffer->handle();
+    bufferInfo.range = buffer->getSize();
+    bufferInfo.offset = 0;
+
+    VkWriteDescriptorSet descriptorWrite{ };
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_impl->m_descriptorSet;
+    descriptorWrite.dstBinding = layout->getBinding();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = &bufferInfo;
+
+    switch (descriptorType)
+    {
+    case DescriptorType::Uniform: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
+    case DescriptorType::Storage: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
+    default: throw std::runtime_error("Unsupported buffer type.");
+    }
+
+    ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
+}
+
+void VulkanBufferPool::bind(const ITexture* texture) const
+{
+    auto image = dynamic_cast<const VulkanTexture*>(texture);
+
+    if (image == nullptr)
+        throw std::invalid_argument("The texture is not a valid Vulkan texture.");
+
+    VkDescriptorImageInfo imageInfo{ };
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = image->getView();
+
+    VkWriteDescriptorSet descriptorWrite{ };
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    descriptorWrite.dstSet = m_impl->m_descriptorSet;
+    descriptorWrite.dstBinding = image->getLayout()->getBinding();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
+}
+
+void VulkanBufferPool::bind(const UInt32& bindingPoint, const ISampler* s) const
+{
+    auto sampler = dynamic_cast<const VulkanSampler*>(s);
+
+    if (sampler == nullptr)
+        throw std::invalid_argument("The sampler is not a valid Vulkan sampler.");
+
+    VkDescriptorImageInfo imageInfo{ };
+    imageInfo.sampler = sampler->handle();
+
+    VkWriteDescriptorSet descriptorWrite{ };
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+    descriptorWrite.dstSet = m_impl->m_descriptorSet;
+    descriptorWrite.dstBinding = bindingPoint;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
