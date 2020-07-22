@@ -360,12 +360,13 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSampler : public VulkanRuntimeObject, public virtual ISampler, public IResource<VkSampler> {
+	class LITEFX_VULKAN_API VulkanSampler : public VulkanRuntimeObject, public virtual Sampler, public IResource<VkSampler> {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
 
 	public:
 		VulkanSampler(
 			const VulkanDevice* device,
+			const IDescriptorLayout* layout,
 			const FilterMode& magFilter = FilterMode::Nearest, 
 			const FilterMode& minFilter = FilterMode::Nearest, 
 			const BorderMode& borderU = BorderMode::Repeat, 
@@ -379,18 +380,6 @@ namespace LiteFX::Rendering::Backends {
 		VulkanSampler(VulkanSampler&&) = delete;
 		VulkanSampler(const VulkanSampler&) = delete;
 		virtual ~VulkanSampler() noexcept;
-
-	public:
-		virtual const FilterMode& getMinifyingFilter() const noexcept override;
-		virtual const FilterMode& getMagnifyingFilter() const noexcept override;
-		virtual const BorderMode& getBorderModeU() const noexcept override;
-		virtual const BorderMode& getBorderModeV() const noexcept override;
-		virtual const BorderMode& getBorderModeW() const noexcept override;
-		virtual const Float& getAnisotropy() const noexcept override;
-		virtual const MipMapMode& getMipMapMode() const noexcept override;
-		virtual const Float& getMipMapBias() const noexcept override;
-		virtual const Float& getMaxLOD() const noexcept override;
-		virtual const Float& getMinLOD() const noexcept override;
 	};
 
 	/// <summary>
