@@ -477,14 +477,14 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// A base class for a generic image.
+    /// A base class for a generic texture.
     /// </summary>
     class LITEFX_RENDERING_API Texture : public virtual Image, public virtual ITexture {
         LITEFX_IMPLEMENTATION(TextureImpl);
 
     public:
         /// <summary>
-        /// Creates a new image.
+        /// Creates a new texture.
         /// </summary>
         /// <param name="layout">The layout of the image descriptor.</param>
         /// <param name="elements">The number of images in this buffer.</param>
@@ -510,6 +510,67 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual UInt32 getLevels() const noexcept override;
+    };
+
+    /// <summary>
+    /// A base class for a generic sampler.
+    /// </summary>
+    class LITEFX_RENDERING_API Sampler : public virtual ISampler {
+        LITEFX_IMPLEMENTATION(SamplerImpl);
+    
+    public:
+        /// <summary>
+        /// Creates a new sampler.
+        /// </summary>
+        /// <param name="layout">The layout of the sampler descriptor.</param>
+        /// <param name="magFilter">The filtering mode that is used for magnifying lookups.</param>
+        /// <param name="minFilter">The filtering mode that is used for minifying lookups.</param>
+        /// <param name="borderU">The addressing mode at the horizontal border.</param>
+        /// <param name="borderV">The addressing mode at the vertical border.</param>
+        /// <param name="borderW">The addressing mode at the depth border.</param>
+        /// <param name="mipMapMode">The mip-map selection mode.</param>
+        /// <param name="mipMapBias">The mip-map level of detail bias.</param>
+        /// <param name="maxLod">The maximum texture level of detail.</param>
+        /// <param name="minLod">The minimum texture level of detail.</param>
+        /// <param name="anisotropy">The anisotropy value used when sampling this texture.</param>
+        Sampler(const IDescriptorLayout* layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f);
+        Sampler(Sampler&&) = delete;
+        Sampler(const Sampler&) = delete;
+        virtual ~Sampler() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual const IDescriptorLayout* getLayout() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const FilterMode& getMinifyingFilter() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const FilterMode& getMagnifyingFilter() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const BorderMode& getBorderModeU() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const BorderMode& getBorderModeV() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const BorderMode& getBorderModeW() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const Float& getAnisotropy() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const MipMapMode& getMipMapMode() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const Float& getMipMapBias() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const Float& getMaxLOD() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const Float& getMinLOD() const noexcept override;
     };
 
     /// <summary>
