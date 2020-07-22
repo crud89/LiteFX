@@ -8,7 +8,7 @@ namespace LiteFX::Rendering {
     using namespace LiteFX::Graphics;
 
     /// <summary>
-    /// 
+    /// Stores meta data about a buffer attribute.
     /// </summary>
     class LITEFX_RENDERING_API BufferAttribute {
         LITEFX_IMPLEMENTATION(BufferAttributeImpl);
@@ -84,7 +84,7 @@ namespace LiteFX::Rendering {
         virtual const IDescriptorLayout* getLayout(const UInt32& binding) const noexcept = 0;
         virtual const UInt32& getSetId() const noexcept = 0;
         virtual const ShaderStage& getShaderStages() const noexcept = 0;
-        virtual UniquePtr<IBufferPool> createBufferPool() const noexcept = 0;
+        virtual UniquePtr<IDescriptorSet> createBufferPool() const noexcept = 0;
 
     public:
         virtual UInt32 uniforms() const noexcept = 0;
@@ -95,46 +95,429 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// 
+    /// Allows for data to be mapped into the object.
     /// </summary>
-    class LITEFX_RENDERING_API IBuffer {
+    class LITEFX_RENDERING_API IMappable {
     public:
-        virtual ~IBuffer() noexcept = default;
+        virtual ~IMappable() noexcept = default;
 
     public:
-        virtual const IBufferLayout* getLayout() const noexcept = 0;
-        virtual UInt32 getElements() const noexcept = 0;
-        virtual UInt32 getSize() const noexcept = 0;
-
-    public:
+        /// <summary>
+        /// Maps the memory at <paramref name="data" /> to the internal memory of this object.
+        /// </summary>
+        /// <param name="data">The address that marks the beginning of the data to map.</param>
+        /// <param name="size">The number of bytes to map.</param>
         virtual void map(const void* const data, const size_t& size) = 0;
-        virtual void transfer(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& offset = 0, const size_t& targetOffset = 0) const = 0;
     };
 
     /// <summary>
-    /// 
+    /// Exposes a binding that can be associated with the object.
     /// </summary>
-    class LITEFX_RENDERING_API Buffer : public virtual IBuffer {
-        LITEFX_IMPLEMENTATION(BufferImpl)
+    class LITEFX_RENDERING_API IBindable {
+    public:
+        virtual ~IBindable() noexcept = default;
 
     public:
-        Buffer(const IBufferLayout* layout, const UInt32& elements);
-        Buffer(const Buffer& _other) = delete;
-        Buffer(Buffer&& _other) = delete;
+        /// <summary>
+        /// Gets the binding point, this object will be bound to.
+        /// </summary>
+        /// <returns>The binding point, this object will be bound to.</returns>
+        virtual UInt32 getBinding() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Allows the object to transfer data from an arbitrary <see cref="LiteFX::Rendering::IBuffer" /> object into its local memory.
+    /// </summary>
+    class LITEFX_RENDERING_API ITransferTarget {
+    public:
+        virtual ~ITransferTarget() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Transfers data from the <paramref name="source" /> buffer into the objects local memory.
+        /// </summary>
+        /// <param name="commandQueue">The command queue to issue the transfer command to.</param>
+        /// <param name="source">The source buffer to transfer data from.</param>
+        /// <param name="size">The size (in bytes) to transfer from the source buffer.</param>
+        /// <param name="sourceOffset">The offset (in bytes) from where to start transferring in the source buffer.</param>
+        /// <param name="targetOffset">The offset (in bytes) to which the data will be transferred in the object memory.</param>
+        virtual void transfer(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const = 0;
+    };
+
+    /// <summary>
+    /// Describes a chunk of device memory.
+    /// </summary>
+    class LITEFX_RENDERING_API IDeviceMemory {
+    public:
+        virtual ~IDeviceMemory() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the number of array elements inside the memory chunk.
+        /// </summary>
+        /// <returns>The number of array elements inside the memory chunk.</returns>
+        virtual UInt32 getElements() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the size (in bytes) of the memory chunk.
+        /// </summary>
+        /// <returns>The size (in bytes) of the memory chunk.</returns>
+        virtual size_t getSize() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Describes a generic buffer object.
+    /// </summary>
+    /// <seealso cref="Buffer" />
+    class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual ITransferTarget, public virtual IMappable {
+    public:
+        virtual ~IBuffer() noexcept = default;
+    };
+
+    /// <summary>
+    /// Describes a vertex buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer, public virtual IBindable {
+    public:
+        virtual ~IVertexBuffer() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the layout of the vertex buffer.
+        /// </summary>
+        /// <returns>The layout of the vertex buffer.</returns>
+        virtual const IVertexBufferLayout* getLayout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Describes an index buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
+    public:
+        virtual ~IIndexBuffer() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the layout of the index buffer.
+        /// </summary>
+        /// <returns>The layout of the index buffer.</returns>
+        virtual const IIndexBufferLayout* getLayout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Describes a descriptor.
+    /// </summary>
+    class LITEFX_RENDERING_API IDescriptor : public virtual IBindable {
+    public:
+        virtual ~IDescriptor() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the layout of the descriptor.
+        /// </summary>
+        /// <returns>The layout of the descriptor.</returns>
+        virtual const IDescriptorLayout* getLayout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Describes a constant buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IConstantBuffer : public virtual IBuffer, public virtual IDescriptor {
+    public:
+        virtual ~IConstantBuffer() noexcept = default;
+    };
+
+    /// <summary>
+    /// Describes a generic image.
+    /// </summary>
+    class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory, public virtual ITransferTarget {
+    public:
+        virtual ~IImage() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the extent of the image.
+        /// </summary>
+        /// <returns>The extent of the image.</returns>
+        virtual Size2d getExtent() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the internal format of the image.
+        /// </summary>
+        /// <returns>The internal format of the image.</returns>
+        virtual Format getFormat() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Describes a texture.
+    /// </summary>
+    /// <remarks>
+    /// A texture is a <see cref="LiteFX::Rendering::IImage" />, that can be bound to a descriptor.
+    /// </remarks>
+    class LITEFX_RENDERING_API ITexture : public virtual IImage, public virtual IDescriptor {
+    public:
+        virtual ~ITexture() noexcept = default;
+    
+    public:
+        /// <summary>
+        /// Gets the number of samples of the texture.
+        /// </summary>
+        /// <returns>The number of samples of the texture.</returns>
+        virtual MultiSamplingLevel getSamples() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the number of mip-map levels of the texture.
+        /// </summary>
+        /// <returns>The number of mip-map levels of the texture.</returns>
+        virtual UInt32 getLevels() const noexcept = 0;
+
+        // TODO: getSampler() for combined samplers?
+    };
+
+    /// <summary>
+    /// Describes a texture sampler.
+    /// </summary>
+    class LITEFX_RENDERING_API ISampler : public virtual IDescriptor {
+    public:
+        virtual ~ISampler() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the filtering mode that is used for minifying lookups.
+        /// </summary>
+        /// <returns>The filtering mode that is used for minifying lookups.</returns>
+        virtual const FilterMode& getMinifyingFilter() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the filtering mode that is used for magnifying lookups.
+        /// </summary>
+        /// <returns>The filtering mode that is used for magnifying lookups.</returns>
+        virtual const FilterMode& getMagnifyingFilter() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the addressing mode at the horizontal border.
+        /// </summary>
+        /// <returns>The addressing mode at the horizontal border.</returns>
+        virtual const BorderMode& getBorderModeU() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the addressing mode at the vertical border.
+        /// </summary>
+        /// <returns>The addressing mode at the vertical border.</returns>
+        virtual const BorderMode& getBorderModeV() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the addressing mode at the depth border.
+        /// </summary>
+        /// <returns>The addressing mode at the depth border.</returns>
+        virtual const BorderMode& getBorderModeW() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the anisotropy value used when sampling this texture.
+        /// </summary>
+        /// <remarks>
+        /// Anisotropy will be disabled, if this value is set to <c>0.0</c>.
+        /// </remarks>
+        /// <returns>The anisotropy value used when sampling this texture.</returns>
+        virtual const Float& getAnisotropy() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the mip-map selection mode.
+        /// </summary>
+        /// <returns>The mip-map selection mode.</returns>
+        virtual const MipMapMode& getMipMapMode() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the mip-map level of detail bias.
+        /// </summary>
+        /// <returns>The mip-map level of detail bias.</returns>
+        virtual const Float& getMipMapBias() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the maximum texture level of detail.
+        /// </summary>
+        /// <returns>The maximum texture level of detail.</returns>
+        virtual const Float& getMaxLOD() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the minimum texture level of detail.
+        /// </summary>
+        /// <returns>The minimum texture level of detail.</returns>
+        virtual const Float& getMinLOD() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// A base class for a generic buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API Buffer : public virtual IBuffer {
+        LITEFX_IMPLEMENTATION(BufferImpl);
+    
+    public:
+        /// <summary>
+        /// Creates a new buffer object.
+        /// </summary>
+        /// <param name="elements">The number of elements in this buffer.</param>
+        /// <param name="size">The size (in bytes) of the buffer memory.</param>
+        Buffer(const UInt32& elements, const UInt32& size);
+        Buffer(Buffer&&) = delete;
+        Buffer(const Buffer&) = delete;
         virtual ~Buffer() noexcept;
 
     public:
-        virtual const IBufferLayout* getLayout() const noexcept override;
+        /// <inheritdoc />
         virtual UInt32 getElements() const noexcept override;
-        virtual UInt32 getSize() const noexcept override;
+
+        /// <inheritdoc />
+        virtual size_t getSize() const noexcept override;
+    };
+
+    /// <summary>
+    /// A base class for a vertex buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API VertexBuffer : public virtual Buffer, public virtual IVertexBuffer {
+        LITEFX_IMPLEMENTATION(VertexBufferImpl);
+
+    public:
+        /// <summary>
+        /// Creates a new vertex buffer.
+        /// </summary>
+        /// <param name="layout">The layout of the vertex buffer.</param>
+        /// <param name="elements">The number of elements in this buffer.</param>
+        /// <param name="size">The size (in bytes) of the buffer memory.</param>
+        VertexBuffer(const IVertexBufferLayout* layout, const UInt32& elements, const UInt32& size);
+        VertexBuffer(VertexBuffer&&) = delete;
+        VertexBuffer(const VertexBuffer&) = delete;
+        virtual ~VertexBuffer() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual const IVertexBufferLayout* getLayout() const noexcept override;
+    };
+
+    /// <summary>
+    /// A base class for an index buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IndexBuffer : public virtual Buffer, public virtual IIndexBuffer {
+        LITEFX_IMPLEMENTATION(IndexBufferImpl);
+
+    public:
+        /// <summary>
+        /// Creates a new index buffer.
+        /// </summary>
+        /// <param name="layout">The layout of the index buffer.</param>
+        /// <param name="elements">The number of elements in this buffer.</param>
+        /// <param name="size">The size (in bytes) of the buffer memory.</param>
+        IndexBuffer(const IIndexBufferLayout* layout, const UInt32& elements, const UInt32& size);
+        IndexBuffer(IndexBuffer&&) = delete;
+        IndexBuffer(const IndexBuffer&) = delete;
+        virtual ~IndexBuffer() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual const IIndexBufferLayout* getLayout() const noexcept override;
+    };
+
+    /// <summary>
+    /// A base class for a constant buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API ConstantBuffer : public virtual Buffer, public virtual IConstantBuffer {
+        LITEFX_IMPLEMENTATION(ConstantBufferImpl);
+
+    public:
+        /// <summary>
+        /// Creates a new constant buffer.
+        /// </summary>
+        /// <param name="layout">The layout of the constant buffer descriptor.</param>
+        /// <param name="elements">The number of elements in this buffer.</param>
+        /// <param name="size">The size (in bytes) of the buffer memory.</param>
+        ConstantBuffer(const IDescriptorLayout* layout, const UInt32& elements, const UInt32& size);
+        ConstantBuffer(ConstantBuffer&&) = delete;
+        ConstantBuffer(const ConstantBuffer&) = delete;
+        virtual ~ConstantBuffer() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual UInt32 getBinding() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const IDescriptorLayout* getLayout() const noexcept override;
+    };
+
+    /// <summary>
+    /// A base class for a generic image.
+    /// </summary>
+    class LITEFX_RENDERING_API Image : public virtual IImage {
+        LITEFX_IMPLEMENTATION(ImageImpl);
+
+    public:
+        /// <summary>
+        /// Creates a new image.
+        /// </summary>
+        /// <param name="elements">The number of images in this buffer.</param>
+        /// <param name="size">The size (in bytes) of the buffer memory.</param>
+        /// <param name="extent">The extent (in pixels) of the image.</param>
+        /// <param name="format">The internal format of the image.</param>
+        Image(const UInt32& elements, const UInt32& size, const Size2d& extent, const Format& format);
+        Image(Image&&) = delete;
+        Image(const Image&) = delete;
+        virtual ~Image() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual UInt32 getElements() const noexcept override;
+
+        /// <inheritdoc />
+        virtual size_t getSize() const noexcept override;
+
+        /// <inheritdoc />
+        virtual Size2d getExtent() const noexcept override;
+
+        /// <inheritdoc />
+        virtual Format getFormat() const noexcept override;
+    };
+
+    /// <summary>
+    /// A base class for a generic image.
+    /// </summary>
+    class LITEFX_RENDERING_API Texture : public virtual Image, public virtual ITexture {
+        LITEFX_IMPLEMENTATION(TextureImpl);
+
+    public:
+        /// <summary>
+        /// Creates a new image.
+        /// </summary>
+        /// <param name="layout">The layout of the image descriptor.</param>
+        /// <param name="elements">The number of images in this buffer.</param>
+        /// <param name="size">The size (in bytes) of the buffer memory.</param>
+        /// <param name="extent">The extent (in pixels) of the image.</param>
+        /// <param name="format">The internal format of the image.</param>
+        /// <param name="levels">The number of mip-map levels.</param>
+        /// <param name="samples">The number of samples per texel.</param>
+        Texture(const IDescriptorLayout* layout, const UInt32& elements, const UInt32& size, const Size2d& extent, const Format& format, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1);
+        Texture(Texture&&) = delete;
+        Texture(const Texture&) = delete;
+        virtual ~Texture() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual UInt32 getBinding() const noexcept override;
+
+        /// <inheritdoc />
+        virtual const IDescriptorLayout* getLayout() const noexcept override;
+
+        /// <inheritdoc />
+        virtual MultiSamplingLevel getSamples() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getLevels() const noexcept override;
     };
 
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IBufferPool {
+    class LITEFX_RENDERING_API IDescriptorSet {
     public:
-        virtual ~IBufferPool() noexcept = default;
+        virtual ~IDescriptorSet() noexcept = default;
 
     public:
         virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept = 0;
@@ -169,9 +552,9 @@ namespace LiteFX::Rendering {
         virtual void reset() = 0;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
-        virtual UniquePtr<IBufferPool> makeBufferPool(const UInt32& bufferSet) const = 0;
+        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
         virtual void bind(const IBuffer* buffer) const = 0;
-        virtual void bind(const IBufferPool* buffer) const = 0;
+        virtual void bind(const IDescriptorSet* buffer) const = 0;
     };
 
     /// <summary>
@@ -428,7 +811,7 @@ namespace LiteFX::Rendering {
         virtual void endFrame() override;
         virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
         virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
-        virtual UniquePtr<IBufferPool> makeBufferPool(const UInt32& bufferSet) const override;
+        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
     };
 
     /// <summary>

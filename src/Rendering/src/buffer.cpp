@@ -1,6 +1,6 @@
 #include <litefx/rendering_pipelines.hpp>
 
-using  namespace LiteFX::Rendering;
+using namespace LiteFX::Rendering;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -11,38 +11,29 @@ public:
     friend class Buffer;
 
 private:
-    const IBufferLayout* m_layout;
-    UInt32 m_elements;
+    UInt32 m_elements, m_size;
 
 public:
-    BufferImpl(Buffer* parent, const IBufferLayout* layout, const UInt32& elements) : 
-        base(parent), m_layout(layout), m_elements(elements) {}
+    BufferImpl(Buffer* parent, const UInt32& elements, const UInt32& size) : 
+        base(parent), m_elements(elements), m_size(size) { }
 };
 
 // ------------------------------------------------------------------------------------------------
-// Interface.
+// Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Buffer::Buffer(const IBufferLayout* layout, const UInt32& elements) :
-    m_impl(makePimpl<BufferImpl>(this, layout, elements))
+Buffer::Buffer(const UInt32& elements, const UInt32& size) : m_impl(makePimpl<BufferImpl>(this, elements, size))
 {
-    if (layout == nullptr)
-        throw std::invalid_argument("The buffer layout must be initialized.");
 }
 
 Buffer::~Buffer() noexcept = default;
-
-const IBufferLayout* Buffer::getLayout() const noexcept
-{
-    return m_impl->m_layout;
-}
 
 UInt32 Buffer::getElements() const noexcept
 {
     return m_impl->m_elements;
 }
 
-UInt32 Buffer::getSize() const noexcept
+size_t Buffer::getSize() const noexcept
 {
-    return m_impl->m_layout->getElementSize() * m_impl->m_elements;
+    return m_impl->m_size;
 }

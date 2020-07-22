@@ -112,7 +112,7 @@ UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, con
     return m_impl->m_device->createBuffer(layout, usage, elements);
 }
 
-UniquePtr<IBufferPool> RenderPipeline::makeBufferPool(const UInt32& setId) const
+UniquePtr<IDescriptorSet> RenderPipeline::makeBufferPool(const UInt32& setId) const
 {
     auto layouts = this->getLayout()->getProgram()->getLayouts();
     auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) { return layout->getSetId() == setId; });

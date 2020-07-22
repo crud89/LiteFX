@@ -29,7 +29,6 @@ SET(RENDERING_HEADERS
 SET(RENDERING_SOURCES
     "src/backend.cpp"
     "src/device.cpp"
-    "src/buffer.cpp"
     "src/buffer_attribute.cpp"
     "src/pipeline.cpp"
     "src/pipeline_layout.cpp"
@@ -37,6 +36,13 @@ SET(RENDERING_SOURCES
     "src/rasterizer.cpp"
     "src/viewport.cpp"
     "src/render_target.cpp"
+    "src/buffer.cpp"
+    "src/vertex_buffer.cpp"
+    "src/index_buffer.cpp"
+    "src/constant_buffer.cpp"
+    "src/image.cpp"
+    "src/texture.cpp"
+    "src/sampler.cpp"
 )
 
 # Add shared library project.

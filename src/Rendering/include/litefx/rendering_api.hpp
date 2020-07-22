@@ -40,14 +40,24 @@ namespace LiteFX::Rendering {
 	class IRenderBackend;
 	class IRenderPass;
 	class IRenderTarget;
+	class IMappable;
+	class IBindable;
+	class ITransferTarget;
+	class IDeviceMemory;
 	class IBuffer;
+	class IVertexBuffer;
+	class IIndexBuffer;
+	class IDescriptor;
+	class IConstantBuffer;
+	class IImage;
+	class ITexture;
+	class ISampler;
+	class IDescriptorSet;
 	class IBufferLayout;
 	class IVertexBufferLayout;
 	class IIndexBufferLayout;
 	class IDescriptorLayout;
 	class IDescriptorSetLayout;
-	class IBufferPool;
-	class ISampler;
 
 	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {

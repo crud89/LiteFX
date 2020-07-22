@@ -111,37 +111,6 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_RENDERING_API ITexture : public virtual IBuffer {
-	public:
-		virtual ~ITexture() noexcept = default;
-
-	public:
-		virtual Size2d getExtent() const noexcept = 0;
-		virtual Format getFormat() const noexcept = 0;
-		virtual MultiSamplingLevel getSamples() const noexcept = 0;
-		virtual const UInt32& getLevels() const noexcept = 0;
-	};
-
-	class LITEFX_RENDERING_API ISampler {
-	public:
-		virtual ~ISampler() noexcept = default;
-
-	public:
-		virtual const FilterMode& getMinifyingFilter() const noexcept = 0;
-		virtual const FilterMode& getMagnifyingFilter() const noexcept = 0;
-		virtual const BorderMode& getBorderModeU() const noexcept = 0;
-		virtual const BorderMode& getBorderModeV() const noexcept = 0;
-		virtual const BorderMode& getBorderModeW() const noexcept = 0;
-		virtual const Float& getAnisotropy() const noexcept = 0;
-		virtual const MipMapMode& getMipMapMode() const noexcept = 0;
-		virtual const Float& getMipMapBias() const noexcept = 0;
-		virtual const Float& getMaxLOD() const noexcept = 0;
-		virtual const Float& getMinLOD() const noexcept = 0;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_RENDERING_API ISwapChain {
 	public:
 		virtual ~ISwapChain() noexcept = default;
