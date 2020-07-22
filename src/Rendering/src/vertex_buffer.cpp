@@ -22,8 +22,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VertexBuffer::VertexBuffer(const IVertexBufferLayout* layout, const UInt32& elements, const UInt32& size) : 
-    m_impl(makePimpl<VertexBufferImpl>(this, layout)), Buffer(elements, size)
+VertexBuffer::VertexBuffer(const IVertexBufferLayout* layout, const UInt32& elements) : 
+    m_impl(makePimpl<VertexBufferImpl>(this, layout)), Buffer(elements, layout->getElementSize() * elements)
 {
     if (layout == nullptr)
         throw std::invalid_argument("The vertex buffer layout must be initialized.");

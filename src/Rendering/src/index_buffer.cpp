@@ -22,8 +22,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-IndexBuffer::IndexBuffer(const IIndexBufferLayout* layout, const UInt32& elements, const UInt32& size) :
-    m_impl(makePimpl<IndexBufferImpl>(this, layout)), Buffer(elements, size)
+IndexBuffer::IndexBuffer(const IIndexBufferLayout* layout, const UInt32& elements) :
+    m_impl(makePimpl<IndexBufferImpl>(this, layout)), Buffer(elements, layout->getElementSize() * elements)
 {
     if (layout == nullptr)
         throw std::invalid_argument("The index buffer layout must be initialized.");

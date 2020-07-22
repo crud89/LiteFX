@@ -22,8 +22,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-ConstantBuffer::ConstantBuffer(const IDescriptorLayout* layout, const UInt32& elements, const UInt32& size) :
-    m_impl(makePimpl<ConstantBufferImpl>(this, layout)), Buffer(elements, size)
+ConstantBuffer::ConstantBuffer(const IDescriptorLayout* layout, const UInt32& elements) :
+    m_impl(makePimpl<ConstantBufferImpl>(this, layout)), Buffer(elements, layout->getElementSize() * elements)
 {
     if (layout == nullptr)
         throw std::invalid_argument("The constant buffer descriptor layout must be initialized.");

@@ -383,8 +383,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The layout of the vertex buffer.</param>
         /// <param name="elements">The number of elements in this buffer.</param>
-        /// <param name="size">The size (in bytes) of the buffer memory.</param>
-        VertexBuffer(const IVertexBufferLayout* layout, const UInt32& elements, const UInt32& size);
+        VertexBuffer(const IVertexBufferLayout* layout, const UInt32& elements);
         VertexBuffer(VertexBuffer&&) = delete;
         VertexBuffer(const VertexBuffer&) = delete;
         virtual ~VertexBuffer() noexcept;
@@ -406,8 +405,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The layout of the index buffer.</param>
         /// <param name="elements">The number of elements in this buffer.</param>
-        /// <param name="size">The size (in bytes) of the buffer memory.</param>
-        IndexBuffer(const IIndexBufferLayout* layout, const UInt32& elements, const UInt32& size);
+        IndexBuffer(const IIndexBufferLayout* layout, const UInt32& elements);
         IndexBuffer(IndexBuffer&&) = delete;
         IndexBuffer(const IndexBuffer&) = delete;
         virtual ~IndexBuffer() noexcept;
@@ -429,8 +427,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The layout of the constant buffer descriptor.</param>
         /// <param name="elements">The number of elements in this buffer.</param>
-        /// <param name="size">The size (in bytes) of the buffer memory.</param>
-        ConstantBuffer(const IDescriptorLayout* layout, const UInt32& elements, const UInt32& size);
+        ConstantBuffer(const IDescriptorLayout* layout, const UInt32& elements);
         ConstantBuffer(ConstantBuffer&&) = delete;
         ConstantBuffer(const ConstantBuffer&) = delete;
         virtual ~ConstantBuffer() noexcept;
