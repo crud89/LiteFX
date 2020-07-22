@@ -40,6 +40,11 @@ namespace LiteFX::Rendering {
 	class IRenderBackend;
 	class IRenderPass;
 	class IRenderTarget;
+	class IBufferLayout;
+	class IVertexBufferLayout;
+	class IIndexBufferLayout;
+	class IDescriptorLayout;
+	class IDescriptorSetLayout;
 	class IMappable;
 	class IBindable;
 	class ITransferTarget;
@@ -47,17 +52,20 @@ namespace LiteFX::Rendering {
 	class IBuffer;
 	class IVertexBuffer;
 	class IIndexBuffer;
-	class IDescriptor;
 	class IConstantBuffer;
+	class IDescriptor;
 	class IImage;
 	class ITexture;
 	class ISampler;
 	class IDescriptorSet;
-	class IBufferLayout;
-	class IVertexBufferLayout;
-	class IIndexBufferLayout;
-	class IDescriptorLayout;
-	class IDescriptorSetLayout;
+
+	class Buffer;
+	class VertexBuffer;
+	class IndexBuffer;
+	class ConstantBuffer;
+	class Image;
+	class Texture;
+	class Sampler;
 
 	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {
@@ -265,7 +273,8 @@ namespace LiteFX::Rendering {
 	enum class LITEFX_RENDERING_API BufferType {
 		Vertex = 0x00000001,
 		Index = 0x00000002,
-		Descriptor = 0x00000004
+		Uniform = 0x00000003,
+		Storage = 0x00000004
 	};
 
 	/// <summary>
