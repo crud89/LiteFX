@@ -488,7 +488,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getBufferHeight() const noexcept override;
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
-		virtual UniquePtr<IBuffer> createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
+		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
 		virtual UniquePtr<ITexture> createTexture(const IBufferLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const override;
 		virtual Array<UniquePtr<ITexture>> createSwapChainImages(const ISwapChain* swapChain) const override;

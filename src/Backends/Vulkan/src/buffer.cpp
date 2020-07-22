@@ -6,15 +6,15 @@ using namespace LiteFX::Rendering::Backends;
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-_VMABuffer::_VMABuffer(VkBuffer buffer, const IBufferLayout* layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation) :
-    VulkanBuffer(buffer, layout, elements), m_allocator(allocator), m_allocationInfo(allocation)
+_VMABuffer::_VMABuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& size, VmaAllocator& allocator, VmaAllocation allocation) :
+    Buffer(type, elements, size), IResource(buffer), m_allocator(allocator), m_allocationInfo(allocation)
 {
 }
 
 _VMABuffer::~_VMABuffer() noexcept
 {
     ::vmaDestroyBuffer(m_allocator, this->handle(), m_allocationInfo);
-    LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0} {{ Type: {1} }}", fmt::ptr(this->handle()), this->getLayout()->getType());
+    LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0} {{ Type: {1} }}", fmt::ptr(this->handle()), this->getType());
 }
 
 void _VMABuffer::map(const void* const data, const size_t& size)
@@ -38,7 +38,7 @@ void _VMABuffer::map(const void* const data, const size_t& size)
 void _VMABuffer::transfer(const ICommandQueue* q, IBuffer* t, const size_t& size, const size_t& offset, const size_t& targetOffset) const
 {
     auto transferQueue = dynamic_cast<const VulkanQueue*>(q);
-    auto target = dynamic_cast<const VulkanBuffer*>(t);
+    auto target = dynamic_cast<const _VMABuffer*>(t);
 
     if (target == nullptr)
         throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
@@ -72,11 +72,8 @@ void _VMABuffer::transfer(const ICommandQueue* q, IBuffer* t, const size_t& size
 // Factory.
 // ------------------------------------------------------------------------------------------------
 
-UniquePtr<IBuffer> _VMABuffer::makeBuffer(const IBufferLayout* layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IBuffer> _VMABuffer::makeBuffer(const BufferType& type, const UInt32& elements, const UInt32& size, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-    if (layout == nullptr)
-        throw std::invalid_argument("The buffer layout must be initialized.");
-
 	// Allocate the buffer.
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -84,7 +81,7 @@ UniquePtr<IBuffer> _VMABuffer::makeBuffer(const IBufferLayout* layout, const UIn
 	if (::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult) != VK_SUCCESS)
 		throw std::runtime_error("Unable to allocate buffer.");
 
-    LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), layout->getType(), elements, layout->getElementSize(), elements * layout->getElementSize());
+    LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), type, elements, size / elements, size);
 
-    return makeUnique<_VMABuffer>(buffer, layout, elements, allocator, allocation);
+    return makeUnique<_VMABuffer>(buffer, type, elements, size, allocator, allocation);
 }

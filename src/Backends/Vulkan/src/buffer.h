@@ -8,16 +8,16 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
-	class _VMABuffer : public VulkanBuffer {
+	class _VMABuffer : public virtual Buffer, public IResource<VkBuffer> {
 	private:
 		VmaAllocator m_allocator;
 		VmaAllocation m_allocationInfo;
 
 	public:
-		static UniquePtr<IBuffer> makeBuffer(const IBufferLayout* layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IBuffer> makeBuffer(const BufferType& type, const UInt32& elements, const UInt32& size, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 
 	public:
-		_VMABuffer(VkBuffer buffer, const IBufferLayout* layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
+		_VMABuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const UInt32& size, VmaAllocator& allocator, VmaAllocation allocation);
 		_VMABuffer(_VMABuffer&&) = delete;
 		_VMABuffer(const _VMABuffer&) = delete;
 		virtual ~_VMABuffer() noexcept;

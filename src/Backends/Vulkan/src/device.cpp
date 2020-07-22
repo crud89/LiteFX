@@ -294,52 +294,28 @@ void VulkanDevice::resize(int width, int height)
 	m_impl->resize(width, height);
 }
 
-UniquePtr<IBuffer> VulkanDevice::createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements) const
 {
-	if (layout == nullptr)
-		throw std::invalid_argument("The buffer layout must be initialized.");
-
-	auto bufferSize = elements * layout->getElementSize();
-	auto bufferType = layout->getType();
-	LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2} }}...", bufferType, usage, bufferSize);
+	LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2}, Elements: {3} }}...", type, usage, size, elements);
 
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	bufferInfo.size = bufferSize;
+	bufferInfo.size = size;
 
-	// Deduct the usage buffer bit based on the type.
 	VkBufferUsageFlags usageFlags = {};
 
-	if (bufferType == BufferType::Vertex)
-		usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	else if (bufferType == BufferType::Index)
-		usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-	else if (bufferType == BufferType::Descriptor)
+	switch (type)
 	{
-#ifndef _NDEBUG
-		auto descriptorLayout = dynamic_cast<const IDescriptorLayout*>(layout);
-
-		if (descriptorLayout == nullptr)
-			throw std::runtime_error("The provided buffer layout defines a descriptor, however it does not implement `IDescriptorLayout`.");
-
-		auto descriptorType = descriptorLayout->getDescriptorType();
-#else
-		auto descriptorType = static_cast<const IDescriptorLayout*>(layout)->getDescriptorType();
-#endif
-		
-		switch (descriptorType)
-		{
-		case DescriptorType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-		case DescriptorType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-		}
+	case BufferType::Vertex:  usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;  break;
+	case BufferType::Index:   usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;   break;
+	case BufferType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
+	case BufferType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; break;
 	}
-	else
-		throw std::invalid_argument("The provided buffer type is not supported.");
 
-	// Staging buffers also receive the transfer source, resource buffers the transfer destination bits.
-	if (usage == BufferUsage::Staging)
-		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	else if (usage == BufferUsage::Resource)
-		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	switch (usage)
+	{
+	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
+	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	}
 
 	bufferInfo.usage = usageFlags;
 
@@ -366,7 +342,7 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const IBufferLayout* layout, const
 	}
 
 	// Create a buffer using VMA.
-	return _VMABuffer::makeBuffer(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	return _VMABuffer::makeBuffer(type, elements, size, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 UniquePtr<ITexture> VulkanDevice::createTexture(const IBufferLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
@@ -382,7 +358,7 @@ UniquePtr<ITexture> VulkanDevice::createTexture(const IBufferLayout* layout, con
 	imageInfo.format = ::getFormat(format);
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // _CONCURRENT
 	imageInfo.samples = ::getSamples(samples);
 	imageInfo.flags = 0;
 	imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
