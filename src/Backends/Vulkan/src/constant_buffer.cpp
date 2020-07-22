@@ -55,14 +55,3 @@ DescriptorType VulkanDescriptorLayout::getDescriptorType() const noexcept
 {
     return m_impl->m_type;
 }
-
-// ------------------------------------------------------------------------------------------------
-// Constant buffer implementation.
-// ------------------------------------------------------------------------------------------------
-
-VulkanConstantBuffer::VulkanConstantBuffer(VkBuffer buffer, const IDescriptorLayout* layout, const UInt32& elements) :
-    ConstantBuffer(layout, elements), IResource(buffer)
-{
-}
-
-VulkanConstantBuffer::~VulkanConstantBuffer() noexcept = default;

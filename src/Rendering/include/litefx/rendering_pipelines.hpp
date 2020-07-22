@@ -402,6 +402,9 @@ namespace LiteFX::Rendering {
     public:
         /// <inheritdoc />
         virtual const IVertexBufferLayout* getLayout() const noexcept override;
+        
+        /// <inheritdoc />
+        virtual UInt32 getBinding() const noexcept override;
     };
 
     /// <summary>
@@ -449,9 +452,6 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual const IDescriptorLayout* getLayout() const noexcept override;
-
-        /// <inheritdoc />
-        virtual BufferType getType() const noexcept override;
     };
 
     /// <summary>

@@ -24,57 +24,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanDevice* getDevice() const noexcept;
 	};
 
-	/// <summary>
-	/// A vertex buffer for the Vulkan backend.
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanVertexBuffer : public VertexBuffer, public IResource<VkBuffer> {
-	public:
-		/// <summary>
-		/// Creates a new Vulkan vertex buffer.
-		/// </summary>
-		/// <param name="buffer">The Vulkan buffer handle of the vertex buffer.</param>
-		/// <param name="layout">The layout of the vertex buffer.</param>
-		/// <param name="elements">The number of elements in this buffer.</param>
-		VulkanVertexBuffer(VkBuffer buffer, const IVertexBufferLayout* layout, const UInt32& elements);
-		VulkanVertexBuffer(VulkanVertexBuffer&&) = delete;
-		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
-		virtual ~VulkanVertexBuffer() noexcept;
-	};
-
-	/// <summary>
-	/// An index buffer for the Vulkan backend.
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanIndexBuffer : public IndexBuffer, public IResource<VkBuffer> {
-	public:
-		/// <summary>
-		/// Creates a new Vulkan index buffer.
-		/// </summary>
-		/// <param name="buffer">The Vulkan buffer handle of the index buffer.</param>
-		/// <param name="layout">The layout of the index buffer.</param>
-		/// <param name="elements">The number of elements in this buffer.</param>
-		VulkanIndexBuffer(VkBuffer buffer, const IIndexBufferLayout* layout, const UInt32& elements);
-		VulkanIndexBuffer(VulkanIndexBuffer&&) = delete;
-		VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
-		virtual ~VulkanIndexBuffer() noexcept;
-	};
-
-	/// <summary>
-	/// An constant buffer for the Vulkan backend.
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanConstantBuffer : public ConstantBuffer, public IResource<VkBuffer> {
-	public:
-		/// <summary>
-		/// Creates a new Vulkan constant buffer.
-		/// </summary>
-		/// <param name="buffer">The Vulkan buffer handle of the constant buffer.</param>
-		/// <param name="layout">The layout of the constant buffer descriptor.</param>
-		/// <param name="elements">The number of elements in this buffer.</param>
-		VulkanConstantBuffer(VkBuffer buffer, const IDescriptorLayout* layout, const UInt32& elements);
-		VulkanConstantBuffer(VulkanConstantBuffer&&) = delete;
-		VulkanConstantBuffer(const VulkanConstantBuffer&) = delete;
-		virtual ~VulkanConstantBuffer() noexcept;
-	};
-
 	class LITEFX_VULKAN_API VulkanBufferPool : public virtual VulkanRuntimeObject, public IDescriptorSet, public IResource<VkDescriptorPool> {
 		LITEFX_IMPLEMENTATION(VulkanBufferPoolImpl);
 

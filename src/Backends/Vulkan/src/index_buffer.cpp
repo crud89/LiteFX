@@ -47,14 +47,3 @@ const IndexType& VulkanIndexBufferLayout::getIndexType() const noexcept
 {
     return m_impl->m_type;
 }
-
-// ------------------------------------------------------------------------------------------------
-// Index buffer implementation.
-// ------------------------------------------------------------------------------------------------
-
-VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const IIndexBufferLayout* layout, const UInt32& elements) :
-    IndexBuffer(layout, elements), IResource(buffer)
-{
-}
-
-VulkanIndexBuffer::~VulkanIndexBuffer() noexcept = default;

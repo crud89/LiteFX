@@ -35,3 +35,8 @@ const IVertexBufferLayout* VertexBuffer::getLayout() const noexcept
 {
     return m_impl->m_layout;
 }
+
+UInt32 VertexBuffer::getBinding() const noexcept
+{
+    return m_impl->m_layout->getBinding();
+}

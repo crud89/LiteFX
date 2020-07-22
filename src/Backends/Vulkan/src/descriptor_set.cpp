@@ -98,11 +98,11 @@ UniquePtr<IConstantBuffer> VulkanBufferPool::makeBuffer(const UInt32& binding, c
     return this->getDevice()->createConstantBuffer(layout, usage, elements);
 }
 
-//UniquePtr<ITexture> VulkanBufferPool::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const noexcept
-//{
-//    auto layout = this->getDescriptorSetLayout()->getLayout(binding);
-//    return this->getDevice()->createTexture(layout, format, size, levels, samples);
-//}
+UniquePtr<ITexture> VulkanBufferPool::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const noexcept
+{
+    auto layout = this->getDescriptorSetLayout()->getLayout(binding);
+    return this->getDevice()->createTexture(layout, format, size, levels, samples);
+}
 
 void VulkanBufferPool::update(const IConstantBuffer* buffer) const
 {
