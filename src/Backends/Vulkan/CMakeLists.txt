@@ -51,7 +51,6 @@ SET(VULKAN_BACKEND_SOURCES
     "src/vertex_buffer.cpp"
     "src/index_buffer.cpp"
     "src/constant_buffer.cpp"
-    "src/descriptor_buffer.cpp"
     "src/descriptor_set.cpp"
     "src/descriptor_layout.cpp"
     "src/buffer.cpp"
