@@ -19,13 +19,12 @@ public:
 private:
 	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
-	UniquePtr<VulkanSwapChainImageLayout> m_swapChainImageLayout;
 	Array<String> m_extensions;
 	VmaAllocator m_allocator{ nullptr };
 
 public:
 	VulkanDeviceImpl(VulkanDevice* parent, const Array<String>& extensions = { }) :
-		base(parent), m_extensions(extensions), m_swapChainImageLayout(makeUnique<VulkanSwapChainImageLayout>(*parent))
+		base(parent), m_extensions(extensions)
 	{
 		this->defineMandatoryExtensions();
 	}
@@ -200,12 +199,6 @@ public:
 
 		return surfaceFormats;
 	}
-
-public:
-	UniquePtr<ITexture> makeTexture(VkImage image, const Format& format, const Size2d& size) const
-	{
-		return makeUnique<VulkanTexture>(m_parent, m_swapChainImageLayout.get(), image, format, size);
-	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -342,53 +335,172 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 	}
 
 	// Create a buffer using VMA.
-	return _VMABuffer::makeBuffer(type, elements, size, m_impl->m_allocator, bufferInfo, allocInfo);
+	return _VMABuffer::allocate(type, elements, size, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<ITexture> VulkanDevice::createTexture(const IBufferLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<IVertexBuffer> VulkanDevice::createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const
 {
-	VkImageCreateInfo imageInfo = {};
-	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = static_cast<UInt32>(size.width());
-	imageInfo.extent.height = static_cast<UInt32>(size.height());
-	imageInfo.extent.depth = 1;	// TODO: Support volumetric textures.
-	imageInfo.mipLevels = levels;
-	imageInfo.arrayLayers = 1;	// TODO: Support texture arrays.
-	imageInfo.format = ::getFormat(format);
-	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // _CONCURRENT
-	imageInfo.samples = ::getSamples(samples);
-	imageInfo.flags = 0;
-	imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	if (layout == nullptr)
+		throw std::invalid_argument("The vertex buffer layout must be initialized.");
+
+	LITEFX_TRACE(VULKAN_LOG, "Creating vertex buffer: {{ Usage: {1}, Size: {2}, Elements: {3} }}...", usage, layout->getElementSize() * elements, elements);
+
+	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+	bufferInfo.size = layout->getElementSize() * elements;
+
+	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+	switch (usage)
+	{
+	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
+	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	}
+
+	bufferInfo.usage = usageFlags;
+
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	else
+	{
+		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = 2;
+		bufferInfo.pQueueFamilyIndices = queues;
+	}
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
-	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return _VMAImage::makeImage(this, layout, format, size, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
+	switch (usage)
+	{
+	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	}
+
+	// Create a buffer using VMA.
+	return _VMAVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-Array<UniquePtr<ITexture>> VulkanDevice::createSwapChainImages(const ISwapChain* sc) const
+UniquePtr<IIndexBuffer> VulkanDevice::createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const
+{
+	if (layout == nullptr)
+		throw std::invalid_argument("The index buffer layout must be initialized.");
+
+	LITEFX_TRACE(VULKAN_LOG, "Creating index buffer: {{ Usage: {1}, Size: {2}, Elements: {3} }}...", usage, layout->getElementSize() * elements, elements);
+
+	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+	bufferInfo.size = layout->getElementSize() * elements;
+
+	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+
+	switch (usage)
+	{
+	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
+	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	}
+
+	bufferInfo.usage = usageFlags;
+
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	else
+	{
+		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = 2;
+		bufferInfo.pQueueFamilyIndices = queues;
+	}
+
+	// Deduct the allocation usage from the buffer usage scenario.
+	VmaAllocationCreateInfo allocInfo = {};
+
+	switch (usage)
+	{
+	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	}
+
+	// Create a buffer using VMA.
+	return _VMAIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+}
+
+UniquePtr<IConstantBuffer> VulkanDevice::createConstantBuffer(const IDescriptorLayout* layout, const BufferUsage& usage, const UInt32& elements) const
+{
+	if (layout == nullptr)
+		throw std::invalid_argument("The constant buffer descriptor layout must be initialized.");
+
+	LITEFX_TRACE(VULKAN_LOG, "Creating constant buffer: {{ Usage: {1}, Size: {2}, Elements: {3} }}...", usage, layout->getElementSize() * elements, elements);
+
+	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+	bufferInfo.size = layout->getElementSize() * elements;
+
+	VkBufferUsageFlags usageFlags = {};
+
+	switch (layout->getType())
+	{
+	case BufferType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
+	case BufferType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; break;
+	}
+
+	switch (usage)
+	{
+	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
+	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	}
+
+	bufferInfo.usage = usageFlags;
+
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	else
+	{
+		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = 2;
+		bufferInfo.pQueueFamilyIndices = queues;
+	}
+
+	// Deduct the allocation usage from the buffer usage scenario.
+	VmaAllocationCreateInfo allocInfo = {};
+
+	switch (usage)
+	{
+	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	}
+	
+	// Create a buffer using VMA.
+	return _VMAConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+}
+
+Array<UniquePtr<IImage>> VulkanDevice::createSwapChainImages(const ISwapChain* sc) const
 {
 	auto swapChain = dynamic_cast<const VulkanSwapChain*>(sc);
 
 	if (swapChain == nullptr)
 		throw std::runtime_error("The swap chain is not a valid Vulkan swap chain.");
 
-	uint32_t images;
-	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &images, nullptr);
+	uint32_t imageCount;
+	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &imageCount, nullptr);
+	auto size = swapChain->getBufferSize();
+	auto format = swapChain->getFormat();
 
-	Array<VkImage> imageChain(images);
-	Array<UniquePtr<ITexture>> textures(images);
+	Array<VkImage> imageChain(imageCount);
+	Array<UniquePtr<IImage>> images(imageCount);
 
-	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &images, imageChain.data());
-	std::generate(textures.begin(), textures.end(), [&, i = 0]() mutable {
-		return m_impl->makeTexture(imageChain[i++], swapChain->getFormat(), swapChain->getBufferSize());
-	});
+	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &imageCount, imageChain.data());
+	std::generate(images.begin(), images.end(), [&, i = 0]() mutable { return makeUnique<_VMAImage>(this, imageChain[i++], 1, size.width() * size.height() * ::getSize(format), size, format); });
 
-	return textures;
+	return images;
 }
 
 UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint) const

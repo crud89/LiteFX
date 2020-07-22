@@ -274,7 +274,8 @@ namespace LiteFX::Rendering {
 		Vertex = 0x00000001,
 		Index = 0x00000002,
 		Uniform = 0x00000003,
-		Storage = 0x00000004
+		Storage = 0x00000004,
+		Other = 0x7FFFFFFF
 	};
 
 	/// <summary>

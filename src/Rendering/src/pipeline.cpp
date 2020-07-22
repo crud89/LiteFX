@@ -92,26 +92,6 @@ void RenderPipeline::endFrame()
     m_impl->m_renderPass->end(true);
 }
 
-UniquePtr<IBuffer> RenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
-{
-    auto layout = m_impl->m_layout->getInputAssembler()->getVertexBufferLayout(binding);
-
-    if (layout == nullptr)
-        throw std::invalid_argument("No vertex buffer layout defined for the provided binding.");
-
-    return m_impl->m_device->createBuffer(layout, usage, elements);
-}
-
-UniquePtr<IBuffer> RenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
-{
-    auto layout = m_impl->m_layout->getInputAssembler()->getIndexBufferLayout();
-
-    if (layout == nullptr)
-        throw std::invalid_argument("No index buffer layout defined.");
-
-    return m_impl->m_device->createBuffer(layout, usage, elements);
-}
-
 UniquePtr<IDescriptorSet> RenderPipeline::makeBufferPool(const UInt32& setId) const
 {
     auto layouts = this->getLayout()->getProgram()->getLayouts();

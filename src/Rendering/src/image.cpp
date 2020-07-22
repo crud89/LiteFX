@@ -24,7 +24,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Image::Image(const UInt32& elements, const UInt32& size, const Size2d& extent, const Format& format) : 
+Image::Image(const UInt32& elements, const size_t& size, const Size2d& extent, const Format& format) :
     m_impl(makePimpl<ImageImpl>(this, elements, size, extent, format))
 {
 }

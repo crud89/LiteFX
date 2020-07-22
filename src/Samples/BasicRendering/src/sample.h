@@ -37,8 +37,10 @@ private:
 	GlfwWindowPtr m_window;
 	UniquePtr<VulkanDevice> m_device;
 	UniquePtr<VulkanRenderPipeline> m_pipeline;
-	UniquePtr<IBuffer> m_vertexBuffer, m_indexBuffer, m_cameraBuffer, m_transformBuffer;
-	UniquePtr<IBufferPool> m_perFrameBindings, m_perObjectBindings;
+	UniquePtr<IVertexBuffer> m_vertexBuffer;
+	UniquePtr<IIndexBuffer> m_indexBuffer;
+	UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;
+	UniquePtr<IDescriptorSet> m_perFrameBindings, m_perObjectBindings;
 
 public:
 	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {

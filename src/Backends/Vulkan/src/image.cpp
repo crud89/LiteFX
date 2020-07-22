@@ -3,49 +3,50 @@
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
-// Interface.
+// Image.
 // ------------------------------------------------------------------------------------------------
-
-_VMAImage::_VMAImage(const VulkanDevice* device, const IBufferLayout* layout, VkImage image, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, VmaAllocation allocation) :
-    VulkanTexture(device, layout, image, format, size, levels, samples), m_allocator(allocator), m_allocationInfo(allocation)
+_VMAImage::_VMAImage(const VulkanDevice* device, VkImage image, const UInt32& elements, const size_t& size, const Size2d& extent, const Format& format)
+	: _VMAImage(device, image, elements, size, extent, format, nullptr, nullptr)
 {
+}
+
+_VMAImage::_VMAImage(const VulkanDevice* device, VkImage image, const UInt32& elements, const size_t& size, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
+    _VMAImageBase(image, allocator, allocation), Image(elements, size, extent, format), VulkanRuntimeObject(device)
+{
+	VkImageViewCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	createInfo.image = image;
+	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	createInfo.format = ::getFormat(format);
+	createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	createInfo.subresourceRange.baseMipLevel = 0;
+	createInfo.subresourceRange.levelCount = 1;
+	createInfo.subresourceRange.baseArrayLayer = 0;
+	createInfo.subresourceRange.layerCount = 1;
+
+	if (::vkCreateImageView(this->getDevice()->handle(), &createInfo, nullptr, &m_view) != VK_SUCCESS)
+		throw std::runtime_error("Unable to create image view!");
 }
 
 _VMAImage::~_VMAImage() noexcept
 {
-    ::vmaDestroyImage(m_allocator, this->handle(), m_allocationInfo);
-    LITEFX_TRACE(VULKAN_LOG, "Destroyed texture {0}", fmt::ptr(this->handle()));
+	::vkDestroyImageView(this->getDevice()->handle(), m_view, nullptr);
 }
 
-void _VMAImage::map(const void* const data, const size_t& size)
+const VkImageView& _VMAImage::getImageView() const noexcept
 {
-    void* buffer;
-
-    if (::vmaMapMemory(m_allocator, m_allocationInfo, &buffer) != VK_SUCCESS)
-        throw std::runtime_error("Unable to map texture memory.");
-
-    auto result = ::memcpy_s(buffer, this->getSize(), data, size);
-
-    if (result != 0)
-    {
-        LITEFX_ERROR(VULKAN_LOG, "Error mapping texture to device memory: {#X}.", result);
-        throw std::runtime_error("Error mapping texture to device memory.");
-    }
-
-    ::vmaUnmapMemory(m_allocator, m_allocationInfo);
+	return m_view;
 }
 
-// ------------------------------------------------------------------------------------------------
-// Factory.
-// ------------------------------------------------------------------------------------------------
-
-UniquePtr<ITexture> _VMAImage::makeImage(const VulkanDevice* device, const IBufferLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IImage> _VMAImage::allocate(const VulkanDevice* device, const UInt32& elements, const size_t& size, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
     if (device == nullptr)
         throw std::invalid_argument("The device must be initialized.");
-
-    if (layout == nullptr)
-        throw std::invalid_argument("The buffer layout must be initialized.");
 
     // Allocate the buffer.
     VkImage image;
@@ -55,10 +56,10 @@ UniquePtr<ITexture> _VMAImage::makeImage(const VulkanDevice* device, const IBuff
     if (::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, &result) != VK_SUCCESS)
         throw std::runtime_error("Unable to allocate texture.");
     
-    LITEFX_DEBUG(VULKAN_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Binding: {5} }}", fmt::ptr(image), static_cast<size_t>(result.size), size.width(), size.height(), format, layout->getBinding());
+    LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4} }}", fmt::ptr(image), size, extent.width(), extent.height(), format);
 
     if (allocationResult != nullptr)
         *allocationResult = result;
 
-    return makeUnique<_VMAImage>(device, layout, image, format, size, levels, samples, allocator, allocation);
+    return makeUnique<_VMAImage>(device, image, elements, size, extent, format, allocator, allocation);
 }

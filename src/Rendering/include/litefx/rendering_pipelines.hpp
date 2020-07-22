@@ -385,7 +385,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// A base class for a vertex buffer.
     /// </summary>
-    class LITEFX_RENDERING_API VertexBuffer : public virtual Buffer, public virtual IVertexBuffer {
+    class LITEFX_RENDERING_API VertexBuffer : public Buffer, public virtual IVertexBuffer {
         LITEFX_IMPLEMENTATION(VertexBufferImpl);
 
     public:
@@ -407,7 +407,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// A base class for an index buffer.
     /// </summary>
-    class LITEFX_RENDERING_API IndexBuffer : public virtual Buffer, public virtual IIndexBuffer {
+    class LITEFX_RENDERING_API IndexBuffer : public Buffer, public virtual IIndexBuffer {
         LITEFX_IMPLEMENTATION(IndexBufferImpl);
 
     public:
@@ -429,7 +429,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// A base class for a constant buffer.
     /// </summary>
-    class LITEFX_RENDERING_API ConstantBuffer : public virtual Buffer, public virtual IConstantBuffer {
+    class LITEFX_RENDERING_API ConstantBuffer : public Buffer, public virtual IConstantBuffer {
         LITEFX_IMPLEMENTATION(ConstantBufferImpl);
 
     public:
@@ -468,7 +468,7 @@ namespace LiteFX::Rendering {
         /// <param name="size">The size (in bytes) of the buffer memory.</param>
         /// <param name="extent">The extent (in pixels) of the image.</param>
         /// <param name="format">The internal format of the image.</param>
-        Image(const UInt32& elements, const UInt32& size, const Size2d& extent, const Format& format);
+        Image(const UInt32& elements, const size_t& size, const Size2d& extent, const Format& format);
         Image(Image&&) = delete;
         Image(const Image&) = delete;
         virtual ~Image() noexcept;
@@ -596,9 +596,9 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept = 0;
         virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept = 0;
         //virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, ...) const noexcept = 0;
-        virtual void update(const IBuffer* buffer) const = 0;
+        virtual void update(const IConstantBuffer* buffer) const = 0;
         virtual void update(const ITexture* texture) const = 0;
-        virtual void update(const UInt32& bindingPoint, const ISampler* sampler) const = 0;
+        virtual void update(const ISampler* sampler) const = 0;
     };
 
     /// <summary>
@@ -622,10 +622,11 @@ namespace LiteFX::Rendering {
         virtual void beginFrame() const = 0;
         virtual void endFrame() = 0;
         virtual void reset() = 0;
-        virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
-        virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
+        virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
+        virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
         virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
-        virtual void bind(const IBuffer* buffer) const = 0;
+        virtual void bind(const IVertexBuffer* buffer) const = 0;
+        virtual void bind(const IIndexBuffer* buffer) const = 0;
         virtual void bind(const IDescriptorSet* buffer) const = 0;
     };
 
@@ -881,8 +882,6 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
         virtual void beginFrame() const override;
         virtual void endFrame() override;
-        virtual UniquePtr<IBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
-        virtual UniquePtr<IBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
         virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
     };
 

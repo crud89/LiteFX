@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include "buffer.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -281,48 +282,32 @@ void VulkanRenderPipeline::reset()
 	this->handle() = m_impl->initialize();
 }
 
-void VulkanRenderPipeline::bind(const IBuffer* b) const
+void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
 {
-	auto buffer = dynamic_cast<const VulkanBuffer*>(b);
+	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
 
-	if (buffer == nullptr)
-		throw std::invalid_argument("The provided buffer is not a valid Vulkan buffer.");
-
-	auto renderPass = m_impl->m_renderPass;
-	auto commandBuffer = m_impl->m_commandBuffer;
-	auto pipelineLayout = m_impl->m_pipelineLayout;
+	if (resource == nullptr)
+		throw std::invalid_argument("The provided vertex buffer is not a valid Vulkan buffer.");
 
 	// Depending on the type, bind the buffer accordingly.
 	constexpr VkDeviceSize offsets[] = { 0 };
-	auto layout = buffer->getLayout();
 
-	switch (layout->getType())
-	{
-	case BufferType::Vertex:
-		::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &buffer->handle(), offsets);
-		break;
-	case BufferType::Index:
-	{
-#ifndef _NDEBUG
-		auto indexBufferLayout = dynamic_cast<const IIndexBufferLayout*>(layout);
-
-		if (indexBufferLayout == nullptr)
-			throw std::invalid_argument("The input buffer is an index buffer, but its layout does not implement `IIndexBufferLayout`.");
-#else
-		auto indexBufferLayout = static_cast<const IIndexBufferLayout*>(layout);
-#endif
-
-		::vkCmdBindIndexBuffer(commandBuffer->handle(), buffer->handle(), 0, indexBufferLayout->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
-		break;
-	}
-	case BufferType::Descriptor:
-		throw std::invalid_argument("Descriptors cannot be bound individually. Instead, they must be bound together with their descriptor set.");
-	default:
-		throw std::runtime_error("The buffer could not be bound: unsupported buffer type.");
-	}
+	::vkCmdBindVertexBuffers(m_impl->m_commandBuffer->handle(), 0, 1, &resource->handle(), offsets);
+	return;
 }
 
-void VulkanRenderPipeline::bind(const IBufferPool* b) const
+void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
+{
+	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
+
+	if (resource == nullptr)
+		throw std::invalid_argument("The provided index buffer is not a valid Vulkan buffer.");
+
+	::vkCmdBindIndexBuffer(m_impl->m_commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+	return;
+}
+
+void VulkanRenderPipeline::bind(const IDescriptorSet* b) const
 {
 	auto pool = dynamic_cast<const VulkanBufferPool*>(b);
 
@@ -337,6 +322,16 @@ void VulkanRenderPipeline::bind(const IBufferPool* b) const
 
 	// TODO: Synchronize with possible update calls on this command buffer, first.
 	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), bufferSet, 1, descriptorSets, 0, nullptr);
+}
+
+UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
+{
+	return this->getDevice()->createVertexBuffer(this->getLayout()->getInputAssembler()->getVertexBufferLayout(binding), usage, elements);
+}
+
+UniquePtr<IIndexBuffer> VulkanRenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
+{
+	return this->getDevice()->createIndexBuffer(this->getLayout()->getInputAssembler()->getIndexBufferLayout(), usage, elements);
 }
 
 // ------------------------------------------------------------------------------------------------

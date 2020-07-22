@@ -11,7 +11,7 @@ public:
 	friend class VulkanSwapChain;
 
 private:
-	Array<UniquePtr<ITexture>> m_frames;
+	Array<UniquePtr<IImage>> m_frames;
 	Size2d m_size { };
 	Format m_format{ Format::None };
 	VkSemaphore m_swapSemaphore;
@@ -168,9 +168,9 @@ public:
 	}
 
 public:
-	Array<const ITexture*> getFrames() const noexcept
+	Array<const IImage*> getFrames() const noexcept
 	{
-		Array<const ITexture*> frames(m_frames.size());
+		Array<const IImage*> frames(m_frames.size());
 		std::generate(std::begin(frames), std::end(frames), [&, i = 0]() mutable { return m_frames[i++].get(); });
 
 		return frames;
@@ -210,7 +210,7 @@ const Format& VulkanSwapChain::getFormat() const noexcept
 	return m_impl->m_format;
 }
 
-Array<const ITexture*> VulkanSwapChain::getFrames() const noexcept
+Array<const IImage*> VulkanSwapChain::getFrames() const noexcept
 {
 	return m_impl->getFrames();
 }
@@ -228,36 +228,4 @@ void VulkanSwapChain::reset()
 VkSemaphore VulkanSwapChain::getSemaphore() const noexcept
 {
 	return m_impl->m_swapSemaphore;
-}
-
-// ------------------------------------------------------------------------------------------------
-// Image Layout Interface.
-// ------------------------------------------------------------------------------------------------
-
-VulkanSwapChainImageLayout::VulkanSwapChainImageLayout(const VulkanDevice& device) : 
-	VulkanRuntimeObject(&device) 
-{
-}
-
-VulkanSwapChainImageLayout::~VulkanSwapChainImageLayout() noexcept = default;
-
-size_t VulkanSwapChainImageLayout::getElementSize() const noexcept
-{
-	return 0;
-}
-
-UInt32 VulkanSwapChainImageLayout::getBinding() const noexcept 
-{
-	return 0;
-}
-
-BufferType VulkanSwapChainImageLayout::getType() const noexcept
-{
-	return BufferType::Descriptor;
-}
-
-DescriptorType VulkanSwapChainImageLayout::getDescriptorType() const noexcept
-{
-	// TODO: This may still be invalid!
-	return DescriptorType::InputAttachment;
 }

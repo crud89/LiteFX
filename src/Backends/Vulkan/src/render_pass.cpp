@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -140,12 +141,12 @@ public:
         LITEFX_TRACE(VULKAN_LOG, "Initializing {0} frame buffers...", frames.size());
         
         std::generate(std::begin(frameBuffers), std::end(frameBuffers), [&, i = 0]() mutable {
-            auto frame = dynamic_cast<const VulkanTexture*>(frames[i++]);
+            auto frame = dynamic_cast<const IVulkanImage*>(frames[i++]);
 
             if (frame == nullptr)
                 throw std::invalid_argument("A frame of the provided swap chain is not a valid Vulkan texture.");
             
-            VkImageView attachments[]{ frame->getView() };
+            VkImageView attachments[]{ frame->getImageView() };
 
             VkFramebufferCreateInfo frameBufferInfo{};
             frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

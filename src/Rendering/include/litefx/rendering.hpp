@@ -120,7 +120,7 @@ namespace LiteFX::Rendering {
 		virtual size_t getWidth() const noexcept = 0;
 		virtual size_t getHeight() const noexcept = 0;
 		virtual const Format& getFormat() const noexcept = 0;
-		virtual Array<const ITexture*> getFrames() const noexcept = 0;
+		virtual Array<const IImage*> getFrames() const noexcept = 0;
 		virtual UInt32 swapBackBuffer() const = 0;
 		virtual void reset() = 0;
 	};
@@ -161,7 +161,7 @@ namespace LiteFX::Rendering {
 	public:
 		virtual const IRenderBackend* getBackend() const noexcept = 0;
 		virtual const ISwapChain* getSwapChain() const noexcept = 0;
-		virtual Array<UniquePtr<ITexture>> createSwapChainImages(const ISwapChain* swapChain) const = 0;
+		virtual Array<UniquePtr<IImage>> createSwapChainImages(const ISwapChain* swapChain) const = 0;
 		virtual const ICommandQueue* getGraphicsQueue() const noexcept = 0;
 		virtual const ICommandQueue* getTransferQueue() const noexcept = 0;
 		virtual Array<Format> getSurfaceFormats() const = 0;
@@ -173,8 +173,10 @@ namespace LiteFX::Rendering {
 		//virtual void setBackColor(const Color& color) = 0;
 		virtual void wait() = 0;
 		virtual void resize(int width, int height) = 0;
-		virtual UniquePtr<IBuffer> createBuffer(const IBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-		virtual UniquePtr<ITexture> createTexture(const IBufferLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const = 0;
+		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
+		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+		virtual UniquePtr<IConstantBuffer> createConstantBuffer(const IDescriptorLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
 		// virtual UniquePtr<ISampler> createSampler(...) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const = 0;
 	};

@@ -38,7 +38,6 @@ SET(VULKAN_BACKEND_SOURCES
     "src/queue.cpp"
     "src/surface.cpp"
     "src/swapchain.cpp"
-    "src/texture.cpp"
     "src/shader_module.cpp"
     "src/shader_program.cpp"
     "src/pipeline.cpp"

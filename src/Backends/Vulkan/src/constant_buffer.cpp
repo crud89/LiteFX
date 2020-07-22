@@ -43,7 +43,12 @@ UInt32 VulkanDescriptorLayout::getBinding() const noexcept
 
 BufferType VulkanDescriptorLayout::getType() const noexcept
 {
-    return BufferType::Descriptor;
+    switch (m_impl->m_type)
+    {
+    case DescriptorType::Uniform: return BufferType::Uniform;
+    case DescriptorType::Storage: return BufferType::Storage;
+    default: return BufferType::Other;
+    }
 }
 
 DescriptorType VulkanDescriptorLayout::getDescriptorType() const noexcept

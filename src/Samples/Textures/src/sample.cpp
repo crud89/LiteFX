@@ -89,6 +89,10 @@ void SampleApp::loadTexture()
     if (imageData == nullptr)
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
+    // Create the texture.
+    m_perMaterialBindings = m_pipeline->makeBufferPool(DescriptorSets::PerMaterial);
+    m_texture = m_perMaterialBindings->makeTexture(0, Format::R8G8B8A8_SRGB, Size2d(width, height));
+
     // Create a texture with 1 mip map.
     
     //auto textureBuffer = m_pipeline->makeBuffer()
@@ -100,27 +104,26 @@ void SampleApp::loadTexture()
 void SampleApp::initBuffers()
 {
     // Create the staging buffer.
-    auto stagingBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
-    stagingBuffer->map(vertices.data(), vertices.size() * sizeof(::Vertex));
+    auto stagedVertices = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
+    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex));
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
-    stagingBuffer->transfer(m_device->getTransferQueue(), m_vertexBuffer.get(), vertices.size() * sizeof(::Vertex));
+    m_vertexBuffer->transfer(m_device->getTransferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
-    stagingBuffer = m_pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
-    stagingBuffer->map(indices.data(), indices.size() * sizeof(UInt16));
+    auto stagedIndices = m_pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
+    stagedIndices->map(indices.data(), indices.size() * sizeof(UInt16));
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
-    stagingBuffer->transfer(m_device->getTransferQueue(), m_indexBuffer.get(), indices.size() * sizeof(UInt16));
+    m_indexBuffer->transfer(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
     m_perFrameBindings = m_pipeline->makeBufferPool(DescriptorSets::PerFrame);
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
     m_perObjectBindings = m_pipeline->makeBufferPool(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
-    m_perMaterialBindings = m_pipeline->makeBufferPool(DescriptorSets::PerMaterial);
 }
 
 void SampleApp::run() 

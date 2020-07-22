@@ -225,9 +225,11 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BufferType> : form
 		string_view name = "Invalid";
 		switch (t)
 		{
-		case LiteFX::Rendering::BufferType::Descriptor: name = "Descriptor"; break;
 		case LiteFX::Rendering::BufferType::Index:      name = "Index";      break;
 		case LiteFX::Rendering::BufferType::Vertex:     name = "Vertex";     break;
+		case LiteFX::Rendering::BufferType::Uniform:    name = "Uniform"; break;
+		case LiteFX::Rendering::BufferType::Storage:    name = "Storage"; break;
+		case LiteFX::Rendering::BufferType::Other:      name = "Other"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
