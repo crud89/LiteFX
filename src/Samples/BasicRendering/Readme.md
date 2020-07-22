@@ -3,7 +3,7 @@
 A sample that implements the basic rendering functionality of the LiteFX engine. It draws a rotating, vertex-colored tetrahedron.
 
 <p align="center">
-  <img src="docs/samples/BasicRendering/screenshot.jpg">
+  <img src="/docs/samples/BasicRendering/screenshot.jpg">
 </p>
 
 For a detailed explanation of this sample, refer to the [project wiki](https://github.com/Aschratt/LiteFX/wiki/Sample-01:-Basic-Rendering).
