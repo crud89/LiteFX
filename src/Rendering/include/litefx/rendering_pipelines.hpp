@@ -172,6 +172,13 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual ITransferTarget, public virtual IMappable {
     public:
         virtual ~IBuffer() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the type of the buffer.
+        /// </summary>
+        /// <returns>The type of the buffer.</returns>
+        virtual BufferType getType() const noexcept = 0;
     };
 
     /// <summary>
@@ -356,9 +363,10 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a new buffer object.
         /// </summary>
+        /// <param name="type">The type of the buffer.</param>
         /// <param name="elements">The number of elements in this buffer.</param>
         /// <param name="size">The size (in bytes) of the buffer memory.</param>
-        Buffer(const UInt32& elements, const UInt32& size);
+        Buffer(const BufferType& type, const UInt32& elements, const UInt32& size);
         Buffer(Buffer&&) = delete;
         Buffer(const Buffer&) = delete;
         virtual ~Buffer() noexcept;
@@ -369,6 +377,9 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual size_t getSize() const noexcept override;
+
+        /// <inheritdoc />
+        virtual BufferType getType() const noexcept override;
     };
 
     /// <summary>
@@ -438,6 +449,9 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual const IDescriptorLayout* getLayout() const noexcept override;
+
+        /// <inheritdoc />
+        virtual BufferType getType() const noexcept override;
     };
 
     /// <summary>
@@ -579,7 +593,7 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept = 0;
-        virtual UniquePtr<IBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept = 0;
+        virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept = 0;
         virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept = 0;
         //virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, ...) const noexcept = 0;
         virtual void update(const IBuffer* buffer) const = 0;

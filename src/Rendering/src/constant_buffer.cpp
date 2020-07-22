@@ -40,3 +40,8 @@ const IDescriptorLayout* ConstantBuffer::getLayout() const noexcept
 {
     return m_impl->m_layout;
 }
+
+BufferType ConstantBuffer::getType() const noexcept
+{
+    return this->getLayout()->getType();
+}
