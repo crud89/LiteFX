@@ -80,3 +80,14 @@ VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(c
 {
     return this->addAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format)));
 }
+
+// ------------------------------------------------------------------------------------------------
+// Vertex buffer implementation.
+// ------------------------------------------------------------------------------------------------
+
+VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const IVertexBufferLayout* layout, const UInt32& elements) :
+    VertexBuffer(layout, elements), IResource(buffer)
+{
+}
+
+VulkanVertexBuffer::~VulkanVertexBuffer() noexcept = default;
