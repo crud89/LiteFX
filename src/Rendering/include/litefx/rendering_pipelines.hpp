@@ -565,6 +565,9 @@ namespace LiteFX::Rendering {
         virtual const IDescriptorLayout* getLayout() const noexcept override;
 
         /// <inheritdoc />
+        virtual UInt32 getBinding() const noexcept override;
+
+        /// <inheritdoc />
         virtual const FilterMode& getMinifyingFilter() const noexcept override;
 
         /// <inheritdoc />
@@ -606,7 +609,7 @@ namespace LiteFX::Rendering {
         virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept = 0;
         virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept = 0;
         virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept = 0;
-        //virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, ...) const noexcept = 0;
+        virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const noexcept = 0;
         virtual void update(const IConstantBuffer* buffer) const = 0;
         virtual void update(const ITexture* texture) const = 0;
         virtual void update(const ISampler* sampler) const = 0;

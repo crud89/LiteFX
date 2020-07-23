@@ -40,6 +40,11 @@ const IDescriptorLayout* Sampler::getLayout() const noexcept
 	return m_impl->m_layout;
 }
 
+UInt32 Sampler::getBinding() const noexcept
+{
+	return m_impl->m_layout->getBinding();
+}
+
 const FilterMode& Sampler::getMinifyingFilter() const noexcept
 {
 	return m_impl->m_minFilter;
