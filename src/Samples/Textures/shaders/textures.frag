@@ -7,10 +7,21 @@ struct VertexData
     float2 TextureCoordinate : TEXCOORD0;
 };
 
+struct FragmentData
+{
+    float4 Color : SV_TARGET;
+    float Depth : SV_DEPTH;
+};
+
 Texture2D diffuseMap : register(t0, space2);
 SamplerState diffuse : register(s1, space2);
 
-float4 main(VertexData input) : SV_TARGET0
+FragmentData main(VertexData input)
 {
-    return diffuseMap.Sample(diffuse, input.TextureCoordinate) * input.Color;
+    FragmentData fragment;
+    
+    fragment.Depth = input.Position.z;
+    fragment.Color = diffuseMap.Sample(diffuse, input.TextureCoordinate) * input.Color;
+
+    return fragment;
 }

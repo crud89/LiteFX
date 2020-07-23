@@ -6,7 +6,18 @@ struct VertexData
     float4 Color : COLOR;
 }; 
 
-float4 main(VertexData input) : SV_TARGET0
+struct FragmentData
 {
-    return input.Color;
+    float4 Color : SV_TARGET;
+    float Depth : SV_DEPTH;
+};
+
+FragmentData main(VertexData input)
+{
+    FragmentData fragment;
+    
+    fragment.Depth = input.Position.z;
+    fragment.Color = input.Color;
+
+    return fragment;
 }
