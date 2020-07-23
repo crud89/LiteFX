@@ -155,6 +155,7 @@ public:
 		// Cleanup and re-initialize.
 		this->cleanup();
 		m_parent->handle() = this->initialize(m_format);
+		this->loadImages();
 	}
 
 	UInt32 swapBackBuffer() const
