@@ -24,25 +24,25 @@ FIND_PACKAGE(Vulkan REQUIRED)
 FIND_PACKAGE(Stb REQUIRED)
 
 # Collect header & source files.
-SET(SAMPLE_BASIC_RENDERING_HEADERS
+SET(SAMPLE_TEXTURES_HEADERS
     "src/sample.h"
 )
 
-SET(SAMPLE_BASIC_RENDERING_SOURCES
+SET(SAMPLE_TEXTURES_SOURCES
     "src/main.cpp"
     "src/sample.cpp"
 )
 
-SET(SAMPLE_BASIC_RENDERING_SHADERS
-    "shaders/default.vert"
-    "shaders/default.frag"
+SET(SAMPLE_TEXTURES_SHADERS
+    "shaders/textures.vert"
+    "shaders/textures.frag"
 )
 
 # Add shared library project.
 ADD_EXECUTABLE(LiteFX.Samples.Textures 
-    ${SAMPLE_BASIC_RENDERING_HEADERS}
-    ${SAMPLE_BASIC_RENDERING_SOURCES}
-    ${SAMPLE_BASIC_RENDERING_SHADERS}
+    ${SAMPLE_TEXTURES_HEADERS}
+    ${SAMPLE_TEXTURES_SOURCES}
+    ${SAMPLE_TEXTURES_SHADERS}
 )
 
 # Create source groups for better code organization.
@@ -61,8 +61,8 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.Textures PRIVATE "src/" Stb)
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Samples.Textures PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
 
-# Add shader SAMPLE_BASIC_RENDERING_SOURCES.
-TARGET_SHADER_SOURCES(LiteFX.Samples.Textures LANGUAGE HLSL SOURCES ${SAMPLE_BASIC_RENDERING_SHADERS})
+# Add shader SAMPLE_TEXTURES_SOURCES.
+TARGET_SHADER_SOURCES(LiteFX.Samples.Textures LANGUAGE HLSL SOURCES ${SAMPLE_TEXTURES_SHADERS})
 
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)

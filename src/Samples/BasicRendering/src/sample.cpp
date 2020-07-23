@@ -10,10 +10,10 @@ enum DescriptorSets : UInt32
 
 const Array<Vertex> vertices =
 {
-    { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, -0.5f, 0.0f },  { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
-    { { 0.5f, 0.5f, 0.0f },   { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } },
-    { { -0.5f, 0.5f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }
+    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } }
 };
 
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
@@ -56,8 +56,8 @@ void SampleApp::createPipeline()
                     .go()
                 .go()
             .make<VulkanShaderProgram>()
-                .addVertexShaderModule("shaders/default.vert.spv")
-                .addFragmentShaderModule("shaders/default.frag.spv")
+                .addVertexShaderModule("shaders/basic.vert.spv")
+                .addFragmentShaderModule("shaders/basic.frag.spv")
                 .make<VulkanDescriptorSetLayout>(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
                     .addUniform(0, sizeof(CameraBuffer))
                     .go()

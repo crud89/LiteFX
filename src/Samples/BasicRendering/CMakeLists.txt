@@ -33,8 +33,8 @@ SET(SAMPLE_BASIC_RENDERING_SOURCES
 )
 
 SET(SAMPLE_BASIC_RENDERING_SHADERS
-    "shaders/default.vert"
-    "shaders/default.frag"
+    "shaders/basic.vert"
+    "shaders/basic.frag"
 )
 
 # Add shared library project.
