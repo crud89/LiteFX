@@ -75,4 +75,6 @@ You can also build the sources on your own. Create a new directory from where yo
 
 ## License
 
-LiteFX is licensed under the permissive [MIT licsense](./LICENSE). The documentation (i.e. the contents of the `docs` folder of this repository) is licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+LiteFX is licensed under the permissive [MIT licsense](./LICENSE). The documentation (i.e. the contents of the `docs` folder of this repository, especially the LiteFX logo, banner and icon) is licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+If you want to use LiteFX in your projects, linking to the engine and/or putting the logo in your project description is much appreciated.
