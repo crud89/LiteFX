@@ -24,14 +24,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanDevice* getDevice() const noexcept;
 	};
 
-	class LITEFX_VULKAN_API VulkanBufferPool : public virtual VulkanRuntimeObject, public IDescriptorSet, public IResource<VkDescriptorPool> {
-		LITEFX_IMPLEMENTATION(VulkanBufferPoolImpl);
+	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject, public IDescriptorSet, public IResource<VkDescriptorPool> {
+		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
 	public:
-		VulkanBufferPool(const VulkanDescriptorSetLayout& bufferSet);
-		VulkanBufferPool(VulkanBufferPool&&) = delete;
-		VulkanBufferPool(const VulkanBufferPool&) = delete;
-		virtual ~VulkanBufferPool() noexcept;
+		VulkanDescriptorSet(const VulkanDescriptorSetLayout& bufferSet);
+		VulkanDescriptorSet(VulkanDescriptorSet&&) = delete;
+		VulkanDescriptorSet(const VulkanDescriptorSet&) = delete;
+		virtual ~VulkanDescriptorSet() noexcept;
 
 	public:
 		virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept override;

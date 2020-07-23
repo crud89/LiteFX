@@ -146,7 +146,7 @@ const ShaderStage& VulkanDescriptorSetLayout::getShaderStages() const noexcept
 
 UniquePtr<IDescriptorSet> VulkanDescriptorSetLayout::createBufferPool() const noexcept
 {
-    return makeUnique<VulkanBufferPool>(*this);
+    return makeUnique<VulkanDescriptorSet>(*this);
 }
 
 UInt32 VulkanDescriptorSetLayout::uniforms() const noexcept

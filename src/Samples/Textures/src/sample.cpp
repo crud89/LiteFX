@@ -97,6 +97,9 @@ void SampleApp::loadTexture()
 
     // Transfer the texture using the graphics queue.
     m_texture->transferFrom(m_device->getGraphicsQueue(), stagedTexture.get(), m_texture->getSize(), 0);
+
+    // Create a sampler.
+    //m_sampler = m_perMaterialBindings->makeSampler();
 }
 
 void SampleApp::initBuffers()

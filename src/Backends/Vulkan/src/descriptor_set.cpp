@@ -8,16 +8,16 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanBufferPool::VulkanBufferPoolImpl : public Implement<VulkanBufferPool> {
+class VulkanDescriptorSet::VulkanDescriptorSetImpl : public Implement<VulkanDescriptorSet> {
 public:
-    friend class VulkanBufferPool;
+    friend class VulkanDescriptorSet;
 
 private:
     const IDescriptorSetLayout* m_layout{ nullptr };
     VkDescriptorSet m_descriptorSet;
 
 public:
-    VulkanBufferPoolImpl(VulkanBufferPool* parent) : base(parent) { }
+    VulkanDescriptorSetImpl(VulkanDescriptorSet* parent) : base(parent) { }
 
 public:
     VkDescriptorPool initialize(const VulkanDescriptorSetLayout& descriptorSetLayout)
@@ -71,40 +71,40 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBufferPool::VulkanBufferPool(const VulkanDescriptorSetLayout& bufferSet) :
-    m_impl(makePimpl<VulkanBufferPoolImpl>(this)), VulkanRuntimeObject(bufferSet.getDevice()), IResource<VkDescriptorPool>(nullptr)
+VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& bufferSet) :
+    m_impl(makePimpl<VulkanDescriptorSetImpl>(this)), VulkanRuntimeObject(bufferSet.getDevice()), IResource<VkDescriptorPool>(nullptr)
 {
     this->handle() = m_impl->initialize(bufferSet);
 }
 
-VulkanBufferPool::~VulkanBufferPool() noexcept
+VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
 {
     ::vkDestroyDescriptorPool(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-const IDescriptorSetLayout* VulkanBufferPool::getDescriptorSetLayout() const noexcept
+const IDescriptorSetLayout* VulkanDescriptorSet::getDescriptorSetLayout() const noexcept
 {
     return m_impl->m_layout;
 }
 
-const VkDescriptorSet VulkanBufferPool::getDescriptorSet() const noexcept
+const VkDescriptorSet VulkanDescriptorSet::getDescriptorSet() const noexcept
 {
     return m_impl->m_descriptorSet;
 }
 
-UniquePtr<IConstantBuffer> VulkanBufferPool::makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements) const noexcept
+UniquePtr<IConstantBuffer> VulkanDescriptorSet::makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements) const noexcept
 {
     auto layout = this->getDescriptorSetLayout()->getLayout(binding);
     return this->getDevice()->createConstantBuffer(layout, usage, elements);
 }
 
-UniquePtr<ITexture> VulkanBufferPool::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const noexcept
+UniquePtr<ITexture> VulkanDescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const noexcept
 {
     auto layout = this->getDescriptorSetLayout()->getLayout(binding);
     return this->getDevice()->createTexture(layout, format, size, levels, samples);
 }
 
-void VulkanBufferPool::update(const IConstantBuffer* buffer) const
+void VulkanDescriptorSet::update(const IConstantBuffer* buffer) const
 {
     auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
 
@@ -134,7 +134,7 @@ void VulkanBufferPool::update(const IConstantBuffer* buffer) const
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanBufferPool::update(const ITexture* texture) const
+void VulkanDescriptorSet::update(const ITexture* texture) const
 {
     auto image = dynamic_cast<const IVulkanImage*>(texture);
 
@@ -157,7 +157,7 @@ void VulkanBufferPool::update(const ITexture* texture) const
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanBufferPool::update(const ISampler* sampler) const
+void VulkanDescriptorSet::update(const ISampler* sampler) const
 {
     auto resource = dynamic_cast<const IResource<VkSampler>*>(sampler);
 

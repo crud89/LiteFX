@@ -307,7 +307,7 @@ void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
 
 void VulkanRenderPipeline::bind(const IDescriptorSet* b) const
 {
-	auto pool = dynamic_cast<const VulkanBufferPool*>(b);
+	auto pool = dynamic_cast<const VulkanDescriptorSet*>(b);
 
 	if (pool == nullptr)
 		throw std::invalid_argument("The provided buffer pool is not a valid Vulkan buffer pool.");
