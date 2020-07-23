@@ -68,9 +68,11 @@ public:
 
         // Setup the attachments.
         Array<VkAttachmentDescription> attachments(m_targets.size());
+        Array<VkAttachmentReference> colorAttachments;
+        Array<VkAttachmentReference> depthAttachments;
 
         std::generate(std::begin(attachments), std::end(attachments), [&, i = 0]() mutable {
-            auto& target = m_targets[i++];
+            auto& target = m_targets[i];
 
             VkAttachmentDescription attachment{};
             attachment.format = getFormat(target->getFormat());
@@ -88,15 +90,21 @@ public:
             case RenderTargetType::Color:
                 attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                 attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+                colorAttachments.push_back({ static_cast<UInt32>(i),  attachment.finalLayout });
                 break;
             case RenderTargetType::Depth:
                 attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                 attachment.finalLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                
                 m_depthViews.push_back(this->makeDepthView(target.get()));
+                depthAttachments.push_back({ static_cast<UInt32>(i),  attachment.finalLayout });
                 break;
             case RenderTargetType::Present:
                 attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                 attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                colorAttachments.push_back({ static_cast<UInt32>(i),  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
                 break;
             case RenderTargetType::Transfer:
                 attachment.initialLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -104,35 +112,21 @@ public:
                 break;
             }
 
+            i++;
             return attachment;
         });
 
-        // Setup attachment references.
-        // NOTE: Since we are currently only using one sub-pass, the references are a sequential array to each attachment.
-        Array<VkAttachmentReference> references(m_targets.size());
-
-        std::generate(std::begin(references), std::end(references), [&, i = 0]() mutable {
-            VkAttachmentReference reference{};
-            reference.attachment = i;
-
-            auto attachment = attachments[i++];
-
-            // If the attachment should be presented, it must be converted into an optimal color attachment layout.
-            if (attachment.finalLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-                reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            else
-                reference.layout = attachment.finalLayout;
-
-            return reference;
-        });
+        if (depthAttachments.size() > 1)
+            LITEFX_WARNING(VULKAN_LOG, "The render pass has been attached with multiple depth targets, however Vulkan only supports one depth/stencil target.");
 
         // Setup the sub-pass.
         // NOTE: This has room for optimization. Vulkan supports sub-passes, whereas DX12 only supports individual render passes. Hence we are currently only using one sub-pass 
         //       per render pass.
         VkSubpassDescription subPass{};
         subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subPass.colorAttachmentCount = static_cast<UInt32>(references.size());
-        subPass.pColorAttachments = references.data();
+        subPass.colorAttachmentCount = static_cast<UInt32>(colorAttachments.size());
+        subPass.pColorAttachments = colorAttachments.data();
+        subPass.pDepthStencilAttachment = depthAttachments.size() > 0 ? &depthAttachments.front() : nullptr;
 
         // Setup render pass state.
         VkRenderPassCreateInfo renderPassState{};
@@ -368,30 +362,30 @@ void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
     this->instance()->addTarget(std::move(target));
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::withColorTarget(const bool& clear, const Vector4f& clearColor)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachColorTarget(const bool& clear, const Vector4f& clearColor)
 {
     auto swapChain = this->instance()->m_impl->m_pipeline.getDevice()->getSwapChain();
-    this->addTarget(RenderTargetType::Color, swapChain->getFormat(), MultiSamplingLevel::x1, clearColor, clear, false, false);
+    this->attachTarget(RenderTargetType::Color, swapChain->getFormat(), MultiSamplingLevel::x1, clearColor, clear, false, false);
 
     return *this;
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::withDepthTarget(const bool& clear, const bool& clearStencil, const Vector2f& clearValues, const Format& format)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachDepthTarget(const bool& clear, const bool& clearStencil, const Vector2f& clearValues, const Format& format)
 {
-    this->addTarget(RenderTargetType::Depth, format, MultiSamplingLevel::x1, { clearValues.x(), clearValues.y(), 0.0f, 0.0f }, clear, clearStencil, false);
+    this->attachTarget(RenderTargetType::Depth, format, MultiSamplingLevel::x1, { clearValues.x(), clearValues.y(), 0.0f, 0.0f }, clear, clearStencil, false);
 
     return *this;
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::withPresentTarget(const bool& clear, const Vector4f& clearColor, const MultiSamplingLevel& samples)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachPresentTarget(const bool& clear, const Vector4f& clearColor, const MultiSamplingLevel& samples)
 {
     auto swapChain = this->instance()->m_impl->m_pipeline.getDevice()->getSwapChain();
-    this->addTarget(RenderTargetType::Present, swapChain->getFormat(), samples, clearColor, clear, false, false);
+    this->attachTarget(RenderTargetType::Present, swapChain->getFormat(), samples, clearColor, clear, false, false);
     
     return *this;
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clearColor, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clearColor, bool clearStencil, bool isVolatile)
 {
     UniquePtr<IRenderTarget> target = makeUnique<RenderTarget>();
     target->setType(type);

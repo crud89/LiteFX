@@ -206,6 +206,16 @@ public:
 		colorBlending.blendConstants[2] = 0.0f;
 		colorBlending.blendConstants[3] = 0.0f;
 
+		// Setup depth/stencil state.
+		auto targets = m_renderPass->getTargets();
+		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
+		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencilState.depthTestEnable = m_pipelineLayout->getDepthTest();
+		depthStencilState.depthBoundsTestEnable = VK_FALSE;
+		depthStencilState.stencilTestEnable = m_pipelineLayout->getStencilTest();
+		depthStencilState.depthWriteEnable = std::any_of(std::begin(targets), std::end(targets), [](const auto& t) { return t->getType() == RenderTargetType::Depth; });
+		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
+
 		// Setup pipeline state.
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -215,6 +225,7 @@ public:
 		pipelineInfo.pRasterizationState = &rasterizerState;
 		pipelineInfo.pMultisampleState = &multisampling;
 		pipelineInfo.pColorBlendState = &colorBlending;
+		pipelineInfo.pDepthStencilState = &depthStencilState;
 		pipelineInfo.layout = m_pipelineLayout->handle();
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 

@@ -109,6 +109,18 @@ void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& program)
     this->instance()->use(std::move(program));
 }
 
+VulkanRenderPipelineLayoutBuilder& VulkanRenderPipelineLayoutBuilder::enableDepthTest(const bool& enable)
+{
+    this->instance()->setDepthTest(enable);
+    return *this;
+}
+
+VulkanRenderPipelineLayoutBuilder& VulkanRenderPipelineLayoutBuilder::enableStencilTest(const bool& enable)
+{
+    this->instance()->setStencilTest(enable);
+    return *this;
+}
+
 VulkanRasterizerBuilder VulkanRenderPipelineLayoutBuilder::setRasterizer()
 {
     return this->make<VulkanRasterizer>();

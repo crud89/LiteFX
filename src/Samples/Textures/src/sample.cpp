@@ -75,7 +75,7 @@ void SampleApp::createPipeline()
                 .go()
             .go()
         .defineRenderPass()
-            .withPresentTarget()
+            .attachPresentTarget()
             .go()
         .go();
 }

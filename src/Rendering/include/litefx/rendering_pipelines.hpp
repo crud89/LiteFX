@@ -657,6 +657,10 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept = 0;
         virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
         virtual const IShaderProgram* getProgram() const noexcept = 0;
+        virtual bool getDepthTest() const noexcept = 0;
+        virtual void setDepthTest(const bool& enable) = 0;
+        virtual bool getStencilTest() const noexcept = 0;
+        virtual void setStencilTest(const bool& enable) = 0;
 
     public:
         virtual void use(UniquePtr<IViewport>&& viewport) = 0;
@@ -864,6 +868,10 @@ namespace LiteFX::Rendering {
         virtual IRasterizer* getRasterizer() const noexcept override;
         virtual const IInputAssembler* getInputAssembler() const noexcept override;
         virtual const IShaderProgram* getProgram() const noexcept override;
+        virtual bool getDepthTest() const noexcept override;
+        virtual void setDepthTest(const bool& enable) override;
+        virtual bool getStencilTest() const noexcept override;
+        virtual void setStencilTest(const bool& enable) override;
 
     public:
         virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
@@ -941,10 +949,10 @@ namespace LiteFX::Rendering {
 
     public:
         virtual void use(UniquePtr<IRenderTarget>&& target) = 0;
-        virtual TDerived& withColorTarget(const bool& clear = false, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }) = 0;
-        virtual TDerived& withDepthTarget(const bool& clear = true, const bool& clearStencil = true, const Vector2f& clearValues = { 1.0f, 0.0f }, const Format& format = Format::D24_UNORM_S8_UINT) = 0;
-        virtual TDerived& withPresentTarget(const bool& clear = true, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;
-        virtual TDerived& addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        virtual TDerived& attachColorTarget(const bool& clear = false, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }) = 0;
+        virtual TDerived& attachDepthTarget(const bool& clear = true, const bool& clearStencil = true, const Vector2f& clearValues = { 1.0f, 0.0f }, const Format& format = Format::D24_UNORM_S8_UINT) = 0;
+        virtual TDerived& attachPresentTarget(const bool& clear = true, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;
+        virtual TDerived& attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
     };
 
     /// <summary>
@@ -960,6 +968,8 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
         virtual void use(UniquePtr<IViewport>&& viewport) = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
+        virtual TDerived& enableDepthTest(const bool& enable = false) = 0; 
+        virtual TDerived& enableStencilTest(const bool& enable = false) = 0;
     };
 
     /// <summary>
