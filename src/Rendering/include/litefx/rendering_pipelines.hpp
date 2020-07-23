@@ -613,6 +613,10 @@ namespace LiteFX::Rendering {
         virtual void update(const IConstantBuffer* buffer) const = 0;
         virtual void update(const ITexture* texture) const = 0;
         virtual void update(const ISampler* sampler) const = 0;
+        virtual void updateAll(const IConstantBuffer* buffer) const = 0;
+        virtual void updateAll(const ITexture* texture) const = 0;
+        virtual void updateAll(const ISampler* sampler) const = 0;
+        virtual void bind(const IRenderPipeline* pipeline) = 0;
     };
 
     /// <summary>
@@ -641,7 +645,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
         virtual void bind(const IVertexBuffer* buffer) const = 0;
         virtual void bind(const IIndexBuffer* buffer) const = 0;
-        virtual void bind(const IDescriptorSet* buffer) const = 0;
+        virtual void bind(IDescriptorSet* buffer) const = 0;
     };
 
     /// <summary>

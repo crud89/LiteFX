@@ -313,19 +313,12 @@ void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
 	::vkCmdBindIndexBuffer(commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 }
 
-void VulkanRenderPipeline::bind(const IDescriptorSet* b) const
+void VulkanRenderPipeline::bind(IDescriptorSet* descriptorSet) const
 {
-	auto pool = dynamic_cast<const VulkanDescriptorSet*>(b);
-	auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(m_impl->m_renderPass->getCommandBuffer());
-
-	if (pool == nullptr)
-		throw std::invalid_argument("The provided buffer pool is not a valid Vulkan buffer pool.");
-
-	auto bufferSet = pool->getDescriptorSetLayout()->getSetId();
-	VkDescriptorSet descriptorSets[] = { pool->getDescriptorSet() };
-
-	// TODO: Synchronize with possible update calls on this command buffer, first.
-	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_pipelineLayout->handle(), bufferSet, 1, descriptorSets, 0, nullptr);
+	if (descriptorSet == nullptr)
+		throw std::invalid_argument("The descriptor set must be initialized.");
+	
+	descriptorSet->bind(this);
 }
 
 UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const

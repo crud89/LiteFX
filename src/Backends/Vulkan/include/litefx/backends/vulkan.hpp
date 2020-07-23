@@ -41,9 +41,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual void update(const IConstantBuffer* buffer) const override;
 		virtual void update(const ITexture* texture) const override;
 		virtual void update(const ISampler* sampler) const override;
-
-	public:
-		virtual const VkDescriptorSet getDescriptorSet() const noexcept;
+		virtual void updateAll(const IConstantBuffer* buffer) const override;
+		virtual void updateAll(const ITexture* texture) const override;
+		virtual void updateAll(const ISampler* sampler) const override;
+		virtual void bind(const IRenderPipeline* pipeline) override;
 	};
 
 	/// <summary>
@@ -266,7 +267,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void reset() override;
 		virtual void bind(const IVertexBuffer* buffer) const override;
 		virtual void bind(const IIndexBuffer* buffer) const override;
-		virtual void bind(const IDescriptorSet* buffer) const override;
+		virtual void bind(IDescriptorSet* buffer) const override;
 		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
 		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
 	};

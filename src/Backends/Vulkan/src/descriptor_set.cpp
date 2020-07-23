@@ -14,7 +14,8 @@ public:
 
 private:
     const IDescriptorSetLayout* m_layout{ nullptr };
-    VkDescriptorSet m_descriptorSet;
+    Array<VkDescriptorSet> m_descriptorSets;
+    UInt32 m_currentSet = 0;
 
 public:
     VulkanDescriptorSetImpl(VulkanDescriptorSet* parent) : base(parent) { }
@@ -31,8 +32,9 @@ public:
         };
 
         auto descriptorLayouts = descriptorSetLayout.getLayouts();
+        auto frames = static_cast<UInt32>(m_parent->getDevice()->getSwapChain()->getFrames().size());
 
-        LITEFX_TRACE(VULKAN_LOG, "Allocating buffer pool {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount, poolSizes[3].descriptorCount, poolSizes[4].descriptorCount);
+        LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount, poolSizes[3].descriptorCount, poolSizes[4].descriptorCount, frames);
 
         // Remove pool sizes with no descriptors to be compatible with the specs.
         poolSizes.erase(std::remove_if(std::begin(poolSizes), std::end(poolSizes), [](const VkDescriptorPoolSize& s) { return s.descriptorCount == 0; }), std::end(poolSizes));
@@ -45,22 +47,29 @@ public:
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = poolSizes.size();
         poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = 1;
+        poolInfo.maxSets = frames;
 
         VkDescriptorPool descriptorPool;
 
         if (::vkCreateDescriptorPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
             throw std::runtime_error("Unable to create buffer pool.");
 
-        // Allocate the descriptor sets.
-        VkDescriptorSetAllocateInfo descriptorSetInfo = {};
-        descriptorSetInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        descriptorSetInfo.descriptorPool = descriptorPool;
-        descriptorSetInfo.descriptorSetCount = 1;
-        descriptorSetInfo.pSetLayouts = &descriptorSetLayout.handle();
+        // Allocate one descriptor set for each frame.
+        m_descriptorSets.resize(poolInfo.maxSets);
+        std::generate(std::begin(m_descriptorSets), std::end(m_descriptorSets), [&]() mutable {
+            VkDescriptorSetAllocateInfo descriptorSetInfo = {};
+            descriptorSetInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            descriptorSetInfo.descriptorPool = descriptorPool;
+            descriptorSetInfo.descriptorSetCount = 1;
+            descriptorSetInfo.pSetLayouts = &descriptorSetLayout.handle();
 
-        if (::vkAllocateDescriptorSets(m_parent->getDevice()->handle(), &descriptorSetInfo, &m_descriptorSet) != VK_SUCCESS)
-            throw std::runtime_error("Unable to allocate descriptor sets.");
+            VkDescriptorSet descriptorSet;
+
+            if (::vkAllocateDescriptorSets(m_parent->getDevice()->handle(), &descriptorSetInfo, &descriptorSet) != VK_SUCCESS)
+                throw std::runtime_error("Unable to allocate descriptor sets.");
+
+            return descriptorSet;
+        });
 
         m_layout = &descriptorSetLayout;
         return descriptorPool;
@@ -85,11 +94,6 @@ VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
 const IDescriptorSetLayout* VulkanDescriptorSet::getDescriptorSetLayout() const noexcept
 {
     return m_impl->m_layout;
-}
-
-const VkDescriptorSet VulkanDescriptorSet::getDescriptorSet() const noexcept
-{
-    return m_impl->m_descriptorSet;
 }
 
 UniquePtr<IConstantBuffer> VulkanDescriptorSet::makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements) const noexcept
@@ -124,7 +128,7 @@ void VulkanDescriptorSet::update(const IConstantBuffer* buffer) const
 
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_impl->m_descriptorSet;
+    descriptorWrite.dstSet = m_impl->m_descriptorSets[m_impl->m_currentSet];
     descriptorWrite.dstBinding = buffer->getLayout()->getBinding();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorCount = 1;
@@ -154,7 +158,7 @@ void VulkanDescriptorSet::update(const ITexture* texture) const
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-    descriptorWrite.dstSet = m_impl->m_descriptorSet;
+    descriptorWrite.dstSet = m_impl->m_descriptorSets[m_impl->m_currentSet];
     descriptorWrite.dstBinding = texture->getBinding();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorCount = 1;
@@ -176,11 +180,120 @@ void VulkanDescriptorSet::update(const ISampler* sampler) const
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    descriptorWrite.dstSet = m_impl->m_descriptorSet;
+    descriptorWrite.dstSet = m_impl->m_descriptorSets[m_impl->m_currentSet];
     descriptorWrite.dstBinding = sampler->getBinding();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
+}
+
+void VulkanDescriptorSet::updateAll(const IConstantBuffer* buffer) const
+{
+    auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
+
+    if (resource == nullptr)
+        throw std::invalid_argument("The buffer is not a valid Vulkan buffer.");
+
+    VkDescriptorBufferInfo bufferInfo{ };
+    bufferInfo.buffer = resource->handle();
+    bufferInfo.range = buffer->getSize();
+    bufferInfo.offset = 0;
+
+    Array<VkWriteDescriptorSet> descriptorWrites(m_impl->m_descriptorSets.size());
+
+    std::generate(std::begin(descriptorWrites), std::end(descriptorWrites), [&, i = 0]() mutable {
+        VkWriteDescriptorSet descriptorWrite = {};
+
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
+        descriptorWrite.dstBinding = buffer->getLayout()->getBinding();
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+
+        switch (buffer->getLayout()->getDescriptorType())
+        {
+        case DescriptorType::Uniform: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
+        case DescriptorType::Storage: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
+        default: throw std::runtime_error("Unsupported buffer type.");
+        }
+        
+        return descriptorWrite;
+    });
+
+    ::vkUpdateDescriptorSets(this->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+}
+
+void VulkanDescriptorSet::updateAll(const ITexture* texture) const
+{
+    auto image = dynamic_cast<const IVulkanImage*>(texture);
+
+    if (image == nullptr)
+        throw std::invalid_argument("The texture is not a valid Vulkan texture.");
+
+    VkDescriptorImageInfo imageInfo{ };
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = image->getImageView();
+
+    Array<VkWriteDescriptorSet> descriptorWrites(m_impl->m_descriptorSets.size());
+
+    std::generate(std::begin(descriptorWrites), std::end(descriptorWrites), [&, i = 0]() mutable {
+        VkWriteDescriptorSet descriptorWrite = {};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
+        descriptorWrite.dstBinding = texture->getBinding();
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = &imageInfo;
+
+        return descriptorWrite;
+    });
+
+    ::vkUpdateDescriptorSets(this->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+}
+
+void VulkanDescriptorSet::updateAll(const ISampler* sampler) const
+{
+    auto resource = dynamic_cast<const IResource<VkSampler>*>(sampler);
+
+    if (resource == nullptr)
+        throw std::invalid_argument("The sampler is not a valid Vulkan sampler.");
+
+    VkDescriptorImageInfo imageInfo{ };
+    imageInfo.sampler = resource->handle();
+
+    Array<VkWriteDescriptorSet> descriptorWrites(m_impl->m_descriptorSets.size());
+
+    std::generate(std::begin(descriptorWrites), std::end(descriptorWrites), [&, i = 0]() mutable {
+        VkWriteDescriptorSet descriptorWrite = {};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+        descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
+        descriptorWrite.dstBinding = sampler->getBinding();
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = &imageInfo;
+
+        return descriptorWrite;
+    });
+
+    ::vkUpdateDescriptorSets(this->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+}
+
+void VulkanDescriptorSet::bind(const IRenderPipeline* pipeline)
+{
+    if (pipeline == nullptr)
+        throw std::invalid_argument("The pipeline must be initialized.");
+
+    auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(pipeline->getRenderPass()->getCommandBuffer());
+    auto pipelineLayout = dynamic_cast<const IResource<VkPipelineLayout>*>(pipeline->getLayout());
+
+    VkDescriptorSet descriptorSets[] = { m_impl->m_descriptorSets[m_impl->m_currentSet] };
+    m_impl->m_currentSet = (m_impl->m_currentSet + 1) % static_cast<UInt32>(m_impl->m_descriptorSets.size());
+
+    // TODO: Synchronize with possible update calls on this command buffer, first.
+    ::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), m_impl->m_layout->getSetId(), 1, descriptorSets, 0, nullptr);
 }
