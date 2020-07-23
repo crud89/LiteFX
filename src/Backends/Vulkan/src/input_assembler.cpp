@@ -38,3 +38,8 @@ VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withIndexType(const In
     this->instance()->use(makeUnique<VulkanIndexBufferLayout>(*this->instance(), type));
     return *this;
 }
+
+VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::addVertexBuffer(const size_t& elementSize, const UInt32& binding)
+{
+    return this->make<VulkanVertexBufferLayout>(elementSize, binding);
+}

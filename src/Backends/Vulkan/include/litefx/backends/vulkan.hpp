@@ -416,6 +416,9 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
 		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
+
+	public:
+		VulkanRenderPipelineBuilder buildPipeline() const;
 	};
 
 	/// <summary>

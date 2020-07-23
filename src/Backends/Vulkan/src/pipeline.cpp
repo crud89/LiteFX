@@ -387,3 +387,13 @@ void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPass>&& renderPass)
 
 	m_impl->m_renderPass = std::move(renderPass);
 }
+
+VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::defineLayout()
+{
+	return this->make<VulkanRenderPipelineLayout>();
+}
+
+VulkanRenderPassBuilder VulkanRenderPipelineBuilder::defineRenderPass()
+{
+	return this->make<VulkanRenderPass>();
+}

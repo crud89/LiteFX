@@ -120,3 +120,9 @@ VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::use(UniquePtr<IDescripto
     this->instance()->use(std::move(layout));
     return *this;
 }
+
+VulkanDescriptorSetLayoutBuilder VulkanShaderProgramBuilder::addDescriptorSet(const UInt32& id, const ShaderStage& stages)
+{
+    //return this->make<VulkanDescriptorSetLayoutBuilder>(id, stages);
+    return VulkanDescriptorSetLayoutBuilder(*this, makeUnique<VulkanDescriptorSetLayout>(*this->instance(), id, stages));
+}

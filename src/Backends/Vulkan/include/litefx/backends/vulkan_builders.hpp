@@ -6,6 +6,19 @@
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Rendering;
 
+	class VulkanBackendBuilder;
+	class VulkanRenderPipelineBuilder;
+	class VulkanRenderPipelineLayoutBuilder;
+	class VulkanShaderProgramBuilder;
+	class VulkanRenderPassBuilder;
+	class VulkanRasterizerBuilder;
+	class VulkanViewportBuilder;
+	class VulkanInputAssemblerBuilder;
+	class VulkanDescriptorSetLayoutBuilder;
+	class VulkanVertexBufferLayoutBuilder;
+	class VulkanIndexBufferLayoutBuilder;
+	class VulkanDescriptorLayoutBuilder;
+
 	/// <summary>
 	/// 
 	/// </summary>
@@ -34,6 +47,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanRenderPipelineBuilder() noexcept;
 
 	public:
+		virtual VulkanRenderPipelineLayoutBuilder defineLayout();
+		virtual VulkanRenderPassBuilder defineRenderPass();
+
+	public:
 		virtual UniquePtr<VulkanRenderPipeline> go() override;
 
 	public:
@@ -47,6 +64,12 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {
 	public:
 		using RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder>::RenderPipelineLayoutBuilder;
+
+	public:
+		virtual VulkanRasterizerBuilder setRasterizer();
+		virtual VulkanInputAssemblerBuilder setInputAssembler();
+		virtual VulkanShaderProgramBuilder setShaderProgram();
+		virtual VulkanViewportBuilder addViewport();
 
 	public:
 		virtual VulkanRenderPipelineBuilder& go() override;
@@ -66,6 +89,9 @@ namespace LiteFX::Rendering::Backends {
 		using ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder>::ShaderProgramBuilder;
 
 	public:
+		virtual VulkanDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
+
+	public:
 		virtual VulkanShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
@@ -75,7 +101,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& use(UniquePtr<IDescriptorSetLayout>&& layout) override;
 	};
-
+	
 	/// <summary>
 	/// 
 	/// </summary>
@@ -129,6 +155,9 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_VULKAN_API VulkanInputAssemblerBuilder : public InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineLayoutBuilder> {
 	public:
 		using InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineLayoutBuilder>::InputAssemblerBuilder;
+
+	public:
+		virtual VulkanVertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
 
 	public:
 		virtual VulkanInputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;

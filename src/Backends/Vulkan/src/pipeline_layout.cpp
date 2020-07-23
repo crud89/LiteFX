@@ -108,3 +108,23 @@ void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& program)
 
     this->instance()->use(std::move(program));
 }
+
+VulkanRasterizerBuilder VulkanRenderPipelineLayoutBuilder::setRasterizer()
+{
+    return this->make<VulkanRasterizer>();
+}
+
+VulkanInputAssemblerBuilder VulkanRenderPipelineLayoutBuilder::setInputAssembler()
+{
+    return this->make<VulkanInputAssembler>();
+}
+
+VulkanShaderProgramBuilder VulkanRenderPipelineLayoutBuilder::setShaderProgram()
+{
+    return this->make<VulkanShaderProgram>();
+}
+
+VulkanViewportBuilder VulkanRenderPipelineLayoutBuilder::addViewport()
+{
+    return this->make<VulkanViewport>();
+}
