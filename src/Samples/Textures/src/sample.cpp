@@ -143,10 +143,12 @@ void SampleApp::run()
     // Destroy all buffers.
     m_perObjectBindings = nullptr;
     m_perFrameBindings = nullptr;
+    m_perMaterialBindings = nullptr;
     m_cameraBuffer = nullptr;
     m_transformBuffer = nullptr;
     m_vertexBuffer = nullptr;
     m_indexBuffer = nullptr;
+    m_texture = nullptr;
 
     // Destroy the pipeline and the device.
     m_pipeline = nullptr;
@@ -219,10 +221,10 @@ void SampleApp::drawFrame()
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
     m_perObjectBindings->update(m_transformBuffer.get()); 
-    m_pipeline->bind(m_perFrameBindings.get());
+    m_pipeline->bind(m_perObjectBindings.get());
 
     // Bind the texture buffer.
-    //m_pipeline->bind(m_textureBuffer.get());
+    m_pipeline->bind(m_perMaterialBindings.get());
 
     // Draw the object.
     m_pipeline->getRenderPass()->drawIndexed(indices.size());
