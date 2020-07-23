@@ -109,7 +109,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transfer(m_device->getTransferQueue(), stagedVertices.get(), stagedVertices->getSize());
+    m_vertexBuffer->transferFrom(m_device->getTransferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
     auto stagedIndices = m_pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
@@ -117,7 +117,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
-    m_indexBuffer->transfer(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
+    m_indexBuffer->transferFrom(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
     m_perFrameBindings = m_pipeline->makeBufferPool(DescriptorSets::PerFrame);

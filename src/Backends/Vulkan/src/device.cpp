@@ -289,8 +289,6 @@ void VulkanDevice::resize(int width, int height)
 
 UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements) const
 {
-	LITEFX_TRACE(VULKAN_LOG, "Creating buffer: {{ Type: {0}, Usage: {1}, Size: {2}, Elements: {3} }}...", type, usage, size, elements);
-
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = size;
 
@@ -343,8 +341,6 @@ UniquePtr<IVertexBuffer> VulkanDevice::createVertexBuffer(const IVertexBufferLay
 	if (layout == nullptr)
 		throw std::invalid_argument("The vertex buffer layout must be initialized.");
 
-	LITEFX_TRACE(VULKAN_LOG, "Creating vertex buffer: {{ Usage: {1}, Size: {2}, Elements: {3} }}...", usage, layout->getElementSize() * elements, elements);
-
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout->getElementSize() * elements;
 
@@ -389,8 +385,6 @@ UniquePtr<IIndexBuffer> VulkanDevice::createIndexBuffer(const IIndexBufferLayout
 	if (layout == nullptr)
 		throw std::invalid_argument("The index buffer layout must be initialized.");
 
-	LITEFX_TRACE(VULKAN_LOG, "Creating index buffer: {{ Usage: {1}, Size: {2}, Elements: {3} }}...", usage, layout->getElementSize() * elements, elements);
-
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout->getElementSize() * elements;
 
@@ -434,8 +428,6 @@ UniquePtr<IConstantBuffer> VulkanDevice::createConstantBuffer(const IDescriptorL
 {
 	if (layout == nullptr)
 		throw std::invalid_argument("The constant buffer descriptor layout must be initialized.");
-
-	LITEFX_TRACE(VULKAN_LOG, "Creating constant buffer: {{ Usage: {1}, Size: {2}, Elements: {3} }}...", usage, layout->getElementSize() * elements, elements);
 
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout->getElementSize() * elements;
@@ -482,6 +474,36 @@ UniquePtr<IConstantBuffer> VulkanDevice::createConstantBuffer(const IDescriptorL
 	return _VMAConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
+UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+{
+	if (layout == nullptr)
+		throw std::invalid_argument("The constant buffer descriptor layout must be initialized.");
+
+	VkImageCreateInfo imageInfo{};
+	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageInfo.extent.width = size.width();
+	imageInfo.extent.height = size.height();
+	imageInfo.extent.depth = 1;
+	imageInfo.mipLevels = levels;
+	imageInfo.arrayLayers = 1;
+	imageInfo.format = ::getFormat(format);
+	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	imageInfo.samples = ::getSamples(samples);
+	
+	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.queueFamilyIndexCount = 2;
+	imageInfo.pQueueFamilyIndices = queues;
+
+	VmaAllocationCreateInfo allocInfo = {};
+	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+	return _VMATexture::allocate(this, layout, 1, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
+}
+
 Array<UniquePtr<IImage>> VulkanDevice::createSwapChainImages(const ISwapChain* sc) const
 {
 	auto swapChain = dynamic_cast<const VulkanSwapChain*>(sc);
@@ -498,7 +520,7 @@ Array<UniquePtr<IImage>> VulkanDevice::createSwapChainImages(const ISwapChain* s
 	Array<UniquePtr<IImage>> images(imageCount);
 
 	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &imageCount, imageChain.data());
-	std::generate(images.begin(), images.end(), [&, i = 0]() mutable { return makeUnique<_VMAImage>(this, imageChain[i++], 1, size.width() * size.height() * ::getSize(format), size, format); });
+	std::generate(images.begin(), images.end(), [&, i = 0]() mutable { return makeUnique<_VMAImage>(this, imageChain[i++], 1, size, format); });
 
 	return images;
 }

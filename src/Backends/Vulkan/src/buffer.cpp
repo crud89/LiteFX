@@ -33,7 +33,7 @@ void _VMABufferBase::map(const void* const data, const size_t& size)
 	::vmaUnmapMemory(m_allocator, m_allocationInfo);
 }
 
-void _VMABufferBase::transfer(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& offset, const size_t& targetOffset) const
+void _VMABufferBase::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
 {
 	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
 	auto sourceBuffer = dynamic_cast<const IResource<VkBuffer>*>(source);
@@ -57,9 +57,42 @@ void _VMABufferBase::transfer(const ICommandQueue* commandQueue, IBuffer* source
 	// Create a copy command and add it to the command buffer.
 	VkBufferCopy copyInfo{};
 	copyInfo.size = size;
-	copyInfo.srcOffset = offset;
+	copyInfo.srcOffset = sourceOffset;
 	copyInfo.dstOffset = targetOffset;
 	::vkCmdCopyBuffer(commandBuffer->handle(), sourceBuffer->handle(), this->handle(), 1, &copyInfo);
+
+	// End the transfer recording and submit the buffer.
+	commandBuffer->end();
+	commandBuffer->submit(true);
+}
+
+void _VMABufferBase::transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
+{
+	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
+	auto targetBuffer = dynamic_cast<const IResource<VkBuffer>*>(target);
+
+	if (targetBuffer == nullptr)
+		throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
+
+	if (transferQueue == nullptr)
+		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
+
+	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
+
+	if (device == nullptr)
+		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
+
+	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
+
+	// Begin the transfer recording.
+	commandBuffer->begin();
+
+	// Create a copy command and add it to the command buffer.
+	VkBufferCopy copyInfo{};
+	copyInfo.size = size;
+	copyInfo.srcOffset = sourceOffset;
+	copyInfo.dstOffset = targetOffset;
+	::vkCmdCopyBuffer(commandBuffer->handle(), this->handle(), targetBuffer->handle(), 1, &copyInfo);
 
 	// End the transfer recording and submit the buffer.
 	commandBuffer->end();
@@ -158,7 +191,7 @@ _VMAConstantBuffer::_VMAConstantBuffer(VkBuffer buffer, const IDescriptorLayout*
 
 _VMAConstantBuffer::~_VMAConstantBuffer() noexcept = default;
 
-UniquePtr<IConstantBuffer> _VMAConstantBuffer::allocate(const IDescriptorLayout * layout, const UInt32 & elements, VmaAllocator & allocator, const VkBufferCreateInfo & createInfo, const VmaAllocationCreateInfo & allocationInfo, VmaAllocationInfo * allocationResult)
+UniquePtr<IConstantBuffer> _VMAConstantBuffer::allocate(const IDescriptorLayout* layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	if (layout == nullptr)
 		throw std::invalid_argument("The layout must be initialized.");

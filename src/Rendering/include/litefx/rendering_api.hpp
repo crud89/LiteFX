@@ -47,7 +47,7 @@ namespace LiteFX::Rendering {
 	class IDescriptorSetLayout;
 	class IMappable;
 	class IBindable;
-	class ITransferTarget;
+	class ITransferable;
 	class IDeviceMemory;
 	class IBuffer;
 	class IVertexBuffer;

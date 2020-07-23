@@ -126,11 +126,11 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Allows the object to transfer data from an arbitrary <see cref="LiteFX::Rendering::IBuffer" /> object into its local memory.
+    /// Allows the object to transfer data between its local memory from or to an arbitrary <see cref="LiteFX::Rendering::IBuffer" /> object.
     /// </summary>
-    class LITEFX_RENDERING_API ITransferTarget {
+    class LITEFX_RENDERING_API ITransferable {
     public:
-        virtual ~ITransferTarget() noexcept = default;
+        virtual ~ITransferable() noexcept = default;
 
     public:
         /// <summary>
@@ -141,7 +141,17 @@ namespace LiteFX::Rendering {
         /// <param name="size">The size (in bytes) to transfer from the source buffer.</param>
         /// <param name="sourceOffset">The offset (in bytes) from where to start transferring in the source buffer.</param>
         /// <param name="targetOffset">The offset (in bytes) to which the data will be transferred in the object memory.</param>
-        virtual void transfer(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const = 0;
+        virtual void transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const = 0;
+
+        /// <summary>
+        /// Transfers data from the objects local memory into the <paramref name="target" /> buffer.
+        /// </summary>
+        /// <param name="commandQueue">The command queue to issue the transfer command to.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="size">The size (in bytes) to transfer to the target buffer.</param>
+        /// <param name="sourceOffset">The offset (in bytes) from where to start transferring in the object memory.</param>
+        /// <param name="targetOffset">The offset (in bytes) to which the data will be transferred in the target buffer.</param>
+        virtual void transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const = 0;
     };
 
     /// <summary>
@@ -169,7 +179,7 @@ namespace LiteFX::Rendering {
     /// Describes a generic buffer object.
     /// </summary>
     /// <seealso cref="Buffer" />
-    class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual ITransferTarget, public virtual IMappable {
+    class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual ITransferable, public virtual IMappable {
     public:
         virtual ~IBuffer() noexcept = default;
 
@@ -237,7 +247,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a generic image.
     /// </summary>
-    class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory, public virtual ITransferTarget {
+    class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory, public virtual ITransferable {
     public:
         virtual ~IImage() noexcept = default;
 
@@ -490,7 +500,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// A base class for a generic texture.
     /// </summary>
-    class LITEFX_RENDERING_API Texture : public virtual Image, public virtual ITexture {
+    class LITEFX_RENDERING_API Texture : public Image, public virtual ITexture {
         LITEFX_IMPLEMENTATION(TextureImpl);
 
     public:
