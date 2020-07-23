@@ -293,7 +293,6 @@ void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
 	constexpr VkDeviceSize offsets[] = { 0 };
 
 	::vkCmdBindVertexBuffers(m_impl->m_commandBuffer->handle(), 0, 1, &resource->handle(), offsets);
-	return;
 }
 
 void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
@@ -304,7 +303,6 @@ void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
 		throw std::invalid_argument("The provided index buffer is not a valid Vulkan buffer.");
 
 	::vkCmdBindIndexBuffer(m_impl->m_commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
-	return;
 }
 
 void VulkanRenderPipeline::bind(const IDescriptorSet* b) const
