@@ -23,7 +23,7 @@ private:
     Array<VkFramebuffer> m_frameBuffers;
     Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
     UInt32 m_currentFrameBuffer{ 0 };
-    VkSemaphore m_semaphore;
+    Array<VkSemaphore> m_semaphores;
 
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanRenderPipeline& pipeline) : base(parent), m_pipeline(pipeline) { }
@@ -35,11 +35,18 @@ private:
         m_clearValues.clear();
 
         ::vkDestroyRenderPass(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
-        ::vkDestroySemaphore(m_device->handle(), m_semaphore, nullptr);
+
+        std::for_each(std::begin(m_semaphores), std::end(m_semaphores), [&](const auto& semaphore) {
+            ::vkDestroySemaphore(m_parent->getDevice()->handle(), semaphore, nullptr);
+        });
+
+        m_semaphores.clear();
 
         std::for_each(std::begin(m_frameBuffers), std::end(m_frameBuffers), [&](VkFramebuffer& frameBuffer) {
             ::vkDestroyFramebuffer(m_parent->getDevice()->handle(), frameBuffer, nullptr);
         });
+
+        m_currentFrameBuffer = 0;
     }
 
     UniquePtr<IImage> makeDepthView(const IRenderTarget* target)
@@ -193,8 +200,15 @@ public:
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-        if (::vkCreateSemaphore(m_device->handle(), &semaphoreInfo, nullptr, &m_semaphore) != VK_SUCCESS)
-            throw std::runtime_error("Unable to create render pass semaphore.");
+        m_semaphores.resize(frames.size());
+        std::generate(std::begin(m_semaphores), std::end(m_semaphores), [&]() mutable {
+            VkSemaphore semaphore;
+
+            if (::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS)
+                throw std::runtime_error("Unable to create signal semaphore.");
+
+            return semaphore;
+        });
 
         // Return the render pass.
         return renderPass;
@@ -229,9 +243,9 @@ public:
         commandBuffer->end();
 
         // Submit the command buffer.
-        Array<VkSemaphore> waitForSemaphores = { m_swapChain->getSemaphore() };
+        Array<VkSemaphore> waitForSemaphores = { m_swapChain->getCurrentSemaphore() };
         Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
-        Array<VkSemaphore> signalSemaphores = { m_semaphore };
+        Array<VkSemaphore> signalSemaphores = { this->getCurrentSemaphore() };
         commandBuffer->submit(waitForSemaphores, waitForStages, signalSemaphores, false);
 
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
@@ -254,9 +268,14 @@ public:
     }
 
 public:
-    const VulkanCommandBuffer* getCurrentCommandBuffer()
+    const VulkanCommandBuffer* getCurrentCommandBuffer() const noexcept
     {
         return m_commandBuffers[m_currentFrameBuffer].get();
+    }
+
+    const VkSemaphore& getCurrentSemaphore() const noexcept
+    {
+        return m_semaphores[m_currentFrameBuffer];
     }
 
     void addTarget(UniquePtr<IRenderTarget>&& target) 

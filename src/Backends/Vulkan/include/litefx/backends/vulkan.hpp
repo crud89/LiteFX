@@ -355,7 +355,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void reset() override;
 
 	public:
-		virtual VkSemaphore getSemaphore() const noexcept;
+		virtual const VkSemaphore& getCurrentSemaphore() const noexcept;
 	};
 
 	/// <summary>

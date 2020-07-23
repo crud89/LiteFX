@@ -14,7 +14,8 @@ private:
 	Array<UniquePtr<IImage>> m_frames;
 	Size2d m_size { };
 	Format m_format{ Format::None };
-	VkSemaphore m_swapSemaphore;
+	Array<VkSemaphore> m_swapSemaphores;
+	UInt32 m_currentImage = {};
 
 public:
 	VulkanSwapChainImpl(VulkanSwapChain* parent) : base(parent) { }
@@ -33,8 +34,13 @@ private:
 		// Destroy the swap chain itself.
 		::vkDestroySwapchainKHR(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
 
-		// Destroy the image swap semaphore.
-		::vkDestroySemaphore(m_parent->getDevice()->handle(), m_swapSemaphore, nullptr);
+		// Destroy the image swap semaphores.
+		std::for_each(std::begin(m_swapSemaphores), std::end(m_swapSemaphores), [&](const auto& semaphore) { 
+			::vkDestroySemaphore(m_parent->getDevice()->handle(), semaphore, nullptr); 
+		});
+
+		m_swapSemaphores.clear();
+		m_currentImage = 0;
 	}
 
 private:
@@ -141,8 +147,15 @@ public:
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-		if (::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &m_swapSemaphore) != VK_SUCCESS)
-			throw std::runtime_error("Unable to create swap semaphore.");
+		m_swapSemaphores.resize(images);
+		std::generate(std::begin(m_swapSemaphores), std::end(m_swapSemaphores), [&]() mutable {
+			VkSemaphore semaphore;
+
+			if (::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS)
+				throw std::runtime_error("Unable to create swap semaphore.");
+			
+			return semaphore;
+		});
 
 		m_size = Size2d(static_cast<size_t>(deviceCaps.currentExtent.width), static_cast<size_t>(deviceCaps.currentExtent.height));
 		m_format = format;
@@ -158,17 +171,22 @@ public:
 		this->loadImages();
 	}
 
-	UInt32 swapBackBuffer() const
+	UInt32 swapBackBuffer()
 	{
-		UInt32 imageIndex;
+		auto semaphore = this->getCurrentSemaphore();
 
-		if (::vkAcquireNextImageKHR(m_parent->getDevice()->handle(), m_parent->handle(), UINT64_MAX, m_swapSemaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		if (::vkAcquireNextImageKHR(m_parent->getDevice()->handle(), m_parent->handle(), UINT64_MAX, semaphore, VK_NULL_HANDLE, &m_currentImage) != VK_SUCCESS)
 			throw std::runtime_error("Unable to swap front buffer.");
 
-		return imageIndex;
+		return m_currentImage;
 	}
 
 public:
+	const VkSemaphore& getCurrentSemaphore() const noexcept
+	{
+		return m_swapSemaphores[m_currentImage];
+	}
+
 	Array<const IImage*> getFrames() const noexcept
 	{
 		Array<const IImage*> frames(m_frames.size());
@@ -226,7 +244,7 @@ void VulkanSwapChain::reset()
 	m_impl->reset();
 }
 
-VkSemaphore VulkanSwapChain::getSemaphore() const noexcept
+const VkSemaphore& VulkanSwapChain::getCurrentSemaphore() const noexcept
 {
-	return m_impl->m_swapSemaphore;
+	return m_impl->getCurrentSemaphore();
 }
