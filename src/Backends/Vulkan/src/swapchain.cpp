@@ -173,12 +173,15 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
+		m_currentImage = (m_currentImage + 1) % static_cast<UInt32>(m_swapSemaphores.size());
 		auto semaphore = this->getCurrentSemaphore();
 
-		if (::vkAcquireNextImageKHR(m_parent->getDevice()->handle(), m_parent->handle(), UINT64_MAX, semaphore, VK_NULL_HANDLE, &m_currentImage) != VK_SUCCESS)
+		UInt32 nextImage;
+
+		if (::vkAcquireNextImageKHR(m_parent->getDevice()->handle(), m_parent->handle(), UINT64_MAX, semaphore, VK_NULL_HANDLE, &nextImage) != VK_SUCCESS)
 			throw std::runtime_error("Unable to swap front buffer.");
 
-		return m_currentImage;
+		return nextImage;
 	}
 
 public:
