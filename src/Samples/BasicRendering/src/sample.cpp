@@ -13,10 +13,18 @@ const Array<Vertex> vertices =
     { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
     { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
     { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } }
+    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+
+    { { -0.5f, -0.5f, -0.5f },{ 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, 0.5f, -0.5f },  { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, 0.5f, -1.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, -0.5f, -1.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } }
 };
 
-const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
+const Array<UInt16> indices = { 
+    0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3, 
+    4, 6, 5, 4, 5, 7, 4, 7, 6, 5, 6, 7
+};
 
 struct CameraBuffer {
     glm::mat4 ViewProjection;
@@ -66,7 +74,8 @@ void SampleApp::createPipeline()
                 .go()
             .go()
         .defineRenderPass()
-            .withPresentTarget()
+            .withPresentTarget(true)
+            .withDepthTarget(true, true, { 1.0f, 0.0f }, Format::D24_UNORM_S8_UINT)
             .go()
         .go();
 }

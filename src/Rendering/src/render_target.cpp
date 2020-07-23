@@ -7,75 +7,18 @@ using namespace LiteFX::Rendering;
 // ------------------------------------------------------------------------------------------------
 
 class RenderTarget::RenderTargetImpl : public Implement<RenderTarget> {
+public:
+    friend class RenderTarget;
+
 private:
     RenderTargetType m_type = RenderTargetType::Color;
     Format m_format = Format::B8G8R8A8_SRGB;
     MultiSamplingLevel m_samples = MultiSamplingLevel::x1;
     bool m_clearBuffer = false, m_clearStencil = false, m_volatile = false;
+    Vector4f m_clearValues;
 
 public:
     RenderTargetImpl(RenderTarget* parent) : base(parent) { }
-
-public:
-    RenderTargetType getType() const noexcept
-    {
-        return m_type;
-    }
-
-    void setType(const RenderTargetType & type)
-    {
-        m_type = type;
-    }
-
-    MultiSamplingLevel getSamples() const noexcept
-    {
-        return m_samples;
-    }
-
-    void setSamples(const MultiSamplingLevel& samples)
-    {
-        m_samples = samples;
-    }
-
-    bool getClearBuffer() const noexcept
-    {
-        return m_clearBuffer;
-    }
-
-    void setClearBuffer(const bool& clear)
-    {
-        m_clearBuffer = clear;
-    }
-
-    bool getClearStencil() const noexcept
-    {
-        return m_clearStencil;
-    }
-
-    void setClearStencil(const bool& clear)
-    {
-        m_clearStencil = clear;
-    }
-
-    Format getFormat() const noexcept
-    {
-        return m_format;
-    }
-
-    void setFormat(const Format& format)
-    {
-        m_format = format;
-    }
-
-    bool getVolatile() const noexcept
-    {
-        return m_volatile;
-    }
-
-    void setVolatile(const bool& isVolatile)
-    {
-        m_volatile = isVolatile;
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -91,60 +34,70 @@ RenderTarget::~RenderTarget() noexcept = default;
 
 RenderTargetType RenderTarget::getType() const noexcept 
 {
-    return m_impl->getType();
+    return m_impl->m_type;
 }
 
 void RenderTarget::setType(const RenderTargetType& type) 
 {
-    m_impl->setType(type);
+    m_impl->m_type = type;
 }
 
 MultiSamplingLevel RenderTarget::getSamples() const noexcept
 {
-    return m_impl->getSamples();
+    return m_impl->m_samples;
 }
 
 void RenderTarget::setSamples(const MultiSamplingLevel& samples)
 {
-    m_impl->setSamples(samples);
+    m_impl->m_samples = samples;
 }
 
 bool RenderTarget::getClearBuffer() const noexcept 
 {
-    return m_impl->getClearBuffer();
+    return m_impl->m_clearBuffer;
 }
 
 void RenderTarget::setClearBuffer(const bool& clear) 
 {
-    m_impl->setClearBuffer(clear);
+    m_impl->m_clearBuffer = clear;
 }
 
 bool RenderTarget::getClearStencil() const noexcept 
 {
-    return m_impl->getClearStencil();
+    return m_impl->m_clearStencil;
 }
 
 void RenderTarget::setClearStencil(const bool& clear) 
 {
-    m_impl->setClearStencil(clear);
+    m_impl->m_clearStencil = clear;
 }
 
 Format RenderTarget::getFormat() const noexcept
 {
-    return m_impl->getFormat();
+    return m_impl->m_format;
 }
 
 void RenderTarget::setFormat(const Format& format)
 {
-    m_impl->setFormat(format);
+    m_impl->m_format = format;
 }
 
 bool RenderTarget::getVolatile() const noexcept 
 {
-    return m_impl->getVolatile();
+    return m_impl->m_volatile;
 }
 
 void RenderTarget::setVolatile(const bool& isVolatile) 
 {
-    m_impl->setVolatile(isVolatile);
+    m_impl->m_volatile = isVolatile;
+}
+
+const Vector4f& RenderTarget::getClearValues() const noexcept
+{
+    return m_impl->m_clearValues;
+}
+
+void RenderTarget::setClearValues(const Vector4f& values)
+{
+    m_impl->m_clearValues = values;
 }

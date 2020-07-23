@@ -57,6 +57,16 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
+    bool LITEFX_VULKAN_API hasDepth(const Format& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    bool LITEFX_VULKAN_API hasStencil(const Format& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
     PolygonMode LITEFX_VULKAN_API getPolygonMode(const VkPolygonMode& mode);
 
     /// <summary>

@@ -474,6 +474,33 @@ UniquePtr<IConstantBuffer> VulkanDevice::createConstantBuffer(const IDescriptorL
 	return _VMAConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
+UniquePtr<IImage> VulkanDevice::createImage(const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+{
+	VkImageCreateInfo imageInfo{};
+	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageInfo.extent.width = size.width();
+	imageInfo.extent.height = size.height();
+	imageInfo.extent.depth = 1;
+	imageInfo.mipLevels = levels;
+	imageInfo.arrayLayers = 1;
+	imageInfo.format = ::getFormat(format);
+	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imageInfo.samples = ::getSamples(samples);
+	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | ::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_SAMPLED_BIT;
+
+	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.queueFamilyIndexCount = 2;
+	imageInfo.pQueueFamilyIndices = queues;
+
+	VmaAllocationCreateInfo allocInfo = {};
+	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+	return _VMAImage::allocate(this, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
+}
+
 UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
 	if (layout == nullptr)
@@ -490,8 +517,8 @@ UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout,
 	imageInfo.format = ::getFormat(format);
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	imageInfo.samples = ::getSamples(samples);
+	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | ::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_SAMPLED_BIT;
 	
 	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
 	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;

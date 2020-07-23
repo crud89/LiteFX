@@ -18,6 +18,8 @@ private:
     const VulkanSwapChain* m_swapChain{ nullptr };
     const VulkanQueue* m_queue{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
+    Array<UniquePtr<IImage>> m_depthViews;
+    Array<VkClearValue> m_clearValues;
     Array<VkFramebuffer> m_frameBuffers;
     UniquePtr<const VulkanCommandBuffer> m_commandBuffer;
     UInt32 m_currentFrameBuffer{ 0 };
@@ -29,12 +31,20 @@ public:
 private:
     void cleanup()
     {
+        m_depthViews.clear();
+        m_clearValues.clear();
+
         ::vkDestroyRenderPass(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
         ::vkDestroySemaphore(m_device->handle(), m_semaphore, nullptr);
 
         std::for_each(std::begin(m_frameBuffers), std::end(m_frameBuffers), [&](VkFramebuffer& frameBuffer) {
             ::vkDestroyFramebuffer(m_parent->getDevice()->handle(), frameBuffer, nullptr);
         });
+    }
+
+    UniquePtr<IImage> makeDepthView(const IRenderTarget* target)
+    {
+        return m_parent->getDevice()->createImage(target->getFormat(), m_parent->getDevice()->getSwapChain()->getBufferSize());
     }
 
 public:
@@ -70,6 +80,9 @@ public:
             attachment.storeOp = target->getVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
+            if (target->getClearBuffer() || target->getClearStencil())
+                m_clearValues.push_back(VkClearValue{ target->getClearValues().x(),target->getClearValues().y(),target->getClearValues().z(),target->getClearValues().w() });
+
             switch (target->getType())
             {
             case RenderTargetType::Color:
@@ -78,7 +91,8 @@ public:
                 break;
             case RenderTargetType::Depth:
                 attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                attachment.finalLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                m_depthViews.push_back(this->makeDepthView(target.get()));
                 break;
             case RenderTargetType::Present:
                 attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -141,20 +155,26 @@ public:
         LITEFX_TRACE(VULKAN_LOG, "Initializing {0} frame buffers...", frames.size());
         
         std::generate(std::begin(frameBuffers), std::end(frameBuffers), [&, i = 0]() mutable {
-            auto frame = dynamic_cast<const IVulkanImage*>(frames[i++]);
+            Array<VkImageView> attachments;
 
-            if (frame == nullptr)
+            auto swapChainImage = dynamic_cast<const IVulkanImage*>(frames[i++]);
+            
+            if (swapChainImage == nullptr)
                 throw std::invalid_argument("A frame of the provided swap chain is not a valid Vulkan texture.");
             
-            VkImageView attachments[]{ frame->getImageView() };
+            attachments.push_back(swapChainImage->getImageView());
+
+            std::for_each(std::begin(m_depthViews), std::end(m_depthViews), [&](const auto& view) { 
+                attachments.push_back(dynamic_cast<const IVulkanImage*>(view.get())->getImageView());
+            });
 
             VkFramebufferCreateInfo frameBufferInfo{};
             frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             frameBufferInfo.renderPass = renderPass;
-            frameBufferInfo.attachmentCount = 1;
-            frameBufferInfo.pAttachments = attachments;
-            frameBufferInfo.width = frame->getExtent().width();
-            frameBufferInfo.height = frame->getExtent().height();
+            frameBufferInfo.attachmentCount = static_cast<UInt32>(attachments.size());
+            frameBufferInfo.pAttachments = attachments.data();
+            frameBufferInfo.width = swapChainImage->getExtent().width();
+            frameBufferInfo.height = swapChainImage->getExtent().height();
             frameBufferInfo.layers = 1;
 
             VkFramebuffer frameBuffer;
@@ -198,11 +218,8 @@ public:
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent.width = static_cast<UInt32>(m_device->getBufferWidth());
         renderPassInfo.renderArea.extent.height = static_cast<UInt32>(m_device->getBufferHeight());
-
-        // VkClearValue backColor = m_device->getBackColor();
-        VkClearValue backColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-        renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues = &backColor;
+        renderPassInfo.clearValueCount = m_clearValues.size();
+        renderPassInfo.pClearValues = m_clearValues.data();
 
         ::vkCmdBeginRenderPass(m_commandBuffer->handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         ::vkCmdBindPipeline(m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle());
@@ -351,23 +368,30 @@ void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
     this->instance()->addTarget(std::move(target));
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::withColorTarget()
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::withColorTarget(const bool& clear, const Vector4f& clearColor)
 {
     auto swapChain = this->instance()->m_impl->m_pipeline.getDevice()->getSwapChain();
-    this->addTarget(RenderTargetType::Color, swapChain->getFormat(), MultiSamplingLevel::x1, true, true, false);
+    this->addTarget(RenderTargetType::Color, swapChain->getFormat(), MultiSamplingLevel::x1, clearColor, clear, false, false);
+
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::withDepthTarget(const bool& clear, const bool& clearStencil, const Vector2f& clearValues, const Format& format)
+{
+    this->addTarget(RenderTargetType::Depth, format, MultiSamplingLevel::x1, { clearValues.x(), clearValues.y(), 0.0f, 0.0f }, clear, clearStencil, false);
+
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::withPresentTarget(const bool& clear, const Vector4f& clearColor, const MultiSamplingLevel& samples)
+{
+    auto swapChain = this->instance()->m_impl->m_pipeline.getDevice()->getSwapChain();
+    this->addTarget(RenderTargetType::Present, swapChain->getFormat(), samples, clearColor, clear, false, false);
     
     return *this;
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::withPresentTarget(const MultiSamplingLevel& samples)
-{
-    auto swapChain = this->instance()->m_impl->m_pipeline.getDevice()->getSwapChain();
-    this->addTarget(RenderTargetType::Present, swapChain->getFormat(), samples, true, true, false);
-    
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, bool clearColor, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clearColor, bool clearStencil, bool isVolatile)
 {
     UniquePtr<IRenderTarget> target = makeUnique<RenderTarget>();
     target->setType(type);
@@ -376,6 +400,7 @@ VulkanRenderPassBuilder& VulkanRenderPassBuilder::addTarget(const RenderTargetTy
     target->setClearBuffer(clearColor);
     target->setClearStencil(clearStencil);
     target->setVolatile(isVolatile);
+    target->setClearValues(clearValues);
 
     this->use(std::move(target));
 

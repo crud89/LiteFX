@@ -941,10 +941,10 @@ namespace LiteFX::Rendering {
 
     public:
         virtual void use(UniquePtr<IRenderTarget>&& target) = 0;
-        virtual TDerived& withColorTarget() = 0;
-        virtual TDerived& withPresentTarget(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;
-        //virtual TDerived& withDepthTarget() = 0;
-        virtual TDerived& addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        virtual TDerived& withColorTarget(const bool& clear = false, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }) = 0;
+        virtual TDerived& withDepthTarget(const bool& clear = true, const bool& clearStencil = true, const Vector2f& clearValues = { 1.0f, 0.0f }, const Format& format = Format::D24_UNORM_S8_UINT) = 0;
+        virtual TDerived& withPresentTarget(const bool& clear = true, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;
+        virtual TDerived& addTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
     };
 
     /// <summary>

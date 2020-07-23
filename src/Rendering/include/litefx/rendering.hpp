@@ -59,6 +59,9 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <seealso cref="IRenderTarget::getVolatile" />
 		virtual void setVolatile(const bool& isVolatile = false) = 0;
+
+		virtual const Vector4f& getClearValues() const noexcept = 0;
+		virtual void setClearValues(const Vector4f& values) = 0;
 	};
 
 	class LITEFX_RENDERING_API RenderTarget : public IRenderTarget {
@@ -106,6 +109,12 @@ namespace LiteFX::Rendering {
 
 		/// <inheritdoc />
 		virtual void setVolatile(const bool& isVolatile = false) override;
+
+		/// <inheritdoc />
+		virtual const Vector4f& getClearValues() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setClearValues(const Vector4f& values) override;
 	};
 
 	/// <summary>
@@ -177,6 +186,7 @@ namespace LiteFX::Rendering {
 		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
 		virtual UniquePtr<IConstantBuffer> createConstantBuffer(const IDescriptorLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+		virtual UniquePtr<IImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 		virtual UniquePtr<ITexture> createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 		virtual UniquePtr<ISampler> createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const = 0;
