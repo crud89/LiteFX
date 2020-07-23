@@ -7,98 +7,12 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 _VMAImageBase::_VMAImageBase(const VulkanDevice* device, VkImage image, VmaAllocator allocator, VmaAllocation allocation) :
-	VulkanRuntimeObject(device), IResource(image), m_allocator(allocator), m_allocationInfo(allocation) 
+	VulkanRuntimeObject(device), IResource(image), m_allocator(allocator), m_allocationInfo(allocation)
 {
 }
 
 _VMAImageBase::~_VMAImageBase() noexcept 
 {
-}
-
-void _VMAImageBase::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const 
-{
-	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
-	auto sourceBuffer = dynamic_cast<const IResource<VkBuffer>*>(source);
-
-	if (sourceBuffer == nullptr)
-		throw std::invalid_argument("The transfer source buffer must be initialized and a valid Vulkan buffer.");
-
-	if (transferQueue == nullptr)
-		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
-
-	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
-
-	if (device == nullptr)
-		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
-
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
-
-	// Begin the transfer recording.
-	commandBuffer->begin();
-
-	// Create a copy command and add it to the command buffer.
-	VkBufferImageCopy copyInfo{};
-	copyInfo.bufferOffset = sourceOffset;
-
-	// TODO: Support padded buffer formats.
-	copyInfo.bufferRowLength = 0;
-	copyInfo.bufferImageHeight = 0;
-
-	copyInfo.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	copyInfo.imageSubresource.mipLevel = 0;
-	copyInfo.imageSubresource.baseArrayLayer = 0;
-	copyInfo.imageSubresource.layerCount = 1;
-
-	copyInfo.imageOffset = { 0, 0, 0 };
-	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
-
-	::vkCmdCopyBufferToImage(commandBuffer->handle(), sourceBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyInfo);
-
-	// End the transfer recording and submit the buffer.
-	commandBuffer->end();
-	commandBuffer->submit(true);
-}
-
-void _VMAImageBase::transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
-{
-	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
-	auto targetBuffer = dynamic_cast<const IResource<VkBuffer>*>(target);
-
-	if (targetBuffer == nullptr)
-		throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
-
-	if (transferQueue == nullptr)
-		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
-
-	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
-
-	if (device == nullptr)
-		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
-
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
-
-	// Begin the transfer recording.
-	commandBuffer->begin();
-
-	// Create a copy command and add it to the command buffer.
-	VkBufferImageCopy copyInfo{};
-	copyInfo.bufferOffset = 0;
-	copyInfo.bufferRowLength = 0;
-	copyInfo.bufferImageHeight = 0;
-
-	copyInfo.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	copyInfo.imageSubresource.mipLevel = 0;
-	copyInfo.imageSubresource.baseArrayLayer = 0;
-	copyInfo.imageSubresource.layerCount = 1;
-
-	copyInfo.imageOffset = { 0, 0, 0 };
-	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
-
-	::vkCmdCopyImageToBuffer(commandBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, targetBuffer->handle(), 1, &copyInfo);
-
-	// End the transfer recording and submit the buffer.
-	commandBuffer->end();
-	commandBuffer->submit(true);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -170,8 +84,8 @@ UniquePtr<IImage> _VMAImage::allocate(const VulkanDevice* device, const UInt32& 
 // Image.
 // ------------------------------------------------------------------------------------------------
 
-_VMATexture::_VMATexture(const VulkanDevice* device, const IDescriptorLayout* layout, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
-	_VMAImageBase(device, image, allocator, allocation), Texture(layout, elements, ::getSize(format)* extent.width()* extent.height(), extent, format, levels, samples)
+_VMATexture::_VMATexture(const VulkanDevice* device, const IDescriptorLayout* layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
+	_VMAImageBase(device, image, allocator, allocation), Texture(layout, elements, ::getSize(format)* extent.width()* extent.height(), extent, format, levels, samples), m_imageLayout(imageLayout)
 {
 	VkImageViewCreateInfo createInfo = {};
 
@@ -206,6 +120,200 @@ const VkImageView& _VMATexture::getImageView() const noexcept
 	return m_view;
 }
 
+void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
+{
+	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
+	auto sourceBuffer = dynamic_cast<const IResource<VkBuffer>*>(source);
+
+	if (sourceBuffer == nullptr)
+		throw std::invalid_argument("The transfer source buffer must be initialized and a valid Vulkan buffer.");
+
+	if (transferQueue == nullptr)
+		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
+
+	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
+
+	if (device == nullptr)
+		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
+
+	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
+
+	// Begin the transfer recording.
+	commandBuffer->begin();
+
+	// First, transition the image into a fitting layout, so that it can receive transfers.
+	VkImageMemoryBarrier beginTransitionBarrier = {};
+	beginTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	beginTransitionBarrier.oldLayout = m_imageLayout;
+	beginTransitionBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	beginTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	beginTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	beginTransitionBarrier.image = this->handle();
+	beginTransitionBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	beginTransitionBarrier.subresourceRange.baseMipLevel = 0;
+	//beginTransitionBarrier.subresourceRange.levelCount = this->getLevels();
+	beginTransitionBarrier.subresourceRange.levelCount = 1;
+	beginTransitionBarrier.subresourceRange.baseArrayLayer = 0;
+	beginTransitionBarrier.subresourceRange.layerCount = 1;
+	beginTransitionBarrier.srcAccessMask = 0;
+	beginTransitionBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
+
+	// Create a copy command and add it to the command buffer.
+	VkBufferImageCopy copyInfo{};
+	copyInfo.bufferOffset = sourceOffset;
+
+	// TODO: Support padded buffer formats.
+	copyInfo.bufferRowLength = 0;
+	copyInfo.bufferImageHeight = 0;
+
+	copyInfo.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	copyInfo.imageSubresource.mipLevel = 0;
+	copyInfo.imageSubresource.baseArrayLayer = 0;
+	copyInfo.imageSubresource.layerCount = 1;
+
+	copyInfo.imageOffset = { 0, 0, 0 };
+	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
+
+	::vkCmdCopyBufferToImage(commandBuffer->handle(), sourceBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyInfo);
+
+	// Last, transition the image back into the required layout for rendering.
+	VkImageMemoryBarrier endTransitionBarrier = {};
+	endTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	endTransitionBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	endTransitionBarrier.newLayout = m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	endTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	endTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	endTransitionBarrier.image = this->handle();
+	endTransitionBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	endTransitionBarrier.subresourceRange.baseMipLevel = 0;
+	//endTransitionBarrier.subresourceRange.levelCount = this->getLevels();
+	endTransitionBarrier.subresourceRange.levelCount = 1;
+	endTransitionBarrier.subresourceRange.baseArrayLayer = 0;
+	endTransitionBarrier.subresourceRange.layerCount = 1;
+	endTransitionBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	endTransitionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	VkPipelineStageFlags targetStages = {};
+	auto shaderStages = this->getLayout()->getDescriptorSet()->getShaderStages();
+
+	if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
+		targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+	if ((shaderStages & ShaderStage::Geometry) == ShaderStage::Geometry)
+		targetStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	if ((shaderStages & ShaderStage::Fragment) == ShaderStage::Fragment)
+		targetStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	if ((shaderStages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
+		targetStages |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	if ((shaderStages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
+		targetStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+	if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
+		targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
+	
+	// End the transfer recording and submit the buffer.
+	commandBuffer->end();
+	commandBuffer->submit(true);
+}
+
+void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
+{
+	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
+	auto targetBuffer = dynamic_cast<const IResource<VkBuffer>*>(target);
+
+	if (targetBuffer == nullptr)
+		throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
+
+	if (transferQueue == nullptr)
+		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
+
+	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
+
+	if (device == nullptr)
+		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
+
+	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
+
+	// Begin the transfer recording.
+	commandBuffer->begin();
+
+	// First, transition the image into a fitting layout, so that it can receive transfers.
+	VkImageMemoryBarrier beginTransitionBarrier = {};
+	beginTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	beginTransitionBarrier.oldLayout = m_imageLayout;
+	beginTransitionBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	beginTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	beginTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	beginTransitionBarrier.image = this->handle();
+	beginTransitionBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	beginTransitionBarrier.subresourceRange.baseMipLevel = 0;
+	//beginTransitionBarrier.subresourceRange.levelCount = this->getLevels();
+	beginTransitionBarrier.subresourceRange.levelCount = 1;
+	beginTransitionBarrier.subresourceRange.baseArrayLayer = 0;
+	beginTransitionBarrier.subresourceRange.layerCount = 1;
+	beginTransitionBarrier.srcAccessMask = 0;
+	beginTransitionBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
+
+	// Create a copy command and add it to the command buffer.
+	VkBufferImageCopy copyInfo{};
+	copyInfo.bufferOffset = 0;
+	copyInfo.bufferRowLength = 0;
+	copyInfo.bufferImageHeight = 0;
+
+	copyInfo.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	copyInfo.imageSubresource.mipLevel = 0;
+	copyInfo.imageSubresource.baseArrayLayer = 0;
+	copyInfo.imageSubresource.layerCount = 1;
+
+	copyInfo.imageOffset = { 0, 0, 0 };
+	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
+
+	::vkCmdCopyImageToBuffer(commandBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, targetBuffer->handle(), 1, &copyInfo);
+
+	// Last, transition the image back into the required layout for rendering.
+	VkImageMemoryBarrier endTransitionBarrier = {};
+	endTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	endTransitionBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	endTransitionBarrier.newLayout = m_imageLayout;
+	endTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	endTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	endTransitionBarrier.image = this->handle();
+	endTransitionBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	endTransitionBarrier.subresourceRange.baseMipLevel = 0;
+	//endTransitionBarrier.subresourceRange.levelCount = this->getLevels();
+	endTransitionBarrier.subresourceRange.levelCount = 1;
+	endTransitionBarrier.subresourceRange.baseArrayLayer = 0;
+	endTransitionBarrier.subresourceRange.layerCount = 1;
+	endTransitionBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	endTransitionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	VkPipelineStageFlags targetStages = {};
+	auto shaderStages = this->getLayout()->getDescriptorSet()->getShaderStages();
+
+	if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
+		targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+	if ((shaderStages & ShaderStage::Geometry) == ShaderStage::Geometry)
+		targetStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	if ((shaderStages & ShaderStage::Fragment) == ShaderStage::Fragment)
+		targetStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	if ((shaderStages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
+		targetStages |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	if ((shaderStages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
+		targetStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+	if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
+		targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
+
+	// End the transfer recording and submit the buffer.
+	commandBuffer->end();
+	commandBuffer->submit(true);
+}
+
 UniquePtr<ITexture> _VMATexture::allocate(const VulkanDevice* device, const IDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	if (device == nullptr)
@@ -217,11 +325,11 @@ UniquePtr<ITexture> _VMATexture::allocate(const VulkanDevice* device, const IDes
 	// Allocate the buffer.
 	VkImage image;
 	VmaAllocation allocation;
-
+	
 	if (::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult) != VK_SUCCESS)
 		throw std::runtime_error("Unable to allocate texture.");
 
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Elements: {5}, Levels: {6}, Samples: {7} }}", fmt::ptr(image), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, elements, levels, samples);
 
-	return makeUnique<_VMATexture>(device, layout, image, elements, extent, format, levels, samples, allocator, allocation);
+	return makeUnique<_VMATexture>(device, layout, image, createInfo.initialLayout, elements, extent, format, levels, samples, allocator, allocation);
 }

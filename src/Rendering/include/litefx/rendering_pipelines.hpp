@@ -69,6 +69,7 @@ namespace LiteFX::Rendering {
         virtual ~IDescriptorLayout() noexcept = default;
 
     public:
+        virtual const IDescriptorSetLayout* getDescriptorSet() const noexcept = 0;
         virtual DescriptorType getDescriptorType() const noexcept = 0;
     };
 
@@ -141,7 +142,7 @@ namespace LiteFX::Rendering {
         /// <param name="size">The size (in bytes) to transfer from the source buffer.</param>
         /// <param name="sourceOffset">The offset (in bytes) from where to start transferring in the source buffer.</param>
         /// <param name="targetOffset">The offset (in bytes) to which the data will be transferred in the object memory.</param>
-        virtual void transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const = 0;
+        virtual void transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) = 0;
 
         /// <summary>
         /// Transfers data from the objects local memory into the <paramref name="target" /> buffer.
@@ -247,7 +248,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a generic image.
     /// </summary>
-    class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory, public virtual ITransferable {
+    class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory {
     public:
         virtual ~IImage() noexcept = default;
 
@@ -271,7 +272,7 @@ namespace LiteFX::Rendering {
     /// <remarks>
     /// A texture is a <see cref="LiteFX::Rendering::IImage" />, that can be bound to a descriptor.
     /// </remarks>
-    class LITEFX_RENDERING_API ITexture : public virtual IImage, public virtual IDescriptor {
+    class LITEFX_RENDERING_API ITexture : public virtual IImage, public virtual IDescriptor, public virtual ITransferable {
     public:
         virtual ~ITexture() noexcept = default;
     

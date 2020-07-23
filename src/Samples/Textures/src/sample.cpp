@@ -89,16 +89,14 @@ void SampleApp::loadTexture()
     if (imageData == nullptr)
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
-    // Create the texture.
+    // Create the texture and transfer the pixel contents to it.
     m_perMaterialBindings = m_pipeline->makeBufferPool(DescriptorSets::PerMaterial);
     m_texture = m_perMaterialBindings->makeTexture(0, Format::R8G8B8A8_SRGB, Size2d(width, height));
+    auto stagedTexture = m_device->createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->getSize());
+    stagedTexture->map(imageData.get(), m_texture->getSize());
 
-    // Create a texture with 1 mip map.
-    
-    //auto textureBuffer = m_pipeline->makeBuffer()
-
-    //m_textureBuffer = m_pipeline->makeBufferPool(BufferUsage::Resource, DescriptorSets::PerMaterial);
-    //textureBuffer->transfer(m_device->getTransferQueue(), m_textureBuffer->getBuffer(0), textureBuffer->getSize());
+    // Transfer the texture using the graphics queue.
+    m_texture->transferFrom(m_device->getGraphicsQueue(), stagedTexture.get(), m_texture->getSize(), 0);
 }
 
 void SampleApp::initBuffers()

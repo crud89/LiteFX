@@ -33,7 +33,7 @@ void _VMABufferBase::map(const void* const data, const size_t& size)
 	::vmaUnmapMemory(m_allocator, m_allocationInfo);
 }
 
-void _VMABufferBase::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
+void _VMABufferBase::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
 {
 	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
 	auto sourceBuffer = dynamic_cast<const IResource<VkBuffer>*>(source);

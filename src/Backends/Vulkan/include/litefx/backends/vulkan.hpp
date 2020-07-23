@@ -109,6 +109,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual BufferType getType() const noexcept override;
 
 	public:
+		virtual const IDescriptorSetLayout* getDescriptorSet() const noexcept override;
 		virtual DescriptorType getDescriptorType() const noexcept override;
 	};
 

@@ -27,21 +27,6 @@ namespace LiteFX::Rendering::Backends {
 		_VMAImageBase(_VMAImageBase&&) = delete;
 		_VMAImageBase(const _VMAImageBase&) = delete;
 		virtual ~_VMAImageBase() noexcept;
-
-	public:
-		/// <inheritdoc />
-		/// <remarks>
-		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="targetOffset" />
-		/// parameters are ignored and can be simply set to <c>0</c>.
-		/// </remarks>
-		virtual void transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
-
-		/// <inheritdoc />
-		/// <remarks>
-		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="sourceOffset" />
-		/// parameters are ignored and can be simply set to <c>0</c>.
-		/// </remarks>
-		virtual void transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
 	};
 
 	class _VMAImage : public _VMAImageBase, public Image {
@@ -60,14 +45,32 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	class _VMATexture : public _VMAImageBase, public Texture {
+	private:
+		VkImageLayout m_imageLayout;
+
 	public:
-		_VMATexture(const VulkanDevice* device, const IDescriptorLayout* layout, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
+		_VMATexture(const VulkanDevice* device, const IDescriptorLayout* layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
 		_VMATexture(_VMATexture&&) = delete;
 		_VMATexture(const _VMATexture&) = delete;
 		virtual ~_VMATexture() noexcept;
 
 	public:
 		virtual const VkImageView& getImageView() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		/// <remarks>
+		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="targetOffset" />
+		/// parameters are ignored and can be simply set to <c>0</c>.
+		/// </remarks>
+		virtual void transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) override;
+
+		/// <inheritdoc />
+		/// <remarks>
+		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="sourceOffset" />
+		/// parameters are ignored and can be simply set to <c>0</c>.
+		/// </remarks>
+		virtual void transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
 
 	public:
 		static UniquePtr<ITexture> allocate(const VulkanDevice* device, const IDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);

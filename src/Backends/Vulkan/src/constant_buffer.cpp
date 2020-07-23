@@ -11,13 +11,14 @@ public:
     friend class VulkanDescriptorLayout;
 
 private:
+    const IDescriptorSetLayout* m_setLayout;
     size_t m_elementSize;
     UInt32 m_binding;
     DescriptorType m_type;
 
 public:
-    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, const DescriptorType& type, const UInt32& binding, const size_t& elementSize) :
-        base(parent), m_type(type), m_binding(binding), m_elementSize(elementSize) { }
+    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, const VulkanDescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize) :
+        base(parent), m_setLayout(&descriptorSetLayout), m_type(type), m_binding(binding), m_elementSize(elementSize) { }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +26,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorLayout::VulkanDescriptorLayout(const VulkanDescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize) :
-    m_impl(makePimpl<VulkanDescriptorLayoutImpl>(this, type, binding, elementSize)), VulkanRuntimeObject(descriptorSetLayout.getDevice())
+    m_impl(makePimpl<VulkanDescriptorLayoutImpl>(this, descriptorSetLayout, type, binding, elementSize)), VulkanRuntimeObject(descriptorSetLayout.getDevice())
 {
 }
 
@@ -49,6 +50,11 @@ BufferType VulkanDescriptorLayout::getType() const noexcept
     case DescriptorType::Storage: return BufferType::Storage;
     default: return BufferType::Other;
     }
+}
+
+const IDescriptorSetLayout* VulkanDescriptorLayout::getDescriptorSet() const noexcept
+{
+    return m_impl->m_setLayout;
 }
 
 DescriptorType VulkanDescriptorLayout::getDescriptorType() const noexcept
