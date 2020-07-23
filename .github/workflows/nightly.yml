@@ -2,8 +2,9 @@
 # Based on https://github.com/lukka/CppBuildTasks-Validation/blob/master/.github/workflows/hosted-basic-cache-submod_vcpkg.yml
 name: Nightly
 on:
-  schedule:
-    - cron: '0 2 * * *'
+  workflow_dispatch
+#  schedule:
+#    - cron: '0 2 * * *'
 
 jobs:
   job:
