@@ -1,5 +1,4 @@
 # Copyright (c) 2020 Carsten Rudolph
-# Based on https://github.com/lukka/CppBuildTasks-Validation/blob/master/.github/workflows/hosted-basic-cache-submod_vcpkg.yml
 name: Nightly
 on:
   workflow_dispatch
@@ -23,36 +22,15 @@ jobs:
           submodules: true
 
       - uses: lukka/get-cmake@latest
-      
-      - name: Set vcpkg's response file path used as part of cache's key.
-        uses: lukka/set-shell-env@master
-        with:
-          VCPKGRESPONSEFILE: ${{ github.workspace }}/cmakeliststxt/vcpkg_${{ matrix.triplet }}.txt
 
-      - name: dir
-        run: find $RUNNER_WORKSPACE
-        shell: bash
-      - name: Restore from cache and run vcpkg
+      - name: Restore from cache and install vcpkg
         uses: lukka/run-vcpkg@v3
         with:
-          # Response file stored in source control, it provides the list of ports and triplet(s).
-          vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
-          # Location of the vcpkg as submodule of the repository.
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          # Since the cache must be invalidated when content of the response file changes, let's
-          # compute its hash and append this to the computed cache's key.
-          appendedCacheKey: ${{ hashFiles(env.vcpkgResponseFile) }}
+          setupOnly: true
 
-      - name: Run CMake with Ninja
+      - name: 'Build with CMake and Ninja'
         uses: lukka/run-cmake@v2
-        id: runcmake
         with:
-          cmakeListsTxtPath: '${{ github.workspace }}/cmakeliststxt/CMakeLists.txt'
-          useVcpkgToolchainFile: true
-          buildWithCMakeArgs: '-- -v'
-      - name: Prints output of run-vcpkg's task
-        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_TRIPLET_OUT }}' "
-
-      - name: dir
-        run: find $RUNNER_WORKSPACE
-        shell: bash
+          cmakeListsOrSettingsJson: CMakeSettingsJson
+          cmakeSettingsJsonPath: '${{ github.workspace }}/cmakesettings.json/CMakeSettings.json'
+          configurationRegexFilter: '${{ matrix.configuration }}'
