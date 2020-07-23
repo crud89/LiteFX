@@ -10,10 +10,10 @@ enum DescriptorSets : UInt32
 
 const Array<Vertex> vertices =
 {
-    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-    { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f } },
-    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f } }
+    { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, -0.5f, 0.0f },  { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
+    { { 0.5f, 0.5f, 0.0f },   { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } },
+    { { -0.5f, 0.5f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }
 };
 
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
@@ -112,7 +112,7 @@ void SampleApp::run()
     // Shut down the device.
     m_device->wait();
 
-    // Destroy all buffers.
+    // Destroy all resources.
     m_perObjectBindings = nullptr;
     m_perFrameBindings = nullptr;
     m_cameraBuffer = nullptr;

@@ -12,6 +12,7 @@ namespace LiteFX::Graphics {
     public:
         Vector3f Position;
         Vector4f Color;
+        Vector2f TextureCoordinate0;
     };
 
 }

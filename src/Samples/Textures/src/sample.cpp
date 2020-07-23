@@ -14,10 +14,10 @@ enum DescriptorSets : UInt32
 
 const Array<Vertex> vertices =
 {
-    { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f } },
-    { { 0.5f, -0.5f, 0.0f },  { 0.0f, 1.0f, 1.0f, 1.0f } },
-    { { 0.5f, 0.5f, 0.0f },   { 1.0f, 0.0f, 1.0f, 1.0f } },
-    { { -0.5f, 0.5f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f } }
+    { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, -0.5f, 0.0f },  { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
+    { { 0.5f, 0.5f, 0.0f },   { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } },
+    { { -0.5f, 0.5f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }
 };
 
 const Array<UInt16> indices = { 2, 1, 0, 3, 2, 0 };
@@ -56,6 +56,7 @@ void SampleApp::createPipeline()
                 .make<VulkanVertexBufferLayout>(sizeof(Vertex), 0)
                     .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
                     .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                    .addAttribute(2, BufferFormat::XYZW32F, offsetof(Vertex, TextureCoordinate0))
                     .go()
                 .go()
             .make<VulkanShaderProgram>()
@@ -97,9 +98,11 @@ void SampleApp::loadTexture()
 
     // Transfer the texture using the graphics queue.
     m_texture->transferFrom(m_device->getGraphicsQueue(), stagedTexture.get(), m_texture->getSize(), 0);
+    m_perMaterialBindings->update(m_texture.get());
 
     // Create a sampler.
-    //m_sampler = m_perMaterialBindings->makeSampler();
+    m_sampler = m_perMaterialBindings->makeSampler(1);
+    m_perMaterialBindings->update(m_sampler.get());
 }
 
 void SampleApp::initBuffers()
@@ -143,7 +146,7 @@ void SampleApp::run()
     // Shut down the device.
     m_device->wait();
 
-    // Destroy all buffers.
+    // Destroy all resources.
     m_perObjectBindings = nullptr;
     m_perFrameBindings = nullptr;
     m_perMaterialBindings = nullptr;
@@ -152,6 +155,7 @@ void SampleApp::run()
     m_vertexBuffer = nullptr;
     m_indexBuffer = nullptr;
     m_texture = nullptr;
+    m_sampler = nullptr;
 
     // Destroy the pipeline and the device.
     m_pipeline = nullptr;
