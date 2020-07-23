@@ -21,7 +21,7 @@ private:
     Array<UniquePtr<IImage>> m_depthViews;
     Array<VkClearValue> m_clearValues;
     Array<VkFramebuffer> m_frameBuffers;
-    UniquePtr<const VulkanCommandBuffer> m_commandBuffer;
+    Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
     UInt32 m_currentFrameBuffer{ 0 };
     VkSemaphore m_semaphore;
 
@@ -183,8 +183,11 @@ public:
         m_frameBuffers = frameBuffers;
 
         // Create a command buffer.
-        if (m_commandBuffer == nullptr)
-            m_commandBuffer = makeUnique<const VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_device->getGraphicsQueue()));
+        if (m_commandBuffers.empty())
+        {
+            m_commandBuffers.resize(frames.size());
+            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_device->getGraphicsQueue())); });
+        }
 
         // Create a semaphore that signals if the render pass has finished.
         VkSemaphoreCreateInfo semaphoreInfo{};
@@ -199,10 +202,10 @@ public:
 
     void begin()
     {
-        m_commandBuffer->begin();
-
         // Swap out the back buffer.
         m_currentFrameBuffer = m_swapChain->swapBackBuffer();
+        auto commandBuffer = this->getCurrentCommandBuffer();
+        commandBuffer->begin();
 
         // Begin the render pass.
         VkRenderPassBeginInfo renderPassInfo{};
@@ -215,20 +218,21 @@ public:
         renderPassInfo.clearValueCount = m_clearValues.size();
         renderPassInfo.pClearValues = m_clearValues.data();
 
-        ::vkCmdBeginRenderPass(m_commandBuffer->handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        ::vkCmdBindPipeline(m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle());
+        ::vkCmdBeginRenderPass(commandBuffer->handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        ::vkCmdBindPipeline(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle());
     }
 
     void end(const bool present = false)
     {
-        ::vkCmdEndRenderPass(m_commandBuffer->handle());
-        m_commandBuffer->end();
+        auto commandBuffer = this->getCurrentCommandBuffer();
+        ::vkCmdEndRenderPass(commandBuffer->handle());
+        commandBuffer->end();
 
         // Submit the command buffer.
         Array<VkSemaphore> waitForSemaphores = { m_swapChain->getSemaphore() };
         Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
         Array<VkSemaphore> signalSemaphores = { m_semaphore };
-        m_commandBuffer->submit(waitForSemaphores, waitForStages, signalSemaphores, false);
+        commandBuffer->submit(waitForSemaphores, waitForStages, signalSemaphores, false);
 
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
         if (present)
@@ -250,6 +254,11 @@ public:
     }
 
 public:
+    const VulkanCommandBuffer* getCurrentCommandBuffer()
+    {
+        return m_commandBuffers[m_currentFrameBuffer].get();
+    }
+
     void addTarget(UniquePtr<IRenderTarget>&& target) 
     {
         m_targets.push_back(std::move(target));
@@ -295,7 +304,7 @@ VulkanRenderPass::~VulkanRenderPass() noexcept
 
 const ICommandBuffer* VulkanRenderPass::getCommandBuffer() const noexcept
 {
-    return m_impl->m_commandBuffer.get();
+    return m_impl->getCurrentCommandBuffer();
 }
 
 void VulkanRenderPass::addTarget(UniquePtr<IRenderTarget>&& target)
@@ -339,12 +348,12 @@ void VulkanRenderPass::reset()
 
 void VulkanRenderPass::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
 {
-    ::vkCmdDraw(m_impl->m_commandBuffer->handle(), vertices, instances, firstVertex, firstInstance);
+    ::vkCmdDraw(m_impl->getCurrentCommandBuffer()->handle(), vertices, instances, firstVertex, firstInstance);
 }
 
 void VulkanRenderPass::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const
 {
-    ::vkCmdDrawIndexed(m_impl->m_commandBuffer->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
+    ::vkCmdDrawIndexed(m_impl->getCurrentCommandBuffer()->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
 // ------------------------------------------------------------------------------------------------

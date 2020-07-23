@@ -14,7 +14,6 @@ public:
 
 private:
 	const VulkanRenderPass* m_renderPass;
-	const VulkanCommandBuffer* m_commandBuffer;
 	const VulkanRenderPipelineLayout* m_pipelineLayout;
 
 public:
@@ -31,16 +30,12 @@ public:
 	{
 		m_pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_parent->getLayout());
 		m_renderPass = dynamic_cast<const VulkanRenderPass*>(m_parent->getRenderPass());
-		m_commandBuffer = dynamic_cast<const VulkanCommandBuffer*>(m_renderPass->getCommandBuffer());
 
 		if (m_pipelineLayout == nullptr)
 			throw std::invalid_argument("The pipeline layout is not a valid Vulkan pipeline layout instance.");
 
 		if (m_renderPass == nullptr)
 			throw std::invalid_argument("The render pass is not a valid Vulkan render pass instance.");
-
-		if (m_commandBuffer == nullptr)
-			throw std::invalid_argument("The command buffer is not a valid Vulkan command buffer instance.");
 
 		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(m_pipelineLayout));
 
@@ -296,6 +291,7 @@ void VulkanRenderPipeline::reset()
 void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
 {
 	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
+	auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(m_impl->m_renderPass->getCommandBuffer());
 
 	if (resource == nullptr)
 		throw std::invalid_argument("The provided vertex buffer is not a valid Vulkan buffer.");
@@ -303,34 +299,33 @@ void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
 	// Depending on the type, bind the buffer accordingly.
 	constexpr VkDeviceSize offsets[] = { 0 };
 
-	::vkCmdBindVertexBuffers(m_impl->m_commandBuffer->handle(), 0, 1, &resource->handle(), offsets);
+	::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &resource->handle(), offsets);
 }
 
 void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
 {
 	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
+	auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(m_impl->m_renderPass->getCommandBuffer());
 
 	if (resource == nullptr)
 		throw std::invalid_argument("The provided index buffer is not a valid Vulkan buffer.");
 
-	::vkCmdBindIndexBuffer(m_impl->m_commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+	::vkCmdBindIndexBuffer(commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 }
 
 void VulkanRenderPipeline::bind(const IDescriptorSet* b) const
 {
 	auto pool = dynamic_cast<const VulkanDescriptorSet*>(b);
+	auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(m_impl->m_renderPass->getCommandBuffer());
 
 	if (pool == nullptr)
 		throw std::invalid_argument("The provided buffer pool is not a valid Vulkan buffer pool.");
 
-	auto renderPass = m_impl->m_renderPass;
-	auto commandBuffer = m_impl->m_commandBuffer;
-	auto pipelineLayout = m_impl->m_pipelineLayout;
 	auto bufferSet = pool->getDescriptorSetLayout()->getSetId();
 	VkDescriptorSet descriptorSets[] = { pool->getDescriptorSet() };
 
 	// TODO: Synchronize with possible update calls on this command buffer, first.
-	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), bufferSet, 1, descriptorSets, 0, nullptr);
+	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_pipelineLayout->handle(), bufferSet, 1, descriptorSets, 0, nullptr);
 }
 
 UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
