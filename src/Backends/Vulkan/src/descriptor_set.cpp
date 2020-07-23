@@ -104,6 +104,12 @@ UniquePtr<ITexture> VulkanDescriptorSet::makeTexture(const UInt32& binding, cons
     return this->getDevice()->createTexture(layout, format, size, levels, samples);
 }
 
+UniquePtr<ISampler> VulkanDescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const noexcept
+{
+    auto layout = this->getDescriptorSetLayout()->getLayout(binding);
+    return this->getDevice()->createSampler(layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+}
+
 void VulkanDescriptorSet::update(const IConstantBuffer* buffer) const
 {
     auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);

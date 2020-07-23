@@ -504,6 +504,11 @@ UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout,
 	return _VMATexture::allocate(this, layout, 1, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
+UniquePtr<ISampler> VulkanDevice::createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+{
+	return makeUnique<VulkanSampler>(this, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+}
+
 Array<UniquePtr<IImage>> VulkanDevice::createSwapChainImages(const ISwapChain* sc) const
 {
 	auto swapChain = dynamic_cast<const VulkanSwapChain*>(sc);

@@ -56,7 +56,7 @@ public:
 		samplerInfo.addressModeU = getBorderMode(m_parent->getBorderModeU());
 		samplerInfo.addressModeV = getBorderMode(m_parent->getBorderModeV());
 		samplerInfo.addressModeW = getBorderMode(m_parent->getBorderModeW());
-		samplerInfo.anisotropyEnable = m_parent->getAnisotropy() > 0.f;
+		samplerInfo.anisotropyEnable = m_parent->getAnisotropy() > 0.f ? VK_TRUE : VK_FALSE;
 		samplerInfo.maxAnisotropy = m_parent->getAnisotropy();
 		samplerInfo.mipmapMode = getMipMapMode(m_parent->getMipMapMode());
 		samplerInfo.mipLodBias = m_parent->getMipMapBias();
