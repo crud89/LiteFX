@@ -1,0 +1,55 @@
+# Copyright (c) 2020 Carsten Rudolph
+# Based on https://github.com/lukka/CppBuildTasks-Validation/blob/master/.github/workflows/hosted-basic-cache-submod_vcpkg.yml
+name: Nightly
+on:
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  job:
+    name: ${{ matrix.os }}-Nightly
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest ]
+        include:
+          - os: windows-latest
+            triplet: x64-windows
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      - uses: lukka/get-cmake@latest
+      
+      - name: Set vcpkg's response file path used as part of cache's key.
+        uses: lukka/set-shell-env@master
+        with:
+          VCPKGRESPONSEFILE: ${{ github.workspace }}/cmakeliststxt/vcpkg_${{ matrix.triplet }}.txt
+
+      - name: dir
+        run: find $RUNNER_WORKSPACE
+        shell: bash
+      - name: Restore artifacts, or run vcpkg, build and cache artifacts
+        uses: lukka/run-vcpkg@add_triplet_to_cachekey
+        id: runvcpkg
+        with:
+          vcpkgArguments: '@${{ env.VCPKGRESPONSEFILE }}'
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          # Ensure the cache key changes any time the content of the response file changes.
+          appendedCacheKey: ${{ hashFiles( env.VCPKGRESPONSEFILE ) }}
+
+      - name: Run CMake with Ninja
+        uses: lukka/run-cmake@v2
+        id: runcmake
+        with:
+          cmakeListsTxtPath: '${{ github.workspace }}/cmakeliststxt/CMakeLists.txt'
+          useVcpkgToolchainFile: true
+          buildWithCMakeArgs: '-- -v'
+      - name: Prints output of run-vcpkg's task
+        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_TRIPLET_OUT }}' "
+
+      - name: dir
+        run: find $RUNNER_WORKSPACE
+        shell: bash
