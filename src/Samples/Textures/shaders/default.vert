@@ -4,6 +4,7 @@ struct VertexData
 {
     float4 Position : SV_POSITION;
     float4 Color : COLOR;
+    float2 TextureCoordinate : TEXCOORD0;
 }; 
 
 struct VertexInput
@@ -13,6 +14,9 @@ struct VertexInput
     
     //[[vk::location(1)]]
     float4 Color : COLOR;
+    
+    //[[vk::location(2)]]
+    float2 TextureCoordinate : TEXCOORD0;
 };
 
 struct CameraData
@@ -36,6 +40,7 @@ VertexData main(in VertexInput input)
     vertex.Position = mul(position, camera.ViewProjection);
     
     vertex.Color = input.Color;
+    vertex.TextureCoordinate = input.TextureCoordinate;
  
     return vertex;
 }
