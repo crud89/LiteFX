@@ -32,14 +32,16 @@ jobs:
       - name: dir
         run: find $RUNNER_WORKSPACE
         shell: bash
-      - name: Restore artifacts, or run vcpkg, build and cache artifacts
-        uses: lukka/run-vcpkg@add_triplet_to_cachekey
-        id: runvcpkg
+      - name: Restore from cache and run vcpkg
+        uses: lukka/run-vcpkg@v3
         with:
-          vcpkgArguments: '@${{ env.VCPKGRESPONSEFILE }}'
+          # Response file stored in source control, it provides the list of ports and triplet(s).
+          vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
+          # Location of the vcpkg as submodule of the repository.
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          # Ensure the cache key changes any time the content of the response file changes.
-          appendedCacheKey: ${{ hashFiles( env.VCPKGRESPONSEFILE ) }}
+          # Since the cache must be invalidated when content of the response file changes, let's
+          # compute its hash and append this to the computed cache's key.
+          appendedCacheKey: ${{ hashFiles(env.vcpkgResponseFile) }}
 
       - name: Run CMake with Ninja
         uses: lukka/run-cmake@v2
