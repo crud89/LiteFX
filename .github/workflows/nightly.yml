@@ -33,5 +33,5 @@ jobs:
         uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '${{ github.workspace }}/cmakesettings.json/CMakeSettings.json'
+          cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
           configurationRegexFilter: '${{ matrix.configuration }}'
