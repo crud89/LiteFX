@@ -69,7 +69,7 @@ jobs:
           buildDirectory: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
       
       - name: Upload build artifacts
-        uses: actions/upload-artifacts@v2
+        uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-build
           path: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
@@ -80,7 +80,7 @@ jobs:
           cmake --install .
           
       - name: Upload install artifacts
-        uses: actions/upload-artifacts@v2
+        uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
           path: '${{ github.workspace }}/../out/install/${{ matrix.configuration }}/' # TODO: When run-cmake supports it, we should use a configurable install location.
