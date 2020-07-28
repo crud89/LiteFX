@@ -29,8 +29,9 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup Vulkan SDK environment
-        run: echo "::set-env name=VULKAN_SDK::C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
+      - name: Setup build environment
+        run: 
+          echo "::set-env name=VULKAN_SDK::C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
 
       - name: Setup Vulkan SDK cache
         id: vulkan-sdk-cache
@@ -72,7 +73,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-build
-          path: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+          path: '../out/build/${{ matrix.configuration }}/'
       
       - name: Install with CMake
         run: |
@@ -83,4 +84,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ github.workspace }}/../out/install/${{ matrix.configuration }}/' # TODO: When run-cmake supports it, we should use a configurable install location.
+          path: '../out/install/${{ matrix.configuration }}/' # TODO: When run-cmake supports it, we should use a configurable install location.
