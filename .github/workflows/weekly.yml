@@ -1,9 +1,11 @@
 # Copyright (c) 2020 Carsten Rudolph
 name: Weekly
+
 on:
-  workflow_dispatch
-#  schedule:
-#    - cron: '0 2 * * *'
+  workflow_dispatch:
+  schedule: 
+    - cron: '1 0 * * 1'   # Run every monday night at 00:01 AM (UTC).
+
 env:
   vulkanSdkVersion: '1.2.131.2'
 
