@@ -41,5 +41,6 @@ jobs:
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
+          cmakeAppendedArgs: '-DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}'
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
