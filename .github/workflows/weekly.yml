@@ -62,6 +62,12 @@ jobs:
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          cmakeAppendedArgs: '-DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }} --install'
+          cmakeAppendedArgs: '-DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }}'
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
+          buildDirectory: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+
+      - name: Install with Ninja
+        run: |
+          Set-Location "${{ github.workspace }}/../out/build/${{ matrix.configuration }}/"
+          ninja install
