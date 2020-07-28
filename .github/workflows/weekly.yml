@@ -66,8 +66,3 @@ jobs:
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
           buildDirectory: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
-
-      - name: Install with Ninja
-        run: |
-          Set-Location "${{ github.workspace }}/../out/build/${{ matrix.configuration }}/"
-          ninja install
