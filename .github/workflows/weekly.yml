@@ -13,10 +13,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ windows-latest ]
-        configuration: [ x64-Release ]
         include:
           - os: windows-latest
             triplet: x64-windows
+            configuration: x64-Release
+            vcpkgCommitId: 'b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6'
+            
     steps:
       - name: Checking out sources
         uses: actions/checkout@v1
@@ -30,13 +32,14 @@ jobs:
         uses: lukka/run-vcpkg@v3
         with:
           setupOnly: true
-          vcpkgGitCommitId: b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6 
+          vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
+          vcpkgTriplet: '${{ matrix.triplet }}'
+          vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
 
       - name: Build with CMake and Ninja
         uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          cmakeAppendedArgs: '-G"Visual Studio 16 2019" -Ax64'
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
