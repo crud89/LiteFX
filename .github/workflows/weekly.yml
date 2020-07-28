@@ -1,5 +1,5 @@
 # Copyright (c) 2020 Carsten Rudolph
-name: Nightly
+name: Weekly
 on:
   workflow_dispatch
 #  schedule:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   job:
-    name: ${{ matrix.os }}-Nightly
+    name: ${{ matrix.os }}-Weekly
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -17,19 +17,21 @@ jobs:
           - os: windows-latest
             triplet: x64-windows
     steps:
-      - uses: actions/checkout@v1
+      - name: Checking out sources
+        uses: actions/checkout@v1
         with:
           submodules: true
 
-      - uses: lukka/get-cmake@latest
+      - name: Retrieve latest CMake build
+        uses: lukka/get-cmake@latest
 
-      - name: Restore from cache and install vcpkg
+      - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v3
         with:
           setupOnly: true
           vcpkgGitCommitId: b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6 
 
-      - name: 'Build with CMake and Ninja'
+      - name: Build with CMake and Ninja
         uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
