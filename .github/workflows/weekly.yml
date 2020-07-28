@@ -58,6 +58,7 @@ jobs:
           appendedCacheKey: '${{ hashFiles( env.VCPKGRESPONSEFILE ) }}'
 
       - name: Build with CMake and Ninja
+        id: build-with-cmake
         uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
@@ -67,7 +68,19 @@ jobs:
           useVcpkgToolchainFile: true
           buildDirectory: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
       
+      - name: Upload build artifacts
+        uses: actions/upload-artifacts@v2
+        with:
+          name: LiteFX-${{ matrix.triplet }}-build
+          path: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+      
       - name: Install with CMake
         run: |
           Set-Location '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
           cmake --install .
+          
+      - name: Upload install artifacts
+        uses: actions/upload-artifacts@v2
+        with:
+          name: LiteFX-${{ matrix.triplet }}-install
+          path: '${{ github.workspace }}/../out/install/${{ matrix.configuration }}/' # TODO: When run-cmake supports it, we should use a configurable install location.
