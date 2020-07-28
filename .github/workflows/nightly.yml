@@ -27,6 +27,7 @@ jobs:
         uses: lukka/run-vcpkg@v3
         with:
           setupOnly: true
+          vcpkgGitCommitId: b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6 
 
       - name: 'Build with CMake and Ninja'
         uses: lukka/run-cmake@v2
