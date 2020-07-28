@@ -1,1 +1,10 @@
-glm glfw3 glad vulkan vulkan-memory-allocator cli11 stb spdlog --triplet x64
+glm
+glfw3
+glad
+vulkan
+vulkan-memory-allocator
+cli11
+stb
+spdlog
+--triplet
+x64-windows
