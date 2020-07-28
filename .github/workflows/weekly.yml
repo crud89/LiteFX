@@ -33,9 +33,9 @@ jobs:
         id: setup-environment
         run: |
           Write-Output "::set-env name=VULKAN_SDK::C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
-          $buildPath = Resolve-Path '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/${{ matrix.configuration }}/')
           Write-Output "::set-output name=buildPath::" + $buildPath
-          $installPath = Resolve-Path '${{ github.workspace }}/../out/install/${{ matrix.configuration }}/'
+          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/${{ matrix.configuration }}/')
           Write-Output "::set-output name=buildPath::" + $installPath
 
       - name: Setup Vulkan SDK cache
