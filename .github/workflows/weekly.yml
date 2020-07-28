@@ -27,6 +27,7 @@ jobs:
 
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v3
+        id: runvcpkg
         with:
           setupOnly: true
           vcpkgGitCommitId: b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6 
@@ -36,4 +37,5 @@ jobs:
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
+          useVcpkgToolchainFile: true
           configurationRegexFilter: '${{ matrix.configuration }}'
