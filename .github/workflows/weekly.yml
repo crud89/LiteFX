@@ -30,8 +30,13 @@ jobs:
           submodules: true
 
       - name: Setup build environment
-        run: 
-          echo "::set-env name=VULKAN_SDK::C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
+        id: setup-environment
+        run: |
+          Write-Output "::set-env name=VULKAN_SDK::C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
+          $buildPath = Resolve-Path '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+          Write-Output "::set-output name=buildPath::" + $buildPath
+          $installPath = Resolve-Path '${{ github.workspace }}/../out/install/${{ matrix.configuration }}/'
+          Write-Output "::set-output name=buildPath::" + $installPath
 
       - name: Setup Vulkan SDK cache
         id: vulkan-sdk-cache
@@ -67,21 +72,21 @@ jobs:
           cmakeAppendedArgs: '-DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }}'
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
-          buildDirectory: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-build
-          path: '../out/build/${{ matrix.configuration }}/'
+          path: '${{ steps.setup-environment.outputs.buildPath }}'
       
       - name: Install with CMake
         run: |
-          Set-Location '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+          Set-Location '${{ steps.setup-environment.outputs.installPath }}'
           cmake --install .
           
       - name: Upload install artifacts
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '../out/install/${{ matrix.configuration }}/' # TODO: When run-cmake supports it, we should use a configurable install location.
+          path: '${{ steps.setup-environment.outputs.installPath }}'
