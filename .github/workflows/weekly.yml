@@ -31,7 +31,7 @@ jobs:
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v3
         with:
-          setupOnly: true
+          setupOnly: false
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
           vcpkgTriplet: '${{ matrix.triplet }}'
           vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
