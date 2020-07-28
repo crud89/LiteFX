@@ -55,7 +55,7 @@ jobs:
           vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
           vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
-          appendedCacheKey: ${{ hashFiles( env.VCPKGRESPONSEFILE ) }}
+          appendedCacheKey: '${{ hashFiles( env.VCPKGRESPONSEFILE ) }}'
 
       - name: Build with CMake and Ninja
         uses: lukka/run-cmake@v2
@@ -66,3 +66,8 @@ jobs:
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
           buildDirectory: '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+      
+      - name: Install with CMake
+        run: |
+          Set-Location '${{ github.workspace }}/../out/build/${{ matrix.configuration }}/'
+          cmake --install .
