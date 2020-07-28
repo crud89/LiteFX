@@ -31,9 +31,8 @@ jobs:
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v3
         with:
-          setupOnly: false
+          vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
-          vcpkgTriplet: '${{ matrix.triplet }}'
           vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
 
       - name: Build with CMake and Ninja
