@@ -18,6 +18,7 @@ jobs:
             triplet: x64-windows
             configuration: x64-Release
             vcpkgCommitId: 'b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6'
+            vulkanSdkVersion: '1.2.131.2'
             
     steps:
       - name: Checking out sources
@@ -27,9 +28,11 @@ jobs:
 
       - name: Setup Vulkan SDK
         run: | 
-          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.2.131.2/windows/VulkanSDK-1.2.131.2-Installer.exe" -OutFile VulkanSDK.exe           
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/${{ matrix.vulkanSdkVersion }}/windows/VulkanSDK-$${{ matrix.VulkanSdkVersion }}-Installer.exe" -OutFile VulkanSDK.exe           
           $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("/S");           
           $installer.WaitForExit();
+        env:
+          VULKAN_SDK: 'C:\VulkanSDK\${{ matrix.vulkanSdkVersion }}'
 
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
@@ -40,12 +43,13 @@ jobs:
           vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
           vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
+          appendedCacheKey: ${{ hashFiles( env.VCPKGRESPONSEFILE ) }}
 
       - name: Build with CMake and Ninja
         uses: lukka/run-cmake@v2
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          cmakeAppendedArgs: '-DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}'
+          cmakeAppendedArgs: '-DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }}'
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
