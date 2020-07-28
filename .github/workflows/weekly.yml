@@ -37,5 +37,6 @@ jobs:
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          useVcpkgToolchainFile: true
+          cmakeAppendedArgs: '-G"Visual Studio 16 2019" -Ax64'
           configurationRegexFilter: '${{ matrix.configuration }}'
+          useVcpkgToolchainFile: true
