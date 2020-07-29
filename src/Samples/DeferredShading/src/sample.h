@@ -36,7 +36,7 @@ public:
 private:
 	GlfwWindowPtr m_window;
 	UniquePtr<VulkanDevice> m_device;
-	UniquePtr<VulkanRenderPass> m_renderPass;
+	UniquePtr<VulkanRenderPass> m_geometryPass, m_lightingPass;
 	UniquePtr<IVertexBuffer> m_vertexBuffer;
 	UniquePtr<IIndexBuffer> m_indexBuffer;
 	UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;

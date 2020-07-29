@@ -33,10 +33,10 @@ SET(SAMPLE_DEFERRED_SHADING_SOURCES
 )
 
 SET(SAMPLE_DEFERRED_SHADING_SHADERS
-    "shaders/deferred_shading.vert"
-    "shaders/deferred_shading.frag"
-    "shaders/deferred_shading_postprocess.vert"
-    "shaders/deferred_shading_postprocess.frag"
+    "shaders/deferred_shading_geometry_pass.vert"
+    "shaders/deferred_shading_geometry_pass.frag"
+    "shaders/deferred_shading_lighting_pass.vert"
+    "shaders/deferred_shading_lighting_pass.frag"
 )
 
 # Add shared library project.
