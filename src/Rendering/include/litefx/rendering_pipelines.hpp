@@ -926,6 +926,7 @@ namespace LiteFX::Rendering {
         virtual TDerived& attachDepthTarget(const bool& clear = true, const bool& clearStencil = true, const Vector2f& clearValues = { 1.0f, 0.0f }, const Format& format = Format::D24_UNORM_S8_UINT) = 0;
         virtual TDerived& attachPresentTarget(const bool& clear = true, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;
         virtual TDerived& attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        virtual TDerived& dependsOn(const IRenderPass* renderPass) = 0;
     };
 
     /// <summary>

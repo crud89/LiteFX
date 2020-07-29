@@ -17,13 +17,17 @@ private:
     const VulkanSwapChain* m_swapChain{ nullptr };
     const VulkanQueue* m_queue{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
-    Array<UniquePtr<IImage>> m_depthViews;
     Array<VkClearValue> m_clearValues;
     Array<VkFramebuffer> m_frameBuffers;
     Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
     UInt32 m_currentFrameBuffer{ 0 };
     Array<VkSemaphore> m_semaphores;
-    const IRenderPass* m_dependency;
+    const IRenderPass* m_dependency{ nullptr };
+
+    /// <summary>
+    /// Stores the images for all attachments, except the present attachment.
+    /// </summary>
+    Array<UniquePtr<IImage>> m_attachmentImages;
 
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent) : base(parent) { }
@@ -31,7 +35,7 @@ public:
 private:
     void cleanup()
     {
-        m_depthViews.clear();
+        m_attachmentImages.clear();
         m_clearValues.clear();
 
         ::vkDestroyRenderPass(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
@@ -49,9 +53,9 @@ private:
         m_currentFrameBuffer = 0;
     }
 
-    UniquePtr<IImage> makeDepthView(const IRenderTarget* target)
+    UniquePtr<IImage> makeImageView(const IRenderTarget* target)
     {
-        return m_parent->getDevice()->createImage(target->getFormat(), m_parent->getDevice()->getSwapChain()->getBufferSize());
+        return m_parent->getDevice()->createAttachment(target->getFormat(), m_parent->getDevice()->getSwapChain()->getBufferSize());
     }
 
 public:
@@ -69,53 +73,62 @@ public:
             throw std::invalid_argument("The device queue is not a valid Vulkan command queue.");
 
         // Setup the attachments.
-        Array<VkAttachmentDescription> attachments(m_targets.size());
+        Array<VkAttachmentDescription> attachments;
         Array<VkAttachmentReference> colorAttachments;
-        Array<VkAttachmentReference> depthAttachments;
+        Optional<VkAttachmentReference> depthAttachment, presentAttachment;
 
-        std::generate(std::begin(attachments), std::end(attachments), [&, i = 0]() mutable {
-            auto& target = m_targets[i];
-
-            VkAttachmentDescription attachment{};
-            attachment.format = getFormat(target->getFormat());
-            attachment.samples = getSamples(target->getSamples());
-            attachment.loadOp = target->getClearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            attachment.stencilLoadOp = target->getClearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            attachment.storeOp = target->getVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
-            attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-            if (target->getClearBuffer() || target->getClearStencil())
-                m_clearValues.push_back(VkClearValue{ target->getClearValues().x(),target->getClearValues().y(),target->getClearValues().z(),target->getClearValues().w() });
-
-            switch (target->getType())
+        std::for_each(std::begin(m_targets), std::end(m_targets), [&, i = 0](const auto& target) mutable {
+            if ((target->getType() == RenderTargetType::Depth && depthAttachment.has_value()) || (target->getType() == RenderTargetType::Present && presentAttachment.has_value()))
+                throw std::runtime_error(fmt::format("Invalid render target {0}: only one target attachment of type {1} is allowed.", i, target->getType()));
+            else
             {
-            case RenderTargetType::Color:
-                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                VkAttachmentDescription attachment{};
+                attachment.format = getFormat(target->getFormat());
+                attachment.samples = getSamples(target->getSamples());
+                attachment.loadOp = target->getClearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                attachment.stencilLoadOp = target->getClearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                attachment.storeOp = target->getVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
+                attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-                colorAttachments.push_back({ static_cast<UInt32>(i),  attachment.finalLayout });
-                break;
-            case RenderTargetType::Depth:
-                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                attachment.finalLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-                
-                m_depthViews.push_back(this->makeDepthView(target.get()));
-                depthAttachments.push_back({ static_cast<UInt32>(i),  attachment.finalLayout });
-                break;
-            case RenderTargetType::Present:
-                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+                if (target->getClearBuffer() || target->getClearStencil())
+                    m_clearValues.push_back(VkClearValue{ target->getClearValues().x(),target->getClearValues().y(),target->getClearValues().z(),target->getClearValues().w() });
 
-                colorAttachments.push_back({ static_cast<UInt32>(i), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
-                break;
+                switch (target->getType())
+                {
+                case RenderTargetType::Color:
+                    attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                    attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+                    colorAttachments.push_back({ static_cast<UInt32>(i++), attachment.finalLayout });
+                    break;
+                case RenderTargetType::Depth:
+                    attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                    attachment.finalLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+
+                    depthAttachment = VkAttachmentReference { static_cast<UInt32>(i++), attachment.finalLayout };
+                    break;
+                case RenderTargetType::Present:
+                    attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                    attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                    presentAttachment = VkAttachmentReference { static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+                    colorAttachments.push_back(presentAttachment.value());
+                    break;
+                }
+
+                attachments.push_back(attachment);
             }
-
-            i++;
-            return attachment;
         });
 
-        if (depthAttachments.size() > 1)
-            LITEFX_WARNING(VULKAN_LOG, "The render pass has been attached with multiple depth targets, however Vulkan only supports one depth/stencil target.");
+        // Get the color and depths attachments of the dependency.
+        Array<VkAttachmentReference> inputAttachments;
+
+        // TODO: Map input attachments
+        //if (m_dependency != nullptr)
+        //{
+        //    inputAttachments.resize(m_dependency->getTargets().size());
+        //    std::generate(std::begin(inputAttachments), std::end(inputAttachments), [i = 0]() mutable { return VkAttachmentReference{ static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }; });
+        //}
 
         // Setup the sub-pass.
         // NOTE: No need to set up a VK_SUBPASS_EXTERNAL dependency here, since it is done implicitly between individual VkRenderPass instances.
@@ -123,7 +136,9 @@ public:
         subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subPass.colorAttachmentCount = static_cast<UInt32>(colorAttachments.size());
         subPass.pColorAttachments = colorAttachments.data();
-        subPass.pDepthStencilAttachment = depthAttachments.size() > 0 ? &depthAttachments.front() : nullptr;
+        subPass.pDepthStencilAttachment = depthAttachment.has_value() ? &depthAttachment.value() : nullptr;
+        subPass.inputAttachmentCount = static_cast<UInt32>(inputAttachments.size());
+        subPass.pInputAttachments = inputAttachments.data();
 
         // Setup render pass state.
         VkRenderPassCreateInfo renderPassState{};
@@ -146,26 +161,36 @@ public:
         LITEFX_TRACE(VULKAN_LOG, "Initializing {0} frame buffers...", frames.size());
         
         std::generate(std::begin(frameBuffers), std::end(frameBuffers), [&, i = 0]() mutable {
-            Array<VkImageView> attachments;
+            Array<VkImageView> attachmentViews;
 
-            auto swapChainImage = dynamic_cast<const IVulkanImage*>(frames[i++]);
-            
-            if (swapChainImage == nullptr)
-                throw std::invalid_argument("A frame of the provided swap chain is not a valid Vulkan texture.");
-            
-            attachments.push_back(swapChainImage->getImageView());
+            std::for_each(std::begin(m_targets), std::end(m_targets), [&, a = 0](const auto& target) mutable {
+                if (presentAttachment.has_value() && a++ == presentAttachment->attachment)
+                {
+                    // Acquire an image view from the swap chain.
+                    auto swapChainImage = dynamic_cast<const IVulkanImage*>(frames[i++]);
 
-            std::for_each(std::begin(m_depthViews), std::end(m_depthViews), [&](const auto& view) { 
-                attachments.push_back(dynamic_cast<const IVulkanImage*>(view.get())->getImageView());
+                    if (swapChainImage == nullptr)
+                        throw std::invalid_argument("A frame of the provided swap chain is not a valid Vulkan texture.");
+
+                    // TODO: Create an image view for each attachment.
+                    attachmentViews.push_back(swapChainImage->getImageView());
+                }
+                else
+                {
+                    // Create an image view for the render target.
+                    auto image = this->makeImageView(target.get());
+                    attachmentViews.push_back(dynamic_cast<const IVulkanImage*>(image.get())->getImageView());
+                    m_attachmentImages.push_back(std::move(image));
+                }
             });
 
             VkFramebufferCreateInfo frameBufferInfo{};
             frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             frameBufferInfo.renderPass = renderPass;
-            frameBufferInfo.attachmentCount = static_cast<UInt32>(attachments.size());
-            frameBufferInfo.pAttachments = attachments.data();
-            frameBufferInfo.width = swapChainImage->getExtent().width();
-            frameBufferInfo.height = swapChainImage->getExtent().height();
+            frameBufferInfo.attachmentCount = static_cast<UInt32>(attachmentViews.size());
+            frameBufferInfo.pAttachments = attachmentViews.data();
+            frameBufferInfo.width = m_parent->getDevice()->getSwapChain()->getBufferSize().width();
+            frameBufferInfo.height = m_parent->getDevice()->getSwapChain()->getBufferSize().height();
             frameBufferInfo.layers = 1;
 
             VkFramebuffer frameBuffer;
@@ -520,6 +545,16 @@ VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachTarget(const RenderTarge
     target->setClearValues(clearValues);
 
     this->use(std::move(target));
+
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::dependsOn(const IRenderPass* renderPass)
+{
+    if (renderPass == nullptr)
+        throw std::invalid_argument("The render pass must be initialized.");
+
+    this->instance()->setDependency(renderPass);
 
     return *this;
 }
