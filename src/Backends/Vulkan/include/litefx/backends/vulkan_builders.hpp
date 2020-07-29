@@ -39,28 +39,6 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline> {
-		LITEFX_IMPLEMENTATION(VulkanRenderPipelineBuilderImpl)
-
-	public:
-		VulkanRenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>&& instance);
-		virtual ~VulkanRenderPipelineBuilder() noexcept;
-
-	public:
-		virtual VulkanRenderPipelineLayoutBuilder defineLayout();
-		virtual VulkanRenderPassBuilder defineRenderPass();
-
-	public:
-		virtual UniquePtr<VulkanRenderPipeline> go() override;
-
-	public:
-		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
-		virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {
 	public:
 		using RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder>::RenderPipelineLayoutBuilder;
@@ -107,19 +85,38 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPassBuilder : public RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass, VulkanRenderPipelineBuilder> {
+	class LITEFX_VULKAN_API VulkanRenderPassBuilder : public RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass> {
 	public:
-		using RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass, VulkanRenderPipelineBuilder>::RenderPassBuilder;
+		VulkanRenderPassBuilder(UniquePtr<VulkanRenderPass>&& instance);
+		virtual ~VulkanRenderPassBuilder() noexcept;
 
 	public:
-		virtual VulkanRenderPipelineBuilder& go() override;
+		virtual UniquePtr<VulkanRenderPass> go() override;
 
 	public:
+		virtual VulkanRenderPipelineBuilder setPipeline();
+
+	public:
+		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;
 		virtual void use(UniquePtr<IRenderTarget>&& target) override;
 		virtual VulkanRenderPassBuilder& attachColorTarget(const bool& clear = false, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }) override;
 		virtual VulkanRenderPassBuilder& attachDepthTarget(const bool& clear = true, const bool& clearStencil = true, const Vector2f& clearValues = { 1.0f, 0.0f }, const Format& format = Format::D24_UNORM_S8_UINT) override;
 		virtual VulkanRenderPassBuilder& attachPresentTarget(const bool& clear = true, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) override;
 		virtual VulkanRenderPassBuilder& attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline, VulkanRenderPassBuilder> {
+	public:
+		using RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline, VulkanRenderPassBuilder>::RenderPipelineBuilder;
+
+	public:
+		virtual VulkanRenderPipelineLayoutBuilder defineLayout();
+
+	public:
+		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
 	};
 
 	/// <summary>

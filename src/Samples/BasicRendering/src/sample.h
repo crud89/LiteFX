@@ -36,7 +36,7 @@ public:
 private:
 	GlfwWindowPtr m_window;
 	UniquePtr<VulkanDevice> m_device;
-	UniquePtr<VulkanRenderPipeline> m_pipeline;
+	UniquePtr<VulkanRenderPass> m_renderPass;
 	UniquePtr<IVertexBuffer> m_vertexBuffer;
 	UniquePtr<IIndexBuffer> m_indexBuffer;
 	UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;
@@ -50,7 +50,7 @@ public:
 	}
 
 private:
-	void createPipeline();
+	void createRenderPasses();
 	void initBuffers();
 
 public:

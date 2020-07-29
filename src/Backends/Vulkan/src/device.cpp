@@ -562,7 +562,7 @@ UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderStage& type,
 	return makeUnique<VulkanShaderModule>(this, type, fileName, entryPoint);
 }
 
-VulkanRenderPipelineBuilder VulkanDevice::buildPipeline() const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const
 {
-	return this->build<VulkanRenderPipeline>();
+	return this->build<VulkanRenderPass>();
 }

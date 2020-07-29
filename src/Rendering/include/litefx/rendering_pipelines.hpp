@@ -616,7 +616,7 @@ namespace LiteFX::Rendering {
         virtual void updateAll(const IConstantBuffer* buffer) const = 0;
         virtual void updateAll(const ITexture* texture) const = 0;
         virtual void updateAll(const ISampler* sampler) const = 0;
-        virtual void bind(const IRenderPipeline* pipeline) = 0;
+        virtual void bind(const IRenderPass* renderPass) = 0;
     };
 
     /// <summary>
@@ -629,23 +629,7 @@ namespace LiteFX::Rendering {
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual IRenderPipelineLayout* getLayout() noexcept = 0;
-        virtual const IRenderPass* getRenderPass() const noexcept = 0;
-        virtual IRenderPass* getRenderPass() noexcept = 0;
-
-    public:
-        virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
-        virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;
-
-    public:
-        virtual void beginFrame() const = 0;
-        virtual void endFrame() = 0;
-        virtual void reset() = 0;
-        virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
-        virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
-        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
-        virtual void bind(const IVertexBuffer* buffer) const = 0;
-        virtual void bind(const IIndexBuffer* buffer) const = 0;
-        virtual void bind(IDescriptorSet* buffer) const = 0;
+        virtual void bind(const IRenderPass* renderPass) = 0;
     };
 
     /// <summary>
@@ -773,11 +757,21 @@ namespace LiteFX::Rendering {
         virtual void addTarget(UniquePtr<IRenderTarget>&& target) = 0;
         virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
         virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;
+        virtual const IRenderPipeline* getPipeline() const noexcept = 0;
+        virtual IRenderPipeline* getPipeline() noexcept = 0;
         virtual void begin() const = 0;
         virtual void end(const bool& present = false) = 0;
         virtual void reset() = 0;
         virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
+
+    public:
+        virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
+        virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
+        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
+        virtual void bind(const IVertexBuffer* buffer) const = 0;
+        virtual void bind(const IIndexBuffer* buffer) const = 0;
+        virtual void bind(IDescriptorSet* buffer) const = 0;
     };
 
     /// <summary>
@@ -887,46 +881,6 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API RenderPipeline : public IRenderPipeline {
-        LITEFX_IMPLEMENTATION(RenderPipelineImpl);
-
-    public:
-        RenderPipeline(const IGraphicsDevice* device);
-        explicit RenderPipeline(const IGraphicsDevice* device, UniquePtr<IRenderPipelineLayout>&& layout);
-        RenderPipeline(RenderPipeline&&) noexcept = delete;
-        RenderPipeline(const RenderPipeline&) noexcept = delete;
-        virtual ~RenderPipeline() noexcept;
-
-    public:
-        virtual const IRenderPipelineLayout* getLayout() const noexcept override;
-        virtual IRenderPipelineLayout* getLayout() noexcept override;
-        virtual const IRenderPass* getRenderPass() const noexcept override;
-        virtual IRenderPass* getRenderPass() noexcept override;
-
-    public:
-        virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
-        virtual void use(UniquePtr<IRenderPass>&& renderPass) override;
-        virtual void beginFrame() const override;
-        virtual void endFrame() override;
-        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TPipeline>
-    class RenderPipelineBuilder : public Builder<TDerived, TPipeline> {
-    public:
-        using builder_type::Builder;
-
-    public:
-        virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
-        virtual void use(UniquePtr<IRenderPass>&& renderPass) = 0;      // TODO: Render pass should contain pipeline, not the other way around.
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
     template <typename TDerived, typename TShaderProgram, typename TParent>
     class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
     public:
@@ -946,13 +900,26 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    template <typename TDerived, typename TRenderPass, typename TParent>
-    class RenderPassBuilder : public Builder<TDerived, TRenderPass, TParent> {
+    template <typename TDerived, typename TPipeline, typename TParent>
+    class RenderPipelineBuilder : public Builder<TDerived, TPipeline, TParent> {
+    public:
+        using builder_type::Builder;
+
+    public:
+        virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TRenderPass>
+    class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
     public:
         using builder_type::Builder;
 
     public:
         virtual void use(UniquePtr<IRenderTarget>&& target) = 0;
+        virtual void use(UniquePtr<IRenderPipeline>&& pipeline) = 0;
         virtual TDerived& attachColorTarget(const bool& clear = false, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }) = 0;
         virtual TDerived& attachDepthTarget(const bool& clear = true, const bool& clearStencil = true, const Vector2f& clearValues = { 1.0f, 0.0f }, const Format& format = Format::D24_UNORM_S8_UINT) = 0;
         virtual TDerived& attachPresentTarget(const bool& clear = true, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;

@@ -36,46 +36,46 @@ static void onResize(GLFWwindow* window, int width, int height)
     app->resize(width, height);
 }
 
-void SampleApp::createPipeline()
+void SampleApp::createRenderPasses()
 {
-    m_pipeline = m_device->buildPipeline()
-        .defineLayout()
-            .setRasterizer()
-                .withPolygonMode(PolygonMode::Solid)
-                .withCullMode(CullMode::BackFaces)
-                .withCullOrder(CullOrder::ClockWise)
-                .withLineWidth(1.f)
-                .go()
-            .setInputAssembler()
-                .withTopology(PrimitiveTopology::TriangleList)
-                .withIndexType(IndexType::UInt16)
-                .addVertexBuffer(sizeof(Vertex), 0)
-                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                    .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0))
+    m_renderPass = m_device->buildRenderPass()
+        .attachPresentTarget()
+        .setPipeline()
+            .defineLayout()
+                .setShaderProgram()
+                    .addVertexShaderModule("shaders/textures.vert.spv")
+                    .addFragmentShaderModule("shaders/textures.frag.spv")
+                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
+                        .addUniform(0, sizeof(CameraBuffer))
+                        .go()
+                    .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
+                        .addUniform(0, sizeof(TransformBuffer))
+                        .go()
+                    .addDescriptorSet(DescriptorSets::PerMaterial, ShaderStage::Fragment)
+                        .addImage(0)
+                        .addSampler(1)
+                        .go()
+                    .go()
+                .setRasterizer()
+                    .withPolygonMode(PolygonMode::Solid)
+                    .withCullMode(CullMode::BackFaces)
+                    .withCullOrder(CullOrder::ClockWise)
+                    .withLineWidth(1.f)
+                    .go()
+                .setInputAssembler()
+                    .withTopology(PrimitiveTopology::TriangleList)
+                    .withIndexType(IndexType::UInt16)
+                    .addVertexBuffer(sizeof(Vertex), 0)
+                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                        .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0))
+                        .go()
+                    .go()
+                .addViewport()
+                    .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                    .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
                     .go()
                 .go()
-            .setShaderProgram()
-                .addVertexShaderModule("shaders/textures.vert.spv")
-                .addFragmentShaderModule("shaders/textures.frag.spv")
-                .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-                    .addUniform(0, sizeof(CameraBuffer))
-                    .go()
-                .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
-                    .addUniform(0, sizeof(TransformBuffer))
-                    .go()
-                .addDescriptorSet(DescriptorSets::PerMaterial, ShaderStage::Fragment)
-                    .addImage(0)
-                    .addSampler(1)
-                    .go()
-                .go()
-            .addViewport()
-                .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                .go()
-            .go()
-        .defineRenderPass()
-            .attachPresentTarget()
             .go()
         .go();
 }
@@ -91,7 +91,7 @@ void SampleApp::loadTexture()
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
     // Create the texture and transfer the pixel contents to it.
-    m_perMaterialBindings = m_pipeline->makeBufferPool(DescriptorSets::PerMaterial);
+    m_perMaterialBindings = m_renderPass->makeBufferPool(DescriptorSets::PerMaterial);
     m_texture = m_perMaterialBindings->makeTexture(0, Format::R8G8B8A8_SRGB, Size2d(width, height));
     auto stagedTexture = m_device->createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->getSize());
     stagedTexture->map(imageData.get(), m_texture->getSize());
@@ -108,32 +108,32 @@ void SampleApp::loadTexture()
 void SampleApp::initBuffers()
 {
     // Create the staging buffer.
-    auto stagedVertices = m_pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
+    auto stagedVertices = m_renderPass->makeVertexBuffer(BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex));
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    m_vertexBuffer = m_pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
+    m_vertexBuffer = m_renderPass->makeVertexBuffer(BufferUsage::Resource, vertices.size());
     m_vertexBuffer->transferFrom(m_device->getTransferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
-    auto stagedIndices = m_pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
+    auto stagedIndices = m_renderPass->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
     stagedIndices->map(indices.data(), indices.size() * sizeof(UInt16));
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    m_indexBuffer = m_pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
+    m_indexBuffer = m_renderPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
     m_indexBuffer->transferFrom(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
-    m_perFrameBindings = m_pipeline->makeBufferPool(DescriptorSets::PerFrame);
+    m_perFrameBindings = m_renderPass->makeBufferPool(DescriptorSets::PerFrame);
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
-    m_perObjectBindings = m_pipeline->makeBufferPool(DescriptorSets::PerInstance);
+    m_perObjectBindings = m_renderPass->makeBufferPool(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
 }
 
 void SampleApp::run() 
 {
     m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB);
-    this->createPipeline();
+    this->createRenderPasses();
     this->initBuffers();
     this->loadTexture();
 
@@ -158,7 +158,7 @@ void SampleApp::run()
     m_sampler = nullptr;
 
     // Destroy the pipeline and the device.
-    m_pipeline = nullptr;
+    m_renderPass = nullptr;
     m_device = nullptr;
 
     // Destroy the window.
@@ -183,7 +183,7 @@ void SampleApp::resize(int width, int height)
         m_device->resize(width, height);
 
         // Resize the viewport.
-        auto layout = m_pipeline->getLayout();
+        auto layout = m_renderPass->getPipeline()->getLayout();
         auto viewport = layout->remove(layout->getViewports().front());
         viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
         viewport->getScissors().clear();
@@ -191,7 +191,7 @@ void SampleApp::resize(int width, int height)
         layout->use(std::move(viewport));
         
         // Recreate the pipeline.
-        m_pipeline->reset();
+        m_renderPass->reset();
     }
 }
 
@@ -203,7 +203,7 @@ void SampleApp::handleEvents()
 void SampleApp::drawFrame()
 {
     // Begin rendering.
-    m_pipeline->beginFrame();
+    m_renderPass->begin();
 
     // Update transform buffer.
     static auto start = std::chrono::high_resolution_clock::now();
@@ -218,24 +218,24 @@ void SampleApp::drawFrame()
     camera.ViewProjection = projection * view;
     m_cameraBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     m_perFrameBindings->update(m_cameraBuffer.get());
-    m_pipeline->bind(m_perFrameBindings.get());
+    m_renderPass->bind(m_perFrameBindings.get());
 
     // Draw the model.
-    m_pipeline->bind(m_vertexBuffer.get());
-    m_pipeline->bind(m_indexBuffer.get());
+    m_renderPass->bind(m_vertexBuffer.get());
+    m_renderPass->bind(m_indexBuffer.get());
     
     // Compute world transform.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
     m_perObjectBindings->update(m_transformBuffer.get()); 
-    m_pipeline->bind(m_perObjectBindings.get());
+    m_renderPass->bind(m_perObjectBindings.get());
 
     // Bind the texture buffer.
-    m_pipeline->bind(m_perMaterialBindings.get());
+    m_renderPass->bind(m_perMaterialBindings.get());
 
     // Draw the object.
-    m_pipeline->getRenderPass()->drawIndexed(indices.size());
+    m_renderPass->drawIndexed(indices.size());
 
     // End the frame.
-    m_pipeline->endFrame();
+    m_renderPass->end(true);
 }

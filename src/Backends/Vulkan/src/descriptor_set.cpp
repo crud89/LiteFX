@@ -283,13 +283,13 @@ void VulkanDescriptorSet::updateAll(const ISampler* sampler) const
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 }
 
-void VulkanDescriptorSet::bind(const IRenderPipeline* pipeline)
+void VulkanDescriptorSet::bind(const IRenderPass* renderPass)
 {
-    if (pipeline == nullptr)
-        throw std::invalid_argument("The pipeline must be initialized.");
+    if (renderPass == nullptr)
+        throw std::invalid_argument("The render pass must be initialized.");
 
-    auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(pipeline->getRenderPass()->getCommandBuffer());
-    auto pipelineLayout = dynamic_cast<const IResource<VkPipelineLayout>*>(pipeline->getLayout());
+    auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(renderPass->getCommandBuffer());
+    auto pipelineLayout = dynamic_cast<const IResource<VkPipelineLayout>*>(renderPass->getPipeline()->getLayout());
 
     VkDescriptorSet descriptorSets[] = { m_impl->m_descriptorSets[m_impl->m_currentSet] };
     m_impl->m_currentSet = (m_impl->m_currentSet + 1) % static_cast<UInt32>(m_impl->m_descriptorSets.size());

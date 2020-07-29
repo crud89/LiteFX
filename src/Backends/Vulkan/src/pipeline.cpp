@@ -13,40 +13,41 @@ public:
 	friend class VulkanRenderPipeline;
 
 private:
-	const VulkanRenderPass* m_renderPass;
-	const VulkanRenderPipelineLayout* m_pipelineLayout;
+	UniquePtr<IRenderPipelineLayout> m_layout;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : base(parent) { }
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : 
+		base(parent)
+	{
+	}
 
 private:
 	void cleanup()
 	{
-		::vkDestroyPipeline(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
+		if (m_parent->handle() != nullptr)
+			::vkDestroyPipeline(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
+
+		m_parent->handle() = nullptr;
 	}
 
 public:
-	VkPipeline initialize()
+	VkPipeline initialize(const VulkanRenderPass& renderPass)
 	{
-		m_pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_parent->getLayout());
-		m_renderPass = dynamic_cast<const VulkanRenderPass*>(m_parent->getRenderPass());
+		auto pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_layout.get());
 
-		if (m_pipelineLayout == nullptr)
+		if (pipelineLayout == nullptr)
 			throw std::invalid_argument("The pipeline layout is not a valid Vulkan pipeline layout instance.");
 
-		if (m_renderPass == nullptr)
-			throw std::invalid_argument("The render pass is not a valid Vulkan render pass instance.");
-
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(m_pipelineLayout));
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(pipelineLayout));
 
 		// Get the device.
 		auto device = m_parent->getDevice();
 
 		// Request configuration interface.
-		auto rasterizer = m_pipelineLayout->getRasterizer();
-		auto inputAssembler = m_pipelineLayout->getInputAssembler();
-		auto views = m_pipelineLayout->getViewports();
-		auto program = m_pipelineLayout->getProgram();
+		auto rasterizer = pipelineLayout->getRasterizer();
+		auto inputAssembler = pipelineLayout->getInputAssembler();
+		auto views = pipelineLayout->getViewports();
+		auto program = pipelineLayout->getProgram();
 
 		if (rasterizer == nullptr)
 			throw std::invalid_argument("The pipeline layout does not contain a rasterizer.");
@@ -202,12 +203,12 @@ public:
 		colorBlending.blendConstants[3] = 0.0f;
 
 		// Setup depth/stencil state.
-		auto targets = m_renderPass->getTargets();
+		auto targets = renderPass.getTargets();
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencilState.depthTestEnable = m_pipelineLayout->getDepthTest();
+		depthStencilState.depthTestEnable = pipelineLayout->getDepthTest();
 		depthStencilState.depthBoundsTestEnable = VK_FALSE;
-		depthStencilState.stencilTestEnable = m_pipelineLayout->getStencilTest();
+		depthStencilState.stencilTestEnable = pipelineLayout->getStencilTest();
 		depthStencilState.depthWriteEnable = std::any_of(std::begin(targets), std::end(targets), [](const auto& t) { return t->getType() == RenderTargetType::Depth; });
 		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
 
@@ -221,7 +222,7 @@ public:
 		pipelineInfo.pMultisampleState = &multisampling;
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDepthStencilState = &depthStencilState;
-		pipelineInfo.layout = m_pipelineLayout->handle();
+		pipelineInfo.layout = pipelineLayout->handle();
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 		// Setup shader stages.
@@ -245,7 +246,7 @@ public:
 		pipelineInfo.pStages = shaderStages.data();
 
 		// Setup render pass state.
-		pipelineInfo.renderPass = m_renderPass->handle();
+		pipelineInfo.renderPass = renderPass.handle();
 		pipelineInfo.subpass = 0;
 
 		VkPipeline pipeline;
@@ -262,17 +263,9 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const IGraphicsDevice* device) : VulkanRenderPipeline(dynamic_cast<const VulkanDevice*>(device)) { }
-
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanDevice* device) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject(device), RenderPipeline(device), IResource<VkPipeline>(nullptr)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject(renderPass.getDevice()), IResource<VkPipeline>(nullptr)
 {
-}
-
-VulkanRenderPipeline::VulkanRenderPipeline(UniquePtr<IRenderPipelineLayout>&& layout, const VulkanDevice* device) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject(device), RenderPipeline(device, std::move(layout)), IResource<VkPipeline>(nullptr)
-{
-	this->handle() = m_impl->initialize();
 }
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
@@ -280,119 +273,40 @@ VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 	m_impl->cleanup();
 }
 
-void VulkanRenderPipeline::reset()
+const IRenderPipelineLayout* VulkanRenderPipeline::getLayout() const noexcept
 {
+	return m_impl->m_layout.get();
+}
+
+IRenderPipelineLayout* VulkanRenderPipeline::getLayout() noexcept
+{
+	return m_impl->m_layout.get();
+}
+
+void VulkanRenderPipeline::bind(const IRenderPass* renderPass)
+{
+	auto pass = dynamic_cast<const VulkanRenderPass*>(renderPass);
+
+	if (pass == nullptr)
+		throw std::invalid_argument("The pipeline can only be bound to a valid Vulkan render pass.");
+
 	m_impl->cleanup();
-
-	this->getRenderPass()->reset();
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(*pass);
 }
-
-void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
-{
-	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-	auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(m_impl->m_renderPass->getCommandBuffer());
-
-	if (resource == nullptr)
-		throw std::invalid_argument("The provided vertex buffer is not a valid Vulkan buffer.");
-
-	// Depending on the type, bind the buffer accordingly.
-	constexpr VkDeviceSize offsets[] = { 0 };
-
-	::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &resource->handle(), offsets);
-}
-
-void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
-{
-	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-	auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(m_impl->m_renderPass->getCommandBuffer());
-
-	if (resource == nullptr)
-		throw std::invalid_argument("The provided index buffer is not a valid Vulkan buffer.");
-
-	::vkCmdBindIndexBuffer(commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
-}
-
-void VulkanRenderPipeline::bind(IDescriptorSet* descriptorSet) const
-{
-	if (descriptorSet == nullptr)
-		throw std::invalid_argument("The descriptor set must be initialized.");
-	
-	descriptorSet->bind(this);
-}
-
-UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
-{
-	return this->getDevice()->createVertexBuffer(this->getLayout()->getInputAssembler()->getVertexBufferLayout(binding), usage, elements);
-}
-
-UniquePtr<IIndexBuffer> VulkanRenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
-{
-	return this->getDevice()->createIndexBuffer(this->getLayout()->getInputAssembler()->getIndexBufferLayout(), usage, elements);
-}
-
-// ------------------------------------------------------------------------------------------------
-// Builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl : public Implement<VulkanRenderPipelineBuilder> {
-public:
-	friend class VulkanRenderPipelineBuilder;
-
-private:
-	UniquePtr<IRenderPass> m_renderPass;
-	UniquePtr<IRenderPipelineLayout> m_layout;
-
-public:
-	VulkanRenderPipelineBuilderImpl(VulkanRenderPipelineBuilder* parent) : base(parent) { }
-	VulkanRenderPipelineBuilderImpl() noexcept = default;
-};
 
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
-
-VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>&& instance) :
-	RenderPipelineBuilder(std::move(instance)), m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this))
-{
-}
-
-VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
-
-UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
-{
-	auto instance = this->instance();
-
-	instance->use(std::move(m_impl->m_layout));
-	instance->use(std::move(m_impl->m_renderPass));
-
-	instance->handle() = instance->m_impl->initialize();
-
-	return RenderPipelineBuilder::go();
-}
 
 void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout> && layout)
 {
     if (layout == nullptr)
         throw std::invalid_argument("The layout must be initialized.");
 
-	m_impl->m_layout = std::move(layout);
-}
-
-void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPass>&& renderPass)
-{
-	if (renderPass == nullptr)
-		throw std::invalid_argument("The render pass must be initialized.");
-
-	m_impl->m_renderPass = std::move(renderPass);
+	this->instance()->m_impl->m_layout = std::move(layout);
 }
 
 VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::defineLayout()
 {
 	return this->make<VulkanRenderPipelineLayout>();
-}
-
-VulkanRenderPassBuilder VulkanRenderPipelineBuilder::defineRenderPass()
-{
-	return this->make<VulkanRenderPass>();
 }

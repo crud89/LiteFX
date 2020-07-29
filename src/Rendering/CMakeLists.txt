@@ -30,7 +30,6 @@ SET(RENDERING_SOURCES
     "src/backend.cpp"
     "src/device.cpp"
     "src/buffer_attribute.cpp"
-    "src/pipeline.cpp"
     "src/pipeline_layout.cpp"
     "src/input_assembler.cpp"
     "src/rasterizer.cpp"
