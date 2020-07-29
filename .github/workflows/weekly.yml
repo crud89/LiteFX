@@ -34,9 +34,9 @@ jobs:
         run: |
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           Write-Output "::set-env name=VULKAN_SDK::$($vulkanDir)"
-          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/${{ matrix.configuration }}/')
+          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
           Write-Output "::set-output name=buildPath::$($buildPath)"
-          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/${{ matrix.configuration }}/')
+          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
           Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
@@ -80,15 +80,16 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-build
-          path: '${{ steps.setup-environment.outputs.buildPath }}/**'
+          path: '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
       
       - name: Install with CMake
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}'
+          New-Item -ItemType directory -Path '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
+          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
           cmake --install .
           
       - name: Upload install artifacts
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.installPath }}/**'
+          path: '${{ steps.setup-environment.outputs.installPath }}/${{ matrix.configuration }}'
