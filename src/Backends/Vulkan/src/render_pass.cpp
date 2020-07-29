@@ -21,9 +21,9 @@ private:
     Array<VkClearValue> m_clearValues;
     Array<VkFramebuffer> m_frameBuffers;
     Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
-    Array<const IRenderPass*> m_dependencies;
     UInt32 m_currentFrameBuffer{ 0 };
     Array<VkSemaphore> m_semaphores;
+    const IRenderPass* m_dependency;
 
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent) : base(parent) { }
@@ -118,6 +118,7 @@ public:
             LITEFX_WARNING(VULKAN_LOG, "The render pass has been attached with multiple depth targets, however Vulkan only supports one depth/stencil target.");
 
         // Setup the sub-pass.
+        // NOTE: No need to set up a VK_SUBPASS_EXTERNAL dependency here, since it is done implicitly between individual VkRenderPass instances.
         VkSubpassDescription subPass{};
         subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subPass.colorAttachmentCount = static_cast<UInt32>(colorAttachments.size());
@@ -340,25 +341,14 @@ UniquePtr<IRenderTarget> VulkanRenderPass::removeTarget(const IRenderTarget* tar
     return m_impl->removeTarget(target);
 }
 
-void VulkanRenderPass::addDependency(const IRenderPass* renderPass)
+void VulkanRenderPass::setDependency(const IRenderPass* renderPass)
 {
-    if (renderPass == nullptr)
-        throw std::invalid_argument("The render pass dependency must be initialized.");
-
-    m_impl->m_dependencies.push_back(renderPass);
+    m_impl->m_dependency = renderPass;
 }
 
-const Array<const IRenderPass*> VulkanRenderPass::getDependencies() const noexcept
+const IRenderPass* VulkanRenderPass::getDependency() const noexcept
 {
-    return m_impl->m_dependencies;
-}
-
-void VulkanRenderPass::removeDependency(const IRenderPass* renderPass)
-{
-    auto it = std::find_if(std::begin(m_impl->m_dependencies), std::end(m_impl->m_dependencies), [renderPass](const IRenderPass* dependency) { return dependency == renderPass; });
-
-    if (it != m_impl->m_dependencies.end())
-        m_impl->m_dependencies.erase(it);
+    return m_impl->m_dependency;
 }
 
 const IRenderPipeline* VulkanRenderPass::getPipeline() const noexcept
