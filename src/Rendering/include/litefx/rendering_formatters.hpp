@@ -421,7 +421,6 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::RenderTargetType> 
 		case LiteFX::Rendering::RenderTargetType::Color: name = "Color"; break;
 		case LiteFX::Rendering::RenderTargetType::Depth: name = "Depth"; break;
 		case LiteFX::Rendering::RenderTargetType::Present: name = "Present"; break;
-		case LiteFX::Rendering::RenderTargetType::Transfer: name = "Transfer"; break;
 		default: name = "Invalid"; break;
 		}
 

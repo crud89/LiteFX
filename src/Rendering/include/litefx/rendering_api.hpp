@@ -391,12 +391,7 @@ namespace LiteFX::Rendering {
 		/// <remarks>
 		/// This is similar to <see cref="RenderTargetType::Color" />, but is used to optimize the memory layout of the target for it to be pushed to a swap chain.
 		/// </remarks>
-		Present = 0x00000004,
-
-		/// <summary>
-		/// Represents a target that should receive a copy of another image through a transfer operation.
-		/// </summary>
-		Transfer = 0x00000008
+		Present = 0x00000004
 	};
 
 	enum class LITEFX_RENDERING_API MultiSamplingLevel {
