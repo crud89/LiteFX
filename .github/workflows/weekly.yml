@@ -84,7 +84,6 @@ jobs:
       
       - name: Install with CMake
         run: |
-          New-Item -ItemType directory -Path '${{ steps.setup-environment.outputs.installPath }}/${{ matrix.configuration }}'
           Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
           cmake --install .
           
@@ -92,4 +91,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.installPath }}/${{ matrix.configuration }}'
+          path: '${{ steps.setup-environment.outputs.installPath }}/install'
