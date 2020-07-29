@@ -84,7 +84,7 @@ jobs:
       
       - name: Install with CMake
         run: |
-          New-Item -ItemType directory -Path '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
+          New-Item -ItemType directory -Path '${{ steps.setup-environment.outputs.installPath }}/${{ matrix.configuration }}'
           Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
           cmake --install .
           
