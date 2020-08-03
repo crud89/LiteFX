@@ -20,9 +20,10 @@ private:
     Array<VkClearValue> m_clearValues;
     Array<VkFramebuffer> m_frameBuffers;
     Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
-    UInt32 m_currentFrameBuffer{ 0 };
+    UInt32 m_backBuffer{ 0 };
     Array<VkSemaphore> m_semaphores;
     const IRenderPass* m_dependency{ nullptr };
+    bool m_present{ false };
 
     /// <summary>
     /// Stores the images for all attachments, except the present attachment.
@@ -50,7 +51,7 @@ private:
             ::vkDestroyFramebuffer(m_parent->getDevice()->handle(), frameBuffer, nullptr);
         });
 
-        m_currentFrameBuffer = 0;
+        m_backBuffer = 0;
     }
 
     UniquePtr<IImage> makeImageView(const IRenderTarget* target)
@@ -113,6 +114,7 @@ public:
 
                     presentAttachment = VkAttachmentReference { static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
                     colorAttachments.push_back(presentAttachment.value());
+                    m_present = true;
                     break;
                 }
 
@@ -236,8 +238,10 @@ public:
         if (pipeline == nullptr)
             throw std::runtime_error("The pipeline of the render pass is not a valid Vulkan pipeline.");
 
-        // Swap out the back buffer.
-        m_currentFrameBuffer = m_swapChain->swapBackBuffer();
+        // Swap out the back buffer, if the render pass has a present target. Otherwise increment the current frame buffer anyways.
+        m_backBuffer = m_present ? m_swapChain->swapBackBuffer() : (m_backBuffer + 1) % static_cast<UInt32>(m_frameBuffers.size());
+
+        // Get current command buffer.
         auto commandBuffer = this->getCurrentCommandBuffer();
         commandBuffer->begin();
 
@@ -245,7 +249,7 @@ public:
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_parent->handle();
-        renderPassInfo.framebuffer = m_frameBuffers[m_currentFrameBuffer];
+        renderPassInfo.framebuffer = m_frameBuffers[m_backBuffer];
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent.width = static_cast<UInt32>(m_parent->getDevice()->getBufferWidth());
         renderPassInfo.renderArea.extent.height = static_cast<UInt32>(m_parent->getDevice()->getBufferHeight());
@@ -263,19 +267,21 @@ public:
         commandBuffer->end();
 
         // Submit the command buffer.
-        Array<VkSemaphore> waitForSemaphores = { m_swapChain->getCurrentSemaphore() };
-        Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
-        Array<VkSemaphore> signalSemaphores = { this->getCurrentSemaphore() };
-        commandBuffer->submit(waitForSemaphores, waitForStages, signalSemaphores, false);
-
-        // Draw the frame, if the result of the render pass it should be presented to the swap chain.
-        if (present)
+        if (!m_present)
+            commandBuffer->submit({}, {});
+        else
         {
+            Array<VkSemaphore> waitForSemaphores = { m_swapChain->getCurrentSemaphore() };
+            Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
+            Array<VkSemaphore> signalSemaphores = { this->getCurrentSemaphore() };
+            commandBuffer->submit(waitForSemaphores, waitForStages, signalSemaphores, false);
+
+            // Draw the frame, if the result of the render pass it should be presented to the swap chain.
             VkPresentInfoKHR presentInfo{};
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
             presentInfo.waitSemaphoreCount = signalSemaphores.size();
             presentInfo.pWaitSemaphores = signalSemaphores.data();
-            presentInfo.pImageIndices = &m_currentFrameBuffer;
+            presentInfo.pImageIndices = &m_backBuffer;
             presentInfo.pResults = nullptr;
 
             VkSwapchainKHR swapChains[] = { m_swapChain->handle() };
@@ -290,12 +296,12 @@ public:
 public:
     const VulkanCommandBuffer* getCurrentCommandBuffer() const noexcept
     {
-        return m_commandBuffers[m_currentFrameBuffer].get();
+        return m_commandBuffers[m_backBuffer].get();
     }
 
     const VkSemaphore& getCurrentSemaphore() const noexcept
     {
-        return m_semaphores[m_currentFrameBuffer];
+        return m_semaphores[m_backBuffer];
     }
 
     void addTarget(UniquePtr<IRenderTarget>&& target) 

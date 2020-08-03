@@ -18,6 +18,16 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
+const Array<Vertex> viewPlaneVertices =
+{
+    { { -1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -1.0f, 1.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } },
+    { { 1.0f, -1.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
+    { { 1.0f, 1.0f, 1.0f },   { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } }
+};
+
+const Array<UInt16> viewPlaneIndices = { 0, 2, 1, 1, 2, 3 };
+
 struct CameraBuffer {
     glm::mat4 ViewProjection;
 } camera;
@@ -35,9 +45,8 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::createRenderPasses()
 {
     m_geometryPass = m_device->buildRenderPass()
-        //.attachDepthTarget(true, true)
         .attachColorTarget(true)
-        .attachPresentTarget(true)
+        .attachDepthTarget(true, true)
         .setPipeline()
             .defineLayout()
                 .setShaderProgram()
@@ -80,8 +89,10 @@ void SampleApp::createRenderPasses()
                 .setShaderProgram()
                     .addVertexShaderModule("shaders/deferred_shading_lighting_pass.vert.spv")
                     .addFragmentShaderModule("shaders/deferred_shading_lighting_pass.frag.spv")
-                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-                        .addUniform(0, sizeof(CameraBuffer))
+                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Fragment)
+                        .addInputAttachment(0)  // Color attachment
+                        .addInputAttachment(1)  // Depth attachment
+                        .addSampler(2)
                         .go()
                     .go()
                 .setRasterizer()
@@ -96,6 +107,7 @@ void SampleApp::createRenderPasses()
                     .addVertexBuffer(sizeof(Vertex), 0)
                         .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
                         .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                        .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0))
                         .go()
                     .go()
                 .addViewport()
@@ -109,6 +121,7 @@ void SampleApp::createRenderPasses()
 
 void SampleApp::initBuffers()
 {
+    // Create buffers for geometry pass.
     // Create the staging buffer.
     auto stagedVertices = m_geometryPass->makeVertexBuffer(BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex));
@@ -130,6 +143,18 @@ void SampleApp::initBuffers()
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
     m_perObjectBindings = m_geometryPass->makeBufferPool(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
+
+    // Create buffers for lighting pass.
+    stagedVertices = m_geometryPass->makeVertexBuffer(BufferUsage::Staging, viewPlaneVertices.size());
+    stagedVertices->map(viewPlaneVertices.data(), viewPlaneVertices.size() * sizeof(::Vertex));
+    m_viewPlaneVertexBuffer = m_geometryPass->makeVertexBuffer(BufferUsage::Resource, vertices.size());
+    m_viewPlaneVertexBuffer->transferFrom(m_device->getTransferQueue(), stagedVertices.get(), stagedVertices->getSize());
+
+    // Create the staging buffer for the indices.
+    stagedIndices = m_geometryPass->makeIndexBuffer(BufferUsage::Staging, viewPlaneIndices.size(), IndexType::UInt16);
+    stagedIndices->map(viewPlaneIndices.data(), viewPlaneIndices.size() * sizeof(UInt16));
+    m_viewPlaneIndexBuffer = m_geometryPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
+    m_viewPlaneIndexBuffer->transferFrom(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
 }
 
 void SampleApp::run() 
@@ -153,10 +178,13 @@ void SampleApp::run()
     m_cameraBuffer = nullptr;
     m_transformBuffer = nullptr;
     m_vertexBuffer = nullptr;
+    m_viewPlaneVertexBuffer = nullptr;
     m_indexBuffer = nullptr;
+    m_viewPlaneIndexBuffer = nullptr;
 
     // Destroy the pipeline and the device.
     m_geometryPass = nullptr;
+    m_lightingPass = nullptr;
     m_device = nullptr;
 
     // Destroy the window.
@@ -200,7 +228,7 @@ void SampleApp::handleEvents()
 
 void SampleApp::drawFrame()
 {
-    // Begin rendering.
+    // Begin geometry pass.
     m_geometryPass->begin();
 
     // Update transform buffer.
@@ -231,6 +259,17 @@ void SampleApp::drawFrame()
     // Draw the object.
     m_geometryPass->drawIndexed(indices.size());
 
-    // End the frame.
-    m_geometryPass->end(true);
+    // End geometry pass.
+    m_geometryPass->end(false);
+
+    // Begin lighting pass.
+    m_lightingPass->begin();
+
+    // Draw the view plane.
+    m_lightingPass->bind(m_viewPlaneVertexBuffer.get());
+    m_lightingPass->bind(m_viewPlaneIndexBuffer.get());
+    m_lightingPass->drawIndexed(viewPlaneIndices.size());
+
+    // End lighting pass and present.
+    m_lightingPass->end(true);
 }

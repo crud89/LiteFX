@@ -3,21 +3,20 @@
 struct VertexData 
 {
     float4 Position : SV_POSITION;
-    float4 Color : COLOR;
+    float2 TextureCoordinate : TEXCOORD0;
 }; 
 
 struct FragmentData
 {
-    float4 Color : SV_TARGET;
-    float Depth : SV_DEPTH;
+    float4 Color : SV_TARGET0;
 };
 
 FragmentData main(VertexData input)
 {
     FragmentData fragment;
     
-    fragment.Depth = input.Position.z;
-    fragment.Color = input.Color;
+    // TODO: Sample from input attachment.
+    fragment.Color = float4(1.0, 1.0, 1.0, 1.0);
 
     return fragment;
 }

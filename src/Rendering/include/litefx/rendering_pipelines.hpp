@@ -1012,6 +1012,9 @@ namespace LiteFX::Rendering {
         virtual TDerived& addImage(const UInt32& binding) {
             return this->addDescriptor(DescriptorType::Image, binding, 0);
         }
+        virtual TDerived& addInputAttachment(const UInt32& binding) {
+            return this->addDescriptor(DescriptorType::InputAttachment, binding, 0);
+        }
         virtual TDerived& addSampler(const UInt32& binding) {
             return this->addDescriptor(DescriptorType::Sampler, binding, 0);
         }
