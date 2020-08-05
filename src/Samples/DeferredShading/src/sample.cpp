@@ -10,9 +10,9 @@ enum DescriptorSets : UInt32
 
 const Array<Vertex> vertices =
 {
-    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, 0.5f, 0.5f },   { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, 0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, 0.5f, 0.5f },   { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
     { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } }
 };
 
@@ -177,6 +177,7 @@ void SampleApp::run()
     // Destroy all resources.
     m_perObjectBindings = nullptr;
     m_perFrameBindings = nullptr;
+    m_gBufferBindings = nullptr;
     m_cameraBuffer = nullptr;
     m_transformBuffer = nullptr;
     m_vertexBuffer = nullptr;
