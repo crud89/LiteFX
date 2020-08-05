@@ -245,7 +245,7 @@ public:
 			if (module == nullptr)
 				throw std::invalid_argument("The provided shader module is not a valid Vulkan shader.");
 
-			LITEFX_TRACE(VULKAN_LOG, "\tModule {0}/{1} (\"{4}\") state: {{ Type: {2}, EntryPoint: {3} }}", i, modules.size(), module->getType(), module->getEntryPoint(), module->getFileName());
+			LITEFX_TRACE(VULKAN_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", i, modules.size(), module->getFileName(), module->getType(), module->getEntryPoint());
 			
 			return module->getShaderStageDefinition();
 		});
