@@ -92,7 +92,6 @@ void SampleApp::createRenderPasses()
                     .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Fragment)
                         .addInputAttachment(0)  // Color attachment
                         .addInputAttachment(1)  // Depth attachment
-                        .addSampler(2)
                         .go()
                     .go()
                 .setRasterizer()
@@ -155,6 +154,9 @@ void SampleApp::initBuffers()
     stagedIndices->map(viewPlaneIndices.data(), viewPlaneIndices.size() * sizeof(UInt16));
     m_viewPlaneIndexBuffer = m_geometryPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
     m_viewPlaneIndexBuffer->transferFrom(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
+
+    // Create the G-Buffer bindings.
+    m_gBufferBindings = m_lightingPass->makeBufferPool(DescriptorSets::PerFrame);
 }
 
 void SampleApp::run() 
@@ -265,9 +267,14 @@ void SampleApp::drawFrame()
     // Begin lighting pass.
     m_lightingPass->begin();
 
+    // Bind the G-Buffer.
+    m_gBufferBindings->attach(0, m_geometryPass.get(), 0);
+    m_gBufferBindings->attach(1, m_geometryPass.get(), 1);
+
     // Draw the view plane.
     m_lightingPass->bind(m_viewPlaneVertexBuffer.get());
     m_lightingPass->bind(m_viewPlaneIndexBuffer.get());
+    m_lightingPass->bind(m_gBufferBindings.get());
     m_lightingPass->drawIndexed(viewPlaneIndices.size());
 
     // End lighting pass and present.

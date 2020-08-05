@@ -40,7 +40,7 @@ private:
 	UniquePtr<IVertexBuffer> m_vertexBuffer, m_viewPlaneVertexBuffer;
 	UniquePtr<IIndexBuffer> m_indexBuffer, m_viewPlaneIndexBuffer;
 	UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;
-	UniquePtr<IDescriptorSet> m_perFrameBindings, m_perObjectBindings;
+	UniquePtr<IDescriptorSet> m_perFrameBindings, m_perObjectBindings, m_gBufferBindings;
 
 public:
 	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {

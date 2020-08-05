@@ -420,6 +420,14 @@ void VulkanRenderPass::drawIndexed(const UInt32& indices, const UInt32& instance
     ::vkCmdDrawIndexed(m_impl->getCurrentCommandBuffer()->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
+const IImage* VulkanRenderPass::getAttachment(const UInt32& attachmentId) const
+{
+    if (m_impl->m_attachmentImages.size() <= attachmentId)
+        throw std::invalid_argument(fmt::format("Invalid attachment index ({0}, but expected {1} or less).", attachmentId, m_impl->m_attachmentImages.size() - 1));
+
+    return m_impl->m_attachmentImages[attachmentId].get();
+}
+
 void VulkanRenderPass::bind(const IVertexBuffer* buffer) const
 {
     auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);

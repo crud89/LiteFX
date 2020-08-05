@@ -189,98 +189,35 @@ void VulkanDescriptorSet::update(const ISampler* sampler) const
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::updateAll(const IConstantBuffer* buffer) const
+void VulkanDescriptorSet::attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const
 {
-    auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-
-    if (resource == nullptr)
-        throw std::invalid_argument("The buffer is not a valid Vulkan buffer.");
-
-    VkDescriptorBufferInfo bufferInfo{ };
-    bufferInfo.buffer = resource->handle();
-    bufferInfo.range = buffer->getSize();
-    bufferInfo.offset = 0;
-
-    Array<VkWriteDescriptorSet> descriptorWrites(m_impl->m_descriptorSets.size());
-
-    std::generate(std::begin(descriptorWrites), std::end(descriptorWrites), [&, i = 0]() mutable {
-        VkWriteDescriptorSet descriptorWrite = {};
-
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
-        descriptorWrite.dstBinding = buffer->getLayout()->getBinding();
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &bufferInfo;
-
-        switch (buffer->getLayout()->getDescriptorType())
-        {
-        case DescriptorType::Uniform: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
-        case DescriptorType::Storage: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
-        default: throw std::runtime_error("Unsupported buffer type.");
-        }
-        
-        return descriptorWrite;
-    });
-
-    ::vkUpdateDescriptorSets(this->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+    if (renderPass == nullptr)
+        throw std::invalid_argument("The render pass must be initialized.");
+    
+    this->attach(binding, renderPass->getAttachment(attachmentId));
 }
 
-void VulkanDescriptorSet::updateAll(const ITexture* texture) const
+void VulkanDescriptorSet::attach(const UInt32& binding, const IImage* image) const
 {
-    auto image = dynamic_cast<const IVulkanImage*>(texture);
+    auto resource = dynamic_cast<const IVulkanImage*>(image);
 
-    if (image == nullptr)
-        throw std::invalid_argument("The texture is not a valid Vulkan texture.");
+    if (resource == nullptr)
+        throw std::invalid_argument("The input attachment image is not a valid Vulkan resource.");
 
     VkDescriptorImageInfo imageInfo{ };
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = image->getImageView();
+    imageInfo.imageView = resource->getImageView();
 
-    Array<VkWriteDescriptorSet> descriptorWrites(m_impl->m_descriptorSets.size());
+    VkWriteDescriptorSet descriptorWrite{ };
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+    descriptorWrite.dstSet = m_impl->m_descriptorSets[m_impl->m_currentSet];
+    descriptorWrite.dstBinding = binding;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
 
-    std::generate(std::begin(descriptorWrites), std::end(descriptorWrites), [&, i = 0]() mutable {
-        VkWriteDescriptorSet descriptorWrite = {};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
-        descriptorWrite.dstBinding = texture->getBinding();
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pImageInfo = &imageInfo;
-
-        return descriptorWrite;
-    });
-
-    ::vkUpdateDescriptorSets(this->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-}
-
-void VulkanDescriptorSet::updateAll(const ISampler* sampler) const
-{
-    auto resource = dynamic_cast<const IResource<VkSampler>*>(sampler);
-
-    if (resource == nullptr)
-        throw std::invalid_argument("The sampler is not a valid Vulkan sampler.");
-
-    VkDescriptorImageInfo imageInfo{ };
-    imageInfo.sampler = resource->handle();
-
-    Array<VkWriteDescriptorSet> descriptorWrites(m_impl->m_descriptorSets.size());
-
-    std::generate(std::begin(descriptorWrites), std::end(descriptorWrites), [&, i = 0]() mutable {
-        VkWriteDescriptorSet descriptorWrite = {};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-        descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
-        descriptorWrite.dstBinding = sampler->getBinding();
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pImageInfo = &imageInfo;
-
-        return descriptorWrite;
-    });
-
-    ::vkUpdateDescriptorSets(this->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+    ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
 void VulkanDescriptorSet::bind(const IRenderPass* renderPass)

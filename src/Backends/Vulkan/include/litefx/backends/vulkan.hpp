@@ -41,9 +41,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual void update(const IConstantBuffer* buffer) const override;
 		virtual void update(const ITexture* texture) const override;
 		virtual void update(const ISampler* sampler) const override;
-		virtual void updateAll(const IConstantBuffer* buffer) const override;
-		virtual void updateAll(const ITexture* texture) const override;
-		virtual void updateAll(const ISampler* sampler) const override;
+		virtual void attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const override;
+		virtual void attach(const UInt32& binding, const IImage* image) const override;
 		virtual void bind(const IRenderPass* renderPass) override;
 	};
 
@@ -248,6 +247,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void reset() override;
 		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
 		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
+		virtual const IImage* getAttachment(const UInt32& attachmentId) const override;
 
 	public:
 		virtual void bind(const IVertexBuffer* buffer) const override;

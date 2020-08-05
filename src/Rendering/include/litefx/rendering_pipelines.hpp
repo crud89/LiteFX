@@ -613,9 +613,8 @@ namespace LiteFX::Rendering {
         virtual void update(const IConstantBuffer* buffer) const = 0;
         virtual void update(const ITexture* texture) const = 0;
         virtual void update(const ISampler* sampler) const = 0;
-        virtual void updateAll(const IConstantBuffer* buffer) const = 0;
-        virtual void updateAll(const ITexture* texture) const = 0;
-        virtual void updateAll(const ISampler* sampler) const = 0;
+        virtual void attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const = 0;
+        virtual void attach(const UInt32& binding, const IImage* image) const = 0;
         virtual void bind(const IRenderPass* renderPass) = 0;
     };
 
@@ -766,6 +765,7 @@ namespace LiteFX::Rendering {
         virtual void reset() = 0;
         virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
+        virtual const IImage* getAttachment(const UInt32& attachmentId) const = 0;
 
     public:
         virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
