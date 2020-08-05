@@ -29,7 +29,7 @@ ENDIF(BUILD_USE_GLSLC AND BUILD_USE_DXC)
 
 SET(BUILD_GLSLC_DIR $ENV{VULKAN_SDK}/bin CACHE STRING "A directory that contains the `glslc.exe` file.")
 SET(BUILD_GLSLC_COMPILER ${BUILD_GLSLC_DIR}/glslc)
-SET(BUILD_DXC_DIR $ENV{DXC_PATH} CACHE STRING "A directory that contains the `dxc.exe` file.")
+SET(BUILD_DXC_DIR $ENV{VULKAN_SDK}/bin CACHE STRING "A directory that contains the `dxc.exe` file.")
 SET(BUILD_DXC_COMPILER ${BUILD_DXC_DIR}/dxc)
 
 OPTION(BUILD_PRECOMPILED_HEADERS "Use pre-compiled headers during build." OFF)
