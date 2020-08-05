@@ -9,7 +9,7 @@ FUNCTION(GLSLC_COMPILE_GLSL shader_file file_out)
   ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "glslc: compiling glsl shader '${shader_file}'..."
     DEPENDS ${shader_file} 
-    COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -x glsl -c ${file_in} -o ${file_out} -MD
+    COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -c ${file_in} -o ${file_out} -MD
   )
 ENDFUNCTION(GLSLC_COMPILE_GLSL)
 
@@ -18,7 +18,7 @@ FUNCTION(GLSLC_COMPILE_HLSL shader_file file_out)
   ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "glslc: compiling hlsl shader '${shader_file}'..."
     DEPENDS ${shader_file} 
-    COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -x hlsl -c ${file_in} -o ${file_out} -MD
+    COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -c ${file_in} -o ${file_out} -MD
   )
 ENDFUNCTION(GLSLC_COMPILE_HLSL)
 
@@ -57,6 +57,8 @@ FUNCTION(DXC_COMPILE_DXIL shader_file file_out)
   ELSE()
     LIST(APPEND compiler_options -Vd)
   ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+
+  LIST(APPEND compiler_options -D DXIL)
 
   ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to DXIL..."
@@ -99,6 +101,8 @@ FUNCTION(DXC_COMPILE_SPIRV shader_file file_out)
   ELSE()
     LIST(APPEND compiler_options -Vd)
   ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+
+  LIST(APPEND compiler_options -D SPIRV)
 
   ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to SPIR-V..."
