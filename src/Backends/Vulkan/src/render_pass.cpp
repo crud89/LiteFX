@@ -22,7 +22,7 @@ private:
     Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
     UInt32 m_backBuffer{ 0 };
     Array<VkSemaphore> m_semaphores;
-    const IRenderPass* m_dependency{ nullptr };
+    const VulkanRenderPass* m_dependency{ nullptr };
     bool m_present{ false };
 
     /// <summary>
@@ -73,12 +73,55 @@ public:
         if (m_queue == nullptr)
             throw std::invalid_argument("The device queue is not a valid Vulkan command queue.");
 
+        // Get the render targets of the render pass dependency, if there is any.
+        Array<const IRenderTarget*> dependencyTargets;
+
+        if (m_dependency != nullptr)
+            dependencyTargets = m_dependency->getTargets();
+
         // Setup the attachments.
         Array<VkAttachmentDescription> attachments;
         Array<VkAttachmentReference> colorAttachments;
+        Array<VkAttachmentReference> inputAttachments;
         Optional<VkAttachmentReference> depthAttachment, presentAttachment;
 
-        std::for_each(std::begin(m_targets), std::end(m_targets), [&, i = 0](const auto& target) mutable {
+        // Map input attachments.
+        std::for_each(std::begin(dependencyTargets), std::end(dependencyTargets), [&, i = 0](const auto& target) mutable {
+            VkAttachmentDescription attachment{};
+            attachment.format = getFormat(target->getFormat());
+            attachment.samples = getSamples(target->getSamples());
+            attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+            attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+            attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            
+            // Add a clear value, so that the indexing stays valid.
+            m_clearValues.push_back(VkClearValue{ });
+
+            switch (target->getType())
+            {
+            case RenderTargetType::Color:
+                attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                inputAttachments.push_back({ static_cast<UInt32>(i++), attachment.finalLayout });
+                attachments.push_back(attachment);
+                break;
+            case RenderTargetType::Depth:
+                attachment.initialLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                inputAttachments.push_back({ static_cast<UInt32>(i++), attachment.finalLayout });
+                attachments.push_back(attachment);
+                break;
+            case RenderTargetType::Present:
+                LITEFX_WARNING(VULKAN_LOG, "The render pass dependency defines a present render target, which can not be used as input attachment.");
+                break;
+            }
+        });
+
+        // Create attachments for each render target.
+        std::for_each(std::begin(m_targets), std::end(m_targets), [&, i = inputAttachments.size()](const auto& target) mutable {
             if ((target->getType() == RenderTargetType::Depth && depthAttachment.has_value()) || (target->getType() == RenderTargetType::Present && presentAttachment.has_value()))
                 throw std::runtime_error(fmt::format("Invalid render target {0}: only one target attachment of type {1} is allowed.", i, target->getType()));
             else
@@ -91,8 +134,11 @@ public:
                 attachment.storeOp = target->getVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
                 attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
+                // Add a clear values (even if it's unused).
                 if (target->getClearBuffer() || target->getClearStencil())
-                    m_clearValues.push_back(VkClearValue{ target->getClearValues().x(),target->getClearValues().y(),target->getClearValues().z(),target->getClearValues().w() });
+                    m_clearValues.push_back(VkClearValue{ target->getClearValues().x(), target->getClearValues().y(), target->getClearValues().z(), target->getClearValues().w() });
+                else
+                    m_clearValues.push_back(VkClearValue{ });
 
                 switch (target->getType())
                 {
@@ -122,18 +168,7 @@ public:
             }
         });
 
-        // Get the color and depths attachments of the dependency.
-        Array<VkAttachmentReference> inputAttachments;
-
-        // TODO: Map input attachments
-        //if (m_dependency != nullptr)
-        //{
-        //    inputAttachments.resize(m_dependency->getTargets().size());
-        //    std::generate(std::begin(inputAttachments), std::end(inputAttachments), [i = 0]() mutable { return VkAttachmentReference{ static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }; });
-        //}
-
         // Setup the sub-pass.
-        // NOTE: No need to set up a VK_SUBPASS_EXTERNAL dependency here, since it is done implicitly between individual VkRenderPass instances.
         VkSubpassDescription subPass{};
         subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subPass.colorAttachmentCount = static_cast<UInt32>(colorAttachments.size());
@@ -164,8 +199,17 @@ public:
         
         std::generate(std::begin(frameBuffers), std::end(frameBuffers), [&, i = 0]() mutable {
             Array<VkImageView> attachmentViews;
+            
+            std::for_each(std::begin(dependencyTargets), std::end(dependencyTargets), [&, a = 0](const auto& target) mutable {
+                auto inputAttachmentImage = dynamic_cast<const IVulkanImage*>(m_dependency->m_impl->m_attachmentImages[a++].get());
 
-            std::for_each(std::begin(m_targets), std::end(m_targets), [&, a = 0](const auto& target) mutable {
+                if (inputAttachmentImage == nullptr)
+                    throw std::invalid_argument("An input attachment of the render pass dependency is not a valid Vulkan image.");
+
+                attachmentViews.push_back(inputAttachmentImage->getImageView());
+            });
+
+            std::for_each(std::begin(m_targets), std::end(m_targets), [&, a = attachmentViews.size()](const auto& target) mutable {
                 if (presentAttachment.has_value() && a++ == presentAttachment->attachment)
                 {
                     // Acquire an image view from the swap chain.
@@ -374,7 +418,12 @@ UniquePtr<IRenderTarget> VulkanRenderPass::removeTarget(const IRenderTarget* tar
 
 void VulkanRenderPass::setDependency(const IRenderPass* renderPass)
 {
-    m_impl->m_dependency = renderPass;
+    auto dependency = dynamic_cast<const VulkanRenderPass*>(renderPass);
+
+    if (dependency == nullptr)
+        throw std::invalid_argument("The render pass dependency must be a valid Vulkan render pass.");
+
+    m_impl->m_dependency = dependency;
 }
 
 const IRenderPass* VulkanRenderPass::getDependency() const noexcept
