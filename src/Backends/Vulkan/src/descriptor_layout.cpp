@@ -189,6 +189,9 @@ VulkanShaderProgramBuilder& VulkanDescriptorSetLayoutBuilder::go()
 
 VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::addDescriptor(UniquePtr<IDescriptorLayout>&& layout)
 {
+    if (this->instance()->getShaderStages() != ShaderStage::Fragment && layout->getDescriptorType() == DescriptorType::InputAttachment)
+        throw std::invalid_argument("Input attachments must only be used from the fragment stage.");
+
     this->instance()->m_impl->m_layouts.push_back(std::move(layout));
     return *this;
 }
