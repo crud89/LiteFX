@@ -1,40 +1,67 @@
 ###################################################################################################
 #####                                                                                         #####
-#####                LiteFX.Rendering - Contains the Vulkan rendering backend.                #####
+#####             LiteFX.Backends.Vulkan - Contains the Vulkan rendering backend.             #####
 #####                                                                                         #####
 ###################################################################################################
 
 PROJECT(LiteFX.Backends.Vulkan VERSION ${LITEFX_VERSION} LANGUAGES CXX)
-MESSAGE(STATUS "Initializing: LiteFX.LiteFX.Backends.Vulkan...")
+MESSAGE(STATUS "Initializing: LiteFX.Backends.Vulkan...")
 
 # Install packages.
 MESSAGE (STATUS "Installing package dependencies...")
-VCPKG_INSTALL (glm glad vulkan)
+VCPKG_INSTALL (glm glad vulkan vulkan-memory-allocator)
 
 # Resolve package dependencies.
 FIND_PACKAGE(glm CONFIG REQUIRED)
 FIND_PACKAGE(glad CONFIG REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
+FIND_PACKAGE(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 
 # Collect header & source files.
 SET(VULKAN_BACKEND_HEADERS
+    "include/litefx/backends/vulkan_api.hpp"
+    "include/litefx/backends/vulkan_platform.hpp"
+    "include/litefx/backends/vulkan_builders.hpp"
+    "include/litefx/backends/vulkan_formatters.hpp"
     "include/litefx/backends/vulkan.hpp"
 )
 
 SET(VULKAN_BACKEND_SOURCES
-    "src/vulkan.cpp"
-)
+    "src/buffer.h"
+    "src/image.h"
 
-# Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.
-ADD_DEFINITIONS(-DNOMINMAX)
+    "src/runtime_object.cpp"
+    "src/convert.cpp"
+    "src/backend.cpp"
+    "src/adaper.cpp"
+    "src/device.cpp"
+    "src/queue.cpp"
+    "src/surface.cpp"
+    "src/swapchain.cpp"
+    "src/shader_module.cpp"
+    "src/shader_program.cpp"
+    "src/pipeline.cpp"
+    "src/pipeline_layout.cpp"
+    "src/rasterizer.cpp"
+    "src/viewport.cpp"
+    "src/input_assembler.cpp"
+    "src/render_pass.cpp"
+    "src/command_buffer.cpp"
+    "src/vertex_buffer.cpp"
+    "src/index_buffer.cpp"
+    "src/constant_buffer.cpp"
+    "src/descriptor_set.cpp"
+    "src/descriptor_layout.cpp"
+    "src/buffer.cpp"
+    "src/image.cpp"
+    "src/sampler.cpp"
+)
 
 # Add shared library project.
 ADD_LIBRARY(LiteFX.Backends.Vulkan SHARED
     ${VULKAN_BACKEND_HEADERS}
     ${VULKAN_BACKEND_SOURCES}
 )
-
-ADD_DEPENDENCIES(LiteFX.Backends.Vulkan LiteFX.Core LiteFX.Rendering)
 
 # Create source groups for better code organization.
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${VULKAN_BACKEND_SOURCES})
@@ -57,12 +84,16 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Backends.Vulkan
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Backends.Vulkan
-    PUBLIC LiteFX.Core LiteFX.Rendering
-    PRIVATE glm glad::glad Vulkan::Vulkan
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
+    PRIVATE glm glad::glad Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
 )
+# Re-use pre-compiled core header.
+IF(BUILD_PRECOMPILED_HEADERS)
+    TARGET_PRECOMPILE_HEADERS(LiteFX.Backends.Vulkan REUSE_FROM LiteFX.Core)
+ENDIF(BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
-INSTALL(TARGETS LiteFX.Backends.Vulkan EXPORT LiteFXBackendsVulkanConfig
+INSTALL(TARGETS LiteFX.Backends.Vulkan EXPORT LiteFXConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
@@ -70,7 +101,7 @@ INSTALL(TARGETS LiteFX.Backends.Vulkan EXPORT LiteFXBackendsVulkanConfig
 )
 
 INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
-INSTALL(EXPORT LiteFXBackendsVulkanConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+INSTALL(EXPORT LiteFXConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
 
 # Export config.
 EXPORT(TARGETS LiteFX.Backends.Vulkan FILE LiteFXBackendsVulkanConfig.cmake)

@@ -351,3 +351,6 @@ MigrationBackup/
 
 # Ninja build output.
 out/
+
+# SourceTrail outputs
+*.srctrl*

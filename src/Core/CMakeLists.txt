@@ -9,12 +9,13 @@ MESSAGE(STATUS "Initializing: LiteFX.Core...")
 
 CONFIGURE_FILE("config.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/config.h")
 CONFIGURE_FILE("version.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/version.h")
-CONFIGURE_FILE("header.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/litefx.h")
 CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/core.h")
 
 # Collect header & source files.
 SET(CORE_HEADERS
-    "include/litefx/core_types.hpp"
+    "include/litefx/containers.hpp"
+    "include/litefx/string.hpp"
+    "include/litefx/traits.hpp"
     "include/litefx/core.h"
     "include/litefx/config.h"
     "include/litefx/version.h"
@@ -22,12 +23,8 @@ SET(CORE_HEADERS
 )
 
 SET(CORE_SOURCES
-    "src/Application.cpp"
-)
-
-# Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.
-# Use _declspec(dllexport) for types.
-ADD_DEFINITIONS(-DNOMINMAX)
+    "src/core.cpp"
+ )
 
 ADD_LIBRARY(LiteFX.Core SHARED
     ${CORE_HEADERS}
@@ -37,11 +34,16 @@ ADD_LIBRARY(LiteFX.Core SHARED
 # Create source groups for better code organization.
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CORE_HEADERS} ${CORE_SOURCES})
 
-# Setup project properties.
+# Setup project properties. Relevant properties:
+# - FOLDER: IDE folder (if supported).
+# - VERSION/SOVERSION: The current build version.
+# - DEFINE_SYMBOL: Disables the "_EXPORTS" define, which would conflict with the precompiled header.
+# Do not export
 SET_TARGET_PROPERTIES(LiteFX.Core PROPERTIES
     FOLDER "SDK"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
+    DEFINE_SYMBOL ""
 )
 
 TARGET_INCLUDE_DIRECTORIES(LiteFX.Core
@@ -52,8 +54,13 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Core
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDE_DIR}>
 )
 
+# Pre-compile core header.
+IF(BUILD_PRECOMPILED_HEADERS)
+    TARGET_PRECOMPILE_HEADERS(LiteFX.Core PRIVATE <litefx/core.h>)
+ENDIF(BUILD_PRECOMPILED_HEADERS)
+
 # Setup installer.
-INSTALL(TARGETS LiteFX.Core EXPORT LiteFXCoreConfig
+INSTALL(TARGETS LiteFX.Core EXPORT LiteFXConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
@@ -61,7 +68,7 @@ INSTALL(TARGETS LiteFX.Core EXPORT LiteFXCoreConfig
 )
 
 INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
-INSTALL(EXPORT LiteFXCoreConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+INSTALL(EXPORT LiteFXConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
 
 # Export config.
 EXPORT(TARGETS LiteFX.Core FILE LiteFXCoreConfig.cmake)

@@ -7,25 +7,48 @@
 PROJECT(LiteFX.Rendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: LiteFX.Rendering...")
 
+# Install packages.
+MESSAGE(STATUS "Installing package dependencies...")
+
+SET(TARGET_LINK_LIBS "")
+
+IF(BUILD_WITH_GLM)
+    VCPKG_INSTALL(glm)
+    FIND_PACKAGE(glm CONFIG REQUIRED)
+    LIST(APPEND TARGET_LINK_LIBS "glm")
+ENDIF(BUILD_WITH_GLM)
+
 # Collect header & source files.
 SET(RENDERING_HEADERS
-    "include/litefx/Rendering.hpp"
+    "include/litefx/rendering_api.hpp"
+    "include/litefx/rendering_formatters.hpp"
+    "include/litefx/rendering_pipelines.hpp"
+    "include/litefx/rendering.hpp"
 )
 
 SET(RENDERING_SOURCES
-    "src/Rendering.cpp"
+    "src/backend.cpp"
+    "src/device.cpp"
+    "src/buffer_attribute.cpp"
+    "src/pipeline_layout.cpp"
+    "src/input_assembler.cpp"
+    "src/rasterizer.cpp"
+    "src/viewport.cpp"
+    "src/render_target.cpp"
+    "src/buffer.cpp"
+    "src/vertex_buffer.cpp"
+    "src/index_buffer.cpp"
+    "src/constant_buffer.cpp"
+    "src/image.cpp"
+    "src/texture.cpp"
+    "src/sampler.cpp"
 )
-
-# Undefine min/max macros by default - in favor of std::min/std::max from <cmath>.
-ADD_DEFINITIONS(-DNOMINMAX)
 
 # Add shared library project.
 ADD_LIBRARY(LiteFX.Rendering SHARED
     ${RENDERING_HEADERS}
     ${RENDERING_SOURCES}
 )
-
-ADD_DEPENDENCIES(LiteFX.Rendering LiteFX.Core)
 
 # Create source groups for better code organization.
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${RENDERING_HEADERS} ${RENDERING_SOURCES})
@@ -47,10 +70,17 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Rendering
 )
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Rendering LiteFX.Core)
+TARGET_LINK_LIBRARIES(LiteFX.Rendering 
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Graphics LiteFX.AppModel LiteFX.Logging ${TARGET_LINK_LIBS}
+)
+
+# Re-use pre-compiled core header.
+IF(BUILD_PRECOMPILED_HEADERS)
+    TARGET_PRECOMPILE_HEADERS(LiteFX.Rendering REUSE_FROM LiteFX.Core)
+ENDIF(BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
-INSTALL(TARGETS LiteFX.Rendering EXPORT LiteFXRenderingConfig
+INSTALL(TARGETS LiteFX.Rendering EXPORT LiteFXConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
@@ -58,7 +88,7 @@ INSTALL(TARGETS LiteFX.Rendering EXPORT LiteFXRenderingConfig
 )
 
 INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
-INSTALL(EXPORT LiteFXRenderingConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+INSTALL(EXPORT LiteFXConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
 
 # Export config.
 EXPORT(TARGETS LiteFX.Rendering FILE LiteFXRenderingConfig.cmake)

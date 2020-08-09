@@ -3,16 +3,10 @@
 #include "version.h"
 #include "config.h"
 
-#if !defined (LITEFX_CORE_API)
-#  if defined(LiteFX_Core_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_CORE_API __declspec(dllexport)
-#  elif (defined(LiteFX_Core_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
-#    define LITEFX_CORE_API __attribute__ ((visibility ("default")))
-#  elif !defined(LiteFX_Core_EXPORTS) && (defined _WIN32 || defined WINCE)
-#    define LITEFX_CORE_API __declspec(dllimport)
-#  endif
+#if (defined _WIN32 || defined WINCE)
+#  define NOMINMAX
+#  include <Windows.h>
 #endif
 
-#ifndef LITEFX_CORE_API
-#  define LITEFX_CORE_API
-#endif
+#include "containers.hpp"
+#include "traits.hpp"
