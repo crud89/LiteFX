@@ -177,6 +177,23 @@ public:
         subPass.inputAttachmentCount = static_cast<UInt32>(inputAttachments.size());
         subPass.pInputAttachments = inputAttachments.data();
 
+        // Define an external sub-pass dependency.
+        Array<VkSubpassDependency> dependencies;
+
+        if (m_dependency != nullptr)
+        {
+            VkSubpassDependency dependency{};
+            dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+            dependency.dstSubpass = 0;
+            dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dependency.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+            dependency.dependencyFlags = 0;
+
+            dependencies.push_back(dependency);
+        }
+
         // Setup render pass state.
         VkRenderPassCreateInfo renderPassState{};
         renderPassState.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -184,6 +201,8 @@ public:
         renderPassState.pAttachments = attachments.data();
         renderPassState.subpassCount = 1;
         renderPassState.pSubpasses = &subPass;
+        renderPassState.dependencyCount = static_cast<UInt32>(dependencies.size());
+        renderPassState.pDependencies = dependencies.data();
 
         // Create the render pass.
         VkRenderPass renderPass;
@@ -218,7 +237,6 @@ public:
                     if (swapChainImage == nullptr)
                         throw std::invalid_argument("A frame of the provided swap chain is not a valid Vulkan texture.");
 
-                    // TODO: Create an image view for each attachment.
                     attachmentViews.push_back(swapChainImage->getImageView());
                 }
                 else
