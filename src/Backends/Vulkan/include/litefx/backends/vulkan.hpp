@@ -38,11 +38,32 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept override;
 		virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept override;
 		virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const noexcept override;
+
+		/// <inheritdoc />
 		virtual void update(const IConstantBuffer* buffer) const override;
+		
+		/// <inheritdoc />
 		virtual void update(const ITexture* texture) const override;
+		
+		/// <inheritdoc />
 		virtual void update(const ISampler* sampler) const override;
+		
+		/// <inheritdoc />
+		virtual void updateAll(const IConstantBuffer* buffer) const override;
+		
+		/// <inheritdoc />
+		virtual void updateAll(const ITexture* texture) const override;
+		
+		/// <inheritdoc />
+		virtual void updateAll(const ISampler* sampler) const override;
+		
+		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const override;
+		
+		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IImage* image) const override;
+		
+		/// <inheritdoc />
 		virtual void bind(const IRenderPass* renderPass) override;
 	};
 

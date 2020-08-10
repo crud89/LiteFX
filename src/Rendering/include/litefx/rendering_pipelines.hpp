@@ -610,11 +610,68 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept = 0;
         virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept = 0;
         virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const noexcept = 0;
+
+        /// <summary>
+        /// Updates a constant buffer within the current descriptor set.
+        /// </summary>
+        /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
+        /// <seealso cref="updateAll(const IConstantBuffer*)" />
         virtual void update(const IConstantBuffer* buffer) const = 0;
+
+        /// <summary>
+        /// Updates a texture within the current descriptor set.
+        /// </summary>
+        /// <param name="texture">The texture to write to the descriptor set.</param>
+        /// <seealso cref="updateAll(const ITexture*)" />
         virtual void update(const ITexture* texture) const = 0;
+        
+        /// <summary>
+        /// Updates a sampler within the current descriptor set.
+        /// </summary>
+        /// <param name="sampler">The sampler to write to the descriptor set.</param>
+        /// <seealso cref="updateAll(const ISampler*)" />
         virtual void update(const ISampler* sampler) const = 0;
+
+        /// <summary>
+        /// Updates a constant buffer within all descriptor sets (i.e. for each frame in fly).
+        /// </summary>
+        /// <param name="buffer">The constant buffer to write to the descriptor sets.</param>
+        /// <seealso cref="update(const IConstantBuffer*)" />
+        virtual void updateAll(const IConstantBuffer* buffer) const = 0;
+
+        /// <summary>
+        /// Updates a texture within all descriptor sets (i.e. for each frame in fly).
+        /// </summary>
+        /// <param name="texture">The texture to write to the descriptor sets.</param>
+        /// <seealso cref="update(const ITexture*)" />
+        virtual void updateAll(const ITexture* texture) const = 0;
+
+        /// <summary>
+        /// Updates a sampler within all descriptor sets (i.e. for each frame in fly).
+        /// </summary>
+        /// <param name="sampler">The sampler to write to the descriptor sets.</param>
+        /// <seealso cref="update(const ISampler*)" />
+        virtual void updateAll(const ISampler* sampler) const = 0;
+
+        /// <summary>
+        /// Attaches the attachment identified by <paramref cref="attachmentId" /> of <paramref cref="renderPass" /> to the descriptor bound at <paramref cref="binding" />.
+        /// </summary>
+        /// <param name="binding">The input attachment binding point.</param>
+        /// <param name="renderPass">The render pass to request the attachment from.</param>
+        /// <param name="attachmentId">The id of the attachment.</param>
         virtual void attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const = 0;
+
+        /// <summary>
+        /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
+        /// </summary>
+        /// <param name="binding">The input attachment binding point.</param>
+        /// <param name="image">The image to bind to the input attachment descriptor.</param>
         virtual void attach(const UInt32& binding, const IImage* image) const = 0;
+
+        /// <summary>
+        /// Binds the descriptor set to a render pass.
+        /// </summary>
+        /// <param name="renderPass">The render pass to bind the descriptor set to.</param>
         virtual void bind(const IRenderPass* renderPass) = 0;
     };
 
