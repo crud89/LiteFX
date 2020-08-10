@@ -21,7 +21,7 @@ FIND_PACKAGE(glad CONFIG REQUIRED)
 FIND_PACKAGE(glfw3 CONFIG REQUIRED)
 FIND_PACKAGE(cli11 CONFIG REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
-FIND_PACKAGE(Stb REQUIRED)
+FIND_PATH(STB_INCLUDE_DIRS "stb.h")
 
 # Collect header & source files.
 SET(SAMPLE_TEXTURES_HEADERS
@@ -56,7 +56,7 @@ SET_TARGET_PROPERTIES(LiteFX.Samples.Textures PROPERTIES
 )
 
 # Setup target include directories.
-TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.Textures PRIVATE "src/" Stb)
+TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.Textures PRIVATE "src/" ${STB_INCLUDE_DIRS})
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Samples.Textures PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
