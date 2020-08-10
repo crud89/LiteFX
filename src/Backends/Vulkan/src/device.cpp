@@ -491,7 +491,7 @@ UniquePtr<IImage> VulkanDevice::createImage(const Format& format, const Size2d& 
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
-	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.queueFamilyIndexCount = 2;
 	imageInfo.pQueueFamilyIndices = queues;
 
@@ -518,7 +518,7 @@ UniquePtr<IImage> VulkanDevice::createAttachment(const Format& format, const Siz
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
 	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
-	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.queueFamilyIndexCount = 2;
 	imageInfo.pQueueFamilyIndices = queues;
 
@@ -548,7 +548,7 @@ UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout,
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_SAMPLED_BIT);
 	
 	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
-	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.queueFamilyIndexCount = 2;
 	imageInfo.pQueueFamilyIndices = queues;
 
