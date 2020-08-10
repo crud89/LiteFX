@@ -212,15 +212,19 @@ void SampleApp::resize(int width, int height)
         m_device->resize(width, height);
 
         // Resize the viewport.
-        auto layout = m_geometryPass->getPipeline()->getLayout();
-        auto viewport = layout->remove(layout->getViewports().front());
-        viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-        viewport->getScissors().clear();
-        viewport->getScissors().push_back(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-        layout->use(std::move(viewport));
+        auto renderPasses = { m_geometryPass.get(), m_lightingPass.get() };
+
+        std::for_each(std::begin(renderPasses), std::end(renderPasses), [width, height](auto renderPass) {
+            auto layout = renderPass->getPipeline()->getLayout();
+            auto viewport = layout->remove(layout->getViewports().front());
+            viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+            viewport->getScissors().clear();
+            viewport->getScissors().push_back(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+            layout->use(std::move(viewport));
         
-        // Recreate the pipeline.
-        m_geometryPass->reset();
+            // Recreate the pipeline.
+            renderPass->reset();
+        });
     }
 }
 
