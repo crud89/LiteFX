@@ -110,14 +110,14 @@ _VMATexture::_VMATexture(const VulkanDevice* device, const IDescriptorLayout* la
 	createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
 	if (!::hasDepth(format))
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_COLOR_BIT;
 	else
 	{
 		if (::hasDepth(format))
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 
 		if (::hasStencil(format))
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+			createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 	}
 
 	createInfo.subresourceRange.baseMipLevel = 0;
