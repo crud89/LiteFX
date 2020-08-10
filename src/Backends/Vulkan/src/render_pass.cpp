@@ -26,9 +26,9 @@ private:
     bool m_present{ false };
 
     /// <summary>
-    /// Stores the images for all attachments, except the present attachment.
+    /// Stores the images for all attachments (except the present attachment, which is a swap-chain image) and maps them to the frame buffer index.
     /// </summary>
-    Array<UniquePtr<IImage>> m_attachmentImages;
+    Dictionary<UInt32, Array<UniquePtr<IImage>>> m_attachmentImages;
 
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent) : base(parent) { }
@@ -182,14 +182,13 @@ public:
 
         if (m_dependency != nullptr)
         {
-            VkSubpassDependency dependency{};
+            VkSubpassDependency dependency {};
             dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-            dependency.dstSubpass = 0;
             dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dependency.dstSubpass = 0;
+            dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             dependency.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-            dependency.dependencyFlags = 0;
 
             dependencies.push_back(dependency);
         }
@@ -218,9 +217,10 @@ public:
         
         std::generate(std::begin(frameBuffers), std::end(frameBuffers), [&, i = 0]() mutable {
             Array<VkImageView> attachmentViews;
+            Array<UniquePtr<IImage>> attachmentImages;
             
             std::for_each(std::begin(dependencyTargets), std::end(dependencyTargets), [&, a = 0](const auto& target) mutable {
-                auto inputAttachmentImage = dynamic_cast<const IVulkanImage*>(m_dependency->m_impl->m_attachmentImages[a++].get());
+                auto inputAttachmentImage = dynamic_cast<const IVulkanImage*>(m_dependency->m_impl->m_attachmentImages[i][a++].get());
 
                 if (inputAttachmentImage == nullptr)
                     throw std::invalid_argument("An input attachment of the render pass dependency is not a valid Vulkan image.");
@@ -232,7 +232,7 @@ public:
                 if (presentAttachment.has_value() && a++ == presentAttachment->attachment)
                 {
                     // Acquire an image view from the swap chain.
-                    auto swapChainImage = dynamic_cast<const IVulkanImage*>(frames[i++]);
+                    auto swapChainImage = dynamic_cast<const IVulkanImage*>(frames[i]);
 
                     if (swapChainImage == nullptr)
                         throw std::invalid_argument("A frame of the provided swap chain is not a valid Vulkan texture.");
@@ -244,7 +244,7 @@ public:
                     // Create an image view for the render target.
                     auto image = this->makeImageView(target.get());
                     attachmentViews.push_back(dynamic_cast<const IVulkanImage*>(image.get())->getImageView());
-                    m_attachmentImages.push_back(std::move(image));
+                    attachmentImages.push_back(std::move(image));
                 }
             });
 
@@ -261,6 +261,8 @@ public:
 
             if (::vkCreateFramebuffer(m_parent->getDevice()->handle(), &frameBufferInfo, nullptr, &frameBuffer) != VK_SUCCESS)
                 throw std::runtime_error("Unable to create frame buffer from swap chain frame.");
+
+            m_attachmentImages[i++] = std::move(attachmentImages);
 
             return frameBuffer;
         });
@@ -492,7 +494,7 @@ const IImage* VulkanRenderPass::getAttachment(const UInt32& attachmentId) const
     if (m_impl->m_attachmentImages.size() <= attachmentId)
         throw std::invalid_argument(fmt::format("Invalid attachment index ({0}, but expected {1} or less).", attachmentId, m_impl->m_attachmentImages.size() - 1));
 
-    return m_impl->m_attachmentImages[attachmentId].get();
+    return m_impl->m_attachmentImages[m_impl->m_backBuffer][attachmentId].get();
 }
 
 void VulkanRenderPass::bind(const IVertexBuffer* buffer) const
