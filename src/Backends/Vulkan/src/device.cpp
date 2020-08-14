@@ -515,11 +515,11 @@ UniquePtr<IImage> VulkanDevice::createAttachment(const Format& format, const Siz
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.samples = ::getSamples(samples);
-	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+	imageInfo.usage = (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
-	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+	UInt32 queues[] = { this->getGraphicsQueue()->getId() };
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageInfo.queueFamilyIndexCount = 2;
+	imageInfo.queueFamilyIndexCount = 1;
 	imageInfo.pQueueFamilyIndices = queues;
 
 	VmaAllocationCreateInfo allocInfo = {};
@@ -531,7 +531,7 @@ UniquePtr<IImage> VulkanDevice::createAttachment(const Format& format, const Siz
 UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
 	if (layout == nullptr)
-		throw std::invalid_argument("The constant buffer descriptor layout must be initialized.");
+		throw std::invalid_argument("The texture descriptor layout must be initialized.");
 
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
