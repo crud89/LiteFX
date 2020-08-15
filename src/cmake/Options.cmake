@@ -4,13 +4,10 @@
 #####                                                                                         #####
 ###################################################################################################
 
-#OPTION(BUILD_OPEN_GL_BACKEND "Builds the OpenGL backend." OFF)
 OPTION(BUILD_VULKAN_BACKEND "Builds the Vulkan backend." ON)
-#OPTION(BUILD_DIRECTX_11_BACKEND "Builds the DirectX 11 backend." OFF)
 #OPTION(BUILD_DIRECTX_12_BACKEND "Builds the DirectX 12 backend." OFF)
 
 OPTION(BUILD_EXAMPLES "When set to OFF, no samples will be built, regardless of their individual option." ON)
-OPTION(BUILD_SAMPLE_BASIC_RENDERING "Builds the basic rendering sample." ON)
 
 OPTION(BUILD_WITH_GLM "Enables glm converters for math types." ON)
 OPTION(BUILD_WITH_DIRECTX_MATH "Enables DirectXMath converters for math types." ON)

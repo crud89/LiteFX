@@ -38,9 +38,7 @@ ENDIF(BUILD_VULKAN_BACKEND)
 
 # Include samples.
 IF(BUILD_EXAMPLES)
-    IF(BUILD_SAMPLE_BASIC_RENDERING)
-        ADD_SUBDIRECTORY(Samples/BasicRendering)
-        ADD_SUBDIRECTORY(Samples/Textures)
-        ADD_SUBDIRECTORY(Samples/DeferredShading)
-    ENDIF(BUILD_SAMPLE_BASIC_RENDERING)
+    ADD_SUBDIRECTORY(Samples/BasicRendering)
+    ADD_SUBDIRECTORY(Samples/Textures)
+    ADD_SUBDIRECTORY(Samples/DeferredShading)
 ENDIF(BUILD_EXAMPLES)
