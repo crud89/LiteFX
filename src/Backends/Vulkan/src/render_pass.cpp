@@ -86,6 +86,9 @@ public:
         Optional<VkAttachmentReference> depthAttachment, presentAttachment;
 
         // Map input attachments.
+        // TODO: We need to check if there's some better way to map dependency outputs to input attachments, since simply assuming the right order
+        //       might actually be tricky in situations where there are more than two render passes or where one render pass is executed multiple
+        //       times.
         std::for_each(std::begin(dependencyTargets), std::end(dependencyTargets), [&, i = 0](const auto& target) mutable {
             VkAttachmentDescription attachment{};
             attachment.format = getFormat(target->getFormat());
@@ -101,17 +104,15 @@ public:
             switch (target->getType())
             {
             case RenderTargetType::Color:
-                attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-                inputAttachments.push_back({ static_cast<UInt32>(i++), attachment.finalLayout });
+                inputAttachments.push_back({ static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
                 attachments.push_back(attachment);
                 break;
             case RenderTargetType::Depth:
-                attachment.initialLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-                attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                attachment.initialLayout = attachment.finalLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 
-                inputAttachments.push_back({ static_cast<UInt32>(i++), attachment.finalLayout });
+                inputAttachments.push_back({ static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
                 attachments.push_back(attachment);
                 break;
             case RenderTargetType::Present:
@@ -182,13 +183,13 @@ public:
 
         if (m_dependency != nullptr)
         {
-            VkSubpassDependency dependency {};
+            VkSubpassDependency dependency{};
             dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
             dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
             dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             dependency.dstSubpass = 0;
-            dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dependency.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+            dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dependency.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
             dependencies.push_back(dependency);
         }
@@ -331,6 +332,7 @@ public:
         commandBuffer->end();
 
         // Submit the command buffer.
+
         if (!m_present)
             commandBuffer->submit({}, {});
         else
@@ -338,6 +340,7 @@ public:
             Array<VkSemaphore> waitForSemaphores = { m_swapChain->getCurrentSemaphore() };
             Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
             Array<VkSemaphore> signalSemaphores = { this->getCurrentSemaphore() };
+
             commandBuffer->submit(waitForSemaphores, waitForStages, signalSemaphores, false);
 
             // Draw the frame, if the result of the render pass it should be presented to the swap chain.
@@ -491,8 +494,8 @@ void VulkanRenderPass::drawIndexed(const UInt32& indices, const UInt32& instance
 
 const IImage* VulkanRenderPass::getAttachment(const UInt32& attachmentId) const
 {
-    if (m_impl->m_attachmentImages.size() <= attachmentId)
-        throw std::invalid_argument(fmt::format("Invalid attachment index ({0}, but expected {1} or less).", attachmentId, m_impl->m_attachmentImages.size() - 1));
+    if (m_impl->m_attachmentImages[m_impl->m_backBuffer].size() <= attachmentId)
+        throw std::invalid_argument(fmt::format("Invalid attachment index ({0}, but expected {1} or less).", attachmentId, m_impl->m_attachmentImages[m_impl->m_backBuffer].size() - 1));
 
     return m_impl->m_attachmentImages[m_impl->m_backBuffer][attachmentId].get();
 }
