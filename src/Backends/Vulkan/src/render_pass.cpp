@@ -189,7 +189,7 @@ public:
             dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             dependency.dstSubpass = 0;
             dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            dependency.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+            dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
             dependencies.push_back(dependency);
         }
@@ -304,7 +304,8 @@ public:
             throw std::runtime_error("The pipeline of the render pass is not a valid Vulkan pipeline.");
 
         // Swap out the back buffer, if the render pass has a present target. Otherwise increment the current frame buffer anyways.
-        m_backBuffer = m_present ? m_swapChain->swapBackBuffer() : (m_backBuffer + 1) % static_cast<UInt32>(m_frameBuffers.size());
+        // NOTE: Maybe this can be refactored to a boolean parameter `swapBackBuffer` which defaults to `false`?
+        m_backBuffer = m_dependency == nullptr ? m_swapChain->swapBackBuffer() : m_dependency->m_impl->m_backBuffer;
 
         // Get current command buffer.
         auto commandBuffer = this->getCurrentCommandBuffer();
