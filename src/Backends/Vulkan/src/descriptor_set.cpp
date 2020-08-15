@@ -299,12 +299,7 @@ void VulkanDescriptorSet::attach(const UInt32& binding, const IImage* image) con
         throw std::invalid_argument("The input attachment image is not a valid Vulkan resource.");
 
     VkDescriptorImageInfo imageInfo{};
-    
-    if (!::hasDepth(image->getFormat()))
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    else
-        imageInfo.imageLayout = ::hasStencil(image->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     imageInfo.imageView = resource->getImageView();
 
     VkWriteDescriptorSet descriptorWrite{ };
