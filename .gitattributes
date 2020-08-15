@@ -1,0 +1,2 @@
+*.vert linguist-language=HLSL
+*.frag linguist-language=HLSL
