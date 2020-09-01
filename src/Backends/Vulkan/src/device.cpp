@@ -217,7 +217,10 @@ VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, 
 		throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
 
 	if (transferQueue == nullptr)
-		throw std::runtime_error("Unable to find a dedicated transfer queue.");
+	{
+		LITEFX_WARNING(VULKAN_LOG, "Unable to find dedicated transfer queue - falling back to graphics queue for transfer.");
+		transferQueue = graphicsQueue;
+	}
 
 	this->handle() = m_impl->initialize(format, graphicsQueue, transferQueue);
 
@@ -225,7 +228,10 @@ VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, 
 
 	graphicsQueue->bindDevice(this);
 	this->setGraphicsQueue(graphicsQueue);
-	transferQueue->bindDevice(this);
+	
+	if (transferQueue != graphicsQueue)
+		transferQueue->bindDevice(this);
+
 	this->setTransferQueue(transferQueue);
 }
 
