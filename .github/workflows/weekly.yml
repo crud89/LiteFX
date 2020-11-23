@@ -67,7 +67,7 @@ jobs:
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
-        uses: lukka/run-cmake@v2
+        uses: lukka/run-cmake@v4
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
