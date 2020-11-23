@@ -58,7 +58,7 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@latest
+        uses: lukka/run-vcpkg@v5
         with:
           vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
@@ -67,7 +67,7 @@ jobs:
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
-        uses: lukka/run-cmake@latest
+        uses: lukka/run-cmake@v3
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
