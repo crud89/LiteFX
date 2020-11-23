@@ -44,7 +44,7 @@ jobs:
         id: vulkan-sdk-cache
         uses: actions/cache@v2
         with:
-          path: ${{ env.VULKAN_SDK }}
+          path: "$($vulkanDir)"
           key: VulkanSDK-${{ env.vulkanSdkVersion }}-Windows
 
       - name: Setup Vulkan SDK
