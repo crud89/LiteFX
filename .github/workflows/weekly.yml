@@ -40,6 +40,10 @@ jobs:
           Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
+      - name: Debug Output
+        run: |
+          echo "VULKAN_SDK: ${{ env.VULKAN_SDK }}"
+
       - name: Setup Vulkan SDK cache
         id: vulkan-sdk-cache
         uses: actions/cache@v2
