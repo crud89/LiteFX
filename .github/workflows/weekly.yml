@@ -44,7 +44,7 @@ jobs:
         id: vulkan-sdk-cache
         uses: actions/cache@v2
         with:
-          path: "$($vulkanDir)"
+          path: '${{ env.VULKAN_SDK }}'
           key: VulkanSDK-${{ env.vulkanSdkVersion }}-Windows
 
       - name: Setup Vulkan SDK
@@ -58,7 +58,7 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v5
+        uses: lukka/run-vcpkg@latest
         with:
           vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
@@ -67,7 +67,7 @@ jobs:
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@latest
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
@@ -75,8 +75,6 @@ jobs:
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
-        env: 
-          VULKAN_SDK: "$($vulkanDir)"
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
