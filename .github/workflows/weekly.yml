@@ -75,6 +75,8 @@ jobs:
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
+        env: 
+          VULKAN_SDK: "$($vulkanDir)"
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
