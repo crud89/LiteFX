@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checking out sources
-        uses: actions/checkout@v1
+        uses: actions/checkout@master
         with:
           submodules: true
 
@@ -34,8 +34,7 @@ jobs:
         run: |
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
-          echo "VULKAN_SDK=$($vulkanDir)" >> $GITHUB_ENV
-          echo "$($vulkanDir)" >> $GITHUB_PATH
+          echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
           $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
           Write-Output "::set-output name=buildPath::$($buildPath)"
           $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
