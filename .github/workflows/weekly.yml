@@ -58,7 +58,7 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v3
+        uses: lukka/run-vcpkg@v5
         with:
           vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
