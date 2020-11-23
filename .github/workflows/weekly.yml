@@ -33,7 +33,7 @@ jobs:
         id: setup-environment
         run: |
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
-          Write-Output "::set-env name=VULKAN_SDK::$($vulkanDir)"
+          echo "VULKAN_SDK=$($vulkanDir)" >> $GITHUB_ENV
           $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
           Write-Output "::set-output name=buildPath::$($buildPath)"
           $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
