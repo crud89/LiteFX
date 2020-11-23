@@ -33,7 +33,7 @@ jobs:
         id: setup-environment
         run: |
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
-          Write-Output "VULKAN_SDK=$($vulkanDir)" >> $GITHUB_ENV
+          echo "VULKAN_SDK=$($vulkanDir)" >> $GITHUB_ENV
           $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
           Write-Output "::set-output name=buildPath::$($buildPath)"
           $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
@@ -42,6 +42,7 @@ jobs:
 
       - name: Debug Output
         run: |
+          echo $VULKAN_SDK
           echo "VULKAN_SDK: ${{ env.VULKAN_SDK }}"
 
       - name: Setup Vulkan SDK cache
