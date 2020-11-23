@@ -33,7 +33,7 @@ jobs:
         id: setup-environment
         run: |
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
-          Write-Output "Installing Vulkan SDK to: $($vulkanDir)..."
+          echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
           $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
           Write-Output "::set-output name=buildPath::$($buildPath)"
@@ -41,11 +41,15 @@ jobs:
           Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
+      - name: Debug Output
+        run: |
+          echo "VULKAN_SDK: ${{ env.VULKAN_SDK }}"
+          
       - name: Setup Vulkan SDK cache
         id: vulkan-sdk-cache
         uses: actions/cache@v2
         with:
-          path: '$env:VULKAN_SDK'
+          path: ${{ env.VULKAN_SDK }}
           key: VulkanSDK-${{ env.vulkanSdkVersion }}-Windows
 
       - name: Setup Vulkan SDK
