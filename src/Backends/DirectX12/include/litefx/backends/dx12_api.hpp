@@ -14,19 +14,17 @@
 #  define LITEFX_DIRECX12_API
 #endif
 
-#if (defined _WIN32 || defined WINCE)
-#  define WIN32_LEAN_AND_MEAN
-#  define NOMINMAX
-#else 
+#if (!defined _WIN32 && !defined WINCE)
 #  pragma message ("DirectX12: The DirectX backend requires Windows to be built on.")
 #endif
 
-#include <Windows.h>
-#include <wrl.h>
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <d3dx12.h>
+#include <directx/d3d12.h>
+#include <directx/dxcore.h>
+#include <directx/d3dx12.h>
+#include <dxguids/dxguids.h>
+#include "dxgi1_6.h"
 
+#include <wrl.h>
 using namespace Microsoft::WRL;
 
 namespace LiteFX::Rendering::Backends {
