@@ -1,6 +1,6 @@
 # LiteFX Vulkan Backend
 
-This project implements the vulkan backend for the LiteFX renderer. 
+This project implements the Vulkan backend for the LiteFX renderer. 
 
 ## Prerequisites
 
