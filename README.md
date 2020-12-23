@@ -67,12 +67,11 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
 - [CMake](https://cmake.org/download/) (version 3.16 or higher).
-- [vcpkg](https://github.com/microsoft/vcpkg).
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later (required to build the Vulkan backend).
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). †
 - Optional: Latest Windows 10 SDK (required to build DirectX backend).
 
-The project uses [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies, so if you haven't already installed *vcpkg*, start by cloning and building it. Make sure to store the binary directory into a system environment variable `VCPKG_ROOT`. Alternatively you can also use the *vcpkg* [toolchain file](https://github.com/microsoft/vcpkg/blob/master/docs/examples/installing-and-using-packages.md#cmake).
+Furthermore, the project uses [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies, so if you haven't already installed *vcpkg*, start by cloning and building it. Make sure to store the binary directory into a system environment variable `VCPKG_ROOT`. Alternatively you can also use the *vcpkg* [toolchain file](https://github.com/microsoft/vcpkg/blob/master/docs/examples/installing-and-using-packages.md#cmake).
 
 † Note that the LunarG Vulkan SDK actually ships with DXC, however it only contains the SPIR-V code generator. On the other hand, the default DXC build does only contain the DXIL code generator and cannot be used to compile HLSL shaders into SPIR-V. If you want to target both backends, i.e. Vulkan *and* DX12, then you have to use a custom DXC build, that contains both code generators. The process of building DXC is described in its [repository](https://github.com/microsoft/DirectXShaderCompiler).
 

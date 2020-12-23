@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checking out sources
-        uses: actions/checkout@v1
+        uses: actions/checkout@master
         with:
           submodules: true
 
@@ -33,7 +33,8 @@ jobs:
         id: setup-environment
         run: |
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
-          Write-Output "::set-env name=VULKAN_SDK::$($vulkanDir)"
+          echo "Installing Vulkan SDK to: $($vulkanDir)..."
+          echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
           $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
           Write-Output "::set-output name=buildPath::$($buildPath)"
           $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
@@ -58,7 +59,7 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v3
+        uses: lukka/run-vcpkg@v5
         with:
           vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
@@ -67,7 +68,7 @@ jobs:
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
-        uses: lukka/run-cmake@v2
+        uses: lukka/run-cmake@v3
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
