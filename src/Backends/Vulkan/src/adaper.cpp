@@ -160,6 +160,21 @@ uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
     return properties.apiVersion;
 }
 
+uint32_t VulkanGraphicsAdapter::getDedicatedMemory() const noexcept
+{
+    VkPhysicalDeviceMemoryProperties memoryProperties{};
+    ::vkGetPhysicalDeviceMemoryProperties(this->handle(), &memoryProperties);
+
+    auto memoryHeaps = memoryProperties.memoryHeaps;
+    auto heaps = std::vector<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
+
+    for each (const auto& heap in heaps)
+        if (LITEFX_FLAG_IS_SET(heap.flags, VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT))
+            return heap.size;
+
+    return 0;
+}
+
 ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const
 {
     return m_impl->findQueue(queueType);

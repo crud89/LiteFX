@@ -314,6 +314,7 @@ AppBuilder& VulkanBackendBuilder::go()
     Logger::get(VULKAN_LOG).debug("Vendor: {0:#0x}", adapter->getVendorId());
     Logger::get(VULKAN_LOG).debug("Driver Version: {0:#0x}", adapter->getDriverVersion());
     Logger::get(VULKAN_LOG).debug("API Version: {0:#0x}", adapter->getApiVersion());
+    Logger::get(VULKAN_LOG).debug("Dedicated Memory: {0} Bytes", adapter->getDedicatedMemory());
     Logger::get(VULKAN_LOG).debug("--------------------------------------------------------------------------");
     Logger::get(VULKAN_LOG).debug("Available extensions: {0}", Join(VulkanBackend::getAvailableExtensions(), ", "));
     Logger::get(VULKAN_LOG).debug("Validation layers: {0}", Join(VulkanBackend::getValidationLayers(), ", "));

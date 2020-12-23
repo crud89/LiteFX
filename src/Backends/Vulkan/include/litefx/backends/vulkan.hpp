@@ -470,6 +470,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual GraphicsAdapterType getType() const noexcept override;
 		virtual uint32_t getDriverVersion() const noexcept override;
 		virtual uint32_t getApiVersion() const noexcept override;
+		virtual uint32_t getDedicatedMemory() const noexcept override;
 
 	public:
 		virtual ICommandQueue* findQueue(const QueueType& queueType) const override;
