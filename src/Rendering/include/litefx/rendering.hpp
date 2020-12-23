@@ -207,6 +207,7 @@ namespace LiteFX::Rendering {
 		virtual GraphicsAdapterType getType() const noexcept = 0;
 		virtual uint32_t getDriverVersion() const noexcept = 0;
 		virtual uint32_t getApiVersion() const noexcept = 0;
+		virtual uint32_t getDedicatedMemory() const noexcept = 0;
 
 	public:
 		virtual ICommandQueue* findQueue(const QueueType& queueType) const = 0;
