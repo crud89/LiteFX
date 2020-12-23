@@ -69,7 +69,7 @@ In order for the project to be built, there are a few prerequisites that need to
 - [CMake](https://cmake.org/download/) (version 3.16 or higher).
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later (required to build the Vulkan backend).
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). †
-- Optional: Latest Windows 10 SDK (required to build DirectX backend).
+- Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
 Furthermore, the project uses [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies, so if you haven't already installed *vcpkg*, start by cloning and building it. Make sure to store the binary directory into a system environment variable `VCPKG_ROOT`. Alternatively you can also use the *vcpkg* [toolchain file](https://github.com/microsoft/vcpkg/blob/master/docs/examples/installing-and-using-packages.md#cmake).
 
