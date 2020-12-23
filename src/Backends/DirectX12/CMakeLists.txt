@@ -17,7 +17,6 @@ MESSAGE(STATUS "Installing package dependencies...")
 # Collect header & source files.
 SET(DIRECTX12_BACKEND_HEADERS
     "include/litefx/backends/dx12_api.hpp"
-    "include/litefx/backends/dx12_platform.hpp"
     "include/litefx/backends/dx12_builders.hpp"
     "include/litefx/backends/dx12_formatters.hpp"
     "include/litefx/backends/dx12.hpp"

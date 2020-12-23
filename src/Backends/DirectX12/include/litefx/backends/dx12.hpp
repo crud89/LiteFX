@@ -3,7 +3,6 @@
 #include <litefx/rendering.hpp>
 
 #include "dx12_api.hpp"
-#include "dx12_platform.hpp"
 #include "dx12_builders.hpp"
 #include "dx12_formatters.hpp"
 
