@@ -14,6 +14,7 @@ private:
     Array<UniquePtr<IGraphicsAdapter>> m_adapters{ };
     const IGraphicsAdapter* m_adapter{ nullptr };
     UniquePtr<ISurface> m_surface{ nullptr };
+    ComPtr<ID3D12Debug> m_debugInterface;
 
 public:
     DirectX12BackendImpl(DirectX12Backend* parent) :
@@ -32,6 +33,11 @@ public:
 
         if (FAILED(hr))
             throw std::runtime_error("Unable to create DirectX 12 factory instance.");
+
+#ifndef NDEBUG
+        ::D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugInterface));
+        m_debugInterface->EnableDebugLayer();
+#endif
 
         return factory;
     }
