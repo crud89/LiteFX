@@ -51,7 +51,7 @@ public:
                 FAILED(hr = adapterInterface.As(&adapterInstance)))
                 throw std::runtime_error("The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
 
-            // TODO: Create adapter instance and add it to the list.
+            m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
         }
         else
         {
@@ -65,7 +65,7 @@ public:
                     FAILED(hr = adapterInterface.As(&adapterInstance)))
                     throw std::runtime_error("The hardware adapter is not a valid IDXGIAdapter4 instance.");
 
-                // TODO: Create adapter instance and add it to the list.
+                m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
             }
         }
     }
@@ -168,6 +168,7 @@ AppBuilder& DirectX12BackendBuilder::go()
     Logger::get(DIRECTX12_LOG).debug("Vendor: {0:#0x}", adapter->getVendorId());
     Logger::get(DIRECTX12_LOG).debug("Driver Version: {0:#0x}", adapter->getDriverVersion());
     Logger::get(DIRECTX12_LOG).debug("API Version: {0:#0x}", adapter->getApiVersion());
+    Logger::get(DIRECTX12_LOG).debug("Dedicated Memory: {0} Bytes", adapter->getDedicatedMemory());
     Logger::get(DIRECTX12_LOG).debug("--------------------------------------------------------------------------");
 
     return builder_type::go();

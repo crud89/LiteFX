@@ -24,6 +24,7 @@ SET(DIRECTX12_BACKEND_HEADERS
 
 SET(DIRECTX12_BACKEND_SOURCES
     "src/backend.cpp"
+    "src/adapter.cpp"
 )
 
 # Add shared library project.
