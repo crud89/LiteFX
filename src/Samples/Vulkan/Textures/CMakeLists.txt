@@ -61,7 +61,7 @@ TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.Textures PRIVATE "src/" ${STB_INCLUDE_
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(LiteFX.Samples.Textures PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
 
-# Add shader SAMPLE_TEXTURES_SOURCES.
+# Add shader sources.
 TARGET_SHADER_SOURCES(LiteFX.Samples.Textures LANGUAGE HLSL SOURCES ${SAMPLE_TEXTURES_SHADERS})
 
 # Re-use pre-compiled core header.
