@@ -41,7 +41,7 @@ namespace LiteFX::Rendering::Backends {
     //class DirectX12SwapChain;
     //class DirectX12Queue;
     //class DirectX12Device;
-    //class DirectX12GraphicsAdapter;
+    class DirectX12GraphicsAdapter;
     class DirectX12Backend;
     //class DirectX12RenderPipeline;
     //class DirectX12RenderPipelineLayout;

@@ -13,9 +13,10 @@ ENDIF(NOT BUILD_DIRECTX_12_BACKEND)
 
 # Install packages.
 MESSAGE (STATUS "Installing package dependencies...")
-VCPKG_INSTALL (cli11)
+VCPKG_INSTALL (glfw3 cli11)
 
 # Resolve package dependencies.
+FIND_PACKAGE(glfw3 CONFIG REQUIRED)
 FIND_PACKAGE(cli11 CONFIG REQUIRED)
 
 # Collect header & source files.
@@ -54,7 +55,7 @@ SET_TARGET_PROPERTIES(LiteFX.Samples.DXBasicRendering PROPERTIES
 TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.DXBasicRendering PRIVATE "src/")
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Samples.DXBasicRendering PRIVATE CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.DirectX12)
+TARGET_LINK_LIBRARIES(LiteFX.Samples.DXBasicRendering PRIVATE glfw CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.DirectX12 DirectX-Headers DirectX-Guids)
 
 # Add shader sources.
 TARGET_SHADER_SOURCES(LiteFX.Samples.DXBasicRendering LANGUAGE HLSL SOURCES ${SAMPLE_DIRECTX_12_BASIC_RENDERING_SHADERS})
@@ -74,6 +75,11 @@ INSTALL(TARGETS LiteFX.Samples.DXBasicRendering EXPORT LiteFXSamplesConfig
 
 #INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
 INSTALL(EXPORT LiteFXSamplesConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+
+# Install GLFW
+SET (GLFW_LOCATION "")
+GET_TARGET_PROPERTY(GLFW_LOCATION glfw LOCATION_${CMAKE_BUILD_TYPE})
+INSTALL(FILES ${GLFW_LOCATION} DESTINATION ${CMAKE_INSTALL_BINARY_DIR})
 
 # Export config.
 EXPORT(TARGETS LiteFX.Samples.DXBasicRendering FILE LiteFXSamplesDXBasicRenderingConfig.cmake)
