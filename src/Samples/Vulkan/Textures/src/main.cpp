@@ -13,13 +13,7 @@ int main(const int argc, const char** argv)
 
 	CLI::App app{ "Demonstrates texture loading and creation.", appName };
 
-	auto listValidationLayers{ false }, listAdapters{ false };
 	Optional<uint32_t> adapterId;
-
-	auto listCommand = app.add_subcommand("list", "Validation Layers");
-	listCommand->add_flag("-l, --layers", listValidationLayers);
-	listCommand->add_flag("-a, --adapters", listAdapters);
-
 	auto validationLayers = app.add_option("-l,--layers")->take_all();
 	app.add_option("-a,--adapter", adapterId)->take_first();
 
