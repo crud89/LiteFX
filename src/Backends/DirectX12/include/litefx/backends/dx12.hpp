@@ -36,4 +36,40 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual void enableAdvancedSoftwareRasterizer(const bool& enable = false);
 	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter : public IGraphicsAdapter, public IComResource<IDXGIAdapter4> {
+		LITEFX_IMPLEMENTATION(DirectX12GraphicsAdapterImpl);
+
+	public:
+		DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
+		DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
+		DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) = delete;
+		virtual ~DirectX12GraphicsAdapter() noexcept;
+
+	public:
+		virtual String getName() const noexcept override;
+		virtual uint32_t getVendorId() const noexcept override;
+		virtual uint32_t getDeviceId() const noexcept override;
+		virtual GraphicsAdapterType getType() const noexcept override;
+		
+		/// <inheritdoc />
+		/// <remarks>
+		/// This property is not supported by DirectX 12. The method always returns `0`.
+		/// </remarks>
+		virtual uint32_t getDriverVersion() const noexcept override;
+
+		/// <inheritdoc />
+		/// <remarks>
+		/// This property is not supported by DirectX 12. The method always returns `0`.
+		/// </remarks>
+		virtual uint32_t getApiVersion() const noexcept override;
+		virtual uint32_t getDedicatedMemory() const noexcept override;
+
+	public:
+		virtual ICommandQueue* findQueue(const QueueType& queueType) const override;
+		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const override;
+	};
 }
