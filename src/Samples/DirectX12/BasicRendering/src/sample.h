@@ -61,6 +61,6 @@ public:
 	virtual void run() override;
 	virtual void initialize() override;
 	virtual void resize(int width, int height) override;
-	//void handleEvents();
+	void handleEvents();
 	//void drawFrame();
 };

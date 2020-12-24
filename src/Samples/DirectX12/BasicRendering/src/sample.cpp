@@ -103,7 +103,7 @@ void SampleApp::run()
 
     while (!::glfwWindowShouldClose(m_window.get()))
     {
-        //this->handleEvents();
+        this->handleEvents();
         //this->drawFrame();
     }
 
@@ -137,11 +137,11 @@ void SampleApp::resize(int width, int height)
     App::resize(width, height);
 }
 
-//void SampleApp::handleEvents()
-//{
-//    ::glfwPollEvents();
-//}
-//
+void SampleApp::handleEvents()
+{
+    ::glfwPollEvents();
+}
+
 //void SampleApp::drawFrame()
 //{
 //    // Begin rendering.

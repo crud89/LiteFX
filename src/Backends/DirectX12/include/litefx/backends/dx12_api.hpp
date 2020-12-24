@@ -60,5 +60,5 @@ namespace LiteFX::Rendering::Backends {
     //class DirectX12IndexBuffer;
     //class DirectX12ConstantBuffer;
     //class DirectX12Sampler;
-
+    class DirectX12Surface;
 }

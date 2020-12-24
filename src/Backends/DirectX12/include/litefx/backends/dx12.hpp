@@ -72,4 +72,15 @@ namespace LiteFX::Rendering::Backends {
 		virtual ICommandQueue* findQueue(const QueueType& queueType) const override;
 		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const override;
 	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12Surface : public ISurface, public IResource<HWND> {
+	public:
+		DirectX12Surface(const HWND& hwnd) noexcept;
+		DirectX12Surface(const DirectX12Surface&) = delete;
+		DirectX12Surface(DirectX12Surface&&) = delete;
+		virtual ~DirectX12Surface() noexcept;
+	};
 }

@@ -34,7 +34,7 @@ int main(const int argc, const char** argv)
 
 	auto window = GlfwWindowPtr(::glfwCreateWindow(800, 600, appName.c_str(), nullptr, nullptr));
 	const auto windowPtr = window.get();
-
+	
 	// Create the app.
 	try 
 	{
@@ -43,14 +43,8 @@ int main(const int argc, const char** argv)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
 			.make<DirectX12Backend>()
 				.withAdapterOrDefault(adapterId)
-		//		.withSurface([&windowPtr](const VkInstance& instance) {
-		//			VkSurfaceKHR surface;
-		//			
-		//			if (::glfwCreateWindowSurface(instance, windowPtr, nullptr, &surface) != VK_SUCCESS)
-		//				throw std::runtime_error("Unable to create GLFW window surface.");
-		//			
-		//			return surface;
-		//		}).go()
+				.withSurface(makeUnique<DirectX12Surface>(::glfwGetWin32Window(windowPtr)))
+				.go()
 			.go();
 	}
 	catch (const LiteFX::Exception& ex)
