@@ -32,7 +32,7 @@ jobs:
       - name: Setup build environment
         id: setup-environment
         run: |
-          echo VCPKG_FEATURE_FLAGS=manifests >> $env:GITHUB_ENV
+          echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
