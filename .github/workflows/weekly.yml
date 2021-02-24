@@ -64,9 +64,9 @@ jobs:
         with:
           setupOnly: true
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          appendedCacheKey: ${{ hashFiles( '${{ github.workspace }}/src/vcpkg.json' ) }}
+          appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
           vcpkgTriplet: ${{ matrix.triplet }}
-          additionalCachedPaths: ${{ env.buildDir }}/vcpkg_installed
+          additionalCachedPaths: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
@@ -74,7 +74,6 @@ jobs:
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          cmakeAppendedArgs: '-DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }}'
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
