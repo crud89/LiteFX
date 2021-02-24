@@ -5,11 +5,11 @@
 ###################################################################################################
 
 PROJECT(LiteFX.Backends.Vulkan VERSION ${LITEFX_VERSION} LANGUAGES CXX)
-MESSAGE(STATUS "Initializing: LiteFX.Backends.Vulkan...")
+MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 # Install packages.
-MESSAGE (STATUS "Installing package dependencies...")
-VCPKG_INSTALL (glm glad vulkan vulkan-memory-allocator)
+MESSAGE(STATUS "Installing package dependencies...")
+VCPKG_INSTALL(glm glad vulkan vulkan-memory-allocator)
 
 # Resolve package dependencies.
 FIND_PACKAGE(glm CONFIG REQUIRED)
@@ -58,7 +58,7 @@ SET(VULKAN_BACKEND_SOURCES
 )
 
 # Add shared library project.
-ADD_LIBRARY(LiteFX.Backends.Vulkan SHARED
+ADD_LIBRARY(${PROJECT_NAME} SHARED
     ${VULKAN_BACKEND_HEADERS}
     ${VULKAN_BACKEND_SOURCES}
 )
@@ -67,41 +67,40 @@ ADD_LIBRARY(LiteFX.Backends.Vulkan SHARED
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${VULKAN_BACKEND_SOURCES})
 
 # Setup project properties.
-SET_TARGET_PROPERTIES(LiteFX.Backends.Vulkan PROPERTIES
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
     FOLDER "Backends"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
+    PUBLIC_HEADER "${VULKAN_BACKEND_HEADERS}"
 )
 
 # Setup target include directories.
-TARGET_INCLUDE_DIRECTORIES(LiteFX.Backends.Vulkan 
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} 
     PRIVATE 
         "src/"
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDE_DIR}>
 )
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Backends.Vulkan
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
     PRIVATE glm glad::glad Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
 )
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)
-    TARGET_PRECOMPILE_HEADERS(LiteFX.Backends.Vulkan REUSE_FROM LiteFX.Core)
+    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)
 ENDIF(BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
-INSTALL(TARGETS LiteFX.Backends.Vulkan EXPORT LiteFXConfig
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT LiteFXConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}/litefx/backends
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
 )
 
-INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
-INSTALL(EXPORT LiteFXConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
-
 # Export config.
-EXPORT(TARGETS LiteFX.Backends.Vulkan FILE LiteFXBackendsVulkanConfig.cmake)
+INSTALL(EXPORT LiteFXConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+EXPORT(TARGETS ${PROJECT_NAME} FILE LiteFXBackendsVulkanConfig.cmake)
