@@ -24,8 +24,8 @@
 #include <DirectXMath.h>
 #endif
 
-#include "math_types/vector.hpp"
-#include "math_types/matrix.hpp"
+#include <litefx/vector.hpp>
+#include <litefx/matrix.hpp>
 
 namespace LiteFX::Math {
 	using namespace LiteFX;
