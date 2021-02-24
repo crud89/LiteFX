@@ -5,15 +5,15 @@
 ###################################################################################################
 
 PROJECT(LiteFX.Samples.BasicRendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
-MESSAGE(STATUS "Initializing: LiteFX.Samples.BasicRendering...")
+MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 IF(NOT BUILD_VULKAN_BACKEND)
     MESSAGE(FATAL_ERROR "The basic rendering sample requires the Vulkan backend. Set the BUILD_VULKAN_BACKEND option to ON and retry.")
 ENDIF(NOT BUILD_VULKAN_BACKEND)
 
 # Install packages.
-MESSAGE (STATUS "Installing package dependencies...")
-VCPKG_INSTALL (glm glad vulkan glfw3 cli11)
+MESSAGE(STATUS "Installing package dependencies...")
+VCPKG_INSTALL(glm glad vulkan glfw3 cli11)
 
 # Resolve package dependencies.
 FIND_PACKAGE(glm CONFIG REQUIRED)
@@ -38,7 +38,7 @@ SET(SAMPLE_BASIC_RENDERING_SHADERS
 )
 
 # Add shared library project.
-ADD_EXECUTABLE(LiteFX.Samples.BasicRendering 
+ADD_EXECUTABLE(${PROJECT_NAME} 
     ${SAMPLE_BASIC_RENDERING_HEADERS}
     ${SAMPLE_BASIC_RENDERING_SOURCES}
     ${SAMPLE_BASIC_RENDERING_SHADERS}
@@ -48,41 +48,31 @@ ADD_EXECUTABLE(LiteFX.Samples.BasicRendering
 SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${VULKAN_BACKEND_SOURCES})
 
 # Setup project properties.
-SET_TARGET_PROPERTIES(LiteFX.Samples.BasicRendering PROPERTIES
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
     FOLDER "Samples"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
 )
 
-# Setup target include directories.
-TARGET_INCLUDE_DIRECTORIES(LiteFX.Samples.BasicRendering PRIVATE "src/")
-
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(LiteFX.Samples.BasicRendering PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
 
 # Add shader SAMPLE_BASIC_RENDERING_SOURCES.
-TARGET_SHADER_SOURCES(LiteFX.Samples.BasicRendering LANGUAGE HLSL SOURCES ${SAMPLE_BASIC_RENDERING_SHADERS})
+TARGET_SHADER_SOURCES(${PROJECT_NAME} LANGUAGE HLSL SOURCES ${SAMPLE_BASIC_RENDERING_SHADERS})
 
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)
-    TARGET_PRECOMPILE_HEADERS(LiteFX.Samples.BasicRendering REUSE_FROM LiteFX.Core)
+    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)
 ENDIF(BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
-INSTALL(TARGETS LiteFX.Samples.BasicRendering EXPORT LiteFXSamplesConfig
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT LiteFXSamplesConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
 )
 
-#INSTALL(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR})
-INSTALL(EXPORT LiteFXSamplesConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
-
-# Install GLFW
-SET (GLFW_LOCATION "")
-GET_TARGET_PROPERTY(GLFW_LOCATION glfw LOCATION_${CMAKE_BUILD_TYPE})
-INSTALL(FILES ${GLFW_LOCATION} DESTINATION ${CMAKE_INSTALL_BINARY_DIR})
-
 # Export config.
-EXPORT(TARGETS LiteFX.Samples.BasicRendering FILE LiteFXSamplesBasicRenderingConfig.cmake)
+INSTALL(EXPORT LiteFXSamplesConfig DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+EXPORT(TARGETS ${PROJECT_NAME} FILE LiteFXSamplesBasicRenderingConfig.cmake)
