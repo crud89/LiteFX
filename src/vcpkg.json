@@ -52,7 +52,8 @@
     "dx12",
     "vulkan",
     "glm",
-    "dx-math"
+    "dx-math",
+    "samples"
   ],
   "dependencies": [
     "cli11",
