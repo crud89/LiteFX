@@ -11,10 +11,6 @@ IF(NOT BUILD_VULKAN_BACKEND)
     MESSAGE(FATAL_ERROR "The deferred shading sample requires the Vulkan backend. Set the BUILD_VULKAN_BACKEND option to ON and retry.")
 ENDIF(NOT BUILD_VULKAN_BACKEND)
 
-# Install packages.
-MESSAGE(STATUS "Installing package dependencies...")
-VCPKG_INSTALL(glm glad vulkan glfw3 cli11)
-
 # Resolve package dependencies.
 FIND_PACKAGE(glm CONFIG REQUIRED)
 FIND_PACKAGE(glad CONFIG REQUIRED)

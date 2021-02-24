@@ -7,10 +7,6 @@
 PROJECT(LiteFX.Logging VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
-# Install packages.
-MESSAGE(STATUS "Installing package dependencies...")
-VCPKG_INSTALL(spdlog)
-
 # Resolve package dependencies.
 FIND_PACKAGE(spdlog CONFIG REQUIRED)
 

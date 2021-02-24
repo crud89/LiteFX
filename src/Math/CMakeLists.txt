@@ -7,15 +7,8 @@
 PROJECT(LiteFX.Math VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
-# Install packages.
-MESSAGE(STATUS "Installing package dependencies...")
-
-SET(TARGET_LINK_LIBS "")
-
 IF(BUILD_WITH_GLM)
-    VCPKG_INSTALL(glm)
     FIND_PACKAGE(glm CONFIG REQUIRED)
-    LIST(APPEND TARGET_LINK_LIBS "glm")
 ENDIF(BUILD_WITH_GLM)
 
 # Collect header & source files.
@@ -58,7 +51,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core ${TARGET_LINK_LIBS}
+    PUBLIC LiteFX.Core $<$<BOOL:BUILD_WITH_GLM>:glm>
 )
 
 # Re-use pre-compiled core header.

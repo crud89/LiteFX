@@ -4,7 +4,7 @@
 #####                                                                                         #####
 ###################################################################################################
 
-SET(LITEFX_YEAR 2020)
+SET(LITEFX_YEAR 2021)
 SET(LITEFX_RELEASE 1)
 SET(LITEFX_PATCH 0)
 SET(LITEFX_BUILD 1)

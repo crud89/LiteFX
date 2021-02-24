@@ -1,0 +1,61 @@
+{
+  "name": "litefx",
+  "version-string": "2021.1.0.1",
+  "port-version": 1,
+  "maintainers": [
+    "Carsten Rudolph <18394207+Aschratt@users.noreply.github.com>"
+  ],
+  "description": "An extensible, descriptive, modern computer graphics and rendering engine.",
+  "homepage": "https://github.com/Aschratt/LiteFX",
+  "documentation": "https://github.com/Aschratt/LiteFX/wiki",
+  "license": "MIT",
+  "supports": "windows & !arm",
+  "features": [
+    {
+      "name": "dx12",
+      "description": "Builds the DirectX 12 backend.",
+      "dependencies": [
+        "directx-headers",
+        "glfw3"
+      ]
+    },
+    {
+      "name": "vulkan",
+      "description": "Builds the Vulkan backend.",
+      "dependencies": [
+        "glfw3",
+        "glad",
+        "vulkan",
+        "vulkan-memory-allocator"
+      ]
+    },
+    {
+      "name": "glm",
+      "description": "Builds glm converters for math types.",
+      "dependencies": [
+        "glm"
+      ]
+    },
+    {
+      "name": "dx-math",
+      "description": "Builds DirectX Math converters for math types."
+    },
+    {
+      "name": "samples",
+      "description": "Builds the sample applications.",
+      "dependencies": [
+        "stb"
+      ]
+    }
+  ],
+  "default-features": [
+    "dx12",
+    "vulkan",
+    "glm",
+    "dx-math"
+  ],
+  "dependencies": [
+    "cli11",
+    "spdlog"
+  ]
+}

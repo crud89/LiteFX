@@ -59,12 +59,13 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v5
+        uses: lukka/run-vcpkg@v6
         with:
-          vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
-          vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
-          appendedCacheKey: '${{ hashFiles( env.VCPKGRESPONSEFILE ) }}'
+          setupOnly: true
+          vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
+          appendedCacheKey: ${{ hashFiles( '${{ github.workspace }}/src/vcpkg.json' ) }}
+          vcpkgTriplet: ${{ matrix.triplet }}
+          additionalCachedPaths: ${{ env.buildDir }}/vcpkg_installed
 
       - name: Build with CMake and Ninja
         id: build-with-cmake

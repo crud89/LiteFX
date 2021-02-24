@@ -7,10 +7,6 @@
 PROJECT(LiteFX.Backends.Vulkan VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
-# Install packages.
-MESSAGE(STATUS "Installing package dependencies...")
-VCPKG_INSTALL(glm glad vulkan vulkan-memory-allocator)
-
 # Resolve package dependencies.
 FIND_PACKAGE(glm CONFIG REQUIRED)
 FIND_PACKAGE(glad CONFIG REQUIRED)
