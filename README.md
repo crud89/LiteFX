@@ -65,13 +65,28 @@ Furthermore, the project uses [vcpkg](https://github.com/microsoft/vcpkg) to man
 
 † Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, however it only contains the SPIR-V code generator. On the other hand, the default DXC build does only contain the DXIL code generator and cannot be used to compile HLSL shaders into SPIR-V. If you want to target both backends, i.e. Vulkan *and* DX12, then you have to use a custom DXC build, that contains both code generators. The process of building DXC is described in its [repository](https://github.com/microsoft/DirectXShaderCompiler).
 
-#### Cloning the repository
+#### Cloning the Repository
 
 Create a new directory from where you want to build the sources. Then open your shell and clone the repository:
 
-    git clone https://github.com/Aschratt/LiteFX.git . --recurse-submodules
+```sh
+git clone https://github.com/Aschratt/LiteFX.git . --recurse-submodules
+```
 
-#### Building using Visual Studio
+#### Performing a Build
+
+There are multiple ways of creating a build from scratch. In general, all *CMake*-based build systems are supported.
+
+##### From Command Line
+
+Building from command line is the most straightforward way and is typically sufficient, if you only want to consume a fresh build.
+
+```sh
+cmake src/ -B out/build/
+cmake --build out/build/ --target install --config Release
+```
+
+##### Using Visual Studio
 
 From Visual Studio open the folder where you just checked out the contents of the repository. In the *Project Explorer* change the view to *CMake Targets*. Right click *LiteFX* and select *Install*.
 
