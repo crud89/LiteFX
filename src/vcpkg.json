@@ -38,7 +38,10 @@
     },
     {
       "name": "dx-math",
-      "description": "Builds DirectX Math converters for math types."
+      "description": "Builds DirectX Math converters for math types.",
+      "dependencies": [
+        "directxmath"
+      ]
     },
     {
       "name": "samples",

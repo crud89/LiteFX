@@ -11,10 +11,6 @@ IF(NOT BUILD_DIRECTX_12_BACKEND)
     MESSAGE(FATAL_ERROR "This sample requires the DirectX 12 backend. Set the BUILD_DIRECTX_12_BACKEND option to ON and retry.")
 ENDIF(NOT BUILD_DIRECTX_12_BACKEND)
 
-# Install packages.
-MESSAGE (STATUS "Installing package dependencies...")
-VCPKG_INSTALL (glfw3 cli11)
-
 # Resolve package dependencies.
 FIND_PACKAGE(glfw3 CONFIG REQUIRED)
 FIND_PACKAGE(cli11 CONFIG REQUIRED)
