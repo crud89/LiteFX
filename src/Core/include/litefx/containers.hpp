@@ -198,11 +198,13 @@ namespace LiteFX {
 		template <typename TInstance>
 		void use(UniquePtr<TInstance>&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
+		[[nodiscard]]
 		virtual UniquePtr<T> go() {
 			return std::move(m_instance);
 		}
 
 		template <typename TInstance>
+		[[nodiscard]]
 		UniquePtr<TInstance> goFor() {
 			return UniquePtr<TInstance>(dynamic_cast<TInstance*>(this->go().release()));
 		}
@@ -241,6 +243,7 @@ namespace LiteFX {
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
+		[[nodiscard]]
 		virtual TParent& go() {
 			m_parent.use(std::move(m_instance));
 			return m_parent;
