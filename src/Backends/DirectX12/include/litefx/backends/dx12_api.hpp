@@ -23,6 +23,7 @@
 #include <directx/d3dx12.h>
 #include <dxguids/dxguids.h>
 #include <dxgi1_6.h>
+#include <comdef.h>
 
 #include <wrl.h>
 using namespace Microsoft::WRL;
@@ -61,4 +62,19 @@ namespace LiteFX::Rendering::Backends {
     //class DirectX12ConstantBuffer;
     //class DirectX12Sampler;
     class DirectX12Surface;
+
+    DEFINE_EXCEPTION(PlatformException, std::runtime_error);
+
+    template <typename TException, typename ...TArgs>
+    inline void raiseIfFailed(HRESULT hr, const std::string& message, TArgs&&... args) {
+        if (SUCCEEDED(hr))
+            return;
+
+        _com_error error(hr);
+
+        if (message.empty())
+            throw TException(PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()));
+        else
+            throw TException(PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()), fmt::format(message, std::forward<TArgs>(args)...));
+    }
 }
