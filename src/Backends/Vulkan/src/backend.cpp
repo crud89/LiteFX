@@ -70,11 +70,11 @@ public:
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateExtensions(m_extensions))
-            throw std::invalid_argument("Some required Vulkan extensions are not supported by the system.");
+            throw InvalidArgumentException("Some required Vulkan extensions are not supported by the system.");
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateLayers(m_layers))
-            throw std::invalid_argument("Some required Vulkan layers are not supported by the system.");
+            throw InvalidArgumentException("Some required Vulkan layers are not supported by the system.");
 
         // Get the app instance.
         auto& app = m_parent->getApp();
@@ -111,8 +111,7 @@ public:
 #endif
         VkInstance instance;
 
-        if (::vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
-            throw std::runtime_error("Unable to create Vulkan instance.");
+        raiseIfFailed<RuntimeException>(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
 #ifndef NDEBUG
         vkCreateDebugUtilsMessenger = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -128,8 +127,8 @@ public:
 
             if (result == VK_ERROR_EXTENSION_NOT_PRESENT)
                 LITEFX_WARNING(VULKAN_LOG, "The extension \"{0}\" is not present. Debug utilities will not be enabled.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-            else if (result != VK_SUCCESS)
-                throw std::runtime_error(fmt::format("Unable to initialize debug callback ({0}).", result));
+            else
+                raiseIfFailed<RuntimeException>(result, "Unable to initialize debug callback.");
 
             // Remember the instance so we can destroy the debug messenger.
             m_instance = instance;
@@ -222,7 +221,7 @@ const Array<String>& VulkanBackend::getEnabledValidationLayers() const noexcept
 void VulkanBackend::use(const IGraphicsAdapter* adapter)
 {
     if (adapter == nullptr)
-        throw std::invalid_argument("The adapter must be initialized.");
+        throw ArgumentNotInitializedException("The adapter must be initialized.");
 
     m_impl->m_adapter = adapter;
 }
@@ -230,7 +229,7 @@ void VulkanBackend::use(const IGraphicsAdapter* adapter)
 void VulkanBackend::use(UniquePtr<ISurface>&& surface)
 {
     if (surface == nullptr)
-        throw std::invalid_argument("The surface must be initialized.");
+        throw ArgumentNotInitializedException("The surface must be initialized.");
 
     m_impl->m_surface = std::move(surface);
 }
@@ -303,10 +302,10 @@ AppBuilder& VulkanBackendBuilder::go()
     auto surface = this->instance()->getSurface();
 
     if (adapter == nullptr)
-        throw std::runtime_error("No adapter has been defined to use for this backend.");
+        throw RuntimeException("No adapter has been defined to use for this backend.");
 
     if (surface == nullptr)
-        throw std::runtime_error("No surface has been defined to use for this backend.");
+        throw RuntimeException("No surface has been defined to use for this backend.");
 
     Logger::get(VULKAN_LOG).info("Creating Vulkan rendering backend for adapter {0} ({1}).", adapter->getName(), adapter->getDeviceId());
 
@@ -343,7 +342,7 @@ VulkanBackendBuilder& VulkanBackendBuilder::withAdapter(const UInt32& adapterId)
     auto adapter = this->instance()->findAdapter(adapterId);
 
     if (adapter == nullptr)
-        throw std::invalid_argument("The argument `adapterId` is invalid.");
+        throw InvalidArgumentException("The argument `adapterId` is invalid.");
 
     Logger::get(VULKAN_LOG).trace("Using adapter id: {0}...", adapterId);
     this->instance()->use(adapter);

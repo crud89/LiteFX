@@ -63,7 +63,7 @@ public:
     VulkanQueue* findQueue(const QueueType& type, const VulkanSurface* surface) const
     {
         if (surface == nullptr)
-            throw std::invalid_argument("The argument `surface` is not initialized.");
+            throw ArgumentNotInitializedException("The argument `surface` is not initialized.");
 
         auto match = std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable {
             if (queue->getDevice() != nullptr && (queue->getType() & type) != type)
@@ -185,7 +185,7 @@ ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType, cons
     auto forSurface = dynamic_cast<const VulkanSurface*>(surface);
 
     if (forSurface == nullptr)
-        throw std::invalid_argument("The provided surface is not a valid Vulkan surface.");
+        throw InvalidArgumentException("The provided surface is not a valid Vulkan surface.");
 
     return m_impl->findQueue(queueType, forSurface);
 }
