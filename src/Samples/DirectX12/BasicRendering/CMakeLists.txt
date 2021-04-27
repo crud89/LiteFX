@@ -11,6 +11,10 @@ IF(NOT BUILD_DIRECTX_12_BACKEND)
     MESSAGE(FATAL_ERROR "This sample requires the DirectX 12 backend. Set the BUILD_DIRECTX_12_BACKEND option to ON and retry.")
 ENDIF(NOT BUILD_DIRECTX_12_BACKEND)
 
+IF(NOT BUILD_WITH_DIRECTX_MATH)
+    MESSAGE(FATAL_ERROR "This sample requires the DirectX Math converters for the math module. Set the BUILD_WITH_DIRECTX_MATH option to ON and retry.")
+ENDIF(NOT BUILD_WITH_DIRECTX_MATH)
+
 # Resolve package dependencies.
 FIND_PACKAGE(glfw3 CONFIG REQUIRED)
 FIND_PACKAGE(cli11 CONFIG REQUIRED)

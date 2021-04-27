@@ -69,7 +69,7 @@ Furthermore, the project uses [vcpkg](https://github.com/microsoft/vcpkg) to man
 
 Create a new directory from where you want to build the sources. Then open your shell and clone the repository:
 
-    git clone https://github.com/Aschratt/LiteFX.git .
+    git clone https://github.com/Aschratt/LiteFX.git . --recurse-submodules
 
 #### Building using Visual Studio
 
@@ -89,7 +89,7 @@ You can customize the engine build, according to your specific needs. From Visua
 - `BUILD_DXC_DXIL` (default: `ON`): compiles HLSL shaders to DXIL when `BUILD_USE_DXC` is set to `ON`.
 - `BUILD_DXC_SPIRV` (default: `ON`): compiles HLSL shaders to SPIR-V when `BUILD_USE_DXC` is set to `ON`.
 
-† Note that *glm* will be installed from *vcpkg* automatically, if `BUILD_WITH_GLM` is enabled. In order to use *DirectX Math*, the latest Windows 10 SDK needs to be installed.
+† Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported.
 
 ‡ *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, as long as a custom build with support for both is used.
 

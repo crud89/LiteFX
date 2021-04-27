@@ -11,6 +11,10 @@ IF(NOT BUILD_VULKAN_BACKEND)
     MESSAGE(FATAL_ERROR "The texturing sample requires the Vulkan backend. Set the BUILD_VULKAN_BACKEND option to ON and retry.")
 ENDIF(NOT BUILD_VULKAN_BACKEND)
 
+IF(NOT BUILD_WITH_GLM)
+    MESSAGE(FATAL_ERROR "This sample requires the glm converters for the math module. Set the BUILD_WITH_GLM option to ON and retry.")
+ENDIF(NOT BUILD_WITH_GLM)
+
 # Resolve package dependencies.
 FIND_PACKAGE(glfw3 CONFIG REQUIRED)
 FIND_PACKAGE(cli11 CONFIG REQUIRED)
