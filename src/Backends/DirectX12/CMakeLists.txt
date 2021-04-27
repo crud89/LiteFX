@@ -51,8 +51,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
-    PRIVATE Microsoft::DirectX-Headers Microsoft::DirectX-Guids d3d12 dxcore dxgi
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids d3d12 dxcore dxgi
 )
 
 # Re-use pre-compiled core header.

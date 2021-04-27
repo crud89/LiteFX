@@ -8,8 +8,6 @@ PROJECT(LiteFX.Backends.Vulkan VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 # Resolve package dependencies.
-FIND_PACKAGE(glm CONFIG REQUIRED)
-FIND_PACKAGE(glad CONFIG REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
 FIND_PACKAGE(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 
@@ -80,8 +78,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
-    PRIVATE glm::glm glad::glad Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
 )
 
 # Re-use pre-compiled core header.

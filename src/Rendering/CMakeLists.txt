@@ -7,10 +7,6 @@
 PROJECT(LiteFX.Rendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
-IF(BUILD_WITH_GLM)
-    FIND_PACKAGE(glm CONFIG REQUIRED)
-ENDIF(BUILD_WITH_GLM)
-
 # Collect header & source files.
 SET(RENDERING_HEADERS
     "include/litefx/rendering_api.hpp"
@@ -64,7 +60,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Graphics LiteFX.AppModel LiteFX.Logging $<$<BOOL:BUILD_WITH_GLM>:glm::glm>
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Graphics LiteFX.AppModel LiteFX.Logging
 )
 
 # Re-use pre-compiled core header.
