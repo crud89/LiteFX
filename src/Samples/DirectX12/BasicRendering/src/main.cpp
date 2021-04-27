@@ -33,7 +33,7 @@ int main(const int argc, const char** argv)
 	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 	auto window = GlfwWindowPtr(::glfwCreateWindow(800, 600, appName.c_str(), nullptr, nullptr));
-	const auto windowPtr = window.get();
+	const auto windowPtr = window.get();	// Store window handle since we are moving the pointer to the app later.
 	
 	// Create the app.
 	try 

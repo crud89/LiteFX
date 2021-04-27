@@ -35,7 +35,7 @@ public:
 
 private:
 	GlfwWindowPtr m_window;
-	//UniquePtr<VulkanDevice> m_device;
+	UniquePtr<DirectX12Device> m_device;
 	//UniquePtr<VulkanRenderPass> m_renderPass;
 	//UniquePtr<IVertexBuffer> m_vertexBuffer;
 	//UniquePtr<IIndexBuffer> m_indexBuffer;
@@ -45,8 +45,7 @@ private:
 public:
 	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {
 		::glfwSetWindowUserPointer(m_window.get(), this);
-		auto hwnd = ::glfwGetWin32Window(m_window.get());
-
+		
 		this->initialize();
 	}
 
@@ -55,9 +54,9 @@ private:
 	//void initBuffers();
 
 public:
-	//virtual const IRenderBackend* getRenderBackend() const noexcept {
-	//	return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
-	//}
+	virtual const IRenderBackend* getRenderBackend() const noexcept {
+		return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
+	}
 	virtual void run() override;
 	virtual void initialize() override;
 	virtual void resize(int width, int height) override;

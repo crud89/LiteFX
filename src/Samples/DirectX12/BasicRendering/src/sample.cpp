@@ -97,7 +97,7 @@ static void onResize(GLFWwindow* window, int width, int height)
 //
 void SampleApp::run() 
 {
-    //m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB);
+    m_device = this->getRenderBackend()->createDevice<DirectX12Device>(Format::B8G8R8A8_SRGB);
     //this->createRenderPasses();
     //this->initBuffers();
 
