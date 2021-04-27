@@ -81,7 +81,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
-    PRIVATE glm glad::glad Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
+    PRIVATE glm::glm glad::glad Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
 )
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)
