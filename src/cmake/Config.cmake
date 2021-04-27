@@ -7,6 +7,11 @@
 # C++ standard version.
 SET(CMAKE_CXX_STANDARD 17)
 
+# Define C++ compile flags.
+IF(MSVC)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")       # Use multi core compiling to speed up compile times.
+ENDIF(MSVC)
+
 # For debug builds, append the "d" suffix.
 SET(CMAKE_DEBUG_POSTFIX "d")
 
@@ -14,6 +19,9 @@ SET(CMAKE_DEBUG_POSTFIX "d")
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     SET(CMAKE_INSTALL_PREFIX "../install/${CMAKE_GENERATOR_PLATFORM}" CACHE PATH "Installation directory." FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
+# Setup build artifact directory.
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/binaries/")
 
 # Setup installation directories.
 SET (CMAKE_INSTALL_LIBRARY_DIR "lib")

@@ -32,6 +32,7 @@ jobs:
       - name: Setup build environment
         id: setup-environment
         run: |
+          echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
@@ -59,12 +60,13 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v5
+        uses: lukka/run-vcpkg@v6
         with:
-          vcpkgArguments: '@${{ github.workspace }}/.github/packages.txt'
-          vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
-          appendedCacheKey: '${{ hashFiles( env.VCPKGRESPONSEFILE ) }}'
+          setupOnly: true
+          vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
+          appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
+          vcpkgTriplet: ${{ matrix.triplet }}
+          additionalCachedPaths: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
@@ -72,7 +74,6 @@ jobs:
         with:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          cmakeAppendedArgs: '-DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }}'
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'

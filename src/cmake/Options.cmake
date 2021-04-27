@@ -17,7 +17,7 @@ OPTION(BUILD_USE_GLSLC "Uses `glslc` to build shaders. Mutual exclusive with the
 
 # DXC only supports hlsl but does compile into DXIL and SPIR-V.
 OPTION(BUILD_USE_DXC "Uses `glslc` to build shaders. Mutual exclusive with the `BUILD_USE_GLSLC` option." ON)
-OPTION(BUILD_DXC_DXIL  "DXC is invoked to compile HLSL shaders into DXIL when this option is set to ON." ON)
+OPTION(BUILD_DXC_DXIL "DXC is invoked to compile HLSL shaders into DXIL when this option is set to ON." ON)
 OPTION(BUILD_DXC_SPIRV "DXC is invoked to compile HLSL shaders into SPIR-V when this option is set to ON." ON)
 
 IF(BUILD_USE_GLSLC AND BUILD_USE_DXC)

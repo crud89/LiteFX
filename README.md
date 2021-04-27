@@ -31,16 +31,6 @@ auto renderPass = device->buildRenderPass()
                     .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
                     .go()
                 .go()
-            .setShaderProgram()
-                .addVertexShaderModule("shaders/basic.vert.spv")
-                .addFragmentShaderModule("shaders/basic.frag.spv")
-                .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-                    .addUniform(0, sizeof(CameraBuffer))
-                    .go()
-                .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
-                    .addUniform(0, sizeof(TransformBuffer))
-                    .go()
-                .go()
             .addViewport()
                 .withRectangle(RectF(0.f, 0.f, 600.f, 800.f))
                 .addScissor(RectF(0.f, 0.f, 600.f, 800.,f))
@@ -73,7 +63,7 @@ In order for the project to be built, there are a few prerequisites that need to
 
 Furthermore, the project uses [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies, so if you haven't already installed *vcpkg*, start by cloning and building it. Make sure to store the binary directory into a system environment variable `VCPKG_ROOT`. Alternatively you can also use the *vcpkg* [toolchain file](https://github.com/microsoft/vcpkg/blob/master/docs/examples/installing-and-using-packages.md#cmake).
 
-† Note that the LunarG Vulkan SDK actually ships with DXC, however it only contains the SPIR-V code generator. On the other hand, the default DXC build does only contain the DXIL code generator and cannot be used to compile HLSL shaders into SPIR-V. If you want to target both backends, i.e. Vulkan *and* DX12, then you have to use a custom DXC build, that contains both code generators. The process of building DXC is described in its [repository](https://github.com/microsoft/DirectXShaderCompiler).
+† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, however it only contains the SPIR-V code generator. On the other hand, the default DXC build does only contain the DXIL code generator and cannot be used to compile HLSL shaders into SPIR-V. If you want to target both backends, i.e. Vulkan *and* DX12, then you have to use a custom DXC build, that contains both code generators. The process of building DXC is described in its [repository](https://github.com/microsoft/DirectXShaderCompiler).
 
 #### Cloning the repository
 
@@ -101,7 +91,7 @@ You can customize the engine build, according to your specific needs. From Visua
 
 † Note that *glm* will be installed from *vcpkg* automatically, if `BUILD_WITH_GLM` is enabled. In order to use *DirectX Math*, the latest Windows 10 SDK needs to be installed.
 
-‡ *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL.
+‡ *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, as long as a custom build with support for both is used.
 
 ## Getting Started
 
