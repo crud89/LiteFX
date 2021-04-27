@@ -52,7 +52,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 )
 
 # Link project dependencies.
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE glm::glm glad::glad glfw Vulkan::Vulkan CLI11::CLI11 LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.Vulkan)
 
 # Add shader SAMPLE_TEXTURES_SOURCES.
 TARGET_SHADER_SOURCES(${PROJECT_NAME} LANGUAGE HLSL SOURCES ${SAMPLE_TEXTURES_SHADERS})

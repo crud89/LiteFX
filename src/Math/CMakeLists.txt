@@ -51,7 +51,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core $<$<BOOL:BUILD_WITH_GLM>:glm>
+    PUBLIC LiteFX.Core $<$<BOOL:BUILD_WITH_GLM>:glm::glm>
 )
 
 # Re-use pre-compiled core header.
