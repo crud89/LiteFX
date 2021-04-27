@@ -130,7 +130,7 @@ const IGraphicsAdapter* DirectX12Backend::getAdapter() const noexcept
 void DirectX12Backend::use(const IGraphicsAdapter* adapter)
 {
     if (adapter == nullptr)
-        throw InvalidArgumentException("The adapter must be initialized.");
+        throw ArgumentNotInitializedException("The adapter must be initialized.");
 
     m_impl->m_adapter = adapter;
 }
@@ -138,7 +138,7 @@ void DirectX12Backend::use(const IGraphicsAdapter* adapter)
 void DirectX12Backend::use(UniquePtr<ISurface>&& surface)
 {
     if (surface == nullptr)
-        throw InvalidArgumentException("The surface must be initialized.");
+        throw ArgumentNotInitializedException("The surface must be initialized.");
 
     m_impl->m_surface = std::move(surface);
 }

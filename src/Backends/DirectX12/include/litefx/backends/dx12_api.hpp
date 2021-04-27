@@ -63,7 +63,7 @@ namespace LiteFX::Rendering::Backends {
     //class DirectX12Sampler;
     class DirectX12Surface;
 
-    DEFINE_EXCEPTION(PlatformException, std::runtime_error);
+    DEFINE_EXCEPTION(DX12PlatformException, std::runtime_error);
 
     template <typename TException, typename ...TArgs>
     inline void raiseIfFailed(HRESULT hr, const std::string& message, TArgs&&... args) {
@@ -73,8 +73,8 @@ namespace LiteFX::Rendering::Backends {
         _com_error error(hr);
 
         if (message.empty())
-            throw TException(PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()));
+            throw TException(DX12PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()));
         else
-            throw TException(PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()), fmt::format(message, std::forward<TArgs>(args)...));
+            throw TException(DX12PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()), fmt::format(message, std::forward<TArgs>(args)...));
     }
 }
