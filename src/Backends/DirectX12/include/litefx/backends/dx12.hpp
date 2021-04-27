@@ -83,4 +83,40 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Surface(DirectX12Surface&&) = delete;
 		virtual ~DirectX12Surface() noexcept;
 	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12Device : public GraphicsDevice, public IComResource<ID3D12Device> {
+		LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
+
+	public:
+		explicit DirectX12Device(const IRenderBackend* backend, const Format& format);
+		DirectX12Device(const DirectX12Device&) = delete;
+		DirectX12Device(DirectX12Device&&) = delete;
+		virtual ~DirectX12Device() noexcept;
+
+	public:
+		virtual size_t getBufferWidth() const noexcept override;
+		virtual size_t getBufferHeight() const noexcept override;
+		virtual void wait() override;
+		virtual void resize(int width, int height) override;
+		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
+		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
+		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
+		virtual UniquePtr<IConstantBuffer> createConstantBuffer(const IDescriptorLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
+		virtual UniquePtr<IImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<ITexture> createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<ISampler> createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const override;
+		virtual Array<UniquePtr<IImage>> createSwapChainImages(const ISwapChain* swapChain) const override;
+		virtual Array<Format> getSurfaceFormats() const override;
+		virtual const ISwapChain* getSwapChain() const noexcept override;
+
+	public:
+		//DirectX12RenderPassBuilder buildRenderPass() const;
+		////DirectX12ComputePassBuilder buildComputePass() const;
+	};
+
 }
