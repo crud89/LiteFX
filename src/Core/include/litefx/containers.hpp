@@ -12,12 +12,12 @@
 #include <vector>
 #include <tuple>
 #include <memory>
-#include <stdexcept>
 #include <functional>
 #include <variant>
 
 #include "traits.hpp"
 #include "string.hpp"
+#include "exceptions.hpp"
 
 #ifndef LITEFX_DEFINE_FLAGS
 #  define LITEFX_DEFINE_FLAGS(T) \
@@ -33,7 +33,6 @@
 
 namespace LiteFX {
 
-	using Exception = std::exception;
 	using Handle = void*;
 
 	template<class TKey, class TVal>
