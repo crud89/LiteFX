@@ -57,7 +57,7 @@ namespace LiteFX {
 		using ExceptionBase<base, name>::ExceptionBase; \
 	}
 
-	DEFINE_EXCEPTION(ArgumentException, std::invalid_argument);
+	DEFINE_EXCEPTION(InvalidArgumentException, std::invalid_argument);
 	DEFINE_EXCEPTION(ArgumentOutOfRangeException, std::out_of_range);
 	DEFINE_EXCEPTION(ArgumentNotInitializedException, std::logic_error);
 	DEFINE_EXCEPTION(RuntimeException, std::runtime_error);
