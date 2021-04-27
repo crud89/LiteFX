@@ -1,10 +1,10 @@
 ###################################################################################################
 #####                                                                                         #####
-#####               LiteFX.Samples.Textures - Contains the texturing sample.                  #####
+#####           LiteFX.Samples.Vulkan.Textures - Contains the texturing sample.               #####
 #####                                                                                         #####
 ###################################################################################################
 
-PROJECT(LiteFX.Samples.Textures VERSION ${LITEFX_VERSION} LANGUAGES CXX)
+PROJECT(LiteFX.Samples.Vulkan.Textures VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 IF(NOT BUILD_VULKAN_BACKEND)
@@ -17,7 +17,7 @@ FIND_PACKAGE(glad CONFIG REQUIRED)
 FIND_PACKAGE(glfw3 CONFIG REQUIRED)
 FIND_PACKAGE(cli11 CONFIG REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
-FIND_PATH(STB_INCLUDE_DIRS "stb.h")
+FIND_PACKAGE(Stb REQUIRED)
 
 # Collect header & source files.
 SET(SAMPLE_TEXTURES_HEADERS
@@ -46,7 +46,7 @@ SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${
 
 # Setup project properties.
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-    FOLDER "Samples"
+    FOLDER "Samples/Vulkan"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
 )

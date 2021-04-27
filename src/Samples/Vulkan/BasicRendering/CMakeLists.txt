@@ -1,10 +1,10 @@
 ###################################################################################################
 #####                                                                                         #####
-#####          LiteFX.Samples.VkBasicRendering - Contains the basic rendering sample.           #####
+#####       LiteFX.Samples.Vulkan.BasicRendering - Contains the basic rendering sample.       #####
 #####                                                                                         #####
 ###################################################################################################
 
-PROJECT(LiteFX.Samples.VkBasicRendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
+PROJECT(LiteFX.Samples.Vulkan.BasicRendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 IF(NOT BUILD_VULKAN_BACKEND)
@@ -45,7 +45,7 @@ SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${
 
 # Setup project properties.
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-    FOLDER "Samples"
+    FOLDER "Samples/Vulkan"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
 )

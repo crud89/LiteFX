@@ -1,10 +1,10 @@
 ###################################################################################################
 #####                                                                                         #####
-#####        LiteFX.Samples.DeferredShading - Contains the deferred renderer sample.          #####
+#####     LiteFX.Samples.Vulkan.DeferredShading - Contains the deferred renderer sample.      #####
 #####                                                                                         #####
 ###################################################################################################
 
-PROJECT(LiteFX.Samples.DeferredShading VERSION ${LITEFX_VERSION} LANGUAGES CXX)
+PROJECT(LiteFX.Samples.Vulkan.DeferredShading VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 IF(NOT BUILD_VULKAN_BACKEND)
@@ -47,7 +47,7 @@ SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VULKAN_BACKEND_HEADERS} ${
 
 # Setup project properties.
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-    FOLDER "Samples"
+    FOLDER "Samples/Vulkan"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
 )

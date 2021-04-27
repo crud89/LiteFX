@@ -1,10 +1,10 @@
 ###################################################################################################
 #####                                                                                         #####
-#####         LiteFX.Samples.DXBasicRendering - Contains the basic rendering sample.          #####
+#####       LiteFX.Samples.DX12.DXBasicRendering - Contains the basic rendering sample.       #####
 #####                                                                                         #####
 ###################################################################################################
 
-PROJECT(LiteFX.Samples.DXBasicRendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
+PROJECT(LiteFX.Samples.DX12.BasicRendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 IF(NOT BUILD_DIRECTX_12_BACKEND)
@@ -42,7 +42,7 @@ SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${DIRECTX_12_BACKEND_HEADERS
 
 # Setup project properties.
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-    FOLDER "Samples"
+    FOLDER "Samples/DirectX 12"
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
 )
