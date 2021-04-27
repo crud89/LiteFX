@@ -98,7 +98,7 @@ ICommandQueue* DirectX12GraphicsAdapter::findQueue(const QueueType & queueType, 
     //auto forSurface = dynamic_cast<const DirectX12Surface*>(surface);
 
     //if (forSurface == nullptr)
-    //    throw std::invalid_argument("The provided surface is not a valid DirectX12 surface.");
+    //    throw InvalidArgumentException("The provided surface is not a valid DirectX12 surface.");
 
     //return m_impl->findQueue(queueType, forSurface);
     throw;

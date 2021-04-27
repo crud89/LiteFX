@@ -38,16 +38,42 @@ private:
 	}
 
 public:
-	ComPtr<ID3D12Device>&& initialize(const Format& format)
+	ComPtr<ID3D12Device5>&& initialize(const Format& format)
 	{
-		ComPtr<ID3D12Device> device;
+		ComPtr<ID3D12Device5> device;
 		HRESULT hr;
 
 		auto adapter = this->getAdapter();
 		auto a = adapter.Get();
 
-		if (FAILED(hr = ::D3D12CreateDevice(this->getAdapter().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device))))
-			throw std::runtime_error(fmt::format("Unable to create DirectX 12 device: {0:#010x}.", static_cast<unsigned>(hr)));
+		raiseIfFailed<RuntimeException>(::D3D12CreateDevice(this->getAdapter().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");			
+
+#ifndef NDEBUG
+		// Try to query an info queue to forward log messages.
+		ComPtr<ID3D12InfoQueue> infoQueue;
+
+		if (FAILED(device.As(&infoQueue)))
+			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query info queue. Problem reporting will be disabled.");
+		else
+		{
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
+			//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, TRUE);
+			
+			// Suppress individual messages by their ID
+			D3D12_MESSAGE_ID suppressIds[] = { D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE };
+			D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
+
+			D3D12_INFO_QUEUE_FILTER infoQueueFilter = {};
+			infoQueueFilter.DenyList.NumIDs = _countof(suppressIds);
+			infoQueueFilter.DenyList.pIDList = suppressIds;
+			infoQueueFilter.DenyList.NumSeverities = _countof(severities);
+			infoQueueFilter.DenyList.pSeverityList = severities;
+
+			raiseIfFailed<RuntimeException>(infoQueue->PushStorageFilter(&infoQueueFilter), "Unable to push message filter to info queue.");
+		}
+#endif
 
 		return std::move(device);
 	}
@@ -102,7 +128,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Device::DirectX12Device(const IRenderBackend* backend, const Format& format) :
-	IComResource<ID3D12Device>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this)), GraphicsDevice(backend)
+	IComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this)), GraphicsDevice(backend)
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating device on backend {0} {{ Surface: {1}, Adapter: {2}, Format: {3} }}...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format);
 
@@ -119,7 +145,7 @@ DirectX12Device::~DirectX12Device() noexcept
 	m_impl.destroy();
 
 	//// Destroy the device.
-	//::vkDestroyDevice(this->handle(), nullptr);
+	//this->handle() = nullptr;
 }
 
 size_t DirectX12Device::getBufferWidth() const noexcept

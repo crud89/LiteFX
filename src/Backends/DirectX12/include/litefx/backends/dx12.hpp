@@ -87,7 +87,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Device : public GraphicsDevice, public IComResource<ID3D12Device> {
+	class LITEFX_DIRECTX12_API DirectX12Device : public GraphicsDevice, public IComResource<ID3D12Device5> {
 		LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
 
 	public:

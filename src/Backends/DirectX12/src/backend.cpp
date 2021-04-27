@@ -26,17 +26,12 @@ public:
         ComPtr<IDXGIFactory7> factory;
 
 #ifndef NDEBUG
-        HRESULT hr = ::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory));
+        raiseIfFailed<RuntimeException>(::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory)), "Unable to create DirectX 12 factory instance.");
+        
+        if (SUCCEEDED(::D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugInterface))))
+            m_debugInterface->EnableDebugLayer();
 #else
-        HRESULT hr = ::CreateDXGIFactory2(0, IID_PPV_ARGS(&dxgiFactory));
-#endif
-
-        if (FAILED(hr))
-            throw std::runtime_error("Unable to create DirectX 12 factory instance.");
-
-#ifndef NDEBUG
-        ::D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugInterface));
-        m_debugInterface->EnableDebugLayer();
+        raiseIfFailed<RuntimeException>(::CreateDXGIFactory2(0, IID_PPV_ARGS(&factory)), "Unable to create DirectX 12 factory instance.");
 #endif
 
         return factory;
@@ -55,7 +50,7 @@ public:
         {
             if (FAILED(hr = m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface))) ||
                 FAILED(hr = adapterInterface.As(&adapterInstance)))
-                throw std::runtime_error("The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
+                throw RuntimeException("The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
 
             m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
         }
@@ -69,7 +64,7 @@ public:
                 // Ignore software rasterizer adapters.
                 if (!LITEFX_FLAG_IS_SET(adapterDecriptor.Flags, DXGI_ADAPTER_FLAG_SOFTWARE) &&
                     FAILED(hr = adapterInterface.As(&adapterInstance)))
-                    throw std::runtime_error("The hardware adapter is not a valid IDXGIAdapter4 instance.");
+                    throw RuntimeException("The hardware adapter is not a valid IDXGIAdapter4 instance.");
 
                 m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
             }
@@ -135,7 +130,7 @@ const IGraphicsAdapter* DirectX12Backend::getAdapter() const noexcept
 void DirectX12Backend::use(const IGraphicsAdapter* adapter)
 {
     if (adapter == nullptr)
-        throw std::invalid_argument("The adapter must be initialized.");
+        throw InvalidArgumentException("The adapter must be initialized.");
 
     m_impl->m_adapter = adapter;
 }
@@ -143,7 +138,7 @@ void DirectX12Backend::use(const IGraphicsAdapter* adapter)
 void DirectX12Backend::use(UniquePtr<ISurface>&& surface)
 {
     if (surface == nullptr)
-        throw std::invalid_argument("The surface must be initialized.");
+        throw InvalidArgumentException("The surface must be initialized.");
 
     m_impl->m_surface = std::move(surface);
 }
@@ -163,10 +158,10 @@ AppBuilder& DirectX12BackendBuilder::go()
     auto surface = this->instance()->getSurface();
 
     if (adapter == nullptr)
-        throw std::runtime_error("No adapter has been defined to use for this backend.");
+        throw RuntimeException("No adapter has been defined to use for this backend.");
 
     if (surface == nullptr)
-        throw std::runtime_error("No surface has been defined to use for this backend.");
+        throw RuntimeException("No surface has been defined to use for this backend.");
 
     Logger::get(DIRECTX12_LOG).info("Creating DirectX12 rendering backend for adapter {0} ({1}).", adapter->getName(), adapter->getDeviceId());
 
@@ -196,7 +191,7 @@ DirectX12BackendBuilder& DirectX12BackendBuilder::withAdapter(const UInt32& adap
     auto adapter = this->instance()->findAdapter(adapterId);
 
     if (adapter == nullptr)
-        throw std::invalid_argument("The argument `adapterId` is invalid.");
+        throw InvalidArgumentException("The argument `adapterId` is invalid.");
 
     Logger::get(DIRECTX12_LOG).trace("Using adapter id: {0}...", adapterId);
     this->instance()->use(adapter);
