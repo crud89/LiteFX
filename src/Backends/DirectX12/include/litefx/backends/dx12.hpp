@@ -113,8 +113,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual const ISwapChain* getSwapChain() const noexcept override;
 
 	public:
-		//DirectX12RenderPassBuilder buildRenderPass() const;
-		////DirectX12ComputePassBuilder buildComputePass() const;
+		DirectX12RenderPassBuilder buildRenderPass() const;
+		//DirectX12ComputePassBuilder buildComputePass() const;
 	};
 
 	/// <summary>

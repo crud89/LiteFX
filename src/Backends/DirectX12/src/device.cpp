@@ -285,7 +285,7 @@ const ISwapChain* DirectX12Device::getSwapChain() const noexcept
 	return m_impl->m_swapChain.get();
 }
 
-//DirectX12RenderPassBuilder DirectX12Device::buildRenderPass() const
-//{
-//	throw;
-//}
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass() const
+{
+	return this->build<DirectX12RenderPass>();
+}
