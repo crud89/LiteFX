@@ -150,28 +150,19 @@ public:
 	}
 
 public:
-	//Array<Format> getSurfaceFormats() const
-	//{
-	//	auto adapter = this->getAdapter();
-	//	auto surface = this->getSurface();
+	Array<Format> getSurfaceFormats() const
+	{
+		// NOTE: Those formats are actually the only ones that are supported for flip-model swap chains, which is currently the only 
+		//       supported swap effect. If other swap effects are used, this function may require redesign. For more information see: 
+		//       https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1#remarks.
+		Array<Format> surfaceFormats = {
+			::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
+			::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
+			::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM)
+		};
 
-	//	if (adapter == nullptr)
-	//		throw std::runtime_error("The adapter is not a valid DirectX12 adapter.");
-
-	//	if (surface == nullptr)
-	//		throw std::runtime_error("The surface is not a valid DirectX12 surface.");
-
-	//	uint32_t formats;
-	//	::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
-
-	//	Array<VkSurfaceFormatKHR> availableFormats(formats);
-	//	Array<Format> surfaceFormats(formats);
-
-	//	::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
-	//	std::generate(surfaceFormats.begin(), surfaceFormats.end(), [&availableFormats, i = 0]() mutable { return getFormat(availableFormats[i++].format); });
-
-	//	return surfaceFormats;
-	//}
+		return surfaceFormats;
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -218,11 +209,13 @@ const ICommandQueue* DirectX12Device::graphicsQueue() const noexcept
 
 const ICommandQueue* DirectX12Device::transferQueue() const noexcept
 {
+	//return m_impl->m_graphicsQueue.get();
 	throw;
 }
 
 const ICommandQueue* DirectX12Device::bufferQueue() const noexcept
 {
+	//return m_impl->m_graphicsQueue.get();
 	throw;
 }
 
@@ -284,7 +277,7 @@ UniquePtr<IShaderModule> DirectX12Device::loadShaderModule(const ShaderStage& ty
 
 Array<Format> DirectX12Device::getSurfaceFormats() const 
 {
-	throw;
+	return m_impl->getSurfaceFormats();
 }
 
 const ISwapChain* DirectX12Device::getSwapChain() const noexcept 
