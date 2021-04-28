@@ -266,7 +266,7 @@ public:
 		m_swapChain = makeUnique<VulkanSwapChain>(m_parent, frameBufferSize, frameBuffers, format);
 	}
 
-	void bindQueues()
+	void createQueues()
 	{
 		m_graphicsQueue->bind();
 		m_transferQueue->bind();
@@ -356,8 +356,8 @@ VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, 
 	LITEFX_DEBUG(VULKAN_LOG, "Creating device on backend {0} {{ Surface: {1}, Adapter: {2}, Format: {3}, Extensions: {4} }}...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
 	
 	this->handle() = m_impl->initialize(format);
+	m_impl->createQueues();
 	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
-	m_impl->bindQueues();
 }
 
 VulkanDevice::~VulkanDevice() noexcept
