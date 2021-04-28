@@ -42,6 +42,10 @@ public:
 		if (m_bound)
 			return;
 
+		// Store the queue handle, if not done in previous binds.
+		if (m_parent->handle() == nullptr)
+			::vkGetDeviceQueue(m_device->handle(), m_familyId, m_queueId, &m_parent->handle());
+
 		// Create command pool.
 		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -55,8 +59,6 @@ public:
 
 		if (::vkCreateCommandPool(m_device->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create command pool.");
-
-		::vkGetDeviceQueue(m_device->handle(), m_familyId, m_queueId, &m_parent->handle());
 
 		m_bound = true;
 	}
