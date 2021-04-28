@@ -27,7 +27,7 @@ public:
 
 public:
 	[[nodiscard]]
-	ComPtr<ID3D12CommandQueue>&& initialize(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority)
+	ComPtr<ID3D12CommandQueue> initialize(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority)
 	{
 		if (device == nullptr)
 			throw ArgumentNotInitializedException("The device must be initialized.");
@@ -69,7 +69,7 @@ public:
 		m_type = type;
 		m_priority = priority;
 
-		return std::move(commandQueue);
+		return commandQueue;
 	}
 
 	void release()

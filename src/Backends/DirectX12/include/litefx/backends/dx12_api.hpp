@@ -34,12 +34,33 @@ namespace LiteFX::Rendering::Backends {
 
     constexpr char DIRECTX12_LOG[] = "Backend::DirectX12";
 
+    // Conversion helpers.
+    /// <summary>
+    /// 
+    /// </summary>
+    Format LITEFX_DIRECTX12_API getFormat(const DXGI_FORMAT& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const Format& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    //BufferFormat LITEFX_DIRECTX12_API getFormat(const VkFormat& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const BufferFormat& format);
+
     template <class THandle>
     using IComResource = IResource<ComPtr<THandle>>;
 
     // Forward declarations.
     //class DirectX12Texture;
-    //class DirectX12SwapChain;
+    class DirectX12SwapChain;
     class DirectX12Queue;
     class DirectX12Device;
     class DirectX12GraphicsAdapter;

@@ -10,23 +10,12 @@ class DirectX12GraphicsAdapter::DirectX12GraphicsAdapterImpl : public Implement<
 public:
     friend class DirectX12GraphicsAdapter;
 
-private:
-    //Array<UniquePtr<DirectX12Queue>> m_queues;
+public:
+    DirectX12GraphicsAdapterImpl(DirectX12GraphicsAdapter* parent) : 
+        base(parent) { }
 
 public:
-    DirectX12GraphicsAdapterImpl(DirectX12GraphicsAdapter* parent) : base(parent)
-    {
-        this->initialize();
-    }
-
-public:
-    void initialize()
-    {
-    }
-
-public:
-
-public:
+    [[nodiscard]]
     DXGI_ADAPTER_DESC1 getProperties() const noexcept
     {
         DXGI_ADAPTER_DESC1 properties;

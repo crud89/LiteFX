@@ -21,6 +21,7 @@ public:
         base(parent) { }
 
 public:
+    [[nodiscard]]
     ComPtr<IDXGIFactory7> initialize()
     {
         ComPtr<IDXGIFactory7> factory;

@@ -19,11 +19,13 @@ SET(DIRECTX12_BACKEND_HEADERS
 )
 
 SET(DIRECTX12_BACKEND_SOURCES
+    "src/convert.cpp"
     "src/backend.cpp"
     "src/adapter.cpp"
     "src/surface.cpp"
     "src/device.cpp"
     "src/queue.cpp"
+    "src/swapchain.cpp"
 )
 
 # Add shared library project.

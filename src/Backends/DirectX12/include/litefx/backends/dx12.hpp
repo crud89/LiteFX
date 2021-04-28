@@ -87,7 +87,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
 
 	public:
-		explicit DirectX12Device(const IRenderBackend* backend, const Format& format);
+		explicit DirectX12Device(const IRenderBackend* backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers);
 		DirectX12Device(const DirectX12Device&) = delete;
 		DirectX12Device(DirectX12Device&&) = delete;
 		virtual ~DirectX12Device() noexcept;
@@ -138,6 +138,26 @@ namespace LiteFX::Rendering::Backends {
 		virtual void bind() override;
 		virtual void release() override;
 		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12SwapChain : public ISwapChain, public IComResource<IDXGISwapChain4> {
+		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
+
+	public:
+		DirectX12SwapChain(const DirectX12Device* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format = Format::B8G8R8A8_SRGB);
+		virtual ~DirectX12SwapChain() noexcept;
+
+	public:
+		virtual const Size2d& getBufferSize() const noexcept override;
+		virtual size_t getWidth() const noexcept override;
+		virtual size_t getHeight() const noexcept override;
+		virtual const Format& getFormat() const noexcept override;
+		virtual UInt32 swapBackBuffer() const override;
+		virtual void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers) override;
+		virtual UInt32 getBuffers() const noexcept override;
 	};
 
 }

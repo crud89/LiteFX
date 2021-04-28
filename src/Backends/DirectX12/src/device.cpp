@@ -11,7 +11,9 @@ public:
 	friend class DirectX12Device;
 
 private:
+	UniquePtr<DirectX12Queue> m_graphicsQueue;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
+	UniquePtr<DirectX12SwapChain> m_swapChain;
 	DWORD m_debugCallbackCookie = 0;
 
 public:
@@ -24,6 +26,8 @@ public:
 	{
 		if (m_eventQueue != nullptr & m_debugCallbackCookie != 0)
 			m_eventQueue->UnregisterMessageCallback(m_debugCallbackCookie);
+
+		m_swapChain = nullptr;
 	}
 
 private:
@@ -46,7 +50,6 @@ private:
 	}
 
 #ifndef NDEBUG
-
 private:
 	static void onDebugMessage(D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, D3D12_MESSAGE_ID id, LPCSTR description, void* /*context*/)
 	{
@@ -81,7 +84,8 @@ private:
 #endif
 
 public:
-	ComPtr<ID3D12Device5>&& initialize(const Format& format)
+	[[nodiscard]]
+	ComPtr<ID3D12Device5> initialize(const Format& format)
 	{
 		ComPtr<ID3D12Device5> device;
 		HRESULT hr;
@@ -125,28 +129,36 @@ public:
 		}
 #endif
 
-		return std::move(device);
+		return device;
 	}
 
-	//void createSwapChain(const Format& format)
-	//{
-	//	m_swapChain = makeUnique<DirectX12SwapChain>(m_parent, format);
-	//}
+	void createCommandQueues()
+	{
+		//m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::Realtime);
+		m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::High);
+	}
 
-	//void wait()
-	//{
-	//	if (::vkDeviceWaitIdle(m_parent->handle()) != VK_SUCCESS)
-	//		throw std::runtime_error("Unable to wait for the device.");
-	//}
+	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	{
+		m_swapChain = makeUnique<DirectX12SwapChain>(m_parent, frameBufferSize, frameBuffers, format);
+	}
 
-	//void resize(int width, int height)
-	//{
-	//	// Wait for the device to be idle.
-	//	this->wait();
+	void wait()
+	{
+		//if (::vkDeviceWaitIdle(m_parent->handle()) != VK_SUCCESS)
+		//	throw std::runtime_error("Unable to wait for the device.");
+		
+		throw;
+	}
 
-	//	// Reset the swap chain.
-	//	m_swapChain->reset();
-	//}
+	void resize(int width, int height)
+	{
+		// Wait for the device to be idle.
+		this->wait();
+
+		// Reset the swap chain.
+		m_swapChain->reset(Size2d(width, height), m_swapChain->getBuffers());
+	}
 
 public:
 	//Array<Format> getSurfaceFormats() const
@@ -177,12 +189,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Device::DirectX12Device(const IRenderBackend* backend, const Format& format) :
+DirectX12Device::DirectX12Device(const IRenderBackend* backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
 	IComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this)), GraphicsDevice(backend)
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating device on backend {0} {{ Surface: {1}, Adapter: {2}, Format: {3} }}...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format);
 
 	this->handle() = m_impl->initialize(format);
+	m_impl->createCommandQueues();
+	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
 }
 
 DirectX12Device::~DirectX12Device() noexcept
@@ -200,14 +214,12 @@ DirectX12Device::~DirectX12Device() noexcept
 
 size_t DirectX12Device::getBufferWidth() const noexcept
 {
-	//return m_impl->m_swapChain->getWidth();
-	throw;
+	return m_impl->m_swapChain->getWidth();
 }
 
 size_t DirectX12Device::getBufferHeight() const noexcept
 {
-	//return m_impl->m_swapChain->getHeight();
-	throw;
+	return m_impl->m_swapChain->getHeight();
 }
 
 const ICommandQueue* DirectX12Device::graphicsQueue() const noexcept
@@ -232,7 +244,7 @@ void DirectX12Device::wait()
 
 void DirectX12Device::resize(int width, int height)
 {
-	throw;
+	m_impl->resize(width, height);
 }
 
 UniquePtr<IBuffer> DirectX12Device::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements) const
@@ -292,7 +304,7 @@ Array<Format> DirectX12Device::getSurfaceFormats() const
 
 const ISwapChain* DirectX12Device::getSwapChain() const noexcept 
 { 
-	throw; 
+	return m_impl->m_swapChain.get();
 }
 
 //DirectX12RenderPassBuilder DirectX12Device::buildRenderPass() const
