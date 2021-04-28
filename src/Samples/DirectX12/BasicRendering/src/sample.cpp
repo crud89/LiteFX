@@ -31,45 +31,45 @@ static void onResize(GLFWwindow* window, int width, int height)
     app->resize(width, height);
 }
 
-//void SampleApp::createRenderPasses()
-//{
-//    m_renderPass = m_device->buildRenderPass()
-//        .attachPresentTarget(true)
-//        .setPipeline()
-//            .defineLayout()
-//                .setRasterizer()
-//                    .withPolygonMode(PolygonMode::Solid)
-//                    .withCullMode(CullMode::BackFaces)
-//                    .withCullOrder(CullOrder::ClockWise)
-//                    .withLineWidth(1.f)
-//                    .go()
-//                .setInputAssembler()
-//                    .withTopology(PrimitiveTopology::TriangleList)
-//                    .withIndexType(IndexType::UInt16)
-//                    .addVertexBuffer(sizeof(Vertex), 0)
-//                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-//                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-//                        .go()
-//                    .go()
-//                .setShaderProgram()
-//                    .addVertexShaderModule("shaders/basic.vert.spv")
-//                    .addFragmentShaderModule("shaders/basic.frag.spv")
-//                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-//                        .addUniform(0, sizeof(CameraBuffer))
-//                        .go()
-//                    .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
-//                        .addUniform(0, sizeof(TransformBuffer))
-//                        .go()
-//                    .go()
-//                .addViewport()
-//                    .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-//                    .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-//                    .go()
-//                .go()
-//            .go()
-//        .go();
-//}
-//
+void SampleApp::createRenderPasses()
+{
+    //m_renderPass = m_device->buildRenderPass();
+        //.attachPresentTarget(true)
+        //.setPipeline()
+        //    .defineLayout()
+        //        .setRasterizer()
+        //            .withPolygonMode(PolygonMode::Solid)
+        //            .withCullMode(CullMode::BackFaces)
+        //            .withCullOrder(CullOrder::ClockWise)
+        //            .withLineWidth(1.f)
+        //            .go()
+        //        .setInputAssembler()
+        //            .withTopology(PrimitiveTopology::TriangleList)
+        //            .withIndexType(IndexType::UInt16)
+        //            .addVertexBuffer(sizeof(Vertex), 0)
+        //                .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+        //                .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+        //                .go()
+        //            .go()
+        //        .setShaderProgram()
+        //            .addVertexShaderModule("shaders/basic.vert.spv")
+        //            .addFragmentShaderModule("shaders/basic.frag.spv")
+        //            .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
+        //                .addUniform(0, sizeof(CameraBuffer))
+        //                .go()
+        //            .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
+        //                .addUniform(0, sizeof(TransformBuffer))
+        //                .go()
+        //            .go()
+        //        .addViewport()
+        //            .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+        //            .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+        //            .go()
+        //        .go()
+        //    .go()
+        //.go();
+}
+
 //void SampleApp::initBuffers()
 //{
 //    // Create the staging buffer.
@@ -105,7 +105,7 @@ void SampleApp::run()
     m_device = this->getRenderBackend()->createDevice<DirectX12Device>(Format::R8G8B8A8_UNORM, Size2d(width, height), 3);
 
     // Initialize resources.
-    //this->createRenderPasses();
+    this->createRenderPasses();
     //this->initBuffers();
 
     // Run application loop until the window is closed.
@@ -114,21 +114,6 @@ void SampleApp::run()
         this->handleEvents();
         //this->drawFrame();
     }
-
-    //// Shut down the device.
-    //m_device->wait();
-
-    //// Destroy all resources.
-    //m_perObjectBindings = nullptr;
-    //m_perFrameBindings = nullptr;
-    //m_cameraBuffer = nullptr;
-    //m_transformBuffer = nullptr;
-    //m_vertexBuffer = nullptr;
-    //m_indexBuffer = nullptr;
-
-    //// Destroy the pipeline and the device.
-    //m_renderPass = nullptr;
-    //m_device = nullptr;
 
     // Destroy the window.
     ::glfwDestroyWindow(m_window.get());

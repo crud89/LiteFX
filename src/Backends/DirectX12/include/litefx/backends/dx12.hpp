@@ -159,4 +159,45 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt32 getBuffers() const noexcept override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12RenderPass : public IRenderPass {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
+		LITEFX_BUILDER(DirectX12RenderPassBuilder);
+
+	public:
+		DirectX12RenderPass(const IGraphicsDevice* device);	// Adapter for builder interface.
+		DirectX12RenderPass(const DirectX12Device* device);
+		DirectX12RenderPass(const DirectX12RenderPass&) = delete;
+		DirectX12RenderPass(DirectX12RenderPass&&) = delete;
+		virtual ~DirectX12RenderPass() noexcept;
+
+	public:
+		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
+
+	public:
+		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
+		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
+		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
+		virtual void setDependency(const IRenderPass* renderPass = nullptr) override;
+		virtual const IRenderPass* getDependency() const noexcept override;
+		virtual const IRenderPipeline* getPipeline() const noexcept override;
+		virtual IRenderPipeline* getPipeline() noexcept override;
+		virtual void begin() const override;
+		virtual void end(const bool& present = false) override;
+		virtual void reset() override;
+		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
+		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
+		virtual const IImage* getAttachment(const UInt32& attachmentId) const override;
+
+	public:
+		virtual void bind(const IVertexBuffer* buffer) const override;
+		virtual void bind(const IIndexBuffer* buffer) const override;
+		virtual void bind(IDescriptorSet* buffer) const override;
+		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
+		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
+		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
+	};
+
 }
