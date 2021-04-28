@@ -142,6 +142,27 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer, public IComResource<ID3D12CommandList> {
+		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
+
+	public:
+		DirectX12CommandBuffer(const DirectX12Queue* queue);
+		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
+		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
+		virtual ~DirectX12CommandBuffer() noexcept;
+
+	public:
+		virtual const ICommandQueue* getQueue() const noexcept override;
+
+	public:
+		virtual void begin() const override;
+		virtual void end() const override;
+		virtual void submit(const bool& waitForQueue = false) const override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12SwapChain : public ISwapChain, public IComResource<IDXGISwapChain4> {
 		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
 

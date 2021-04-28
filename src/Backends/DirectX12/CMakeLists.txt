@@ -27,6 +27,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/queue.cpp"
     "src/swapchain.cpp"
     "src/render_pass.cpp"
+    "src/command_buffer.cpp"
 )
 
 # Add shared library project.

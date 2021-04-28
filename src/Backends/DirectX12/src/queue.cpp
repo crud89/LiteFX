@@ -136,6 +136,5 @@ const IGraphicsDevice* DirectX12Queue::getDevice() const noexcept
 
 UniquePtr<ICommandBuffer> DirectX12Queue::createCommandBuffer() const
 {
-	//return makeUnique<DirectX12CommandBuffer>(this);
-	throw;
+	return makeUnique<DirectX12CommandBuffer>(this);
 }
