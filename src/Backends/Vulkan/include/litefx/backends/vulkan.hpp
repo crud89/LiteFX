@@ -431,6 +431,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getBufferHeight() const noexcept override;
 		virtual const ICommandQueue* graphicsQueue() const noexcept override;
 		virtual const ICommandQueue* transferQueue() const noexcept override;
+		virtual const ICommandQueue* bufferQueue() const noexcept override;
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;

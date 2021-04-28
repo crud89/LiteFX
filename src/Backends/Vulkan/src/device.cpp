@@ -60,7 +60,7 @@ private:
 	Array<QueueFamily> m_families;
 	VulkanQueue* m_graphicsQueue;
 	VulkanQueue* m_transferQueue;
-	//VulkanQueue* m_bufferQueue;
+	VulkanQueue* m_bufferQueue;
 
 	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
@@ -193,7 +193,7 @@ public:
 		// Create graphics and transfer queue.
 		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, surface);
 		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
-		//m_bufferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
+		m_bufferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 
 		if (m_graphicsQueue == nullptr)
 			throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
@@ -204,11 +204,12 @@ public:
 			m_transferQueue = m_graphicsQueue;
 		}
 
-		//if (m_bufferQueue == nullptr)
-		//{
-		//	LITEFX_WARNING(VULKAN_LOG, "Unable to find dedicated transfer queue for host-device transfer. Using graphics queue instead.");
-		//	m_bufferQueue = m_graphicsQueue;
-		//}
+		if (m_bufferQueue == nullptr)
+		{
+			// NOTE: Default transfer queue can be a fallback, too.
+			LITEFX_WARNING(VULKAN_LOG, "Unable to find dedicated transfer queue for host-device transfer. Using default transfer queue instead.");
+			m_bufferQueue = m_transferQueue;
+		}
 
 		// Define used queue families.
 		Array<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -269,7 +270,7 @@ public:
 	{
 		m_graphicsQueue->bind();
 		m_transferQueue->bind();
-		//m_bufferQueue->bind();
+		m_bufferQueue->bind();
 	}
 
 	void wait()
@@ -386,6 +387,11 @@ const ICommandQueue* VulkanDevice::graphicsQueue() const noexcept
 const ICommandQueue* VulkanDevice::transferQueue() const noexcept
 {
 	return m_impl->m_transferQueue;
+}
+
+const ICommandQueue* VulkanDevice::bufferQueue() const noexcept
+{
+	return m_impl->m_bufferQueue;
 }
 
 const Array<String>& VulkanDevice::getExtensions() const noexcept

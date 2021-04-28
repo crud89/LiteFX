@@ -209,7 +209,7 @@ namespace LiteFX::Rendering {
 		/// <remarks>
 		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
 		/// </remarks>
-		//virtual const ICommandQueue* bufferQueue() const noexcept = 0;
+		virtual const ICommandQueue* bufferQueue() const noexcept = 0;
 	};
 
 	/// <summary>
