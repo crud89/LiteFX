@@ -143,19 +143,8 @@ public:
 		m_swapChain = makeUnique<DirectX12SwapChain>(m_parent, frameBufferSize, frameBuffers, format);
 	}
 
-	void wait()
-	{
-		//if (::vkDeviceWaitIdle(m_parent->handle()) != VK_SUCCESS)
-		//	throw std::runtime_error("Unable to wait for the device.");
-		
-		throw;
-	}
-
 	void resize(int width, int height)
 	{
-		// Wait for the device to be idle.
-		this->wait();
-
 		// Reset the swap chain.
 		m_swapChain->reset(Size2d(width, height), m_swapChain->getBuffers());
 	}
@@ -224,7 +213,7 @@ size_t DirectX12Device::getBufferHeight() const noexcept
 
 const ICommandQueue* DirectX12Device::graphicsQueue() const noexcept
 {
-	throw;
+	return m_impl->m_graphicsQueue.get();
 }
 
 const ICommandQueue* DirectX12Device::transferQueue() const noexcept
@@ -239,7 +228,8 @@ const ICommandQueue* DirectX12Device::bufferQueue() const noexcept
 
 void DirectX12Device::wait()
 {
-	throw;
+	// TODO: If actually required, we should use a fence here and wait on it.
+	return;
 }
 
 void DirectX12Device::resize(int width, int height)
