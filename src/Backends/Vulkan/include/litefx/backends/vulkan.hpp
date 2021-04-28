@@ -11,19 +11,6 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
-	class LITEFX_VULKAN_API VulkanRuntimeObject {
-		LITEFX_IMPLEMENTATION(VulkanRuntimeObjectImpl);
-
-	public:
-		VulkanRuntimeObject(const VulkanDevice* device);
-		VulkanRuntimeObject(VulkanRuntimeObject&&) = delete;
-		VulkanRuntimeObject(const VulkanRuntimeObject&) = delete;
-		virtual ~VulkanRuntimeObject() noexcept;
-
-	public:
-		virtual const VulkanDevice* getDevice() const noexcept;
-	};
-
 	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject, public IDescriptorSet, public IResource<VkDescriptorPool> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
