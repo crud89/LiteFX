@@ -282,11 +282,6 @@ UniquePtr<IShaderModule> DirectX12Device::loadShaderModule(const ShaderStage& ty
 	throw;
 }
 
-Array<UniquePtr<IImage>> DirectX12Device::createSwapChainImages(const ISwapChain* swapChain) const
-{
-	throw;
-}
-
 Array<Format> DirectX12Device::getSurfaceFormats() const 
 {
 	throw;

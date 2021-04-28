@@ -169,7 +169,6 @@ namespace LiteFX::Rendering {
 		virtual ~IGraphicsDevice() noexcept = default;
 
 	public:
-		virtual Array<UniquePtr<IImage>> createSwapChainImages(const ISwapChain* swapChain) const = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
