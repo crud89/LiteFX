@@ -83,6 +83,12 @@ namespace LiteFX::Rendering {
 		Other = 0x7FFFFFFF
 	};
 
+	enum class LITEFX_RENDERING_API QueuePriority {
+		Normal = 33,
+		High = 66,
+		Realtime = 100
+	};
+
 	enum class LITEFX_RENDERING_API Format {
 		None = 0x00000000,
 		R4G4_UNORM,

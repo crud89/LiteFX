@@ -43,6 +43,24 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::QueueType> : forma
 };
 
 template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::QueuePriority> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::QueuePriority t, FormatContext& ctx) {
+		String name;
+
+		switch (t)
+		{
+		default:
+		case LiteFX::Rendering::QueuePriority::Normal: name = "Normal"; break;
+		case LiteFX::Rendering::QueuePriority::High: name = "High"; break;
+		case LiteFX::Rendering::QueuePriority::Realtime: name = "Realtime"; break;
+		}
+		
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
 struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::Format> : formatter<string_view> {
 	template <typename FormatContext>
 	auto format(LiteFX::Rendering::Format t, FormatContext& ctx) {

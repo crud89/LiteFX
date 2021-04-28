@@ -392,15 +392,17 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	
 	public:
-		VulkanQueue(const IGraphicsDevice* device, const QueueType& type, const uint32_t id);
+		VulkanQueue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId);
 		virtual ~VulkanQueue() noexcept;
 
 	public:
 		virtual VkCommandPool getCommandPool() const noexcept;
+		virtual UInt32 getFamilyId() const noexcept;
+		virtual UInt32 getQueueId() const noexcept;
 
 	public:
 		virtual bool isBound() const noexcept override;
-		virtual UInt32 getId() const noexcept override;
+		virtual QueuePriority getPriority() const noexcept override;
 		virtual QueueType getType() const noexcept override;
 		virtual const IGraphicsDevice* getDevice() const noexcept override;
 
