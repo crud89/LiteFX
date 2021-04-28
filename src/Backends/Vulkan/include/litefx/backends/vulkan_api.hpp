@@ -42,27 +42,12 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
-    size_t LITEFX_VULKAN_API getSize(const Format& format);
-
-    /// <summary>
-    /// 
-    /// </summary>
     //BufferFormat LITEFX_VULKAN_API getFormat(const VkFormat& format);
 
     /// <summary>
     /// 
     /// </summary>
     VkFormat LITEFX_VULKAN_API getFormat(const BufferFormat& format);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    bool LITEFX_VULKAN_API hasDepth(const Format& format);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    bool LITEFX_VULKAN_API hasStencil(const Format& format);
 
     /// <summary>
     /// 

@@ -445,4 +445,19 @@ namespace LiteFX::Rendering {
 	inline UInt32 getBufferFormatType(const BufferFormat& format) {
 		return (static_cast<UInt32>(format) & 0x0000FF00) >> 8;
 	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	size_t LITEFX_RENDERING_API getSize(const Format& format);
+
+	/// <summary>
+	/// 
+	/// </summary>
+	bool LITEFX_RENDERING_API hasDepth(const Format& format);
+
+	/// <summary>
+	/// 
+	/// </summary>
+	bool LITEFX_RENDERING_API hasStencil(const Format& format);
 }
