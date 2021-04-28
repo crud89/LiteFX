@@ -131,7 +131,7 @@ namespace LiteFX::Rendering {
 		virtual const Format& getFormat() const noexcept = 0;
 		virtual Array<const IImage*> getFrames() const noexcept = 0;
 		virtual UInt32 swapBackBuffer() const = 0;
-		virtual void reset() = 0;
+		virtual void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers) = 0;
 	};
 
 	/// <summary>

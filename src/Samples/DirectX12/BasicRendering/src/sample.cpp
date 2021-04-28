@@ -97,10 +97,18 @@ static void onResize(GLFWwindow* window, int width, int height)
 //
 void SampleApp::run() 
 {
-    m_device = this->getRenderBackend()->createDevice<DirectX12Device>(Format::B8G8R8A8_SRGB);
+    // Get the proper frame buffer size.
+    int width, height;
+    ::glfwGetFramebufferSize(m_window.get(), &width, &height);
+
+    // Create the device with the initial frame buffer size and triple buffering.
+    m_device = this->getRenderBackend()->createDevice<DirectX12Device>(Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+
+    // Initialize resources.
     //this->createRenderPasses();
     //this->initBuffers();
 
+    // Run application loop until the window is closed.
     while (!::glfwWindowShouldClose(m_window.get()))
     {
         this->handleEvents();

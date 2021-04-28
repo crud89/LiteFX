@@ -79,7 +79,7 @@ private:
 	}
 
 public:
-	VkSwapchainKHR initialize(const Format& format)
+	VkSwapchainKHR initialize(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
 		if (format == Format::Other || format == Format::None)
 			throw std::invalid_argument("The provided surface format it not a valid value.");
@@ -104,7 +104,7 @@ public:
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(adapter, surface, &deviceCaps);
 
 		// Get the number of images in the swap chain.
-		uint32_t images = deviceCaps.minImageCount + 1;
+		UInt32 images = std::max(frameBuffers, deviceCaps.minImageCount + 1);
 
 		if (deviceCaps.maxImageCount > 0 && images > deviceCaps.maxImageCount)
 			images = deviceCaps.maxImageCount;
@@ -125,13 +125,12 @@ public:
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.clipped = VK_TRUE;
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-		// TODO: For maximum platform compatibility we should check if `deviceCaps.currentExtent.width` equals UINT32_MAX and select another resolution in this case.
-		createInfo.imageExtent = deviceCaps.currentExtent;
+		createInfo.imageExtent.height = std::max(deviceCaps.minImageExtent.height, std::min(deviceCaps.maxImageExtent.height, static_cast<UInt32>(frameBufferSize.height())));
+		createInfo.imageExtent.width = std::max(deviceCaps.minImageExtent.width, std::min(deviceCaps.maxImageExtent.width, static_cast<UInt32>(frameBufferSize.width())));
 
 		// Set the present mode to VK_PRESENT_MODE_FIFO_KHR for now, which is always available.
 		// TODO: Change present mode:
-		// -VK_PRESENT_MODE_IMMEDIATE_KHR: to disable VSync
+		// -VK_PRESENT_MODE_IMMEDIATE_KHR: to disable VSync (e.g. on variable refresh displays)
 		// -VK_PRESENT_MODE_MAILBOX_KHR: to enable triple buffering
 		createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 
@@ -157,17 +156,17 @@ public:
 			return semaphore;
 		});
 
-		m_size = Size2d(static_cast<size_t>(deviceCaps.currentExtent.width), static_cast<size_t>(deviceCaps.currentExtent.height));
+		m_size = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
 		m_format = format;
 
 		return swapChain;
 	}
 
-	void reset()
+	void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
 		// Cleanup and re-initialize.
 		this->cleanup();
-		m_parent->handle() = this->initialize(m_format);
+		m_parent->handle() = this->initialize(m_format, frameBufferSize, frameBuffers);
 		this->loadImages();
 	}
 
@@ -203,10 +202,10 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Format& format) :
+VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format) :
 	m_impl(makePimpl<VulkanSwapChainImpl>(this)), VulkanRuntimeObject(device), IResource(nullptr)
 {
-	this->handle() = m_impl->initialize(format);
+	this->handle() = m_impl->initialize(format, frameBufferSize, frameBuffers);
 	m_impl->loadImages();
 }
 
@@ -242,9 +241,9 @@ UInt32 VulkanSwapChain::swapBackBuffer() const
 	return m_impl->swapBackBuffer();
 }
 
-void VulkanSwapChain::reset()
+void VulkanSwapChain::reset(const Size2d& frameBufferSize, const UInt32& frameBuffers)
 {
-	m_impl->reset();
+	m_impl->reset(frameBufferSize, frameBuffers);
 }
 
 const VkSemaphore& VulkanSwapChain::getCurrentSemaphore() const noexcept

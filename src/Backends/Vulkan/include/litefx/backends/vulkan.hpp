@@ -356,7 +356,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
-		VulkanSwapChain(const VulkanDevice* device, const Format& format = Format::B8G8R8A8_SRGB);
+		VulkanSwapChain(const VulkanDevice* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format = Format::B8G8R8A8_SRGB);
 		virtual ~VulkanSwapChain() noexcept;
 
 	public:
@@ -366,7 +366,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const Format& getFormat() const noexcept override;
 		virtual Array<const IImage*> getFrames() const noexcept override;
 		virtual UInt32 swapBackBuffer() const override;
-		virtual void reset() override;
+		virtual void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers) override;
 
 	public:
 		virtual const VkSemaphore& getCurrentSemaphore() const noexcept;
@@ -406,7 +406,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
-		explicit VulkanDevice(const IRenderBackend* backend, const Format& format, const Array<String>& extensions = { });
+		explicit VulkanDevice(const IRenderBackend* backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;

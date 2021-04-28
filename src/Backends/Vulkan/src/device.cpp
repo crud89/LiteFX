@@ -261,9 +261,9 @@ public:
 		return device;
 	}
 
-	void createSwapChain(const Format& format)
+	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		m_swapChain = makeUnique<VulkanSwapChain>(m_parent, format);
+		m_swapChain = makeUnique<VulkanSwapChain>(m_parent, frameBufferSize, frameBuffers, format);
 	}
 
 	void bindQueues()
@@ -285,7 +285,7 @@ public:
 		this->wait();
 
 		// Reset the swap chain.
-		m_swapChain->reset();
+		m_swapChain->reset(Size2d(width, height), static_cast<UInt32>(m_swapChain->getFrames().size()));
 	}
 
 public:
@@ -350,13 +350,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, const Array<String>& extensions) :
+VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions) :
 	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, extensions)), GraphicsDevice(backend)
 {
 	LITEFX_DEBUG(VULKAN_LOG, "Creating device on backend {0} {{ Surface: {1}, Adapter: {2}, Format: {3}, Extensions: {4} }}...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
 	
 	this->handle() = m_impl->initialize(format);
-	m_impl->createSwapChain(format);
+	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
 	m_impl->bindQueues();
 }
 
