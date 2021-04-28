@@ -392,19 +392,20 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	
 	public:
-		VulkanQueue(const QueueType& type, const uint32_t id);
+		VulkanQueue(const IGraphicsDevice* device, const QueueType& type, const uint32_t id);
 		virtual ~VulkanQueue() noexcept;
 
 	public:
 		virtual VkCommandPool getCommandPool() const noexcept;
 
 	public:
+		virtual bool isBound() const noexcept override;
 		virtual UInt32 getId() const noexcept override;
 		virtual QueueType getType() const noexcept override;
 		virtual const IGraphicsDevice* getDevice() const noexcept override;
 
 	public:
-		virtual void bindDevice(const IGraphicsDevice* device) override;
+		virtual void bind() override;
 		virtual void release() override;
 		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
 	};
@@ -422,8 +423,12 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDevice() noexcept;
 
 	public:
+		virtual Array<Format> getSurfaceFormats() const override;
+		virtual const ISwapChain* getSwapChain() const noexcept override;
 		virtual size_t getBufferWidth() const noexcept override;
 		virtual size_t getBufferHeight() const noexcept override;
+		virtual const ICommandQueue* graphicsQueue() const noexcept override;
+		virtual const ICommandQueue* transferQueue() const noexcept override;
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
@@ -439,10 +444,6 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual const Array<String>& getExtensions() const noexcept;
-		virtual Array<Format> getSurfaceFormats() const override;
-		virtual const ISwapChain* getSwapChain() const noexcept override;
-
-	public:
 		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
 		virtual Array<String> getAvailableDeviceExtensions() const noexcept;
 
@@ -471,10 +472,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual uint32_t getDriverVersion() const noexcept override;
 		virtual uint32_t getApiVersion() const noexcept override;
 		virtual uint32_t getDedicatedMemory() const noexcept override;
-
-	public:
-		virtual ICommandQueue* findQueue(const QueueType& queueType) const override;
-		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const override;
 	};
 
 	/// <summary>

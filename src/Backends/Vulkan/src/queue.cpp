@@ -11,14 +11,15 @@ public:
 	friend class VulkanQueue;
 
 private:
-	const VulkanDevice* m_device{ nullptr };
+	const VulkanDevice* m_device;
 	VkCommandPool m_commandPool{};
 	QueueType m_type;
 	uint32_t m_id;
+	bool m_bound;
 
 public:
-	VulkanQueueImpl(VulkanQueue* parent, const QueueType& type, const uint32_t id) :
-		base(parent), m_type(type), m_id(id) { }
+	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice* device, const QueueType& type, const uint32_t id) :
+		base(parent), m_type(type), m_id(id), m_bound(false), m_device(device) { }
 
 	~VulkanQueueImpl()
 	{
@@ -28,16 +29,19 @@ public:
 private:
 	void release()
 	{
-		if (m_device != nullptr)
+		if (m_bound)
 			::vkDestroyCommandPool(m_device->handle(), m_commandPool, nullptr);
 
-		m_device = nullptr;
+		m_bound = false;
 		m_commandPool = {};
 	}
 
 public:
-	void bindDevice(const VulkanDevice* device)
+	void bind()
 	{
+		if (m_bound)
+			return;
+
 		// Create command pool.
 		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -49,12 +53,12 @@ public:
 		if (m_type == QueueType::Transfer)
 			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-		if (::vkCreateCommandPool(device->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
+		if (::vkCreateCommandPool(m_device->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create command pool.");
 
-		::vkGetDeviceQueue(device->handle(), m_id, 0, &m_parent->handle());
+		::vkGetDeviceQueue(m_device->handle(), m_id, 0, &m_parent->handle());
 
-		m_device = device;
+		m_bound = true;
 	}
 };
 
@@ -62,30 +66,31 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanQueue::VulkanQueue(const QueueType& type, const uint32_t id) :
-	IResource(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, type, id))
+VulkanQueue::VulkanQueue(const IGraphicsDevice* device, const QueueType& type, const uint32_t id) :
+	IResource(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, dynamic_cast<const VulkanDevice*>(device), type, id))
 {
+	if (m_impl->m_device == nullptr)
+		throw std::invalid_argument("The device must be initialized.");
 }
 
-VulkanQueue::~VulkanQueue() noexcept = default;
-
-void VulkanQueue::bindDevice(const IGraphicsDevice* d)
+VulkanQueue::~VulkanQueue() noexcept
 {
-	auto device = dynamic_cast<const VulkanDevice*>(d);
+	this->release();
+}
 
-	if (device == nullptr)
-		throw std::invalid_argument("The argument `device` is not initialized.");
-	
-	if (this->handle() != nullptr)
-		throw std::runtime_error("The queue is already bound to a device.");
-
-	LITEFX_TRACE(VULKAN_LOG, "Initializing device queue for device {0} {{ Id: {1}, Type: {2} }}...", fmt::ptr(device), this->getId(), this->getType());
-	m_impl->bindDevice(device);
+void VulkanQueue::bind()
+{
+	m_impl->bind();
 }
 
 void VulkanQueue::release()
 {
 	m_impl->release();
+}
+
+bool VulkanQueue::isBound() const noexcept
+{
+	return m_impl->m_bound;
 }
 
 uint32_t VulkanQueue::getId() const noexcept

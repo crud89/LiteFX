@@ -12,12 +12,10 @@ public:
 
 private:
 	const IRenderBackend* m_backend;
-	ICommandQueue* m_graphicsQueue;
-	ICommandQueue* m_transferQueue;
 
 public:
 	GraphicsDeviceImpl(GraphicsDevice* parent, const IRenderBackend* backend) noexcept :
-		base(parent), m_backend(backend), m_graphicsQueue(nullptr), m_transferQueue(nullptr) { }
+		base(parent), m_backend(backend) { }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -42,34 +40,4 @@ GraphicsDevice::~GraphicsDevice() noexcept = default;
 const IRenderBackend* GraphicsDevice::getBackend() const noexcept
 {
 	return m_impl->m_backend;
-}
-
-const ICommandQueue* GraphicsDevice::getGraphicsQueue() const noexcept
-{
-	return m_impl->m_graphicsQueue;
-}
-
-ICommandQueue* GraphicsDevice::graphicsQueue() noexcept
-{
-	return m_impl->m_graphicsQueue;
-}
-
-const ICommandQueue* GraphicsDevice::getTransferQueue() const noexcept
-{
-	return m_impl->m_transferQueue;
-}
-
-ICommandQueue* GraphicsDevice::transferQueue() noexcept
-{
-	return m_impl->m_transferQueue;
-}
-
-void GraphicsDevice::setGraphicsQueue(ICommandQueue* queue) noexcept
-{
-	m_impl->m_graphicsQueue = queue;
-}
-
-void GraphicsDevice::setTransferQueue(ICommandQueue* queue) noexcept
-{
-	m_impl->m_transferQueue = queue;
 }
