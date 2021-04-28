@@ -231,6 +231,11 @@ const Format& VulkanSwapChain::getFormat() const noexcept
 	return m_impl->m_format;
 }
 
+UInt32 VulkanSwapChain::getBuffers() const noexcept
+{
+	return static_cast<UInt32>(m_impl->getFrames().size());
+}
+
 Array<const IImage*> VulkanSwapChain::getFrames() const noexcept
 {
 	return m_impl->getFrames();

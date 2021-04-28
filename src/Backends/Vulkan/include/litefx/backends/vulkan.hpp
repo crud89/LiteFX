@@ -364,11 +364,12 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getWidth() const noexcept override;
 		virtual size_t getHeight() const noexcept override;
 		virtual const Format& getFormat() const noexcept override;
-		virtual Array<const IImage*> getFrames() const noexcept override;
 		virtual UInt32 swapBackBuffer() const override;
 		virtual void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers) override;
+		virtual UInt32 getBuffers() const noexcept override;
 
 	public:
+		virtual Array<const IImage*> getFrames() const noexcept;
 		virtual const VkSemaphore& getCurrentSemaphore() const noexcept;
 	};
 

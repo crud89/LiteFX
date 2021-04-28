@@ -285,7 +285,7 @@ public:
 		this->wait();
 
 		// Reset the swap chain.
-		m_swapChain->reset(Size2d(width, height), static_cast<UInt32>(m_swapChain->getFrames().size()));
+		m_swapChain->reset(Size2d(width, height), m_swapChain->getBuffers());
 	}
 
 public:
