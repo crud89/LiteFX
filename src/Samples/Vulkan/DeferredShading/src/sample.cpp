@@ -127,7 +127,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_geometryPass->makeVertexBuffer(BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(m_device->getTransferQueue(), stagedVertices.get(), stagedVertices->getSize());
+    m_vertexBuffer->transferFrom(m_device->bufferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
     auto stagedIndices = m_geometryPass->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
@@ -135,7 +135,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_geometryPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
-    m_indexBuffer->transferFrom(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
+    m_indexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
     m_perFrameBindings = m_geometryPass->makeBufferPool(DescriptorSets::PerFrame);
@@ -147,13 +147,13 @@ void SampleApp::initBuffers()
     stagedVertices = m_lightingPass->makeVertexBuffer(BufferUsage::Staging, viewPlaneVertices.size());
     stagedVertices->map(viewPlaneVertices.data(), viewPlaneVertices.size() * sizeof(::Vertex));
     m_viewPlaneVertexBuffer = m_lightingPass->makeVertexBuffer(BufferUsage::Resource, vertices.size());
-    m_viewPlaneVertexBuffer->transferFrom(m_device->getTransferQueue(), stagedVertices.get(), stagedVertices->getSize());
+    m_viewPlaneVertexBuffer->transferFrom(m_device->bufferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
     stagedIndices = m_lightingPass->makeIndexBuffer(BufferUsage::Staging, viewPlaneIndices.size(), IndexType::UInt16);
     stagedIndices->map(viewPlaneIndices.data(), viewPlaneIndices.size() * sizeof(UInt16));
     m_viewPlaneIndexBuffer = m_lightingPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
-    m_viewPlaneIndexBuffer->transferFrom(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
+    m_viewPlaneIndexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create the G-Buffer bindings.
     m_gBufferBindings = m_lightingPass->makeBufferPool(DescriptorSets::PerFrame);

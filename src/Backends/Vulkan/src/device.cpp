@@ -17,6 +17,51 @@ public:
 	friend class VulkanDevice;
 
 private:
+	class QueueFamily {
+	private:
+		Array<UniquePtr<VulkanQueue>> m_queues;
+		UInt32 m_id, m_queueCount;
+		QueueType m_type;
+
+	public:
+		const QueueType& type() const noexcept { return m_type; }
+		const UInt32& total() const noexcept { return m_queueCount; }
+		const UInt32 active() const noexcept { return static_cast<UInt32>(m_queues.size()); }
+		const UInt32& id() const noexcept { return m_id; }
+		const Array<UniquePtr<VulkanQueue>>& queues() const noexcept { return m_queues; }
+
+	public:
+		QueueFamily(const UInt32& id, const UInt32& queueCount, const QueueType& type) :
+			m_id(id), m_queueCount(queueCount), m_type(type) { 
+		}
+		QueueFamily(const QueueFamily&) = delete;
+		QueueFamily(QueueFamily&& _other) {
+			m_queues = std::move(_other.m_queues);
+			m_id = std::move(_other.m_id);
+			m_queueCount = std::move(_other.m_queueCount);
+			m_type = std::move(_other.m_type);
+		}
+		~QueueFamily() noexcept {
+			m_queues.clear();
+		}
+
+	public:
+		VulkanQueue* createQueue(const VulkanDevice* device, const QueuePriority& priority) {
+			if (this->active() >= this->total())
+				throw RuntimeException("Unable to create another queue for family {0}, since all {1} queues are already created.", m_id, m_queueCount);
+
+			auto queue = makeUnique<VulkanQueue>(device, m_type, priority, m_id, this->active());
+			auto queuePointer = queue.get();
+			m_queues.push_back(std::move(queue));
+			return queuePointer;
+		}
+	};
+
+	Array<QueueFamily> m_families;
+	VulkanQueue* m_graphicsQueue;
+	VulkanQueue* m_transferQueue;
+	VulkanQueue* m_bufferQueue;
+
 	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
 	Array<String> m_extensions;
@@ -27,10 +72,14 @@ public:
 		base(parent), m_extensions(extensions)
 	{
 		this->defineMandatoryExtensions();
+		this->loadQueueFamilies();
 	}
 
 	~VulkanDeviceImpl()
 	{
+		// This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
+		m_families.clear();
+
 		if (m_allocator != nullptr)
 			::vmaDestroyAllocator(m_allocator);
 	}
@@ -91,40 +140,96 @@ public:
 	}
 
 public:
-	VkDevice initialize(const Format& format, const VulkanQueue* deviceQueue, const VulkanQueue* transferQueue)
+	void loadQueueFamilies()
 	{
 		auto adapter = this->getAdapter();
 
 		if (adapter == nullptr)
 			throw std::invalid_argument("The argument `adapter` must be initialized.");
 
-		if (!this->validateDeviceExtensions(m_extensions))
-			throw std::runtime_error("Some required device extensions are not supported by the system.");
+		// Find an available command queues.
+		uint32_t queueFamilies = 0;
+		::vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilies, nullptr);
+		Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
+		::vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilies, familyProperties.data());
 
+		std::for_each(familyProperties.begin(), familyProperties.end(), [this, i = 0](const auto& familyProperty) mutable {
+			QueueType type = QueueType::None;
+
+			if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
+				type |= QueueType::Compute;
+			if (familyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+				type |= QueueType::Graphics;
+			if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
+				type |= QueueType::Transfer;
+			
+			m_families.push_back(QueueFamily(i++, familyProperty.queueCount, type));
+		});
+	}
+
+	VkDevice initialize(const Format& format)
+	{
+		auto adapter = this->getAdapter();
 		auto instance = this->getInstance();
+		auto surface = this->getSurface();
+
+		if (adapter == nullptr)
+			throw std::invalid_argument("The parent adapter must be initialized.");
 
 		if (instance == nullptr)
-			throw std::invalid_argument("The parent backend is not initialized.");
+			throw std::invalid_argument("The parent backend must be initialized.");
+
+		if (surface == nullptr)
+			throw std::invalid_argument("The parent surface must be initialized.");
+
+		if (!this->validateDeviceExtensions(m_extensions))
+			throw std::runtime_error("Some required device extensions are not supported by the system.");
 
 		// Parse the extensions.
 		// NOTE: For legacy support we should also set the device validation layers here.
 		std::vector<const char*> requiredExtensions(m_extensions.size());
 		std::generate(requiredExtensions.begin(), requiredExtensions.end(), [this, i = 0]() mutable { return m_extensions[i++].data(); });
 
-		// Define a graphics queue for the device.
-		const float graphicsQueuePriority = 1.0f;
-		VkDeviceQueueCreateInfo queueCreateInfos[2] = {};
-		queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfos[0].queueFamilyIndex = deviceQueue->getId();
-		queueCreateInfos[0].queueCount = 1;
-		queueCreateInfos[0].pQueuePriorities = &graphicsQueuePriority;
+		// Create graphics and transfer queue.
+		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, surface);
+		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
+		m_bufferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 
-		// Define a transfer queue for the device.
-		const float transferQueuePriority = 0.9f;
-		queueCreateInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfos[1].queueFamilyIndex = transferQueue->getId();
-		queueCreateInfos[1].queueCount = 1;
-		queueCreateInfos[1].pQueuePriorities = &transferQueuePriority;
+		if (m_graphicsQueue == nullptr)
+			throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
+
+		if (m_transferQueue == nullptr)
+		{
+			LITEFX_WARNING(VULKAN_LOG, "Unable to find dedicated transfer queue for device-device transfer. Using graphics queue instead.");
+			m_transferQueue = m_graphicsQueue;
+		}
+
+		if (m_bufferQueue == nullptr)
+		{
+			// NOTE: Default transfer queue can be a fallback, too.
+			LITEFX_WARNING(VULKAN_LOG, "Unable to find dedicated transfer queue for host-device transfer. Using default transfer queue instead.");
+			m_bufferQueue = m_transferQueue;
+		}
+
+		// Define used queue families.
+		Array<VkDeviceQueueCreateInfo> queueCreateInfos;
+
+		for each (const auto& family in m_families)
+		{
+			// Ignore, if no queues have been created.
+			if (family.active() == 0) 
+				continue;
+			
+			Array<float> priorities;
+			std::for_each(family.queues().begin(), family.queues().end(), [&priorities](const auto& queue) { priorities.push_back(static_cast<Float>(queue->getPriority()) / 100.f); });
+
+			VkDeviceQueueCreateInfo queueCreateInfo = {};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = family.id();
+			queueCreateInfo.queueCount = family.active();
+			queueCreateInfo.pQueuePriorities = priorities.data();
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
 		// Define the device features.
 		VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -132,10 +237,10 @@ public:
 		// Define the device itself.
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pQueueCreateInfos = queueCreateInfos;
-		createInfo.queueCreateInfoCount = 2;
+		createInfo.queueCreateInfoCount = static_cast<UInt32>(queueCreateInfos.size());
+		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.pEnabledFeatures = &deviceFeatures;
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
+		createInfo.enabledExtensionCount = static_cast<UInt32>(requiredExtensions.size());
 		createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
 		// Create the device.
@@ -159,6 +264,13 @@ public:
 	void createSwapChain(const Format& format)
 	{
 		m_swapChain = makeUnique<VulkanSwapChain>(m_parent, format);
+	}
+
+	void bindQueues()
+	{
+		m_graphicsQueue->bind();
+		m_transferQueue->bind();
+		m_bufferQueue->bind();
 	}
 
 	void wait()
@@ -199,6 +311,39 @@ public:
 
 		return surfaceFormats;
 	}
+
+	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority)
+	{
+		// If a transfer queue is requested, look up only dedicated transfer queues. If none is available, fallbacks need to be handled manually. Every queue implicitly handles transfer.
+		auto match = type == QueueType::Transfer ?
+			std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable { return family.type() == QueueType::Transfer; }) :
+			std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable { return LITEFX_FLAG_IS_SET(family.type(), type); });
+
+		return match == m_families.end() ? nullptr : match->createQueue(m_parent, priority);
+	}
+
+	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority, const VkSurfaceKHR& surface)
+	{
+		if (surface == nullptr)
+			throw std::invalid_argument("The argument `surface` is not initialized.");
+
+		auto adapter = this->getAdapter();
+
+		if (adapter == nullptr)
+			throw std::invalid_argument("The argument `adapter` must be initialized.");
+
+		auto match = std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable {
+			if (!LITEFX_FLAG_IS_SET(family.type(), type))
+				return false;
+
+			VkBool32 canPresent = VK_FALSE;
+			::vkGetPhysicalDeviceSurfaceSupportKHR(adapter, family.id(), surface, &canPresent);
+
+			return static_cast<bool>(canPresent);
+		});
+
+		return match == m_families.end() ? nullptr : match->createQueue(m_parent, priority);
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -210,37 +355,13 @@ VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, 
 {
 	LITEFX_DEBUG(VULKAN_LOG, "Creating device on backend {0} {{ Surface: {1}, Adapter: {2}, Format: {3}, Extensions: {4} }}...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
 	
-	auto graphicsQueue = dynamic_cast<VulkanQueue*>(backend->getAdapter()->findQueue(QueueType::Graphics, backend->getSurface()));
-	auto transferQueue = dynamic_cast<VulkanQueue*>(backend->getAdapter()->findQueue(QueueType::Transfer));
-
-	if (graphicsQueue == nullptr)
-		throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
-
-	if (transferQueue == nullptr)
-	{
-		LITEFX_WARNING(VULKAN_LOG, "Unable to find dedicated transfer queue - falling back to graphics queue for transfer.");
-		transferQueue = graphicsQueue;
-	}
-
-	this->handle() = m_impl->initialize(format, graphicsQueue, transferQueue);
-
+	this->handle() = m_impl->initialize(format);
 	m_impl->createSwapChain(format);
-
-	graphicsQueue->bindDevice(this);
-	this->setGraphicsQueue(graphicsQueue);
-	
-	if (transferQueue != graphicsQueue)
-		transferQueue->bindDevice(this);
-
-	this->setTransferQueue(transferQueue);
+	m_impl->bindQueues();
 }
 
 VulkanDevice::~VulkanDevice() noexcept
 {
-	// Release the command queues first.
-	this->graphicsQueue()->release();
-	this->transferQueue()->release();
-
 	// Destroy the implementation.
 	m_impl.destroy();
 
@@ -256,6 +377,21 @@ size_t VulkanDevice::getBufferWidth() const noexcept
 size_t VulkanDevice::getBufferHeight() const noexcept
 {
 	return m_impl->m_swapChain->getHeight();
+}
+
+const ICommandQueue* VulkanDevice::graphicsQueue() const noexcept
+{
+	return m_impl->m_graphicsQueue;
+}
+
+const ICommandQueue* VulkanDevice::transferQueue() const noexcept
+{
+	return m_impl->m_transferQueue;
+}
+
+const ICommandQueue* VulkanDevice::bufferQueue() const noexcept
+{
+	return m_impl->m_bufferQueue;
 }
 
 const Array<String>& VulkanDevice::getExtensions() const noexcept
@@ -321,10 +457,14 @@ UniquePtr<IBuffer> VulkanDevice::createBuffer(const BufferType& type, const Buff
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		Array<UInt32> queues{ m_impl->m_graphicsQueue->getFamilyId() };
+
+		if (m_impl->m_transferQueue->getFamilyId() != m_impl->m_graphicsQueue->getFamilyId())
+			queues.push_back(m_impl->m_transferQueue->getFamilyId());
+
 		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = 2;
-		bufferInfo.pQueueFamilyIndices = queues;
+		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+		bufferInfo.pQueueFamilyIndices = queues.data();
 	}
 
 	// Deduct the allocation usage from the buffer usage scenario.
@@ -365,10 +505,14 @@ UniquePtr<IVertexBuffer> VulkanDevice::createVertexBuffer(const IVertexBufferLay
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		Array<UInt32> queues{ m_impl->m_graphicsQueue->getFamilyId() };
+
+		if (m_impl->m_transferQueue->getFamilyId() != m_impl->m_graphicsQueue->getFamilyId())
+			queues.push_back(m_impl->m_transferQueue->getFamilyId());
+
 		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = 2;
-		bufferInfo.pQueueFamilyIndices = queues;
+		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+		bufferInfo.pQueueFamilyIndices = queues.data();
 	}
 
 	// Deduct the allocation usage from the buffer usage scenario.
@@ -409,10 +553,14 @@ UniquePtr<IIndexBuffer> VulkanDevice::createIndexBuffer(const IIndexBufferLayout
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		Array<UInt32> queues{ m_impl->m_graphicsQueue->getFamilyId() };
+
+		if (m_impl->m_transferQueue->getFamilyId() != m_impl->m_graphicsQueue->getFamilyId())
+			queues.push_back(m_impl->m_transferQueue->getFamilyId());
+
 		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = 2;
-		bufferInfo.pQueueFamilyIndices = queues;
+		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+		bufferInfo.pQueueFamilyIndices = queues.data();
 	}
 
 	// Deduct the allocation usage from the buffer usage scenario.
@@ -459,10 +607,14 @@ UniquePtr<IConstantBuffer> VulkanDevice::createConstantBuffer(const IDescriptorL
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+		Array<UInt32> queues{ m_impl->m_graphicsQueue->getFamilyId() };
+
+		if (m_impl->m_transferQueue->getFamilyId() != m_impl->m_graphicsQueue->getFamilyId())
+			queues.push_back(m_impl->m_transferQueue->getFamilyId());
+
 		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = 2;
-		bufferInfo.pQueueFamilyIndices = queues;
+		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+		bufferInfo.pQueueFamilyIndices = queues.data();
 	}
 
 	// Deduct the allocation usage from the buffer usage scenario.
@@ -496,10 +648,14 @@ UniquePtr<IImage> VulkanDevice::createImage(const Format& format, const Size2d& 
 	imageInfo.samples = ::getSamples(samples);
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+	Array<UInt32> queues{ m_impl->m_graphicsQueue->getFamilyId() };
+
+	if (m_impl->m_transferQueue->getFamilyId() != m_impl->m_graphicsQueue->getFamilyId())
+		queues.push_back(m_impl->m_transferQueue->getFamilyId());
+
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageInfo.queueFamilyIndexCount = 2;
-	imageInfo.pQueueFamilyIndices = queues;
+	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+	imageInfo.pQueueFamilyIndices = queues.data();
 
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -523,7 +679,7 @@ UniquePtr<IImage> VulkanDevice::createAttachment(const Format& format, const Siz
 	imageInfo.samples = ::getSamples(samples);
 	imageInfo.usage = (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
-	UInt32 queues[] = { this->getGraphicsQueue()->getId() };
+	UInt32 queues[] = { m_impl->m_graphicsQueue->getFamilyId() };
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.queueFamilyIndexCount = 1;
 	imageInfo.pQueueFamilyIndices = queues;
@@ -552,11 +708,15 @@ UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout,
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.samples = ::getSamples(samples);
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_SAMPLED_BIT);
-	
-	UInt32 queues[2] = { this->getGraphicsQueue()->getId(), this->getTransferQueue()->getId() };
+
+	Array<UInt32> queues{ m_impl->m_graphicsQueue->getFamilyId() };
+
+	if (m_impl->m_transferQueue->getFamilyId() != m_impl->m_graphicsQueue->getFamilyId())
+		queues.push_back(m_impl->m_transferQueue->getFamilyId());
+
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageInfo.queueFamilyIndexCount = 2;
-	imageInfo.pQueueFamilyIndices = queues;
+	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+	imageInfo.pQueueFamilyIndices = queues.data();
 
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;

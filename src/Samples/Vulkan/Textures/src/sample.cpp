@@ -97,7 +97,7 @@ void SampleApp::loadTexture()
     stagedTexture->map(imageData.get(), m_texture->getSize());
 
     // Transfer the texture using the graphics queue.
-    m_texture->transferFrom(m_device->getGraphicsQueue(), stagedTexture.get(), m_texture->getSize(), 0);
+    m_texture->transferFrom(m_device->graphicsQueue(), stagedTexture.get(), m_texture->getSize(), 0);
     m_perMaterialBindings->updateAll(m_texture.get());
 
     // Create a sampler.
@@ -113,7 +113,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_renderPass->makeVertexBuffer(BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(m_device->getTransferQueue(), stagedVertices.get(), stagedVertices->getSize());
+    m_vertexBuffer->transferFrom(m_device->bufferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
     auto stagedIndices = m_renderPass->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
@@ -121,7 +121,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_renderPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
-    m_indexBuffer->transferFrom(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
+    m_indexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
     m_perFrameBindings = m_renderPass->makeBufferPool(DescriptorSets::PerFrame);

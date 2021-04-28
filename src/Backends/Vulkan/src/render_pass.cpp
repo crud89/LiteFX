@@ -68,7 +68,7 @@ public:
         if (m_swapChain == nullptr)
             throw std::invalid_argument("The device swap chain is not a valid Vulkan swap chain.");
         
-        m_queue = dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->getGraphicsQueue());
+        m_queue = dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue());
 
         if (m_queue == nullptr)
             throw std::invalid_argument("The device queue is not a valid Vulkan command queue.");
@@ -275,7 +275,7 @@ public:
         if (m_commandBuffers.empty())
         {
             m_commandBuffers.resize(frames.size());
-            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->getGraphicsQueue())); });
+            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue())); });
         }
 
         // Create a semaphore that signals if the render pass has finished.

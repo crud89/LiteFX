@@ -11,11 +11,19 @@ public:
 	friend class DirectX12Device;
 
 private:
+	ComPtr<ID3D12InfoQueue1> m_eventQueue;
+	DWORD m_debugCallbackCookie = 0;
 
 public:
 	DirectX12DeviceImpl(DirectX12Device* parent) :
 		base(parent)
 	{
+	}
+
+	virtual ~DirectX12DeviceImpl() noexcept
+	{
+		if (m_eventQueue != nullptr & m_debugCallbackCookie != 0)
+			m_eventQueue->UnregisterMessageCallback(m_debugCallbackCookie);
 	}
 
 private:
@@ -37,6 +45,41 @@ private:
 		return backend ? backend->handle() : nullptr;
 	}
 
+#ifndef NDEBUG
+
+private:
+	static void onDebugMessage(D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, D3D12_MESSAGE_ID id, LPCSTR description, void* /*context*/)
+	{
+		String t = "";
+
+		switch (category)
+		{
+			case D3D12_MESSAGE_CATEGORY_APPLICATION_DEFINED: t = "APPLICATION"; break;
+			case D3D12_MESSAGE_CATEGORY_MISCELLANEOUS: t = "MISCELLANEOUS"; break;
+			case D3D12_MESSAGE_CATEGORY_INITIALIZATION: t = "INITIALIZATION"; break;
+			case D3D12_MESSAGE_CATEGORY_CLEANUP: t = "CLEANUP"; break;
+			case D3D12_MESSAGE_CATEGORY_COMPILATION: t = "COMPILER"; break;
+			case D3D12_MESSAGE_CATEGORY_STATE_CREATION: t = "CREATE_STATE"; break;
+			case D3D12_MESSAGE_CATEGORY_STATE_SETTING: t = "SET_STATE"; break;
+			case D3D12_MESSAGE_CATEGORY_STATE_GETTING: t = "GET_STATE"; break;
+			case D3D12_MESSAGE_CATEGORY_RESOURCE_MANIPULATION: t = "RESOURCE"; break;
+			case D3D12_MESSAGE_CATEGORY_EXECUTION: t = "EXECUTION"; break;
+			case D3D12_MESSAGE_CATEGORY_SHADER: t = "SHADER"; break;
+			default: t = "OTHER";  break;
+		}
+
+		switch (severity)
+		{
+		case D3D12_MESSAGE_SEVERITY_CORRUPTION: LITEFX_FATAL_ERROR(DIRECTX12_LOG, "{1} ({2}): {0}", description, t, id); break;
+		case D3D12_MESSAGE_SEVERITY_ERROR: LITEFX_ERROR(DIRECTX12_LOG, "{1} ({2}): {0}", description, t, id); break;
+		case D3D12_MESSAGE_SEVERITY_WARNING: LITEFX_WARNING(DIRECTX12_LOG, "{1} ({2}): {0}", description, t, id); break;
+		case D3D12_MESSAGE_SEVERITY_INFO: LITEFX_INFO(DIRECTX12_LOG, "{1} ({2}): {0}", description, t, id); break;
+		default:
+		case D3D12_MESSAGE_SEVERITY_MESSAGE: LITEFX_TRACE(DIRECTX12_LOG, "{1} ({2}): {0}", description, t, id); break;
+		}
+	}
+#endif
+
 public:
 	ComPtr<ID3D12Device5>&& initialize(const Format& format)
 	{
@@ -53,7 +96,7 @@ public:
 		ComPtr<ID3D12InfoQueue> infoQueue;
 
 		if (FAILED(device.As(&infoQueue)))
-			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query info queue. Problem reporting will be disabled.");
+			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query info queue. Debugger support will be disabled disabled.");
 		else
 		{
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
@@ -72,6 +115,13 @@ public:
 			infoQueueFilter.DenyList.pSeverityList = severities;
 
 			raiseIfFailed<RuntimeException>(infoQueue->PushStorageFilter(&infoQueueFilter), "Unable to push message filter to info queue.");
+
+			// Try to register event callback.
+			// TODO: Change message when build finally hits production.
+			if (FAILED(infoQueue.As(&m_eventQueue)))
+				LITEFX_WARNING(DIRECTX12_LOG, "Unable to query debug message callback queue. Native event logging will be disabled. Note that it requires Windows 10 build 20236 or later.");
+			else if (FAILED(m_eventQueue->RegisterMessageCallback(&DirectX12Device::DirectX12DeviceImpl::onDebugMessage, D3D12_MESSAGE_CALLBACK_FLAGS::D3D12_MESSAGE_CALLBACK_IGNORE_FILTERS, nullptr, &m_debugCallbackCookie)))
+				LITEFX_WARNING(DIRECTX12_LOG, "Unable to register debug message callback with info queue. Native event logging will be disabled.");
 		}
 #endif
 

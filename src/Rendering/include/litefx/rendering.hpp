@@ -150,12 +150,13 @@ namespace LiteFX::Rendering {
 		virtual ~ICommandQueue() noexcept = default;
 
 	public:
-		virtual UInt32 getId() const noexcept = 0;
+		virtual bool isBound() const noexcept = 0;
+		virtual QueuePriority getPriority() const noexcept = 0;
 		virtual QueueType getType() const noexcept = 0;
 		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
 
 	public:
-		virtual void bindDevice(const IGraphicsDevice* device) = 0;
+		virtual void bind() = 0;
 		virtual void release() = 0;
 		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const = 0;
 	};
@@ -168,20 +169,7 @@ namespace LiteFX::Rendering {
 		virtual ~IGraphicsDevice() noexcept = default;
 
 	public:
-		virtual const IRenderBackend* getBackend() const noexcept = 0;
-		virtual const ISwapChain* getSwapChain() const noexcept = 0;
 		virtual Array<UniquePtr<IImage>> createSwapChainImages(const ISwapChain* swapChain) const = 0;
-		virtual const ICommandQueue* getGraphicsQueue() const noexcept = 0;
-		virtual const ICommandQueue* getTransferQueue() const noexcept = 0;
-		virtual Array<Format> getSurfaceFormats() const = 0;
-
-	public:
-		virtual size_t getBufferWidth() const noexcept = 0;
-		virtual size_t getBufferHeight() const noexcept = 0;
-		//virtual Color getBackColor() const noexcept = 0;
-		//virtual void setBackColor(const Color& color) = 0;
-		virtual void wait() = 0;
-		virtual void resize(int width, int height) = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
@@ -191,6 +179,37 @@ namespace LiteFX::Rendering {
 		virtual UniquePtr<ITexture> createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 		virtual UniquePtr<ISampler> createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const = 0;
+		virtual void wait() = 0;
+		virtual void resize(int width, int height) = 0;
+
+		virtual const IRenderBackend* getBackend() const noexcept = 0;
+		virtual const ISwapChain* getSwapChain() const noexcept = 0;
+		virtual Array<Format> getSurfaceFormats() const = 0;
+		virtual size_t getBufferWidth() const noexcept = 0;
+		virtual size_t getBufferHeight() const noexcept = 0;
+		//virtual Color getBackColor() const noexcept = 0;
+		//virtual void setBackColor(const Color& color) = 0;
+
+		/// <summary>
+		/// Returns the instance of the queue, used to process draw calls.
+		/// </summary>
+		virtual const ICommandQueue* graphicsQueue() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the instance of the queue used for device-device transfers (e.g. between render-passes).
+		/// </summary>
+		/// <remarks>
+		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
+		/// </remarks>
+		virtual const ICommandQueue* transferQueue() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the instance of the queue used for host-device transfers.
+		/// </summary>
+		/// <remarks>
+		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
+		/// </remarks>
+		virtual const ICommandQueue* bufferQueue() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -208,10 +227,6 @@ namespace LiteFX::Rendering {
 		virtual uint32_t getDriverVersion() const noexcept = 0;
 		virtual uint32_t getApiVersion() const noexcept = 0;
 		virtual uint32_t getDedicatedMemory() const noexcept = 0;
-
-	public:
-		virtual ICommandQueue* findQueue(const QueueType& queueType) const = 0;
-		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const = 0;
 	};
 
 	/// <summary>
@@ -226,18 +241,8 @@ namespace LiteFX::Rendering {
 		GraphicsDevice(GraphicsDevice&&) noexcept = delete;
 		virtual ~GraphicsDevice() noexcept;
 
-	protected:
-		ICommandQueue* graphicsQueue() noexcept;
-		ICommandQueue* transferQueue() noexcept;
-
 	public:
 		virtual const IRenderBackend* getBackend() const noexcept override;
-		virtual const ICommandQueue* getGraphicsQueue() const noexcept override;
-		virtual const ICommandQueue* getTransferQueue() const noexcept override;
-
-	protected:
-		virtual void setGraphicsQueue(ICommandQueue* queue) noexcept;
-		virtual void setTransferQueue(ICommandQueue* queue) noexcept;
 
 	public:
 		/// <summary>

@@ -22,6 +22,9 @@ public:
 		if (queue == nullptr)
 			throw std::invalid_argument("The argument `queue` must be initialized.");
 
+		if (!queue->isBound())
+			throw std::invalid_argument("You must bind the queue before creating a command buffer from it.");
+
 		m_device = dynamic_cast<const VulkanDevice*>(queue->getDevice());
 
 		if (m_device == nullptr)
