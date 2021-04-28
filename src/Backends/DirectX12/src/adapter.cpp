@@ -86,20 +86,3 @@ uint32_t DirectX12GraphicsAdapter::getDedicatedMemory() const noexcept
     auto properties = m_impl->getProperties();
     return properties.DedicatedVideoMemory;
 }
-
-ICommandQueue* DirectX12GraphicsAdapter::findQueue(const QueueType & queueType) const
-{
-    //return m_impl->findQueue(queueType);
-    throw;
-}
-
-ICommandQueue* DirectX12GraphicsAdapter::findQueue(const QueueType & queueType, const ISurface * surface) const
-{
-    //auto forSurface = dynamic_cast<const DirectX12Surface*>(surface);
-
-    //if (forSurface == nullptr)
-    //    throw InvalidArgumentException("The provided surface is not a valid DirectX12 surface.");
-
-    //return m_impl->findQueue(queueType, forSurface);
-    throw;
-}

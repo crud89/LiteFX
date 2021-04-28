@@ -210,6 +210,21 @@ size_t DirectX12Device::getBufferHeight() const noexcept
 	throw;
 }
 
+const ICommandQueue* DirectX12Device::graphicsQueue() const noexcept
+{
+	throw;
+}
+
+const ICommandQueue* DirectX12Device::transferQueue() const noexcept
+{
+	throw;
+}
+
+const ICommandQueue* DirectX12Device::bufferQueue() const noexcept
+{
+	throw;
+}
+
 void DirectX12Device::wait()
 {
 	throw;

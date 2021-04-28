@@ -40,7 +40,7 @@ namespace LiteFX::Rendering::Backends {
     // Forward declarations.
     //class DirectX12Texture;
     //class DirectX12SwapChain;
-    //class DirectX12Queue;
+    class DirectX12Queue;
     class DirectX12Device;
     class DirectX12GraphicsAdapter;
     class DirectX12Backend;

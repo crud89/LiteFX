@@ -23,6 +23,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/adapter.cpp"
     "src/surface.cpp"
     "src/device.cpp"
+    "src/queue.cpp"
 )
 
 # Add shared library project.

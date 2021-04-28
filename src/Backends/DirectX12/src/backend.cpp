@@ -41,17 +41,14 @@ public:
     {
         ComPtr<IDXGIAdapter1> adapterInterface;
         ComPtr<IDXGIAdapter4> adapterInstance;
-        HRESULT hr;
 
         // Clear the current adapter set.
         m_adapters.clear();
 
         if (enableWarp)
         {
-            if (FAILED(hr = m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface))) ||
-                FAILED(hr = adapterInterface.As(&adapterInstance)))
-                throw RuntimeException("The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
-
+            raiseIfFailed<RuntimeException>(m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterization adapters.");
+            raiseIfFailed<RuntimeException>(adapterInterface.As(&adapterInstance), "The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
             m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
         }
         else
@@ -60,12 +57,12 @@ public:
             {
                 DXGI_ADAPTER_DESC1 adapterDecriptor;
                 adapterInterface->GetDesc1(&adapterDecriptor);
-
+                
                 // Ignore software rasterizer adapters.
-                if (!LITEFX_FLAG_IS_SET(adapterDecriptor.Flags, DXGI_ADAPTER_FLAG_SOFTWARE) &&
-                    FAILED(hr = adapterInterface.As(&adapterInstance)))
-                    throw RuntimeException("The hardware adapter is not a valid IDXGIAdapter4 instance.");
+                if (LITEFX_FLAG_IS_SET(adapterDecriptor.Flags, DXGI_ADAPTER_FLAG_SOFTWARE))
+                    continue;
 
+                raiseIfFailed<RuntimeException>(adapterInterface.As(&adapterInstance), "The hardware adapter is not a valid IDXGIAdapter4 instance.");
                 m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
             }
         }

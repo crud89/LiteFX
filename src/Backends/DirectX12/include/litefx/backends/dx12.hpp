@@ -67,10 +67,6 @@ namespace LiteFX::Rendering::Backends {
 		/// </remarks>
 		virtual uint32_t getApiVersion() const noexcept override;
 		virtual uint32_t getDedicatedMemory() const noexcept override;
-
-	public:
-		virtual ICommandQueue* findQueue(const QueueType& queueType) const override;
-		virtual ICommandQueue* findQueue(const QueueType& queueType, const ISurface* forSurface) const override;
 	};
 
 	/// <summary>
@@ -99,6 +95,9 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual size_t getBufferWidth() const noexcept override;
 		virtual size_t getBufferHeight() const noexcept override;
+		virtual const ICommandQueue* graphicsQueue() const noexcept override;
+		virtual const ICommandQueue* transferQueue() const noexcept override;
+		virtual const ICommandQueue* bufferQueue() const noexcept override;
 		virtual void wait() override;
 		virtual void resize(int width, int height) override;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
@@ -117,6 +116,28 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		//DirectX12RenderPassBuilder buildRenderPass() const;
 		////DirectX12ComputePassBuilder buildComputePass() const;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12Queue : public ICommandQueue, public IComResource<ID3D12CommandQueue> {
+		LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
+
+	public:
+		DirectX12Queue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority);
+		virtual ~DirectX12Queue() noexcept;
+
+	public:
+		virtual bool isBound() const noexcept override;
+		virtual QueuePriority getPriority() const noexcept override;
+		virtual QueueType getType() const noexcept override;
+		virtual const IGraphicsDevice* getDevice() const noexcept override;
+
+	public:
+		virtual void bind() override;
+		virtual void release() override;
+		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
 	};
 
 }
