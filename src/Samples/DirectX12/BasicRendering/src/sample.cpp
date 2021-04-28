@@ -102,7 +102,7 @@ void SampleApp::run()
     ::glfwGetFramebufferSize(m_window.get(), &width, &height);
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = this->getRenderBackend()->createDevice<DirectX12Device>(Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+    m_device = this->getRenderBackend()->createDevice<DirectX12Device>(Format::R8G8B8A8_UNORM, Size2d(width, height), 3);
 
     // Initialize resources.
     //this->createRenderPasses();
@@ -143,6 +143,9 @@ void SampleApp::initialize()
 void SampleApp::resize(int width, int height)
 {
     App::resize(width, height);
+
+    if (m_device != nullptr)
+        m_device->resize(width, height);
 }
 
 void SampleApp::handleEvents()
