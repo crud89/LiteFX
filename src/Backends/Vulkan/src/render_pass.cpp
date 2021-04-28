@@ -23,7 +23,6 @@ private:
     UInt32 m_backBuffer{ 0 };
     Array<VkSemaphore> m_semaphores;
     const VulkanRenderPass* m_dependency{ nullptr };
-    bool m_present{ false };
 
     /// <summary>
     /// Stores the images for all attachments (except the present attachment, which is a swap-chain image) and maps them to the frame buffer index.
@@ -161,7 +160,6 @@ public:
 
                     presentAttachment = VkAttachmentReference { static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
                     colorAttachments.push_back(presentAttachment.value());
-                    m_present = true;
                     break;
                 }
 
@@ -334,7 +332,7 @@ public:
 
         // Submit the command buffer.
 
-        if (!m_present)
+        if (!present)
             commandBuffer->submit({}, {});
         else
         {
