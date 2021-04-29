@@ -142,7 +142,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer, public IComResource<ID3D12CommandList> {
+	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer, public IComResource<ID3D12GraphicsCommandList4> {
 		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
 	public:
