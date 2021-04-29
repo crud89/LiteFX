@@ -63,7 +63,7 @@ In order for the project to be built, there are a few prerequisites that need to
 
 Furthermore, the project uses [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies, so if you haven't already installed *vcpkg*, start by cloning and building it. Make sure to store the binary directory into a system environment variable `VCPKG_ROOT`. Alternatively you can also use the *vcpkg* [toolchain file](https://github.com/microsoft/vcpkg/blob/master/docs/examples/installing-and-using-packages.md#cmake).
 
-† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, however it only contains the SPIR-V code generator. On the other hand, the default DXC build does only contain the DXIL code generator and cannot be used to compile HLSL shaders into SPIR-V. If you want to target both backends, i.e. Vulkan *and* DX12, then you have to use a custom DXC build, that contains both code generators. The process of building DXC is described in its [repository](https://github.com/microsoft/DirectXShaderCompiler).
+† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, so you might want to install it, even if you only want to target the DirectX backend. Alternatively, you can download a pre-build DXC distribution.
 
 #### Cloning the Repository
 
@@ -106,7 +106,7 @@ You can customize the engine build, according to your specific needs. From Visua
 
 † Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported.
 
-‡ *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, as long as a custom build with support for both is used.
+‡ *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
 
 ## Getting Started
 
