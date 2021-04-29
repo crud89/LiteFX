@@ -36,7 +36,7 @@ public:
 private:
 	GlfwWindowPtr m_window;
 	UniquePtr<DirectX12Device> m_device;
-	//UniquePtr<DirectX12RenderPass> m_renderPass;
+	UniquePtr<DirectX12RenderPass> m_renderPass;
 	//UniquePtr<IVertexBuffer> m_vertexBuffer;
 	//UniquePtr<IIndexBuffer> m_indexBuffer;
 	//UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;

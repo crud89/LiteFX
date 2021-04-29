@@ -48,14 +48,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<DirectX12RenderPass> go() override;
 
 	public:
-		//virtual DirectX12RenderPipelineBuilder setPipeline();
+		//virtual DirectX12RenderPipelineBuilder addPipeline();
 
 	public:
 		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;
 		virtual void use(UniquePtr<IRenderTarget>&& target) override;
-		virtual DirectX12RenderPassBuilder& attachColorTarget(const bool& clear = false, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }) override;
-		virtual DirectX12RenderPassBuilder& attachDepthTarget(const bool& clear = true, const bool& clearStencil = true, const Vector2f& clearValues = { 1.0f, 0.0f }, const Format& format = Format::D24_UNORM_S8_UINT) override;
-		virtual DirectX12RenderPassBuilder& attachPresentTarget(const bool& clear = true, const Vector4f& clearColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) override;
 		virtual DirectX12RenderPassBuilder& attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 		virtual DirectX12RenderPassBuilder& dependsOn(const IRenderPass* renderPass) override;
 	};

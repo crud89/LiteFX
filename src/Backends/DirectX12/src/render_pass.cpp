@@ -15,7 +15,7 @@ private:
     //UniquePtr<IRenderPipeline> m_pipeline;
     //const DirectX12SwapChain* m_swapChain{ nullptr };
     //const DirectX12Queue* m_queue{ nullptr };
-    //Array<UniquePtr<IRenderTarget>> m_targets;
+    Array<UniquePtr<IRenderTarget>> m_targets;
     //Array<VkClearValue> m_clearValues;
     //Array<VkFramebuffer> m_frameBuffers;
     //Array<UniquePtr<DirectX12CommandBuffer>> m_commandBuffers;
@@ -350,33 +350,33 @@ public:
     //    return m_semaphores[m_backBuffer];
     //}
 
-    //void addTarget(UniquePtr<IRenderTarget>&& target)
-    //{
-    //    m_targets.push_back(std::move(target));
-    //}
+    void addTarget(UniquePtr<IRenderTarget>&& target)
+    {
+        m_targets.push_back(std::move(target));
+    }
 
-    //Array<const IRenderTarget*> getTargets() const noexcept
-    //{
-    //    Array<const IRenderTarget*> targets(m_targets.size());
-    //    std::generate(std::begin(targets), std::end(targets), [&, i = 0]() mutable { return m_targets[i++].get(); });
+    Array<const IRenderTarget*> getTargets() const noexcept
+    {
+        Array<const IRenderTarget*> targets(m_targets.size());
+        std::generate(std::begin(targets), std::end(targets), [&, i = 0]() mutable { return m_targets[i++].get(); });
 
-    //    return targets;
-    //}
+        return targets;
+    }
 
-    //UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target)
-    //{
-    //    auto it = std::find_if(std::begin(m_targets), std::end(m_targets), [target](const UniquePtr<IRenderTarget>& t) { return t.get() == target; });
+    UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target)
+    {
+        auto it = std::find_if(std::begin(m_targets), std::end(m_targets), [target](const UniquePtr<IRenderTarget>& t) { return t.get() == target; });
 
-    //    if (it == m_targets.end())
-    //        return UniquePtr<IRenderTarget>();
-    //    else
-    //    {
-    //        auto result = std::move(*it);
-    //        m_targets.erase(it);
+        if (it == m_targets.end())
+            return UniquePtr<IRenderTarget>();
+        else
+        {
+            auto result = std::move(*it);
+            m_targets.erase(it);
 
-    //        return std::move(result);
-    //    }
-    //}
+            return std::move(result);
+        }
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -406,20 +406,17 @@ const ICommandBuffer* DirectX12RenderPass::getCommandBuffer() const noexcept
 
 void DirectX12RenderPass::addTarget(UniquePtr<IRenderTarget>&& target)
 {
-    //m_impl->addTarget(std::move(target));
-    throw;
+    m_impl->addTarget(std::move(target));
 }
 
 const Array<const IRenderTarget*> DirectX12RenderPass::getTargets() const noexcept
 {
-    //return m_impl->getTargets();
-    throw;
+    return m_impl->getTargets();
 }
 
 UniquePtr<IRenderTarget> DirectX12RenderPass::removeTarget(const IRenderTarget* target)
 {
-    //return m_impl->removeTarget(target);
-    throw;
+    return m_impl->removeTarget(target);
 }
 
 void DirectX12RenderPass::setDependency(const IRenderPass* renderPass)
@@ -576,13 +573,12 @@ UniquePtr<DirectX12RenderPass> DirectX12RenderPassBuilder::go()
     throw;
 }
 
-void DirectX12RenderPassBuilder::use(UniquePtr<IRenderTarget> && target)
+void DirectX12RenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
 {
-    //this->instance()->addTarget(std::move(target));
-    throw;
+    this->instance()->addTarget(std::move(target));
 }
 
-void DirectX12RenderPassBuilder::use(UniquePtr<IRenderPipeline> && pipeline)
+void DirectX12RenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
 {
     //if (pipeline == nullptr)
     //    throw std::invalid_argument("The pipeline must be initialized.");
@@ -591,55 +587,28 @@ void DirectX12RenderPassBuilder::use(UniquePtr<IRenderPipeline> && pipeline)
     throw;
 }
 
-//DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::setPipeline()
+//DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::addPipeline()
 //{
 //    return this->make<DirectX12RenderPipeline>();
 //}
 
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::attachColorTarget(const bool& clear, const Vector4f & clearColor)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clearColor, bool clearStencil, bool isVolatile)
 {
-    //auto swapChain = this->instance()->getDevice()->getSwapChain();
-    //this->attachTarget(RenderTargetType::Color, swapChain->getFormat(), MultiSamplingLevel::x1, clearColor, clear, false, false);
+    UniquePtr<IRenderTarget> target = makeUnique<RenderTarget>();
+    target->setType(type);
+    target->setFormat(format);
+    target->setSamples(samples);
+    target->setClearBuffer(clearColor);
+    target->setClearStencil(clearStencil);
+    target->setVolatile(isVolatile);
+    target->setClearValues(clearValues);
 
-    //return *this;
-    throw;
+    this->use(std::move(target));
+
+    return *this;
 }
 
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::attachDepthTarget(const bool& clear, const bool& clearStencil, const Vector2f & clearValues, const Format & format)
-{
-    //this->attachTarget(RenderTargetType::Depth, format, MultiSamplingLevel::x1, { clearValues.x(), clearValues.y(), 0.0f, 0.0f }, clear, clearStencil, false);
-
-    //return *this;
-    throw;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::attachPresentTarget(const bool& clear, const Vector4f & clearColor, const MultiSamplingLevel & samples)
-{
-    //auto swapChain = this->instance()->getDevice()->getSwapChain();
-    //this->attachTarget(RenderTargetType::Present, swapChain->getFormat(), samples, clearColor, clear, false, false);
-
-    //return *this;
-    throw;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::attachTarget(const RenderTargetType & type, const Format & format, const MultiSamplingLevel & samples, const Vector4f & clearValues, bool clearColor, bool clearStencil, bool isVolatile)
-{
-    //UniquePtr<IRenderTarget> target = makeUnique<RenderTarget>();
-    //target->setType(type);
-    //target->setFormat(format);
-    //target->setSamples(samples);
-    //target->setClearBuffer(clearColor);
-    //target->setClearStencil(clearStencil);
-    //target->setVolatile(isVolatile);
-    //target->setClearValues(clearValues);
-
-    //this->use(std::move(target));
-
-    //return *this;
-    throw;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::dependsOn(const IRenderPass * renderPass)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::dependsOn(const IRenderPass* renderPass)
 {
     //if (renderPass == nullptr)
     //    throw std::invalid_argument("The render pass must be initialized.");

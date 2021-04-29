@@ -33,8 +33,8 @@ static void onResize(GLFWwindow* window, int width, int height)
 
 void SampleApp::createRenderPasses()
 {
-    //m_renderPass = m_device->buildRenderPass();
-        //.attachPresentTarget(true)
+    m_renderPass = m_device->buildRenderPass()
+        .attachTarget(RenderTargetType::Present, Format::R8G8B8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
         //.setPipeline()
         //    .defineLayout()
         //        .setRasterizer()
@@ -67,7 +67,7 @@ void SampleApp::createRenderPasses()
         //            .go()
         //        .go()
         //    .go()
-        //.go();
+        .go();
 }
 
 //void SampleApp::initBuffers()
