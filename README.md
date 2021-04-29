@@ -61,8 +61,6 @@ In order for the project to be built, there are a few prerequisites that need to
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). †
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-Furthermore, the project uses [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies, so if you haven't already installed *vcpkg*, start by cloning and building it. Make sure to store the binary directory into a system environment variable `VCPKG_ROOT`. Alternatively you can also use the *vcpkg* [toolchain file](https://github.com/microsoft/vcpkg/blob/master/docs/examples/installing-and-using-packages.md#cmake).
-
 † Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, so you might want to install it, even if you only want to target the DirectX backend. Alternatively, you can download a pre-build DXC distribution.
 
 #### Cloning the Repository
@@ -70,7 +68,7 @@ Furthermore, the project uses [vcpkg](https://github.com/microsoft/vcpkg) to man
 Create a new directory from where you want to build the sources. Then open your shell and clone the repository:
 
 ```sh
-git clone https://github.com/Aschratt/LiteFX.git . --recurse-submodules
+git clone https://github.com/crud89/LiteFX.git . --recurse-submodules
 ```
 
 #### Performing a Build
