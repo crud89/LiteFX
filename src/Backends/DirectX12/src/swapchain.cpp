@@ -23,7 +23,7 @@ private:
 	{
 		BOOL allowTearing = FALSE;
 		
-		if (FAILED(backend->handle()->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing)), "Unable to request support for variable refresh rates."))
+		if (FAILED(backend->handle()->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing))))
 			return false;
 		
 		return static_cast<bool>(allowTearing);
