@@ -587,44 +587,22 @@ void VulkanRenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
     if (pipeline == nullptr)
         throw std::invalid_argument("The pipeline must be initialized.");
 
+    // TODO: Do not replace, but keep a list of pipelines!
     this->instance()->m_impl->m_pipeline = std::move(pipeline);
 }
 
-VulkanRenderPipelineBuilder VulkanRenderPassBuilder::setPipeline()
+VulkanRenderPipelineBuilder VulkanRenderPassBuilder::addPipeline()
 {
     return this->make<VulkanRenderPipeline>();
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachColorTarget(const bool& clear, const Vector4f& clearColor)
-{
-    auto swapChain = this->instance()->getDevice()->getSwapChain();
-    this->attachTarget(RenderTargetType::Color, swapChain->getFormat(), MultiSamplingLevel::x1, clearColor, clear, false, false);
-
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachDepthTarget(const bool& clear, const bool& clearStencil, const Vector2f& clearValues, const Format& format)
-{
-    this->attachTarget(RenderTargetType::Depth, format, MultiSamplingLevel::x1, { clearValues.x(), clearValues.y(), 0.0f, 0.0f }, clear, clearStencil, false);
-
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachPresentTarget(const bool& clear, const Vector4f& clearColor, const MultiSamplingLevel& samples)
-{
-    auto swapChain = this->instance()->getDevice()->getSwapChain();
-    this->attachTarget(RenderTargetType::Present, swapChain->getFormat(), samples, clearColor, clear, false, false);
-    
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clearColor, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     UniquePtr<IRenderTarget> target = makeUnique<RenderTarget>();
     target->setType(type);
     target->setFormat(format);
     target->setSamples(samples);
-    target->setClearBuffer(clearColor);
+    target->setClearBuffer(clear);
     target->setClearStencil(clearStencil);
     target->setVolatile(isVolatile);
     target->setClearValues(clearValues);
