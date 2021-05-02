@@ -35,7 +35,7 @@ void SampleApp::createRenderPasses()
 {
     m_renderPass = m_device->buildRenderPass()
         .attachTarget(RenderTargetType::Present, Format::R8G8B8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
-        //.setPipeline()
+        //.addPipeline()
         //    .defineLayout()
         //        .setRasterizer()
         //            .withPolygonMode(PolygonMode::Solid)

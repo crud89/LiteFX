@@ -7,7 +7,7 @@ namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Rendering;
 
 	class DirectX12BackendBuilder;
-	//class DirectX12RenderPipelineBuilder;
+	class DirectX12RenderPipelineBuilder;
 	//class DirectX12RenderPipelineLayoutBuilder;
 	//class DirectX12ShaderProgramBuilder;
 	class DirectX12RenderPassBuilder;
@@ -48,7 +48,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<DirectX12RenderPass> go() override;
 
 	public:
-		//virtual DirectX12RenderPipelineBuilder addPipeline();
+		virtual DirectX12RenderPipelineBuilder addPipeline();
 
 	public:
 		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;
@@ -57,4 +57,17 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RenderPassBuilder& dependsOn(const IRenderPass* renderPass) override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline, DirectX12RenderPassBuilder> {
+	public:
+		using RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline, DirectX12RenderPassBuilder>::RenderPipelineBuilder;
+
+	public:
+		//virtual DirectX12RenderPipelineLayoutBuilder defineLayout();
+
+	public:
+		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
+	};
 }

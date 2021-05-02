@@ -221,4 +221,23 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public IRenderPipeline, public IComResource<ID3D12PipelineState> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
+		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
+
+	public:
+		DirectX12RenderPipeline(const DirectX12RenderPass& renderPass);
+		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
+		DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
+		virtual ~DirectX12RenderPipeline() noexcept;
+
+	public:
+		virtual const IRenderPipelineLayout* getLayout() const noexcept override;
+		virtual IRenderPipelineLayout* getLayout() noexcept override;
+		virtual void bind(const IRenderPass* renderPass) override;
+	};
+
 }

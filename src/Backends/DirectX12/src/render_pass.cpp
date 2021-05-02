@@ -587,10 +587,10 @@ void DirectX12RenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
     throw;
 }
 
-//DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::addPipeline()
-//{
-//    return this->make<DirectX12RenderPipeline>();
-//}
+DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::addPipeline()
+{
+    return this->make<DirectX12RenderPipeline>();
+}
 
 DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clearColor, bool clearStencil, bool isVolatile)
 {
