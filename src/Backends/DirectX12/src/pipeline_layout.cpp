@@ -11,44 +11,80 @@ public:
     friend class DirectX12RenderPipelineLayoutBuilder;
     friend class DirectX12RenderPipelineLayout;
 
+private:
+    const DirectX12RenderPipeline& m_pipeline;
+
 public:
-    DirectX12RenderPipelineLayoutImpl(DirectX12RenderPipelineLayout* parent) : base(parent) { }
+    DirectX12RenderPipelineLayoutImpl(DirectX12RenderPipelineLayout* parent, const DirectX12RenderPipeline& pipeline) :
+        base(parent), m_pipeline(pipeline) { }
 
 public:
     ComPtr<ID3D12RootSignature> initialize()
     {
-        throw;
+        // Get the device.
+        ComPtr<ID3D12Device> device;
+        raiseIfFailed<RuntimeException>(m_pipeline.handle()->GetDevice(IID_PPV_ARGS(&device)), "Unable to query device for creating a pipeline layout.");
 
-        //auto shaderProgram = m_parent->getProgram();
+        // Get the shader program.
+        auto shaderProgram = m_parent->getProgram();
 
-        //if (shaderProgram == nullptr)
-        //    throw std::runtime_error("The shader program must be initialized.");
+        if (shaderProgram == nullptr)
+            throw RuntimeException("The shader program must be initialized before creating a pipeline layout.");
 
-        //Array<VkDescriptorSetLayout> descriptorSetLayouts;
-        //auto layouts = shaderProgram->getLayouts();
+        // Define the descriptor range from descriptor set layouts.
+        Array<D3D12_DESCRIPTOR_RANGE1> descriptorRanges;
+        Array<CD3DX12_ROOT_PARAMETER1> descriptorParameters;
+        Array<CD3DX12_STATIC_SAMPLER_DESC> staticSamplers;
+        auto layouts = shaderProgram->getLayouts();
 
-        //std::for_each(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) {
-        //    auto descriptorSetLayout = dynamic_cast<const DirectX12DescriptorSetLayout*>(layout);
+        std::for_each(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) {
+            //auto descriptorSetLayout = dynamic_cast<const DirectX12DescriptorSetLayout*>(layout);
 
-        //    if (descriptorSetLayout != nullptr && descriptorSetLayout->handle() != nullptr)
-        //        descriptorSetLayouts.push_back(descriptorSetLayout->handle());
-        //});
+            //if (descriptorSetLayout == nullptr)
+            //    return;
 
-        //LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Sets: {1} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size());
+            // TODO: 
+            // - create descriptor range
+            // - descriptorRanges.push_back();
+            // 
+            //DescRange[0].Init(D3D12_DESCRIPTOR_RANGE_SRV, 6, 2); // t2-t7
+            //DescRange[1].Init(D3D12_DESCRIPTOR_RANGE_UAV, 4, 0); // u0-u3
+            //DescRange[2].Init(D3D12_DESCRIPTOR_RANGE_SAMPLER, 2, 0); // s0-s1
+            //DescRange[3].Init(D3D12_DESCRIPTOR_RANGE_SRV, -1, 8, 0,
+            //    D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE); // t8-unbounded
+            //DescRange[4].Init(D3D12_DESCRIPTOR_RANGE_SRV, -1, 0, 1,
+            //    D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
+            //// (t0,space1)-unbounded
+            //DescRange[5].Init(D3D12_DESCRIPTOR_RANGE_CBV, 1, 1,
+            //    D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC); // b1
 
-        //// Create the pipeline layout.
-        //VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-        //pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        //pipelineLayoutInfo.setLayoutCount = descriptorSetLayouts.size();
-        //pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-        //pipelineLayoutInfo.pushConstantRangeCount = 0;
+            // TODO: Init parameters.
+            //RP[0].InitAsConstants(3, 2); // 3 constants at b2
+            //RP[1].InitAsDescriptorTable(2, &DescRange[0]); // 2 ranges t2-t7 and u0-u3
+            //RP[2].InitAsConstantBufferView(0, 0,
+            //    D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC); // b0
+            //RP[3].InitAsDescriptorTable(1, &DescRange[2]); // s0-s1
+            //RP[4].InitAsDescriptorTable(1, &DescRange[3]); // t8-unbounded
+            //RP[5].InitAsDescriptorTable(1, &DescRange[4]); // (t0,space1)-unbounded
+            //RP[6].InitAsDescriptorTable(1, &DescRange[5]); // b1
 
-        //VkPipelineLayout layout;
+            // TODO: init samplers
+            //StaticSamplers[0].Init(3, D3D12_FILTER_ANISOTROPIC); // s3
 
-        //if (::vkCreatePipelineLayout(m_parent->getDevice()->handle(), &pipelineLayoutInfo, nullptr, &layout) != VK_SUCCESS)
-        //    throw std::runtime_error("Unable to create pipeline layout.");
+            throw;
+        });
 
-        //return layout;
+        // Create root signature descriptor.
+        // TODO: Read error blob.
+        ComPtr<ID3DBlob> signature, error;
+        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc(static_cast<UInt32>(descriptorParameters.size()), descriptorParameters.data(), static_cast<UInt32>(staticSamplers.size()), staticSamplers.data());
+        raiseIfFailed<RuntimeException>(::D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error), "Unable to serialize root signature to create pipeline layout.");
+
+        // Create the root signature.
+        ComPtr<ID3D12RootSignature> rootSignature;
+        raiseIfFailed<RuntimeException>(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
+
+        return rootSignature;
     }
 };
 
@@ -57,9 +93,8 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipelineLayout::DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline) :
-    RenderPipelineLayout(), IComResource<ID3D12RootSignature>(nullptr), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this))
+    RenderPipelineLayout(), IComResource<ID3D12RootSignature>(nullptr), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, pipeline))
 {
-    this->handle() = m_impl->initialize();
 }
 
 DirectX12RenderPipelineLayout::~DirectX12RenderPipelineLayout() noexcept
