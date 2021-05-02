@@ -319,7 +319,7 @@ void DirectX12RenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout>&& layo
 	this->instance()->m_impl->m_layout = std::move(layout);
 }
 
-//DirectX12RenderPipelineLayoutBuilder DirectX12RenderPipelineBuilder::defineLayout()
-//{
-//	return this->make<DirectX12RenderPipelineLayout>();
-//}
+DirectX12RenderPipelineLayoutBuilder DirectX12RenderPipelineBuilder::defineLayout()
+{
+	return this->make<DirectX12RenderPipelineLayout>();
+}

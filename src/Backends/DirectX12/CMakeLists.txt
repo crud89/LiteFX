@@ -29,6 +29,8 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/render_pass.cpp"
     "src/command_buffer.cpp"
     "src/pipeline.cpp"
+    "src/pipeline_layout.cpp"
+    "src/viewport.cpp"
 )
 
 # Add shared library project.

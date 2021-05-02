@@ -240,7 +240,19 @@ namespace LiteFX::Rendering::Backends {
 		virtual void bind(const IRenderPass* renderPass) override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public RenderPipelineLayout, public IComResource<ID3D12RootSignature> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutImpl);
+		LITEFX_BUILDER(DirectX12RenderPipelineLayoutBuilder);
 
+	public:
+		DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline);
+		DirectX12RenderPipelineLayout(DirectX12RenderPipelineLayout&&) noexcept = delete;
+		DirectX12RenderPipelineLayout(const DirectX12RenderPipelineLayout&) noexcept = delete;
+		virtual ~DirectX12RenderPipelineLayout() noexcept;
+	};
 
 	/// <summary>
 	/// 

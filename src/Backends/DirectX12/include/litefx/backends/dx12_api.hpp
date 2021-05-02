@@ -66,7 +66,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12GraphicsAdapter;
     class DirectX12Backend;
     class DirectX12RenderPipeline;
-    //class DirectX12RenderPipelineLayout;
+    class DirectX12RenderPipelineLayout;
     class DirectX12RenderPass;
     //class DirectX12Rasterizer;
     class DirectX12Viewport;
