@@ -257,6 +257,32 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public InputAssembler {
+		LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
+
+	public:
+		DirectX12InputAssembler(const DirectX12RenderPipelineLayout& layout) noexcept;
+		DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
+		DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
+		virtual ~DirectX12InputAssembler() noexcept;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12Rasterizer : public Rasterizer {
+		LITEFX_BUILDER(DirectX12RasterizerBuilder);
+
+	public:
+		DirectX12Rasterizer(const DirectX12RenderPipelineLayout& layout) noexcept;
+		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
+		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
+		virtual ~DirectX12Rasterizer() noexcept;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12Viewport : public Viewport {
 		LITEFX_BUILDER(DirectX12ViewportBuilder);
 

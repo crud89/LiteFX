@@ -11,9 +11,9 @@ namespace LiteFX::Rendering::Backends {
 	class DirectX12RenderPipelineLayoutBuilder;
 	//class DirectX12ShaderProgramBuilder;
 	class DirectX12RenderPassBuilder;
-	//class DirectX12RasterizerBuilder;
+	class DirectX12RasterizerBuilder;
 	class DirectX12ViewportBuilder;
-	//class DirectX12InputAssemblerBuilder;
+	class DirectX12InputAssemblerBuilder;
 	//class DirectX12DescriptorSetLayoutBuilder;
 	//class DirectX12VertexBufferLayoutBuilder;
 	//class DirectX12IndexBufferLayoutBuilder;
@@ -94,6 +94,43 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(UniquePtr<IShaderProgram>&& program) override;
 		virtual DirectX12RenderPipelineLayoutBuilder& enableDepthTest(const bool& enable = false) override;
 		virtual DirectX12RenderPipelineLayoutBuilder& enableStencilTest(const bool& enable = false) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineLayoutBuilder> {
+	public:
+		using RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineLayoutBuilder>::RasterizerBuilder;
+
+	public:
+		virtual DirectX12RasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) override;
+		virtual DirectX12RasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
+		virtual DirectX12RasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
+		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
+		virtual DirectX12RasterizerBuilder& withDepthBias(const bool& enable = false) override;
+		virtual DirectX12RasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
+		virtual DirectX12RasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
+		virtual DirectX12RasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineLayoutBuilder> {
+	public:
+		using InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineLayoutBuilder>::InputAssemblerBuilder;
+
+	public:
+		virtual DirectX12VertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
+
+	public:
+		virtual DirectX12InputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
+		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) override;
+		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) override;
+
+	public:
+		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
 	};
 
 	/// <summary>

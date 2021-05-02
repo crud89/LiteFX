@@ -30,6 +30,8 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/command_buffer.cpp"
     "src/pipeline.cpp"
     "src/pipeline_layout.cpp"
+    "src/rasterizer.cpp"
+    "src/input_assembler.cpp"
     "src/viewport.cpp"
 )
 
