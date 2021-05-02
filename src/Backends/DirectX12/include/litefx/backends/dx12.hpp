@@ -240,4 +240,19 @@ namespace LiteFX::Rendering::Backends {
 		virtual void bind(const IRenderPass* renderPass) override;
 	};
 
+
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12Viewport : public Viewport {
+		LITEFX_BUILDER(DirectX12ViewportBuilder);
+
+	public:
+		DirectX12Viewport(const DirectX12RenderPipelineLayout& layout) noexcept;
+		DirectX12Viewport(DirectX12Viewport&&) noexcept = delete;
+		DirectX12Viewport(const DirectX12Viewport&) noexcept = delete;
+		virtual ~DirectX12Viewport() noexcept;
+	};
+
 }

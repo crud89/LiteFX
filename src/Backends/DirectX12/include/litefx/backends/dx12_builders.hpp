@@ -12,7 +12,7 @@ namespace LiteFX::Rendering::Backends {
 	//class DirectX12ShaderProgramBuilder;
 	class DirectX12RenderPassBuilder;
 	//class DirectX12RasterizerBuilder;
-	//class DirectX12ViewportBuilder;
+	class DirectX12ViewportBuilder;
 	//class DirectX12InputAssemblerBuilder;
 	//class DirectX12DescriptorSetLayoutBuilder;
 	//class DirectX12VertexBufferLayoutBuilder;
@@ -69,5 +69,18 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
+	};
+
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12ViewportBuilder : public ViewportBuilder<DirectX12ViewportBuilder, DirectX12Viewport, DirectX12RenderPipelineLayoutBuilder> {
+	public:
+		using ViewportBuilder<DirectX12ViewportBuilder, DirectX12Viewport, DirectX12RenderPipelineLayoutBuilder>::ViewportBuilder;
+
+	public:
+		virtual DirectX12ViewportBuilder& withRectangle(const RectF& rectangle) override;
+		virtual DirectX12ViewportBuilder& addScissor(const RectF& scissor) override;
 	};
 }
