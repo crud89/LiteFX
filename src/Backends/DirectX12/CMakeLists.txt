@@ -34,6 +34,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/input_assembler.cpp"
     "src/viewport.cpp"
     "src/vertex_buffer.cpp"
+    "src/index_buffer.cpp"
 )
 
 # Add shared library project.

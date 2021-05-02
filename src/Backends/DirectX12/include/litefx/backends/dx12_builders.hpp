@@ -16,7 +16,7 @@ namespace LiteFX::Rendering::Backends {
 	class DirectX12InputAssemblerBuilder;
 	//class DirectX12DescriptorSetLayoutBuilder;
 	class DirectX12VertexBufferLayoutBuilder;
-	//class DirectX12IndexBufferLayoutBuilder;
+	class DirectX12IndexBufferLayoutBuilder;
 	//class DirectX12DescriptorLayoutBuilder;
 
 	/// <summary>
@@ -163,5 +163,13 @@ namespace LiteFX::Rendering::Backends {
 		/// </reamrks>
 		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset);
 		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset);
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayoutBuilder : public Builder<DirectX12IndexBufferLayoutBuilder, DirectX12IndexBufferLayout, DirectX12InputAssemblerBuilder> {
+	public:
+		using Builder<DirectX12IndexBufferLayoutBuilder, DirectX12IndexBufferLayout, DirectX12InputAssemblerBuilder>::Builder;
 	};
 }

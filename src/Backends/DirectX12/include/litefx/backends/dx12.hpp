@@ -315,4 +315,26 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout : public IIndexBufferLayout {
+		LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
+		LITEFX_BUILDER(DirectX12IndexBufferLayoutBuilder);
+
+	public:
+		DirectX12IndexBufferLayout(const DirectX12InputAssembler& inputAssembler, const IndexType& type);
+		DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) = delete;
+		DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) = delete;
+		virtual ~DirectX12IndexBufferLayout() noexcept;
+
+	public:
+		virtual size_t getElementSize() const noexcept override;
+		virtual UInt32 getBinding() const noexcept override;
+		virtual BufferType getType() const noexcept override;
+
+	public:
+		virtual const IndexType& getIndexType() const noexcept override;
+	};
+
 }
