@@ -76,7 +76,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
 	};
 
-
 	/// <summary>
 	/// 
 	/// </summary>
