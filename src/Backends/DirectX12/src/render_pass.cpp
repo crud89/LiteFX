@@ -12,6 +12,7 @@ public:
     friend class DirectX12RenderPass;
 
 private:
+    const DirectX12Device* m_device;
     //UniquePtr<IRenderPipeline> m_pipeline;
     //const DirectX12SwapChain* m_swapChain{ nullptr };
     //const DirectX12Queue* m_queue{ nullptr };
@@ -30,7 +31,12 @@ private:
     //Dictionary<UInt32, Array<UniquePtr<IImage>>> m_attachmentImages;
 
 public:
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent) : base(parent) { }
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device* device) : 
+        base(parent), m_device(device)
+    {
+        if (device == nullptr)
+            throw ArgumentNotInitializedException("The device is not a valid DirectX 12 device.");
+    }
 
 private:
     void cleanup()
@@ -389,7 +395,7 @@ DirectX12RenderPass::DirectX12RenderPass(const IGraphicsDevice* device) :
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device* device) :
-    m_impl(makePimpl<DirectX12RenderPassImpl>(this))
+    m_impl(makePimpl<DirectX12RenderPassImpl>(this, device))
 {
 }
 
@@ -548,6 +554,11 @@ UniquePtr<IDescriptorSet> DirectX12RenderPass::makeBufferPool(const UInt32& setI
     throw;
 }
 
+const DirectX12Device* DirectX12RenderPass::getDevice() const noexcept
+{
+    return m_impl->m_device;
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
@@ -561,16 +572,15 @@ DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
 
 UniquePtr<DirectX12RenderPass> DirectX12RenderPassBuilder::go()
 {
-    //auto instance = this->instance();
-    //instance->handle() = instance->m_impl->initialize();
+    auto instance = this->instance();
+    instance->m_impl->initialize();
 
-    //auto pipeline = instance->getPipeline();
+    auto pipeline = instance->getPipeline();
 
-    //if (pipeline != nullptr)
-    //    pipeline->bind(instance);
+    if (pipeline != nullptr)
+        pipeline->bind(instance);
 
-    //return RenderPassBuilder::go();
-    throw;
+    return RenderPassBuilder::go();
 }
 
 void DirectX12RenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
@@ -584,7 +594,6 @@ void DirectX12RenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
     //    throw std::invalid_argument("The pipeline must be initialized.");
 
     //this->instance()->m_impl->m_pipeline = std::move(pipeline);
-    throw;
 }
 
 DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::addPipeline()

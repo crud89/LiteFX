@@ -32,11 +32,26 @@ private:
 public:
 	ComPtr<ID3D12PipelineState> initialize(const DirectX12RenderPass& renderPass)
 	{
-		ComPtr<ID3D12PipelineState> pipelineState;
+		// Request the device (must be initialized, otherwise the render pass instance is invalid).
+		auto device = renderPass.getDevice()->handle();
 
+		// Get the root signature.
+		auto layout = dynamic_cast<const DirectX12RenderPipelineLayout*>(m_parent->getLayout());
+
+		if (layout == nullptr)
+			throw InvalidArgumentException("The layout of the render pipeline is not a valid DirectX12 render pipeline layout.");
+
+		// Create a pipeline state description.
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
+		pipelineStateDescription.pRootSignature = layout->handle().Get();
+		//pipelineStateDescription.
 		throw;
 
-		//return pipelineState;
+		// Create the pipeline state instance.
+		ComPtr<ID3D12PipelineState> pipelineState;
+		raiseIfFailed<RuntimeException>(device->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+
+		return pipelineState;
 
 		//auto pipelineLayout = dynamic_cast<const DirectX12RenderPipelineLayout*>(m_layout.get());
 
