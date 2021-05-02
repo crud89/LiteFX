@@ -15,7 +15,7 @@ namespace LiteFX::Rendering::Backends {
 	class DirectX12ViewportBuilder;
 	class DirectX12InputAssemblerBuilder;
 	//class DirectX12DescriptorSetLayoutBuilder;
-	//class DirectX12VertexBufferLayoutBuilder;
+	class DirectX12VertexBufferLayoutBuilder;
 	//class DirectX12IndexBufferLayoutBuilder;
 	//class DirectX12DescriptorLayoutBuilder;
 
@@ -79,8 +79,8 @@ namespace LiteFX::Rendering::Backends {
 		using RenderPipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12RenderPipelineLayout, DirectX12RenderPipelineBuilder>::RenderPipelineLayoutBuilder;
 
 	public:
-		//virtual DirectX12RasterizerBuilder setRasterizer();
-		//virtual DirectX12InputAssemblerBuilder setInputAssembler();
+		virtual DirectX12RasterizerBuilder setRasterizer();
+		virtual DirectX12InputAssemblerBuilder setInputAssembler();
 		//virtual DirectX12ShaderProgramBuilder setShaderProgram();
 		virtual DirectX12ViewportBuilder addViewport();
 
@@ -143,5 +143,25 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual DirectX12ViewportBuilder& withRectangle(const RectF& rectangle) override;
 		virtual DirectX12ViewportBuilder& addScissor(const RectF& scissor) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
+	public:
+		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
+
+	public:
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <reamrks>
+		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
+		/// </reamrks>
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset);
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset);
 	};
 }

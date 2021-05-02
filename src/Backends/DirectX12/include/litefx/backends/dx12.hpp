@@ -293,4 +293,26 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~DirectX12Viewport() noexcept;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout : public IVertexBufferLayout {
+		LITEFX_IMPLEMENTATION(DirectX12VertexBufferLayoutImpl);
+		LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
+
+	public:
+		DirectX12VertexBufferLayout(const DirectX12InputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding = 0);
+		DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) = delete;
+		DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
+		virtual ~DirectX12VertexBufferLayout() noexcept;
+
+	public:
+		virtual size_t getElementSize() const noexcept override;
+		virtual UInt32 getBinding() const noexcept override;
+		virtual BufferType getType() const noexcept override;
+
+	public:
+		virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
+	};
+
 }

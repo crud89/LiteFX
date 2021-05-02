@@ -75,7 +75,7 @@ namespace LiteFX::Rendering::Backends {
     //class DirectX12ShaderProgram;
     class DirectX12CommandBuffer;
     //class DirectX12DescriptorSetLayout;
-    //class DirectX12VertexBufferLayout;
+    class DirectX12VertexBufferLayout;
     //class DirectX12IndexBufferLayout;
     //class DirectX12DescriptorLayout;
     //class DirectX12VertexBuffer;

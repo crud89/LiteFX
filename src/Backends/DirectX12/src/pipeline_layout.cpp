@@ -157,16 +157,16 @@ DirectX12RenderPipelineLayoutBuilder& DirectX12RenderPipelineLayoutBuilder::enab
     return *this;
 }
 
-//DirectX12RasterizerBuilder DirectX12RenderPipelineLayoutBuilder::setRasterizer()
-//{
-//    return this->make<DirectX12Rasterizer>();
-//}
-//
-//DirectX12InputAssemblerBuilder DirectX12RenderPipelineLayoutBuilder::setInputAssembler()
-//{
-//    return this->make<DirectX12InputAssembler>();
-//}
-//
+DirectX12RasterizerBuilder DirectX12RenderPipelineLayoutBuilder::setRasterizer()
+{
+    return this->make<DirectX12Rasterizer>();
+}
+
+DirectX12InputAssemblerBuilder DirectX12RenderPipelineLayoutBuilder::setInputAssembler()
+{
+    return this->make<DirectX12InputAssembler>();
+}
+
 //DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::setShaderProgram()
 //{
 //    return this->make<DirectX12ShaderProgram>();

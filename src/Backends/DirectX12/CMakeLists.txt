@@ -33,6 +33,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/rasterizer.cpp"
     "src/input_assembler.cpp"
     "src/viewport.cpp"
+    "src/vertex_buffer.cpp"
 )
 
 # Add shared library project.
