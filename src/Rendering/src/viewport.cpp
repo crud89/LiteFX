@@ -2,17 +2,28 @@
 
 using namespace LiteFX::Rendering;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class Viewport::ViewportImpl : public Implement<Viewport> {
 public:
     friend class Viewport;
 
 private:
-    Array<RectF> m_scissors;
     RectF m_clientRect;
+    float m_minDepth{ 0.f }, m_maxDepth{ 1.f };
 
 public:
-    ViewportImpl(Viewport* parent, const RectF& clientRect) : base(parent), m_clientRect(clientRect) { }
+    ViewportImpl(Viewport* parent, const RectF& clientRect) : 
+        base(parent), m_clientRect(clientRect) 
+    {
+    }
 };
+
+// ------------------------------------------------------------------------------------------------
+// Shared interface.
+// ------------------------------------------------------------------------------------------------
 
 Viewport::Viewport(const RectF& rect) :
     m_impl(makePimpl<ViewportImpl>(this, rect))
@@ -31,12 +42,22 @@ void Viewport::setRectangle(const RectF& rectangle) noexcept
     m_impl->m_clientRect = rectangle;
 }
 
-const Array<RectF>& Viewport::getScissors() const noexcept
+float Viewport::getMinDepth() const noexcept
 {
-    return m_impl->m_scissors;
+    return m_impl->m_minDepth;
 }
 
-Array<RectF>& Viewport::getScissors() noexcept
+void Viewport::setMinDepth(const float& depth) const noexcept
 {
-    return m_impl->m_scissors;
+    m_impl->m_minDepth = depth;
+}
+
+float Viewport::getMaxDepth() const noexcept
+{
+    return m_impl->m_maxDepth;
+}
+
+void Viewport::setMaxDepth(const float& depth) const noexcept
+{
+    m_impl->m_maxDepth = depth;
 }

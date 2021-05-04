@@ -24,6 +24,7 @@ SET(RENDERING_SOURCES
     "src/input_assembler.cpp"
     "src/rasterizer.cpp"
     "src/viewport.cpp"
+    "src/scissor.cpp"
     "src/render_target.cpp"
     "src/buffer.cpp"
     "src/vertex_buffer.cpp"

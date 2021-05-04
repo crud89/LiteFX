@@ -26,6 +26,7 @@ namespace LiteFX::Rendering {
 	class IInputAssembler;
 	class IRasterizer;
 	class IViewport;
+	class IScissor;
     class IRenderPipeline;
     class IRenderPipelineLayout;
     class IShaderModule;

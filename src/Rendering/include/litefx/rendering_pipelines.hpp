@@ -808,8 +808,22 @@ namespace LiteFX::Rendering {
     public:
         virtual RectF getRectangle() const noexcept = 0;
         virtual void setRectangle(const RectF& rectangle) noexcept = 0;
-        virtual const Array<RectF>& getScissors() const noexcept = 0;
-        virtual Array<RectF>& getScissors() noexcept = 0;
+        virtual float getMinDepth() const noexcept = 0;
+        virtual void setMinDepth(const float& depth) const noexcept = 0;
+        virtual float getMaxDepth() const noexcept = 0;
+        virtual void setMaxDepth(const float& depth) const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API IScissor {
+    public:
+        virtual ~IScissor() noexcept = default;
+
+    public:
+        virtual RectF getRectangle() const noexcept = 0;
+        virtual void setRectangle(const RectF& rectangle) noexcept = 0;
     };
 
     /// <summary>
@@ -915,8 +929,27 @@ namespace LiteFX::Rendering {
     public:
         virtual RectF getRectangle() const noexcept override;
         virtual void setRectangle(const RectF& rectangle) noexcept override;
-        virtual const Array<RectF>& getScissors() const noexcept override;
-        virtual Array<RectF>& getScissors() noexcept override;
+        virtual float getMinDepth() const noexcept override;
+        virtual void setMinDepth(const float& depth) const noexcept override;
+        virtual float getMaxDepth() const noexcept override;
+        virtual void setMaxDepth(const float& depth) const noexcept override;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API Scissor : public IScissor {
+        LITEFX_IMPLEMENTATION(ScissorImpl);
+
+    public:
+        Scissor(const RectF& scissorRect = { });
+        Scissor(Scissor&&) noexcept = delete;
+        Scissor(const Scissor&) noexcept = delete;
+        virtual ~Scissor() noexcept;
+
+    public:
+        virtual RectF getRectangle() const noexcept override;
+        virtual void setRectangle(const RectF& rectangle) noexcept override;
     };
 
     /// <summary>
