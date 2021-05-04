@@ -131,22 +131,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
 		virtual VulkanRasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
 		virtual VulkanRasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
-		virtual VulkanRasterizerBuilder& withDepthBias(const bool& enable = false) override;
+		virtual VulkanRasterizerBuilder& enableDepthBias(const bool& enable = false) override;
 		virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
 		virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
 		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanViewportBuilder : public ViewportBuilder<VulkanViewportBuilder, VulkanViewport, VulkanRenderPipelineLayoutBuilder> {
-	public:
-		using ViewportBuilder<VulkanViewportBuilder, VulkanViewport, VulkanRenderPipelineLayoutBuilder>::ViewportBuilder;
-
-	public:
-		virtual VulkanViewportBuilder& withRectangle(const RectF& rectangle) override;
-		virtual VulkanViewportBuilder& addScissor(const RectF& scissor) override;
 	};
 
 	/// <summary>
