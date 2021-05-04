@@ -13,26 +13,11 @@ public:
 
 private:
     Array<UniquePtr<IShaderModule>> m_modules;
-    Array<UniquePtr<IDescriptorSetLayout>> m_layouts;
 
 public:
-    VulkanShaderProgramImpl(VulkanShaderProgram* parent) : base(parent) { }
-
-public:
-    Array<const IShaderModule*> getShaders() const noexcept
+    VulkanShaderProgramImpl(VulkanShaderProgram* parent) : 
+        base(parent) 
     {
-        Array<const IShaderModule*> modules(m_modules.size());
-        std::generate(std::begin(modules), std::end(modules), [&, i = 0]() mutable { return m_modules[i++].get(); });
-
-        return modules;
-    }
-
-    Array<const IDescriptorSetLayout*> getLayouts() const noexcept
-    {
-        Array<const IDescriptorSetLayout*> layous(m_layouts.size());
-        std::generate(std::begin(layous), std::end(layous), [&, i = 0]() mutable { return m_layouts[i++].get(); });
-
-        return layous;
     }
 };
 
@@ -49,12 +34,10 @@ VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
 
 Array<const IShaderModule*> VulkanShaderProgram::getModules() const noexcept
 {
-    return m_impl->getShaders();
-}
+    Array<const IShaderModule*> modules(m_impl->m_modules.size());
+    std::generate(std::begin(modules), std::end(modules), [&, i = 0]() mutable { return m_impl->m_modules[i++].get(); });
 
-Array<const IDescriptorSetLayout*> VulkanShaderProgram::getLayouts() const noexcept
-{
-    return m_impl->getLayouts();
+    return modules;
 }
 
 void VulkanShaderProgram::use(UniquePtr<IShaderModule>&& module)
@@ -63,14 +46,6 @@ void VulkanShaderProgram::use(UniquePtr<IShaderModule>&& module)
         throw std::invalid_argument("The shader module must be initialized.");
 
     m_impl->m_modules.push_back(std::move(module));
-}
-
-void VulkanShaderProgram::use(UniquePtr<IDescriptorSetLayout>&& layout)
-{
-    if (layout == nullptr)
-        throw std::invalid_argument("The descriptor set layout must be initialized.");
-
-    m_impl->m_layouts.push_back(std::move(layout));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -113,16 +88,4 @@ VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addFragmentShaderModule(
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addComputeShaderModule(const String& fileName, const String& entryPoint)
 {
     return this->addShaderModule(ShaderStage::Compute, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::use(UniquePtr<IDescriptorSetLayout>&& layout)
-{
-    this->instance()->use(std::move(layout));
-    return *this;
-}
-
-VulkanDescriptorSetLayoutBuilder VulkanShaderProgramBuilder::addDescriptorSet(const UInt32& id, const ShaderStage& stages)
-{
-    //return this->make<VulkanDescriptorSetLayoutBuilder>(id, stages);
-    return VulkanDescriptorSetLayoutBuilder(*this, makeUnique<VulkanDescriptorSetLayout>(*this->instance(), id, stages));
 }

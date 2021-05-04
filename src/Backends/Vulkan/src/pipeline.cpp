@@ -134,7 +134,7 @@ public:
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 
-		std::for_each(std::begin(v), std::end(v), [i = 0, &viewports](const auto& viewport) {
+		std::for_each(std::begin(v), std::end(v), [i = 0, &viewports](const auto& viewport) mutable {
 			if (viewport == nullptr)
 				throw ArgumentNotInitializedException("At least one of the specified viewports is not initialized.");
 
@@ -151,17 +151,17 @@ public:
 			i++;
 		});
 
-		std::for_each(std::begin(s), std::end(s), [i = 0, &scissors](const auto& scissor) {
+		std::for_each(std::begin(s), std::end(s), [i = 0, &scissors](const auto& scissor) mutable {
 			if (scissor == nullptr)
 				throw ArgumentNotInitializedException("At least one of the specified scissors is not initialized.");
 
 			LITEFX_TRACE(VULKAN_LOG, "Scissor state {0}/{1}: {{ X: {2}, Y: {3}, Width: {4}, Height: {5} }}", i + 1, scissors.size(),
-				scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height(), scissor->getScissors().size());
+				scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height());
 
 			scissors[i].offset = { static_cast<Int32>(scissor->getRectangle().x()), static_cast<Int32>(scissor->getRectangle().y()) };
 			scissors[i].extent = { static_cast<UInt32>(scissor->getRectangle().width()), static_cast<UInt32>(scissor->getRectangle().height()) };
 
-			i++
+			i++;
 		});
 
 		viewportState.viewportCount = static_cast<UInt32>(viewports.size());
@@ -329,7 +329,7 @@ const IRasterizer* VulkanRenderPipeline::getRasterizer() const noexcept
 Array<const IViewport*> VulkanRenderPipeline::getViewports() const noexcept
 {
 	Array<const IViewport*> viewports(m_impl->m_viewports.size());
-	std::for_each(std::begin(m_impl->m_viewports), std::end(m_impl->m_viewports), [i = 0, &viewports](const auto& viewport) { viewports[i++] = viewport.get(); });
+	std::generate(std::begin(viewports), std::end(viewports), [&, i = 0]() mutable { return m_impl->m_viewports[i++].get(); });
 
 	return viewports;
 }
@@ -337,7 +337,7 @@ Array<const IViewport*> VulkanRenderPipeline::getViewports() const noexcept
 Array<const IScissor*> VulkanRenderPipeline::getScissors() const noexcept
 {
 	Array<const IScissor*> scissors(m_impl->m_scissors.size());
-	std::for_each(std::begin(m_impl->m_scissors), std::end(m_impl->m_scissors), [i = 0, &scissors](const auto& scissor) { scissors[i++] = scissor.get(); });
+	std::generate(std::begin(scissors), std::end(scissors), [&, i = 0]() mutable { return m_impl->m_scissors[i++].get(); });
 
 	return scissors;
 }

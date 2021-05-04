@@ -27,14 +27,15 @@ public:
         if (shaderProgram == nullptr)
             throw std::runtime_error("The shader program must be initialized.");
 
-        Array<VkDescriptorSetLayout> descriptorSetLayouts;
+        Array<VkDescriptorSetLayout> descriptorSetLayouts(descriptorLayouts.size());
 
-        std::for_each(std::begin(descriptorLayouts), std::end(descriptorLayouts), [&](const IDescriptorSetLayout* layout) {
-            // TODO: Validate layout (if a layout is not initialized, it may raise an exception.
-            auto descriptorSetLayout = dynamic_cast<const VulkanDescriptorSetLayout*>(layout);
+        std::generate(std::begin(descriptorSetLayouts), std::end(descriptorSetLayouts), [&, i = 0]() mutable {
+            auto descriptorSetLayout = dynamic_cast<const VulkanDescriptorSetLayout*>(descriptorLayouts[i++].get());
 
             if (descriptorSetLayout != nullptr && descriptorSetLayout->handle() != nullptr)
-                descriptorSetLayouts.push_back(descriptorSetLayout->handle());
+                return descriptorSetLayout->handle();
+            else
+                throw RuntimeException("At least one of the descriptor sets is not properly initialized or not a valid Vulkan descriptor set.");
         });
 
         LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Sets: {1} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size());
@@ -94,7 +95,7 @@ const IShaderProgram* VulkanRenderPipelineLayout::getProgram() const noexcept
 Array<const IDescriptorSetLayout*> VulkanRenderPipelineLayout::getDescriptorSetLayouts() const noexcept
 {
     Array<const IDescriptorSetLayout*> layouts(m_impl->m_descriptorSetLayouts.size());
-    std::for_each(std::begin(m_impl->m_descriptorSetLayouts), std::end(m_impl->m_descriptorSetLayouts), [i = 0, &layouts](const auto& layout) { layouts[i++] = layout.get(); });
+    std::generate(std::begin(layouts), std::end(layouts), [&, i = 0]() mutable { return m_impl->m_descriptorSetLayouts[i++].get(); });
 
     return layouts;
 }

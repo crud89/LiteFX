@@ -305,14 +305,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& id() const noexcept override;
 
 	public:
-		virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) = 0;
+		virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) override;
 
 	public:
-		virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
-		virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
-		virtual const IRasterizer* getRasterizer() const noexcept = 0;
-		virtual Array<const IViewport*> getViewports() const noexcept = 0;
-		virtual Array<const IScissor*> getScissors() const noexcept = 0;
+		virtual const IRenderPipelineLayout* getLayout() const noexcept override;
+		virtual const IInputAssembler* getInputAssembler() const noexcept override;
+		virtual const IRasterizer* getRasterizer() const noexcept override;
+		virtual Array<const IViewport*> getViewports() const noexcept override;
+		virtual Array<const IScissor*> getScissors() const noexcept override;
 	};
 
 	/// <summary>

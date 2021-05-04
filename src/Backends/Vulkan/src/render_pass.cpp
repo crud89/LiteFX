@@ -526,17 +526,17 @@ void VulkanRenderPass::bind(IDescriptorSet* descriptorSet) const
 
 UniquePtr<IVertexBuffer> VulkanRenderPass::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
 {
-    return this->getDevice()->createVertexBuffer(this->getPipeline()->getLayout()->getInputAssembler()->getVertexBufferLayout(binding), usage, elements);
+    return this->getDevice()->createVertexBuffer(this->getPipeline()->getInputAssembler()->getVertexBufferLayout(binding), usage, elements);
 }
 
 UniquePtr<IIndexBuffer> VulkanRenderPass::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
 {
-    return this->getDevice()->createIndexBuffer(this->getPipeline()->getLayout()->getInputAssembler()->getIndexBufferLayout(), usage, elements);
+    return this->getDevice()->createIndexBuffer(this->getPipeline()->getInputAssembler()->getIndexBufferLayout(), usage, elements);
 }
 
 UniquePtr<IDescriptorSet> VulkanRenderPass::makeBufferPool(const UInt32& setId) const
 {
-    auto layouts = this->getPipeline()->getLayout()->getProgram()->getLayouts();
+    auto layouts = this->getPipeline()->getLayout()->getDescriptorSetLayouts();
     auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) { return layout->getSetId() == setId; });
 
     if (match == layouts.end())
