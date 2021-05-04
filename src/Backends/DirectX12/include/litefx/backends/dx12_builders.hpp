@@ -48,7 +48,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<DirectX12RenderPass> go() override;
 
 	public:
-		virtual DirectX12RenderPipelineBuilder addPipeline();
+		virtual DirectX12RenderPipelineBuilder addPipeline(const UInt32& id, const String& name = "");
 
 	public:
 		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;

@@ -272,16 +272,25 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
 	public:
-		VulkanRenderPipeline(const VulkanRenderPass& renderPass);
+		VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
 
 	public:
+		/// <inheritdoc />
+		virtual const IRenderPass& renderPass() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const String& name() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& id() const noexcept override;
+
+	public:
 		virtual const IRenderPipelineLayout* getLayout() const noexcept override;
 		virtual IRenderPipelineLayout* getLayout() noexcept override;
 		virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) override;
-		virtual const IRenderPass& renderPass() const noexcept override;
 	};
 
 	/// <summary>

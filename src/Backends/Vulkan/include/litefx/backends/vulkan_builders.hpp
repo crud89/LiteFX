@@ -94,7 +94,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<VulkanRenderPass> go() override;
 
 	public:
-		virtual VulkanRenderPipelineBuilder addPipeline();
+		virtual VulkanRenderPipelineBuilder addPipeline(const UInt32& id, const String& name = "");
 
 	public:
 		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;

@@ -575,12 +575,13 @@ void VulkanRenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
         throw std::invalid_argument("The pipeline must be initialized.");
 
     // TODO: Do not replace, but keep a list of pipelines!
+    // TODO: Add a `addPipeline` method and check if the ID is already present - if yes, throw an error.
     this->instance()->m_impl->m_pipeline = std::move(pipeline);
 }
 
-VulkanRenderPipelineBuilder VulkanRenderPassBuilder::addPipeline()
+VulkanRenderPipelineBuilder VulkanRenderPassBuilder::addPipeline(const UInt32& id, const String& name)
 {
-    return this->make<VulkanRenderPipeline>();
+    return this->make<VulkanRenderPipeline>(id, name);
 }
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)

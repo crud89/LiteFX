@@ -14,10 +14,12 @@ public:
 private:
 	const DirectX12RenderPass& m_renderPass;
 	UniquePtr<IRenderPipelineLayout> m_layout;
+	UInt32 m_id;
+	String m_name;
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass) :
-		base(parent), m_renderPass(renderPass)
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const UInt32& id, const String& name) :
+		base(parent), m_renderPass(renderPass), m_id(id), m_name(name)
 	{
 	}
 
@@ -292,14 +294,29 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass)), IComResource<ID3D12PipelineState>(nullptr)
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name) :
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, id, name)), IComResource<ID3D12PipelineState>(nullptr)
 {
 }
 
 DirectX12RenderPipeline::~DirectX12RenderPipeline() noexcept
 {
 	m_impl->cleanup();
+}
+
+const IRenderPass& DirectX12RenderPipeline::renderPass() const noexcept
+{
+	return m_impl->m_renderPass;
+}
+
+const String& DirectX12RenderPipeline::name() const noexcept
+{
+	return m_impl->m_name;
+}
+
+const UInt32& DirectX12RenderPipeline::id() const noexcept
+{
+	return m_impl->m_id;
 }
 
 const IRenderPipelineLayout* DirectX12RenderPipeline::getLayout() const noexcept
@@ -322,11 +339,6 @@ void DirectX12RenderPipeline::setLayout(UniquePtr<IRenderPipelineLayout>&& layou
 
 	m_impl->m_layout = std::move(layout);
 	this->handle() = m_impl->initialize();
-}
-
-const IRenderPass& DirectX12RenderPipeline::renderPass() const noexcept 
-{
-	return m_impl->m_renderPass;
 }
 
 // ------------------------------------------------------------------------------------------------

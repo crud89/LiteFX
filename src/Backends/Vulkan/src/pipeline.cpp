@@ -15,10 +15,12 @@ public:
 private:
 	const VulkanRenderPass& m_renderPass;
 	UniquePtr<IRenderPipelineLayout> m_layout;
+	const UInt32 m_id;
+	const String m_name;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass) :
-		base(parent), m_renderPass(renderPass)
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
+		base(parent), m_renderPass(renderPass), m_id(id), m_name(name)
 	{
 	}
 
@@ -272,14 +274,29 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass)), VulkanRuntimeObject(renderPass.getDevice()), IResource<VkPipeline>(nullptr)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, id, name)), VulkanRuntimeObject(renderPass.getDevice()), IResource<VkPipeline>(nullptr)
 {
 }
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
 	m_impl->cleanup();
+}
+
+const IRenderPass& VulkanRenderPipeline::renderPass() const noexcept
+{
+	return m_impl->m_renderPass;
+}
+
+const String& VulkanRenderPipeline::name() const noexcept
+{
+	return m_impl->m_name;
+}
+
+const UInt32& VulkanRenderPipeline::id() const noexcept
+{
+	return m_impl->m_id;
 }
 
 const IRenderPipelineLayout* VulkanRenderPipeline::getLayout() const noexcept
@@ -302,11 +319,6 @@ void VulkanRenderPipeline::setLayout(UniquePtr<IRenderPipelineLayout>&& layout)
 
 	m_impl->m_layout = std::move(layout);
 	this->handle() = m_impl->initialize();
-}
-
-const IRenderPass& VulkanRenderPipeline::renderPass() const noexcept
-{
-	return m_impl->m_renderPass;
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -681,12 +681,24 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IRenderPipeline {
     public:
         virtual ~IRenderPipeline() noexcept = default;
+
+    public:
+        virtual const IRenderPass& renderPass() const noexcept = 0;
+        virtual const String& name() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the ID of the pipeline.
+        /// </summary>
+        /// <remarks>
+        /// The pipeline ID must be unique within the render pass.
+        /// </remarks>
+        /// <returns>The ID of the pipeline.</returns>
+        virtual const UInt32& id() const noexcept = 0;
     
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual IRenderPipelineLayout* getLayout() noexcept = 0;
         virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
-        virtual const IRenderPass& renderPass() const noexcept = 0;
     };
 
     /// <summary>

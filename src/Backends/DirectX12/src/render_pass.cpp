@@ -566,11 +566,6 @@ UniquePtr<DirectX12RenderPass> DirectX12RenderPassBuilder::go()
     auto instance = this->instance();
     instance->m_impl->initialize();
 
-    auto pipeline = instance->getPipeline();
-
-    if (pipeline != nullptr)
-        pipeline->bind(instance);
-
     return RenderPassBuilder::go();
 }
 
@@ -587,9 +582,9 @@ void DirectX12RenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
     //this->instance()->m_impl->m_pipeline = std::move(pipeline);
 }
 
-DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::addPipeline()
+DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::addPipeline(const UInt32& id, const String& name)
 {
-    return this->make<DirectX12RenderPipeline>();
+    return this->make<DirectX12RenderPipeline>(id, name);
 }
 
 DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clearColor, bool clearStencil, bool isVolatile)
