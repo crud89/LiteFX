@@ -134,7 +134,7 @@ public:
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 
-		std::for_each(std::begin(v), std::end(v), [i = 0](const auto& viewport) {
+		std::for_each(std::begin(v), std::end(v), [i = 0, &viewports](const auto& viewport) {
 			if (viewport == nullptr)
 				throw ArgumentNotInitializedException("At least one of the specified viewports is not initialized.");
 
@@ -151,7 +151,7 @@ public:
 			i++;
 		});
 
-		std::for_each(std::begin(s), std::end(s), [i = 0](const auto& scissor) {
+		std::for_each(std::begin(s), std::end(s), [i = 0, &scissors](const auto& scissor) {
 			if (scissor == nullptr)
 				throw ArgumentNotInitializedException("At least one of the specified scissors is not initialized.");
 
@@ -160,6 +160,8 @@ public:
 
 			scissors[i].offset = { static_cast<Int32>(scissor->getRectangle().x()), static_cast<Int32>(scissor->getRectangle().y()) };
 			scissors[i].extent = { static_cast<UInt32>(scissor->getRectangle().width()), static_cast<UInt32>(scissor->getRectangle().height()) };
+
+			i++
 		});
 
 		viewportState.viewportCount = static_cast<UInt32>(viewports.size());
