@@ -686,6 +686,7 @@ namespace LiteFX::Rendering {
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual IRenderPipelineLayout* getLayout() noexcept = 0;
         virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
+        virtual const IRenderPass& renderPass() const noexcept = 0;
     };
 
     /// <summary>
@@ -819,7 +820,6 @@ namespace LiteFX::Rendering {
         virtual IRenderPipeline* getPipeline() noexcept = 0;
         virtual void begin() const = 0;
         virtual void end(const bool& present = false) = 0;
-        virtual void reset() = 0;
         virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
         virtual const IImage* getAttachment(const UInt32& attachmentId) const = 0;

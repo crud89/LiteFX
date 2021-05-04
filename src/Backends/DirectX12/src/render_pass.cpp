@@ -464,15 +464,6 @@ void DirectX12RenderPass::end(const bool& present)
     m_impl->end(present);
 }
 
-void DirectX12RenderPass::reset()
-{
-    //m_impl->cleanup();
-    //this->handle() = m_impl->initialize();
-
-    //m_impl->m_pipeline->bind(this);
-    throw;
-}
-
 void DirectX12RenderPass::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
 {
     //::vkCmdDraw(m_impl->getCurrentCommandBuffer()->handle(), vertices, instances, firstVertex, firstInstance);

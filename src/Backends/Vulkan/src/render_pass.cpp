@@ -473,14 +473,6 @@ void VulkanRenderPass::end(const bool& present)
     m_impl->end(present);
 }
 
-void VulkanRenderPass::reset()
-{
-    m_impl->cleanup();
-    this->handle() = m_impl->initialize();
-
-    m_impl->m_pipeline->bind(this);
-}
-
 void VulkanRenderPass::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
 {
     ::vkCmdDraw(m_impl->getCurrentCommandBuffer()->handle(), vertices, instances, firstVertex, firstInstance);
@@ -568,11 +560,6 @@ UniquePtr<VulkanRenderPass> VulkanRenderPassBuilder::go()
 {
     auto instance = this->instance();
     instance->handle() = instance->m_impl->initialize();
-
-    auto pipeline = instance->getPipeline();
-    
-    if (pipeline != nullptr)
-        pipeline->bind(instance);
 
     return RenderPassBuilder::go();
 }

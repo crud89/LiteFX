@@ -280,7 +280,8 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual const IRenderPipelineLayout* getLayout() const noexcept override;
 		virtual IRenderPipelineLayout* getLayout() noexcept override;
-		virtual void bind(const IRenderPass* renderPass) override;
+		virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) override;
+		virtual const IRenderPass& renderPass() const noexcept override;
 	};
 
 	/// <summary>
