@@ -213,7 +213,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject, public RenderPipelineLayout, public IResource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject, public IRenderPipelineLayout, public IResource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 
@@ -222,6 +222,18 @@ namespace LiteFX::Rendering::Backends {
 		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) noexcept = delete;
 		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) noexcept = delete;
 		virtual ~VulkanRenderPipelineLayout() noexcept;
+
+		// IRequiresInitialization
+	public:
+		virtual bool isInitialized() const noexcept override;
+
+		// IRenderPipelineLayout
+	public:
+		virtual void initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts) override;
+
+	public:
+		virtual const IShaderProgram* getProgram() const noexcept override;
+		virtual Array<const IDescriptorSetLayout*> getDescriptorSetLayouts() const noexcept override;
 	};
 
 	/// <summary>
