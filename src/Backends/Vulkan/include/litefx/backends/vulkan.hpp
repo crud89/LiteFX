@@ -289,6 +289,11 @@ namespace LiteFX::Rendering::Backends {
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
 
+		// IRequiresInitialization
+	public:
+		virtual bool isInitialized() const noexcept override;
+
+		// IRenderPipeline
 	public:
 		/// <inheritdoc />
 		virtual const IRenderPass& renderPass() const noexcept override;
@@ -300,9 +305,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& id() const noexcept override;
 
 	public:
-		virtual const IRenderPipelineLayout* getLayout() const noexcept override;
-		virtual IRenderPipelineLayout* getLayout() noexcept override;
-		virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) override;
+		virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) = 0;
+
+	public:
+		virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
+		virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
+		virtual const IRasterizer* getRasterizer() const noexcept = 0;
+		virtual Array<const IViewport*> getViewports() const noexcept = 0;
+		virtual Array<const IScissor*> getScissors() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -339,9 +349,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual Array<const IShaderModule*> getModules() const noexcept override;
-		virtual Array<const IDescriptorSetLayout*> getLayouts() const noexcept override;
 		virtual void use(UniquePtr<IShaderModule>&& module) override;
-		virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) override;
 	};
 
 	/// <summary>

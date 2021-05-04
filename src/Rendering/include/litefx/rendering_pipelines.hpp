@@ -678,7 +678,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPipeline {
+    class LITEFX_RENDERING_API IRenderPipeline : public IRequiresInitialization {
     public:
         virtual ~IRenderPipeline() noexcept = default;
 
@@ -702,7 +702,7 @@ namespace LiteFX::Rendering {
         /// <param name="layout"></param>
         /// <param name="viewports"></param>
         /// <param name="scissors"></param>
-        virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) = 0;
+        virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) = 0;
 
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;

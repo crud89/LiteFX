@@ -80,6 +80,9 @@ bool VulkanRenderPipelineLayout::isInitialized() const noexcept
 
 void VulkanRenderPipelineLayout::initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts)
 {
+    if (this->isInitialized())
+        throw RuntimeException("The render pipeline layout already has been initialized.");
+
     this->handle() = m_impl->initialize(std::move(shaderProgram), std::move(descriptorLayouts));
 }
 

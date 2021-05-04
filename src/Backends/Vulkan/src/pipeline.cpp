@@ -15,6 +15,10 @@ public:
 private:
 	const VulkanRenderPass& m_renderPass;
 	UniquePtr<IRenderPipelineLayout> m_layout;
+	UniquePtr<IInputAssembler> m_inputAssembler;
+	UniquePtr<IRasterizer> m_rasterizer;
+	Array<SharedPtr<IViewport>> m_viewports;
+	Array<SharedPtr<IScissor>> m_scissors;
 	const UInt32 m_id;
 	const String m_name;
 
@@ -24,42 +28,29 @@ public:
 	{
 	}
 
-private:
-	void cleanup()
-	{
-		if (m_parent->handle() != nullptr)
-			::vkDestroyPipeline(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
-
-		m_parent->handle() = nullptr;
-	}
-
 public:
-	VkPipeline initialize()
+	VkPipeline initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& v, Array<SharedPtr<IScissor>>&& s)
 	{
-		auto pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_layout.get());
-
-		if (pipelineLayout == nullptr)
-			throw std::invalid_argument("The pipeline layout is not a valid Vulkan pipeline layout instance.");
-
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(pipelineLayout));
-
-		// Get the device.
-		auto device = m_parent->getDevice();
-
-		// Request configuration interface.
-		auto rasterizer = pipelineLayout->getRasterizer();
-		auto inputAssembler = pipelineLayout->getInputAssembler();
-		auto views = pipelineLayout->getViewports();
-		auto program = pipelineLayout->getProgram();
+		if (inputAssembler == nullptr)
+			throw ArgumentNotInitializedException("The input assembler must be initialized.");
 
 		if (rasterizer == nullptr)
-			throw std::invalid_argument("The pipeline layout does not contain a rasterizer.");
+			throw ArgumentNotInitializedException("The rasterizer must be initialized.");
+
+		auto pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(layout.get());
+
+		if (pipelineLayout == nullptr)
+			throw InvalidArgumentException("The pipeline layout is not a valid Vulkan pipeline layout instance.");
+
+		auto program = pipelineLayout->getProgram();
 
 		if (program == nullptr)
-			throw std::invalid_argument("The pipeline shader program must be initialized.");
+			throw InvalidArgumentException("The pipeline shader program must be initialized.");
 
-		if (inputAssembler == nullptr)
-			throw std::invalid_argument("The input assembler must be initialized.");
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(pipelineLayout));
+		
+		// Get the device.
+		auto device = m_parent->getDevice();
 
 		// Setup rasterizer state.
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {};
@@ -138,39 +129,38 @@ public:
 		inputState.pVertexAttributeDescriptions = vertexInputAttributes.data();
 
 		// Setup viewport state.
-		Array<VkViewport> viewports;
-		Array<VkRect2D> scissors;
+		Array<VkViewport> viewports(v.size());
+		Array<VkRect2D> scissors(s.size());
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 
-		for (auto v(0); v < views.size(); ++v)
-		{
-			auto view = views[v];
+		std::for_each(std::begin(v), std::end(v), [i = 0](const auto& viewport) {
+			if (viewport == nullptr)
+				throw ArgumentNotInitializedException("At least one of the specified viewports is not initialized.");
 
-			if (view == nullptr)
-				throw std::invalid_argument("The specified viewports must be initialized.");
+			LITEFX_TRACE(VULKAN_LOG, "Viewport state {0}/{1}: {{ X: {2}, Y: {3}, Width: {4}, Height: {5}, Min Depth: {6}, Max Depth: {7} }}", i + 1, viewports.size(),
+				viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth());
 
-			LITEFX_TRACE(VULKAN_LOG, "Viewport state {0}/{1}: {{ X: {2}, Y: {3}, Width: {4}, Height: {5}, Scissors: {6} }}", v + 1, views.size(), 
-				view->getRectangle().x(), view->getRectangle().y(), view->getRectangle().width(), view->getRectangle().height(), view->getScissors().size());
+			viewports[i].x = viewport->getRectangle().x();
+			viewports[i].y = viewport->getRectangle().y();
+			viewports[i].width = viewport->getRectangle().width();
+			viewports[i].height = viewport->getRectangle().height();
+			viewports[i].minDepth = viewport->getMinDepth();
+			viewports[i].maxDepth = viewport->getMaxDepth();
 
-			VkViewport viewport = {};
-			viewport.x = view->getRectangle().x();
-			viewport.y = view->getRectangle().y();
-			viewport.width = view->getRectangle().width();
-			viewport.height = view->getRectangle().height();
-			viewport.minDepth = 0.0f;
-			viewport.maxDepth = 1.0f;
+			i++;
+		});
 
-			for each (auto& stencil in view->getScissors())
-			{
-				VkRect2D scissor = {};
-				scissor.offset = { static_cast<Int32>(stencil.x()), static_cast<Int32>(stencil.y()) };
-				scissor.extent = { static_cast<UInt32>(stencil.width()), static_cast<UInt32>(stencil.height()) };
-				scissors.push_back(scissor);
-			}
+		std::for_each(std::begin(s), std::end(s), [i = 0](const auto& scissor) {
+			if (scissor == nullptr)
+				throw ArgumentNotInitializedException("At least one of the specified scissors is not initialized.");
 
-			viewports.push_back(viewport);
-		}
+			LITEFX_TRACE(VULKAN_LOG, "Scissor state {0}/{1}: {{ X: {2}, Y: {3}, Width: {4}, Height: {5} }}", i + 1, scissors.size(),
+				scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height(), scissor->getScissors().size());
+
+			scissors[i].offset = { static_cast<Int32>(scissor->getRectangle().x()), static_cast<Int32>(scissor->getRectangle().y()) };
+			scissors[i].extent = { static_cast<UInt32>(scissor->getRectangle().width()), static_cast<UInt32>(scissor->getRectangle().height()) };
+		});
 
 		viewportState.viewportCount = static_cast<UInt32>(viewports.size());
 		viewportState.pViewports = viewports.data();
@@ -217,9 +207,9 @@ public:
 		// Setup depth/stencil state.
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencilState.depthTestEnable = pipelineLayout->getDepthTest();
+		depthStencilState.depthTestEnable = VK_TRUE;		// TODO: From depth/stencil state.
 		depthStencilState.depthBoundsTestEnable = VK_FALSE;
-		depthStencilState.stencilTestEnable = pipelineLayout->getStencilTest();
+		depthStencilState.stencilTestEnable = VK_FALSE;		// TODO: From depth/stencil state.
 		depthStencilState.depthWriteEnable = std::any_of(std::begin(targets), std::end(targets), [](const auto& t) { return t->getType() == RenderTargetType::Depth; });
 		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
 
@@ -281,7 +271,13 @@ VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, c
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
-	m_impl->cleanup();
+	if (this->isInitialized())
+		::vkDestroyPipeline(this->getDevice()->handle(), this->handle(), nullptr);
+}
+
+bool VulkanRenderPipeline::isInitialized() const noexcept
+{
+	return this->handle() != nullptr;
 }
 
 const IRenderPass& VulkanRenderPipeline::renderPass() const noexcept
@@ -299,26 +295,43 @@ const UInt32& VulkanRenderPipeline::id() const noexcept
 	return m_impl->m_id;
 }
 
+void VulkanRenderPipeline::initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
+{
+	if (this->isInitialized())
+		throw RuntimeException("The render pipeline already has been initialized.");
+
+	this->handle() = m_impl->initialize(std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors));
+}
+
 const IRenderPipelineLayout* VulkanRenderPipeline::getLayout() const noexcept
 {
 	return m_impl->m_layout.get();
 }
 
-IRenderPipelineLayout* VulkanRenderPipeline::getLayout() noexcept
+const IInputAssembler* VulkanRenderPipeline::getInputAssembler() const noexcept
 {
-	return m_impl->m_layout.get();
+	return m_impl->m_inputAssembler.get();
 }
 
-void VulkanRenderPipeline::setLayout(UniquePtr<IRenderPipelineLayout>&& layout)
+const IRasterizer* VulkanRenderPipeline::getRasterizer() const noexcept
 {
-	if (m_impl->m_layout != nullptr)
-		throw RuntimeException("The pipeline layout for this pipeline is already defined and cannot be replaced. Create a new pipeline instead.");
+	return m_impl->m_rasterizer.get();
+}
 
-	if (layout == nullptr)
-		throw ArgumentNotInitializedException("The pipeline layout must be initialized.");
+Array<const IViewport*> VulkanRenderPipeline::getViewports() const noexcept
+{
+	Array<const IViewport*> viewports(m_impl->m_viewports.size());
+	std::for_each(std::begin(m_impl->m_viewports), std::end(m_impl->m_viewports), [i = 0, &viewports](const auto& viewport) { viewports[i++] = viewport.get(); });
 
-	m_impl->m_layout = std::move(layout);
-	this->handle() = m_impl->initialize();
+	return viewports;
+}
+
+Array<const IScissor*> VulkanRenderPipeline::getScissors() const noexcept
+{
+	Array<const IScissor*> scissors(m_impl->m_scissors.size());
+	std::for_each(std::begin(m_impl->m_scissors), std::end(m_impl->m_scissors), [i = 0, &scissors](const auto& scissor) { scissors[i++] = scissor.get(); });
+
+	return scissors;
 }
 
 // ------------------------------------------------------------------------------------------------
