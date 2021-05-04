@@ -696,9 +696,19 @@ namespace LiteFX::Rendering {
         virtual const UInt32& id() const noexcept = 0;
     
     public:
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="layout"></param>
+        /// <param name="viewports"></param>
+        /// <param name="scissors"></param>
+        virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, Array<SharedPtr<Viewport>>&& viewports, Array<SharedPtr<Scissor>>&& scissors) = 0;
+
+    public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual IRenderPipelineLayout* getLayout() noexcept = 0;
-        virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
+        virtual Array<const Viewport*> getViewports() const noexcept = 0;
+        virtual Array<const Scissor*> getScissors() const noexcept = 0;
     };
 
     /// <summary>
@@ -748,9 +758,7 @@ namespace LiteFX::Rendering {
     
     public:
         virtual Array<const IShaderModule*> getModules() const noexcept = 0;
-        virtual Array<const IDescriptorSetLayout*> getLayouts() const noexcept = 0;
         virtual void use(UniquePtr<IShaderModule>&& module) = 0;
-        virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -965,20 +973,11 @@ namespace LiteFX::Rendering {
         virtual ~RenderPipelineLayout() noexcept;
 
     public:
-        virtual Array<IViewport*> getViewports() const noexcept override;
-        virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept override;
-        virtual IRasterizer* getRasterizer() const noexcept override;
-        virtual const IInputAssembler* getInputAssembler() const noexcept override;
         virtual const IShaderProgram* getProgram() const noexcept override;
-        virtual bool getDepthTest() const noexcept override;
-        virtual void setDepthTest(const bool& enable) override;
-        virtual bool getStencilTest() const noexcept override;
-        virtual void setStencilTest(const bool& enable) override;
+        virtual Array<const IDescriptorSetLayout*> getLayouts() const noexcept = 0;
+        virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
 
     public:
-        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
-        virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
-        virtual void use(UniquePtr<IViewport>&& viewport) override;
         virtual void use(UniquePtr<IShaderProgram>&& program) override;
     };
 
