@@ -12,11 +12,12 @@ public:
 	friend class DirectX12RenderPipeline;
 
 private:
+	const DirectX12RenderPass& m_renderPass;
 	UniquePtr<IRenderPipelineLayout> m_layout;
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent) :
-		base(parent)
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass) :
+		base(parent), m_renderPass(renderPass)
 	{
 	}
 
@@ -30,10 +31,10 @@ private:
 	}
 
 public:
-	ComPtr<ID3D12PipelineState> initialize(const DirectX12RenderPass& renderPass)
+	ComPtr<ID3D12PipelineState> initialize()
 	{
 		// Request the device (must be initialized, otherwise the render pass instance is invalid).
-		auto device = renderPass.getDevice()->handle();
+		auto device = m_renderPass.getDevice()->handle();
 
 		// Get the root signature.
 		auto layout = dynamic_cast<const DirectX12RenderPipelineLayout*>(m_parent->getLayout());
@@ -292,7 +293,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this)), IComResource<ID3D12PipelineState>(nullptr)
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass)), IComResource<ID3D12PipelineState>(nullptr)
 {
 }
 
@@ -311,15 +312,21 @@ IRenderPipelineLayout* DirectX12RenderPipeline::getLayout() noexcept
 	return m_impl->m_layout.get();
 }
 
-void DirectX12RenderPipeline::bind(const IRenderPass* renderPass)
+void DirectX12RenderPipeline::setLayout(UniquePtr<IRenderPipelineLayout>&& layout)
 {
-	auto pass = dynamic_cast<const DirectX12RenderPass*>(renderPass);
+	if (m_impl->m_layout != nullptr)
+		throw RuntimeException("The pipeline layout for this pipeline is already defined and cannot be replaced. Create a new pipeline instead.");
 
-	if (pass == nullptr)
-		throw std::invalid_argument("The pipeline can only be bound to a valid DirectX12 render pass.");
+	if (layout == nullptr)
+		throw ArgumentNotInitializedException("The pipeline layout must be initialized.");
 
-	m_impl->cleanup();
-	this->handle() = m_impl->initialize(*pass);
+	m_impl->m_layout = std::move(layout);
+	this->handle() = m_impl->initialize();
+}
+
+const IRenderPass& DirectX12RenderPipeline::renderPass() const noexcept 
+{
+	return m_impl->m_renderPass;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -328,10 +335,7 @@ void DirectX12RenderPipeline::bind(const IRenderPass* renderPass)
 
 void DirectX12RenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout>&& layout)
 {
-	if (layout == nullptr)
-		throw std::invalid_argument("The layout must be initialized.");
-
-	this->instance()->m_impl->m_layout = std::move(layout);
+	this->instance()->setLayout(std::move(layout));
 }
 
 DirectX12RenderPipelineLayoutBuilder DirectX12RenderPipelineBuilder::defineLayout()

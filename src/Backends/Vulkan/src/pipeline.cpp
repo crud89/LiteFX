@@ -13,11 +13,12 @@ public:
 	friend class VulkanRenderPipeline;
 
 private:
+	const VulkanRenderPass& m_renderPass;
 	UniquePtr<IRenderPipelineLayout> m_layout;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) : 
-		base(parent)
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass) :
+		base(parent), m_renderPass(renderPass)
 	{
 	}
 
@@ -31,7 +32,7 @@ private:
 	}
 
 public:
-	VkPipeline initialize(const VulkanRenderPass& renderPass)
+	VkPipeline initialize()
 	{
 		auto pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(m_layout.get());
 
@@ -187,7 +188,7 @@ public:
 
 		// Setup color blend state.
 		// TODO: Add blend parameters to render target.
-		auto targets = renderPass.getTargets();
+		auto targets = m_renderPass.getTargets();
 		auto colorAttachments = std::count_if(std::begin(targets), std::end(targets), [](const auto& target) { return target->getType() != RenderTargetType::Depth; });
 		
 		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments(colorAttachments);
@@ -254,7 +255,7 @@ public:
 		pipelineInfo.pStages = shaderStages.data();
 
 		// Setup render pass state.
-		pipelineInfo.renderPass = renderPass.handle();
+		pipelineInfo.renderPass = m_renderPass.handle();
 		pipelineInfo.subpass = 0;
 
 		VkPipeline pipeline;
@@ -272,7 +273,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject(renderPass.getDevice()), IResource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass)), VulkanRuntimeObject(renderPass.getDevice()), IResource<VkPipeline>(nullptr)
 {
 }
 
@@ -291,27 +292,30 @@ IRenderPipelineLayout* VulkanRenderPipeline::getLayout() noexcept
 	return m_impl->m_layout.get();
 }
 
-void VulkanRenderPipeline::bind(const IRenderPass* renderPass)
+void VulkanRenderPipeline::setLayout(UniquePtr<IRenderPipelineLayout>&& layout)
 {
-	auto pass = dynamic_cast<const VulkanRenderPass*>(renderPass);
+	if (m_impl->m_layout != nullptr)
+		throw RuntimeException("The pipeline layout for this pipeline is already defined and cannot be replaced. Create a new pipeline instead.");
 
-	if (pass == nullptr)
-		throw std::invalid_argument("The pipeline can only be bound to a valid Vulkan render pass.");
+	if (layout == nullptr)
+		throw ArgumentNotInitializedException("The pipeline layout must be initialized.");
 
-	m_impl->cleanup();
-	this->handle() = m_impl->initialize(*pass);
+	m_impl->m_layout = std::move(layout);
+	this->handle() = m_impl->initialize();
+}
+
+const IRenderPass& VulkanRenderPipeline::renderPass() const noexcept
+{
+	return m_impl->m_renderPass;
 }
 
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout> && layout)
+void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout>&& layout)
 {
-    if (layout == nullptr)
-        throw std::invalid_argument("The layout must be initialized.");
-
-	this->instance()->m_impl->m_layout = std::move(layout);
+	this->instance()->setLayout(std::move(layout));
 }
 
 VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::defineLayout()

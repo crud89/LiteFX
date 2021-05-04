@@ -685,7 +685,7 @@ namespace LiteFX::Rendering {
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual IRenderPipelineLayout* getLayout() noexcept = 0;
-        virtual void bind(const IRenderPass* renderPass) = 0;
+        virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
     };
 
     /// <summary>
