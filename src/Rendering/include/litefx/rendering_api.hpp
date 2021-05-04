@@ -60,6 +60,8 @@ namespace LiteFX::Rendering {
 	class ISampler;
 	class IDescriptorSet;
 
+	class Viewport;
+	class Scissor;
 	class Buffer;
 	class VertexBuffer;
 	class IndexBuffer;
@@ -67,6 +69,12 @@ namespace LiteFX::Rendering {
 	class Image;
 	class Texture;
 	class Sampler;
+
+	// Common interface declarations.
+	class LITEFX_RENDERING_API IRequiresInitialization {
+	public:
+		virtual bool isInitialized() const noexcept = 0;
+	};
 
 	// Define enumerations.
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {
