@@ -702,14 +702,14 @@ namespace LiteFX::Rendering {
         /// <param name="layout"></param>
         /// <param name="viewports"></param>
         /// <param name="scissors"></param>
-        virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, Array<SharedPtr<Viewport>>&& viewports, Array<SharedPtr<Scissor>>&& scissors) = 0;
+        virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) = 0;
 
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
         virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
         virtual const IRasterizer* getRasterizer() const noexcept = 0;
-        virtual Array<const Viewport*> getViewports() const noexcept = 0;
-        virtual Array<const Scissor*> getScissors() const noexcept = 0;
+        virtual Array<const IViewport*> getViewports() const noexcept = 0;
+        virtual Array<const IScissor*> getScissors() const noexcept = 0;
     };
 
     /// <summary>
