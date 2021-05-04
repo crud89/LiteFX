@@ -967,7 +967,6 @@ namespace LiteFX::Rendering {
         virtual TDerived& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
         virtual TDerived& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
         virtual TDerived& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -980,6 +979,9 @@ namespace LiteFX::Rendering {
 
     public:
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
+        virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
+        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
+        virtual void use(UniquePtr<IViewport>&& viewport) = 0;
     };
 
     /// <summary>
@@ -1006,12 +1008,8 @@ namespace LiteFX::Rendering {
         using builder_type::Builder;
 
     public:
-        virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
-        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
-        virtual void use(UniquePtr<IViewport>&& viewport) = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
-        virtual TDerived& enableDepthTest(const bool& enable = false) = 0; 
-        virtual TDerived& enableStencilTest(const bool& enable = false) = 0;
+        virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -1027,23 +1025,10 @@ namespace LiteFX::Rendering {
         virtual TDerived& withCullMode(const CullMode& cullMode = CullMode::BackFaces) = 0;
         virtual TDerived& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) = 0;
         virtual TDerived& withLineWidth(const Float& lineWidth = 1.f) = 0;
-        virtual TDerived& withDepthBias(const bool& enable = false) = 0;
+        virtual TDerived& enableDepthBias(const bool& enable = false) = 0;
         virtual TDerived& withDepthBiasClamp(const Float& clamp = 0.f) = 0;
         virtual TDerived& withDepthBiasConstantFactor(const Float& factor = 0.f) = 0;
         virtual TDerived& withDepthBiasSlopeFactor(const Float& factor = 0.f) = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TViewport, typename TParent>
-    class ViewportBuilder : public Builder<TDerived, TViewport, TParent> {
-    public:
-        using builder_type::Builder;
-
-    public:
-        virtual TDerived& withRectangle(const RectF& rectangle) = 0;
-        virtual TDerived& addScissor(const RectF& scissor) = 0;
     };
 
     /// <summary>
