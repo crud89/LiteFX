@@ -256,6 +256,12 @@ public:
 		if (result != VK_SUCCESS)
 			throw std::runtime_error(fmt::format("Unable to create render pipeline: {0}", result));
 
+		m_layout = std::move(layout);
+		m_inputAssembler = std::move(inputAssembler);
+		m_rasterizer = std::move(rasterizer);
+		m_viewports = std::move(v);
+		m_scissors = std::move(s);
+
 		return pipeline;
 	}
 };
@@ -335,15 +341,109 @@ Array<const IScissor*> VulkanRenderPipeline::getScissors() const noexcept
 }
 
 // ------------------------------------------------------------------------------------------------
+// Builder implementation.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl : public Implement<VulkanRenderPipelineBuilder> {
+public:
+	friend class VulkanRenderPipelineBuilderBuilder;
+	friend class VulkanRenderPipelineBuilder;
+
+private:
+	UniquePtr<IRenderPipelineLayout> m_layout;
+	UniquePtr<IInputAssembler> m_inputAssembler;
+	UniquePtr<IRasterizer> m_rasterizer;
+	Array<SharedPtr<IViewport>> m_viewports;
+	Array<SharedPtr<IScissor>> m_scissors;
+
+public:
+	VulkanRenderPipelineBuilderImpl(VulkanRenderPipelineBuilder* parent) :
+		base(parent)
+	{
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout>&& layout)
+VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(VulkanRenderPassBuilder& parent, UniquePtr<VulkanRenderPipeline>&& instance) :
+	RenderPipelineBuilder(parent, std::move(instance)), m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this))
 {
-	this->instance()->setLayout(std::move(layout));
 }
 
-VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::defineLayout()
+VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
+
+VulkanRenderPassBuilder& VulkanRenderPipelineBuilder::go()
+{
+	this->instance()->initialize(std::move(m_impl->m_layout), std::move(m_impl->m_inputAssembler), std::move(m_impl->m_rasterizer), std::move(m_impl->m_viewports), std::move(m_impl->m_scissors));
+
+	return RenderPipelineBuilder::go();
+}
+
+void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout>&& layout)
+{
+#ifndef NDEBUG
+	if (m_impl->m_layout != nullptr)
+		LITEFX_WARNING(VULKAN_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
+#endif
+
+	m_impl->m_layout = std::move(layout);
+}
+
+void VulkanRenderPipelineBuilder::use(UniquePtr<IRasterizer>&& rasterizer)
+{
+#ifndef NDEBUG
+	if (m_impl->m_rasterizer != nullptr)
+		LITEFX_WARNING(VULKAN_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
+#endif
+
+	m_impl->m_rasterizer = std::move(rasterizer);
+}
+
+void VulkanRenderPipelineBuilder::use(UniquePtr<IInputAssembler>&& inputAssembler)
+{
+#ifndef NDEBUG
+	if (m_impl->m_inputAssembler != nullptr)
+		LITEFX_WARNING(VULKAN_LOG, "Another input assembler has already been initialized and will be replaced. A pipeline can only have one input assembler.");
+#endif
+
+	m_impl->m_inputAssembler = std::move(inputAssembler);
+}
+
+void VulkanRenderPipelineBuilder::use(SharedPtr<IViewport> viewport)
+{
+	m_impl->m_viewports.push_back(viewport);
+}
+
+void VulkanRenderPipelineBuilder::use(SharedPtr<IScissor> scissor)
+{
+	m_impl->m_scissors.push_back(scissor);
+}
+
+VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::layout()
 {
 	return this->make<VulkanRenderPipelineLayout>();
+}
+
+VulkanRasterizerBuilder VulkanRenderPipelineBuilder::rasterizer()
+{
+	return this->make<VulkanRasterizer>();
+}
+
+VulkanInputAssemblerBuilder VulkanRenderPipelineBuilder::inputAssembler()
+{
+	return this->make<VulkanInputAssembler>();
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::addViewport(SharedPtr<IViewport> viewport)
+{
+	this->use(std::move(viewport));
+	return *this;
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::addScissor(SharedPtr<IScissor> scissor)
+{
+	this->use(std::move(scissor));
+	return *this;
 }

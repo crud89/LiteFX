@@ -43,9 +43,6 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutBuilderImpl);
 
 	public:
-		using RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder>::RenderPipelineLayoutBuilder;
-
-	public:
 		VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineBuilder& parent, UniquePtr<VulkanRenderPipelineLayout>&& instance);
 		VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineLayoutBuilder&&) = delete;
 		VulkanRenderPipelineLayoutBuilder(const VulkanRenderPipelineLayoutBuilder&) = delete;
@@ -105,18 +102,28 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline, VulkanRenderPassBuilder> {
-	public:
-		using RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline, VulkanRenderPassBuilder>::RenderPipelineBuilder;
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineBuilderImpl);
 
 	public:
-		virtual VulkanRenderPipelineLayoutBuilder defineLayout();
+		VulkanRenderPipelineBuilder(VulkanRenderPassBuilder& parent, UniquePtr<VulkanRenderPipeline>&& instance);
+		VulkanRenderPipelineBuilder(VulkanRenderPipelineBuilder&&) = delete;
+		VulkanRenderPipelineBuilder(const VulkanRenderPipelineBuilder&) = delete;
+		virtual ~VulkanRenderPipelineBuilder() noexcept;
 
 	public:
+		virtual VulkanRenderPipelineLayoutBuilder layout();
+		virtual VulkanRasterizerBuilder rasterizer();
+		virtual VulkanInputAssemblerBuilder inputAssembler();
+		virtual VulkanRenderPipelineBuilder& addViewport(SharedPtr<IViewport> viewport);
+		virtual VulkanRenderPipelineBuilder& addScissor(SharedPtr<IScissor> scissor);
+
+	public:
+		virtual VulkanRenderPassBuilder& go() override;
 		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
 		virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
 		virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
-		virtual void use(SharedPtr<IViewport>&& viewport) override;
-		virtual void use(SharedPtr<IScissor>&& scissor) override;
+		virtual void use(SharedPtr<IViewport> viewport) override;
+		virtual void use(SharedPtr<IScissor> scissor) override;
 	};
 
 	/// <summary>

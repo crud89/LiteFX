@@ -981,8 +981,8 @@ namespace LiteFX::Rendering {
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
         virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
         virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
-        virtual void use(SharedPtr<IViewport>&& viewport) = 0;
-        virtual void use(SharedPtr<IScissor>&& scissor) = 0;
+        virtual void use(SharedPtr<IViewport> viewport) = 0;
+        virtual void use(SharedPtr<IScissor> scissor) = 0;
     };
 
     /// <summary>

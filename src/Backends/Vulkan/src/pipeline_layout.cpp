@@ -140,7 +140,8 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineLayoutBuilder::go()
 void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& program)
 {
 #ifndef NDEBUG
-    LITEFX_WARNING(VULKAN_LOG, "Another shader program has already been initialized and will be replaced. A pipeline layout can only have one shader program.");
+    if (m_impl->m_shaderProgram != nullptr)
+        LITEFX_WARNING(VULKAN_LOG, "Another shader program has already been initialized and will be replaced. A pipeline layout can only have one shader program.");
 #endif
 
     m_impl->m_shaderProgram = std::move(program);
