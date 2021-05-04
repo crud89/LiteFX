@@ -706,7 +706,8 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
-        virtual IRenderPipelineLayout* getLayout() noexcept = 0;
+        virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
+        virtual const IRasterizer* getRasterizer() const noexcept = 0;
         virtual Array<const Viewport*> getViewports() const noexcept = 0;
         virtual Array<const Scissor*> getScissors() const noexcept = 0;
     };
@@ -714,26 +715,16 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPipelineLayout {
+    class LITEFX_RENDERING_API IRenderPipelineLayout : public IRequiresInitialization {
     public:
         virtual ~IRenderPipelineLayout() noexcept = default;
 
     public:
-        virtual Array<IViewport*> getViewports() const noexcept = 0;
-        virtual IRasterizer* getRasterizer() const noexcept = 0;
-        virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept = 0;
-        virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
-        virtual const IShaderProgram* getProgram() const noexcept = 0;
-        virtual bool getDepthTest() const noexcept = 0;
-        virtual void setDepthTest(const bool& enable) = 0;
-        virtual bool getStencilTest() const noexcept = 0;
-        virtual void setStencilTest(const bool& enable) = 0;
+        virtual void initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts) = 0;
 
     public:
-        virtual void use(UniquePtr<IViewport>&& viewport) = 0;
-        virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
-        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
-        virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
+        virtual const IShaderProgram* getProgram() const noexcept = 0;
+        virtual Array<const IDescriptorSetLayout*> getDescriptorSetLayouts() const noexcept = 0;
     };
 
     /// <summary>
@@ -958,27 +949,6 @@ namespace LiteFX::Rendering {
     public:
         virtual RectF getRectangle() const noexcept override;
         virtual void setRectangle(const RectF& rectangle) noexcept override;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_RENDERING_API RenderPipelineLayout : public IRenderPipelineLayout {
-        LITEFX_IMPLEMENTATION(RenderPipelineLayoutImpl);
-
-    public:
-        RenderPipelineLayout();
-        RenderPipelineLayout(RenderPipelineLayout&&) = delete;
-        RenderPipelineLayout(const RenderPipelineLayout&) = delete;
-        virtual ~RenderPipelineLayout() noexcept;
-
-    public:
-        virtual const IShaderProgram* getProgram() const noexcept override;
-        virtual Array<const IDescriptorSetLayout*> getLayouts() const noexcept = 0;
-        virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
-
-    public:
-        virtual void use(UniquePtr<IShaderProgram>&& program) override;
     };
 
     /// <summary>

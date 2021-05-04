@@ -10,6 +10,11 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX;
 	using namespace LiteFX::Math;
 
+	class LITEFX_RENDERING_API IRequiresInitialization {
+	public:
+		virtual bool isInitialized() const noexcept = 0;
+	};
+
 	class LITEFX_RENDERING_API ICommandBuffer {
 	public:
 		virtual ~ICommandBuffer() noexcept = default;
