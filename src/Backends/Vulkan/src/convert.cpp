@@ -730,7 +730,7 @@ PrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const VkPrim
 	switch (topology)
 	{
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-		return PrimitiveTopology::TriangleList;
+		return PrimitiveTopology::LineList;
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
 		return PrimitiveTopology::LineStrip;
 	case VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
