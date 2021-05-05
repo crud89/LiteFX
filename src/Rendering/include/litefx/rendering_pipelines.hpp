@@ -15,7 +15,7 @@ namespace LiteFX::Rendering {
 
     public:
         BufferAttribute();
-        BufferAttribute(const UInt32& location, const UInt32& offset, const BufferFormat& format);
+        BufferAttribute(const UInt32& location, const UInt32& offset, const BufferFormat& format, const AttributeSemantic& semantic, const UInt32& semanticIndex = 0);
         BufferAttribute(BufferAttribute&&) noexcept;
         BufferAttribute(const BufferAttribute&);
         virtual ~BufferAttribute() noexcept;
@@ -24,6 +24,8 @@ namespace LiteFX::Rendering {
         virtual const UInt32& getLocation() const noexcept;
         virtual const BufferFormat& getFormat() const noexcept;
         virtual const UInt32& getOffset() const noexcept;
+        virtual const AttributeSemantic& getSemantic() const noexcept;
+        virtual const UInt32& getSemanticIndex() const noexcept;
     };
 
     /// <summary>
@@ -788,6 +790,15 @@ namespace LiteFX::Rendering {
         virtual void setCullMode(const CullMode& mode) noexcept = 0;
         virtual CullOrder getCullOrder() const noexcept = 0;
         virtual void setCullOrder(const CullOrder& order) noexcept = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// Note that line width is not supported in DirectX and is only emulated under Vulkan. Instead of forcing this value, it is recommended to 
+        /// use a custom shader for it.
+        /// </remarks>
+        /// <returns></returns>
         virtual Float getLineWidth() const noexcept = 0;
         virtual void setLineWidth(const Float& width) noexcept = 0;
         virtual bool getDepthBiasEnabled() const noexcept = 0;

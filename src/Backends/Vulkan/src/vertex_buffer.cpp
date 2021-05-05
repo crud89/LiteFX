@@ -71,12 +71,12 @@ VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(U
     return *this;
 }
 
-VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(const BufferFormat& format, const UInt32& offset)
+VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
 {
-    return this->addAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->getAttributes().size()), offset, format)));
+    return this->addAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->getAttributes().size()), offset, format, semantic, semanticIndex)));
 }
 
-VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset)
+VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
 {
-    return this->addAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format)));
+    return this->addAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
 }

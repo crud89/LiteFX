@@ -277,6 +277,20 @@ namespace LiteFX::Rendering {
 		XYZW32U = 0x20000404
 	};
 
+	enum class LITEFX_RENDERING_API AttributeSemantic {
+		Binormal = 0x00000001,
+		BlendIndices = 0x00000002,
+		BlendWeight = 0x00000003,
+		Color = 0x00000004,
+		Normal = 0x00000005,
+		Position = 0x00000006,
+		TransformedPosition = 0x00000007,
+		PointSize = 0x00000008,
+		Tangent = 0x00000009,
+		TextureCoordinate = 0x0000000A,
+		Unknown = 0x7FFFFFFF
+	};
+
 	enum class LITEFX_RENDERING_API DescriptorType {
 		Uniform         = 0x00000001,
 		Storage         = 0x00000002,

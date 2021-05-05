@@ -521,3 +521,28 @@ struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::BorderMode> : form
 		return formatter<string_view>::format(name, ctx);
 	}
 };
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<LiteFX::Rendering::AttributeSemantic> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(LiteFX::Rendering::AttributeSemantic t, FormatContext& ctx) {
+		string_view name;
+
+		switch (t)
+		{
+		case LiteFX::Rendering::AttributeSemantic::Binormal: name = "Binormal"; break;
+		case LiteFX::Rendering::AttributeSemantic::BlendIndices: name = "BlendIndices"; break;
+		case LiteFX::Rendering::AttributeSemantic::BlendWeight: name = "BlendWeight"; break;
+		case LiteFX::Rendering::AttributeSemantic::Color: name = "Color"; break;
+		case LiteFX::Rendering::AttributeSemantic::Normal: name = "Normal"; break;
+		case LiteFX::Rendering::AttributeSemantic::Position: name = "Position"; break;
+		case LiteFX::Rendering::AttributeSemantic::TransformedPosition: name = "TransformedPosition"; break;
+		case LiteFX::Rendering::AttributeSemantic::PointSize: name = "PointSize"; break;
+		case LiteFX::Rendering::AttributeSemantic::Tangent: name = "Tangent"; break;
+		case LiteFX::Rendering::AttributeSemantic::TextureCoordinate: name = "TextureCoordinate"; break;
+		default: name = "Unknown"; break;
+		}
+
+		return formatter<string_view>::format(name, ctx);
+	}
+};
