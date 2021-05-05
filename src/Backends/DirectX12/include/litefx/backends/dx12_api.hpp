@@ -90,6 +90,11 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     D3D12_PRIMITIVE_TOPOLOGY_TYPE LITEFX_DIRECTX12_API getPrimitiveTopologyType(const PrimitiveTopology& topology);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    LPCTSTR LITEFX_DIRECTX12_API getSemanticName(const AttributeSemantic& semantic);
+
     template <class THandle>
     using IComResource = IResource<ComPtr<THandle>>;
 

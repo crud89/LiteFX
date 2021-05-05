@@ -27,7 +27,7 @@ BufferAttribute::BufferAttribute(const UInt32& location, const UInt32& offset, c
 }
 
 BufferAttribute::BufferAttribute(const BufferAttribute& _other) :
-    m_impl(makePimpl<BufferAttributeImpl>(this, _other.getLocation(), _other.getOffset(), _other.getFormat()))
+    m_impl(makePimpl<BufferAttributeImpl>(this, _other.getLocation(), _other.getOffset(), _other.getFormat(), _other.getSemantic(), _other.getSemanticIndex()))
 {
 }
 

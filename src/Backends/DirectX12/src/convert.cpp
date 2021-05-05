@@ -455,3 +455,32 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::getPrimitiveTopologyT
 		throw std::invalid_argument("Unsupported primitive topology.");
 	}
 }
+
+LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getSemanticName(const AttributeSemantic& semantic)
+{
+	switch (semantic)
+	{
+	case LiteFX::Rendering::AttributeSemantic::Binormal: 
+		return "BINORMAL";
+	case LiteFX::Rendering::AttributeSemantic::BlendIndices: 
+		return "BLENDINDICES";
+	case LiteFX::Rendering::AttributeSemantic::BlendWeight: 
+		return "BLENDWEIGHT";
+	case LiteFX::Rendering::AttributeSemantic::Color: 
+		return "COLOR";
+	case LiteFX::Rendering::AttributeSemantic::Normal: 
+		return "NORMAL";
+	case LiteFX::Rendering::AttributeSemantic::Position: 
+		return "POSITION";
+	case LiteFX::Rendering::AttributeSemantic::TransformedPosition: 
+		return "POSITIONT";
+	case LiteFX::Rendering::AttributeSemantic::PointSize: 
+		return "PSIZE";
+	case LiteFX::Rendering::AttributeSemantic::Tangent: 
+		return "TANGENT";
+	case LiteFX::Rendering::AttributeSemantic::TextureCoordinate: 
+		return "TEXCOORD";
+	default:
+		throw InvalidArgumentException("Unsupported semantic {0}.", static_cast<UInt32>(semantic));
+	}
+}

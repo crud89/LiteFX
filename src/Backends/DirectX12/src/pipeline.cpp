@@ -39,11 +39,62 @@ public:
 		if (layout == nullptr)
 			throw InvalidArgumentException("The layout of the render pipeline is not a valid DirectX12 render pipeline layout.");
 
+		// Setup rasterizer state.
+		D3D12_RASTERIZER_DESC rasterizerState = {};
+		rasterizerState.DepthClipEnable = FALSE;
+		rasterizerState.FillMode = getPolygonMode(rasterizer->getPolygonMode());
+		rasterizerState.CullMode = getCullMode(rasterizer->getCullMode());
+		rasterizerState.FrontCounterClockwise = rasterizer->getCullOrder() == CullOrder::CounterClockWise;
+
+		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer->getPolygonMode(), rasterizer->getCullMode(), rasterizer->getCullOrder(), rasterizer->getLineWidth());
+
+		if (!rasterizer->getDepthBiasEnabled())
+			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias disabled.");
+		else
+		{
+			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer->getDepthBiasClamp(), rasterizer->getDepthBiasConstantFactor(), rasterizer->getDepthBiasSlopeFactor());
+			rasterizerState.DepthBiasClamp = rasterizer->getDepthBiasClamp();
+			rasterizerState.DepthBias = static_cast<Int32>(rasterizer->getDepthBiasConstantFactor());
+			rasterizerState.SlopeScaledDepthBias = rasterizer->getDepthBiasSlopeFactor();
+		}
+
+		// Setup input assembler state.
+		LITEFX_TRACE(DIRECTX12_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", inputAssembler->getTopology());
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = getPrimitiveTopologyType(inputAssembler->getTopology());
+
+		Array<D3D12_INPUT_ELEMENT_DESC> inputLayoutElements;
+		auto vertexLayouts = inputAssembler->getVertexBufferLayouts();
+
+		std::for_each(std::begin(vertexLayouts), std::end(vertexLayouts), [&, l = 0](const IVertexBufferLayout* layout) mutable {
+			auto bufferAttributes = layout->getAttributes();
+			auto bindingPoint = layout->getBinding();
+
+			LITEFX_TRACE(DIRECTX12_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->getElementSize(), bindingPoint);
+
+			std::for_each(std::begin(bufferAttributes), std::end(bufferAttributes), [&](const auto& attribute) {
+				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {};
+				elementDescriptor.SemanticName = getSemanticName(attribute->getSemantic());
+				elementDescriptor.SemanticIndex = attribute->getSemanticIndex();
+				elementDescriptor.Format = getFormat(attribute->getFormat());
+				elementDescriptor.InputSlot = bindingPoint;
+				elementDescriptor.InputSlotClass = D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+				elementDescriptor.AlignedByteOffset = attribute->getOffset();	// TODO: May not include packing, but packing is required - need to test this!
+				elementDescriptor.InstanceDataStepRate = 0;
+
+				inputLayoutElements.push_back(elementDescriptor);
+			});
+		});
+
+		D3D12_INPUT_LAYOUT_DESC inputLayout = {};
+		inputLayout.pInputElementDescs = inputLayoutElements.data();
+		inputLayout.NumElements = static_cast<UInt32>(inputLayoutElements.size());
+
 		// Create a pipeline state description.
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
+		pipelineStateDescription.RasterizerState = rasterizerState;
+		pipelineStateDescription.PrimitiveTopologyType = topologyType;
+		pipelineStateDescription.InputLayout = inputLayout;
 		pipelineStateDescription.pRootSignature = layout->handle().Get();
-		//pipelineStateDescription.
-		throw;
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
