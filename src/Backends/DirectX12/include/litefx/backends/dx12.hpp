@@ -264,6 +264,18 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12RenderPipelineLayout(DirectX12RenderPipelineLayout&&) noexcept = delete;
 		DirectX12RenderPipelineLayout(const DirectX12RenderPipelineLayout&) noexcept = delete;
 		virtual ~DirectX12RenderPipelineLayout() noexcept;
+
+		// IRequiresInitialization
+	public:
+		virtual bool isInitialized() const noexcept override;
+
+		// IRenderPipelineLayout
+	public:
+		virtual void initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts) override;
+
+	public:
+		virtual const IShaderProgram* getProgram() const noexcept override;
+		virtual Array<const IDescriptorSetLayout*> getDescriptorSetLayouts() const noexcept override;
 	};
 
 	/// <summary>

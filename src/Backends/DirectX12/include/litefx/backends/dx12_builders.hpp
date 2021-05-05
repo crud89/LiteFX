@@ -75,11 +75,17 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12RenderPipelineLayout, DirectX12RenderPipelineBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutBuilderImpl);
+
 	public:
-		using RenderPipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12RenderPipelineLayout, DirectX12RenderPipelineBuilder>::RenderPipelineLayoutBuilder;
+		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent, UniquePtr<DirectX12RenderPipelineLayout>&& instance);
+		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineLayoutBuilder&&) = delete;
+		DirectX12RenderPipelineLayoutBuilder(const DirectX12RenderPipelineLayoutBuilder&) = delete;
+		virtual ~DirectX12RenderPipelineLayoutBuilder() noexcept;
 
 	public:
 		//virtual DirectX12ShaderProgramBuilder shaderProgram();
+		//virtual DirectX12DescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
 
 	public:
 		virtual DirectX12RenderPipelineBuilder& go() override;
