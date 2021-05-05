@@ -55,6 +55,41 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const BufferFormat& format);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    PolygonMode LITEFX_DIRECTX12_API getPolygonMode(const D3D12_FILL_MODE& mode);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    D3D12_FILL_MODE LITEFX_DIRECTX12_API getPolygonMode(const PolygonMode& mode);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    CullMode LITEFX_DIRECTX12_API getCullMode(const D3D12_CULL_MODE& mode);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    D3D12_CULL_MODE LITEFX_DIRECTX12_API getCullMode(const CullMode& mode);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    PrimitiveTopology LITEFX_DIRECTX12_API getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    D3D12_PRIMITIVE_TOPOLOGY LITEFX_DIRECTX12_API getPrimitiveTopology(const PrimitiveTopology& topology);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    D3D12_PRIMITIVE_TOPOLOGY_TYPE LITEFX_DIRECTX12_API getPrimitiveTopologyType(const PrimitiveTopology& topology);
+
     template <class THandle>
     using IComResource = IResource<ComPtr<THandle>>;
 

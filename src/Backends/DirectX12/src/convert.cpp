@@ -344,3 +344,114 @@ DXGI_FORMAT LiteFX::Rendering::Backends::getFormat(const BufferFormat& format)
 		throw InvalidArgumentException("Unsupported format: {0}.", format);
 	}
 }
+
+PolygonMode LiteFX::Rendering::Backends::getPolygonMode(const D3D12_FILL_MODE& mode)
+{
+	switch (mode)
+	{
+	case D3D12_FILL_MODE::D3D12_FILL_MODE_WIREFRAME:
+		return PolygonMode::Wireframe;
+	case D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID:
+		return PolygonMode::Solid;
+	default:
+		throw std::invalid_argument("Unsupported polygon mode.");
+	}
+}
+
+D3D12_FILL_MODE LiteFX::Rendering::Backends::getPolygonMode(const PolygonMode& mode)
+{
+	switch (mode)
+	{
+	case PolygonMode::Solid:
+		return D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
+	case PolygonMode::Wireframe:
+		return D3D12_FILL_MODE::D3D12_FILL_MODE_WIREFRAME;
+	default:
+		throw std::invalid_argument("Unsupported polygon mode.");
+	}
+}
+
+CullMode LiteFX::Rendering::Backends::getCullMode(const D3D12_CULL_MODE& mode)
+{
+	switch (mode)
+	{
+	case D3D12_CULL_MODE::D3D12_CULL_MODE_BACK:
+		return CullMode::BackFaces;
+	case D3D12_CULL_MODE::D3D12_CULL_MODE_FRONT:
+		return CullMode::FrontFaces;
+	case D3D12_CULL_MODE::D3D12_CULL_MODE_NONE:
+		return CullMode::Disabled;
+	default:
+		throw std::invalid_argument("Unsupported cull mode.");
+	}
+}
+
+D3D12_CULL_MODE LiteFX::Rendering::Backends::getCullMode(const CullMode& mode)
+{
+	switch (mode)
+	{
+	case CullMode::BackFaces:
+		return D3D12_CULL_MODE::D3D12_CULL_MODE_BACK;
+	case CullMode::FrontFaces:
+		return D3D12_CULL_MODE::D3D12_CULL_MODE_FRONT;
+	case CullMode::Disabled:
+		return D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;
+	default:
+		throw std::invalid_argument("Unsupported cull mode.");
+	}
+}
+
+PrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology)
+{
+	switch (topology)
+	{
+	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_LINESTRIP:
+		return PrimitiveTopology::LineStrip;
+	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_LINELIST:
+		return PrimitiveTopology::LineStrip;
+	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST:
+		return PrimitiveTopology::TriangleList;
+	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP:
+		return PrimitiveTopology::TriangleStrip;
+	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_POINTLIST:
+		return PrimitiveTopology::PointList;
+	default:
+		throw std::invalid_argument("Unsupported primitive topology.");
+	}
+}
+
+D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::getPrimitiveTopology(const PrimitiveTopology& topology)
+{
+	switch (topology)
+	{
+	case PrimitiveTopology::LineList:
+		return D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+	case PrimitiveTopology::LineStrip:
+		return D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+	case PrimitiveTopology::PointList:
+		return D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+	case PrimitiveTopology::TriangleList:
+		return D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	case PrimitiveTopology::TriangleStrip:
+		return D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+	default:
+		throw std::invalid_argument("Unsupported primitive topology.");
+	}
+}
+
+D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::getPrimitiveTopologyType(const PrimitiveTopology& topology)
+{
+	switch (topology)
+	{
+	case PrimitiveTopology::PointList:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	case PrimitiveTopology::LineList:
+	case PrimitiveTopology::LineStrip:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	case PrimitiveTopology::TriangleList:
+	case PrimitiveTopology::TriangleStrip:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	default:
+		throw std::invalid_argument("Unsupported primitive topology.");
+	}
+}
