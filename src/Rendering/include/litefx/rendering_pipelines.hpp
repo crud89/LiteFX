@@ -710,6 +710,14 @@ namespace LiteFX::Rendering {
         virtual const IRasterizer* getRasterizer() const noexcept = 0;
         virtual Array<const IViewport*> getViewports() const noexcept = 0;
         virtual Array<const IScissor*> getScissors() const noexcept = 0;
+
+    public:
+        virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
+        virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
+        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
+        virtual void bind(const IVertexBuffer* buffer) const = 0;
+        virtual void bind(const IIndexBuffer* buffer) const = 0;
+        virtual void bind(const IDescriptorSet* buffer) const = 0;
     };
 
     /// <summary>
@@ -850,14 +858,6 @@ namespace LiteFX::Rendering {
         virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
         virtual const IImage* getAttachment(const UInt32& attachmentId) const = 0;
-
-    public:
-        virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
-        virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
-        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
-        virtual void bind(const IVertexBuffer* buffer) const = 0;
-        virtual void bind(const IIndexBuffer* buffer) const = 0;
-        virtual void bind(IDescriptorSet* buffer) const = 0;
     };
 
     /// <summary>

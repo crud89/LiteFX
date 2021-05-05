@@ -342,6 +342,60 @@ Array<const IScissor*> VulkanRenderPipeline::getScissors() const noexcept
 	return scissors;
 }
 
+void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
+{
+	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
+	auto commandBuffer = m_impl->m_renderPass.getVkCommandBuffer();
+
+	if (resource == nullptr)
+		throw std::invalid_argument("The provided vertex buffer is not a valid Vulkan buffer.");
+
+	// Depending on the type, bind the buffer accordingly.
+	constexpr VkDeviceSize offsets[] = { 0 };
+
+	::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &resource->handle(), offsets);
+}
+
+void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
+{
+	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
+	auto commandBuffer = m_impl->m_renderPass.getVkCommandBuffer();
+
+	if (resource == nullptr)
+		throw std::invalid_argument("The provided index buffer is not a valid Vulkan buffer.");
+
+	::vkCmdBindIndexBuffer(commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+}
+
+void VulkanRenderPipeline::bind(const IDescriptorSet* descriptorSet) const
+{
+	if (descriptorSet == nullptr)
+		throw std::invalid_argument("The descriptor set must be initialized.");
+
+	descriptorSet->bind(this);
+}
+
+UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
+{
+	return this->getDevice()->createVertexBuffer(m_impl->m_inputAssembler->getVertexBufferLayout(binding), usage, elements);
+}
+
+UniquePtr<IIndexBuffer> VulkanRenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
+{
+	return this->getDevice()->createIndexBuffer(m_impl->m_inputAssembler->getIndexBufferLayout(), usage, elements);
+}
+
+UniquePtr<IDescriptorSet> VulkanRenderPipeline::makeBufferPool(const UInt32& setId) const
+{
+	auto layouts = m_impl->m_layout->getDescriptorSetLayouts();
+	auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) { return layout->getSetId() == setId; });
+
+	if (match == layouts.end())
+		throw std::invalid_argument("The requested buffer set is not defined.");
+
+	return (*match)->createBufferPool();
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
