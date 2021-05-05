@@ -252,6 +252,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
+		virtual const VulkanCommandBuffer* getVkCommandBuffer() const noexcept;
 
 	public:
 		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;

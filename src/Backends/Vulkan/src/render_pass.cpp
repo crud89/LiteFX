@@ -417,6 +417,11 @@ const ICommandBuffer* VulkanRenderPass::getCommandBuffer() const noexcept
     return m_impl->getCurrentCommandBuffer();
 }
 
+const VulkanCommandBuffer* VulkanRenderPass::getVkCommandBuffer() const noexcept
+{
+    return m_impl->getCurrentCommandBuffer();
+}
+
 void VulkanRenderPass::addTarget(UniquePtr<IRenderTarget>&& target)
 {
     m_impl->addTarget(std::move(target));
