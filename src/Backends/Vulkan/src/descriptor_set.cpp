@@ -91,6 +91,14 @@ VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
     ::vkDestroyDescriptorPool(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
+const VkDescriptorSet VulkanDescriptorSet::getHandle(const UInt32& backBuffer) const
+{
+    if (static_cast<size_t>(backBuffer) >= m_impl->m_descriptorSets.size())
+        throw ArgumentOutOfRangeException("The back buffer {0} is not valid for the descriptor set with {1} back buffers.", backBuffer, m_impl->m_descriptorSets.size());
+
+    return m_impl->m_descriptorSets[backBuffer];
+}
+
 const IDescriptorSetLayout* VulkanDescriptorSet::getDescriptorSetLayout() const noexcept
 {
     return m_impl->m_layout;
@@ -312,19 +320,4 @@ void VulkanDescriptorSet::attach(const UInt32& binding, const IImage* image) con
     descriptorWrite.pImageInfo = &imageInfo;
 
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
-}
-
-void VulkanDescriptorSet::bind(const IRenderPass* renderPass)
-{
-    if (renderPass == nullptr)
-        throw std::invalid_argument("The render pass must be initialized.");
-
-    auto commandBuffer = dynamic_cast<const IResource<VkCommandBuffer>*>(renderPass->getCommandBuffer());
-    auto pipelineLayout = dynamic_cast<const IResource<VkPipelineLayout>*>(renderPass->getPipeline()->getLayout());
-
-    VkDescriptorSet descriptorSets[] = { m_impl->m_descriptorSets[m_impl->m_currentSet] };
-    m_impl->m_currentSet = (m_impl->m_currentSet + 1) % static_cast<UInt32>(m_impl->m_descriptorSets.size());
-
-    // TODO: Synchronize with possible update calls on this command buffer, first.
-    ::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), m_impl->m_layout->getSetId(), 1, descriptorSets, 0, nullptr);
 }

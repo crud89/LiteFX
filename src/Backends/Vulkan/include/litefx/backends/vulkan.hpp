@@ -21,6 +21,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDescriptorSet() noexcept;
 
 	public:
+		// TODO: Find a way to abstract this.
+		virtual const VkDescriptorSet getHandle(const UInt32& backBuffer) const;
+
+	public:
 		virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept override;
 		virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept override;
 		virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept override;
@@ -49,9 +53,6 @@ namespace LiteFX::Rendering::Backends {
 		
 		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IImage* image) const override;
-		
-		/// <inheritdoc />
-		virtual void bind(const IRenderPass* renderPass) override;
 	};
 
 	/// <summary>

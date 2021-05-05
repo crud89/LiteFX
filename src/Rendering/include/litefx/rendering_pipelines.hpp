@@ -667,12 +667,6 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The input attachment binding point.</param>
         /// <param name="image">The image to bind to the input attachment descriptor.</param>
         virtual void attach(const UInt32& binding, const IImage* image) const = 0;
-
-        /// <summary>
-        /// Binds the descriptor set to a render pass.
-        /// </summary>
-        /// <param name="renderPass">The render pass to bind the descriptor set to.</param>
-        virtual void bind(const IRenderPass* renderPass) = 0;
     };
 
     /// <summary>

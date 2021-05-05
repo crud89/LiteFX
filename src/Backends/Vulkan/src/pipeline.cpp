@@ -14,6 +14,7 @@ public:
 
 private:
 	const VulkanRenderPass& m_renderPass;
+	const VulkanRenderPipelineLayout* m_vkLayout;
 	UniquePtr<IRenderPipelineLayout> m_layout;
 	UniquePtr<IInputAssembler> m_inputAssembler;
 	UniquePtr<IRasterizer> m_rasterizer;
@@ -259,6 +260,7 @@ public:
 			throw std::runtime_error(fmt::format("Unable to create render pipeline: {0}", result));
 
 		m_layout = std::move(layout);
+		m_vkLayout = pipelineLayout;
 		m_inputAssembler = std::move(inputAssembler);
 		m_rasterizer = std::move(rasterizer);
 		m_viewports = std::move(v);
@@ -369,10 +371,16 @@ void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
 
 void VulkanRenderPipeline::bind(const IDescriptorSet* descriptorSet) const
 {
-	if (descriptorSet == nullptr)
-		throw std::invalid_argument("The descriptor set must be initialized.");
+	auto resource = dynamic_cast<const VulkanDescriptorSet*>(descriptorSet);
+	auto commandBuffer = m_impl->m_renderPass.getVkCommandBuffer();
 
-	descriptorSet->bind(this);
+	if (resource == nullptr)
+		throw std::invalid_argument("The provided descriptor set is not a valid Vulkan descriptor set.");
+
+	VkDescriptorSet descriptorSets[] = { resource->getHandle(m_impl->m_backBuffer) };
+
+	// TODO: Synchronize with possible update calls on this command buffer, first.
+	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_vkLayout->handle(), descriptorSet->getDescriptorSetLayout()->getSetId(), 1, descriptorSets, 0, nullptr);
 }
 
 UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
