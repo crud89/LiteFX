@@ -89,11 +89,19 @@ public:
 		inputLayout.pInputElementDescs = inputLayoutElements.data();
 		inputLayout.NumElements = static_cast<UInt32>(inputLayoutElements.size());
 
+		// Setup multisampling state.
+		// TODO: Abstract me!
+		//device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS);
+		DXGI_SAMPLE_DESC multisamplingState = {};
+		multisamplingState.Count = 1;
+		multisamplingState.Quality = 0;
+
 		// Create a pipeline state description.
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
 		pipelineStateDescription.RasterizerState = rasterizerState;
 		pipelineStateDescription.PrimitiveTopologyType = topologyType;
 		pipelineStateDescription.InputLayout = inputLayout;
+		pipelineStateDescription.SampleDesc = multisamplingState;
 		pipelineStateDescription.pRootSignature = layout->handle().Get();
 
 		// Create the pipeline state instance.
