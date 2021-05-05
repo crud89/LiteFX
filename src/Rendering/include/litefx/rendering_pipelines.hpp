@@ -916,7 +916,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(ViewportImpl);
 
     public:
-        Viewport(const RectF& clientRect = { });
+        Viewport(const RectF& clientRect = { }, const Float& minDepth = 0.f, const Float& maxDepth = 1.f);
         Viewport(Viewport&&) noexcept = delete;
         Viewport(const Viewport&) noexcept = delete;
         virtual ~Viewport() noexcept;
@@ -924,10 +924,10 @@ namespace LiteFX::Rendering {
     public:
         virtual RectF getRectangle() const noexcept override;
         virtual void setRectangle(const RectF& rectangle) noexcept override;
-        virtual float getMinDepth() const noexcept override;
-        virtual void setMinDepth(const float& depth) const noexcept override;
-        virtual float getMaxDepth() const noexcept override;
-        virtual void setMaxDepth(const float& depth) const noexcept override;
+        virtual Float getMinDepth() const noexcept override;
+        virtual void setMinDepth(const Float& depth) const noexcept override;
+        virtual Float getMaxDepth() const noexcept override;
+        virtual void setMaxDepth(const Float& depth) const noexcept override;
     };
 
     /// <summary>

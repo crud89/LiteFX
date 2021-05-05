@@ -12,11 +12,11 @@ public:
 
 private:
     RectF m_clientRect;
-    float m_minDepth{ 0.f }, m_maxDepth{ 1.f };
+    Float m_minDepth{ 0.f }, m_maxDepth{ 1.f };
 
 public:
-    ViewportImpl(Viewport* parent, const RectF& clientRect) : 
-        base(parent), m_clientRect(clientRect) 
+    ViewportImpl(Viewport* parent, const RectF& clientRect, const Float& minDepth, const Float& maxDepth) :
+        base(parent), m_clientRect(clientRect), m_minDepth(minDepth), m_maxDepth(maxDepth)
     {
     }
 };
@@ -25,8 +25,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Viewport::Viewport(const RectF& rect) :
-    m_impl(makePimpl<ViewportImpl>(this, rect))
+Viewport::Viewport(const RectF& rect, const Float& minDepth, const Float& maxDepth) :
+    m_impl(makePimpl<ViewportImpl>(this, rect, minDepth, maxDepth))
 {
 }
 
@@ -42,22 +42,22 @@ void Viewport::setRectangle(const RectF& rectangle) noexcept
     m_impl->m_clientRect = rectangle;
 }
 
-float Viewport::getMinDepth() const noexcept
+Float Viewport::getMinDepth() const noexcept
 {
     return m_impl->m_minDepth;
 }
 
-void Viewport::setMinDepth(const float& depth) const noexcept
+void Viewport::setMinDepth(const Float& depth) const noexcept
 {
     m_impl->m_minDepth = depth;
 }
 
-float Viewport::getMaxDepth() const noexcept
+Float Viewport::getMaxDepth() const noexcept
 {
     return m_impl->m_maxDepth;
 }
 
-void Viewport::setMaxDepth(const float& depth) const noexcept
+void Viewport::setMaxDepth(const Float& depth) const noexcept
 {
     m_impl->m_maxDepth = depth;
 }
