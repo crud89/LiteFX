@@ -188,19 +188,6 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanViewport : public virtual VulkanRuntimeObject, public Viewport {
-		LITEFX_BUILDER(VulkanViewportBuilder);
-
-	public:
-		VulkanViewport(const VulkanRenderPipelineLayout& layout) noexcept;
-		VulkanViewport(VulkanViewport&&) noexcept = delete;
-		VulkanViewport(const VulkanViewport&) noexcept = delete;
-		virtual ~VulkanViewport() noexcept;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_VULKAN_API VulkanRasterizer : public virtual VulkanRuntimeObject, public Rasterizer {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
