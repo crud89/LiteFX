@@ -167,7 +167,7 @@ DirectX12InputAssemblerBuilder DirectX12RenderPipelineLayoutBuilder::setInputAss
     return this->make<DirectX12InputAssembler>();
 }
 
-//DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::setShaderProgram()
+//DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgram()
 //{
 //    return this->make<DirectX12ShaderProgram>();
 //}

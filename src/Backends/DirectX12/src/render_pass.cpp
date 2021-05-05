@@ -580,6 +580,7 @@ void DirectX12RenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
     //    throw std::invalid_argument("The pipeline must be initialized.");
 
     //this->instance()->m_impl->m_pipeline = std::move(pipeline);
+    throw;
 }
 
 DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::addPipeline(const UInt32& id, const String& name)

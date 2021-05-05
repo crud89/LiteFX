@@ -49,7 +49,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanRenderPipelineLayoutBuilder() noexcept;
 
 	public:
-		virtual VulkanShaderProgramBuilder setShaderProgram();
+		virtual VulkanShaderProgramBuilder shaderProgram();
 		virtual VulkanDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
 
 	public:

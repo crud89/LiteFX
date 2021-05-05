@@ -79,21 +79,14 @@ namespace LiteFX::Rendering::Backends {
 		using RenderPipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12RenderPipelineLayout, DirectX12RenderPipelineBuilder>::RenderPipelineLayoutBuilder;
 
 	public:
-		virtual DirectX12RasterizerBuilder setRasterizer();
-		virtual DirectX12InputAssemblerBuilder setInputAssembler();
-		//virtual DirectX12ShaderProgramBuilder setShaderProgram();
-		virtual DirectX12ViewportBuilder addViewport();
+		//virtual DirectX12ShaderProgramBuilder shaderProgram();
 
 	public:
 		virtual DirectX12RenderPipelineBuilder& go() override;
 
 	public:
-		virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
-		virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
-		virtual void use(UniquePtr<IViewport>&& viewport) override;
 		virtual void use(UniquePtr<IShaderProgram>&& program) override;
-		virtual DirectX12RenderPipelineLayoutBuilder& enableDepthTest(const bool& enable = false) override;
-		virtual DirectX12RenderPipelineLayoutBuilder& enableStencilTest(const bool& enable = false) override;
+		virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) override;
 	};
 
 	/// <summary>

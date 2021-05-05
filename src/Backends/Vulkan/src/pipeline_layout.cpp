@@ -153,7 +153,7 @@ void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IDescriptorSetLayout>&& la
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
 
-VulkanShaderProgramBuilder VulkanRenderPipelineLayoutBuilder::setShaderProgram()
+VulkanShaderProgramBuilder VulkanRenderPipelineLayoutBuilder::shaderProgram()
 {
     return this->make<VulkanShaderProgram>();
 }
