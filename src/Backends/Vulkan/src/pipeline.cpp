@@ -236,8 +236,8 @@ public:
 		m_vkLayout = pipelineLayout;
 		m_inputAssembler = std::move(inputAssembler);
 		m_rasterizer = std::move(rasterizer);
-		m_viewports = std::move(v);
-		m_scissors = std::move(s);
+		m_viewports = std::move(viewports);
+		m_scissors = std::move(scissors);
 
 		return pipeline;
 	}
