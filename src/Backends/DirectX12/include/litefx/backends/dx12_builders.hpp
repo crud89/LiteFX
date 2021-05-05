@@ -108,7 +108,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
 		virtual DirectX12RasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
 		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
-		virtual DirectX12RasterizerBuilder& withDepthBias(const bool& enable = false) override;
+		virtual DirectX12RasterizerBuilder& enableDepthBias(const bool& enable = false) override;
 		virtual DirectX12RasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
 		virtual DirectX12RasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
 		virtual DirectX12RasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
@@ -131,18 +131,6 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12ViewportBuilder : public ViewportBuilder<DirectX12ViewportBuilder, DirectX12Viewport, DirectX12RenderPipelineLayoutBuilder> {
-	public:
-		using ViewportBuilder<DirectX12ViewportBuilder, DirectX12Viewport, DirectX12RenderPipelineLayoutBuilder>::ViewportBuilder;
-
-	public:
-		virtual DirectX12ViewportBuilder& withRectangle(const RectF& rectangle) override;
-		virtual DirectX12ViewportBuilder& addScissor(const RectF& scissor) override;
 	};
 
 	/// <summary>

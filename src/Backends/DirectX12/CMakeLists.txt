@@ -32,7 +32,6 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/pipeline_layout.cpp"
     "src/rasterizer.cpp"
     "src/input_assembler.cpp"
-    "src/viewport.cpp"
     "src/vertex_buffer.cpp"
     "src/index_buffer.cpp"
 )
