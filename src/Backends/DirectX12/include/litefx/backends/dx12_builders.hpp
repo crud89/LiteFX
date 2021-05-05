@@ -61,14 +61,30 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline, DirectX12RenderPassBuilder> {
-	public:
-		using RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline, DirectX12RenderPassBuilder>::RenderPipelineBuilder;
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineBuilderImpl);
 
 	public:
-		virtual DirectX12RenderPipelineLayoutBuilder defineLayout();
+		DirectX12RenderPipelineBuilder(DirectX12RenderPassBuilder& parent, UniquePtr<DirectX12RenderPipeline>&& instance);
+		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
+		DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
+		virtual ~DirectX12RenderPipelineBuilder() noexcept;
 
 	public:
+		virtual DirectX12RenderPipelineLayoutBuilder layout();
+		virtual DirectX12RasterizerBuilder rasterizer();
+		virtual DirectX12InputAssemblerBuilder inputAssembler();
+		virtual DirectX12RenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
+		virtual DirectX12RenderPipelineBuilder& withInputAssembler(SharedPtr<IInputAssembler> inputAssembler);
+		virtual DirectX12RenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
+		virtual DirectX12RenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
+
+	public:
+		virtual DirectX12RenderPassBuilder& go() override;
 		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
+		virtual void use(SharedPtr<IRasterizer> rasterizer) override;
+		virtual void use(SharedPtr<IInputAssembler> inputAssembler) override;
+		virtual void use(SharedPtr<IViewport> viewport) override;
+		virtual void use(SharedPtr<IScissor> scissor) override;
 	};
 
 	/// <summary>
