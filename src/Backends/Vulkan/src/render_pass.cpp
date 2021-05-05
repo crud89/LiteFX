@@ -412,14 +412,19 @@ VulkanRenderPass::~VulkanRenderPass() noexcept
     m_impl->cleanup();
 }
 
+const VulkanCommandBuffer* VulkanRenderPass::getVkCommandBuffer() const noexcept
+{
+    return m_impl->getCurrentCommandBuffer();
+}
+
 const ICommandBuffer* VulkanRenderPass::getCommandBuffer() const noexcept
 {
     return m_impl->getCurrentCommandBuffer();
 }
 
-const VulkanCommandBuffer* VulkanRenderPass::getVkCommandBuffer() const noexcept
+const UInt32 VulkanRenderPass::getCurrentBackBuffer() const
 {
-    return m_impl->getCurrentCommandBuffer();
+    return m_impl->m_backBuffer;
 }
 
 void VulkanRenderPass::addTarget(UniquePtr<IRenderTarget>&& target)
@@ -440,7 +445,7 @@ UniquePtr<IRenderTarget> VulkanRenderPass::removeTarget(const IRenderTarget* tar
 Array<const IRenderPipeline*> VulkanRenderPass::getPipelines() const noexcept
 {
     Array<const IRenderPipeline*> pipelines(m_impl->m_pipelines.size());
-    std::generate(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&, i = 0]() mutable { return m_impl->m_pipelines[i++].get(); });
+    std::generate(std::begin(pipelines), std::end(pipelines), [&, i = 0]() mutable { return m_impl->m_pipelines[i++].get(); });
     
     return pipelines;
 }
@@ -540,12 +545,7 @@ void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
 
 void VulkanRenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
 {
-    if (pipeline == nullptr)
-        throw std::invalid_argument("The pipeline must be initialized.");
-
-    // TODO: Do not replace, but keep a list of pipelines!
-    // TODO: Add a `addPipeline` method and check if the ID is already present - if yes, throw an error.
-    this->instance()->m_impl->m_pipeline = std::move(pipeline);
+    this->instance()->addPipeline(std::move(pipeline));
 }
 
 VulkanRenderPipelineBuilder VulkanRenderPassBuilder::addPipeline(const UInt32& id, const String& name)

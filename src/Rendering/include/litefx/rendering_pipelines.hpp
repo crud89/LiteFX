@@ -712,6 +712,7 @@ namespace LiteFX::Rendering {
         virtual void bind(const IVertexBuffer* buffer) const = 0;
         virtual void bind(const IIndexBuffer* buffer) const = 0;
         virtual void bind(const IDescriptorSet* buffer) const = 0;
+        virtual void use() const = 0;
     };
 
     /// <summary>
@@ -836,8 +837,7 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const ICommandBuffer* getCommandBuffer() const noexcept = 0;
-
-    public:
+        virtual const UInt32 getCurrentBackBuffer() const = 0;
         virtual void addTarget(UniquePtr<IRenderTarget>&& target) = 0;
         virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
         virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;

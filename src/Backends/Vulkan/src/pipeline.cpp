@@ -377,10 +377,15 @@ void VulkanRenderPipeline::bind(const IDescriptorSet* descriptorSet) const
 	if (resource == nullptr)
 		throw std::invalid_argument("The provided descriptor set is not a valid Vulkan descriptor set.");
 
-	VkDescriptorSet descriptorSets[] = { resource->getHandle(m_impl->m_backBuffer) };
+	VkDescriptorSet descriptorSets[] = { resource->getHandle(m_impl->m_renderPass.getCurrentBackBuffer()) };
 
 	// TODO: Synchronize with possible update calls on this command buffer, first.
 	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_vkLayout->handle(), descriptorSet->getDescriptorSetLayout()->getSetId(), 1, descriptorSets, 0, nullptr);
+}
+
+void VulkanRenderPipeline::use() const
+{
+	::vkCmdBindPipeline(m_impl->m_renderPass.getVkCommandBuffer()->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
 }
 
 UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const

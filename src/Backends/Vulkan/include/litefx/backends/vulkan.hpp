@@ -252,10 +252,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanRenderPass() noexcept;
 
 	public:
-		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
 		virtual const VulkanCommandBuffer* getVkCommandBuffer() const noexcept;
 
 	public:
+		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
+		virtual const UInt32 getCurrentBackBuffer() const override;
 		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
 		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
 		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
@@ -317,6 +318,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void bind(const IVertexBuffer* buffer) const override;
 		virtual void bind(const IIndexBuffer* buffer) const override;
 		virtual void bind(const IDescriptorSet* buffer) const override;
+		virtual void use() const override;
 	};
 
 	/// <summary>
