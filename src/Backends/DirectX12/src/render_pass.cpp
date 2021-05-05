@@ -12,8 +12,8 @@ public:
     friend class DirectX12RenderPass;
 
 private:
+    Array<UniquePtr<IRenderPipeline>> m_pipelines;
     const DirectX12Device* m_device;
-    //UniquePtr<IRenderPipeline> m_pipeline;
     //const DirectX12SwapChain* m_swapChain{ nullptr };
     //const DirectX12Queue* m_queue{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
