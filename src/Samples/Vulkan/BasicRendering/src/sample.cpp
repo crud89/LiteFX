@@ -8,6 +8,11 @@ enum DescriptorSets : UInt32
     VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
 };
 
+enum Pipelines : UInt32
+{
+    Basic = 0                                           // Default render pipeline.
+};
+
 const Array<Vertex> vertices =
 {
     { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
@@ -36,35 +41,33 @@ void SampleApp::createRenderPasses()
 {
     m_renderPass = m_device->buildRenderPass()
         .attachTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
-        .addPipeline()
-            .defineLayout()
-                .setRasterizer()
-                    .withPolygonMode(PolygonMode::Solid)
-                    .withCullMode(CullMode::BackFaces)
-                    .withCullOrder(CullOrder::ClockWise)
-                    .withLineWidth(1.f)
-                    .go()
-                .setInputAssembler()
-                    .withTopology(PrimitiveTopology::TriangleList)
-                    .withIndexType(IndexType::UInt16)
-                    .addVertexBuffer(sizeof(Vertex), 0)
-                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                        .go()
-                    .go()
+        .addPipeline(Pipelines::Basic, "Basic")
+            .withViewport(m_viewport)
+            .withScissor(m_scissor)
+            .layout()
                 .setShaderProgram()
                     .addVertexShaderModule("shaders/basic.vert.spv")
                     .addFragmentShaderModule("shaders/basic.frag.spv")
-                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-                        .addUniform(0, sizeof(CameraBuffer))
-                        .go()
-                    .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
-                        .addUniform(0, sizeof(TransformBuffer))
-                        .go()
                     .go()
-                .addViewport()
-                    .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                    .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
+                    .addUniform(0, sizeof(CameraBuffer))
+                    .go()
+                .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
+                    .addUniform(0, sizeof(TransformBuffer))
+                    .go()
+                .go()
+            .rasterizer()
+                .withPolygonMode(PolygonMode::Solid)
+                .withCullMode(CullMode::BackFaces)
+                .withCullOrder(CullOrder::ClockWise)
+                .withLineWidth(1.f)
+                .go()
+            .inputAssembler()
+                .withTopology(PrimitiveTopology::TriangleList)
+                .withIndexType(IndexType::UInt16)
+                .addVertexBuffer(sizeof(Vertex), 0)
+                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
                     .go()
                 .go()
             .go()
@@ -73,26 +76,29 @@ void SampleApp::createRenderPasses()
 
 void SampleApp::initBuffers()
 {
+    // Get the pipeline instance.
+    auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
+
     // Create the staging buffer.
-    auto stagedVertices = m_renderPass->makeVertexBuffer(BufferUsage::Staging, vertices.size());
+    auto stagedVertices = pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex));
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    m_vertexBuffer = m_renderPass->makeVertexBuffer(BufferUsage::Resource, vertices.size());
+    m_vertexBuffer = pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
     m_vertexBuffer->transferFrom(m_device->bufferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
-    auto stagedIndices = m_renderPass->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
+    auto stagedIndices = pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
     stagedIndices->map(indices.data(), indices.size() * sizeof(UInt16));
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    m_indexBuffer = m_renderPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
+    m_indexBuffer = pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
     m_indexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
-    m_perFrameBindings = m_renderPass->makeBufferPool(DescriptorSets::PerFrame);
+    m_perFrameBindings = pipeline->makeBufferPool(DescriptorSets::PerFrame);
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
-    m_perObjectBindings = m_renderPass->makeBufferPool(DescriptorSets::PerInstance);
+    m_perObjectBindings = pipeline->makeBufferPool(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
 }
 
@@ -101,6 +107,10 @@ void SampleApp::run()
     // Get the proper frame buffer size.
     int width, height;
     ::glfwGetFramebufferSize(m_window.get(), &width, &height);
+
+    // Create viewport and scissors.
+    m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
     m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
@@ -147,22 +157,13 @@ void SampleApp::resize(int width, int height)
 
     if (m_device == nullptr)
         return;
-    else
-    {
-        // Resize the frame buffer and recreate the swap chain.
-        m_device->resize(width, height);
 
-        // Resize the viewport.
-        auto layout = m_renderPass->getPipeline()->getLayout();
-        auto viewport = layout->remove(layout->getViewports().front());
-        viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-        viewport->getScissors().clear();
-        viewport->getScissors().push_back(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-        layout->use(std::move(viewport));
-        
-        // Recreate the pipeline.
-        m_renderPass->reset();
-    }
+    // Resize the frame buffer and recreate the swap chain.
+    m_device->resize(width, height);
+
+    // Also resize viewport and scissor.
+    m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 }
 
 void SampleApp::handleEvents()

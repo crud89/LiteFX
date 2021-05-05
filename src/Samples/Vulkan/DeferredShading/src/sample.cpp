@@ -8,6 +8,12 @@ enum DescriptorSets : UInt32
     VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
 };
 
+enum Pipelines : UInt32
+{
+    GeometryPass = 0,                                   // Default geometry pass pipeline.
+    LightingPass = 1                                    // Default lighting pass pipeline.
+};
+
 const Array<Vertex> vertices =
 {
     { { -0.5f, -0.5f, 0.5f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
@@ -47,74 +53,70 @@ void SampleApp::createRenderPasses()
     m_geometryPass = m_device->buildRenderPass()
         .attachTarget(RenderTargetType::Color, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false)
         .attachTarget(RenderTargetType::Depth, Format::D24_UNORM_S8_UINT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, true)
-        .addPipeline()
-            .defineLayout()
+        .addPipeline(Pipelines::GeometryPass, "Geometry (default)")
+            .layout()
                 .setShaderProgram()
                     .addVertexShaderModule("shaders/deferred_shading_geometry_pass.vert.spv")
                     .addFragmentShaderModule("shaders/deferred_shading_geometry_pass.frag.spv")
-                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-                        .addUniform(0, sizeof(CameraBuffer))
-                        .go()
-                    .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
-                        .addUniform(0, sizeof(TransformBuffer))
-                        .go()
                     .go()
-                .setRasterizer()
-                    .withPolygonMode(PolygonMode::Solid)
-                    .withCullMode(CullMode::BackFaces)
-                    .withCullOrder(CullOrder::ClockWise)
-                    .withLineWidth(1.f)
+                .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
+                    .addUniform(0, sizeof(CameraBuffer))
                     .go()
-                .setInputAssembler()
-                    .withTopology(PrimitiveTopology::TriangleList)
-                    .withIndexType(IndexType::UInt16)
-                    .addVertexBuffer(sizeof(Vertex), 0)
-                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                        .go()
-                    .go()
-                .addViewport()
-                    .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                    .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
+                    .addUniform(0, sizeof(TransformBuffer))
                     .go()
                 .go()
+            .rasterizer()
+                .withPolygonMode(PolygonMode::Solid)
+                .withCullMode(CullMode::BackFaces)
+                .withCullOrder(CullOrder::ClockWise)
+                .withLineWidth(1.f)
+                .go()
+            .inputAssembler()
+                .withTopology(PrimitiveTopology::TriangleList)
+                .withIndexType(IndexType::UInt16)
+                .addVertexBuffer(sizeof(Vertex), 0)
+                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                    .go()
+                .go()
+            .withViewport(m_viewport)
+            .withScissor(m_scissor)
             .go()
         .go();
 
     m_lightingPass = m_device->buildRenderPass()
         .dependsOn(m_geometryPass.get())
         .attachTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false)
-        .addPipeline()
-            .defineLayout()
+        .addPipeline(Pipelines::LightingPass, "Lighting (default)")
+            .layout()
                 .setShaderProgram()
                     .addVertexShaderModule("shaders/deferred_shading_lighting_pass.vert.spv")
                     .addFragmentShaderModule("shaders/deferred_shading_lighting_pass.frag.spv")
-                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Fragment)
-                        .addInputAttachment(0)  // Color attachment
-                        .addInputAttachment(1)  // Depth attachment
-                        .go()
                     .go()
-                .setRasterizer()
-                    .withPolygonMode(PolygonMode::Solid)
-                    .withCullMode(CullMode::BackFaces)
-                    .withCullOrder(CullOrder::ClockWise)
-                    .withLineWidth(1.f)
-                    .go()
-                .setInputAssembler()
-                    .withTopology(PrimitiveTopology::TriangleList)
-                    .withIndexType(IndexType::UInt16)
-                    .addVertexBuffer(sizeof(Vertex), 0)
-                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                        .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0))
-                        .go()
-                    .go()
-                .addViewport()
-                    .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                    .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Fragment)
+                    .addInputAttachment(0)  // Color attachment
+                    .addInputAttachment(1)  // Depth attachment
                     .go()
                 .go()
-            .go()
+            .rasterizer()
+                .withPolygonMode(PolygonMode::Solid)
+                .withCullMode(CullMode::BackFaces)
+                .withCullOrder(CullOrder::ClockWise)
+                .withLineWidth(1.f)
+                .go()
+            .inputAssembler()
+                .withTopology(PrimitiveTopology::TriangleList)
+                .withIndexType(IndexType::UInt16)
+                .addVertexBuffer(sizeof(Vertex), 0)
+                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                    .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0))
+                    .go()
+                .go()
+            .withViewport(m_viewport)
+            .withScissor(m_scissor)
+            .go() 
         .go();
 }
 
@@ -165,6 +167,10 @@ void SampleApp::run()
     int width, height;
     ::glfwGetFramebufferSize(m_window.get(), &width, &height);
 
+    // Create viewport and scissors.
+    m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+
     // Create the device with the initial frame buffer size and triple buffering.
     m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
 
@@ -214,26 +220,13 @@ void SampleApp::resize(int width, int height)
 
     if (m_device == nullptr)
         return;
-    else
-    {
-        // Resize the frame buffer and recreate the swap chain.
-        m_device->resize(width, height);
 
-        // Resize the viewport.
-        auto renderPasses = { m_geometryPass.get(), m_lightingPass.get() };
+    // Resize the frame buffer and recreate the swap chain.
+    m_device->resize(width, height);
 
-        std::for_each(std::begin(renderPasses), std::end(renderPasses), [width, height](auto renderPass) {
-            auto layout = renderPass->getPipeline()->getLayout();
-            auto viewport = layout->remove(layout->getViewports().front());
-            viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-            viewport->getScissors().clear();
-            viewport->getScissors().push_back(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-            layout->use(std::move(viewport));
-        
-            // Recreate the pipeline.
-            renderPass->reset();
-        });
-    }
+    // Also resize viewport and scissor.
+    m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 }
 
 void SampleApp::handleEvents()
