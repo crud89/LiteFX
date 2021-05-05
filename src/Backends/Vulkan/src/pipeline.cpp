@@ -16,8 +16,8 @@ private:
 	const VulkanRenderPass& m_renderPass;
 	const VulkanRenderPipelineLayout* m_vkLayout;
 	UniquePtr<IRenderPipelineLayout> m_layout;
-	UniquePtr<IInputAssembler> m_inputAssembler;
-	UniquePtr<IRasterizer> m_rasterizer;
+	SharedPtr<IInputAssembler> m_inputAssembler;
+	SharedPtr<IRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
 	const UInt32 m_id;
@@ -30,7 +30,7 @@ public:
 	}
 
 public:
-	VkPipeline initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
+	VkPipeline initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler>&& inputAssembler, SharedPtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
 	{
 		if (inputAssembler == nullptr)
 			throw ArgumentNotInitializedException("The input assembler must be initialized.");
@@ -278,7 +278,7 @@ const UInt32& VulkanRenderPipeline::id() const noexcept
 	return m_impl->m_id;
 }
 
-void VulkanRenderPipeline::initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
+void VulkanRenderPipeline::initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler> inputAssembler, SharedPtr<IRasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
 {
 	if (this->isInitialized())
 		throw RuntimeException("The render pipeline already has been initialized.");
@@ -291,14 +291,14 @@ const IRenderPipelineLayout* VulkanRenderPipeline::getLayout() const noexcept
 	return m_impl->m_layout.get();
 }
 
-const IInputAssembler* VulkanRenderPipeline::getInputAssembler() const noexcept
+SharedPtr<IInputAssembler> VulkanRenderPipeline::getInputAssembler() const noexcept
 {
-	return m_impl->m_inputAssembler.get();
+	return m_impl->m_inputAssembler;
 }
 
-const IRasterizer* VulkanRenderPipeline::getRasterizer() const noexcept
+SharedPtr<IRasterizer> VulkanRenderPipeline::getRasterizer() const noexcept
 {
-	return m_impl->m_rasterizer.get();
+	return m_impl->m_rasterizer;
 }
 
 Array<const IViewport*> VulkanRenderPipeline::getViewports() const noexcept
@@ -419,8 +419,8 @@ public:
 
 private:
 	UniquePtr<IRenderPipelineLayout> m_layout;
-	UniquePtr<IInputAssembler> m_inputAssembler;
-	UniquePtr<IRasterizer> m_rasterizer;
+	SharedPtr<IInputAssembler> m_inputAssembler;
+	SharedPtr<IRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
 
@@ -459,24 +459,24 @@ void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout>&& layout)
 	m_impl->m_layout = std::move(layout);
 }
 
-void VulkanRenderPipelineBuilder::use(UniquePtr<IRasterizer>&& rasterizer)
+void VulkanRenderPipelineBuilder::use(SharedPtr<IRasterizer> rasterizer)
 {
 #ifndef NDEBUG
 	if (m_impl->m_rasterizer != nullptr)
 		LITEFX_WARNING(VULKAN_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
 #endif
 
-	m_impl->m_rasterizer = std::move(rasterizer);
+	m_impl->m_rasterizer = rasterizer;
 }
 
-void VulkanRenderPipelineBuilder::use(UniquePtr<IInputAssembler>&& inputAssembler)
+void VulkanRenderPipelineBuilder::use(SharedPtr<IInputAssembler> inputAssembler)
 {
 #ifndef NDEBUG
 	if (m_impl->m_inputAssembler != nullptr)
 		LITEFX_WARNING(VULKAN_LOG, "Another input assembler has already been initialized and will be replaced. A pipeline can only have one input assembler.");
 #endif
 
-	m_impl->m_inputAssembler = std::move(inputAssembler);
+	m_impl->m_inputAssembler = inputAssembler;
 }
 
 void VulkanRenderPipelineBuilder::use(SharedPtr<IViewport> viewport)
@@ -502,6 +502,18 @@ VulkanRasterizerBuilder VulkanRenderPipelineBuilder::rasterizer()
 VulkanInputAssemblerBuilder VulkanRenderPipelineBuilder::inputAssembler()
 {
 	return this->make<VulkanInputAssembler>();
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withRasterizer(SharedPtr<IRasterizer> rasterizer)
+{
+	this->use(std::move(rasterizer));
+	return *this;
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withInputAssembler(SharedPtr<IInputAssembler> inputAssembler)
+{
+	this->use(std::move(inputAssembler));
+	return *this;
 }
 
 VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withViewport(SharedPtr<IViewport> viewport)

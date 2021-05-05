@@ -696,12 +696,12 @@ namespace LiteFX::Rendering {
         /// <param name="layout"></param>
         /// <param name="viewports"></param>
         /// <param name="scissors"></param>
-        virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) = 0;
+        virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler> inputAssembler, SharedPtr<IRasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) = 0;
 
     public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
-        virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
-        virtual const IRasterizer* getRasterizer() const noexcept = 0;
+        virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept = 0;
+        virtual SharedPtr<IRasterizer> getRasterizer() const noexcept = 0;
         virtual Array<const IViewport*> getViewports() const noexcept = 0;
         virtual Array<const IScissor*> getScissors() const noexcept = 0;
 
@@ -953,7 +953,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TShaderProgram, typename TParent>
     class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TShaderProgram, TParent>::Builder;
 
     public:
         virtual TDerived& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
@@ -971,12 +971,12 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TPipeline, typename TParent>
     class RenderPipelineBuilder : public Builder<TDerived, TPipeline, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TPipeline, TParent>::Builder;
 
     public:
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
-        virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
-        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
+        virtual void use(SharedPtr<IRasterizer> rasterizer) = 0;
+        virtual void use(SharedPtr<IInputAssembler> inputAssembler) = 0;
         virtual void use(SharedPtr<IViewport> viewport) = 0;
         virtual void use(SharedPtr<IScissor> scissor) = 0;
     };
@@ -987,7 +987,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TRenderPass>
     class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TRenderPass>::Builder;
 
     public:
         virtual void use(UniquePtr<IRenderTarget>&& target) = 0;
@@ -1002,7 +1002,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TPipelineLayout, typename TParent>
     class RenderPipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TPipelineLayout, TParent>::Builder;
 
     public:
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
@@ -1013,9 +1013,9 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     template <typename TDerived, typename TRasterizer, typename TParent>
-    class RasterizerBuilder : public Builder<TDerived, TRasterizer, TParent> {
+    class RasterizerBuilder : public Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>>::Builder;
 
     public:
         virtual TDerived& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) = 0;
@@ -1032,9 +1032,9 @@ namespace LiteFX::Rendering {
     /// 
     /// </summary>
     template <typename TDerived, typename TInputAssembler, typename TParent>
-    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent> {
+    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>>::Builder;
 
     public:
         virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
@@ -1048,7 +1048,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TDescriptorSetLayout, typename TParent>
     class DescriptorSetLayoutBuilder : public Builder<TDerived, TDescriptorSetLayout, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TDescriptorSetLayout, TParent>::Builder;
 
     public:
         virtual TDerived& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) = 0;
@@ -1079,7 +1079,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TVertexBufferLayout, typename TParent>
     class VertexBufferLayoutBuilder : public Builder<TDerived, TVertexBufferLayout, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TVertexBufferLayout, TParent>::Builder;
 
     public:
         virtual TDerived& addAttribute(UniquePtr<BufferAttribute>&& attribute) = 0;

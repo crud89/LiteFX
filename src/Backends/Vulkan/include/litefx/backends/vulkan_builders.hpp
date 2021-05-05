@@ -114,14 +114,16 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRenderPipelineLayoutBuilder layout();
 		virtual VulkanRasterizerBuilder rasterizer();
 		virtual VulkanInputAssemblerBuilder inputAssembler();
+		virtual VulkanRenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
+		virtual VulkanRenderPipelineBuilder& withInputAssembler(SharedPtr<IInputAssembler> inputAssembler);
 		virtual VulkanRenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
 		virtual VulkanRenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
 
 	public:
 		virtual VulkanRenderPassBuilder& go() override;
 		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
-		virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
-		virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
+		virtual void use(SharedPtr<IRasterizer> rasterizer) override;
+		virtual void use(SharedPtr<IInputAssembler> inputAssembler) override;
 		virtual void use(SharedPtr<IViewport> viewport) override;
 		virtual void use(SharedPtr<IScissor> scissor) override;
 	};
