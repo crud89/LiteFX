@@ -505,13 +505,13 @@ VulkanInputAssemblerBuilder VulkanRenderPipelineBuilder::inputAssembler()
 	return this->make<VulkanInputAssembler>();
 }
 
-VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::addViewport(SharedPtr<IViewport> viewport)
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withViewport(SharedPtr<IViewport> viewport)
 {
 	this->use(std::move(viewport));
 	return *this;
 }
 
-VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::addScissor(SharedPtr<IScissor> scissor)
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withScissor(SharedPtr<IScissor> scissor)
 {
 	this->use(std::move(scissor));
 	return *this;
