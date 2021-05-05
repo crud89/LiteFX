@@ -39,6 +39,11 @@ public:
 		if (layout == nullptr)
 			throw InvalidArgumentException("The layout of the render pipeline is not a valid DirectX12 render pipeline layout.");
 
+		auto program = pipelineLayout->getProgram();
+
+		if (program == nullptr)
+			throw InvalidArgumentException("The pipeline shader program must be initialized.");
+
 		// Setup rasterizer state.
 		D3D12_RASTERIZER_DESC rasterizerState = {};
 		rasterizerState.DepthClipEnable = FALSE;
@@ -96,12 +101,78 @@ public:
 		multisamplingState.Count = 1;
 		multisamplingState.Quality = 0;
 
-		// Create a pipeline state description.
+		// Setup color blend state.
+		// TODO: Add blend parameters to render target.
+		D3D12_BLEND_DESC blendState = {};
+		auto targets = m_renderPass.getTargets();
+
+		std::for_each(std::begin(targets), std::end(targets), [&, i = 0](const auto& attachhment) mutable {
+			if (attachment->getType() == RenderTargetType::Depth)
+				continue;
+
+			// Only 8 RTVs are allowed.
+			if (i > 8)
+				throw RuntimeException("You have specified too many render targets: only 8 render targets are allowed.");
+
+			auto& targetBlendState = blendState.RenderTarget[i++];
+			targetBlendState.BlendEnable = FALSE;
+			targetBlendState.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
+			targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
+			targetBlendState.LogicOpEnable = FALSE;
+		});
+
+		blendState.AlphaToCoverageEnable = FALSE;
+		blendState.IndependentBlendEnable = TRUE;
+
+		// Setup depth/stencil state.
+		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
+		depthStencilState.DepthEnable = TRUE;				// TODO: From depth/stencil state.
+		depthStencilState.DepthWriteMask = std::any_of(std::begin(targets), std::end(targets), [](const auto& t) { return t->getType() == RenderTargetType::Depth; }) ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+		depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
+		depthStencilState.StencilEnable = FALSE;			// TODO: From depth/stencil state.
+
+		// Setup shader stages.
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
+		auto modules = program->getModules();
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(program), modules.size());
+
+		std::for_each(std::begin(modules), std::end(modules), [&](const auto& module) mutable {
+			auto shaderModule = dynamic_cast<const VulkanShaderModule*>(module);
+
+			if (shaderModule == nullptr)
+				throw InvalidArgumentException("The provided shader module is not a valid DIrectX 12 shader.");
+
+			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", i, modules.size(), module->getFileName(), module->getType(), module->getEntryPoint());
+
+			switch (shaderModule->getType())
+			{
+			case ShaderStage::Vertex:
+				pipelineStateDescription.VS = shaderModule->handle();
+				break;
+			case ShaderStage::TessellationControl:		// aka. Hull Shader
+				pipelineStateDescription.HS = shaderModule->handle();
+				break;
+			case ShaderStage::TessellationEvaluation:	// aka. Domain Shader
+				pipelineStateDescription.DS = shaderModule->handle();
+				break;
+			case ShaderStage::Geometry:
+				pipelineStateDescription.GS = shaderModule->handle();
+				break;
+			case ShaderStage::Fragment:
+				pipelineStateDescription.PS = shaderModule->handle();
+				break;
+			default:
+				throw InvalidArgumentException("Trying to bind shader to unsupported shader stage '{0}'.", module->getType());
+			}
+		});
+
+		// Create a pipeline state description.
 		pipelineStateDescription.RasterizerState = rasterizerState;
 		pipelineStateDescription.PrimitiveTopologyType = topologyType;
 		pipelineStateDescription.InputLayout = inputLayout;
 		pipelineStateDescription.SampleDesc = multisamplingState;
+		pipelineStateDescription.BlendState = blendState;
+		pipelineStateDescription.DepthStencilState = depthStencilState;
 		pipelineStateDescription.pRootSignature = layout->handle().Get();
 
 		// Create the pipeline state instance.
