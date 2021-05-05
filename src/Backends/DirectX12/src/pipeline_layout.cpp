@@ -165,7 +165,7 @@ DirectX12RenderPipelineBuilder& DirectX12RenderPipelineLayoutBuilder::go()
     return RenderPipelineLayoutBuilder::go();
 }
 
-void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram> && program)
+void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& program)
 {
 #ifndef NDEBUG
     if (m_impl->m_shaderProgram != nullptr)
@@ -175,7 +175,7 @@ void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram> && prog
     m_impl->m_shaderProgram = std::move(program);
 }
 
-void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IDescriptorSetLayout> && layout)
+void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IDescriptorSetLayout>&& layout)
 {
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
@@ -185,7 +185,7 @@ void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IDescriptorSetLayout> &
 //    return this->make<DirectX12ShaderProgram>();
 //}
 //
-//DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32 & id, const ShaderStage & stages)
+//DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& id, const ShaderStage& stages)
 //{
 //    return this->make<DirectX12DescriptorSetLayout>(id, stages);
 //}
