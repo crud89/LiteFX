@@ -30,7 +30,7 @@ public:
 	}
 
 public:
-	VkPipeline initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& v, Array<SharedPtr<IScissor>>&& s)
+	VkPipeline initialize(UniquePtr<IRenderPipelineLayout>&& layout, UniquePtr<IInputAssembler>&& inputAssembler, UniquePtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
 	{
 		if (inputAssembler == nullptr)
 			throw ArgumentNotInitializedException("The input assembler must be initialized.");
@@ -130,45 +130,17 @@ public:
 		inputState.pVertexAttributeDescriptions = vertexInputAttributes.data();
 
 		// Setup viewport state.
-		Array<VkViewport> viewports(v.size());
-		Array<VkRect2D> scissors(s.size());
-		VkPipelineViewportStateCreateInfo viewportState = {};
+		VkPipelineViewportStateCreateInfo viewportState;
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-
-		std::for_each(std::begin(v), std::end(v), [i = 0, &viewports](const auto& viewport) mutable {
-			if (viewport == nullptr)
-				throw ArgumentNotInitializedException("At least one of the specified viewports is not initialized.");
-
-			LITEFX_TRACE(VULKAN_LOG, "Viewport state {0}/{1}: {{ X: {2}, Y: {3}, Width: {4}, Height: {5}, Min Depth: {6}, Max Depth: {7} }}", i + 1, viewports.size(),
-				viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth());
-
-			viewports[i].x = viewport->getRectangle().x();
-			viewports[i].y = viewport->getRectangle().y();
-			viewports[i].width = viewport->getRectangle().width();
-			viewports[i].height = viewport->getRectangle().height();
-			viewports[i].minDepth = viewport->getMinDepth();
-			viewports[i].maxDepth = viewport->getMaxDepth();
-
-			i++;
-		});
-
-		std::for_each(std::begin(s), std::end(s), [i = 0, &scissors](const auto& scissor) mutable {
-			if (scissor == nullptr)
-				throw ArgumentNotInitializedException("At least one of the specified scissors is not initialized.");
-
-			LITEFX_TRACE(VULKAN_LOG, "Scissor state {0}/{1}: {{ X: {2}, Y: {3}, Width: {4}, Height: {5} }}", i + 1, scissors.size(),
-				scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height());
-
-			scissors[i].offset = { static_cast<Int32>(scissor->getRectangle().x()), static_cast<Int32>(scissor->getRectangle().y()) };
-			scissors[i].extent = { static_cast<UInt32>(scissor->getRectangle().width()), static_cast<UInt32>(scissor->getRectangle().height()) };
-
-			i++;
-		});
-
 		viewportState.viewportCount = static_cast<UInt32>(viewports.size());
-		viewportState.pViewports = viewports.data();
 		viewportState.scissorCount = static_cast<UInt32>(scissors.size());
-		viewportState.pScissors = scissors.data();
+
+		// Setup dynamic state.
+		VkDynamicState dynamicStates[] = { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR };
+		VkPipelineDynamicStateCreateInfo dynamicState = {};
+		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		dynamicState.pDynamicStates = dynamicStates;
+		dynamicState.dynamicStateCount = 2;
 
 		// Setup multisampling state.
 		// TODO: Abstract me!
@@ -226,6 +198,7 @@ public:
 		pipelineInfo.pMultisampleState = &multisampling;
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDepthStencilState = &depthStencilState;
+		pipelineInfo.pDynamicState = &dynamicState;
 		pipelineInfo.layout = pipelineLayout->handle();
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -385,7 +358,33 @@ void VulkanRenderPipeline::bind(const IDescriptorSet* descriptorSet) const
 
 void VulkanRenderPipeline::use() const
 {
+	// TODO: Make this more efficient by buffering the viewports and scissors (and only updating with each `use` call).
+	Array<VkViewport> viewports(m_impl->m_viewports.size());
+	Array<VkRect2D> scissors(m_impl->m_scissors.size());
+	VkPipelineViewportStateCreateInfo viewportState = {};
+	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+
+	std::for_each(std::begin(m_impl->m_viewports), std::end(m_impl->m_viewports), [i = 0, &viewports](const auto& viewport) mutable {
+		viewports[i].x = viewport->getRectangle().x();
+		viewports[i].y = viewport->getRectangle().y();
+		viewports[i].width = viewport->getRectangle().width();
+		viewports[i].height = viewport->getRectangle().height();
+		viewports[i].minDepth = viewport->getMinDepth();
+		viewports[i].maxDepth = viewport->getMaxDepth();
+
+		i++;
+	});
+
+	std::for_each(std::begin(m_impl->m_scissors), std::end(m_impl->m_scissors), [i = 0, &scissors](const auto& scissor) mutable {
+		scissors[i].offset = { static_cast<Int32>(scissor->getRectangle().x()), static_cast<Int32>(scissor->getRectangle().y()) };
+		scissors[i].extent = { static_cast<UInt32>(scissor->getRectangle().width()), static_cast<UInt32>(scissor->getRectangle().height()) };
+
+		i++;
+	});
+
 	::vkCmdBindPipeline(m_impl->m_renderPass.getVkCommandBuffer()->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
+	::vkCmdSetViewport(m_impl->m_renderPass.getVkCommandBuffer()->handle(), 0, static_cast<UInt32>(viewports.size()), viewports.data());
+	::vkCmdSetScissor(m_impl->m_renderPass.getVkCommandBuffer()->handle(), 0, static_cast<UInt32>(scissors.size()), scissors.data());
 }
 
 UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
