@@ -13,7 +13,7 @@ public:
     friend class VulkanRenderPass;
 
 private:
-    UniquePtr<IRenderPipeline> m_pipeline;
+    Array<UniquePtr<IRenderPipeline>> m_pipelines;
     const VulkanSwapChain* m_swapChain{ nullptr };
     const VulkanQueue* m_queue{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
@@ -296,11 +296,6 @@ public:
 
     void begin()
     {
-        auto pipeline = dynamic_cast<const IResource<VkPipeline>*>(m_pipeline.get());
-
-        if (pipeline == nullptr)
-            throw std::runtime_error("The pipeline of the render pass is not a valid Vulkan pipeline.");
-
         // Swap out the back buffer, if the render pass has a present target. Otherwise increment the current frame buffer anyways.
         // NOTE: Maybe this can be refactored to a boolean parameter `swapBackBuffer` which defaults to `false`?
         m_backBuffer = m_dependency == nullptr ? m_swapChain->swapBackBuffer() : m_dependency->m_impl->m_backBuffer;
@@ -321,7 +316,6 @@ public:
         renderPassInfo.pClearValues = m_clearValues.data();
 
         ::vkCmdBeginRenderPass(commandBuffer->handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        ::vkCmdBindPipeline(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->handle());
     }
 
     void end(const bool present = false)
@@ -438,6 +432,40 @@ UniquePtr<IRenderTarget> VulkanRenderPass::removeTarget(const IRenderTarget* tar
     return m_impl->removeTarget(target);
 }
 
+Array<const IRenderPipeline*> VulkanRenderPass::getPipelines() const noexcept
+{
+    Array<const IRenderPipeline*> pipelines(m_impl->m_pipelines.size());
+    std::generate(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&, i = 0]() mutable { return m_impl->m_pipelines[i++].get(); });
+    
+    return pipelines;
+}
+
+const IRenderPipeline* VulkanRenderPass::getPipeline(const UInt32& id) const noexcept
+{
+    auto match = std::find_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; });
+
+    return match == m_impl->m_pipelines.end() ? nullptr : match->get();
+}
+
+void VulkanRenderPass::addPipeline(UniquePtr<IRenderPipeline>&& pipeline)
+{
+    if (pipeline == nullptr)
+        throw ArgumentNotInitializedException("The pipeline must be initialized.");
+
+    auto id = pipeline->id();
+    auto match = std::find_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; });
+
+    if (match != m_impl->m_pipelines.end())
+        throw InvalidArgumentException("Another pipeline with the ID {0} already has been registered. Pipeline IDs must be unique within a render pass.", id);
+
+    m_impl->m_pipelines.push_back(std::move(pipeline));
+}
+
+void VulkanRenderPass::removePipeline(const UInt32& id)
+{
+    m_impl->m_pipelines.erase(std::remove_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; }), std::end(m_impl->m_pipelines));
+}
+
 void VulkanRenderPass::setDependency(const IRenderPass* renderPass)
 {
     auto dependency = dynamic_cast<const VulkanRenderPass*>(renderPass);
@@ -451,16 +479,6 @@ void VulkanRenderPass::setDependency(const IRenderPass* renderPass)
 const IRenderPass* VulkanRenderPass::getDependency() const noexcept
 {
     return m_impl->m_dependency;
-}
-
-const IRenderPipeline* VulkanRenderPass::getPipeline() const noexcept
-{
-    return m_impl->m_pipeline.get();
-}
-
-IRenderPipeline* VulkanRenderPass::getPipeline() noexcept
-{
-    return m_impl->m_pipeline.get();
 }
 
 void VulkanRenderPass::begin() const

@@ -257,10 +257,12 @@ namespace LiteFX::Rendering::Backends {
 		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
 		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
 		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
+		virtual Array<const IRenderPipeline*> getPipelines() const noexcept override;
+		virtual const IRenderPipeline* getPipeline(const UInt32& id) const noexcept override;
+		virtual void addPipeline(UniquePtr<IRenderPipeline>&& pipeline) override;
+		virtual void removePipeline(const UInt32& id) override;
 		virtual void setDependency(const IRenderPass* renderPass = nullptr) override;
 		virtual const IRenderPass* getDependency() const noexcept override;
-		virtual const IRenderPipeline* getPipeline() const noexcept override;
-		virtual IRenderPipeline* getPipeline() noexcept override;
 		virtual void begin() const override;
 		virtual void end(const bool& present = false) override;
 		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;

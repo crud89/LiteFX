@@ -839,10 +839,12 @@ namespace LiteFX::Rendering {
         virtual void addTarget(UniquePtr<IRenderTarget>&& target) = 0;
         virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
         virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;
+        virtual Array<const IRenderPipeline*> getPipelines() const noexcept = 0;
+        virtual const IRenderPipeline* getPipeline(const UInt32& id) const noexcept = 0;
+        virtual void addPipeline(UniquePtr<IRenderPipeline>&& pipeline) = 0;
+        virtual void removePipeline(const UInt32& id) = 0;
         virtual void setDependency(const IRenderPass* renderPass = nullptr) = 0;
         virtual const IRenderPass* getDependency() const noexcept = 0;
-        virtual const IRenderPipeline* getPipeline() const noexcept = 0;
-        virtual IRenderPipeline* getPipeline() noexcept = 0;
         virtual void begin() const = 0;
         virtual void end(const bool& present = false) = 0;
         virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
