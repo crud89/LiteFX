@@ -176,6 +176,10 @@ void SampleApp::drawFrame()
     // Begin rendering.
     m_renderPass->begin();
 
+    // Get the pipeline and bind it.
+    auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
+    pipeline->use();
+
     // Update transform buffer.
     static auto start = std::chrono::high_resolution_clock::now();
     auto now = std::chrono::high_resolution_clock::now();
@@ -189,17 +193,17 @@ void SampleApp::drawFrame()
     camera.ViewProjection = projection * view;
     m_cameraBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     m_perFrameBindings->update(m_cameraBuffer.get());
-    m_renderPass->bind(m_perFrameBindings.get());
+    pipeline->bind(m_perFrameBindings.get());
 
     // Draw the model.
-    m_renderPass->bind(m_vertexBuffer.get());
-    m_renderPass->bind(m_indexBuffer.get());
+    pipeline->bind(m_vertexBuffer.get());
+    pipeline->bind(m_indexBuffer.get());
     
     // Compute world transform.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
     m_perObjectBindings->update(m_transformBuffer.get());
-    m_renderPass->bind(m_perObjectBindings.get());
+    pipeline->bind(m_perObjectBindings.get());
 
     // Draw the object.
     m_renderPass->drawIndexed(indices.size());

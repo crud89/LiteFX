@@ -62,7 +62,7 @@ int main(const int argc, const char** argv)
 		App::build<SampleApp>(std::move(window))
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
-			.makeUnique<VulkanBackend>(requiredExtensions, enabledLayers)
+			.make<VulkanBackend>(requiredExtensions, enabledLayers)
 				.withAdapterOrDefault(adapterId)
 				.withSurface([&windowPtr](const VkInstance& instance) {
 					VkSurfaceKHR surface;
