@@ -667,51 +667,67 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The input attachment binding point.</param>
         /// <param name="image">The image to bind to the input attachment descriptor.</param>
         virtual void attach(const UInt32& binding, const IImage* image) const = 0;
-
-        /// <summary>
-        /// Binds the descriptor set to a render pass.
-        /// </summary>
-        /// <param name="renderPass">The render pass to bind the descriptor set to.</param>
-        virtual void bind(const IRenderPass* renderPass) = 0;
     };
 
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPipeline {
+    class LITEFX_RENDERING_API IRenderPipeline : public IRequiresInitialization {
     public:
         virtual ~IRenderPipeline() noexcept = default;
+
+    public:
+        virtual const IRenderPass& renderPass() const noexcept = 0;
+        virtual const String& name() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the ID of the pipeline.
+        /// </summary>
+        /// <remarks>
+        /// The pipeline ID must be unique within the render pass.
+        /// </remarks>
+        /// <returns>The ID of the pipeline.</returns>
+        virtual const UInt32& id() const noexcept = 0;
     
     public:
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="layout"></param>
+        /// <param name="viewports"></param>
+        /// <param name="scissors"></param>
+        virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler> inputAssembler, SharedPtr<IRasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) = 0;
+
+    public:
         virtual const IRenderPipelineLayout* getLayout() const noexcept = 0;
-        virtual IRenderPipelineLayout* getLayout() noexcept = 0;
-        virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
-        virtual const IRenderPass& renderPass() const noexcept = 0;
+        virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept = 0;
+        virtual SharedPtr<IRasterizer> getRasterizer() const noexcept = 0;
+        virtual Array<const IViewport*> getViewports() const noexcept = 0;
+        virtual Array<const IScissor*> getScissors() const noexcept = 0;
+
+    public:
+        virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
+        virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
+        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
+        virtual void bind(const IVertexBuffer* buffer) const = 0;
+        virtual void bind(const IIndexBuffer* buffer) const = 0;
+        virtual void bind(IDescriptorSet* buffer) const = 0;
+        virtual void use() const = 0;
     };
 
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPipelineLayout {
+    class LITEFX_RENDERING_API IRenderPipelineLayout : public IRequiresInitialization {
     public:
         virtual ~IRenderPipelineLayout() noexcept = default;
 
     public:
-        virtual Array<IViewport*> getViewports() const noexcept = 0;
-        virtual IRasterizer* getRasterizer() const noexcept = 0;
-        virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept = 0;
-        virtual const IInputAssembler* getInputAssembler() const noexcept = 0;
-        virtual const IShaderProgram* getProgram() const noexcept = 0;
-        virtual bool getDepthTest() const noexcept = 0;
-        virtual void setDepthTest(const bool& enable) = 0;
-        virtual bool getStencilTest() const noexcept = 0;
-        virtual void setStencilTest(const bool& enable) = 0;
+        virtual void initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts) = 0;
 
     public:
-        virtual void use(UniquePtr<IViewport>&& viewport) = 0;
-        virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
-        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
-        virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
+        virtual const IShaderProgram* getProgram() const noexcept = 0;
+        virtual Array<const IDescriptorSetLayout*> getDescriptorSetLayouts() const noexcept = 0;
     };
 
     /// <summary>
@@ -736,9 +752,7 @@ namespace LiteFX::Rendering {
     
     public:
         virtual Array<const IShaderModule*> getModules() const noexcept = 0;
-        virtual Array<const IDescriptorSetLayout*> getLayouts() const noexcept = 0;
         virtual void use(UniquePtr<IShaderModule>&& module) = 0;
-        virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -796,8 +810,22 @@ namespace LiteFX::Rendering {
     public:
         virtual RectF getRectangle() const noexcept = 0;
         virtual void setRectangle(const RectF& rectangle) noexcept = 0;
-        virtual const Array<RectF>& getScissors() const noexcept = 0;
-        virtual Array<RectF>& getScissors() noexcept = 0;
+        virtual float getMinDepth() const noexcept = 0;
+        virtual void setMinDepth(const float& depth) const noexcept = 0;
+        virtual float getMaxDepth() const noexcept = 0;
+        virtual void setMaxDepth(const float& depth) const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_RENDERING_API IScissor {
+    public:
+        virtual ~IScissor() noexcept = default;
+
+    public:
+        virtual RectF getRectangle() const noexcept = 0;
+        virtual void setRectangle(const RectF& rectangle) noexcept = 0;
     };
 
     /// <summary>
@@ -809,28 +837,21 @@ namespace LiteFX::Rendering {
 
     public:
         virtual const ICommandBuffer* getCommandBuffer() const noexcept = 0;
-
-    public:
+        virtual const UInt32 getCurrentBackBuffer() const = 0;
         virtual void addTarget(UniquePtr<IRenderTarget>&& target) = 0;
         virtual const Array<const IRenderTarget*> getTargets() const noexcept = 0;
         virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) = 0;
+        virtual Array<const IRenderPipeline*> getPipelines() const noexcept = 0;
+        virtual const IRenderPipeline* getPipeline(const UInt32& id) const noexcept = 0;
+        virtual void addPipeline(UniquePtr<IRenderPipeline>&& pipeline) = 0;
+        virtual void removePipeline(const UInt32& id) = 0;
         virtual void setDependency(const IRenderPass* renderPass = nullptr) = 0;
         virtual const IRenderPass* getDependency() const noexcept = 0;
-        virtual const IRenderPipeline* getPipeline() const noexcept = 0;
-        virtual IRenderPipeline* getPipeline() noexcept = 0;
         virtual void begin() const = 0;
         virtual void end(const bool& present = false) = 0;
         virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
         virtual const IImage* getAttachment(const UInt32& attachmentId) const = 0;
-
-    public:
-        virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
-        virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
-        virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
-        virtual void bind(const IVertexBuffer* buffer) const = 0;
-        virtual void bind(const IIndexBuffer* buffer) const = 0;
-        virtual void bind(IDescriptorSet* buffer) const = 0;
     };
 
     /// <summary>
@@ -895,7 +916,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(ViewportImpl);
 
     public:
-        Viewport(const RectF& clientRect = { });
+        Viewport(const RectF& clientRect = { }, const Float& minDepth = 0.f, const Float& maxDepth = 1.f);
         Viewport(Viewport&&) noexcept = delete;
         Viewport(const Viewport&) noexcept = delete;
         virtual ~Viewport() noexcept;
@@ -903,38 +924,27 @@ namespace LiteFX::Rendering {
     public:
         virtual RectF getRectangle() const noexcept override;
         virtual void setRectangle(const RectF& rectangle) noexcept override;
-        virtual const Array<RectF>& getScissors() const noexcept override;
-        virtual Array<RectF>& getScissors() noexcept override;
+        virtual Float getMinDepth() const noexcept override;
+        virtual void setMinDepth(const Float& depth) const noexcept override;
+        virtual Float getMaxDepth() const noexcept override;
+        virtual void setMaxDepth(const Float& depth) const noexcept override;
     };
 
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_RENDERING_API RenderPipelineLayout : public IRenderPipelineLayout {
-        LITEFX_IMPLEMENTATION(RenderPipelineLayoutImpl);
+    class LITEFX_RENDERING_API Scissor : public IScissor {
+        LITEFX_IMPLEMENTATION(ScissorImpl);
 
     public:
-        RenderPipelineLayout();
-        RenderPipelineLayout(RenderPipelineLayout&&) = delete;
-        RenderPipelineLayout(const RenderPipelineLayout&) = delete;
-        virtual ~RenderPipelineLayout() noexcept;
+        Scissor(const RectF& scissorRect = { });
+        Scissor(Scissor&&) noexcept = delete;
+        Scissor(const Scissor&) noexcept = delete;
+        virtual ~Scissor() noexcept;
 
     public:
-        virtual Array<IViewport*> getViewports() const noexcept override;
-        virtual UniquePtr<IViewport> remove(const IViewport* viewport) noexcept override;
-        virtual IRasterizer* getRasterizer() const noexcept override;
-        virtual const IInputAssembler* getInputAssembler() const noexcept override;
-        virtual const IShaderProgram* getProgram() const noexcept override;
-        virtual bool getDepthTest() const noexcept override;
-        virtual void setDepthTest(const bool& enable) override;
-        virtual bool getStencilTest() const noexcept override;
-        virtual void setStencilTest(const bool& enable) override;
-
-    public:
-        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
-        virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
-        virtual void use(UniquePtr<IViewport>&& viewport) override;
-        virtual void use(UniquePtr<IShaderProgram>&& program) override;
+        virtual RectF getRectangle() const noexcept override;
+        virtual void setRectangle(const RectF& rectangle) noexcept override;
     };
 
     /// <summary>
@@ -943,7 +953,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TShaderProgram, typename TParent>
     class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TShaderProgram, TParent>::Builder;
 
     public:
         virtual TDerived& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
@@ -953,7 +963,6 @@ namespace LiteFX::Rendering {
         virtual TDerived& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
         virtual TDerived& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
         virtual TDerived& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -962,10 +971,14 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TPipeline, typename TParent>
     class RenderPipelineBuilder : public Builder<TDerived, TPipeline, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TPipeline, TParent>::Builder;
 
     public:
         virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) = 0;
+        virtual void use(SharedPtr<IRasterizer> rasterizer) = 0;
+        virtual void use(SharedPtr<IInputAssembler> inputAssembler) = 0;
+        virtual void use(SharedPtr<IViewport> viewport) = 0;
+        virtual void use(SharedPtr<IScissor> scissor) = 0;
     };
 
     /// <summary>
@@ -974,7 +987,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TRenderPass>
     class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TRenderPass>::Builder;
 
     public:
         virtual void use(UniquePtr<IRenderTarget>&& target) = 0;
@@ -989,31 +1002,27 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TPipelineLayout, typename TParent>
     class RenderPipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TPipelineLayout, TParent>::Builder;
 
     public:
-        virtual void use(UniquePtr<IRasterizer>&& rasterizer) = 0;
-        virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) = 0;
-        virtual void use(UniquePtr<IViewport>&& viewport) = 0;
         virtual void use(UniquePtr<IShaderProgram>&& program) = 0;
-        virtual TDerived& enableDepthTest(const bool& enable = false) = 0; 
-        virtual TDerived& enableStencilTest(const bool& enable = false) = 0;
+        virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) = 0;
     };
 
     /// <summary>
     /// 
     /// </summary>
     template <typename TDerived, typename TRasterizer, typename TParent>
-    class RasterizerBuilder : public Builder<TDerived, TRasterizer, TParent> {
+    class RasterizerBuilder : public Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>>::Builder;
 
     public:
         virtual TDerived& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) = 0;
         virtual TDerived& withCullMode(const CullMode& cullMode = CullMode::BackFaces) = 0;
         virtual TDerived& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) = 0;
         virtual TDerived& withLineWidth(const Float& lineWidth = 1.f) = 0;
-        virtual TDerived& withDepthBias(const bool& enable = false) = 0;
+        virtual TDerived& enableDepthBias(const bool& enable = false) = 0;
         virtual TDerived& withDepthBiasClamp(const Float& clamp = 0.f) = 0;
         virtual TDerived& withDepthBiasConstantFactor(const Float& factor = 0.f) = 0;
         virtual TDerived& withDepthBiasSlopeFactor(const Float& factor = 0.f) = 0;
@@ -1022,23 +1031,10 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    template <typename TDerived, typename TViewport, typename TParent>
-    class ViewportBuilder : public Builder<TDerived, TViewport, TParent> {
-    public:
-        using builder_type::Builder;
-
-    public:
-        virtual TDerived& withRectangle(const RectF& rectangle) = 0;
-        virtual TDerived& addScissor(const RectF& scissor) = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
     template <typename TDerived, typename TInputAssembler, typename TParent>
-    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent> {
+    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>>::Builder;
 
     public:
         virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
@@ -1052,7 +1048,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TDescriptorSetLayout, typename TParent>
     class DescriptorSetLayoutBuilder : public Builder<TDerived, TDescriptorSetLayout, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TDescriptorSetLayout, TParent>::Builder;
 
     public:
         virtual TDerived& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) = 0;
@@ -1083,7 +1079,7 @@ namespace LiteFX::Rendering {
     template <typename TDerived, typename TVertexBufferLayout, typename TParent>
     class VertexBufferLayoutBuilder : public Builder<TDerived, TVertexBufferLayout, TParent> {
     public:
-        using builder_type::Builder;
+        using Builder<TDerived, TVertexBufferLayout, TParent>::Builder;
 
     public:
         virtual TDerived& addAttribute(UniquePtr<BufferAttribute>&& attribute) = 0;

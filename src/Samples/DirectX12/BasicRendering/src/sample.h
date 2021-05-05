@@ -35,6 +35,8 @@ public:
 
 private:
 	GlfwWindowPtr m_window;
+	SharedPtr<IViewport> m_viewport;
+	SharedPtr<IScissor> m_scissor;
 	UniquePtr<DirectX12Device> m_device;
 	UniquePtr<DirectX12RenderPass> m_renderPass;
 	//UniquePtr<IVertexBuffer> m_vertexBuffer;

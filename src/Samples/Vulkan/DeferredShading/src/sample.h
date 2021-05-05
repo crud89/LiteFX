@@ -35,6 +35,8 @@ public:
 
 private:
 	GlfwWindowPtr m_window;
+	SharedPtr<IViewport> m_viewport;
+	SharedPtr<IScissor> m_scissor;
 	UniquePtr<VulkanDevice> m_device;
 	UniquePtr<VulkanRenderPass> m_geometryPass, m_lightingPass;
 	UniquePtr<IVertexBuffer> m_vertexBuffer, m_viewPlaneVertexBuffer;

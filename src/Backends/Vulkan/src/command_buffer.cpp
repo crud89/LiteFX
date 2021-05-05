@@ -84,7 +84,7 @@ const ICommandQueue* VulkanCommandBuffer::getQueue() const noexcept
 void VulkanCommandBuffer::begin() const
 {
 	// Wait for the fence to be signaled.
-	if (::vkWaitForFences(m_impl->m_device->handle(), 1, &m_impl->m_fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS)
+	if(::vkWaitForFences(m_impl->m_device->handle(), 1, &m_impl->m_fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS)
 		throw std::runtime_error("Unable to wait for command buffer synchronization fence.");
 
 	VkCommandBufferBeginInfo beginInfo{};

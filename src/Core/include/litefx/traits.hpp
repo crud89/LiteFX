@@ -24,7 +24,7 @@ namespace LiteFX::rtti {
     /// template <typename T, std::enable_if_t<rtti::has_builder_v<T>, int> = 0, typename TBuilder = T::builder>
     /// TBuilder makeBuilder() { return TBuilder(); }
     ///
-    /// template <typename T, typename TBuilder, std::enable_if_t<!rtti::has_builder<T>, int> = 0, typename TBuilder = Builder<T, TBuilder>>
+    /// template <typename T, typename TBuilder, std::enable_if_t<!rtti::has_builder_v<T>, int> = 0, typename TBuilder = Builder<T, TBuilder>>
     /// TBuilder makeBuilder() { return TBuilder(); }
     /// </code>
     /// </example>

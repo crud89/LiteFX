@@ -48,7 +48,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<DirectX12RenderPass> go() override;
 
 	public:
-		virtual DirectX12RenderPipelineBuilder addPipeline();
+		virtual DirectX12RenderPipelineBuilder addPipeline(const UInt32& id, const String& name = "");
 
 	public:
 		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;
@@ -61,54 +61,69 @@ namespace LiteFX::Rendering::Backends {
 	/// 
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline, DirectX12RenderPassBuilder> {
-	public:
-		using RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline, DirectX12RenderPassBuilder>::RenderPipelineBuilder;
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineBuilderImpl);
 
 	public:
-		virtual DirectX12RenderPipelineLayoutBuilder defineLayout();
+		DirectX12RenderPipelineBuilder(DirectX12RenderPassBuilder& parent, UniquePtr<DirectX12RenderPipeline>&& instance);
+		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
+		DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
+		virtual ~DirectX12RenderPipelineBuilder() noexcept;
 
 	public:
+		virtual DirectX12RenderPipelineLayoutBuilder layout();
+		virtual DirectX12RasterizerBuilder rasterizer();
+		virtual DirectX12InputAssemblerBuilder inputAssembler();
+		virtual DirectX12RenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
+		virtual DirectX12RenderPipelineBuilder& withInputAssembler(SharedPtr<IInputAssembler> inputAssembler);
+		virtual DirectX12RenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
+		virtual DirectX12RenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
+
+	public:
+		virtual DirectX12RenderPassBuilder& go() override;
 		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
+		virtual void use(SharedPtr<IRasterizer> rasterizer) override;
+		virtual void use(SharedPtr<IInputAssembler> inputAssembler) override;
+		virtual void use(SharedPtr<IViewport> viewport) override;
+		virtual void use(SharedPtr<IScissor> scissor) override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12RenderPipelineLayout, DirectX12RenderPipelineBuilder> {
-	public:
-		using RenderPipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12RenderPipelineLayout, DirectX12RenderPipelineBuilder>::RenderPipelineLayoutBuilder;
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutBuilderImpl);
 
 	public:
-		virtual DirectX12RasterizerBuilder setRasterizer();
-		virtual DirectX12InputAssemblerBuilder setInputAssembler();
-		//virtual DirectX12ShaderProgramBuilder setShaderProgram();
-		virtual DirectX12ViewportBuilder addViewport();
+		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent, UniquePtr<DirectX12RenderPipelineLayout>&& instance);
+		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineLayoutBuilder&&) = delete;
+		DirectX12RenderPipelineLayoutBuilder(const DirectX12RenderPipelineLayoutBuilder&) = delete;
+		virtual ~DirectX12RenderPipelineLayoutBuilder() noexcept;
+
+	public:
+		//virtual DirectX12ShaderProgramBuilder shaderProgram();
+		//virtual DirectX12DescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
 
 	public:
 		virtual DirectX12RenderPipelineBuilder& go() override;
 
 	public:
-		virtual void use(UniquePtr<IRasterizer>&& rasterizer) override;
-		virtual void use(UniquePtr<IInputAssembler>&& inputAssembler) override;
-		virtual void use(UniquePtr<IViewport>&& viewport) override;
 		virtual void use(UniquePtr<IShaderProgram>&& program) override;
-		virtual DirectX12RenderPipelineLayoutBuilder& enableDepthTest(const bool& enable = false) override;
-		virtual DirectX12RenderPipelineLayoutBuilder& enableStencilTest(const bool& enable = false) override;
+		virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineLayoutBuilder> {
+	class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder> {
 	public:
-		using RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineLayoutBuilder>::RasterizerBuilder;
+		using RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder>::RasterizerBuilder;
 
 	public:
 		virtual DirectX12RasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) override;
 		virtual DirectX12RasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
 		virtual DirectX12RasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
 		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
-		virtual DirectX12RasterizerBuilder& withDepthBias(const bool& enable = false) override;
+		virtual DirectX12RasterizerBuilder& enableDepthBias(const bool& enable = false) override;
 		virtual DirectX12RasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
 		virtual DirectX12RasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
 		virtual DirectX12RasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
@@ -117,9 +132,9 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineLayoutBuilder> {
+	class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder> {
 	public:
-		using InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineLayoutBuilder>::InputAssemblerBuilder;
+		using InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder>::InputAssemblerBuilder;
 
 	public:
 		virtual DirectX12VertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
@@ -131,18 +146,6 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12ViewportBuilder : public ViewportBuilder<DirectX12ViewportBuilder, DirectX12Viewport, DirectX12RenderPipelineLayoutBuilder> {
-	public:
-		using ViewportBuilder<DirectX12ViewportBuilder, DirectX12Viewport, DirectX12RenderPipelineLayoutBuilder>::ViewportBuilder;
-
-	public:
-		virtual DirectX12ViewportBuilder& withRectangle(const RectF& rectangle) override;
-		virtual DirectX12ViewportBuilder& addScissor(const RectF& scissor) override;
 	};
 
 	/// <summary>

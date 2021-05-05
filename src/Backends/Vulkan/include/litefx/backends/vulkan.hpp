@@ -21,6 +21,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDescriptorSet() noexcept;
 
 	public:
+		// TODO: Find a way to abstract this.
+		virtual const VkDescriptorSet swapBuffer();
+
+	public:
 		virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept override;
 		virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept override;
 		virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept override;
@@ -49,9 +53,6 @@ namespace LiteFX::Rendering::Backends {
 		
 		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IImage* image) const override;
-		
-		/// <inheritdoc />
-		virtual void bind(const IRenderPass* renderPass) override;
 	};
 
 	/// <summary>
@@ -187,19 +188,6 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanViewport : public virtual VulkanRuntimeObject, public Viewport {
-		LITEFX_BUILDER(VulkanViewportBuilder);
-
-	public:
-		VulkanViewport(const VulkanRenderPipelineLayout& layout) noexcept;
-		VulkanViewport(VulkanViewport&&) noexcept = delete;
-		VulkanViewport(const VulkanViewport&) noexcept = delete;
-		virtual ~VulkanViewport() noexcept;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_VULKAN_API VulkanRasterizer : public virtual VulkanRuntimeObject, public Rasterizer {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
@@ -213,7 +201,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject, public RenderPipelineLayout, public IResource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject, public IRenderPipelineLayout, public IResource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 
@@ -222,6 +210,18 @@ namespace LiteFX::Rendering::Backends {
 		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) noexcept = delete;
 		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) noexcept = delete;
 		virtual ~VulkanRenderPipelineLayout() noexcept;
+
+		// IRequiresInitialization
+	public:
+		virtual bool isInitialized() const noexcept override;
+
+		// IRenderPipelineLayout
+	public:
+		virtual void initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts) override;
+
+	public:
+		virtual const IShaderProgram* getProgram() const noexcept override;
+		virtual Array<const IDescriptorSetLayout*> getDescriptorSetLayouts() const noexcept override;
 	};
 
 	/// <summary>
@@ -239,29 +239,25 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanRenderPass() noexcept;
 
 	public:
-		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
+		virtual const VulkanCommandBuffer* getVkCommandBuffer() const noexcept;
 
 	public:
+		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
+		virtual const UInt32 getCurrentBackBuffer() const override;
 		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
 		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
 		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
+		virtual Array<const IRenderPipeline*> getPipelines() const noexcept override;
+		virtual const IRenderPipeline* getPipeline(const UInt32& id) const noexcept override;
+		virtual void addPipeline(UniquePtr<IRenderPipeline>&& pipeline) override;
+		virtual void removePipeline(const UInt32& id) override;
 		virtual void setDependency(const IRenderPass* renderPass = nullptr) override;
 		virtual const IRenderPass* getDependency() const noexcept override;
-		virtual const IRenderPipeline* getPipeline() const noexcept override;
-		virtual IRenderPipeline* getPipeline() noexcept override;
 		virtual void begin() const override;
 		virtual void end(const bool& present = false) override;
 		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
 		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
 		virtual const IImage* getAttachment(const UInt32& attachmentId) const override;
-
-	public:
-		virtual void bind(const IVertexBuffer* buffer) const override;
-		virtual void bind(const IIndexBuffer* buffer) const override;
-		virtual void bind(IDescriptorSet* buffer) const override;
-		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
-		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
-		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
 	};
 
 	/// <summary>
@@ -272,16 +268,44 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
 	public:
-		VulkanRenderPipeline(const VulkanRenderPass& renderPass);
+		VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
 
+		// IRequiresInitialization
+	public:
+		virtual bool isInitialized() const noexcept override;
+
+		// IRenderPipeline
+	public:
+		/// <inheritdoc />
+		virtual const IRenderPass& renderPass() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const String& name() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& id() const noexcept override;
+
+	public:
+		virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler> inputAssembler, SharedPtr<IRasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) override;
+
 	public:
 		virtual const IRenderPipelineLayout* getLayout() const noexcept override;
-		virtual IRenderPipelineLayout* getLayout() noexcept override;
-		virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) override;
-		virtual const IRenderPass& renderPass() const noexcept override;
+		virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept override;
+		virtual SharedPtr<IRasterizer> getRasterizer() const noexcept override;
+		virtual Array<const IViewport*> getViewports() const noexcept override;
+		virtual Array<const IScissor*> getScissors() const noexcept override;
+
+	public:
+		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
+		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
+		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
+		virtual void bind(const IVertexBuffer* buffer) const override;
+		virtual void bind(const IIndexBuffer* buffer) const override;
+		virtual void bind(IDescriptorSet* buffer) const override;
+		virtual void use() const override;
 	};
 
 	/// <summary>
@@ -318,9 +342,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual Array<const IShaderModule*> getModules() const noexcept override;
-		virtual Array<const IDescriptorSetLayout*> getLayouts() const noexcept override;
 		virtual void use(UniquePtr<IShaderModule>&& module) override;
-		virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) override;
 	};
 
 	/// <summary>

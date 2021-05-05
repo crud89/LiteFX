@@ -195,32 +195,26 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~DirectX12RenderPass() noexcept;
 
 	public:
-		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
+		virtual const DirectX12Device* getDevice() const noexcept;
+		virtual const DirectX12CommandBuffer* getDXCommandBuffer() const noexcept;
 
 	public:
+		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
+		virtual const UInt32 getCurrentBackBuffer() const override;
 		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
 		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
 		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
+		virtual Array<const IRenderPipeline*> getPipelines() const noexcept override;
+		virtual const IRenderPipeline* getPipeline(const UInt32& id) const noexcept override;
+		virtual void addPipeline(UniquePtr<IRenderPipeline>&& pipeline) override;
+		virtual void removePipeline(const UInt32& id) override;
 		virtual void setDependency(const IRenderPass* renderPass = nullptr) override;
 		virtual const IRenderPass* getDependency() const noexcept override;
-		virtual const IRenderPipeline* getPipeline() const noexcept override;
-		virtual IRenderPipeline* getPipeline() noexcept override;
 		virtual void begin() const override;
 		virtual void end(const bool& present = false) override;
 		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
 		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
 		virtual const IImage* getAttachment(const UInt32& attachmentId) const override;
-
-	public:
-		virtual void bind(const IVertexBuffer* buffer) const override;
-		virtual void bind(const IIndexBuffer* buffer) const override;
-		virtual void bind(IDescriptorSet* buffer) const override;
-		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
-		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
-		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
-
-	public:
-		virtual const DirectX12Device* getDevice() const noexcept;
 	};
 
 	/// <summary>
@@ -231,22 +225,50 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 
 	public:
-		DirectX12RenderPipeline(const DirectX12RenderPass& renderPass);
+		DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name = "");
 		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
 		DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
 		virtual ~DirectX12RenderPipeline() noexcept;
 
+		// IRequiresInitialization
+	public:
+		virtual bool isInitialized() const noexcept override;
+
+		// IRenderPipeline
+	public:
+		/// <inheritdoc />
+		virtual const IRenderPass& renderPass() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const String& name() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& id() const noexcept override;
+
+	public:
+		virtual void initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler> inputAssembler, SharedPtr<IRasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) override;
+
 	public:
 		virtual const IRenderPipelineLayout* getLayout() const noexcept override;
-		virtual IRenderPipelineLayout* getLayout() noexcept override;
-		virtual void setLayout(UniquePtr<IRenderPipelineLayout>&& layout) override;
-		virtual const IRenderPass& renderPass() const noexcept override;
+		virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept override;
+		virtual SharedPtr<IRasterizer> getRasterizer() const noexcept override;
+		virtual Array<const IViewport*> getViewports() const noexcept override;
+		virtual Array<const IScissor*> getScissors() const noexcept override;
+
+	public:
+		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
+		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
+		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
+		virtual void bind(const IVertexBuffer* buffer) const override;
+		virtual void bind(const IIndexBuffer* buffer) const override;
+		virtual void bind(IDescriptorSet* buffer) const override;
+		virtual void use() const override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public RenderPipelineLayout, public IComResource<ID3D12RootSignature> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public IRenderPipelineLayout, public IComResource<ID3D12RootSignature> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineLayoutBuilder);
 
@@ -255,6 +277,18 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12RenderPipelineLayout(DirectX12RenderPipelineLayout&&) noexcept = delete;
 		DirectX12RenderPipelineLayout(const DirectX12RenderPipelineLayout&) noexcept = delete;
 		virtual ~DirectX12RenderPipelineLayout() noexcept;
+
+		// IRequiresInitialization
+	public:
+		virtual bool isInitialized() const noexcept override;
+
+		// IRenderPipelineLayout
+	public:
+		virtual void initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts) override;
+
+	public:
+		virtual const IShaderProgram* getProgram() const noexcept override;
+		virtual Array<const IDescriptorSetLayout*> getDescriptorSetLayouts() const noexcept override;
 	};
 
 	/// <summary>
@@ -281,19 +315,6 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Viewport : public Viewport {
-		LITEFX_BUILDER(DirectX12ViewportBuilder);
-
-	public:
-		DirectX12Viewport(const DirectX12RenderPipelineLayout& layout) noexcept;
-		DirectX12Viewport(DirectX12Viewport&&) noexcept = delete;
-		DirectX12Viewport(const DirectX12Viewport&) noexcept = delete;
-		virtual ~DirectX12Viewport() noexcept;
 	};
 
 	/// <summary>

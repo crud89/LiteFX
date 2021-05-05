@@ -8,6 +8,12 @@ enum DescriptorSets : UInt32
     VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
 };
 
+enum Pipelines : UInt32
+{
+    GeometryPass = 0,                                   // Default geometry pass pipeline.
+    LightingPass = 1                                    // Default lighting pass pipeline.
+};
+
 const Array<Vertex> vertices =
 {
     { { -0.5f, -0.5f, 0.5f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
@@ -47,116 +53,116 @@ void SampleApp::createRenderPasses()
     m_geometryPass = m_device->buildRenderPass()
         .attachTarget(RenderTargetType::Color, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false)
         .attachTarget(RenderTargetType::Depth, Format::D24_UNORM_S8_UINT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, true)
-        .addPipeline()
-            .defineLayout()
-                .setShaderProgram()
+        .addPipeline(Pipelines::GeometryPass, "Geometry (default)")
+            .layout()
+                .shaderProgram()
                     .addVertexShaderModule("shaders/deferred_shading_geometry_pass.vert.spv")
                     .addFragmentShaderModule("shaders/deferred_shading_geometry_pass.frag.spv")
-                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-                        .addUniform(0, sizeof(CameraBuffer))
-                        .go()
-                    .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
-                        .addUniform(0, sizeof(TransformBuffer))
-                        .go()
                     .go()
-                .setRasterizer()
-                    .withPolygonMode(PolygonMode::Solid)
-                    .withCullMode(CullMode::BackFaces)
-                    .withCullOrder(CullOrder::ClockWise)
-                    .withLineWidth(1.f)
+                .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
+                    .addUniform(0, sizeof(CameraBuffer))
                     .go()
-                .setInputAssembler()
-                    .withTopology(PrimitiveTopology::TriangleList)
-                    .withIndexType(IndexType::UInt16)
-                    .addVertexBuffer(sizeof(Vertex), 0)
-                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                        .go()
-                    .go()
-                .addViewport()
-                    .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                    .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
+                    .addUniform(0, sizeof(TransformBuffer))
                     .go()
                 .go()
+            .rasterizer()
+                .withPolygonMode(PolygonMode::Solid)
+                .withCullMode(CullMode::BackFaces)
+                .withCullOrder(CullOrder::ClockWise)
+                .withLineWidth(1.f)
+                .go()
+            .inputAssembler()
+                .withTopology(PrimitiveTopology::TriangleList)
+                .withIndexType(IndexType::UInt16)
+                .addVertexBuffer(sizeof(Vertex), 0)
+                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                    .go()
+                .go()
+            .withViewport(m_viewport)
+            .withScissor(m_scissor)
             .go()
         .go();
 
     m_lightingPass = m_device->buildRenderPass()
         .dependsOn(m_geometryPass.get())
         .attachTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false)
-        .addPipeline()
-            .defineLayout()
-                .setShaderProgram()
+        .addPipeline(Pipelines::LightingPass, "Lighting (default)")
+            .layout()
+                .shaderProgram()
                     .addVertexShaderModule("shaders/deferred_shading_lighting_pass.vert.spv")
                     .addFragmentShaderModule("shaders/deferred_shading_lighting_pass.frag.spv")
-                    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Fragment)
-                        .addInputAttachment(0)  // Color attachment
-                        .addInputAttachment(1)  // Depth attachment
-                        .go()
                     .go()
-                .setRasterizer()
-                    .withPolygonMode(PolygonMode::Solid)
-                    .withCullMode(CullMode::BackFaces)
-                    .withCullOrder(CullOrder::ClockWise)
-                    .withLineWidth(1.f)
-                    .go()
-                .setInputAssembler()
-                    .withTopology(PrimitiveTopology::TriangleList)
-                    .withIndexType(IndexType::UInt16)
-                    .addVertexBuffer(sizeof(Vertex), 0)
-                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                        .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0))
-                        .go()
-                    .go()
-                .addViewport()
-                    .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                    .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Fragment)
+                    .addInputAttachment(0)  // Color attachment
+                    .addInputAttachment(1)  // Depth attachment
                     .go()
                 .go()
-            .go()
+            .rasterizer()
+                .withPolygonMode(PolygonMode::Solid)
+                .withCullMode(CullMode::BackFaces)
+                .withCullOrder(CullOrder::ClockWise)
+                .withLineWidth(1.f)
+                .go()
+            .inputAssembler()
+                .withTopology(PrimitiveTopology::TriangleList)
+                .withIndexType(IndexType::UInt16)
+                .addVertexBuffer(sizeof(Vertex), 0)
+                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                    .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0))
+                    .go()
+                .go()
+            .withViewport(m_viewport)
+            .withScissor(m_scissor)
+            .go() 
         .go();
 }
 
 void SampleApp::initBuffers()
 {
+    // Get the pipeline instances.
+    auto geometryPipeline = m_geometryPass->getPipeline(Pipelines::GeometryPass);
+    auto lightingPipeline = m_lightingPass->getPipeline(Pipelines::LightingPass);
+
     // Create buffers for geometry pass.
     // Create the staging buffer.
-    auto stagedVertices = m_geometryPass->makeVertexBuffer(BufferUsage::Staging, vertices.size());
+    auto stagedVertices = geometryPipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex));
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    m_vertexBuffer = m_geometryPass->makeVertexBuffer(BufferUsage::Resource, vertices.size());
+    m_vertexBuffer = geometryPipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
     m_vertexBuffer->transferFrom(m_device->bufferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
-    auto stagedIndices = m_geometryPass->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
+    auto stagedIndices = geometryPipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
     stagedIndices->map(indices.data(), indices.size() * sizeof(UInt16));
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    m_indexBuffer = m_geometryPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
+    m_indexBuffer = geometryPipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
     m_indexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
-    m_perFrameBindings = m_geometryPass->makeBufferPool(DescriptorSets::PerFrame);
+    m_perFrameBindings = geometryPipeline->makeBufferPool(DescriptorSets::PerFrame);
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
-    m_perObjectBindings = m_geometryPass->makeBufferPool(DescriptorSets::PerInstance);
+    m_perObjectBindings = geometryPipeline->makeBufferPool(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
 
     // Create buffers for lighting pass.
-    stagedVertices = m_lightingPass->makeVertexBuffer(BufferUsage::Staging, viewPlaneVertices.size());
+    stagedVertices = lightingPipeline->makeVertexBuffer(BufferUsage::Staging, viewPlaneVertices.size());
     stagedVertices->map(viewPlaneVertices.data(), viewPlaneVertices.size() * sizeof(::Vertex));
-    m_viewPlaneVertexBuffer = m_lightingPass->makeVertexBuffer(BufferUsage::Resource, vertices.size());
+    m_viewPlaneVertexBuffer = lightingPipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
     m_viewPlaneVertexBuffer->transferFrom(m_device->bufferQueue(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
-    stagedIndices = m_lightingPass->makeIndexBuffer(BufferUsage::Staging, viewPlaneIndices.size(), IndexType::UInt16);
+    stagedIndices = lightingPipeline->makeIndexBuffer(BufferUsage::Staging, viewPlaneIndices.size(), IndexType::UInt16);
     stagedIndices->map(viewPlaneIndices.data(), viewPlaneIndices.size() * sizeof(UInt16));
-    m_viewPlaneIndexBuffer = m_lightingPass->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
+    m_viewPlaneIndexBuffer = lightingPipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
     m_viewPlaneIndexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create the G-Buffer bindings.
-    m_gBufferBindings = m_lightingPass->makeBufferPool(DescriptorSets::PerFrame);
+    m_gBufferBindings = lightingPipeline->makeBufferPool(DescriptorSets::PerFrame);
 }
 
 void SampleApp::run() 
@@ -164,6 +170,10 @@ void SampleApp::run()
     // Get the proper frame buffer size.
     int width, height;
     ::glfwGetFramebufferSize(m_window.get(), &width, &height);
+
+    // Create viewport and scissors.
+    m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
     m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
@@ -214,26 +224,13 @@ void SampleApp::resize(int width, int height)
 
     if (m_device == nullptr)
         return;
-    else
-    {
-        // Resize the frame buffer and recreate the swap chain.
-        m_device->resize(width, height);
 
-        // Resize the viewport.
-        auto renderPasses = { m_geometryPass.get(), m_lightingPass.get() };
+    // Resize the frame buffer and recreate the swap chain.
+    m_device->resize(width, height);
 
-        std::for_each(std::begin(renderPasses), std::end(renderPasses), [width, height](auto renderPass) {
-            auto layout = renderPass->getPipeline()->getLayout();
-            auto viewport = layout->remove(layout->getViewports().front());
-            viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-            viewport->getScissors().clear();
-            viewport->getScissors().push_back(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-            layout->use(std::move(viewport));
-        
-            // Recreate the pipeline.
-            renderPass->reset();
-        });
-    }
+    // Also resize viewport and scissor.
+    m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 }
 
 void SampleApp::handleEvents()
@@ -245,6 +242,10 @@ void SampleApp::drawFrame()
 {
     // Begin geometry pass.
     m_geometryPass->begin();
+
+    // Get the pipeline and bind it.
+    auto pipeline = m_geometryPass->getPipeline(Pipelines::GeometryPass);
+    pipeline->use();
 
     // Update transform buffer.
     static auto start = std::chrono::high_resolution_clock::now();
@@ -259,17 +260,17 @@ void SampleApp::drawFrame()
     camera.ViewProjection = projection * view;
     m_cameraBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     m_perFrameBindings->update(m_cameraBuffer.get());
-    m_geometryPass->bind(m_perFrameBindings.get());
+    pipeline->bind(m_perFrameBindings.get());
 
     // Draw the model.
-    m_geometryPass->bind(m_vertexBuffer.get());
-    m_geometryPass->bind(m_indexBuffer.get());
+    pipeline->bind(m_vertexBuffer.get());
+    pipeline->bind(m_indexBuffer.get());
     
     // Compute world transform.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
     m_perObjectBindings->update(m_transformBuffer.get());
-    m_geometryPass->bind(m_perObjectBindings.get());
+    pipeline->bind(m_perObjectBindings.get());
 
     // Draw the object.
     m_geometryPass->drawIndexed(indices.size());
@@ -280,14 +281,18 @@ void SampleApp::drawFrame()
     // Begin lighting pass.
     m_lightingPass->begin();
 
+    // Get the pipeline and bind it.
+    pipeline = m_lightingPass->getPipeline(Pipelines::LightingPass);
+    pipeline->use();
+
     // Bind the G-Buffer.
     m_gBufferBindings->attach(0, m_geometryPass.get(), 0);
     m_gBufferBindings->attach(1, m_geometryPass.get(), 1);
 
     // Draw the view plane.
-    m_lightingPass->bind(m_viewPlaneVertexBuffer.get());
-    m_lightingPass->bind(m_viewPlaneIndexBuffer.get());
-    m_lightingPass->bind(m_gBufferBindings.get());
+    pipeline->bind(m_viewPlaneVertexBuffer.get());
+    pipeline->bind(m_viewPlaneIndexBuffer.get());
+    pipeline->bind(m_gBufferBindings.get());
     m_lightingPass->drawIndexed(viewPlaneIndices.size());
 
     // End lighting pass and present.

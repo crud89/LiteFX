@@ -41,7 +41,7 @@ VulkanRasterizerBuilder& VulkanRasterizerBuilder::withLineWidth(const Float& lin
     return *this;
 }
 
-VulkanRasterizerBuilder& VulkanRasterizerBuilder::withDepthBias(const bool& enable) 
+VulkanRasterizerBuilder& VulkanRasterizerBuilder::enableDepthBias(const bool& enable) 
 {
     this->instance()->setDepthBiasEnabled(enable);
     return *this;

@@ -13,7 +13,7 @@ public:
     friend class VulkanRenderPass;
 
 private:
-    UniquePtr<IRenderPipeline> m_pipeline;
+    Array<UniquePtr<IRenderPipeline>> m_pipelines;
     const VulkanSwapChain* m_swapChain{ nullptr };
     const VulkanQueue* m_queue{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
@@ -296,11 +296,6 @@ public:
 
     void begin()
     {
-        auto pipeline = dynamic_cast<const IResource<VkPipeline>*>(m_pipeline.get());
-
-        if (pipeline == nullptr)
-            throw std::runtime_error("The pipeline of the render pass is not a valid Vulkan pipeline.");
-
         // Swap out the back buffer, if the render pass has a present target. Otherwise increment the current frame buffer anyways.
         // NOTE: Maybe this can be refactored to a boolean parameter `swapBackBuffer` which defaults to `false`?
         m_backBuffer = m_dependency == nullptr ? m_swapChain->swapBackBuffer() : m_dependency->m_impl->m_backBuffer;
@@ -321,7 +316,6 @@ public:
         renderPassInfo.pClearValues = m_clearValues.data();
 
         ::vkCmdBeginRenderPass(commandBuffer->handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        ::vkCmdBindPipeline(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->handle());
     }
 
     void end(const bool present = false)
@@ -418,9 +412,19 @@ VulkanRenderPass::~VulkanRenderPass() noexcept
     m_impl->cleanup();
 }
 
+const VulkanCommandBuffer* VulkanRenderPass::getVkCommandBuffer() const noexcept
+{
+    return m_impl->getCurrentCommandBuffer();
+}
+
 const ICommandBuffer* VulkanRenderPass::getCommandBuffer() const noexcept
 {
     return m_impl->getCurrentCommandBuffer();
+}
+
+const UInt32 VulkanRenderPass::getCurrentBackBuffer() const
+{
+    return m_impl->m_backBuffer;
 }
 
 void VulkanRenderPass::addTarget(UniquePtr<IRenderTarget>&& target)
@@ -438,6 +442,40 @@ UniquePtr<IRenderTarget> VulkanRenderPass::removeTarget(const IRenderTarget* tar
     return m_impl->removeTarget(target);
 }
 
+Array<const IRenderPipeline*> VulkanRenderPass::getPipelines() const noexcept
+{
+    Array<const IRenderPipeline*> pipelines(m_impl->m_pipelines.size());
+    std::generate(std::begin(pipelines), std::end(pipelines), [&, i = 0]() mutable { return m_impl->m_pipelines[i++].get(); });
+    
+    return pipelines;
+}
+
+const IRenderPipeline* VulkanRenderPass::getPipeline(const UInt32& id) const noexcept
+{
+    auto match = std::find_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; });
+
+    return match == m_impl->m_pipelines.end() ? nullptr : match->get();
+}
+
+void VulkanRenderPass::addPipeline(UniquePtr<IRenderPipeline>&& pipeline)
+{
+    if (pipeline == nullptr)
+        throw ArgumentNotInitializedException("The pipeline must be initialized.");
+
+    auto id = pipeline->id();
+    auto match = std::find_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; });
+
+    if (match != m_impl->m_pipelines.end())
+        throw InvalidArgumentException("Another pipeline with the ID {0} already has been registered. Pipeline IDs must be unique within a render pass.", id);
+
+    m_impl->m_pipelines.push_back(std::move(pipeline));
+}
+
+void VulkanRenderPass::removePipeline(const UInt32& id)
+{
+    m_impl->m_pipelines.erase(std::remove_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; }), std::end(m_impl->m_pipelines));
+}
+
 void VulkanRenderPass::setDependency(const IRenderPass* renderPass)
 {
     auto dependency = dynamic_cast<const VulkanRenderPass*>(renderPass);
@@ -451,16 +489,6 @@ void VulkanRenderPass::setDependency(const IRenderPass* renderPass)
 const IRenderPass* VulkanRenderPass::getDependency() const noexcept
 {
     return m_impl->m_dependency;
-}
-
-const IRenderPipeline* VulkanRenderPass::getPipeline() const noexcept
-{
-    return m_impl->m_pipeline.get();
-}
-
-IRenderPipeline* VulkanRenderPass::getPipeline() noexcept
-{
-    return m_impl->m_pipeline.get();
 }
 
 void VulkanRenderPass::begin() const
@@ -491,60 +519,6 @@ const IImage* VulkanRenderPass::getAttachment(const UInt32& attachmentId) const
     return m_impl->m_attachmentImages[m_impl->m_backBuffer][attachmentId].get();
 }
 
-void VulkanRenderPass::bind(const IVertexBuffer* buffer) const
-{
-    auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-    auto commandBuffer = m_impl->getCurrentCommandBuffer();
-
-    if (resource == nullptr)
-        throw std::invalid_argument("The provided vertex buffer is not a valid Vulkan buffer.");
-
-    // Depending on the type, bind the buffer accordingly.
-    constexpr VkDeviceSize offsets[] = { 0 };
-
-    ::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &resource->handle(), offsets);
-}
-
-void VulkanRenderPass::bind(const IIndexBuffer* buffer) const
-{
-    auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-    auto commandBuffer = m_impl->getCurrentCommandBuffer();
-
-    if (resource == nullptr)
-        throw std::invalid_argument("The provided index buffer is not a valid Vulkan buffer.");
-
-    ::vkCmdBindIndexBuffer(commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
-}
-
-void VulkanRenderPass::bind(IDescriptorSet* descriptorSet) const
-{
-    if (descriptorSet == nullptr)
-        throw std::invalid_argument("The descriptor set must be initialized.");
-
-    descriptorSet->bind(this);
-}
-
-UniquePtr<IVertexBuffer> VulkanRenderPass::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
-{
-    return this->getDevice()->createVertexBuffer(this->getPipeline()->getLayout()->getInputAssembler()->getVertexBufferLayout(binding), usage, elements);
-}
-
-UniquePtr<IIndexBuffer> VulkanRenderPass::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
-{
-    return this->getDevice()->createIndexBuffer(this->getPipeline()->getLayout()->getInputAssembler()->getIndexBufferLayout(), usage, elements);
-}
-
-UniquePtr<IDescriptorSet> VulkanRenderPass::makeBufferPool(const UInt32& setId) const
-{
-    auto layouts = this->getPipeline()->getLayout()->getProgram()->getLayouts();
-    auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) { return layout->getSetId() == setId; });
-
-    if (match == layouts.end())
-        throw std::invalid_argument("The requested buffer set is not defined.");
-
-    return (*match)->createBufferPool();
-}
-
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
@@ -571,16 +545,12 @@ void VulkanRenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
 
 void VulkanRenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
 {
-    if (pipeline == nullptr)
-        throw std::invalid_argument("The pipeline must be initialized.");
-
-    // TODO: Do not replace, but keep a list of pipelines!
-    this->instance()->m_impl->m_pipeline = std::move(pipeline);
+    this->instance()->addPipeline(std::move(pipeline));
 }
 
-VulkanRenderPipelineBuilder VulkanRenderPassBuilder::addPipeline()
+VulkanRenderPipelineBuilder VulkanRenderPassBuilder::addPipeline(const UInt32& id, const String& name)
 {
-    return this->make<VulkanRenderPipeline>();
+    return this->make<VulkanRenderPipeline>(id, name);
 }
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)

@@ -41,7 +41,7 @@ DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withLineWidth(const Floa
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthBias(const bool& enable) 
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::enableDepthBias(const bool& enable) 
 {
     this->instance()->setDepthBiasEnabled(enable);
     return *this;

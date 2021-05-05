@@ -178,7 +178,7 @@ UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgramBuilder& VulkanDescriptorSetLayoutBuilder::go()
+VulkanRenderPipelineLayoutBuilder& VulkanDescriptorSetLayoutBuilder::go()
 {
     auto instance = this->instance();
     instance->handle() = instance->m_impl->initialize();
