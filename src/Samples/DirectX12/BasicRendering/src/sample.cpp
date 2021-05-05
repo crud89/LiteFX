@@ -1,30 +1,35 @@
 #include "sample.h"
 
-//enum DescriptorSets : UInt32
-//{
-//    PerFrame = 0,                                       // All buffers that are updated for each frame.
-//    PerInstance = 1,                                    // All buffers that are updated for each rendered instance.
-//    VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
-//};
-//
-//const Array<Vertex> vertices =
-//{
-//    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-//    { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-//    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
-//    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } }
-//};
-//
-//const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
-//
-//struct CameraBuffer {
-//    glm::mat4 ViewProjection;
-//} camera;
-//
-//struct TransformBuffer {
-//    glm::mat4 World;
-//} transform;
-//
+enum DescriptorSets : UInt32
+{
+    PerFrame = 0,                                       // All buffers that are updated for each frame.
+    PerInstance = 1,                                    // All buffers that are updated for each rendered instance.
+    VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
+};
+
+enum Pipelines : UInt32
+{
+    Basic = 0                                           // Default render pipeline.
+};
+
+const Array<Vertex> vertices =
+{
+    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } }
+};
+
+const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
+
+struct CameraBuffer {
+    glm::mat4 ViewProjection;
+} camera;
+
+struct TransformBuffer {
+    glm::mat4 World;
+} transform;
+
 static void onResize(GLFWwindow* window, int width, int height)
 {
     auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
@@ -35,37 +40,35 @@ void SampleApp::createRenderPasses()
 {
     m_renderPass = m_device->buildRenderPass()
         .attachTarget(RenderTargetType::Present, Format::R8G8B8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
-        .addPipeline()
-            .defineLayout()
-                .setRasterizer()
-                    .withPolygonMode(PolygonMode::Solid)
-                    .withCullMode(CullMode::BackFaces)
-                    .withCullOrder(CullOrder::ClockWise)
-                    .withLineWidth(1.f)
-                    .go()
-                .setInputAssembler()
-                    .withTopology(PrimitiveTopology::TriangleList)
-                    .withIndexType(IndexType::UInt16)
-                    .addVertexBuffer(sizeof(Vertex), 0)
-                        .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                        .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                        .go()
-                    .go()
+        .addPipeline(Pipelines::Basic, "Basic")
+            .layout()
                 //.shaderProgram()
                 //    .addVertexShaderModule("shaders/basic.vert.dxi")
                 //    .addFragmentShaderModule("shaders/basic.frag.dxi")
                 //    .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
                 //        .addUniform(0, sizeof(CameraBuffer))
                 //        .go()
-                //    .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
-                //        .addUniform(0, sizeof(TransformBuffer))
-                //        .go()
                 //    .go()
-                .addViewport()
-                    .withRectangle(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
-                    .addScissor(RectF(0.f, 0.f, static_cast<Float>(m_device->getBufferWidth()), static_cast<Float>(m_device->getBufferHeight())))
+                //.addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
+                //    .addUniform(0, sizeof(TransformBuffer))
+                //    .go()
+                .go()
+            .rasterizer()
+                .withPolygonMode(PolygonMode::Solid)
+                .withCullMode(CullMode::BackFaces)
+                .withCullOrder(CullOrder::ClockWise)
+                .withLineWidth(1.f)
+                .go()
+            .inputAssembler()
+                .withTopology(PrimitiveTopology::TriangleList)
+                .withIndexType(IndexType::UInt16)
+                .addVertexBuffer(sizeof(Vertex), 0)
+                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
                     .go()
                 .go()
+                .withViewport(m_viewport)
+                .withScissor(m_scissor)
             .go()
         .go();
 }
@@ -100,6 +103,10 @@ void SampleApp::run()
     // Get the proper frame buffer size.
     int width, height;
     ::glfwGetFramebufferSize(m_window.get(), &width, &height);
+
+    // Create viewport and scissors.
+    m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
     m_device = this->getRenderBackend()->createDevice<DirectX12Device>(Format::R8G8B8A8_UNORM, Size2d(width, height), 3);
