@@ -140,7 +140,7 @@ void DirectX12RenderPipeline::bind(const IIndexBuffer * buffer) const
 	throw;
 }
 
-void DirectX12RenderPipeline::bind(const IDescriptorSet * descriptorSet) const
+void DirectX12RenderPipeline::bind(IDescriptorSet * descriptorSet) const
 {
 	throw;
 }

@@ -711,7 +711,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
         virtual void bind(const IVertexBuffer* buffer) const = 0;
         virtual void bind(const IIndexBuffer* buffer) const = 0;
-        virtual void bind(const IDescriptorSet* buffer) const = 0;
+        virtual void bind(IDescriptorSet* buffer) const = 0;
         virtual void use() const = 0;
     };
 

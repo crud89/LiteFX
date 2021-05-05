@@ -22,7 +22,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		// TODO: Find a way to abstract this.
-		virtual const VkDescriptorSet getHandle(const UInt32& backBuffer) const;
+		virtual const VkDescriptorSet swapBuffer();
 
 	public:
 		virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept override;
@@ -304,7 +304,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
 		virtual void bind(const IVertexBuffer* buffer) const override;
 		virtual void bind(const IIndexBuffer* buffer) const override;
-		virtual void bind(const IDescriptorSet* buffer) const override;
+		virtual void bind(IDescriptorSet* buffer) const override;
 		virtual void use() const override;
 	};
 

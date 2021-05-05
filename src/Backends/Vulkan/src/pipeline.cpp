@@ -130,17 +130,17 @@ public:
 		inputState.pVertexAttributeDescriptions = vertexInputAttributes.data();
 
 		// Setup viewport state.
-		VkPipelineViewportStateCreateInfo viewportState;
+		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportState.viewportCount = static_cast<UInt32>(viewports.size());
 		viewportState.scissorCount = static_cast<UInt32>(scissors.size());
 
 		// Setup dynamic state.
-		VkDynamicState dynamicStates[] = { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR };
+		Array<VkDynamicState> dynamicStates { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR };
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		dynamicState.pDynamicStates = dynamicStates;
-		dynamicState.dynamicStateCount = 2;
+		dynamicState.pDynamicStates = dynamicStates.data();
+		dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
 
 		// Setup multisampling state.
 		// TODO: Abstract me!
@@ -342,15 +342,15 @@ void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
 	::vkCmdBindIndexBuffer(commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 }
 
-void VulkanRenderPipeline::bind(const IDescriptorSet* descriptorSet) const
+void VulkanRenderPipeline::bind(IDescriptorSet* descriptorSet) const
 {
-	auto resource = dynamic_cast<const VulkanDescriptorSet*>(descriptorSet);
+	auto resource = dynamic_cast<VulkanDescriptorSet*>(descriptorSet);
 	auto commandBuffer = m_impl->m_renderPass.getVkCommandBuffer();
 
 	if (resource == nullptr)
 		throw std::invalid_argument("The provided descriptor set is not a valid Vulkan descriptor set.");
 
-	VkDescriptorSet descriptorSets[] = { resource->getHandle(m_impl->m_renderPass.getCurrentBackBuffer()) };
+	const VkDescriptorSet descriptorSets[] = { resource->swapBuffer() };
 
 	// TODO: Synchronize with possible update calls on this command buffer, first.
 	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_vkLayout->handle(), descriptorSet->getDescriptorSetLayout()->getSetId(), 1, descriptorSets, 0, nullptr);

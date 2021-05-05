@@ -91,12 +91,11 @@ VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
     ::vkDestroyDescriptorPool(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-const VkDescriptorSet VulkanDescriptorSet::getHandle(const UInt32& backBuffer) const
+const VkDescriptorSet VulkanDescriptorSet::swapBuffer()
 {
-    if (static_cast<size_t>(backBuffer) >= m_impl->m_descriptorSets.size())
-        throw ArgumentOutOfRangeException("The back buffer {0} is not valid for the descriptor set with {1} back buffers.", backBuffer, m_impl->m_descriptorSets.size());
-
-    return m_impl->m_descriptorSets[backBuffer];
+    auto descriptorSet = m_impl->m_descriptorSets[m_impl->m_currentSet];
+    m_impl->m_currentSet = (m_impl->m_currentSet + 1) % static_cast<UInt32>(m_impl->m_descriptorSets.size());
+    return descriptorSet;
 }
 
 const IDescriptorSetLayout* VulkanDescriptorSet::getDescriptorSetLayout() const noexcept
