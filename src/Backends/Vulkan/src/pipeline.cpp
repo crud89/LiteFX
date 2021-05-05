@@ -188,20 +188,6 @@ public:
 		depthStencilState.depthWriteEnable = std::any_of(std::begin(targets), std::end(targets), [](const auto& t) { return t->getType() == RenderTargetType::Depth; });
 		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
 
-		// Setup pipeline state.
-		VkGraphicsPipelineCreateInfo pipelineInfo = {};
-		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.pVertexInputState = &inputState;
-		pipelineInfo.pInputAssemblyState = &inputAssembly;
-		pipelineInfo.pViewportState = &viewportState;
-		pipelineInfo.pRasterizationState = &rasterizerState;
-		pipelineInfo.pMultisampleState = &multisampling;
-		pipelineInfo.pColorBlendState = &colorBlending;
-		pipelineInfo.pDepthStencilState = &depthStencilState;
-		pipelineInfo.pDynamicState = &dynamicState;
-		pipelineInfo.layout = pipelineLayout->handle();
-		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
 		// Setup shader stages.
 		auto modules = program->getModules();
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(program), modules.size());
@@ -215,10 +201,23 @@ public:
 				throw std::invalid_argument("The provided shader module is not a valid Vulkan shader.");
 
 			LITEFX_TRACE(VULKAN_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", i, modules.size(), module->getFileName(), module->getType(), module->getEntryPoint());
-			
+
 			return module->getShaderStageDefinition();
 		});
 
+		// Setup pipeline state.
+		VkGraphicsPipelineCreateInfo pipelineInfo = {};
+		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineInfo.pVertexInputState = &inputState;
+		pipelineInfo.pInputAssemblyState = &inputAssembly;
+		pipelineInfo.pViewportState = &viewportState;
+		pipelineInfo.pRasterizationState = &rasterizerState;
+		pipelineInfo.pMultisampleState = &multisampling;
+		pipelineInfo.pColorBlendState = &colorBlending;
+		pipelineInfo.pDepthStencilState = &depthStencilState;
+		pipelineInfo.pDynamicState = &dynamicState;
+		pipelineInfo.layout = pipelineLayout->handle();
+		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineInfo.stageCount = modules.size();
 		pipelineInfo.pStages = shaderStages.data();
 
