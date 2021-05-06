@@ -31,4 +31,40 @@ namespace LiteFX::rtti {
     /// <typeparam name="T">The type to check for an builder.</typeparam>
     template <class T>
     constexpr bool has_builder_v = has_builder<T>::value;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TArg"></typeparam>
+    /// <typeparam name="...TArgs"></typeparam>
+    template <typename T, typename TArg, typename ...TArgs>
+    struct is_explicitly_constructible : std::bool_constant<std::is_constructible_v<T, TArg, TArgs...> && !std::is_convertible_v<TArg, T>> { };
+
+    /// <summary>
+    /// Evalues to `true` or `false`, depending if <typeparamref name="T" /> contains an explicit constructor that takes <typeparamref name="TArg" /> and <typeparamref name="TArgs" /> as arguments.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TArg"></typeparam>
+    /// <typeparam name="...TArgs"></typeparam>
+    template <typename T, typename TArg, typename ...TArgs>
+    constexpr bool is_explicitly_constructible_v = is_explicitly_constructible<T, TArg, TArgs...>::value;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TArg"></typeparam>
+    /// <typeparam name="...TArgs"></typeparam>
+    template <typename T, typename TArg, typename ...TArgs>
+    struct is_implicitly_constructible : std::bool_constant<std::is_constructible_v<T, TArg, TArgs...> && std::is_convertible_v<TArg, T>> { };
+
+    /// <summary>
+    /// Evalues to `true` or `false`, depending if <typeparamref name="T" /> contains an implicit constructor that takes <typeparamref name="TArg" /> and <typeparamref name="TArgs" /> as arguments.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TArg"></typeparam>
+    /// <typeparam name="...TArgs"></typeparam>
+    template <typename T, typename TArg, typename ...TArgs>
+    constexpr bool is_implicitly_constructible_v = is_explicitly_constructible<T, TArg, TArgs...>::value;
 }
