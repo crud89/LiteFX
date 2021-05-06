@@ -163,7 +163,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12SwapChain : public ISwapChain, public IComResource<IDXGISwapChain4> {
+	class LITEFX_DIRECTX12_API DirectX12SwapChain : public virtual DirectX12RuntimeObject, public ISwapChain, public IComResource<IDXGISwapChain4> {
 		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
 
 	public:
@@ -183,7 +183,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RenderPass : public IRenderPass {
+	class LITEFX_DIRECTX12_API DirectX12RenderPass : public virtual DirectX12RuntimeObject, public IRenderPass {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
 		LITEFX_BUILDER(DirectX12RenderPassBuilder);
 
@@ -220,7 +220,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public IRenderPipeline, public IComResource<ID3D12PipelineState> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12RuntimeObject, public IRenderPipeline, public IComResource<ID3D12PipelineState> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 
@@ -268,7 +268,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public IRenderPipelineLayout, public IComResource<ID3D12RootSignature> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public virtual DirectX12RuntimeObject, public IRenderPipelineLayout, public IComResource<ID3D12RootSignature> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineLayoutBuilder);
 
@@ -294,7 +294,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public InputAssembler {
+	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public virtual DirectX12RuntimeObject, public InputAssembler {
 		LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
 
 	public:
@@ -307,7 +307,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Rasterizer : public Rasterizer {
+	class LITEFX_DIRECTX12_API DirectX12Rasterizer : public virtual DirectX12RuntimeObject, public Rasterizer {
 		LITEFX_BUILDER(DirectX12RasterizerBuilder);
 
 	public:
@@ -320,7 +320,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout : public IVertexBufferLayout {
+	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout : public virtual DirectX12RuntimeObject, public IVertexBufferLayout {
 		LITEFX_IMPLEMENTATION(DirectX12VertexBufferLayoutImpl);
 		LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
 
@@ -342,7 +342,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout : public IIndexBufferLayout {
+	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout : public virtual DirectX12RuntimeObject, public IIndexBufferLayout {
 		LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
 
 	public:
@@ -379,7 +379,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12ShaderProgram : public IShaderProgram {
+	class LITEFX_DIRECTX12_API DirectX12ShaderProgram : public virtual DirectX12RuntimeObject, public IShaderProgram {
 		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
 		LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
 
@@ -397,7 +397,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayout : public IDescriptorSetLayout {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayout : public virtual DirectX12RuntimeObject, public IDescriptorSetLayout {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
 		LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
 
@@ -422,7 +422,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt32 inputAttachments() const noexcept override;
 	};
 
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public IDescriptorSet, IComResource<ID3D12DescriptorHeap> {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject, public IDescriptorSet, IComResource<ID3D12DescriptorHeap> {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
 	public:
@@ -465,7 +465,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public IDescriptorLayout {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public virtual DirectX12RuntimeObject, public IDescriptorLayout {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorLayoutImpl);
 
 	public:

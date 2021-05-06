@@ -19,6 +19,7 @@ SET(DIRECTX12_BACKEND_HEADERS
 )
 
 SET(DIRECTX12_BACKEND_SOURCES
+    "src/runtime_object.cpp"
     "src/convert.cpp"
     "src/backend.cpp"
     "src/adapter.cpp"

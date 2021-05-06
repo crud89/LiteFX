@@ -61,7 +61,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, const UInt32& id, const ShaderStage& stages) :
-    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, id, stages))
+    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, id, stages)), DirectX12RuntimeObject(pipelineLayout.getDevice())
 {
 }
 

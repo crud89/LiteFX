@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Rasterizer::DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline) noexcept :
-    Rasterizer()
+    Rasterizer(), DirectX12RuntimeObject(pipeline.getDevice())
 {
 }
 

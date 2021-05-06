@@ -100,7 +100,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format) :
-	m_impl(makePimpl<DirectX12SwapChainImpl>(this)), IResource(nullptr)
+	m_impl(makePimpl<DirectX12SwapChainImpl>(this)), DirectX12RuntimeObject(device), IResource(nullptr)
 {
 	this->handle() = m_impl->initialize(device, format, frameBufferSize, frameBuffers);
 }

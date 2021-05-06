@@ -195,7 +195,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, id, name)), IComResource<ID3D12PipelineState>(nullptr)
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, id, name)), DirectX12RuntimeObject(renderPass.getDevice()), IComResource<ID3D12PipelineState>(nullptr)
 {
 }
 

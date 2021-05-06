@@ -123,6 +123,19 @@ namespace LiteFX::Rendering::Backends {
     //class DirectX12Sampler;
     class DirectX12Surface;
 
+    class LITEFX_DIRECTX12_API DirectX12RuntimeObject {
+        LITEFX_IMPLEMENTATION(DirectX12RuntimeObjectImpl);
+
+    public:
+        explicit DirectX12RuntimeObject(const DirectX12Device* device);
+        DirectX12RuntimeObject(DirectX12RuntimeObject&&) = delete;
+        DirectX12RuntimeObject(const DirectX12RuntimeObject&) = delete;
+        virtual ~DirectX12RuntimeObject() noexcept;
+
+    public:
+        virtual const DirectX12Device* getDevice() const noexcept;
+    };
+
     DEFINE_EXCEPTION(DX12PlatformException, std::runtime_error);
 
     template <typename TException, typename ...TArgs>

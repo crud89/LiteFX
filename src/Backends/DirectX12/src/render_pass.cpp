@@ -101,7 +101,7 @@ DirectX12RenderPass::DirectX12RenderPass(const IGraphicsDevice* device) :
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device* device) :
-    m_impl(makePimpl<DirectX12RenderPassImpl>(this, device))
+    m_impl(makePimpl<DirectX12RenderPassImpl>(this, device)), DirectX12RuntimeObject(device)
 {
 }
 

@@ -26,7 +26,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout) :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this))
+    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject(pipelineLayout.getDevice())
 {
 }
 

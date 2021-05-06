@@ -26,7 +26,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorLayout::DirectX12DescriptorLayout(const DirectX12DescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize) :
-    m_impl(makePimpl<DirectX12DescriptorLayoutImpl>(this, descriptorSetLayout, type, binding, elementSize))
+    m_impl(makePimpl<DirectX12DescriptorLayoutImpl>(this, descriptorSetLayout, type, binding, elementSize)), DirectX12RuntimeObject(descriptorSetLayout.getDevice())
 {
 }
 

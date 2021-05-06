@@ -35,7 +35,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12InputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding) :
-    m_impl(makePimpl<DirectX12VertexBufferLayoutImpl>(this, vertexSize, binding))
+    m_impl(makePimpl<DirectX12VertexBufferLayoutImpl>(this, vertexSize, binding)), DirectX12RuntimeObject(inputAssembler.getDevice())
 {
 }
 

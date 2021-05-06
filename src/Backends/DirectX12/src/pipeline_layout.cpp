@@ -35,33 +35,34 @@ public:
         Array<D3D12_ROOT_PARAMETER1> descriptorParameters;
         Array<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
 
-        std::for_each(std::begin(descriptorLayouts), std::end(descriptorLayouts), [&, space = 0](const auto& layout) {
-            auto descriptorSetLayout = dynamic_cast<const DirectX12DescriptorSetLayout*>(layout);
+        std::for_each(std::begin(descriptorLayouts), std::end(descriptorLayouts), [&, space = 0](const auto& layout) mutable {
+            auto descriptorSetLayout = dynamic_cast<const DirectX12DescriptorSetLayout*>(layout.get());
 
             if (descriptorSetLayout == nullptr)
                 return;
 
             // Parse the shader stage descriptor.
-            D3D12_SHADER_VISIBILITY shaderStages = {};
+            DWORD shaderStages = {};
+            auto stages = descriptorSetLayout->getShaderStages();
 
-            if ((m_stages & ShaderStage::Vertex) == ShaderStage::Vertex)
-                shaderStages |= D3D12_SHADER_VISIBILITY_VERTEX;
-            if ((m_stages & ShaderStage::Geometry) == ShaderStage::Geometry)
-                shaderStages |= D3D12_SHADER_VISIBILITY_GEOMETRY;
-            if ((m_stages & ShaderStage::Fragment) == ShaderStage::Fragment)
-                shaderStages |= D3D12_SHADER_VISIBILITY_PIXEL;
-            if ((m_stages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
-                shaderStages |= D3D12_SHADER_VISIBILITY_DOMAIN;
-            if ((m_stages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
-                shaderStages |= D3D12_SHADER_VISIBILITY_HULL;
-            if ((m_stages & ShaderStage::Compute) == ShaderStage::Compute)
+            if ((stages & ShaderStage::Vertex) == ShaderStage::Vertex)
+                shaderStages = shaderStages | D3D12_SHADER_VISIBILITY_VERTEX;
+            if ((stages & ShaderStage::Geometry) == ShaderStage::Geometry)
+                shaderStages = shaderStages | D3D12_SHADER_VISIBILITY_GEOMETRY;
+            if ((stages & ShaderStage::Fragment) == ShaderStage::Fragment)
+                shaderStages = shaderStages | D3D12_SHADER_VISIBILITY_PIXEL;
+            if ((stages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
+                shaderStages = shaderStages | D3D12_SHADER_VISIBILITY_DOMAIN;
+            if ((stages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
+                shaderStages = shaderStages | D3D12_SHADER_VISIBILITY_HULL;
+            if ((stages & ShaderStage::Compute) == ShaderStage::Compute)
                 shaderStages = D3D12_SHADER_VISIBILITY_ALL;
 
             // Define the root parameter ranges.
             auto ranges = descriptorSetLayout->getLayouts();
             Array<D3D12_DESCRIPTOR_RANGE1> rangeSet(ranges.size());
 
-            std::generate(std::begin(rangeSet), std::end(rangeSet), [&, i = 0]() {
+            std::generate(std::begin(rangeSet), std::end(rangeSet), [&, i = 0]() mutable {
                 const auto& range = ranges[i++];
 
                 D3D12_DESCRIPTOR_RANGE1 descriptorRange = {};
@@ -85,7 +86,7 @@ public:
 
             // Define the root parameter.
             D3D12_ROOT_PARAMETER1 rootParameter = {};
-            rootParameter.ShaderVisibility = shaderStages;
+            rootParameter.ShaderVisibility = static_cast<D3D12_SHADER_VISIBILITY>(shaderStages);
             rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
             rootParameter.DescriptorTable = {};
             rootParameter.DescriptorTable.NumDescriptorRanges = static_cast<UInt32>(rangeSet.size());
@@ -93,7 +94,7 @@ public:
 
             // Store the range set.
             descriptorParameters.push_back(rootParameter);
-            space++
+            space++;
         });
 
         // Create root signature descriptor.
@@ -119,7 +120,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipelineLayout::DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline) :
-    IComResource<ID3D12RootSignature>(nullptr), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, pipeline))
+    IComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, pipeline))
 {
 }
 

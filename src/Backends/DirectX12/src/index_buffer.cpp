@@ -22,7 +22,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(const DirectX12InputAssembler& inputAssembler, const IndexType& type) :
-    m_impl(makePimpl<DirectX12IndexBufferLayoutImpl>(this, type))
+    m_impl(makePimpl<DirectX12IndexBufferLayoutImpl>(this, type)), DirectX12RuntimeObject(inputAssembler.getDevice())
 {
 }
 

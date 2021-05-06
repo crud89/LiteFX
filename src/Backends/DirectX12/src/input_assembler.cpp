@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12RenderPipeline& pipeline) noexcept :
-    InputAssembler()
+    InputAssembler(), DirectX12RuntimeObject(pipeline.getDevice())
 {
 }
 

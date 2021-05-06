@@ -1,6 +1,5 @@
 #include <litefx/backends/dx12.hpp>
 #include <array>
-#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -14,8 +13,6 @@ public:
 
 private:
     const DirectX12DescriptorSetLayout& m_layout;
-    //Array<VkDescriptorSet> m_descriptorSets;
-    //UInt32 m_currentSet = 0;
 
 public:
     DirectX12DescriptorSetImpl(DirectX12DescriptorSet* parent, const DirectX12DescriptorSetLayout& descriptorSetLayout) :
@@ -39,7 +36,7 @@ public:
         descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
         ComPtr<ID3D12DescriptorHeap> descriptorHeap;
-        raiseIfFailed<RuntimeException>(m_parent->getDevice()->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap)));
+        raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap)), "Unable to create host descriptor heap.");
 
         return descriptorHeap;
     }
@@ -50,7 +47,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& bufferSet) :
-    IComResource<ID3D12DescriptorHeap>(nullptr), m_impl(makePimpl<DirectX12DescriptorSetImpl>(this, bufferSet))
+    IComResource<ID3D12DescriptorHeap>(nullptr), DirectX12RuntimeObject(bufferSet.getDevice()), m_impl(makePimpl<DirectX12DescriptorSetImpl>(this, bufferSet))
 {
     this->handle() = m_impl->initialize();
 }
