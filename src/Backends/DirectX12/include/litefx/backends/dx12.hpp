@@ -422,4 +422,66 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt32 inputAttachments() const noexcept override;
 	};
 
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public IDescriptorSet, IComResource<ID3D12DescriptorHeap> {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
+
+	public:
+		explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& bufferSet);
+		DirectX12DescriptorSet(DirectX12DescriptorSet&&) = delete;
+		DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
+		virtual ~DirectX12DescriptorSet() noexcept;
+
+	public:
+		virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept override;
+		virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept override;
+		virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept override;
+		virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void update(const IConstantBuffer* buffer) const override;
+
+		/// <inheritdoc />
+		virtual void update(const ITexture* texture) const override;
+
+		/// <inheritdoc />
+		virtual void update(const ISampler* sampler) const override;
+
+		/// <inheritdoc />
+		virtual void updateAll(const IConstantBuffer* buffer) const override;
+
+		/// <inheritdoc />
+		virtual void updateAll(const ITexture* texture) const override;
+
+		/// <inheritdoc />
+		virtual void updateAll(const ISampler* sampler) const override;
+
+		/// <inheritdoc />
+		virtual void attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const override;
+
+		/// <inheritdoc />
+		virtual void attach(const UInt32& binding, const IImage* image) const override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public IDescriptorLayout {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorLayoutImpl);
+
+	public:
+		explicit DirectX12DescriptorLayout(const DirectX12DescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize);
+		DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
+		DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
+		virtual ~DirectX12DescriptorLayout() noexcept;
+
+	public:
+		virtual size_t getElementSize() const noexcept override;
+		virtual UInt32 getBinding() const noexcept override;
+		virtual BufferType getType() const noexcept override;
+
+	public:
+		virtual const IDescriptorSetLayout* getDescriptorSet() const noexcept override;
+		virtual DescriptorType getDescriptorType() const noexcept override;
+	};
+
 }

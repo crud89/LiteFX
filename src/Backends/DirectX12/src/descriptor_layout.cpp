@@ -31,67 +31,12 @@ public:
 public:
     void initialize()
     {
-        throw;
-        //LITEFX_TRACE(VULKAN_LOG, "Defining layout for descriptor set {0} {{ Stages: {1} }}...", m_setId, m_stages);
+        LITEFX_TRACE(DIRECTX12_LOG, "Defining layout for descriptor set {0} {{ Stages: {1} }}...", m_setId, m_stages);
 
-        //// Parse the shader stage descriptor.
-        //VkShaderStageFlags shaderStages = {};
-
-        //if ((m_stages & ShaderStage::Vertex) == ShaderStage::Vertex)
-        //    shaderStages |= VK_SHADER_STAGE_VERTEX_BIT;
-        //if ((m_stages & ShaderStage::Geometry) == ShaderStage::Geometry)
-        //    shaderStages |= VK_SHADER_STAGE_GEOMETRY_BIT;
-        //if ((m_stages & ShaderStage::Fragment) == ShaderStage::Fragment)
-        //    shaderStages |= VK_SHADER_STAGE_FRAGMENT_BIT;
-        //if ((m_stages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
-        //    shaderStages |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        //if ((m_stages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
-        //    shaderStages |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        //if ((m_stages & ShaderStage::Compute) == ShaderStage::Compute)
-        //    shaderStages |= VK_SHADER_STAGE_COMPUTE_BIT;
-
-        //// Parse descriptor set layouts.
-        //Array<VkDescriptorSetLayoutBinding> bindings;
-
-        //std::for_each(std::begin(m_layouts), std::end(m_layouts), [&, i = 0](const UniquePtr<IDescriptorLayout>& layout) mutable {
-        //    auto bindingPoint = layout->getBinding();
-        //    auto type = layout->getDescriptorType();
-
-        //    LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), type, layout->getElementSize(), 0, bindingPoint);
-
-        //    VkDescriptorSetLayoutBinding binding = {};
-        //    binding.binding = bindingPoint;
-        //    binding.descriptorCount = 1;		// TODO: Implement support for uniform buffer arrays.
-        //    binding.pImmutableSamplers = nullptr;
-        //    binding.stageFlags = shaderStages;
-
-        //    switch (type)
-        //    {
-        //    case DescriptorType::Uniform:         binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;   break;
-        //    case DescriptorType::Storage:         binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;   break;
-        //    case DescriptorType::Image:           binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;    break;
-        //    case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;          break;
-        //    case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT; break;
-        //    default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");
-        //    }
-
-        //    m_poolSizes[type]++;
-        //    bindings.push_back(binding);
-        //});
-
-        //LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input attachments: {6} }}...", m_setId, m_layouts.size(), m_poolSizes[DescriptorType::Uniform], m_poolSizes[DescriptorType::Storage], m_poolSizes[DescriptorType::Image], m_poolSizes[DescriptorType::Sampler], m_poolSizes[DescriptorType::InputAttachment]);
-
-        //VkDescriptorSetLayoutCreateInfo uniformBufferLayoutInfo{};
-        //uniformBufferLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        //uniformBufferLayoutInfo.bindingCount = bindings.size();
-        //uniformBufferLayoutInfo.pBindings = bindings.data();
-
-        //VkDescriptorSetLayout layout;
-
-        //if (::vkCreateDescriptorSetLayout(m_parent->getDevice()->handle(), &uniformBufferLayoutInfo, nullptr, &layout) != VK_SUCCESS)
-        //    throw std::runtime_error("Unable to create descriptor set layout.");
-
-        //return layout;
+        std::for_each(std::begin(m_layouts), std::end(m_layouts), [&, i = 0](const UniquePtr<IDescriptorLayout>& layout) mutable {
+            LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout->getDescriptorType(), layout->getElementSize(), 0, layout->getBinding());
+            m_poolSizes[layout->getDescriptorType()]++;
+        });
     }
 
 public:
@@ -144,8 +89,7 @@ const ShaderStage& DirectX12DescriptorSetLayout::getShaderStages() const noexcep
 
 UniquePtr<IDescriptorSet> DirectX12DescriptorSetLayout::createBufferPool() const noexcept
 {
-    //return makeUnique<DirectX12DescriptorSet>(*this);
-    throw;
+    return makeUnique<DirectX12DescriptorSet>(*this);
 }
 
 UInt32 DirectX12DescriptorSetLayout::uniforms() const noexcept
@@ -196,7 +140,6 @@ DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::addDes
 
 DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize)
 {
-    //UniquePtr<IDescriptorLayout> layout = makeUnique<DirectX12DescriptorLayout>(*(this->instance()), type, binding, descriptorSize);
-    //return this->addDescriptor(std::move(layout));
-    throw;
+    UniquePtr<IDescriptorLayout> layout = makeUnique<DirectX12DescriptorLayout>(*(this->instance()), type, binding, descriptorSize);
+    return this->addDescriptor(std::move(layout));
 }

@@ -31,45 +31,69 @@ public:
             throw RuntimeException("The shader program must be initialized before creating a pipeline layout.");
 
         // Define the descriptor range from descriptor set layouts.
-        Array<D3D12_DESCRIPTOR_RANGE1> descriptorRanges;
-        Array<CD3DX12_ROOT_PARAMETER1> descriptorParameters;
-        Array<CD3DX12_STATIC_SAMPLER_DESC> staticSamplers;
+        Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
+        Array<D3D12_ROOT_PARAMETER1> descriptorParameters;
+        Array<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
 
-        std::for_each(std::begin(descriptorLayouts), std::end(descriptorLayouts), [&](const auto& layout) {
-            //auto descriptorSetLayout = dynamic_cast<const DirectX12DescriptorSetLayout*>(layout);
+        std::for_each(std::begin(descriptorLayouts), std::end(descriptorLayouts), [&, space = 0](const auto& layout) {
+            auto descriptorSetLayout = dynamic_cast<const DirectX12DescriptorSetLayout*>(layout);
 
-            //if (descriptorSetLayout == nullptr)
-            //    return;
+            if (descriptorSetLayout == nullptr)
+                return;
 
-            // TODO: 
-            // - create descriptor range
-            // - descriptorRanges.push_back();
-            // 
-            //DescRange[0].Init(D3D12_DESCRIPTOR_RANGE_SRV, 6, 2); // t2-t7
-            //DescRange[1].Init(D3D12_DESCRIPTOR_RANGE_UAV, 4, 0); // u0-u3
-            //DescRange[2].Init(D3D12_DESCRIPTOR_RANGE_SAMPLER, 2, 0); // s0-s1
-            //DescRange[3].Init(D3D12_DESCRIPTOR_RANGE_SRV, -1, 8, 0,
-            //    D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE); // t8-unbounded
-            //DescRange[4].Init(D3D12_DESCRIPTOR_RANGE_SRV, -1, 0, 1,
-            //    D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
-            //// (t0,space1)-unbounded
-            //DescRange[5].Init(D3D12_DESCRIPTOR_RANGE_CBV, 1, 1,
-            //    D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC); // b1
+            // Parse the shader stage descriptor.
+            D3D12_SHADER_VISIBILITY shaderStages = {};
 
-            // TODO: Init parameters.
-            //RP[0].InitAsConstants(3, 2); // 3 constants at b2
-            //RP[1].InitAsDescriptorTable(2, &DescRange[0]); // 2 ranges t2-t7 and u0-u3
-            //RP[2].InitAsConstantBufferView(0, 0,
-            //    D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC); // b0
-            //RP[3].InitAsDescriptorTable(1, &DescRange[2]); // s0-s1
-            //RP[4].InitAsDescriptorTable(1, &DescRange[3]); // t8-unbounded
-            //RP[5].InitAsDescriptorTable(1, &DescRange[4]); // (t0,space1)-unbounded
-            //RP[6].InitAsDescriptorTable(1, &DescRange[5]); // b1
+            if ((m_stages & ShaderStage::Vertex) == ShaderStage::Vertex)
+                shaderStages |= D3D12_SHADER_VISIBILITY_VERTEX;
+            if ((m_stages & ShaderStage::Geometry) == ShaderStage::Geometry)
+                shaderStages |= D3D12_SHADER_VISIBILITY_GEOMETRY;
+            if ((m_stages & ShaderStage::Fragment) == ShaderStage::Fragment)
+                shaderStages |= D3D12_SHADER_VISIBILITY_PIXEL;
+            if ((m_stages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
+                shaderStages |= D3D12_SHADER_VISIBILITY_DOMAIN;
+            if ((m_stages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
+                shaderStages |= D3D12_SHADER_VISIBILITY_HULL;
+            if ((m_stages & ShaderStage::Compute) == ShaderStage::Compute)
+                shaderStages = D3D12_SHADER_VISIBILITY_ALL;
 
-            // TODO: init samplers
-            //StaticSamplers[0].Init(3, D3D12_FILTER_ANISOTROPIC); // s3
+            // Define the root parameter ranges.
+            auto ranges = descriptorSetLayout->getLayouts();
+            Array<D3D12_DESCRIPTOR_RANGE1> rangeSet(ranges.size());
 
-            throw;
+            std::generate(std::begin(rangeSet), std::end(rangeSet), [&, i = 0]() {
+                const auto& range = ranges[i++];
+
+                D3D12_DESCRIPTOR_RANGE1 descriptorRange = {};
+                descriptorRange.BaseShaderRegister = range->getBinding();
+                descriptorRange.NumDescriptors = 1;
+                descriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+                descriptorRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
+                descriptorRange.RegisterSpace = space;
+
+                switch(range->getType())
+                { 
+                case DescriptorType::Uniform: descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV; break;
+                case DescriptorType::Storage: descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV; break;
+                case DescriptorType::Image:   descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV; break;
+                case DescriptorType::Sampler: descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER; break;
+                case DescriptorType::InputAttachment:   descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; break;
+                }
+
+                return descriptorRange;
+            });
+
+            // Define the root parameter.
+            D3D12_ROOT_PARAMETER1 rootParameter = {};
+            rootParameter.ShaderVisibility = shaderStages;
+            rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+            rootParameter.DescriptorTable = {};
+            rootParameter.DescriptorTable.NumDescriptorRanges = static_cast<UInt32>(rangeSet.size());
+            rootParameter.DescriptorTable.pDescriptorRanges = rangeSet.data();
+
+            // Store the range set.
+            descriptorParameters.push_back(rootParameter);
+            space++
         });
 
         // Create root signature descriptor.
