@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12RenderPipelineLayout& layout) noexcept :
+DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12RenderPipeline& pipeline) noexcept :
     InputAssembler()
 {
 }

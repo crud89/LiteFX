@@ -44,7 +44,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12GraphicsAdapterImpl);
 
 	public:
-		DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
+		explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
 		DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
 		DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) = delete;
 		virtual ~DirectX12GraphicsAdapter() noexcept;
@@ -124,7 +124,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
 
 	public:
-		DirectX12Queue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority);
+		explicit DirectX12Queue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority);
 		virtual ~DirectX12Queue() noexcept;
 
 	public:
@@ -146,7 +146,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
 	public:
-		DirectX12CommandBuffer(const DirectX12Queue* queue);
+		explicit DirectX12CommandBuffer(const DirectX12Queue* queue);
 		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
 		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
 		virtual ~DirectX12CommandBuffer() noexcept;
@@ -167,7 +167,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
 
 	public:
-		DirectX12SwapChain(const DirectX12Device* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format = Format::B8G8R8A8_SRGB);
+		explicit DirectX12SwapChain(const DirectX12Device* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format = Format::B8G8R8A8_SRGB);
 		virtual ~DirectX12SwapChain() noexcept;
 
 	public:
@@ -188,8 +188,8 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(DirectX12RenderPassBuilder);
 
 	public:
-		DirectX12RenderPass(const IGraphicsDevice* device);	// Adapter for builder interface.
-		DirectX12RenderPass(const DirectX12Device* device);
+		explicit DirectX12RenderPass(const IGraphicsDevice* device);	// Adapter for builder interface.
+		explicit DirectX12RenderPass(const DirectX12Device* device);
 		DirectX12RenderPass(const DirectX12RenderPass&) = delete;
 		DirectX12RenderPass(DirectX12RenderPass&&) = delete;
 		virtual ~DirectX12RenderPass() noexcept;
@@ -225,7 +225,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 
 	public:
-		DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name = "");
+		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name = "");
 		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
 		DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
 		virtual ~DirectX12RenderPipeline() noexcept;
@@ -273,7 +273,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(DirectX12RenderPipelineLayoutBuilder);
 
 	public:
-		DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline);
+		explicit DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline);
 		DirectX12RenderPipelineLayout(DirectX12RenderPipelineLayout&&) noexcept = delete;
 		DirectX12RenderPipelineLayout(const DirectX12RenderPipelineLayout&) noexcept = delete;
 		virtual ~DirectX12RenderPipelineLayout() noexcept;
@@ -298,7 +298,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
 
 	public:
-		DirectX12InputAssembler(const DirectX12RenderPipelineLayout& layout) noexcept;
+		explicit DirectX12InputAssembler(const DirectX12RenderPipeline& pipeline) noexcept;
 		DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
 		DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
 		virtual ~DirectX12InputAssembler() noexcept;
@@ -311,7 +311,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(DirectX12RasterizerBuilder);
 
 	public:
-		DirectX12Rasterizer(const DirectX12RenderPipelineLayout& layout) noexcept;
+		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline) noexcept;
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
@@ -325,7 +325,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
 
 	public:
-		DirectX12VertexBufferLayout(const DirectX12InputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding = 0);
+		explicit DirectX12VertexBufferLayout(const DirectX12InputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding = 0);
 		DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) = delete;
 		DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
 		virtual ~DirectX12VertexBufferLayout() noexcept;
@@ -344,10 +344,9 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout : public IIndexBufferLayout {
 		LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
-		LITEFX_BUILDER(DirectX12IndexBufferLayoutBuilder);
 
 	public:
-		DirectX12IndexBufferLayout(const DirectX12InputAssembler& inputAssembler, const IndexType& type);
+		explicit DirectX12IndexBufferLayout(const DirectX12InputAssembler& inputAssembler, const IndexType& type);
 		DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) = delete;
 		DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) = delete;
 		virtual ~DirectX12IndexBufferLayout() noexcept;
@@ -368,7 +367,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
 
 	public:
-		DirectX12ShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
+		explicit DirectX12ShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
 		virtual ~DirectX12ShaderModule() noexcept;
 
 	public:
@@ -385,7 +384,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
 
 	public:
-		DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout);
+		explicit DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout);
 		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
 		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
 		virtual ~DirectX12ShaderProgram() noexcept;

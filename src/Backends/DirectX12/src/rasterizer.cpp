@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Rasterizer::DirectX12Rasterizer(const DirectX12RenderPipelineLayout& layout) noexcept :
+DirectX12Rasterizer::DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline) noexcept :
     Rasterizer()
 {
 }

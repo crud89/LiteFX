@@ -6,8 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRasterizer::VulkanRasterizer(const VulkanRenderPipelineLayout& layout) noexcept :
-    Rasterizer(), VulkanRuntimeObject(layout.getDevice())
+VulkanRasterizer::VulkanRasterizer(const VulkanRenderPipeline& pipeline) noexcept :
+    Rasterizer(), VulkanRuntimeObject(pipeline.getDevice())
 {
 }
 

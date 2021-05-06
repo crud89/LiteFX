@@ -177,7 +177,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
 	public:
-		explicit VulkanInputAssembler(const VulkanRenderPipelineLayout& layout) noexcept;
+		explicit VulkanInputAssembler(const VulkanRenderPipeline& pipeline) noexcept;
 		VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
 		VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
 		virtual ~VulkanInputAssembler() noexcept;
@@ -190,7 +190,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
 	public:
-		explicit VulkanRasterizer(const VulkanRenderPipelineLayout& layout) noexcept;
+		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline) noexcept;
 		VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
 		VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
 		virtual ~VulkanRasterizer() noexcept;
