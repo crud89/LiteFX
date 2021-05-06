@@ -128,7 +128,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
 
 	public:
-		VulkanDescriptorSetLayout(const VulkanShaderProgram& shaderProgram, const UInt32& id, const ShaderStage& stages);
+		VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout, const UInt32& id, const ShaderStage& stages);
 		VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) = delete;
 		VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
 		virtual ~VulkanDescriptorSetLayout() noexcept;

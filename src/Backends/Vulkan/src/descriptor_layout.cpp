@@ -114,8 +114,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanShaderProgram& shaderProgram, const UInt32& id, const ShaderStage& stages) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, id, stages)), VulkanRuntimeObject(shaderProgram.getDevice()), IResource<VkDescriptorSetLayout>(nullptr)
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout, const UInt32& id, const ShaderStage& stages) :
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, id, stages)), VulkanRuntimeObject(pipelineLayout.getDevice()), IResource<VkDescriptorSetLayout>(nullptr)
 {
 }
 
