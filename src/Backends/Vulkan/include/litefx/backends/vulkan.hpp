@@ -82,7 +82,6 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanIndexBufferLayout : public virtual VulkanRuntimeObject, public IIndexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferLayoutImpl);
-		LITEFX_BUILDER(VulkanIndexBufferLayoutBuilder);
 
 	public:
 		VulkanIndexBufferLayout(const VulkanInputAssembler& inputAssembler, const IndexType& type);
@@ -104,7 +103,6 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanDescriptorLayout : public virtual VulkanRuntimeObject, public IDescriptorLayout {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorLayoutImpl);
-		LITEFX_BUILDER(VulkanDescriptorLayoutBuilder);
 
 	public:
 		VulkanDescriptorLayout(const VulkanDescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize);

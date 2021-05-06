@@ -16,8 +16,6 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanInputAssemblerBuilder;
 	class VulkanDescriptorSetLayoutBuilder;
 	class VulkanVertexBufferLayoutBuilder;
-	class VulkanIndexBufferLayoutBuilder;
-	class VulkanDescriptorLayoutBuilder;
 
 	/// <summary>
 	/// 
@@ -200,19 +198,4 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanVertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
 	};
 
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanIndexBufferLayoutBuilder : public Builder<VulkanIndexBufferLayoutBuilder, VulkanIndexBufferLayout, VulkanInputAssemblerBuilder> {
-	public:
-		using Builder<VulkanIndexBufferLayoutBuilder, VulkanIndexBufferLayout, VulkanInputAssemblerBuilder>::Builder;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanDescriptorLayoutBuilder : public Builder<VulkanDescriptorLayoutBuilder, VulkanDescriptorLayout, VulkanDescriptorSetLayoutBuilder> {
-	public:
-		using Builder<VulkanDescriptorLayoutBuilder, VulkanDescriptorLayout, VulkanDescriptorSetLayoutBuilder>::Builder;
-	};
 }
