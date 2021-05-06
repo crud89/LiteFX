@@ -106,9 +106,9 @@ public:
 		D3D12_BLEND_DESC blendState = {};
 		auto targets = m_renderPass.getTargets();
 
-		std::for_each(std::begin(targets), std::end(targets), [&, i = 0](const auto& attachhment) mutable {
+		std::for_each(std::begin(targets), std::end(targets), [&, i = 0](const auto& attachment) mutable {
 			if (attachment->getType() == RenderTargetType::Depth)
-				continue;
+				return;
 
 			// Only 8 RTVs are allowed.
 			if (i > 8)
@@ -136,13 +136,13 @@ public:
 		auto modules = program->getModules();
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(program), modules.size());
 
-		std::for_each(std::begin(modules), std::end(modules), [&](const auto& module) mutable {
-			auto shaderModule = dynamic_cast<const VulkanShaderModule*>(module);
+		std::for_each(std::begin(modules), std::end(modules), [&, i = 0](const auto& module) mutable {
+			auto shaderModule = dynamic_cast<const DirectX12ShaderModule*>(module);
 
 			if (shaderModule == nullptr)
-				throw InvalidArgumentException("The provided shader module is not a valid DIrectX 12 shader.");
+				throw InvalidArgumentException("The provided shader module is not a valid DirectX 12 shader.");
 
-			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", i, modules.size(), module->getFileName(), module->getType(), module->getEntryPoint());
+			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), module->getFileName(), module->getType(), module->getEntryPoint());
 
 			switch (shaderModule->getType())
 			{

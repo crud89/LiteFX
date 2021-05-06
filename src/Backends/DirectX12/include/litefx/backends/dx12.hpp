@@ -361,4 +361,38 @@ namespace LiteFX::Rendering::Backends {
 		virtual const IndexType& getIndexType() const noexcept override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public IShaderModule, public IResource<D3D12_SHADER_BYTECODE> {
+		LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
+
+	public:
+		DirectX12ShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
+		virtual ~DirectX12ShaderModule() noexcept;
+
+	public:
+		virtual const String& getFileName() const noexcept override;
+		virtual const String& getEntryPoint() const noexcept override;
+		virtual const ShaderStage& getType() const noexcept override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12ShaderProgram : public IShaderProgram {
+		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
+		LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
+
+	public:
+		DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout);
+		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
+		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
+		virtual ~DirectX12ShaderProgram() noexcept;
+
+	public:
+		virtual Array<const IShaderModule*> getModules() const noexcept override;
+		virtual void use(UniquePtr<IShaderModule>&& module) override;
+	};
+
 }

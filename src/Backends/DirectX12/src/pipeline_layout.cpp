@@ -180,11 +180,11 @@ void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IDescriptorSetLayout>&&
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
 
-//DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgram()
-//{
-//    return this->make<DirectX12ShaderProgram>();
-//}
-//
+DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgram()
+{
+    return this->make<DirectX12ShaderProgram>();
+}
+
 //DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& id, const ShaderStage& stages)
 //{
 //    return this->make<DirectX12DescriptorSetLayout>(id, stages);

@@ -9,7 +9,7 @@ namespace LiteFX::Rendering::Backends {
 	class DirectX12BackendBuilder;
 	class DirectX12RenderPipelineBuilder;
 	class DirectX12RenderPipelineLayoutBuilder;
-	//class DirectX12ShaderProgramBuilder;
+	class DirectX12ShaderProgramBuilder;
 	class DirectX12RenderPassBuilder;
 	class DirectX12RasterizerBuilder;
 	class DirectX12ViewportBuilder;
@@ -100,7 +100,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~DirectX12RenderPipelineLayoutBuilder() noexcept;
 
 	public:
-		//virtual DirectX12ShaderProgramBuilder shaderProgram();
+		virtual DirectX12ShaderProgramBuilder shaderProgram();
 		//virtual DirectX12DescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
 
 	public:
@@ -174,5 +174,22 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayoutBuilder : public Builder<DirectX12IndexBufferLayoutBuilder, DirectX12IndexBufferLayout, DirectX12InputAssemblerBuilder> {
 	public:
 		using Builder<DirectX12IndexBufferLayoutBuilder, DirectX12IndexBufferLayout, DirectX12InputAssemblerBuilder>::Builder;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12ShaderProgramBuilder : public ShaderProgramBuilder<DirectX12ShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder> {
+	public:
+		using ShaderProgramBuilder<DirectX12ShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder>::ShaderProgramBuilder;
+
+	public:
+		virtual DirectX12ShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
 	};
 }
