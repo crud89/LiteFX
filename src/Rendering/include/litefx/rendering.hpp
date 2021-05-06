@@ -68,7 +68,7 @@ namespace LiteFX::Rendering {
 		LITEFX_IMPLEMENTATION(RenderTargetImpl);
 
 	public:
-		RenderTarget();
+		explicit RenderTarget();
 		RenderTarget(const RenderTarget&) = delete;
 		RenderTarget(RenderTarget&&) = delete;
 		virtual ~RenderTarget() noexcept;
@@ -235,7 +235,7 @@ namespace LiteFX::Rendering {
 		LITEFX_IMPLEMENTATION(GraphicsDeviceImpl);
 
 	public:
-		GraphicsDevice(const IRenderBackend* backend);
+		explicit GraphicsDevice(const IRenderBackend* backend);
 		GraphicsDevice(const GraphicsDevice&) noexcept = delete;
 		GraphicsDevice(GraphicsDevice&&) noexcept = delete;
 		virtual ~GraphicsDevice() noexcept;
