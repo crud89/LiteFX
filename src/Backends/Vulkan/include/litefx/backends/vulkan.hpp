@@ -15,7 +15,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
 	public:
-		VulkanDescriptorSet(const VulkanDescriptorSetLayout& bufferSet);
+		explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& bufferSet);
 		VulkanDescriptorSet(VulkanDescriptorSet&&) = delete;
 		VulkanDescriptorSet(const VulkanDescriptorSet&) = delete;
 		virtual ~VulkanDescriptorSet() noexcept;
@@ -63,7 +63,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanVertexBufferLayoutBuilder);
 
 	public:
-		VulkanVertexBufferLayout(const VulkanInputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding = 0);
+		explicit VulkanVertexBufferLayout(const VulkanInputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding = 0);
 		VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) = delete;
 		VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) = delete;
 		virtual ~VulkanVertexBufferLayout() noexcept;
@@ -84,7 +84,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferLayoutImpl);
 
 	public:
-		VulkanIndexBufferLayout(const VulkanInputAssembler& inputAssembler, const IndexType& type);
+		explicit VulkanIndexBufferLayout(const VulkanInputAssembler& inputAssembler, const IndexType& type);
 		VulkanIndexBufferLayout(VulkanIndexBufferLayout&&) = delete;
 		VulkanIndexBufferLayout(const VulkanIndexBufferLayout&) = delete;
 		virtual ~VulkanIndexBufferLayout() noexcept;
@@ -105,7 +105,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorLayoutImpl);
 
 	public:
-		VulkanDescriptorLayout(const VulkanDescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize);
+		explicit VulkanDescriptorLayout(const VulkanDescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize);
 		VulkanDescriptorLayout(VulkanDescriptorLayout&&) = delete;
 		VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;
 		virtual ~VulkanDescriptorLayout() noexcept;
@@ -128,7 +128,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
 
 	public:
-		VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout, const UInt32& id, const ShaderStage& stages);
+		explicit VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout, const UInt32& id, const ShaderStage& stages);
 		VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) = delete;
 		VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
 		virtual ~VulkanDescriptorSetLayout() noexcept;
@@ -155,7 +155,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
-		VulkanCommandBuffer(const VulkanQueue* queue);
+		explicit VulkanCommandBuffer(const VulkanQueue* queue);
 		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
 		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
 		virtual ~VulkanCommandBuffer() noexcept;
@@ -177,7 +177,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
 	public:
-		VulkanInputAssembler(const VulkanRenderPipelineLayout& layout) noexcept;
+		explicit VulkanInputAssembler(const VulkanRenderPipelineLayout& layout) noexcept;
 		VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
 		VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
 		virtual ~VulkanInputAssembler() noexcept;
@@ -190,7 +190,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
 	public:
-		VulkanRasterizer(const VulkanRenderPipelineLayout& layout) noexcept;
+		explicit VulkanRasterizer(const VulkanRenderPipelineLayout& layout) noexcept;
 		VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
 		VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
 		virtual ~VulkanRasterizer() noexcept;
@@ -204,7 +204,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 
 	public:
-		VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline);
+		explicit VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline);
 		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) noexcept = delete;
 		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) noexcept = delete;
 		virtual ~VulkanRenderPipelineLayout() noexcept;
@@ -230,7 +230,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
 	public:
-		VulkanRenderPass(const IGraphicsDevice* device);	// Adapter for builder interface.
+		explicit VulkanRenderPass(const IGraphicsDevice* device);	// Adapter for builder interface.
 		VulkanRenderPass(const VulkanDevice* device);
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;
@@ -266,7 +266,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
 	public:
-		VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -313,7 +313,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
 	public:
-		VulkanShaderModule(const VulkanDevice* device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
+		explicit VulkanShaderModule(const VulkanDevice* device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
 		virtual ~VulkanShaderModule() noexcept;
 
 	public:
@@ -333,7 +333,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanShaderProgramBuilder);
 
 	public:
-		VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout);
+		explicit VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout);
 		VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
 		VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
 		virtual ~VulkanShaderProgram() noexcept;
@@ -350,7 +350,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
 
 	public:
-		VulkanSampler(
+		explicit VulkanSampler(
 			const VulkanDevice* device,
 			const IDescriptorLayout* layout,
 			const FilterMode& magFilter = FilterMode::Nearest, 
@@ -375,7 +375,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
-		VulkanSwapChain(const VulkanDevice* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format = Format::B8G8R8A8_SRGB);
+		explicit VulkanSwapChain(const VulkanDevice* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format = Format::B8G8R8A8_SRGB);
 		virtual ~VulkanSwapChain() noexcept;
 
 	public:
@@ -399,7 +399,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	
 	public:
-		VulkanQueue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId);
+		explicit VulkanQueue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId);
 		virtual ~VulkanQueue() noexcept;
 
 	public:
@@ -469,7 +469,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
 
 	public:
-		VulkanGraphicsAdapter(VkPhysicalDevice adapter);
+		explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
 		VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
 		VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
 		virtual ~VulkanGraphicsAdapter() noexcept;

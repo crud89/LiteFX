@@ -872,7 +872,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(RasterizerImpl);
 
     public:
-        Rasterizer();
+        explicit Rasterizer();
         Rasterizer(Rasterizer&&) noexcept = delete;
         Rasterizer(const Rasterizer&) noexcept = delete;
         virtual ~Rasterizer() noexcept;
@@ -903,7 +903,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(InputAssemblerImpl);
 
     public:
-        InputAssembler();
+        explicit InputAssembler();
         InputAssembler(InputAssembler&&) noexcept = delete;
         InputAssembler(const InputAssembler&) noexcept = delete;
         virtual ~InputAssembler() noexcept;
@@ -927,7 +927,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(ViewportImpl);
 
     public:
-        Viewport(const RectF& clientRect = { }, const Float& minDepth = 0.f, const Float& maxDepth = 1.f);
+        explicit Viewport(const RectF& clientRect = { }, const Float& minDepth = 0.f, const Float& maxDepth = 1.f);
         Viewport(Viewport&&) noexcept = delete;
         Viewport(const Viewport&) noexcept = delete;
         virtual ~Viewport() noexcept;
@@ -948,7 +948,7 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(ScissorImpl);
 
     public:
-        Scissor(const RectF& scissorRect = { });
+        explicit Scissor(const RectF& scissorRect = { });
         Scissor(Scissor&&) noexcept = delete;
         Scissor(const Scissor&) noexcept = delete;
         virtual ~Scissor() noexcept;

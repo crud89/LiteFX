@@ -149,7 +149,7 @@ namespace LiteFX {
 		THandle m_handle;
 
 	protected:
-		IResource(const THandle handle) noexcept : m_handle(handle) { }
+		explicit IResource(const THandle handle) noexcept : m_handle(handle) { }
 
 	public:
 		IResource(const IResource&) = delete;
@@ -183,7 +183,7 @@ namespace LiteFX {
 		T* instance() noexcept { return m_instance.get(); }
 
 	public:
-		Builder(TPointer&& instance) noexcept : m_instance(std::move(instance)) { }
+		explicit Builder(TPointer&& instance) noexcept : m_instance(std::move(instance)) { }
 		Builder(const builder_type&) = delete;
 		Builder(builder_type&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
 		virtual ~Builder() noexcept = default;
@@ -235,7 +235,7 @@ namespace LiteFX {
 		//const TParent& parent() const noexcept { return m_parent; }
 
 	public:
-		Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
+		explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
 		Builder(const builder_type&) = delete;
 		Builder(builder_type&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
 		virtual ~Builder() noexcept = default;

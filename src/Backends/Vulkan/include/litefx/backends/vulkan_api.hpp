@@ -127,7 +127,7 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(VulkanRuntimeObjectImpl);
 
     public:
-        VulkanRuntimeObject(const VulkanDevice* device);
+        explicit VulkanRuntimeObject(const VulkanDevice* device);
         VulkanRuntimeObject(VulkanRuntimeObject&&) = delete;
         VulkanRuntimeObject(const VulkanRuntimeObject&) = delete;
         virtual ~VulkanRuntimeObject() noexcept;
