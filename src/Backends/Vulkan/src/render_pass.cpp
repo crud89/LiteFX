@@ -19,6 +19,7 @@ private:
     Array<UniquePtr<IRenderTarget>> m_targets;
     Array<VkClearValue> m_clearValues;
     Array<VkFramebuffer> m_frameBuffers;
+    Optional<VkAttachmentReference> m_presentAttachment;
     Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
     UInt32 m_backBuffer{ 0 };
     Array<VkSemaphore> m_semaphores;
@@ -82,7 +83,7 @@ public:
         Array<VkAttachmentDescription> attachments;
         Array<VkAttachmentReference> colorAttachments;
         Array<VkAttachmentReference> inputAttachments;
-        Optional<VkAttachmentReference> depthAttachment, presentAttachment;
+        Optional<VkAttachmentReference> depthAttachment;
 
         // Map input attachments.
         // TODO: We need to check if there's some better way to map dependency outputs to input attachments, since simply assuming the right order
@@ -122,7 +123,7 @@ public:
 
         // Create attachments for each render target.
         std::for_each(std::begin(m_targets), std::end(m_targets), [&, i = inputAttachments.size()](const auto& target) mutable {
-            if ((target->getType() == RenderTargetType::Depth && depthAttachment.has_value()) || (target->getType() == RenderTargetType::Present && presentAttachment.has_value()))
+            if ((target->getType() == RenderTargetType::Depth && depthAttachment.has_value()) || (target->getType() == RenderTargetType::Present && m_presentAttachment.has_value()))
                 throw std::runtime_error(fmt::format("Invalid render target {0}: only one target attachment of type {1} is allowed.", i, target->getType()));
             else
             {
@@ -158,8 +159,8 @@ public:
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                     attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-                    presentAttachment = VkAttachmentReference { static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-                    colorAttachments.push_back(presentAttachment.value());
+                    m_presentAttachment = VkAttachmentReference { static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+                    colorAttachments.push_back(m_presentAttachment.value());
                     break;
                 }
 
@@ -208,16 +209,55 @@ public:
         if (::vkCreateRenderPass(m_parent->getDevice()->handle(), &renderPassState, nullptr, &renderPass) != VK_SUCCESS)
             throw std::runtime_error("Unable to create render pass.");
 
+        // Initialize the frame buffer.
+        this->createFramebuffer(renderPass);
+
+        // Create a command buffer.
+        if (m_commandBuffers.empty())
+        {
+            m_commandBuffers.resize(m_frameBuffers.size());
+            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue())); });
+        }
+
+        // Create a semaphore that signals if the render pass has finished.
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        m_semaphores.resize(m_frameBuffers.size());
+        std::generate(std::begin(m_semaphores), std::end(m_semaphores), [&]() mutable {
+            VkSemaphore semaphore;
+
+            if (::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS)
+                throw std::runtime_error("Unable to create signal semaphore.");
+
+            return semaphore;
+        });
+
+        // Return the render pass.
+        return renderPass;
+    }
+
+    void createFramebuffer(const VkRenderPass renderPass)
+    {
+        std::for_each(std::begin(m_frameBuffers), std::end(m_frameBuffers), [&](VkFramebuffer& frameBuffer) {
+            ::vkDestroyFramebuffer(m_parent->getDevice()->handle(), frameBuffer, nullptr);
+        });
+
+        Array<const IRenderTarget*> dependencyTargets;
+
+        if (m_dependency != nullptr)
+            dependencyTargets = m_dependency->getTargets();
+
         // Initialize frame buffers.
         auto frames = m_swapChain->getFrames();
         Array<VkFramebuffer> frameBuffers(frames.size());
 
         LITEFX_TRACE(VULKAN_LOG, "Initializing {0} frame buffers...", frames.size());
-        
+
         std::generate(std::begin(frameBuffers), std::end(frameBuffers), [&, i = 0]() mutable {
             Array<VkImageView> attachmentViews;
             Array<UniquePtr<IImage>> attachmentImages;
-            
+
             std::for_each(std::begin(dependencyTargets), std::end(dependencyTargets), [&, a = 0](const auto& target) mutable {
                 auto inputAttachmentImage = dynamic_cast<const IVulkanImage*>(m_dependency->m_impl->m_attachmentImages[i][a++].get());
 
@@ -228,7 +268,7 @@ public:
             });
 
             std::for_each(std::begin(m_targets), std::end(m_targets), [&, a = attachmentViews.size()](const auto& target) mutable {
-                if (presentAttachment.has_value() && a++ == presentAttachment->attachment)
+                if (m_presentAttachment.has_value() && a++ == m_presentAttachment->attachment)
                 {
                     // Acquire an image view from the swap chain.
                     auto swapChainImage = dynamic_cast<const IVulkanImage*>(frames[i]);
@@ -268,30 +308,6 @@ public:
 
         // Store the buffers.
         m_frameBuffers = frameBuffers;
-
-        // Create a command buffer.
-        if (m_commandBuffers.empty())
-        {
-            m_commandBuffers.resize(frames.size());
-            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue())); });
-        }
-
-        // Create a semaphore that signals if the render pass has finished.
-        VkSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-        m_semaphores.resize(frames.size());
-        std::generate(std::begin(m_semaphores), std::end(m_semaphores), [&]() mutable {
-            VkSemaphore semaphore;
-
-            if (::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS)
-                throw std::runtime_error("Unable to create signal semaphore.");
-
-            return semaphore;
-        });
-
-        // Return the render pass.
-        return renderPass;
     }
 
     void begin()
@@ -517,6 +533,11 @@ const IImage* VulkanRenderPass::getAttachment(const UInt32& attachmentId) const
         throw std::invalid_argument(fmt::format("Invalid attachment index ({0}, but expected {1} or less).", attachmentId, m_impl->m_attachmentImages[m_impl->m_backBuffer].size() - 1));
 
     return m_impl->m_attachmentImages[m_impl->m_backBuffer][attachmentId].get();
+}
+
+void VulkanRenderPass::resetFramebuffer()
+{
+    m_impl->createFramebuffer(this->handle());
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -216,6 +216,11 @@ const IImage* DirectX12RenderPass::getAttachment(const UInt32& attachmentId) con
     throw;
 }
 
+void DirectX12RenderPass::resetFramebuffer()
+{
+    throw;
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------

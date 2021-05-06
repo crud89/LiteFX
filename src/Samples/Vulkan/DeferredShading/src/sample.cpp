@@ -227,6 +227,8 @@ void SampleApp::resize(int width, int height)
 
     // Resize the frame buffer and recreate the swap chain.
     m_device->resize(width, height);
+    m_geometryPass->resetFramebuffer();
+    m_lightingPass->resetFramebuffer();
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));

@@ -863,6 +863,7 @@ namespace LiteFX::Rendering {
         virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
         virtual const IImage* getAttachment(const UInt32& attachmentId) const = 0;
+        virtual void resetFramebuffer() = 0;        // TODO: Move into its own object (i.e. combine with RenderTargets, which could be a part of this object).
     };
 
     /// <summary>
