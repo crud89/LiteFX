@@ -185,7 +185,7 @@ DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgra
     return this->make<DirectX12ShaderProgram>();
 }
 
-//DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& id, const ShaderStage& stages)
-//{
-//    return this->make<DirectX12DescriptorSetLayout>(id, stages);
-//}
+DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& id, const ShaderStage& stages)
+{
+    return this->make<DirectX12DescriptorSetLayout>(id, stages);
+}

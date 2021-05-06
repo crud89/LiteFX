@@ -14,10 +14,8 @@ namespace LiteFX::Rendering::Backends {
 	class DirectX12RasterizerBuilder;
 	class DirectX12ViewportBuilder;
 	class DirectX12InputAssemblerBuilder;
-	//class DirectX12DescriptorSetLayoutBuilder;
+	class DirectX12DescriptorSetLayoutBuilder;
 	class DirectX12VertexBufferLayoutBuilder;
-	class DirectX12IndexBufferLayoutBuilder;
-	//class DirectX12DescriptorLayoutBuilder;
 
 	/// <summary>
 	/// 
@@ -101,7 +99,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual DirectX12ShaderProgramBuilder shaderProgram();
-		//virtual DirectX12DescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
+		virtual DirectX12DescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
 
 	public:
 		virtual DirectX12RenderPipelineBuilder& go() override;
@@ -183,5 +181,20 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual DirectX12ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual DirectX12ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder> {
+	public:
+		using DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder>::DescriptorSetLayoutBuilder;
+
+	public:
+		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+
+	public:
+		virtual DirectX12DescriptorSetLayoutBuilder& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) override;
+		virtual DirectX12DescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
 	};
 }

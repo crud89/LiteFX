@@ -394,4 +394,32 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(UniquePtr<IShaderModule>&& module) override;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayout : public IDescriptorSetLayout {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
+		LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
+
+	public:
+		explicit DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, const UInt32& id, const ShaderStage& stages);
+		DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) = delete;
+		DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout&) = delete;
+		virtual ~DirectX12DescriptorSetLayout() noexcept;
+
+	public:
+		virtual Array<const IDescriptorLayout*> getLayouts() const noexcept override;
+		virtual const IDescriptorLayout* getLayout(const UInt32& binding) const noexcept override;
+		virtual const UInt32& getSetId() const noexcept override;
+		virtual const ShaderStage& getShaderStages() const noexcept override;
+		virtual UniquePtr<IDescriptorSet> createBufferPool() const noexcept override;
+
+	public:
+		virtual UInt32 uniforms() const noexcept override;
+		virtual UInt32 storages() const noexcept override;
+		virtual UInt32 images() const noexcept override;
+		virtual UInt32 samplers() const noexcept override;
+		virtual UInt32 inputAttachments() const noexcept override;
+	};
+
 }
