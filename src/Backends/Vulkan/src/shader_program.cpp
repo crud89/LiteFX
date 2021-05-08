@@ -26,7 +26,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout) :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject(pipelineLayout.getDevice())
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
@@ -55,7 +55,7 @@ void VulkanShaderProgram::use(UniquePtr<IShaderModule>&& module)
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
 {
     auto device = this->instance()->getDevice();
-    this->instance()->use(makeUnique<VulkanShaderModule>(device, type, fileName, entryPoint));
+    this->instance()->use(makeUnique<VulkanShaderModule>(*device, type, fileName, entryPoint));
 
     return *this;
 }

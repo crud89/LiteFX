@@ -81,8 +81,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSampler::VulkanSampler(const VulkanDevice* device, const IDescriptorLayout* layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
-	VulkanRuntimeObject(device), Sampler(layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy), m_impl(makePimpl<VulkanSamplerImpl>(this)), IResource(nullptr)
+VulkanSampler::VulkanSampler(const VulkanDevice& device, const IDescriptorLayout* layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+	VulkanRuntimeObject<VulkanDevice>(device, &device), Sampler(layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy), m_impl(makePimpl<VulkanSamplerImpl>(this)), IResource(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }

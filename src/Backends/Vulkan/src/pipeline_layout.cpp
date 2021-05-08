@@ -64,7 +64,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) :
-    VulkanRuntimeObject(pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr), m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this))
+    VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr), m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this))
 {
 }
 

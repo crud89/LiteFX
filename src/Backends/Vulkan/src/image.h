@@ -16,23 +16,25 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VkImageView& getImageView() const noexcept = 0;
 	};
 
-	class _VMAImageBase : public VulkanRuntimeObject, public virtual IVulkanImage, public IResource<VkImage> {
-	protected:
-		VmaAllocator m_allocator;
-		VmaAllocation m_allocationInfo;
-		VkImageView m_view;
+	class _VMAImageBase : public VulkanRuntimeObject<VulkanDevice>, public virtual IVulkanImage, public IResource<VkImage> {
+		LITEFX_IMPLEMENTATION(_VMAImageBaseImpl);
 
 	public:
-		_VMAImageBase(const VulkanDevice* device, VkImage image, VmaAllocator allocator, VmaAllocation allocation);
+		_VMAImageBase(const VulkanDevice& device, VkImage image, VmaAllocator allocator, VmaAllocation allocation);
 		_VMAImageBase(_VMAImageBase&&) = delete;
 		_VMAImageBase(const _VMAImageBase&) = delete;
 		virtual ~_VMAImageBase() noexcept;
+
+	protected:
+		virtual VmaAllocator& allocator() const noexcept;
+		virtual VmaAllocation& allocationInfo() const noexcept;
+		virtual VkImageView& view() const noexcept;
 	};
 
 	class _VMAImage : public _VMAImageBase, public Image {
 	public:
-		_VMAImage(const VulkanDevice* device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format);
-		_VMAImage(const VulkanDevice* device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation);
+		_VMAImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format);
+		_VMAImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation);
 		_VMAImage(_VMAImage&&) = delete;
 		_VMAImage(const _VMAImage&) = delete;
 		virtual ~_VMAImage() noexcept;
@@ -41,15 +43,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VkImageView& getImageView() const noexcept override;
 
 	public:
-		static UniquePtr<IImage> allocate(const VulkanDevice* device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IImage> allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	class _VMATexture : public _VMAImageBase, public Texture {
-	private:
-		VkImageLayout m_imageLayout;
+		LITEFX_IMPLEMENTATION(_VMATextureImpl);
 
 	public:
-		_VMATexture(const VulkanDevice* device, const IDescriptorLayout* layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
+		_VMATexture(const VulkanDevice& device, const VulkanDescriptorLayout* layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
 		_VMATexture(_VMATexture&&) = delete;
 		_VMATexture(const _VMATexture&) = delete;
 		virtual ~_VMATexture() noexcept;
@@ -73,7 +74,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
 
 	public:
-		static UniquePtr<ITexture> allocate(const VulkanDevice* device, const IDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<ITexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 }

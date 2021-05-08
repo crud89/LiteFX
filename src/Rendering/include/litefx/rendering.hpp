@@ -153,7 +153,6 @@ namespace LiteFX::Rendering {
 		virtual bool isBound() const noexcept = 0;
 		virtual QueuePriority getPriority() const noexcept = 0;
 		virtual QueueType getType() const noexcept = 0;
-		virtual const IGraphicsDevice* getDevice() const noexcept = 0;
 
 	public:
 		virtual void bind() = 0;
@@ -251,7 +250,7 @@ namespace LiteFX::Rendering {
 		/// <typeparam name="T">The type of the render pass. The type must implement <see cref="IRenderPass" /> interface.</typeparam>
 		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IRenderPass*>, int> = 0, typename TBuilder = T::builder>
 		TBuilder build(TArgs&&... _args) const {
-			return TBuilder(makeUnique<T>(this, std::forward<TArgs>(_args)...));
+			return TBuilder(makeUnique<T>(*this, std::forward<TArgs>(_args)...));
 		}
 	};
 

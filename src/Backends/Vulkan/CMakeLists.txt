@@ -24,7 +24,6 @@ SET(VULKAN_BACKEND_SOURCES
     "src/buffer.h"
     "src/image.h"
 
-    "src/runtime_object.cpp"
     "src/convert.cpp"
     "src/backend.cpp"
     "src/adaper.cpp"

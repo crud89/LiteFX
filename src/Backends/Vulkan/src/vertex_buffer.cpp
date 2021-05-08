@@ -35,7 +35,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanInputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding) :
-    m_impl(makePimpl<VulkanVertexBufferLayoutImpl>(this, vertexSize, binding)), VulkanRuntimeObject(inputAssembler.getDevice())
+    m_impl(makePimpl<VulkanVertexBufferLayoutImpl>(this, vertexSize, binding)), VulkanRuntimeObject<VulkanInputAssembler>(inputAssembler, inputAssembler.getDevice())
 {
 }
 

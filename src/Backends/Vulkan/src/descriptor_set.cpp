@@ -13,7 +13,6 @@ public:
     friend class VulkanDescriptorSet;
 
 private:
-    const IDescriptorSetLayout* m_layout{ nullptr };
     Array<VkDescriptorSet> m_descriptorSets;
     UInt32 m_currentSet = 0;
 
@@ -21,17 +20,17 @@ public:
     VulkanDescriptorSetImpl(VulkanDescriptorSet* parent) : base(parent) { }
 
 public:
-    VkDescriptorPool initialize(const VulkanDescriptorSetLayout& descriptorSetLayout)
+    VkDescriptorPool initialize()
     {
         Array<VkDescriptorPoolSize> poolSizes = {
-            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,   descriptorSetLayout.uniforms() },
-            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,   descriptorSetLayout.storages() },
-            { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,    descriptorSetLayout.images() },
-            { VK_DESCRIPTOR_TYPE_SAMPLER,          descriptorSetLayout.samplers() },
-            { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, descriptorSetLayout.inputAttachments() }
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,   m_parent->parent().uniforms() },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,   m_parent->parent().storages() },
+            { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,    m_parent->parent().images() },
+            { VK_DESCRIPTOR_TYPE_SAMPLER,          m_parent->parent().samplers() },
+            { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, m_parent->parent().inputAttachments() }
         };
 
-        auto descriptorLayouts = descriptorSetLayout.getLayouts();
+        auto descriptorLayouts = m_parent->parent().getLayouts();
         auto frames = m_parent->getDevice()->getSwapChain()->getBuffers();
 
         LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount, poolSizes[3].descriptorCount, poolSizes[4].descriptorCount, frames);
@@ -61,7 +60,7 @@ public:
             descriptorSetInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
             descriptorSetInfo.descriptorPool = descriptorPool;
             descriptorSetInfo.descriptorSetCount = 1;
-            descriptorSetInfo.pSetLayouts = &descriptorSetLayout.handle();
+            descriptorSetInfo.pSetLayouts = &m_parent->parent().handle();
 
             VkDescriptorSet descriptorSet;
 
@@ -71,7 +70,6 @@ public:
             return descriptorSet;
         });
 
-        m_layout = &descriptorSetLayout;
         return descriptorPool;
     }
 };
@@ -81,9 +79,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& bufferSet) :
-    m_impl(makePimpl<VulkanDescriptorSetImpl>(this)), VulkanRuntimeObject(bufferSet.getDevice()), IResource<VkDescriptorPool>(nullptr)
+    m_impl(makePimpl<VulkanDescriptorSetImpl>(this)), VulkanRuntimeObject<VulkanDescriptorSetLayout>(bufferSet, bufferSet.getDevice()), IResource<VkDescriptorPool>(nullptr)
 {
-    this->handle() = m_impl->initialize(bufferSet);
+    this->handle() = m_impl->initialize();
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
@@ -98,26 +96,21 @@ const VkDescriptorSet VulkanDescriptorSet::swapBuffer()
     return descriptorSet;
 }
 
-const IDescriptorSetLayout* VulkanDescriptorSet::getDescriptorSetLayout() const noexcept
-{
-    return m_impl->m_layout;
-}
-
 UniquePtr<IConstantBuffer> VulkanDescriptorSet::makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements) const noexcept
 {
-    auto layout = this->getDescriptorSetLayout()->getLayout(binding);
+    auto layout = this->parent().getLayout(binding);
     return this->getDevice()->createConstantBuffer(layout, usage, elements);
 }
 
 UniquePtr<ITexture> VulkanDescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const noexcept
 {
-    auto layout = this->getDescriptorSetLayout()->getLayout(binding);
+    auto layout = this->parent().getLayout(binding);
     return this->getDevice()->createTexture(layout, format, size, levels, samples);
 }
 
 UniquePtr<ISampler> VulkanDescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const noexcept
 {
-    auto layout = this->getDescriptorSetLayout()->getLayout(binding);
+    auto layout = this->parent().getLayout(binding);
     return this->getDevice()->createSampler(layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
 }
 

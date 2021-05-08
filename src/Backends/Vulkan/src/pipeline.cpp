@@ -13,7 +13,6 @@ public:
 	friend class VulkanRenderPipeline;
 
 private:
-	const VulkanRenderPass& m_renderPass;
 	const VulkanRenderPipelineLayout* m_vkLayout;
 	UniquePtr<IRenderPipelineLayout> m_layout;
 	SharedPtr<IInputAssembler> m_inputAssembler;
@@ -24,8 +23,8 @@ private:
 	const String m_name;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
-		base(parent), m_renderPass(renderPass), m_id(id), m_name(name)
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name) :
+		base(parent), m_id(id), m_name(name)
 	{
 	}
 
@@ -155,7 +154,7 @@ public:
 
 		// Setup color blend state.
 		// TODO: Add blend parameters to render target.
-		auto targets = m_renderPass.getTargets();
+		auto targets = m_parent->parent().getTargets();
 		auto colorAttachments = std::count_if(std::begin(targets), std::end(targets), [](const auto& target) { return target->getType() != RenderTargetType::Depth; });
 		
 		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments(colorAttachments);
@@ -222,7 +221,7 @@ public:
 		pipelineInfo.pStages = shaderStages.data();
 
 		// Setup render pass state.
-		pipelineInfo.renderPass = m_renderPass.handle();
+		pipelineInfo.renderPass = m_parent->parent().handle();
 		pipelineInfo.subpass = 0;
 
 		VkPipeline pipeline;
@@ -247,7 +246,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, id, name)), VulkanRuntimeObject(renderPass.getDevice()), IResource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), IResource<VkPipeline>(nullptr)
 {
 }
 
@@ -260,11 +259,6 @@ VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 bool VulkanRenderPipeline::isInitialized() const noexcept
 {
 	return this->handle() != nullptr;
-}
-
-const IRenderPass& VulkanRenderPipeline::renderPass() const noexcept
-{
-	return m_impl->m_renderPass;
 }
 
 const String& VulkanRenderPipeline::name() const noexcept
@@ -319,7 +313,7 @@ Array<const IScissor*> VulkanRenderPipeline::getScissors() const noexcept
 void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
 {
 	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-	auto commandBuffer = m_impl->m_renderPass.getVkCommandBuffer();
+	auto commandBuffer = this->parent().getVkCommandBuffer();
 
 	if (resource == nullptr)
 		throw std::invalid_argument("The provided vertex buffer is not a valid Vulkan buffer.");
@@ -333,7 +327,7 @@ void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
 void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
 {
 	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-	auto commandBuffer = m_impl->m_renderPass.getVkCommandBuffer();
+	auto commandBuffer = this->parent().getVkCommandBuffer();
 
 	if (resource == nullptr)
 		throw std::invalid_argument("The provided index buffer is not a valid Vulkan buffer.");
@@ -344,7 +338,7 @@ void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
 void VulkanRenderPipeline::bind(IDescriptorSet* descriptorSet) const
 {
 	auto resource = dynamic_cast<VulkanDescriptorSet*>(descriptorSet);
-	auto commandBuffer = m_impl->m_renderPass.getVkCommandBuffer();
+	auto commandBuffer = this->parent().getVkCommandBuffer();
 
 	if (resource == nullptr)
 		throw std::invalid_argument("The provided descriptor set is not a valid Vulkan descriptor set.");
@@ -352,7 +346,7 @@ void VulkanRenderPipeline::bind(IDescriptorSet* descriptorSet) const
 	const VkDescriptorSet descriptorSets[] = { resource->swapBuffer() };
 
 	// TODO: Synchronize with possible update calls on this command buffer, first.
-	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_vkLayout->handle(), descriptorSet->getDescriptorSetLayout()->getSetId(), 1, descriptorSets, 0, nullptr);
+	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_vkLayout->handle(), resource->parent().getSetId(), 1, descriptorSets, 0, nullptr);
 }
 
 void VulkanRenderPipeline::use() const
@@ -381,9 +375,9 @@ void VulkanRenderPipeline::use() const
 		i++;
 	});
 
-	::vkCmdBindPipeline(m_impl->m_renderPass.getVkCommandBuffer()->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
-	::vkCmdSetViewport(m_impl->m_renderPass.getVkCommandBuffer()->handle(), 0, static_cast<UInt32>(viewports.size()), viewports.data());
-	::vkCmdSetScissor(m_impl->m_renderPass.getVkCommandBuffer()->handle(), 0, static_cast<UInt32>(scissors.size()), scissors.data());
+	::vkCmdBindPipeline(this->parent().getVkCommandBuffer()->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
+	::vkCmdSetViewport(this->parent().getVkCommandBuffer()->handle(), 0, static_cast<UInt32>(viewports.size()), viewports.data());
+	::vkCmdSetScissor(this->parent().getVkCommandBuffer()->handle(), 0, static_cast<UInt32>(scissors.size()), scissors.data());
 }
 
 UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const

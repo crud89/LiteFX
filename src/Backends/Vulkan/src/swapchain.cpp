@@ -202,8 +202,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSwapChain::VulkanSwapChain(const VulkanDevice* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format) :
-	m_impl(makePimpl<VulkanSwapChainImpl>(this)), VulkanRuntimeObject(device), IResource(nullptr)
+VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format) :
+	m_impl(makePimpl<VulkanSwapChainImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), IResource(nullptr)
 {
 	this->handle() = m_impl->initialize(format, frameBufferSize, frameBuffers);
 	m_impl->loadImages();

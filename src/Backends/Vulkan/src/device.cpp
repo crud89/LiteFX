@@ -46,7 +46,7 @@ private:
 		}
 
 	public:
-		VulkanQueue* createQueue(const VulkanDevice* device, const QueuePriority& priority) {
+		VulkanQueue* createQueue(const VulkanDevice& device, const QueuePriority& priority) {
 			if (this->active() >= this->total())
 				throw RuntimeException("Unable to create another queue for family {0}, since all {1} queues are already created.", m_id, m_queueCount);
 
@@ -263,7 +263,7 @@ public:
 
 	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		m_swapChain = makeUnique<VulkanSwapChain>(m_parent, frameBufferSize, frameBuffers, format);
+		m_swapChain = makeUnique<VulkanSwapChain>(*m_parent, frameBufferSize, frameBuffers, format);
 	}
 
 	void createQueues()
@@ -319,7 +319,7 @@ public:
 			std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable { return family.type() == QueueType::Transfer; }) :
 			std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable { return LITEFX_FLAG_IS_SET(family.type(), type); });
 
-		return match == m_families.end() ? nullptr : match->createQueue(m_parent, priority);
+		return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
 	}
 
 	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority, const VkSurfaceKHR& surface)
@@ -342,7 +342,7 @@ public:
 			return static_cast<bool>(canPresent);
 		});
 
-		return match == m_families.end() ? nullptr : match->createQueue(m_parent, priority);
+		return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
 	}
 };
 
@@ -660,7 +660,7 @@ UniquePtr<IImage> VulkanDevice::createImage(const Format& format, const Size2d& 
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return _VMAImage::allocate(this, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
+	return _VMAImage::allocate(*this, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<IImage> VulkanDevice::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
@@ -687,13 +687,15 @@ UniquePtr<IImage> VulkanDevice::createAttachment(const Format& format, const Siz
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return _VMAImage::allocate(this, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
+	return _VMAImage::allocate(*this, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
-	if (layout == nullptr)
-		throw std::invalid_argument("The texture descriptor layout must be initialized.");
+	auto descriptorLayout = dynamic_cast<const VulkanDescriptorLayout*>(layout);
+
+	if (descriptorLayout == nullptr)
+		throw std::invalid_argument("The descriptor layout must be a valid Vulkan descriptor layout.");
 
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -721,12 +723,12 @@ UniquePtr<ITexture> VulkanDevice::createTexture(const IDescriptorLayout* layout,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return _VMATexture::allocate(this, layout, 1, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
+	return _VMATexture::allocate(*this, descriptorLayout, 1, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<ISampler> VulkanDevice::createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
-	return makeUnique<VulkanSampler>(this, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+	return makeUnique<VulkanSampler>(*this, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
 }
 
 Array<UniquePtr<IImage>> VulkanDevice::createSwapChainImages(const ISwapChain* sc) const
@@ -745,14 +747,14 @@ Array<UniquePtr<IImage>> VulkanDevice::createSwapChainImages(const ISwapChain* s
 	Array<UniquePtr<IImage>> images(imageCount);
 
 	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &imageCount, imageChain.data());
-	std::generate(images.begin(), images.end(), [&, i = 0]() mutable { return makeUnique<_VMAImage>(this, imageChain[i++], 1, size, format); });
+	std::generate(images.begin(), images.end(), [&, i = 0]() mutable { return makeUnique<_VMAImage>(*this, imageChain[i++], 1, size, format); });
 
 	return images;
 }
 
 UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint) const
 {
-	return makeUnique<VulkanShaderModule>(this, type, fileName, entryPoint);
+	return makeUnique<VulkanShaderModule>(*this, type, fileName, entryPoint);
 }
 
 VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const

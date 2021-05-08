@@ -115,7 +115,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout, const UInt32& id, const ShaderStage& stages) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, id, stages)), VulkanRuntimeObject(pipelineLayout.getDevice()), IResource<VkDescriptorSetLayout>(nullptr)
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, id, stages)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice()), IResource<VkDescriptorSetLayout>(nullptr)
 {
 }
 

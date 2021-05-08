@@ -11,7 +11,6 @@ public:
 	friend class VulkanQueue;
 
 private:
-	const VulkanDevice* m_device;
 	VkCommandPool m_commandPool{};
 	QueueType m_type;
 	QueuePriority m_priority;
@@ -19,8 +18,10 @@ private:
 	bool m_bound;
 
 public:
-	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice* device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
-		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_bound(false), m_device(device) { }
+	VulkanQueueImpl(VulkanQueue* parent, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_bound(false)
+	{
+	}
 
 	~VulkanQueueImpl()
 	{
@@ -31,7 +32,7 @@ public:
 	void release()
 	{
 		if (m_bound)
-			::vkDestroyCommandPool(m_device->handle(), m_commandPool, nullptr);
+			::vkDestroyCommandPool(m_parent->getDevice()->handle(), m_commandPool, nullptr);
 
 		m_bound = false;
 		m_commandPool = {};
@@ -44,7 +45,7 @@ public:
 
 		// Store the queue handle, if not done in previous binds.
 		if (m_parent->handle() == nullptr)
-			::vkGetDeviceQueue(m_device->handle(), m_familyId, m_queueId, &m_parent->handle());
+			::vkGetDeviceQueue(m_parent->getDevice()->handle(), m_familyId, m_queueId, &m_parent->handle());
 
 		// Create command pool.
 		VkCommandPoolCreateInfo poolInfo = {};
@@ -57,7 +58,7 @@ public:
 		if (m_type == QueueType::Transfer)
 			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-		if (::vkCreateCommandPool(m_device->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
+		if (::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create command pool.");
 
 		m_bound = true;
@@ -68,11 +69,9 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanQueue::VulkanQueue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
-	IResource(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, dynamic_cast<const VulkanDevice*>(device), type, priority, familyId, queueId))
+VulkanQueue::VulkanQueue(const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+	IResource(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanQueueImpl>(this, type, priority, familyId, queueId))
 {
-	if (m_impl->m_device == nullptr)
-		throw std::invalid_argument("The device must be initialized.");
 }
 
 VulkanQueue::~VulkanQueue() noexcept
@@ -118,11 +117,6 @@ QueueType VulkanQueue::getType() const noexcept
 QueuePriority VulkanQueue::getPriority() const noexcept
 {
 	return m_impl->m_priority;
-}
-
-const IGraphicsDevice* VulkanQueue::getDevice() const noexcept
-{
-	return m_impl->m_device;
 }
 
 UniquePtr<ICommandBuffer> VulkanQueue::createCommandBuffer() const

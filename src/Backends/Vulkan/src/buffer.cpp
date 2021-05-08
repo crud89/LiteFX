@@ -43,7 +43,7 @@ void _VMABufferBase::transferFrom(const ICommandQueue* commandQueue, IBuffer* so
 
 	if (transferQueue == nullptr)
 		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
-
+	
 	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
 
 	if (device == nullptr)

@@ -123,17 +123,27 @@ namespace LiteFX::Rendering::Backends {
     class VulkanConstantBuffer;
     class VulkanSampler;
 
+    template <typename TParent>
     class LITEFX_VULKAN_API VulkanRuntimeObject {
-        LITEFX_IMPLEMENTATION(VulkanRuntimeObjectImpl);
+    private:
+        const TParent& m_parent;
+        const VulkanDevice* m_device;
 
     public:
-        explicit VulkanRuntimeObject(const VulkanDevice* device);
+        explicit VulkanRuntimeObject(const TParent& parent, const VulkanDevice* device) :
+            m_parent(parent), m_device(device) 
+        {
+            if (device == nullptr)
+                throw RuntimeException("The device must be initialized.");
+        }
+
         VulkanRuntimeObject(VulkanRuntimeObject&&) = delete;
         VulkanRuntimeObject(const VulkanRuntimeObject&) = delete;
-        virtual ~VulkanRuntimeObject() noexcept;
+        virtual ~VulkanRuntimeObject() noexcept = default;
 
     public:
-        virtual const VulkanDevice* getDevice() const noexcept;
+        virtual const TParent& parent() const noexcept { return m_parent; }
+        virtual const VulkanDevice* getDevice() const noexcept { return m_device; };
     };
 
 }

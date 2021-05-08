@@ -71,7 +71,6 @@ namespace LiteFX::Rendering {
         virtual ~IDescriptorLayout() noexcept = default;
 
     public:
-        virtual const IDescriptorSetLayout* getDescriptorSet() const noexcept = 0;
         virtual DescriptorType getDescriptorType() const noexcept = 0;
     };
 
@@ -608,7 +607,6 @@ namespace LiteFX::Rendering {
         virtual ~IDescriptorSet() noexcept = default;
 
     public:
-        virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept = 0;
         virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept = 0;
         virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept = 0;
         virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const noexcept = 0;
@@ -679,7 +677,6 @@ namespace LiteFX::Rendering {
         virtual ~IRenderPipeline() noexcept = default;
 
     public:
-        virtual const IRenderPass& renderPass() const noexcept = 0;
         virtual const String& name() const noexcept = 0;
 
         /// <summary>

@@ -22,7 +22,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanIndexBufferLayout::VulkanIndexBufferLayout(const VulkanInputAssembler& inputAssembler, const IndexType& type) :
-    m_impl(makePimpl<VulkanIndexBufferLayoutImpl>(this, type)), VulkanRuntimeObject(inputAssembler.getDevice())
+    m_impl(makePimpl<VulkanIndexBufferLayoutImpl>(this, type)), VulkanRuntimeObject<VulkanInputAssembler>(inputAssembler, inputAssembler.getDevice())
 {
 }
 

@@ -31,7 +31,10 @@ private:
     Dictionary<UInt32, Array<UniquePtr<IImage>>> m_attachmentImages;
 
 public:
-    VulkanRenderPassImpl(VulkanRenderPass* parent) : base(parent) { }
+    VulkanRenderPassImpl(VulkanRenderPass* parent) : 
+        base(parent)
+    {
+    }
 
 private:
     void cleanup()
@@ -413,13 +416,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const IGraphicsDevice* device) : 
-    VulkanRenderPass(dynamic_cast<const VulkanDevice*>(device)) 
+VulkanRenderPass::VulkanRenderPass(const IGraphicsDevice& device) : 
+    VulkanRenderPass(dynamic_cast<const VulkanDevice&>(device)) 
 {
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice* device) :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this)), VulkanRuntimeObject(device), IResource<VkRenderPass>(nullptr)
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device) :
+    m_impl(makePimpl<VulkanRenderPassImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), IResource<VkRenderPass>(nullptr)
 {
 }
 

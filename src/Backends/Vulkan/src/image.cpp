@@ -3,11 +3,33 @@
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
-// Image Base.
+// Image Base implementation.
 // ------------------------------------------------------------------------------------------------
 
-_VMAImageBase::_VMAImageBase(const VulkanDevice* device, VkImage image, VmaAllocator allocator, VmaAllocation allocation) :
-	VulkanRuntimeObject(device), IResource(image), m_allocator(allocator), m_allocationInfo(allocation)
+class _VMAImageBase::_VMAImageBaseImpl : public Implement<_VMAImageBase> {
+public:
+	friend class _VMAImageBase;
+
+private:
+	VmaAllocator m_allocator;
+	VmaAllocation m_allocationInfo;
+	VkImageView m_view;
+
+public:
+	_VMAImageBaseImpl(_VMAImageBase* parent, VmaAllocator allocator, VmaAllocation allocation) :
+		base(parent), m_allocator(allocator), m_allocationInfo(allocation)
+	{
+	}
+
+public:
+};
+
+// ------------------------------------------------------------------------------------------------
+// Image Base shared interface.
+// ------------------------------------------------------------------------------------------------
+
+_VMAImageBase::_VMAImageBase(const VulkanDevice& device, VkImage image, VmaAllocator allocator, VmaAllocation allocation) :
+	IResource(image), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<_VMAImageBaseImpl>(this, allocator, allocation))
 {
 }
 
@@ -15,16 +37,31 @@ _VMAImageBase::~_VMAImageBase() noexcept
 {
 }
 
+VmaAllocator& _VMAImageBase::allocator() const noexcept
+{
+	return m_impl->m_allocator;
+}
+
+VmaAllocation& _VMAImageBase::allocationInfo() const noexcept
+{
+	return m_impl->m_allocationInfo;
+}
+
+VkImageView& _VMAImageBase::view() const noexcept
+{
+	return m_impl->m_view;
+}
+
 // ------------------------------------------------------------------------------------------------
 // Image.
 // ------------------------------------------------------------------------------------------------
 
-_VMAImage::_VMAImage(const VulkanDevice* device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format)
+_VMAImage::_VMAImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format)
 	: _VMAImage(device, image, elements, extent, format, nullptr, nullptr)
 {
 }
 
-_VMAImage::_VMAImage(const VulkanDevice* device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
+_VMAImage::_VMAImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
     _VMAImageBase(device, image, allocator, allocation), Image(elements, ::getSize(format) * extent.width() * extent.height(), extent, format)
 {
 	VkImageViewCreateInfo createInfo = {};
@@ -52,31 +89,28 @@ _VMAImage::_VMAImage(const VulkanDevice* device, VkImage image, const UInt32& el
 	createInfo.subresourceRange.baseArrayLayer = 0;
 	createInfo.subresourceRange.layerCount = 1;
 
-	if (::vkCreateImageView(this->getDevice()->handle(), &createInfo, nullptr, &m_view) != VK_SUCCESS)
+	if (::vkCreateImageView(device.handle(), &createInfo, nullptr, &this->view()) != VK_SUCCESS)
 		throw std::runtime_error("Unable to create image view!");
 }
 
 _VMAImage::~_VMAImage() noexcept
 {
-	::vkDestroyImageView(this->getDevice()->handle(), m_view, nullptr);
+	::vkDestroyImageView(this->getDevice()->handle(), this->view(), nullptr);
 
-	if (m_allocator != nullptr && m_allocationInfo != nullptr)
+	if (this->allocator() != nullptr && this->allocationInfo() != nullptr)
 	{
-		::vmaDestroyImage(m_allocator, this->handle(), m_allocationInfo);
+		::vmaDestroyImage(this->allocator(), this->handle(), this->allocationInfo());
 		LITEFX_TRACE(VULKAN_LOG, "Destroyed image {0}", fmt::ptr(this->handle()));
 	}
 }
 
 const VkImageView& _VMAImage::getImageView() const noexcept
 {
-	return m_view;
+	return this->view();
 }
 
-UniquePtr<IImage> _VMAImage::allocate(const VulkanDevice* device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IImage> _VMAImage::allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-    if (device == nullptr)
-        throw std::invalid_argument("The device must be initialized.");
-
     // Allocate the buffer.
     VkImage image;
     VmaAllocation allocation;
@@ -90,11 +124,30 @@ UniquePtr<IImage> _VMAImage::allocate(const VulkanDevice* device, const UInt32& 
 }
 
 // ------------------------------------------------------------------------------------------------
-// Image.
+// Texture shared implementation.
 // ------------------------------------------------------------------------------------------------
 
-_VMATexture::_VMATexture(const VulkanDevice* device, const IDescriptorLayout* layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
-	_VMAImageBase(device, image, allocator, allocation), Texture(layout, elements, ::getSize(format)* extent.width()* extent.height(), extent, format, levels, samples), m_imageLayout(imageLayout)
+class _VMATexture::_VMATextureImpl : public Implement<_VMATexture> {
+public:
+	friend class _VMATexture;
+
+private:
+	VkImageLayout m_imageLayout;
+	const VulkanDescriptorLayout* m_descriptorLayout;
+
+public:
+	_VMATextureImpl(_VMATexture* parent, VkImageLayout imageLayout, const VulkanDescriptorLayout* descriptorLayout) :
+		base(parent), m_imageLayout(imageLayout), m_descriptorLayout(descriptorLayout)
+	{
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
+// Texture shared interface.
+// ------------------------------------------------------------------------------------------------
+
+_VMATexture::_VMATexture(const VulkanDevice& device, const VulkanDescriptorLayout* layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
+	_VMAImageBase(device, image, allocator, allocation), Texture(layout, elements, ::getSize(format)* extent.width()* extent.height(), extent, format, levels, samples), m_impl(makePimpl<_VMATextureImpl>(this, imageLayout, layout))
 {
 	VkImageViewCreateInfo createInfo = {};
 
@@ -122,20 +175,20 @@ _VMATexture::_VMATexture(const VulkanDevice* device, const IDescriptorLayout* la
 	createInfo.subresourceRange.baseArrayLayer = 0;
 	createInfo.subresourceRange.layerCount = 1;
 
-	if (::vkCreateImageView(this->getDevice()->handle(), &createInfo, nullptr, &m_view) != VK_SUCCESS)
+	if (::vkCreateImageView(device.handle(), &createInfo, nullptr, &this->view()) != VK_SUCCESS)
 		throw std::runtime_error("Unable to create image view!");
 }
 
 _VMATexture::~_VMATexture() noexcept
 {
-	::vkDestroyImageView(this->getDevice()->handle(), m_view, nullptr);
-	::vmaDestroyImage(m_allocator, this->handle(), m_allocationInfo);
+	::vkDestroyImageView(this->getDevice()->handle(), this->view(), nullptr);
+	::vmaDestroyImage(this->allocator(), this->handle(), this->allocationInfo());
 	LITEFX_TRACE(VULKAN_LOG, "Destroyed image {0}", fmt::ptr(this->handle()));
 }
 
 const VkImageView& _VMATexture::getImageView() const noexcept
 {
-	return m_view;
+	return this->view();
 }
 
 void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
@@ -149,11 +202,6 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	if (transferQueue == nullptr)
 		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
 
-	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
-
-	if (device == nullptr)
-		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
-
 	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
 
 	// Begin the transfer recording.
@@ -162,7 +210,7 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	// First, transition the image into a fitting layout, so that it can receive transfers.
 	VkImageMemoryBarrier beginTransitionBarrier = {};
 	beginTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	beginTransitionBarrier.oldLayout = m_imageLayout;
+	beginTransitionBarrier.oldLayout = m_impl->m_imageLayout;
 	beginTransitionBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	beginTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	beginTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -200,7 +248,7 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	VkImageMemoryBarrier endTransitionBarrier = {};
 	endTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	endTransitionBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	endTransitionBarrier.newLayout = m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	endTransitionBarrier.newLayout = m_impl->m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	endTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	endTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	endTransitionBarrier.image = this->handle();
@@ -214,7 +262,7 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	endTransitionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	VkPipelineStageFlags targetStages = {};
-	auto shaderStages = this->getLayout()->getDescriptorSet()->getShaderStages();
+	auto shaderStages = m_impl->m_descriptorLayout->parent().getShaderStages();
 
 	if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
 		targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
@@ -240,17 +288,14 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 {
 	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
 	auto targetBuffer = dynamic_cast<const IResource<VkBuffer>*>(target);
+	auto layout = dynamic_cast<const VulkanDescriptorLayout*>(this->getLayout());
+	assert(layout != nullptr);
 
 	if (targetBuffer == nullptr)
 		throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
 
 	if (transferQueue == nullptr)
 		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
-
-	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
-
-	if (device == nullptr)
-		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
 
 	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
 
@@ -260,7 +305,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	// First, transition the image into a fitting layout, so that it can receive transfers.
 	VkImageMemoryBarrier beginTransitionBarrier = {};
 	beginTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	beginTransitionBarrier.oldLayout = m_imageLayout;
+	beginTransitionBarrier.oldLayout = m_impl->m_imageLayout;
 	beginTransitionBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	beginTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	beginTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -296,7 +341,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	VkImageMemoryBarrier endTransitionBarrier = {};
 	endTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	endTransitionBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	endTransitionBarrier.newLayout = m_imageLayout;
+	endTransitionBarrier.newLayout = m_impl->m_imageLayout;
 	endTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	endTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	endTransitionBarrier.image = this->handle();
@@ -310,7 +355,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	endTransitionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	VkPipelineStageFlags targetStages = {};
-	auto shaderStages = this->getLayout()->getDescriptorSet()->getShaderStages();
+	auto shaderStages = m_impl->m_descriptorLayout->parent().getShaderStages();
 
 	if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
 		targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
@@ -332,11 +377,8 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	commandBuffer->submit(true);
 }
 
-UniquePtr<ITexture> _VMATexture::allocate(const VulkanDevice* device, const IDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<ITexture> _VMATexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	if (device == nullptr)
-		throw std::invalid_argument("The device must be initialized.");
-
 	if (layout == nullptr)
 		throw std::invalid_argument("The layout must be initialized.");
 

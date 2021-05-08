@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 VulkanRasterizer::VulkanRasterizer(const VulkanRenderPipeline& pipeline) noexcept :
-    Rasterizer(), VulkanRuntimeObject(pipeline.getDevice())
+    Rasterizer(), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice())
 {
 }
 
