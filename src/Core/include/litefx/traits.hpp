@@ -86,4 +86,10 @@ namespace LiteFX::rtti {
     /// </summary>
     template <typename T, typename TArg, typename ...TArgs>
     concept is_implicitly_constructible = is_explicitly_constructible_v<T, TArg, TArgs...>;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TBase>
+    concept implements = !std::is_abstract_v<TDerived> && std::derived_from<TDerived, TBase>;
 }
