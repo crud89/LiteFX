@@ -219,7 +219,7 @@ public:
         if (m_commandBuffers.empty())
         {
             m_commandBuffers.resize(m_frameBuffers.size());
-            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue())); });
+            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(*dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue())); });
         }
 
         // Create a semaphore that signals if the render pass has finished.

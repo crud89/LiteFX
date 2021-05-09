@@ -149,17 +149,14 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanCommandBuffer : public ICommandBuffer, public IResource<VkCommandBuffer> {
+	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer, public IResource<VkCommandBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
-		explicit VulkanCommandBuffer(const VulkanQueue* queue);
+		explicit VulkanCommandBuffer(const VulkanQueue& queue);
 		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
 		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
 		virtual ~VulkanCommandBuffer() noexcept;
-
-	public:
-		virtual const ICommandQueue* getQueue() const noexcept override;
 
 	public:
 		virtual void begin() const override;

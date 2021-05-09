@@ -44,12 +44,8 @@ void _VMABufferBase::transferFrom(const ICommandQueue* commandQueue, IBuffer* so
 	if (transferQueue == nullptr)
 		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
 	
-	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
-
-	if (device == nullptr)
-		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
-
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
+	auto device = transferQueue->getDevice();
+	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
 
 	// Begin the transfer recording.
 	commandBuffer->begin();
@@ -77,12 +73,8 @@ void _VMABufferBase::transferTo(const ICommandQueue* commandQueue, IBuffer* targ
 	if (transferQueue == nullptr)
 		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
 
-	auto device = dynamic_cast<const VulkanDevice*>(transferQueue->getDevice());
-
-	if (device == nullptr)
-		throw std::runtime_error("The transfer queue must be bound to a valid Vulkan device.");
-
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
+	auto device = transferQueue->getDevice();
+	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
 
 	// Begin the transfer recording.
 	commandBuffer->begin();

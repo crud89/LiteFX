@@ -121,5 +121,5 @@ QueuePriority VulkanQueue::getPriority() const noexcept
 
 UniquePtr<ICommandBuffer> VulkanQueue::createCommandBuffer() const
 {
-	return makeUnique<VulkanCommandBuffer>(this);
+	return makeUnique<VulkanCommandBuffer>(*this);
 }

@@ -202,7 +202,7 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	if (transferQueue == nullptr)
 		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
 
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
+	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
 
 	// Begin the transfer recording.
 	commandBuffer->begin();
@@ -297,7 +297,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	if (transferQueue == nullptr)
 		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
 
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(transferQueue);
+	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
 
 	// Begin the transfer recording.
 	commandBuffer->begin();
