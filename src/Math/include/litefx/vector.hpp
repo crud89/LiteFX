@@ -13,15 +13,10 @@ namespace LiteFX::Math {
 		using vec_type = Vector<scalar_type, vec_size>;
 
 	protected:
-		scalar_type m_elements[vec_size];
+		scalar_type m_elements[vec_size] = { };
 
 	public:
-		Vector() noexcept {
-			std::generate(std::begin(m_elements), std::end(m_elements), [&]() {
-				T _t { };
-				return _t;
-			});
-		}
+		Vector() noexcept = default;
 
 		Vector(const T& val) noexcept {
 			std::fill(std::begin(m_elements), std::end(m_elements), val);
@@ -33,18 +28,12 @@ namespace LiteFX::Math {
 
 	public:
 		Vector<T, DIM>& operator= (const Vector<T, DIM>& _other) noexcept {
-			std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-				return _other.m_elements[i++];
-			});
-
+			std::copy(std::begin(_other.m_elements), std::end(_other.m_elements), std::begin(m_elements));
 			return *this;
 		}
 
 		Vector<T, DIM>& operator= (Vector<T, DIM>&& _other) noexcept {
-			std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-				return std::move(_other.m_elements[i++]);
-			});
-
+			std::move(std::begin(_other.m_elements), std::end(_other.m_elements), std::begin(m_elements));
 			return *this;
 		}
 

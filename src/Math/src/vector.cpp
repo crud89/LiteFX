@@ -276,7 +276,8 @@ Vector2f::Vector2f(DirectX::XMFLOAT2&& v) noexcept : Vector<Float, 2>() {
 }
 
 Vector2f::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadFloat2(&this->operator DirectX::XMFLOAT2());
+    auto buffer = this->operator DirectX::XMFLOAT2();
+    return DirectX::XMLoadFloat2(&buffer);
 }
 
 Vector2f::operator DirectX::XMFLOAT2() noexcept {
@@ -388,7 +389,8 @@ Vector2u::Vector2u(DirectX::XMUINT2&& v) noexcept : Vector<UInt32, 2>() {
 }
 
 Vector2u::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadUInt2(&this->operator DirectX::XMUINT2());
+    auto buffer = this->operator DirectX::XMUINT2();
+    return DirectX::XMLoadUInt2(&buffer);
 }
 
 Vector2u::operator DirectX::XMUINT2() noexcept {
@@ -500,7 +502,8 @@ Vector2i::Vector2i(DirectX::XMINT2&& v) noexcept : Vector<Int32, 2>() {
 }
 
 Vector2i::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadSInt2(&this->operator DirectX::XMINT2());
+    auto buffer = this->operator DirectX::XMINT2();
+    return DirectX::XMLoadSInt2(&buffer);
 }
 
 Vector2i::operator DirectX::XMINT2() noexcept {
@@ -617,7 +620,8 @@ Vector3f::Vector3f(DirectX::XMFLOAT3&& v) noexcept : Vector<Float, 3>() {
 }
 
 Vector3f::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadFloat3(&this->operator DirectX::XMFLOAT3());
+    auto buffer = this->operator DirectX::XMFLOAT3();
+    return DirectX::XMLoadFloat3(&buffer);
 }
 
 Vector3f::operator DirectX::XMFLOAT3() noexcept {
@@ -734,7 +738,8 @@ Vector3u::Vector3u(DirectX::XMUINT3&& v) noexcept : Vector<UInt32, 3>() {
 }
 
 Vector3u::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadUInt3(&this->operator DirectX::XMUINT3());
+    auto buffer = this->operator DirectX::XMUINT3();
+    return DirectX::XMLoadUInt3(&buffer);
 }
 
 Vector3u::operator DirectX::XMUINT3() noexcept {
@@ -851,7 +856,8 @@ Vector3i::Vector3i(DirectX::XMINT3&& v) noexcept : Vector<Int32, 3>() {
 }
 
 Vector3i::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadSInt3(&this->operator DirectX::XMINT3());
+    auto buffer = this->operator DirectX::XMINT3();
+    return DirectX::XMLoadSInt3(&buffer);
 }
 
 Vector3i::operator DirectX::XMINT3() noexcept {
@@ -973,7 +979,8 @@ Vector4f::Vector4f(DirectX::XMFLOAT4&& v) noexcept : Vector<Float, 4>() {
 }
 
 Vector4f::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadFloat4(&this->operator DirectX::XMFLOAT4());
+    auto buffer = this->operator DirectX::XMFLOAT4();
+    return DirectX::XMLoadFloat4(&buffer);
 }
 
 Vector4f::operator DirectX::XMFLOAT4() noexcept {
@@ -1095,7 +1102,8 @@ Vector4u::Vector4u(DirectX::XMUINT4&& v) noexcept : Vector<UInt32, 4>() {
 }
 
 Vector4u::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadUInt4(&this->operator DirectX::XMUINT4());
+    auto buffer = this->operator DirectX::XMUINT4();
+    return DirectX::XMLoadUInt4(&buffer);
 }
 
 Vector4u::operator DirectX::XMUINT4() noexcept {
@@ -1217,7 +1225,8 @@ Vector4i::Vector4i(DirectX::XMINT4&& v) noexcept : Vector<Int32, 4>() {
 }
 
 Vector4i::operator DirectX::XMVECTOR() noexcept {
-    return DirectX::XMLoadSInt4(&this->operator DirectX::XMINT4());
+    auto buffer = this->operator DirectX::XMINT4();
+    return DirectX::XMLoadSInt4(&buffer);
 }
 
 Vector4i::operator DirectX::XMINT4() noexcept {
