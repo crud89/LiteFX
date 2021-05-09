@@ -189,22 +189,21 @@ namespace LiteFX {
 		virtual ~Builder() noexcept = default;
 
 	public:
-		template <typename TInstance, typename ...TArgs, std::enable_if_t<rtti::has_builder_v<TInstance> && std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
+		// TODO: Provide concept (`is_buildable<TBuilder>`)
+		template <typename TInstance>
+		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
+
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
+		requires std::is_convertible<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
-			static_assert(std::is_convertible_v<TDerived*, typename TBuilder::parent_type*>, "The provided builder requires a different parent.");
-			static_assert(rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>, "The type to be built must contain an explicit constructor that takes a reference of the parent builders' instance as its first argument, followed by `TArgs`. ");
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
-		template <typename TInstance, typename ...TArgs, std::enable_if_t<rtti::has_builder_v<TInstance> && std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
+		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
-			static_assert(std::is_convertible_v<TDerived*, typename TBuilder::parent_type*>, "The provided builder requires a different parent.");
-			static_assert(rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>, "The type to be built must contain an explicit constructor that takes a reference of the parent builders' instance as its first argument, followed by `TArgs`. ");
 			return TBuilder(*static_cast<TDerived*>(this), makeShared<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
-
-		template <typename TInstance>
-		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
 		[[nodiscard]]
 		virtual UniquePtr<T> go() {
@@ -243,20 +242,19 @@ namespace LiteFX {
 		virtual ~Builder() noexcept = default;
 
 	public:
+		// TODO: Provide concept (`is_buildable<TBuilder>`)
 		template <typename TInstance>
 		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
-		template <typename TInstance, typename ...TArgs, std::enable_if_t<rtti::has_builder_v<TInstance> && std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
+		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
-			static_assert(std::is_convertible_v<TDerived*, typename TBuilder::parent_type*>, "The provided builder requires a different parent.");
-			static_assert(rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>, "The type to be built must contain an explicit constructor that takes a reference of the parent builders' instance as its first argument, followed by `TArgs`. ");
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
-		template <typename TInstance, typename ...TArgs, std::enable_if_t<rtti::has_builder_v<TInstance> && std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
+		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
-			static_assert(std::is_convertible_v<TDerived*, typename TBuilder::parent_type*>, "The provided builder requires a different parent.");
-			static_assert(rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>, "The type to be built must contain an explicit constructor that takes a reference of the parent builders' instance as its first argument, followed by `TArgs`. ");
 			return TBuilder(*static_cast<TDerived*>(this), makeShared<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
