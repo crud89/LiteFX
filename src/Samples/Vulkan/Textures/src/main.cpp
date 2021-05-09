@@ -30,7 +30,7 @@ int main(const int argc, const char** argv)
 	Array<String> enabledLayers;
 
 	if (validationLayers->count() > 0)
-		for each (auto & result in validationLayers->results())
+		for (const auto& result : validationLayers->results())
 			enabledLayers.push_back(result);
 
 	// Create glfw window.

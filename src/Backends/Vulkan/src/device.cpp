@@ -214,7 +214,7 @@ public:
 		// Define used queue families.
 		Array<VkDeviceQueueCreateInfo> queueCreateInfos;
 
-		for each (const auto& family in m_families)
+		for (const auto& family : m_families)
 		{
 			// Ignore, if no queues have been created.
 			if (family.active() == 0) 

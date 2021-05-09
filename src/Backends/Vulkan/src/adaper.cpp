@@ -97,9 +97,9 @@ uint32_t VulkanGraphicsAdapter::getDedicatedMemory() const noexcept
     ::vkGetPhysicalDeviceMemoryProperties(this->handle(), &memoryProperties);
 
     auto memoryHeaps = memoryProperties.memoryHeaps;
-    auto heaps = std::vector<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
+    auto heaps = Array<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
 
-    for each (const auto& heap in heaps)
+    for (const auto& heap : heaps)
         if (LITEFX_FLAG_IS_SET(heap.flags, VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT))
             return heap.size;
 
