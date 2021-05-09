@@ -57,7 +57,7 @@ namespace LiteFX {
 		void use(UniquePtr<IBackend>&& backend);
 		virtual UniquePtr<App> go() override;
 
-		template <typename TSink, std::enable_if_t<std::is_convertible_v<TSink*, ISink*>, int> = 0, typename ...TArgs>
+		template <std::convertible_to<ISink*> TSink, typename ...TArgs>
 		AppBuilder& logTo(TArgs&&... args) {
 			auto sink = makeUnique<TSink>(std::forward<TArgs>(args)...);
 			Logger::sinkTo(sink.get());
