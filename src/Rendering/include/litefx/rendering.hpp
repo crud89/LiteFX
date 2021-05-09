@@ -10,12 +10,16 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX;
 	using namespace LiteFX::Math;
 
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API ICommandBuffer {
 	public:
 		virtual ~ICommandBuffer() noexcept = default;
 
 	public:
-		virtual const ICommandQueue* getQueue() const noexcept = 0;
+		template <std::derived_from<ICommandQueue> TCommandQueue>
+		const TCommandQueue* getQueue() const noexcept;
 
 	public:
 		virtual void begin() const = 0;

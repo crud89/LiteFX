@@ -2,15 +2,15 @@
 
 #include "rendering_api.hpp"
 
-using namespace LiteFX;
+using namespace LiteFX::Rendering;
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::GraphicsAdapterType> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<GraphicsAdapterType> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::GraphicsAdapterType t, FormatContext& ctx) {
+	auto format(GraphicsAdapterType t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum Rendering::GraphicsAdapterType;
+		using enum GraphicsAdapterType;
 		case CPU: name = "CPU"; break;
 		case GPU: name = "GPU"; break;
 		case Other: name = "Other"; break;
@@ -21,22 +21,22 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::GraphicsAdapterType> : for
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::QueueType> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<QueueType> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::QueueType t, FormatContext& ctx) {
+	auto format(QueueType t, FormatContext& ctx) {
 		Array<String> names;
 
-		if (t == Rendering::QueueType::None)
+		if (t == QueueType::None)
 			names.push_back("None");
-		else if(t == Rendering::QueueType::Other)
+		else if(t == QueueType::Other)
 			names.push_back("Other");
 		else 
 		{
-			if ((t & Rendering::QueueType::Compute) == Rendering::QueueType::Compute)
+			if ((t & QueueType::Compute) == QueueType::Compute)
 				names.push_back("Compute");
-			if ((t & Rendering::QueueType::Graphics) == Rendering::QueueType::Graphics)
+			if ((t & QueueType::Graphics) == QueueType::Graphics)
 				names.push_back("Graphics");
-			if ((t & Rendering::QueueType::Transfer) == Rendering::QueueType::Transfer)
+			if ((t & QueueType::Transfer) == QueueType::Transfer)
 				names.push_back("Transfer");
 		}
 
@@ -46,13 +46,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::QueueType> : formatter<str
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::QueuePriority> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<QueuePriority> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::QueuePriority t, FormatContext& ctx) {
+	auto format(QueuePriority t, FormatContext& ctx) {
 		String name;
 
 		switch (t) {
-		using enum Rendering::QueuePriority;
+		using enum QueuePriority;
 		default:
 		case Normal: name = "Normal"; break;
 		case High: name = "High"; break;
@@ -64,12 +64,12 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::QueuePriority> : formatter
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::Format> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<Format> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::Format t, FormatContext& ctx) {
+	auto format(Format t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum Rendering::Format;
+		using enum Format;
 		case R4G4_UNORM: name = "R4G4_UNORM"; break;
 		case R4G4B4A4_UNORM: name = "R4G4B4A4_UNORM"; break;
 		case B4G4R4A4_UNORM: name = "B4G4R4A4_UNORM"; break;
@@ -224,12 +224,12 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::Format> : formatter<string
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::DescriptorType> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<DescriptorType> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::DescriptorType t, FormatContext& ctx) {
+	auto format(DescriptorType t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum Rendering::DescriptorType;
+		using enum DescriptorType;
 		case Sampler: name = "Sampler"; break;
 		case Storage: name = "Uniform"; break;
 		case Uniform: name = "Storage"; break;
@@ -241,12 +241,12 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::DescriptorType> : formatte
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::BufferType> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<BufferType> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::BufferType t, FormatContext& ctx) {
+	auto format(BufferType t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum Rendering::BufferType;
+		using enum BufferType;
 		case Index:      name = "Index";      break;
 		case Vertex:     name = "Vertex";     break;
 		case Uniform:    name = "Uniform"; break;
@@ -258,12 +258,12 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::BufferType> : formatter<st
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::BufferUsage> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<BufferUsage> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::BufferUsage t, FormatContext& ctx) {
+	auto format(BufferUsage t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum Rendering::BufferUsage;
+		using enum BufferUsage;
 		case Staging:  name = "Staging";  break;
 		case Resource: name = "Resource"; break;
 		case Dynamic:  name = "Dynamic";  break;
@@ -274,12 +274,12 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::BufferUsage> : formatter<s
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::IndexType> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<IndexType> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::IndexType t, FormatContext& ctx) {
+	auto format(IndexType t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum Rendering::IndexType;
+		using enum IndexType;
 		case UInt16: name = "UInt16"; break;
 		case UInt32: name = "UInt32"; break;
 		}
@@ -288,26 +288,26 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::IndexType> : formatter<str
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::ShaderStage> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::ShaderStage t, FormatContext& ctx) {
+	auto format(ShaderStage t, FormatContext& ctx) {
 		Array<String> names;
 
-		if (t == Rendering::ShaderStage::Other)
+		if (t == ShaderStage::Other)
 			names.push_back("Other");
 		else
 		{
-			if ((t & Rendering::ShaderStage::Vertex) == Rendering::ShaderStage::Vertex)
+			if ((t & ShaderStage::Vertex) == ShaderStage::Vertex)
 				names.push_back("Vertex");
-			if ((t & Rendering::ShaderStage::TessellationControl) == Rendering::ShaderStage::TessellationControl)
+			if ((t & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
 				names.push_back("Tessellation Control");
-			if ((t & Rendering::ShaderStage::TessellationEvaluation) == Rendering::ShaderStage::TessellationEvaluation)
+			if ((t & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
 				names.push_back("Tessellation Evaluation");
-			if ((t & Rendering::ShaderStage::Geometry) == Rendering::ShaderStage::Geometry)
+			if ((t & ShaderStage::Geometry) == ShaderStage::Geometry)
 				names.push_back("Geometry");
-			if ((t & Rendering::ShaderStage::Fragment) == Rendering::ShaderStage::Fragment)
+			if ((t & ShaderStage::Fragment) == ShaderStage::Fragment)
 				names.push_back("Fragment");
-			if ((t & Rendering::ShaderStage::Compute) == Rendering::ShaderStage::Compute)
+			if ((t & ShaderStage::Compute) == ShaderStage::Compute)
 				names.push_back("Compute");
 		}
 
@@ -317,9 +317,9 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::ShaderStage> : formatter<s
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::BufferFormat> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<BufferFormat> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::BufferFormat t, FormatContext& ctx) {
+	auto format(BufferFormat t, FormatContext& ctx) {
 		Array<String> names;
 
 		switch (::getBufferFormatChannels(t))
@@ -379,13 +379,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::BufferFormat> : formatter<
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::PolygonMode> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<PolygonMode> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::PolygonMode t, FormatContext& ctx) {
+	auto format(PolygonMode t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::PolygonMode;
+		using enum PolygonMode;
 		case Solid: name = "Solid"; break;
 		case Wireframe: name = "Wireframe"; break;
 		case Point: name = "Point"; break;
@@ -397,13 +397,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::PolygonMode> : formatter<s
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::CullMode> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<CullMode> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::CullMode t, FormatContext& ctx) {
+	auto format(CullMode t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::CullMode;
+		using enum CullMode;
 		case FrontFaces: name = "FrontFaces"; break;
 		case BackFaces: name = "BackFaces"; break;
 		case Both: name = "Both"; break;
@@ -416,13 +416,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::CullMode> : formatter<stri
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::CullOrder> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<CullOrder> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::CullOrder t, FormatContext& ctx) {
+	auto format(CullOrder t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::CullOrder;
+		using enum CullOrder;
 		case ClockWise: name = "ClockWise"; break;
 		case CounterClockWise: name = "CounterClockWise"; break;
 		default: name = "Invalid"; break;
@@ -433,13 +433,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::CullOrder> : formatter<str
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::RenderTargetType> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<RenderTargetType> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::RenderTargetType t, FormatContext& ctx) {
+	auto format(RenderTargetType t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::RenderTargetType;
+		using enum RenderTargetType;
 		case Color: name = "Color"; break;
 		case Depth: name = "Depth"; break;
 		case Present: name = "Present"; break;
@@ -451,13 +451,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::RenderTargetType> : format
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::MultiSamplingLevel> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<MultiSamplingLevel> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::MultiSamplingLevel t, FormatContext& ctx) {
+	auto format(MultiSamplingLevel t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::MultiSamplingLevel;
+		using enum MultiSamplingLevel;
 		case x1: name = "1"; break;
 		case x2: name = "2"; break;
 		case x4: name = "4"; break;
@@ -473,13 +473,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::MultiSamplingLevel> : form
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::FilterMode> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<FilterMode> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::FilterMode t, FormatContext& ctx) {
+	auto format(FilterMode t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::FilterMode;
+		using enum FilterMode;
 		case Nearest: name = "Nearest"; break;
 		case Linear: name = "Linear"; break;
 		default: name = "Invalid"; break;
@@ -490,13 +490,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::FilterMode> : formatter<st
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::MipMapMode> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<MipMapMode> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::MipMapMode t, FormatContext& ctx) {
+	auto format(MipMapMode t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::MipMapMode;
+		using enum MipMapMode;
 		case Nearest: name = "Nearest"; break;
 		case Linear: name = "Linear"; break;
 		default: name = "Invalid"; break;
@@ -507,13 +507,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::MipMapMode> : formatter<st
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::BorderMode> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<BorderMode> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::BorderMode t, FormatContext& ctx) {
+	auto format(BorderMode t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::BorderMode;
+		using enum BorderMode;
 		case Repeat: name = "Repeat"; break;
 		case ClampToEdge: name = "ClampToEdge"; break;
 		case ClampToBorder: name = "ClampToBorder"; break;
@@ -527,13 +527,13 @@ struct LITEFX_RENDERING_API fmt::formatter<Rendering::BorderMode> : formatter<st
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Rendering::AttributeSemantic> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<AttributeSemantic> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(Rendering::AttributeSemantic t, FormatContext& ctx) {
+	auto format(AttributeSemantic t, FormatContext& ctx) {
 		string_view name;
 
 		switch (t) {
-		using enum Rendering::AttributeSemantic;
+		using enum AttributeSemantic;
 		case Binormal: name = "Binormal"; break;
 		case BlendIndices: name = "BlendIndices"; break;
 		case BlendWeight: name = "BlendWeight"; break;
