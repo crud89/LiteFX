@@ -10,8 +10,10 @@ private:
 	int m_major, m_minor, m_patch, m_revision;
 
 public:
-	AppVersionImpl::AppVersionImpl(AppVersion* parent, int major, int minor, int patch, int revision) : 
-		base(parent), m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) { }
+	AppVersionImpl(AppVersion* parent, int major, int minor, int patch, int revision) : 
+		base(parent), m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) 
+	{
+	}
 };
 
 AppVersion::AppVersion(int major, int minor, int patch, int revision) noexcept :
