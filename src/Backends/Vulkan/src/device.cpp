@@ -352,12 +352,12 @@ const Array<String>& VulkanDevice::getExtensions() const noexcept
 	return m_impl->m_extensions;
 }
 
-const ISurface& VulkanDevice::surface() const noexcept
+const VulkanSurface& VulkanDevice::surface() const noexcept
 {
 	return m_impl->m_surface;
 }
 
-const IGraphicsAdapter& VulkanDevice::adapter() const noexcept
+const VulkanGraphicsAdapter& VulkanDevice::adapter() const noexcept
 {
 	return m_impl->m_adapter;
 }
@@ -722,5 +722,5 @@ UniquePtr<IShaderModule> VulkanDevice::loadShaderModule(const ShaderStage& type,
 
 VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const
 {
-	return this->build<VulkanRenderPass>();
+	return this->build<VulkanRenderPass, VulkanDevice>();
 }

@@ -416,11 +416,6 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const IGraphicsDevice& device) : 
-    VulkanRenderPass(dynamic_cast<const VulkanDevice&>(device)) 
-{
-}
-
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device) :
     m_impl(makePimpl<VulkanRenderPassImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), IResource<VkRenderPass>(nullptr)
 {

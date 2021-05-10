@@ -156,16 +156,29 @@ namespace LiteFX::Rendering {
 		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const = 0;
 	};
 
+	class IGraphicsFactory {
+	public:
+		virtual ~IGraphicsFactory() noexcept = default;
+	};
+
 	/// <summary>
-	/// 
+	/// Represents the graphics device that a rendering backend is doing work on.
 	/// </summary>
-	class LITEFX_RENDERING_API IGraphicsDevice {
+	/// <remarks>
+	/// The graphics device is the central instance of a renderer. It has two major roles. First, it maintains the <see cref="IGraphicsFactory" /> instance, that is used to facilitate
+	/// common objects. Second, it owns the device state, which contains objects required for communication between your application and the graphics driver. Most notably, those objects
+	/// contain the <see cref="ISwapChain" /> instance and the <see cref="ICommandQueue" /> instances used for data and command transfer.
+	/// </remarks>
+	template <typename TSurface, typename TGraphicsAdapter> requires 
+		rtti::implements<TSurface, ISurface> &&
+		rtti::implements<TGraphicsAdapter, IGraphicsAdapter>
+	class IGraphicsDevice {
 	public:
 		virtual ~IGraphicsDevice() noexcept = default;
 
 	public:
-		virtual const ISurface& surface() const noexcept = 0;
-		virtual const IGraphicsAdapter& adapter() const noexcept = 0;
+		virtual const TSurface& surface() const noexcept = 0;
+		virtual const TGraphicsAdapter& adapter() const noexcept = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
@@ -205,16 +218,20 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		virtual const ICommandQueue* bufferQueue() const noexcept = 0;
 
+	protected:
 		/// <summary>
 		/// Initializes a new render pass of type <typeparamref name="T"/> and returns a builder instance for it.
 		/// </summary>
 		/// <param name="_args">The arguments which are passed to the constructor of the render pass.</param>
 		/// <typeparam name="TRenderPass">The type of the render pass. The type must implement <see cref="IRenderPass" /> interface.</typeparam>
-		template <typename TRenderPass, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
+		/// <typeparam name="TDerived">The actual type of the parent graphics device that calls the build method.</typeparam>
+		template <typename TRenderPass, typename TDerived, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
 			rtti::implements<TRenderPass, IRenderPass> &&
-			rtti::has_builder<TRenderPass>
+			rtti::has_builder<TRenderPass> &&
+			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter>>
 		TBuilder build(TArgs&&... _args) const {
-			return TBuilder(makeUnique<TRenderPass>(*this, std::forward<TArgs>(_args)...));
+			// NOTE: If the cast raises an exception here, check the `TDerived` type - it must be equal to the parent graphics device class that calls this function.
+			return TBuilder(makeUnique<TRenderPass>(dynamic_cast<const TDerived&>(*this), std::forward<TArgs>(_args)...));
 		}
 	};
 
@@ -227,7 +244,7 @@ namespace LiteFX::Rendering {
 	template <typename TGraphicsAdapter, typename TSurface, typename TGraphicsDevice> requires
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSurface, ISurface> &&
-		rtti::implements<TGraphicsDevice, IGraphicsDevice>
+		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter>>
 	class IRenderBackend : public IBackend {
 	public:
 		virtual ~IRenderBackend() noexcept = default;

@@ -224,7 +224,6 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
 	public:
-		explicit VulkanRenderPass(const IGraphicsDevice& device);	// Adapter for builder interface.
 		explicit VulkanRenderPass(const VulkanDevice& device);
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;
@@ -417,24 +416,41 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// 
+	/// Represents a Vulkan graphics adapter.
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
 
 	public:
+		/// <summary>
+		/// Initializes a graphics adapter instance with a physical device.
+		/// </summary>
+		/// <param name="adapter">The phyiscal device to initialize the instance with.</param>
 		explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
 		VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
 		VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
 		virtual ~VulkanGraphicsAdapter() noexcept;
 
 	public:
+		/// <inheritdoc />
 		virtual String getName() const noexcept override;
+		
+		/// <inheritdoc />
 		virtual UInt32 getVendorId() const noexcept override;
+		
+		/// <inheritdoc />
 		virtual UInt32 getDeviceId() const noexcept override;
+		
+		/// <inheritdoc />
 		virtual GraphicsAdapterType getType() const noexcept override;
+		
+		/// <inheritdoc />
 		virtual UInt32 getDriverVersion() const noexcept override;
+		
+		/// <inheritdoc />
 		virtual UInt32 getApiVersion() const noexcept override;
+		
+		/// <inheritdoc />
 		virtual UInt64 getDedicatedMemory() const noexcept override;
 	};
 
@@ -466,7 +482,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter>, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -476,8 +492,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDevice() noexcept;
 
 	public:
-		virtual const ISurface& surface() const noexcept override;
-		virtual const IGraphicsAdapter& adapter() const noexcept override;
+		virtual const VulkanSurface& surface() const noexcept override;
+		virtual const VulkanGraphicsAdapter& adapter() const noexcept override;
 		virtual Array<Format> getSurfaceFormats() const override;
 		virtual const ISwapChain* getSwapChain() const noexcept override;
 		virtual size_t getBufferWidth() const noexcept override;
