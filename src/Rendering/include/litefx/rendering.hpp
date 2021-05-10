@@ -228,9 +228,9 @@ namespace LiteFX::Rendering {
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TGraphicsDevice, IGraphicsDevice>
-	class LITEFX_RENDERING_API IRenderBackend : public IBackend {
+	class IRenderBackend : public IBackend {
 	public:
-		virtual ~IRenderBackend() noexcept;
+		virtual ~IRenderBackend() noexcept = default;
 
 	public:
 		/// <summary>

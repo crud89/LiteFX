@@ -233,7 +233,7 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd)
     VkSurfaceKHR surface;
     raiseIfFailed<RuntimeException>(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface), "Unable to create vulkan surface for provided window.");
 
-    return makeUnique<VulkanSurface>(new VulkanSurface(surface, this->handle()));
+    return makeUnique<VulkanSurface>(surface, this->handle());
 }
 
 #endif

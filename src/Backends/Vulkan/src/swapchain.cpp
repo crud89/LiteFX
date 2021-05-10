@@ -52,14 +52,12 @@ private:
 private:
 	VkSurfaceKHR getSurface() const noexcept
 	{
-		auto surface = dynamic_cast<const VulkanSurface*>(m_parent->getDevice()->getBackend()->getSurface());
-		return surface ? surface->handle() : nullptr;
+		return dynamic_cast<const VulkanSurface&>(m_parent->getDevice()->surface()).handle();
 	}
 
 	VkPhysicalDevice getAdapter() const noexcept
 	{
-		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_parent->getDevice()->getBackend()->getAdapter());
-		return adapter ? adapter->handle() : nullptr;
+		return dynamic_cast<const VulkanGraphicsAdapter&>(m_parent->getDevice()->adapter()).handle();
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept

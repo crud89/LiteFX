@@ -352,6 +352,16 @@ const Array<String>& VulkanDevice::getExtensions() const noexcept
 	return m_impl->m_extensions;
 }
 
+const ISurface& VulkanDevice::surface() const noexcept
+{
+	return m_impl->m_surface;
+}
+
+const IGraphicsAdapter& VulkanDevice::adapter() const noexcept
+{
+	return m_impl->m_adapter;
+}
+
 Array<Format> VulkanDevice::getSurfaceFormats() const
 {
 	return m_impl->getSurfaceFormats();

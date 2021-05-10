@@ -476,6 +476,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDevice() noexcept;
 
 	public:
+		virtual const ISurface& surface() const noexcept override;
+		virtual const IGraphicsAdapter& adapter() const noexcept override;
 		virtual Array<Format> getSurfaceFormats() const override;
 		virtual const ISwapChain* getSwapChain() const noexcept override;
 		virtual size_t getBufferWidth() const noexcept override;

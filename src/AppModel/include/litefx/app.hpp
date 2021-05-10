@@ -6,9 +6,9 @@
 namespace LiteFX {
 	using namespace LiteFX::Logging;
 
-	class IBackend {
+	class LITEFX_APPMODEL_API IBackend {
 	public:
-		virtual ~IBackend() noexcept;
+		virtual ~IBackend() noexcept = default;
 
 	public:
 		virtual BackendType getType() const noexcept = 0;
