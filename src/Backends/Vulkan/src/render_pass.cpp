@@ -126,8 +126,8 @@ public:
 
         // Create attachments for each render target.
         std::for_each(std::begin(m_targets), std::end(m_targets), [&, i = inputAttachments.size()](const auto& target) mutable {
-            if ((target->getType() == RenderTargetType::Depth && depthAttachment.has_value()) || (target->getType() == RenderTargetType::Present && m_presentAttachment.has_value()))
-                throw std::runtime_error(fmt::format("Invalid render target {0}: only one target attachment of type {1} is allowed.", i, target->getType()));
+            if ((target->getType() == RenderTargetType::Depth && depthAttachment.has_value()) || (target->getType() == RenderTargetType::Present && presentAttachment.has_value()))
+                throw ArgumentOutOfRangeException("Invalid render target {0}: only one target attachment of type {1} is allowed.", i, target->getType());
             else
             {
                 VkAttachmentDescription attachment{};

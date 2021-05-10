@@ -126,8 +126,8 @@ public:
 
             if (result == VK_ERROR_EXTENSION_NOT_PRESENT)
                 LITEFX_WARNING(VULKAN_LOG, "The extension \"{0}\" is not present. Debug utilities will not be enabled.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-            else if (result != VK_SUCCESS)
-                throw RuntimeException("Unable to initialize debug callback ({0}).", result);
+            else
+                raiseIfFailed<RuntimeException>(result, "Unable to initialize debug callback.");
 
             // Remember the instance so we can destroy the debug messenger.
             m_instance = instance;
