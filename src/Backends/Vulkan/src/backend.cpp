@@ -165,7 +165,7 @@ public:
 
     const VulkanGraphicsAdapter* findAdapter(const Optional<uint32_t> adapterId) const noexcept
     {
-        auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<IGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
+        auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
 
         if (match != m_adapters.end())
             return match->get();
