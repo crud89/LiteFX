@@ -367,9 +367,9 @@ Array<Format> VulkanDevice::getSurfaceFormats() const
 	return m_impl->getSurfaceFormats();
 }
 
-const ISwapChain* VulkanDevice::getSwapChain() const noexcept
+const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
 {
-	return m_impl->m_swapChain.get();
+	return *m_impl->m_swapChain;
 }
 
 bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) const noexcept

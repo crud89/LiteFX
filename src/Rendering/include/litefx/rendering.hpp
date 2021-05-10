@@ -169,16 +169,22 @@ namespace LiteFX::Rendering {
 	/// common objects. Second, it owns the device state, which contains objects required for communication between your application and the graphics driver. Most notably, those objects
 	/// contain the <see cref="ISwapChain" /> instance and the <see cref="ICommandQueue" /> instances used for data and command transfer.
 	/// </remarks>
-	template <typename TSurface, typename TGraphicsAdapter> requires 
+	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain> requires 
 		rtti::implements<TSurface, ISurface> &&
-		rtti::implements<TGraphicsAdapter, IGraphicsAdapter>
+		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
+		rtti::implements<TSwapChain, ISwapChain>
 	class IGraphicsDevice {
+	public:
+		using surface_type = TSurface;
+		using adapter_type = TGraphicsAdapter;
+		using swap_chain_type = TSwapChain;
+
 	public:
 		virtual ~IGraphicsDevice() noexcept = default;
 
+		// Factory interface.
+		// TODO: Move to IGraphicsFactory.
 	public:
-		virtual const TSurface& surface() const noexcept = 0;
-		virtual const TGraphicsAdapter& adapter() const noexcept = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
@@ -188,18 +194,49 @@ namespace LiteFX::Rendering {
 		virtual UniquePtr<ITexture> createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 		virtual UniquePtr<ISampler> createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const = 0;
+
+	public:
+		/// <summary>
+		/// Returns the surface, the device draws to.
+		/// </summary>
+		/// <returns>A reference of the surface, the device draws to.</returns>
+		virtual const TSurface& surface() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the graphics adapter, the device uses for drawing.
+		/// </summary>
+		/// <returns>A reference of the graphics adapter, the device uses for drawing.</returns>
+		virtual const TGraphicsAdapter& adapter() const noexcept = 0;
+		
+		/// <summary>
+		/// Waits until the device is idle.
+		/// </summary>
+		/// <remarks>
+		/// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
+		/// may safely be released.
+		/// </remarks>
 		virtual void wait() = 0;
+
+		// TODO: Move into IFrameBuffer instance ("present buffer"?) and move it to the swap chain. See issue #22.
 		virtual void resize(int width, int height) = 0;
-		virtual const ISwapChain* getSwapChain() const noexcept = 0;
-		virtual Array<Format> getSurfaceFormats() const = 0;
+		virtual const TSwapChain& swapChain() const noexcept = 0;
 		virtual size_t getBufferWidth() const noexcept = 0;
 		virtual size_t getBufferHeight() const noexcept = 0;
 		//virtual Color getBackColor() const noexcept = 0;
 		//virtual void setBackColor(const Color& color) = 0;
 
 		/// <summary>
+		/// Returns an array of supported formats, that can be drawn to the surface.
+		/// </summary>
+		/// <returns>An array of supported formats, that can be drawn to the surface.</returns>
+		/// <see cref="surface" />
+		/// <seealso cref="ISurface" />
+		virtual Array<Format> getSurfaceFormats() const = 0;
+
+		/// <summary>
 		/// Returns the instance of the queue, used to process draw calls.
 		/// </summary>
+		/// <returns>The instance of the queue, used to process draw calls.</returns>
 		virtual const ICommandQueue* graphicsQueue() const noexcept = 0;
 
 		/// <summary>
@@ -208,6 +245,7 @@ namespace LiteFX::Rendering {
 		/// <remarks>
 		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
 		/// </remarks>
+		/// <returns>The instance of the queue used for device-device transfers (e.g. between render-passes).</returns>
 		virtual const ICommandQueue* transferQueue() const noexcept = 0;
 
 		/// <summary>
@@ -216,6 +254,7 @@ namespace LiteFX::Rendering {
 		/// <remarks>
 		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
 		/// </remarks>
+		/// <returns>The instance of the queue used for host-device transfers.</returns>
 		virtual const ICommandQueue* bufferQueue() const noexcept = 0;
 
 	protected:
@@ -228,7 +267,7 @@ namespace LiteFX::Rendering {
 		template <typename TRenderPass, typename TDerived, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
 			rtti::implements<TRenderPass, IRenderPass> &&
 			rtti::has_builder<TRenderPass> &&
-			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter>>
+			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain>>
 		TBuilder build(TArgs&&... _args) const {
 			// NOTE: If the cast raises an exception here, check the `TDerived` type - it must be equal to the parent graphics device class that calls this function.
 			return TBuilder(makeUnique<TRenderPass>(dynamic_cast<const TDerived&>(*this), std::forward<TArgs>(_args)...));
@@ -240,11 +279,13 @@ namespace LiteFX::Rendering {
 	/// </summary>
 	/// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
 	/// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
+	/// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
 	/// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
-	template <typename TGraphicsAdapter, typename TSurface, typename TGraphicsDevice> requires
+	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type> requires
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSurface, ISurface> &&
-		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter>>
+		rtti::implements<TSwapChain, ISwapChain> &&
+		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain>>
 	class IRenderBackend : public IBackend {
 	public:
 		virtual ~IRenderBackend() noexcept = default;

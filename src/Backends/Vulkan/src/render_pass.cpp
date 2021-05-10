@@ -14,7 +14,6 @@ public:
 
 private:
     Array<UniquePtr<IRenderPipeline>> m_pipelines;
-    const VulkanSwapChain* m_swapChain{ nullptr };
     const VulkanQueue* m_queue{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
     Array<VkClearValue> m_clearValues;
@@ -59,18 +58,12 @@ private:
 
     UniquePtr<IImage> makeImageView(const IRenderTarget* target)
     {
-        return m_parent->getDevice()->createAttachment(target->getFormat(), m_parent->getDevice()->getSwapChain()->getBufferSize());
+        return m_parent->getDevice()->createAttachment(target->getFormat(), m_parent->getDevice()->swapChain().getBufferSize());
     }
 
 public:
     VkRenderPass initialize()
     {
-        // Store swap chain and graphics queue.
-        m_swapChain = dynamic_cast<const VulkanSwapChain*>(m_parent->getDevice()->getSwapChain());
-
-        if (m_swapChain == nullptr)
-            throw std::invalid_argument("The device swap chain is not a valid Vulkan swap chain.");
-        
         m_queue = dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue());
 
         if (m_queue == nullptr)
@@ -252,7 +245,7 @@ public:
             dependencyTargets = m_dependency->getTargets();
 
         // Initialize frame buffers.
-        auto frames = m_swapChain->getFrames();
+        auto frames = m_parent->getDevice()->swapChain().getFrames();
         Array<VkFramebuffer> frameBuffers(frames.size());
 
         LITEFX_TRACE(VULKAN_LOG, "Initializing {0} frame buffers...", frames.size());
@@ -295,8 +288,8 @@ public:
             frameBufferInfo.renderPass = renderPass;
             frameBufferInfo.attachmentCount = static_cast<UInt32>(attachmentViews.size());
             frameBufferInfo.pAttachments = attachmentViews.data();
-            frameBufferInfo.width = m_parent->getDevice()->getSwapChain()->getBufferSize().width();
-            frameBufferInfo.height = m_parent->getDevice()->getSwapChain()->getBufferSize().height();
+            frameBufferInfo.width = m_parent->getDevice()->swapChain().getBufferSize().width();
+            frameBufferInfo.height = m_parent->getDevice()->swapChain().getBufferSize().height();
             frameBufferInfo.layers = 1;
 
             VkFramebuffer frameBuffer;
@@ -317,7 +310,7 @@ public:
     {
         // Swap out the back buffer, if the render pass has a present target. Otherwise increment the current frame buffer anyways.
         // NOTE: Maybe this can be refactored to a boolean parameter `swapBackBuffer` which defaults to `false`?
-        m_backBuffer = m_dependency == nullptr ? m_swapChain->swapBackBuffer() : m_dependency->m_impl->m_backBuffer;
+        m_backBuffer = m_dependency == nullptr ? m_parent->getDevice()->swapChain().swapBackBuffer() : m_dependency->m_impl->m_backBuffer;
 
         // Get current command buffer.
         auto commandBuffer = this->getCurrentCommandBuffer();
@@ -349,7 +342,7 @@ public:
             commandBuffer->submit({}, {});
         else
         {
-            Array<VkSemaphore> waitForSemaphores = { m_swapChain->getCurrentSemaphore() };
+            Array<VkSemaphore> waitForSemaphores = { m_parent->getDevice()->swapChain().getCurrentSemaphore() };
             Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
             Array<VkSemaphore> signalSemaphores = { this->getCurrentSemaphore() };
 
@@ -363,7 +356,7 @@ public:
             presentInfo.pImageIndices = &m_backBuffer;
             presentInfo.pResults = nullptr;
 
-            VkSwapchainKHR swapChains[] = { m_swapChain->handle() };
+            VkSwapchainKHR swapChains[] = { m_parent->getDevice()->swapChain().handle() };
             presentInfo.pSwapchains = swapChains;
             presentInfo.swapchainCount = 1;
 

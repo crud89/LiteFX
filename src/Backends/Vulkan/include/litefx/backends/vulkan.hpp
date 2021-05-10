@@ -482,27 +482,26 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter>, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain>, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="adapter"></param>
+		/// <param name="surface"></param>
+		/// <param name="format"></param>
+		/// <param name="frameBufferSize"></param>
+		/// <param name="frameBuffers"></param>
+		/// <param name="extensions"></param>
 		explicit VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
 
+		// Factory interface.
 	public:
-		virtual const VulkanSurface& surface() const noexcept override;
-		virtual const VulkanGraphicsAdapter& adapter() const noexcept override;
-		virtual Array<Format> getSurfaceFormats() const override;
-		virtual const ISwapChain* getSwapChain() const noexcept override;
-		virtual size_t getBufferWidth() const noexcept override;
-		virtual size_t getBufferHeight() const noexcept override;
-		virtual const ICommandQueue* graphicsQueue() const noexcept override;
-		virtual const ICommandQueue* transferQueue() const noexcept override;
-		virtual const ICommandQueue* bufferQueue() const noexcept override;
-		virtual void wait() override;
-		virtual void resize(int width, int height) override;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
 		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
 		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
@@ -514,19 +513,65 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const override;
 
 	public:
-		virtual const Array<String>& getExtensions() const noexcept;
-		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
-		virtual Array<String> getAvailableDeviceExtensions() const noexcept; 
+		/// <inheritdoc />
+		virtual const VulkanSurface& surface() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const VulkanGraphicsAdapter& adapter() const noexcept override;
+		
+		/// <inheritdoc />
+		virtual const ICommandQueue* graphicsQueue() const noexcept override;
+		
+		/// <inheritdoc />
+		virtual const ICommandQueue* transferQueue() const noexcept override;
+		
+		/// <inheritdoc />
+		virtual const ICommandQueue* bufferQueue() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void wait() override;
+
+		virtual Array<Format> getSurfaceFormats() const override;
+		virtual const VulkanSwapChain& swapChain() const noexcept override;
 		virtual Array<UniquePtr<IImage>> createSwapChainImages(const ISwapChain* swapChain) const;
+		virtual size_t getBufferWidth() const noexcept override;
+		virtual size_t getBufferHeight() const noexcept override;
+		virtual void resize(int width, int height) override;
 
 	public:
+		/// <summary>
+		/// Returns the array that stores the extensions that were used to initialize the device.
+		/// </summary>
+		/// <returns>A reference to the array that stores the extensions that were used to initialize the device.</returns>
+		virtual const Array<String>& getExtensions() const noexcept;
+
+		/// <summary>
+		/// Validates a set of extensions, i.e. checks if all elements of <paramref name="extensions" /> are supported by the device.
+		/// </summary>
+		/// <param name="extensions">A list of required extensions. If one of the extensions in the list is not supported, the method returns <c>false</c>.</param>
+		/// <returns><c>true</c>, if all elements of <paramref name="extensions" /> are supported by the device.</returns>
+		/// <seealso cref="getAvailableDeviceExtensions" />
+		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
+
+		/// <summary>
+		/// Returns a list of all available device extensions.
+		/// </summary>
+		/// <returns>A list of all available device extensions.</returns>
+		virtual Array<String> getAvailableDeviceExtensions() const noexcept; 
+
+	public:
+		/// <summary>
+		/// Returns a builder for a <see cref="VulkanRenderPass" />.
+		/// </summary>
+		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		/// <seealso cref="IGraphicsDevice::build" />
 		VulkanRenderPassBuilder buildRenderPass() const;
 	};
 
 	/// <summary>
 	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanGraphicsAdapter, VulkanSurface, VulkanDevice>, public IResource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanDevice>, public IResource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 		LITEFX_BUILDER(VulkanBackendBuilder);
 

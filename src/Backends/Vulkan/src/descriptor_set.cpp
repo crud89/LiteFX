@@ -31,7 +31,7 @@ public:
         };
 
         auto descriptorLayouts = m_parent->parent().getLayouts();
-        auto frames = m_parent->getDevice()->getSwapChain()->getBuffers();
+        auto frames = m_parent->getDevice()->swapChain().getBuffers();
 
         LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", poolSizes[0].descriptorCount, poolSizes[1].descriptorCount, poolSizes[2].descriptorCount, poolSizes[3].descriptorCount, poolSizes[4].descriptorCount, frames);
 
