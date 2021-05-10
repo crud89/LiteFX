@@ -36,9 +36,6 @@ namespace LiteFX::Rendering {
     class ISurface;
 	class ICommandQueue;
 	class ICommandBuffer;
-    class IGraphicsDevice;
-    class IGraphicsAdapter;
-	class IRenderBackend;
 	class IRenderPass;
 	class IRenderTarget;
 	class IBufferLayout;
@@ -71,16 +68,30 @@ namespace LiteFX::Rendering {
 	class Sampler;
 
 	// Common interface declarations.
-	class LITEFX_RENDERING_API IRequiresInitialization {
-	public:
-		virtual bool isInitialized() const noexcept = 0;
-	};
 
 	// Define enumerations.
+	/// <summary>
+	/// Defines different types of graphics adapters.
+	/// </summary>
 	enum class LITEFX_RENDERING_API GraphicsAdapterType {
+		/// <summary>
+		/// The adapter is not a valid graphics adapter.
+		/// </summary>
 		None = 0x00000000,
+		
+		/// <summary>
+		/// The adapter is a dedicated GPU adapter.
+		/// </summary>
 		GPU = 0x00000001,
+
+		/// <summary>
+		/// The adapter is an integrated CPU.
+		/// </summary>
 		CPU = 0x00000002,
+
+		/// <summary>
+		/// The adapter type is not captured by this enum. This value is used internally to mark invalid adapters and should not be used.
+		/// </summary>
 		Other = 0x7FFFFFFF,
 	};
 
@@ -483,4 +494,104 @@ namespace LiteFX::Rendering {
 	/// 
 	/// </summary>
 	bool LITEFX_RENDERING_API hasStencil(const Format& format);
+
+	/// <summary>
+	/// Represents a physical graphics adapter.
+	/// </summary>
+	/// <remarks>
+	/// A graphics adapter can be seen as an actual phyiscal device that can run graphics computations. Typically this resembles a GPU that is connected
+	/// to the bus. However, it can also represent an emulated, virtual adapter, such as a software rasterizer.
+	/// </remarks>
+	class LITEFX_RENDERING_API IGraphicsAdapter {
+	public:
+		virtual ~IGraphicsAdapter() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Retrieves the name of the graphics adapter.
+		/// </summary>
+		/// <returns>The name of the graphics adapter.</returns>
+		virtual String getName() const noexcept = 0;
+
+		/// <summary>
+		/// Returns a unique identifier, that identifies the vendor of the graphics adapter.
+		/// </summary>
+		/// <returns>A unique identifier, that identifies the vendor of the graphics adapter.</returns>
+		virtual UInt32 getVendorId() const noexcept = 0;
+
+		/// <summary>
+		/// Returns a unique identifier, that identifies the product.
+		/// </summary>
+		/// <returns>A unique identifier, that identifies the product.</returns>
+		virtual UInt32 getDeviceId() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the type of the graphics adapter.
+		/// </summary>
+		/// <returns>The type of the graphics adapter.</returns>
+		virtual GraphicsAdapterType getType() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the graphics driver version.
+		/// </summary>
+		/// <returns>The graphics driver version.</returns>
+		virtual UInt32 getDriverVersion() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the graphics API version.
+		/// </summary>
+		/// <returns>The graphics API version.</returns>
+		virtual UInt32 getApiVersion() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the amount of dedicated graphics memory (in bytes), this adapter can use.
+		/// </summary>
+		/// <returns>The amount of dedicated graphics memory (in bytes), this adapter can use.</returns>
+		virtual UInt64 getDedicatedMemory() const noexcept = 0;
+	};
+
+	/// <summary>
+	/// Represents a surface to render to.
+	/// </summary>
+	/// <remarks>
+	/// A surface can be seen as a window or area on the screen, the renderer can draw to. Note that the interface does not make any constraints on the surface
+	/// to allow for portability. A surface implementation may provide access to the actual handle to use. Surface instances are responsible for owning the handle.
+	/// </remarks>
+	class LITEFX_RENDERING_API ISurface {
+	public:
+		virtual ~ISurface() noexcept = default;
+	};
+
+	class LITEFX_RENDERING_API IRequiresInitialization {
+	public:
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		virtual bool isInitialized() const noexcept = 0;
+	};
+
+	//template <typename TOwner, typename TDevice>
+	//class LITEFX_RENDERING_API IDeviceContext {
+	//private:
+	//	const TOwner& m_parent;
+	//	const TDevice& m_device;
+
+	//public:
+	//	explicit VulkanRuntimeObject(const TParent& parent, const TDevice& device) :
+	//		m_parent(parent), m_device(device)
+	//	{
+	//		if (device == nullptr)
+	//			throw RuntimeException("The device must be initialized.");
+	//	}
+
+	//	VulkanRuntimeObject(VulkanRuntimeObject&&) = delete;
+	//	VulkanRuntimeObject(const VulkanRuntimeObject&) = delete;
+	//	virtual ~VulkanRuntimeObject() noexcept = default;
+
+	//public:
+	//	virtual const TParent& parent() const noexcept { return m_parent; }
+	//	virtual const VulkanDevice* getDevice() const noexcept { return m_device; };
+	//};
+
 }

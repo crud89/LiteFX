@@ -17,8 +17,6 @@ SET(RENDERING_HEADERS
 
 SET(RENDERING_SOURCES
     "src/convert.cpp"
-    "src/backend.cpp"
-    "src/device.cpp"
     "src/buffer_attribute.cpp"
     "src/input_assembler.cpp"
     "src/rasterizer.cpp"

@@ -3,7 +3,6 @@
 #include <litefx/rendering.hpp>
 
 #include "vulkan_api.hpp"
-#include "vulkan_platform.hpp"
 #include "vulkan_builders.hpp"
 #include "vulkan_formatters.hpp"
 
@@ -420,11 +419,58 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
+		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
+
+	public:
+		explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
+		VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
+		VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
+		virtual ~VulkanGraphicsAdapter() noexcept;
+
+	public:
+		virtual String getName() const noexcept override;
+		virtual UInt32 getVendorId() const noexcept override;
+		virtual UInt32 getDeviceId() const noexcept override;
+		virtual GraphicsAdapterType getType() const noexcept override;
+		virtual UInt32 getDriverVersion() const noexcept override;
+		virtual UInt32 getApiVersion() const noexcept override;
+		virtual UInt64 getDedicatedMemory() const noexcept override;
+	};
+
+	/// <summary>
+	/// Represents a Vulkan surface.
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanSurface : public ISurface, public IResource<VkSurfaceKHR> {
+		LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
+
+	public:
+		/// <summary>
+		/// Initializes the surface from a surface and instance handle.
+		/// </summary>
+		/// <param name="surface">The handle of the Vulkan surface.</param>
+		/// <param name="instance">The handle of the parent instance.</param>
+		VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
+		VulkanSurface(const VulkanSurface&) = delete;
+		VulkanSurface(VulkanSurface&&) = delete;
+		virtual ~VulkanSurface() noexcept;
+
+	public:
+		/// <summary>
+		/// Returns the handle of the backend, the surface has been created from.
+		/// </summary>
+		/// <returns>The handle of the backend, the surface has been created from.</returns>
+		const VkInstance& instance() const noexcept;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
-		explicit VulkanDevice(const IRenderBackend* backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions = { });
+		explicit VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
@@ -457,59 +503,95 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		VulkanRenderPassBuilder buildRenderPass() const;
-		//VulkanComputePassBuilder buildComputePass() const;
 	};
 
 	/// <summary>
-	/// 
+	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
-		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
-
-	public:
-		explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
-		VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
-		VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
-		virtual ~VulkanGraphicsAdapter() noexcept;
-
-	public:
-		virtual String getName() const noexcept override;
-		virtual uint32_t getVendorId() const noexcept override;
-		virtual uint32_t getDeviceId() const noexcept override;
-		virtual GraphicsAdapterType getType() const noexcept override;
-		virtual uint32_t getDriverVersion() const noexcept override;
-		virtual uint32_t getApiVersion() const noexcept override;
-		virtual uint32_t getDedicatedMemory() const noexcept override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend, public IResource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanGraphicsAdapter, VulkanSurface, VulkanDevice>, public IResource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 		LITEFX_BUILDER(VulkanBackendBuilder);
 
 	public:
+		/// <summary>
+		/// Initializes a new vulkan rendering backend.
+		/// </summary>
+		/// <param name="app">An instance of the app that owns the backend.</param>
+		/// <param name="extensions">A set of extensions to enable on the graphics device.</param>
+		/// <param name="validationLayers">A set of validation layers to enable on the rendering backend.</param>
 		explicit VulkanBackend(const App& app, const Array<String>& extensions = { }, const Array<String>& validationLayers = { });
 		VulkanBackend(const VulkanBackend&) noexcept = delete;
 		VulkanBackend(VulkanBackend&&) noexcept = delete;
-		virtual ~VulkanBackend();
+		virtual ~VulkanBackend() noexcept;
+
+		// IBackend
+	public:
+		virtual BackendType getType() const noexcept override;
+
+		// IRenderBackend
+	public:
+		/// <inheritdoc />
+		virtual Array<const VulkanGraphicsAdapter*> listAdapters() const override;
+
+		/// <inheritdoc />
+		virtual const VulkanGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
+
+		// VulkanBackend
+	public:
+		/// <summary>
+		/// A callback that creates a surface from a Vulkan instance.
+		/// </summary>
+		typedef std::function<VkSurfaceKHR(const VkInstance&)> surface_callback;
 
 	public:
-		virtual Array<const IGraphicsAdapter*> listAdapters() const override;
-		virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
-		virtual const ISurface* getSurface() const noexcept override;
-		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
-		virtual const Array<String>& getEnabledValidationLayers() const noexcept;
+		/// <summary>
+		/// Returns the validation layers that are enabled on the backend.
+		/// </summary>
+		/// <returns>An array of validation layers that are enabled on the backend.</returns>
+		virtual const Array<String> getEnabledValidationLayers() const noexcept;
+
+		/// <summary>
+		/// Creates a surface using the <paramref name="predicate" /> callback.
+		/// </summary>
+		/// <param name="predicate">A callback that gets called with the backend instance handle and creates the surface instance</param>
+		/// <returns>The instance of the created surface.</returns>
+		/// <seealso cref="surface_callback" />
+		UniquePtr<VulkanSurface> createSurface(surface_callback predicate);
+
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+		/// <summary>
+		/// Creates a surface on a window handle.
+		/// </summary>
+		/// <param name="hwnd">The window handle on which the surface should be created.</param>
+		/// <returns>The instance of the created surface.</returns>
+		UniquePtr<VulkanSurface> createSurface(const HWND& hwnd);
+#endif
 
 	public:
-		virtual void use(const IGraphicsAdapter* adapter) override;
-		virtual void use(UniquePtr<ISurface>&& surface) override;
-
-	public:
+		/// <summary>
+		/// Returns <c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.
+		/// </summary>
+		/// <returns><c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.</returns>
+		/// <seealso cref="getAvailableExtensions" />
 		static bool validateExtensions(const Array<String>& extensions) noexcept;
+
+		/// <summary>
+		/// Returns a list of available extensions.
+		/// </summary>
+		/// <returns>A list of available extensions.</returns>
 		static Array<String> getAvailableExtensions() noexcept;
+
+		/// <summary>
+		/// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
+		/// </summary>
+		/// <returns><c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.</returns>
+		/// <seealso cref="getValidationLayers" />
 		static bool validateLayers(const Array<String>& validationLayers) noexcept;
+
+		/// <summary>
+		/// Returns a list of available validation layers.
+		/// </summary>
+		/// <returns>A list of available validation layers.</returns>
 		static Array<String> getValidationLayers() noexcept;
 	};
 

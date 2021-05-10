@@ -3,6 +3,10 @@
 
 using namespace LiteFX::Logging;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class Log::LogImpl : public Implement<Log> {
 public:
     friend class Log;
@@ -14,6 +18,10 @@ public:
     LogImpl(Log* parent, const String& name) : 
         base(parent), m_name(name) { }
 };
+
+// ------------------------------------------------------------------------------------------------
+// Shared interface.
+// ------------------------------------------------------------------------------------------------
 
 Log::Log(const String& name) :
     m_impl(makePimpl<LogImpl>(this, name))

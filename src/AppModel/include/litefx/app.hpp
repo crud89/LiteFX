@@ -8,7 +8,7 @@ namespace LiteFX {
 
 	class IBackend {
 	public:
-		virtual ~IBackend() noexcept = default;
+		virtual ~IBackend() noexcept;
 
 	public:
 		virtual BackendType getType() const noexcept = 0;
@@ -28,8 +28,13 @@ namespace LiteFX {
 		virtual String getName() const noexcept = 0;
 		virtual AppVersion getVersion() const noexcept = 0;
 		Platform getPlatform() const noexcept;
-		virtual const IBackend* findBackend(const BackendType& type) const;
 		virtual const IBackend* operator[](const BackendType& type) const;
+
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		const TBackend* findBackend(const BackendType& type) const {
+			return dynamic_cast<const TBackend*>(this->operator[](type));
+		}
 
 	public:
 		virtual void use(UniquePtr<IBackend>&& backend);
@@ -57,7 +62,8 @@ namespace LiteFX {
 		void use(UniquePtr<IBackend>&& backend);
 		virtual UniquePtr<App> go() override;
 
-		template <std::convertible_to<ISink*> TSink, typename ...TArgs>
+		template <typename TSink, typename ...TArgs> requires
+			std::convertible_to<TSink*, ISink*>
 		AppBuilder& logTo(TArgs&&... args) {
 			auto sink = makeUnique<TSink>(std::forward<TArgs>(args)...);
 			Logger::sinkTo(sink.get());

@@ -11,7 +11,8 @@ public:
     friend class VulkanGraphicsAdapter;
 
 public:
-    VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : base(parent) 
+    VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : 
+        base(parent) 
     {
     }
 
@@ -50,13 +51,13 @@ String VulkanGraphicsAdapter::getName() const noexcept
     return String(properties.deviceName);
 }
 
-uint32_t VulkanGraphicsAdapter::getVendorId() const noexcept
+UInt32 VulkanGraphicsAdapter::getVendorId() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.vendorID;
 }
 
-uint32_t VulkanGraphicsAdapter::getDeviceId() const noexcept
+UInt32 VulkanGraphicsAdapter::getDeviceId() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.deviceID;
@@ -79,19 +80,19 @@ GraphicsAdapterType VulkanGraphicsAdapter::getType() const noexcept
     }
 }
 
-uint32_t VulkanGraphicsAdapter::getDriverVersion() const noexcept
+UInt32 VulkanGraphicsAdapter::getDriverVersion() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.driverVersion;
 }
 
-uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
+UInt32 VulkanGraphicsAdapter::getApiVersion() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.apiVersion;
 }
 
-uint32_t VulkanGraphicsAdapter::getDedicatedMemory() const noexcept
+UInt64 VulkanGraphicsAdapter::getDedicatedMemory() const noexcept
 {
     VkPhysicalDeviceMemoryProperties memoryProperties{};
     ::vkGetPhysicalDeviceMemoryProperties(this->handle(), &memoryProperties);

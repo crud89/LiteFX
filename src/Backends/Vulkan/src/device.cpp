@@ -67,9 +67,12 @@ private:
 	Array<String> m_extensions;
 	VmaAllocator m_allocator{ nullptr };
 
+	const VulkanGraphicsAdapter& m_adapter;
+	const VulkanSurface& m_surface;
+
 public:
-	VulkanDeviceImpl(VulkanDevice* parent, const Array<String>& extensions = { }) :
-		base(parent), m_extensions(extensions)
+	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Array<String>& extensions = { }) :
+		base(parent), m_extensions(extensions), m_adapter(adapter), m_surface(surface)
 	{
 		this->defineMandatoryExtensions();
 		this->loadQueueFamilies();
@@ -90,25 +93,6 @@ private:
 		m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}
 
-private:
-	VkSurfaceKHR getSurface() const noexcept
-	{
-		auto surface = dynamic_cast<const VulkanSurface*>(m_parent->getBackend()->getSurface());
-		return surface ? surface->handle() : nullptr;
-	}
-
-	VkPhysicalDevice getAdapter() const noexcept
-	{
-		auto adapter = dynamic_cast<const VulkanGraphicsAdapter*>(m_parent->getBackend()->getAdapter());
-		return adapter ? adapter->handle() : nullptr;
-	}
-
-	VkInstance getInstance() const noexcept
-	{
-		auto backend = dynamic_cast<const VulkanBackend*>(m_parent->getBackend());
-		return backend ? backend->handle() : nullptr;
-	}
-
 public:
 	bool validateDeviceExtensions(const Array<String>& extensions) const noexcept
 	{
@@ -125,15 +109,13 @@ public:
 
 	Array<String> getAvailableDeviceExtensions() const noexcept
 	{
-		auto adapter = this->getAdapter();
-
 		uint32_t extensions = 0;
-		::vkEnumerateDeviceExtensionProperties(adapter, nullptr, &extensions, nullptr);
+		::vkEnumerateDeviceExtensionProperties(m_adapter.handle(), nullptr, &extensions, nullptr);
 
 		Array<VkExtensionProperties> availableExtensions(extensions);
 		Array<String> extensionNames(extensions);
 
-		::vkEnumerateDeviceExtensionProperties(adapter, nullptr, &extensions, availableExtensions.data());
+		::vkEnumerateDeviceExtensionProperties(m_adapter.handle(), nullptr, &extensions, availableExtensions.data());
 		std::generate(extensionNames.begin(), extensionNames.end(), [&availableExtensions, i = 0]() mutable { return availableExtensions[i++].extensionName; });
 
 		return extensionNames;
@@ -142,16 +124,11 @@ public:
 public:
 	void loadQueueFamilies()
 	{
-		auto adapter = this->getAdapter();
-
-		if (adapter == nullptr)
-			throw std::invalid_argument("The argument `adapter` must be initialized.");
-
 		// Find an available command queues.
 		uint32_t queueFamilies = 0;
-		::vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilies, nullptr);
+		::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter.handle(), &queueFamilies, nullptr);
 		Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
-		::vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilies, familyProperties.data());
+		::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter.handle(), &queueFamilies, familyProperties.data());
 
 		std::for_each(familyProperties.begin(), familyProperties.end(), [this, i = 0](const auto& familyProperty) mutable {
 			QueueType type = QueueType::None;
@@ -169,19 +146,6 @@ public:
 
 	VkDevice initialize(const Format& format)
 	{
-		auto adapter = this->getAdapter();
-		auto instance = this->getInstance();
-		auto surface = this->getSurface();
-
-		if (adapter == nullptr)
-			throw std::invalid_argument("The parent adapter must be initialized.");
-
-		if (instance == nullptr)
-			throw std::invalid_argument("The parent backend must be initialized.");
-
-		if (surface == nullptr)
-			throw std::invalid_argument("The parent surface must be initialized.");
-
 		if (!this->validateDeviceExtensions(m_extensions))
 			throw std::runtime_error("Some required device extensions are not supported by the system.");
 
@@ -191,7 +155,7 @@ public:
 		std::generate(requiredExtensions.begin(), requiredExtensions.end(), [this, i = 0]() mutable { return m_extensions[i++].data(); });
 
 		// Create graphics and transfer queue.
-		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, surface);
+		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, m_surface.handle());
 		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 		m_bufferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 
@@ -246,14 +210,14 @@ public:
 		// Create the device.
 		VkDevice device;
 
-		if (::vkCreateDevice(adapter, &createInfo, nullptr, &device) != VK_SUCCESS)
+		if (::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create Vulkan device.");
 
 		// Create an buffer allocator.
 		VmaAllocatorCreateInfo allocatorInfo = {};
-		allocatorInfo.physicalDevice = adapter;
+		allocatorInfo.physicalDevice = m_adapter.handle();
 		allocatorInfo.device = device;
-		allocatorInfo.instance = instance;
+		allocatorInfo.instance = m_surface.instance();
 
 		if (::vmaCreateAllocator(&allocatorInfo, &m_allocator) != VK_SUCCESS)
 			throw std::runtime_error("Unable to create Vulkan memory allocator.");
@@ -291,22 +255,13 @@ public:
 public:
 	Array<Format> getSurfaceFormats() const
 	{
-		auto adapter = this->getAdapter();
-		auto surface = this->getSurface();
-
-		if (adapter == nullptr)
-			throw std::runtime_error("The adapter is not a valid Vulkan adapter.");
-
-		if (surface == nullptr)
-			throw std::runtime_error("The surface is not a valid Vulkan surface.");
-
 		uint32_t formats;
-		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
+		::vkGetPhysicalDeviceSurfaceFormatsKHR(m_adapter.handle(), m_surface.handle(), &formats, nullptr);
 
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		Array<Format> surfaceFormats(formats);
 
-		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
+		::vkGetPhysicalDeviceSurfaceFormatsKHR(m_adapter.handle(), m_surface.handle(), &formats, availableFormats.data());
 		std::generate(surfaceFormats.begin(), surfaceFormats.end(), [&availableFormats, i = 0]() mutable { return getFormat(availableFormats[i++].format); });
 
 		return surfaceFormats;
@@ -324,20 +279,12 @@ public:
 
 	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority, const VkSurfaceKHR& surface)
 	{
-		if (surface == nullptr)
-			throw std::invalid_argument("The argument `surface` is not initialized.");
-
-		auto adapter = this->getAdapter();
-
-		if (adapter == nullptr)
-			throw std::invalid_argument("The argument `adapter` must be initialized.");
-
 		auto match = std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable {
 			if (!LITEFX_FLAG_IS_SET(family.type(), type))
 				return false;
 
 			VkBool32 canPresent = VK_FALSE;
-			::vkGetPhysicalDeviceSurfaceSupportKHR(adapter, family.id(), surface, &canPresent);
+			::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter.handle(), family.id(), surface, &canPresent);
 
 			return static_cast<bool>(canPresent);
 		});
@@ -350,10 +297,16 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const IRenderBackend* backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions) :
-	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, extensions)), GraphicsDevice(backend)
+VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions) :
+	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, surface, extensions))
 {
-	LITEFX_DEBUG(VULKAN_LOG, "Creating device on backend {0} {{ Surface: {1}, Adapter: {2}, Format: {3}, Extensions: {4} }}...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format, Join(this->getExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {1}, Adapter: {2}, Format: {3}, Extensions: {4} }}...", fmt::ptr(&surface), adapter.getDeviceId(), format, Join(this->getExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
+	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
+	LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
+	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
+	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 	
 	this->handle() = m_impl->initialize(format);
 	m_impl->createQueues();

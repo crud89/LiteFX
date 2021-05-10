@@ -35,6 +35,8 @@ public:
 
 private:
 	GlfwWindowPtr m_window;
+	Optional<UInt32> m_adapterId;
+	UniquePtr<ISurface> m_surface;
 	SharedPtr<IViewport> m_viewport;
 	SharedPtr<IScissor> m_scissor;
 	UniquePtr<VulkanDevice> m_device;
@@ -45,7 +47,9 @@ private:
 	UniquePtr<IDescriptorSet> m_perFrameBindings, m_perObjectBindings;
 
 public:
-	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {
+	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
+		App(), m_window(std::move(window)), m_adapterId(adapterId)
+	{
 		::glfwSetWindowUserPointer(m_window.get(), this);
 
 		this->initialize();
@@ -56,9 +60,6 @@ private:
 	void initBuffers();
 
 public:
-	virtual const IRenderBackend* getRenderBackend() const noexcept {
-		return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
-	}
 	virtual void run() override;
 	virtual void initialize() override;
 	virtual void resize(int width, int height) override;

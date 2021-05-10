@@ -11,15 +11,16 @@ public:
     friend class VulkanBackend;
 
 private:
+    Array<UniquePtr<VulkanGraphicsAdapter>> m_adapters{ };
     Array<String> m_extensions;
     Array<String> m_layers;
-    Array<UniquePtr<IGraphicsAdapter>> m_adapters{ };
-    const IGraphicsAdapter* m_adapter{ nullptr };
-    UniquePtr<ISurface> m_surface{ nullptr };
+    const App& m_app;
 
 public:
-    VulkanBackendImpl(VulkanBackend* parent, const Array<String>& extensions, const Array<String>& validationLayers) :
-        base(parent), m_extensions(extensions), m_layers(validationLayers) { }
+    VulkanBackendImpl(VulkanBackend* parent, const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
+        base(parent), m_extensions(extensions), m_layers(validationLayers), m_app(app)
+    {
+    }
 
 #ifndef NDEBUG
 private:
@@ -70,22 +71,21 @@ public:
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateExtensions(m_extensions))
-            throw std::invalid_argument("Some required Vulkan extensions are not supported by the system.");
+            throw InvalidArgumentException("Some required Vulkan extensions are not supported by the system.");
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateLayers(m_layers))
-            throw std::invalid_argument("Some required Vulkan layers are not supported by the system.");
+            throw InvalidArgumentException("Some required Vulkan layers are not supported by the system.");
 
         // Get the app instance.
-        auto& app = m_parent->getApp();
-        auto appName = app.getName();
+        auto appName = m_app.getName();
 
         // Define Vulkan app.
         VkApplicationInfo appInfo = {};
 
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         appInfo.pApplicationName = appName.c_str();
-        appInfo.applicationVersion = VK_MAKE_VERSION(app.getVersion().getMajor(), app.getVersion().getMinor(), app.getVersion().getPatch());
+        appInfo.applicationVersion = VK_MAKE_VERSION(m_app.getVersion().getMajor(), m_app.getVersion().getMinor(), m_app.getVersion().getPatch());
         appInfo.pEngineName = LITEFX_ENGINE_ID;
         appInfo.engineVersion = VK_MAKE_VERSION(LITEFX_MAJOR, LITEFX_MINOR, LITEFX_REV);
         appInfo.apiVersion = VK_API_VERSION_1_2;
@@ -110,9 +110,7 @@ public:
         createInfo.pNext = &debugCallbackInfo;
 #endif
         VkInstance instance;
-
-        if (::vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
-            throw std::runtime_error("Unable to create Vulkan instance.");
+        raiseIfFailed<RuntimeException>(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
 #ifndef NDEBUG
         vkCreateDebugUtilsMessenger = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -129,7 +127,7 @@ public:
             if (result == VK_ERROR_EXTENSION_NOT_PRESENT)
                 LITEFX_WARNING(VULKAN_LOG, "The extension \"{0}\" is not present. Debug utilities will not be enabled.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             else if (result != VK_SUCCESS)
-                throw std::runtime_error(fmt::format("Unable to initialize debug callback ({0}).", result));
+                throw RuntimeException("Unable to initialize debug callback ({0}).", result);
 
             // Remember the instance so we can destroy the debug messenger.
             m_instance = instance;
@@ -146,7 +144,7 @@ public:
         ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, nullptr);
 
         Array<VkPhysicalDevice> handles(adapters);
-        Array<UniquePtr<IGraphicsAdapter>> instances(adapters);
+        Array<UniquePtr<VulkanGraphicsAdapter>> instances(adapters);
 
         ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, handles.data());
         std::generate(instances.begin(), instances.end(), [this, &handles, i = 0]() mutable {
@@ -157,15 +155,15 @@ public:
     }
 
 public:
-    Array<const IGraphicsAdapter*> listAdapters() const noexcept
+    Array<const VulkanGraphicsAdapter*> listAdapters() const noexcept
     {
-        Array<const IGraphicsAdapter*> results(m_adapters.size());
+        Array<const VulkanGraphicsAdapter*> results(m_adapters.size());
         std::generate(results.begin(), results.end(), [&, i = 0]() mutable { return m_adapters[i++].get(); });
 
         return results;
     }
 
-    const IGraphicsAdapter* findAdapter(const Optional<uint32_t> adapterId) const noexcept
+    const VulkanGraphicsAdapter* findAdapter(const Optional<uint32_t> adapterId) const noexcept
     {
         auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<IGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
 
@@ -181,7 +179,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
-    RenderBackend(app), m_impl(makePimpl<VulkanBackendImpl>(this, extensions, validationLayers)), IResource(nullptr)
+    m_impl(makePimpl<VulkanBackendImpl>(this, app, extensions, validationLayers)), IResource(nullptr)
 {
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters();
@@ -190,50 +188,55 @@ VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, co
 VulkanBackend::~VulkanBackend() noexcept 
 {
     m_impl.destroy();
-
     ::vkDestroyInstance(this->handle(), nullptr);
 }
 
-Array<const IGraphicsAdapter*> VulkanBackend::listAdapters() const
+BackendType VulkanBackend::getType() const noexcept
+{
+    return BackendType::Rendering;
+}
+
+Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
     return m_impl->listAdapters();
 }
 
-const IGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& adapterId) const
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& adapterId) const
 {
     return m_impl->findAdapter(adapterId);
 }
 
-const ISurface* VulkanBackend::getSurface() const noexcept
-{
-    return m_impl->m_surface.get();
-}
-
-const IGraphicsAdapter* VulkanBackend::getAdapter() const noexcept
-{
-    return m_impl->m_adapter;
-}
-
-const Array<String>& VulkanBackend::getEnabledValidationLayers() const noexcept
+const Array<String> VulkanBackend::getEnabledValidationLayers() const noexcept
 {
     return m_impl->m_layers;
 }
 
-void VulkanBackend::use(const IGraphicsAdapter* adapter)
+UniquePtr<VulkanSurface> VulkanBackend::createSurface(surface_callback predicate)
 {
-    if (adapter == nullptr)
-        throw std::invalid_argument("The adapter must be initialized.");
-
-    m_impl->m_adapter = adapter;
+    auto surface = predicate(this->handle());
+    return makeUnique<VulkanSurface>(surface, this->handle());
 }
 
-void VulkanBackend::use(UniquePtr<ISurface>&& surface)
-{
-    if (surface == nullptr)
-        throw std::invalid_argument("The surface must be initialized.");
+// ------------------------------------------------------------------------------------------------
+// Platform-specific implementation.
+// ------------------------------------------------------------------------------------------------
 
-    m_impl->m_surface = std::move(surface);
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+
+UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd)
+{
+    VkWin32SurfaceCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    createInfo.hwnd = hwnd;
+    createInfo.hinstance = ::GetModuleHandle(nullptr);
+
+    VkSurfaceKHR surface;
+    raiseIfFailed<RuntimeException>(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface), "Unable to create vulkan surface for provided window.");
+
+    return makeUnique<VulkanSurface>(new VulkanSurface(surface, this->handle()));
 }
+
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // Static interface.
@@ -299,65 +302,13 @@ Array<String> VulkanBackend::getValidationLayers() noexcept
 
 AppBuilder& VulkanBackendBuilder::go()
 {
-    auto adapter = this->instance()->getAdapter();
-    auto surface = this->instance()->getSurface();
-
-    if (adapter == nullptr)
-        throw std::runtime_error("No adapter has been defined to use for this backend.");
-
-    if (surface == nullptr)
-        throw std::runtime_error("No surface has been defined to use for this backend.");
-
-    Logger::get(VULKAN_LOG).info("Creating Vulkan rendering backend for adapter {0} ({1}).", adapter->getName(), adapter->getDeviceId());
-
-    Logger::get(VULKAN_LOG).debug("--------------------------------------------------------------------------");
-    Logger::get(VULKAN_LOG).debug("Vendor: {0:#0x}", adapter->getVendorId());
-    Logger::get(VULKAN_LOG).debug("Driver Version: {0:#0x}", adapter->getDriverVersion());
-    Logger::get(VULKAN_LOG).debug("API Version: {0:#0x}", adapter->getApiVersion());
-    Logger::get(VULKAN_LOG).debug("Dedicated Memory: {0} Bytes", adapter->getDedicatedMemory());
-    Logger::get(VULKAN_LOG).debug("--------------------------------------------------------------------------");
-    Logger::get(VULKAN_LOG).debug("Available extensions: {0}", Join(VulkanBackend::getAvailableExtensions(), ", "));
-    Logger::get(VULKAN_LOG).debug("Validation layers: {0}", Join(VulkanBackend::getValidationLayers(), ", "));
-    Logger::get(VULKAN_LOG).debug("--------------------------------------------------------------------------");
+    LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+    LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(VulkanBackend::getAvailableExtensions(), ", "));
+    LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(VulkanBackend::getValidationLayers(), ", "));
+    LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 
     if (this->instance()->getEnabledValidationLayers().size() > 0)
         LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(this->instance()->getEnabledValidationLayers(), ", "));
 
     return builder_type::go();
-}
-
-VulkanBackendBuilder& VulkanBackendBuilder::withSurface(UniquePtr<ISurface>&& surface)
-{
-    Logger::get(VULKAN_LOG).trace("Setting surface...");
-    this->instance()->use(std::move(surface));
-    return *this;
-}
-
-VulkanBackendBuilder& VulkanBackendBuilder::withSurface(VulkanSurface::surface_callback callback)
-{
-    return this->withSurface(std::move(VulkanSurface::createSurface(*this->instance(), callback)));
-}
-
-VulkanBackendBuilder& VulkanBackendBuilder::withAdapter(const UInt32& adapterId)
-{
-    auto adapter = this->instance()->findAdapter(adapterId);
-
-    if (adapter == nullptr)
-        throw std::invalid_argument("The argument `adapterId` is invalid.");
-
-    Logger::get(VULKAN_LOG).trace("Using adapter id: {0}...", adapterId);
-    this->instance()->use(adapter);
-    return *this;
-}
-
-VulkanBackendBuilder& VulkanBackendBuilder::withAdapterOrDefault(const Optional<UInt32>& adapterId)
-{
-    auto adapter = this->instance()->findAdapter(adapterId);
-
-    if (adapter == nullptr)
-        adapter = this->instance()->findAdapter(std::nullopt);
-
-    Logger::get(VULKAN_LOG).trace("Using adapter id: {0}...", adapter->getDeviceId());
-    this->instance()->use(adapter);
-    return *this;
 }

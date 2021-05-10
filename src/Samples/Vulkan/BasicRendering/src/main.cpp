@@ -12,7 +12,7 @@ int main(const int argc, const char** argv)
 	const String appName = SampleApp::name();
 
 	CLI::App app{ "Demonstrates basic drawing techniques.", appName };
-	Optional<uint32_t> adapterId;
+	Optional<UInt32> adapterId;
 
 	auto validationLayers = app.add_option("-l,--layers")->take_all();
 	app.add_option("-a,--adapter", adapterId)->take_first();
@@ -63,15 +63,6 @@ int main(const int argc, const char** argv)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
 			.make<VulkanBackend>(requiredExtensions, enabledLayers)
-				.withAdapterOrDefault(adapterId)
-				.withSurface([&windowPtr](const VkInstance& instance) {
-					VkSurfaceKHR surface;
-					
-					if (::glfwCreateWindowSurface(instance, windowPtr, nullptr, &surface) != VK_SUCCESS)
-						throw std::runtime_error("Unable to create GLFW window surface.");
-					
-					return surface;
-				}).go()
 			.go();
 	}
 	catch (const LiteFX::Exception& ex)

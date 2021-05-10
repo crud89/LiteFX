@@ -104,6 +104,20 @@ void SampleApp::initBuffers()
 
 void SampleApp::run() 
 {
+    // Start by creating the surface and selecting the adapter.
+    auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
+    auto adapter = backend->findAdapter(m_adapterId);
+
+    if (adapter == nullptr)
+        adapter = backend->findAdapter(std::nullopt);
+
+    m_surface = backend->createSurface([this](const VkInstance& instance) {
+        VkSurfaceKHR surface;
+        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window.get(), nullptr, &surface), "Unable to create GLFW window surface.");
+        
+        return surface;
+    });
+
     // Get the proper frame buffer size.
     int width, height;
     ::glfwGetFramebufferSize(m_window.get(), &width, &height);
@@ -113,7 +127,7 @@ void SampleApp::run()
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+    m_device = backend->createDevice(*adapter, *m_surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
 
     // Initialize resources.
     this->createRenderPasses();

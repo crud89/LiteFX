@@ -141,14 +141,6 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_RENDERING_API ISurface {
-	public:
-		virtual ~ISurface() noexcept = default;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_RENDERING_API ICommandQueue {
 	public:
 		virtual ~ICommandQueue() noexcept = default;
@@ -172,6 +164,8 @@ namespace LiteFX::Rendering {
 		virtual ~IGraphicsDevice() noexcept = default;
 
 	public:
+		virtual const ISurface& surface() const noexcept = 0;
+		virtual const IGraphicsAdapter& adapter() const noexcept = 0;
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const = 0;
@@ -183,8 +177,6 @@ namespace LiteFX::Rendering {
 		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const = 0;
 		virtual void wait() = 0;
 		virtual void resize(int width, int height) = 0;
-
-		virtual const IRenderBackend* getBackend() const noexcept = 0;
 		virtual const ISwapChain* getSwapChain() const noexcept = 0;
 		virtual Array<Format> getSurfaceFormats() const = 0;
 		virtual size_t getBufferWidth() const noexcept = 0;
@@ -212,90 +204,64 @@ namespace LiteFX::Rendering {
 		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
 		/// </remarks>
 		virtual const ICommandQueue* bufferQueue() const noexcept = 0;
-	};
 
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_RENDERING_API IGraphicsAdapter {
-	public:
-		virtual ~IGraphicsAdapter() noexcept = default;
-
-	public:
-		virtual String getName() const noexcept = 0;
-		virtual uint32_t getVendorId() const noexcept = 0;
-		virtual uint32_t getDeviceId() const noexcept = 0;
-		virtual GraphicsAdapterType getType() const noexcept = 0;
-		virtual uint32_t getDriverVersion() const noexcept = 0;
-		virtual uint32_t getApiVersion() const noexcept = 0;
-		virtual uint32_t getDedicatedMemory() const noexcept = 0;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_RENDERING_API GraphicsDevice : public IGraphicsDevice {
-		LITEFX_IMPLEMENTATION(GraphicsDeviceImpl);
-
-	public:
-		explicit GraphicsDevice(const IRenderBackend* backend);
-		GraphicsDevice(const GraphicsDevice&) noexcept = delete;
-		GraphicsDevice(GraphicsDevice&&) noexcept = delete;
-		virtual ~GraphicsDevice() noexcept;
-
-	public:
-		virtual const IRenderBackend* getBackend() const noexcept override;
-
-	public:
 		/// <summary>
 		/// Initializes a new render pass of type <typeparamref name="T"/> and returns a builder instance for it.
 		/// </summary>
 		/// <param name="_args">The arguments which are passed to the constructor of the render pass.</param>
-		/// <typeparam name="T">The type of the render pass. The type must implement <see cref="IRenderPass" /> interface.</typeparam>
-		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IRenderPass*>, int> = 0, typename TBuilder = T::builder>
+		/// <typeparam name="TRenderPass">The type of the render pass. The type must implement <see cref="IRenderPass" /> interface.</typeparam>
+		template <typename TRenderPass, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
+			rtti::implements<TRenderPass, IRenderPass> &&
+			rtti::has_builder<TRenderPass>
 		TBuilder build(TArgs&&... _args) const {
-			return TBuilder(makeUnique<T>(*this, std::forward<TArgs>(_args)...));
+			return TBuilder(makeUnique<TRenderPass>(*this, std::forward<TArgs>(_args)...));
 		}
 	};
 
 	/// <summary>
-	/// 
+	/// Defines a backend, that provides a device instance for a certain surface and graphics adapter.
 	/// </summary>
+	/// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
+	/// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
+	/// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
+	template <typename TGraphicsAdapter, typename TSurface, typename TGraphicsDevice> requires
+		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
+		rtti::implements<TSurface, ISurface> &&
+		rtti::implements<TGraphicsDevice, IGraphicsDevice>
 	class LITEFX_RENDERING_API IRenderBackend : public IBackend {
 	public:
-		virtual ~IRenderBackend() noexcept = default;
+		virtual ~IRenderBackend() noexcept;
 
 	public:
-		virtual Array<const IGraphicsAdapter*> listAdapters() const = 0;
-		virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
-		virtual const ISurface* getSurface() const noexcept = 0;
-		virtual const IGraphicsAdapter* getAdapter() const noexcept = 0;
+		/// <summary>
+		/// Lists all available graphics adapters.
+		/// </summary>
+		/// <returns>An array of pointers to all available graphics adapters.</returns>
+		virtual Array<const TGraphicsAdapter*> listAdapters() const = 0;
+
+		/// <summary>
+		/// Finds an adapter using its unique ID.
+		/// </summary>
+		/// <remarks>
+		/// Note that the adapter ID is optional, which allows the backend to return a default adapter instance. Which adapter is used as <i>default</i> adapter, depends on
+		/// the actual backend implementation. The interface does not make any constraints on the default adapter to choose. A naive implementation might simply return the 
+		/// first available adapter.
+		/// </remarks>
+		/// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
+		/// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
+		/// <seealso cref="IGraphicsAdapter" />
+		virtual const TGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
 
 	public:
-		virtual void use(const IGraphicsAdapter* adapter) = 0;
-		virtual void use(UniquePtr<ISurface>&& surface) = 0;
-
-	public:
-		template <typename T, typename ...TArgs, std::enable_if_t<std::is_convertible_v<T*, IGraphicsDevice*>, int> = 0>
-		UniquePtr<T> createDevice(TArgs&&... _args) const {
-			return makeUnique<T>(this, std::forward<TArgs>(_args)...);
+		/// <summary>
+		/// Creates a new graphics device.
+		/// </summary>
+		/// <param name="..._args">The arguments that are passed to the graphics device constructor.</param>
+		/// <returns>A pointer of the created graphics device instance.</returns>
+		template <typename ...TArgs>
+		[[nodiscard]] UniquePtr<TGraphicsDevice> createDevice(const TGraphicsAdapter& adapter, const TSurface& surface, TArgs&&... _args) const {
+			return makeUnique<TGraphicsDevice>(adapter, surface, std::forward<TArgs>(_args)...);
 		}
 	};
 
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_RENDERING_API RenderBackend : public IRenderBackend {
-		LITEFX_IMPLEMENTATION(RenderBackendImpl);
-
-	public:
-		explicit RenderBackend(const App& app);
-		RenderBackend(const RenderBackend&) noexcept = delete;
-		RenderBackend(RenderBackend&&) noexcept = delete;
-		virtual ~RenderBackend() noexcept;
-
-	public:
-		virtual BackendType getType() const noexcept override;
-		const App& getApp() const noexcept;
-	};
 }

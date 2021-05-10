@@ -26,12 +26,6 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual AppBuilder& go() override;
-
-	public:
-		VulkanBackendBuilder& withSurface(UniquePtr<ISurface>&& surface);
-		VulkanBackendBuilder& withSurface(VulkanSurface::surface_callback callback);
-		VulkanBackendBuilder& withAdapter(const UInt32& adapterId);
-		VulkanBackendBuilder& withAdapterOrDefault(const Optional<UInt32>& adapterId = std::nullopt);
 	};
 
 	/// <summary>
