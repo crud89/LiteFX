@@ -169,15 +169,21 @@ namespace LiteFX::Rendering {
 	/// common objects. Second, it owns the device state, which contains objects required for communication between your application and the graphics driver. Most notably, those objects
 	/// contain the <see cref="ISwapChain" /> instance and the <see cref="ICommandQueue" /> instances used for data and command transfer.
 	/// </remarks>
-	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain> requires 
+	/// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
+	/// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
+	/// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
+	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
+	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue> requires 
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-		rtti::implements<TSwapChain, ISwapChain>
+		rtti::implements<TSwapChain, ISwapChain >&&
+		rtti::implements<TCommandQueue, ICommandQueue>
 	class IGraphicsDevice {
 	public:
 		using surface_type = TSurface;
 		using adapter_type = TGraphicsAdapter;
 		using swap_chain_type = TSwapChain;
+		using command_queue_type = TCommandQueue;
 
 	public:
 		virtual ~IGraphicsDevice() noexcept = default;
@@ -237,7 +243,7 @@ namespace LiteFX::Rendering {
 		/// Returns the instance of the queue, used to process draw calls.
 		/// </summary>
 		/// <returns>The instance of the queue, used to process draw calls.</returns>
-		virtual const ICommandQueue* graphicsQueue() const noexcept = 0;
+		virtual const TCommandQueue& graphicsQueue() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the instance of the queue used for device-device transfers (e.g. between render-passes).
@@ -246,7 +252,7 @@ namespace LiteFX::Rendering {
 		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
 		/// </remarks>
 		/// <returns>The instance of the queue used for device-device transfers (e.g. between render-passes).</returns>
-		virtual const ICommandQueue* transferQueue() const noexcept = 0;
+		virtual const TCommandQueue& transferQueue() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the instance of the queue used for host-device transfers.
@@ -255,7 +261,7 @@ namespace LiteFX::Rendering {
 		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
 		/// </remarks>
 		/// <returns>The instance of the queue used for host-device transfers.</returns>
-		virtual const ICommandQueue* bufferQueue() const noexcept = 0;
+		virtual const TCommandQueue& bufferQueue() const noexcept = 0;
 
 	protected:
 		/// <summary>
@@ -267,7 +273,7 @@ namespace LiteFX::Rendering {
 		template <typename TRenderPass, typename TDerived, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
 			rtti::implements<TRenderPass, IRenderPass> &&
 			rtti::has_builder<TRenderPass> &&
-			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain>>
+			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue>>
 		TBuilder build(TArgs&&... _args) const {
 			// NOTE: If the cast raises an exception here, check the `TDerived` type - it must be equal to the parent graphics device class that calls this function.
 			return TBuilder(makeUnique<TRenderPass>(dynamic_cast<const TDerived&>(*this), std::forward<TArgs>(_args)...));
@@ -281,11 +287,12 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
 	/// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
 	/// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
-	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type> requires
+	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
+	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TCommandQueue = TGraphicsDevice::command_queue_type> requires
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TSwapChain, ISwapChain> &&
-		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain>>
+		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue>>
 	class IRenderBackend : public IBackend {
 	public:
 		virtual ~IRenderBackend() noexcept = default;

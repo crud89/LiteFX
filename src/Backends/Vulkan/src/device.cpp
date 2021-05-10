@@ -332,19 +332,19 @@ size_t VulkanDevice::getBufferHeight() const noexcept
 	return m_impl->m_swapChain->getHeight();
 }
 
-const ICommandQueue* VulkanDevice::graphicsQueue() const noexcept
+const VulkanQueue& VulkanDevice::graphicsQueue() const noexcept
 {
-	return m_impl->m_graphicsQueue;
+	return *m_impl->m_graphicsQueue;
 }
 
-const ICommandQueue* VulkanDevice::transferQueue() const noexcept
+const VulkanQueue& VulkanDevice::transferQueue() const noexcept
 {
-	return m_impl->m_transferQueue;
+	return *m_impl->m_transferQueue;
 }
 
-const ICommandQueue* VulkanDevice::bufferQueue() const noexcept
+const VulkanQueue& VulkanDevice::bufferQueue() const noexcept
 {
-	return m_impl->m_bufferQueue;
+	return *m_impl->m_bufferQueue;
 }
 
 const Array<String>& VulkanDevice::getExtensions() const noexcept

@@ -14,7 +14,6 @@ public:
 
 private:
     Array<UniquePtr<IRenderPipeline>> m_pipelines;
-    const VulkanQueue* m_queue{ nullptr };
     Array<UniquePtr<IRenderTarget>> m_targets;
     Array<VkClearValue> m_clearValues;
     Array<VkFramebuffer> m_frameBuffers;
@@ -64,11 +63,6 @@ private:
 public:
     VkRenderPass initialize()
     {
-        m_queue = dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue());
-
-        if (m_queue == nullptr)
-            throw std::invalid_argument("The device queue is not a valid Vulkan command queue.");
-
         // Get the render targets of the render pass dependency, if there is any.
         Array<const IRenderTarget*> dependencyTargets;
 
@@ -212,7 +206,7 @@ public:
         if (m_commandBuffers.empty())
         {
             m_commandBuffers.resize(m_frameBuffers.size());
-            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(*dynamic_cast<const VulkanQueue*>(m_parent->getDevice()->graphicsQueue())); });
+            std::generate(std::begin(m_commandBuffers), std::end(m_commandBuffers), [&]() mutable { return makeUnique<VulkanCommandBuffer>(m_parent->getDevice()->graphicsQueue()); });
         }
 
         // Create a semaphore that signals if the render pass has finished.
@@ -360,7 +354,7 @@ public:
             presentInfo.pSwapchains = swapChains;
             presentInfo.swapchainCount = 1;
 
-            if (::vkQueuePresentKHR(m_queue->handle(), &presentInfo) != VK_SUCCESS)
+            if (::vkQueuePresentKHR(m_parent->getDevice()->graphicsQueue().handle(), &presentInfo) != VK_SUCCESS)
                 throw std::runtime_error("Unable to present swap chain.");
         }
     }

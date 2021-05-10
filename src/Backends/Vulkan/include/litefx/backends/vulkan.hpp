@@ -482,7 +482,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain>, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue>, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -520,13 +520,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanGraphicsAdapter& adapter() const noexcept override;
 		
 		/// <inheritdoc />
-		virtual const ICommandQueue* graphicsQueue() const noexcept override;
+		virtual const VulkanQueue& graphicsQueue() const noexcept override;
 		
 		/// <inheritdoc />
-		virtual const ICommandQueue* transferQueue() const noexcept override;
+		virtual const VulkanQueue& transferQueue() const noexcept override;
 		
 		/// <inheritdoc />
-		virtual const ICommandQueue* bufferQueue() const noexcept override;
+		virtual const VulkanQueue& bufferQueue() const noexcept override;
 
 		/// <inheritdoc />
 		virtual void wait() override;
