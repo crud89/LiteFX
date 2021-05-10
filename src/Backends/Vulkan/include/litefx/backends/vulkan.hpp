@@ -482,7 +482,41 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanVertexBufferLayout, VulkanIndexBufferLayout>, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
+		LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
+
+	public:
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name=""></param>
+		explicit VulkanGraphicsFactory(const VulkanDevice& device);
+		VulkanGraphicsFactory(const VulkanGraphicsFactory&) = delete;
+		VulkanGraphicsFactory(VulkanGraphicsFactory&&) = delete;
+		virtual ~VulkanGraphicsFactory() noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
+
+
+		virtual UniquePtr<IConstantBuffer> createConstantBuffer(const IDescriptorLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
+		virtual UniquePtr<IImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<ITexture> createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<ISampler> createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+	};
+
+	/// <summary>
+	/// Represents a Vulkan graphics device.
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanGraphicsFactory>, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -500,24 +534,15 @@ namespace LiteFX::Rendering::Backends {
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
 
-		// Factory interface.
-	public:
-		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
-		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
-		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
-		virtual UniquePtr<IConstantBuffer> createConstantBuffer(const IDescriptorLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
-		virtual UniquePtr<IImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-		virtual UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-		virtual UniquePtr<ITexture> createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-		virtual UniquePtr<ISampler> createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
-		virtual UniquePtr<IShaderModule> loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") const override;
-
 	public:
 		/// <inheritdoc />
 		virtual const VulkanSurface& surface() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const VulkanGraphicsAdapter& adapter() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const VulkanGraphicsFactory& factory() const noexcept override;
 		
 		/// <inheritdoc />
 		virtual const VulkanQueue& graphicsQueue() const noexcept override;

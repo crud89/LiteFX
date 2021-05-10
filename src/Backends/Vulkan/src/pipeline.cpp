@@ -382,12 +382,12 @@ void VulkanRenderPipeline::use() const
 
 UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
 {
-	return this->getDevice()->createVertexBuffer(m_impl->m_inputAssembler->getVertexBufferLayout(binding), usage, elements);
+	return this->getDevice()->factory().createVertexBuffer(dynamic_cast<const VulkanVertexBufferLayout&>(*m_impl->m_inputAssembler->getVertexBufferLayout(binding)), usage, elements);
 }
 
 UniquePtr<IIndexBuffer> VulkanRenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
 {
-	return this->getDevice()->createIndexBuffer(m_impl->m_inputAssembler->getIndexBufferLayout(), usage, elements);
+	return this->getDevice()->factory().createIndexBuffer(dynamic_cast<const VulkanIndexBufferLayout&>(*m_impl->m_inputAssembler->getIndexBufferLayout()), usage, elements);
 }
 
 UniquePtr<IDescriptorSet> VulkanRenderPipeline::makeBufferPool(const UInt32& setId) const

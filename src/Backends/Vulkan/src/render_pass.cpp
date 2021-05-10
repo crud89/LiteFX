@@ -57,7 +57,7 @@ private:
 
     UniquePtr<IImage> makeImageView(const IRenderTarget* target)
     {
-        return m_parent->getDevice()->createAttachment(target->getFormat(), m_parent->getDevice()->swapChain().getBufferSize());
+        return m_parent->getDevice()->factory().createAttachment(target->getFormat(), m_parent->getDevice()->swapChain().getBufferSize());
     }
 
 public:
