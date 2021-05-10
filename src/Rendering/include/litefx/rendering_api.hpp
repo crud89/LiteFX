@@ -422,7 +422,7 @@ namespace LiteFX::Rendering {
 		/// <summary>
 		/// Represents a depth/stencil target.
 		/// </summary>
-		Depth = 0x00000002,
+		DepthStencil = 0x00000002,
 
 		/// <summary>
 		/// Represents a color target that should be presented.

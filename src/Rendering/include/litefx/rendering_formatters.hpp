@@ -441,7 +441,7 @@ struct LITEFX_RENDERING_API fmt::formatter<RenderTargetType> : formatter<string_
 		switch (t) {
 		using enum RenderTargetType;
 		case Color: name = "Color"; break;
-		case Depth: name = "Depth"; break;
+		case DepthStencil: name = "DepthStencil"; break;
 		case Present: name = "Present"; break;
 		default: name = "Invalid"; break;
 		}

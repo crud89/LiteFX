@@ -57,7 +57,7 @@ private:
 
     UniquePtr<IImage> makeImageView(const IRenderTarget* target)
     {
-        return m_parent->getDevice()->factory().createAttachment(target->getFormat(), m_parent->getDevice()->swapChain().getBufferSize());
+        return m_parent->getDevice()->factory().createAttachment(target->format(), m_parent->getDevice()->swapChain().getBufferSize());
     }
 
 public:
@@ -81,8 +81,8 @@ public:
         //       times.
         std::for_each(std::begin(dependencyTargets), std::end(dependencyTargets), [&, i = 0](const auto& target) mutable {
             VkAttachmentDescription attachment{};
-            attachment.format = getFormat(target->getFormat());
-            attachment.samples = getSamples(target->getSamples());
+            attachment.format = getFormat(target->format());
+            attachment.samples = getSamples(target->samples());
             attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -91,7 +91,7 @@ public:
             // Add a clear value, so that the indexing stays valid.
             m_clearValues.push_back(VkClearValue{ });
 
-            switch (target->getType())
+            switch (target->type())
             {
             case RenderTargetType::Color:
                 attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -99,8 +99,8 @@ public:
                 inputAttachments.push_back({ static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
                 attachments.push_back(attachment);
                 break;
-            case RenderTargetType::Depth:
-                attachment.initialLayout = attachment.finalLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+            case RenderTargetType::DepthStencil:
+                attachment.initialLayout = attachment.finalLayout = ::hasStencil(target->format()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 
                 inputAttachments.push_back({ static_cast<UInt32>(i++), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
                 attachments.push_back(attachment);
@@ -113,25 +113,25 @@ public:
 
         // Create attachments for each render target.
         std::for_each(std::begin(m_targets), std::end(m_targets), [&, i = inputAttachments.size()](const auto& target) mutable {
-            if ((target->getType() == RenderTargetType::Depth && depthAttachment.has_value()) || (target->getType() == RenderTargetType::Present && m_presentAttachment.has_value()))
-                throw ArgumentOutOfRangeException("Invalid render target {0}: only one target attachment of type {1} is allowed.", i, target->getType());
+            if ((target->type() == RenderTargetType::DepthStencil && depthAttachment.has_value()) || (target->type() == RenderTargetType::Present && m_presentAttachment.has_value()))
+                throw ArgumentOutOfRangeException("Invalid render target {0}: only one target attachment of type {1} is allowed.", i, target->type());
             else
             {
                 VkAttachmentDescription attachment{};
-                attachment.format = getFormat(target->getFormat());
-                attachment.samples = getSamples(target->getSamples());
-                attachment.loadOp = target->getClearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.stencilLoadOp = target->getClearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.storeOp = target->getVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
+                attachment.format = getFormat(target->format());
+                attachment.samples = getSamples(target->samples());
+                attachment.loadOp = target->clearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                attachment.stencilLoadOp = target->clearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                attachment.storeOp = target->isVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
                 attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
                 // Add a clear values (even if it's unused).
-                if (target->getClearBuffer() || target->getClearStencil())
-                    m_clearValues.push_back(VkClearValue{ target->getClearValues().x(), target->getClearValues().y(), target->getClearValues().z(), target->getClearValues().w() });
+                if (target->clearBuffer() || target->clearStencil())
+                    m_clearValues.push_back(VkClearValue{ target->clearValues().x(), target->clearValues().y(), target->clearValues().z(), target->clearValues().w() });
                 else
                     m_clearValues.push_back(VkClearValue{ });
 
-                switch (target->getType())
+                switch (target->type())
                 {
                 case RenderTargetType::Color:
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -139,9 +139,9 @@ public:
 
                     colorAttachments.push_back({ static_cast<UInt32>(i++), attachment.finalLayout });
                     break;
-                case RenderTargetType::Depth:
+                case RenderTargetType::DepthStencil:
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                    attachment.finalLayout = ::hasStencil(target->getFormat()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                    attachment.finalLayout = ::hasStencil(target->format()) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 
                     depthAttachment = VkAttachmentReference { static_cast<UInt32>(i++), attachment.finalLayout };
                     break;
@@ -561,16 +561,7 @@ VulkanRenderPipelineBuilder VulkanRenderPassBuilder::addPipeline(const UInt32& i
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    UniquePtr<IRenderTarget> target = makeUnique<RenderTarget>();
-    target->setType(type);
-    target->setFormat(format);
-    target->setSamples(samples);
-    target->setClearBuffer(clear);
-    target->setClearStencil(clearStencil);
-    target->setVolatile(isVolatile);
-    target->setClearValues(clearValues);
-
-    this->use(std::move(target));
+    this->use(makeUnique<RenderTarget>(type, format, clear, clearValues, clearStencil, samples, isVolatile));
 
     return *this;
 }

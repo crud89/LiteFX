@@ -155,7 +155,7 @@ public:
 		// Setup color blend state.
 		// TODO: Add blend parameters to render target.
 		auto targets = m_parent->parent().getTargets();
-		auto colorAttachments = std::count_if(std::begin(targets), std::end(targets), [](const auto& target) { return target->getType() != RenderTargetType::Depth; });
+		auto colorAttachments = std::count_if(std::begin(targets), std::end(targets), [](const auto& target) { return target->type() != RenderTargetType::DepthStencil; });
 		
 		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments(colorAttachments);
 		std::generate(std::begin(colorBlendAttachments), std::end(colorBlendAttachments), []() {
@@ -184,7 +184,7 @@ public:
 		depthStencilState.depthTestEnable = VK_TRUE;		// TODO: From depth/stencil state.
 		depthStencilState.depthBoundsTestEnable = VK_FALSE;
 		depthStencilState.stencilTestEnable = VK_FALSE;		// TODO: From depth/stencil state.
-		depthStencilState.depthWriteEnable = std::any_of(std::begin(targets), std::end(targets), [](const auto& t) { return t->getType() == RenderTargetType::Depth; });
+		depthStencilState.depthWriteEnable = std::any_of(std::begin(targets), std::end(targets), [](const auto& t) { return t->type() == RenderTargetType::DepthStencil; });
 		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
 
 		// Setup shader stages.

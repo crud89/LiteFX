@@ -11,26 +11,67 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	/// <summary>
-	/// 
-	/// </summary>
+	/// Represents a render target, i.e. an abstract view of the target of a <see cref="IRenderPass" />.
+	/// </remarks>
+	/// <remarks>
+	/// A render target represents one output of a render pass. It is contained by a <see cref="IFrameBuffer" />, that records draw commands for it.
+	/// </remarks>
+	/// <seealso cref="RenderTarget" />
+	/// <seealso cref="IFrameBuffer" />
 	class LITEFX_RENDERING_API IRenderTarget {
 	public:
 		virtual ~IRenderTarget() noexcept = default;
 
 	public:
-		virtual RenderTargetType getType() const noexcept = 0;
-		virtual void setType(const RenderTargetType& type) = 0;
-		virtual MultiSamplingLevel getSamples() const noexcept = 0;
-		virtual void setSamples(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) = 0;
-		virtual bool getClearBuffer() const noexcept = 0;
-		virtual void setClearBuffer(const bool& clear = true) = 0;
-		virtual bool getClearStencil() const noexcept = 0;
-		virtual void setClearStencil(const bool& clear = true) = 0;
-		virtual Format getFormat() const noexcept = 0;
-		virtual void setFormat(const Format& format) = 0;
+		/// <summary>
+		/// Returns the type of the render target.
+		/// </summary>
+		/// <returns>The type of the render target.</returns>
+		virtual const RenderTargetType& type() const noexcept = 0;
 
 		/// <summary>
-		/// Gets whether the target should be made persistent for access after the render pass has finished.
+		/// Returns the number of samples of the render target when used for multi-sampling.
+		/// </summary>
+		/// <returns>The number of samples of the render target.</returns>
+		virtual const MultiSamplingLevel& samples() const noexcept = 0;
+		
+		/// <summary>
+		/// Returns the internal format of the render target.
+		/// </summary>
+		/// <returns>The internal format of the render target.</returns>
+		virtual const Format& format() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if the render target should be cleared, when the render pass is started. If the <see cref="format" /> is set to a depth format, this clears the
+		/// depth buffer. Otherwise it clears the color buffer.
+		/// </summary>
+		/// <returns><c>true</c>, if the render target should be cleared, when the render pass is started</returns>
+		/// <seealso cref="clearStencil" />
+		/// <seealso cref="clearValues" />
+		virtual const bool& clearBuffer() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if the render target stencil should be cleared, when the render pass is started. If the <see cref="format" /> is does not contain a stencil channel,
+		/// this has no effect.
+		/// </summary>
+		/// <returns><c>true</c>, if the render target stencil should be cleared, when the render pass is started</returns>
+		/// <seealso cref="clearStencil" />
+		/// <seealso cref="clearValues" />
+		virtual const bool& clearStencil() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.
+		/// </summary>
+		/// <remarks>
+		/// If the <see cref="format" /> is a color format and <see cref="clearBuffer" /> is specified, this contains the clear color. However, if the format is a depth/stencil 
+		/// format, the R and G channels contain the depth and stencil value to clear the buffer with. Note that the stencil buffer is only cleared, if <see cref="clearStencil" />
+		/// is specified and vice versa.
+		/// </remarks>
+		/// <returns>The value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.</returns>
+		virtual const Vector4f& clearValues() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if the target should be made persistent for access after the render pass has finished.
 		/// </summary>
 		/// <remarks>
 		/// A render target can be marked as volatile if it does not need to be accessed after the render pass has finished. This can be used to optimize away unnecessary GPU/CPU 
@@ -38,74 +79,57 @@ namespace LiteFX::Rendering {
 		/// of reading it from the GPU after the lighting pass has finished and then discarding it anyway, it can be marked as volatile in order to prevent it from being read from
 		/// the GPU memory again in the first place.
 		/// </remarks>
-		/// <seealso cref="IRenderTarget::setVolatile" />
-		virtual bool getVolatile() const noexcept = 0;
-
-		/// <summary>
-		/// Sets whether the target should be made persistent for access after the render pass has finished.
-		/// </summary>
-		/// <seealso cref="IRenderTarget::getVolatile" />
-		virtual void setVolatile(const bool& isVolatile = false) = 0;
-
-		virtual const Vector4f& getClearValues() const noexcept = 0;
-		virtual void setClearValues(const Vector4f& values) = 0;
+		/// <returns><c>true</c>, if the target should be made persistent for access after the render pass has finished.</returns>
+		virtual const bool& isVolatile() const noexcept = 0;
 	};
 
+	/// <summary>
+	/// Implements a render target.
+	/// </summary>
+	/// <see cref="IRenderTarget" />
 	class LITEFX_RENDERING_API RenderTarget : public IRenderTarget {
 		LITEFX_IMPLEMENTATION(RenderTargetImpl);
 
 	public:
-		explicit RenderTarget();
+		explicit RenderTarget(const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false);
 		RenderTarget(const RenderTarget&) = delete;
 		RenderTarget(RenderTarget&&) = delete;
 		virtual ~RenderTarget() noexcept;
 
 	public:
 		/// <inheritdoc />
-		virtual RenderTargetType getType() const noexcept override;
+		virtual const RenderTargetType& type() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setType(const RenderTargetType& type) override;
+		virtual const MultiSamplingLevel& samples() const noexcept override;
 
 		/// <inheritdoc />
-		virtual MultiSamplingLevel getSamples() const noexcept override;
+		virtual const Format& format() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setSamples(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) override;
+		virtual const bool& clearBuffer() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool getClearBuffer() const noexcept override;
+		virtual const bool& clearStencil() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setClearBuffer(const bool& clear = true) override;
+		virtual const Vector4f& clearValues() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool getClearStencil() const noexcept override;
-
-		/// <inheritdoc />
-		virtual void setClearStencil(const bool& clear = true) override;
-
-		/// <inheritdoc />
-		virtual Format getFormat() const noexcept override;
-
-		/// <inheritdoc />
-		virtual void setFormat(const Format& format) override;
-
-		/// <inheritdoc />
-		virtual bool getVolatile() const noexcept override;
-
-		/// <inheritdoc />
-		virtual void setVolatile(const bool& isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual const Vector4f& getClearValues() const noexcept override;
-
-		/// <inheritdoc />
-		virtual void setClearValues(const Vector4f& values) override;
+		virtual const bool& isVolatile() const noexcept override;
 	};
 
 	/// <summary>
-	/// 
+	/// Stores multiple <see cref="IRenderTarget" /> instances, as well as a <see cref="ICommandBuffer" /> instance, that records draw commands.
+	/// </summary>
+	/// <seealso cref="RenderTarget" />
+	class IFrameBuffer {
+	public:
+		virtual ~IFrameBuffer() noexcept = default;
+	};
+
+	/// <summary>
+	/// Represents a swap chain, i.e. a chain of multiple <see cref="IFrameBuffer" /> instances, that can be presented to a <see cref="ISurface" />.
 	/// </summary>
 	class LITEFX_RENDERING_API ISwapChain {
 	public:
@@ -431,8 +455,6 @@ namespace LiteFX::Rendering {
 		virtual const TSwapChain& swapChain() const noexcept = 0;
 		virtual size_t getBufferWidth() const noexcept = 0;
 		virtual size_t getBufferHeight() const noexcept = 0;
-		//virtual Color getBackColor() const noexcept = 0;
-		//virtual void setBackColor(const Color& color) = 0;
 
 		/// <summary>
 		/// Returns an array of supported formats, that can be drawn to the surface.
