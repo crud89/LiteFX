@@ -480,22 +480,31 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// 
+	/// A graphics factory that produces objects for a <see cref="VulkanDevice" />.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
+	/// <remarks>
+	/// Internally this factory implementation is based on <a href="https://gpuopen.com/vulkan-memory-allocator/" target="_blank">Vulkan Memory Allocator</a>.
+	/// </remarks>
+	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanVertexBufferLayout, VulkanIndexBufferLayout, VulkanDescriptorLayout> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
 
 	public:
 		/// <summary>
-		/// 
+		/// Creates a new graphics factory.
 		/// </summary>
-		/// <param name=""></param>
+		/// <param name="device">The device the factory should produce objects for.</param>
 		explicit VulkanGraphicsFactory(const VulkanDevice& device);
 		VulkanGraphicsFactory(const VulkanGraphicsFactory&) = delete;
 		VulkanGraphicsFactory(VulkanGraphicsFactory&&) = delete;
 		virtual ~VulkanGraphicsFactory() noexcept;
 
 	public:
+		/// <inheritdoc />
+		virtual UniquePtr<IImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
 		/// <inheritdoc />
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
 
@@ -505,12 +514,14 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
+		/// <inheritdoc />
+		virtual UniquePtr<IConstantBuffer> createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
-		virtual UniquePtr<IConstantBuffer> createConstantBuffer(const IDescriptorLayout* layout, const BufferUsage& usage, const UInt32& elements) const override;
-		virtual UniquePtr<IImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-		virtual UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-		virtual UniquePtr<ITexture> createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-		virtual UniquePtr<ISampler> createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		/// <inheritdoc />
+		virtual UniquePtr<ITexture> createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<ISampler> createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 	};
 
 	/// <summary>
