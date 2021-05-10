@@ -482,19 +482,19 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue>, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanVertexBufferLayout, VulkanIndexBufferLayout>, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
 		/// <summary>
-		/// 
+		/// Creates a new device instance.
 		/// </summary>
-		/// <param name="adapter"></param>
-		/// <param name="surface"></param>
-		/// <param name="format"></param>
-		/// <param name="frameBufferSize"></param>
-		/// <param name="frameBuffers"></param>
-		/// <param name="extensions"></param>
+		/// <param name="adapter">The adapter the device uses for drawing.</param>
+		/// <param name="surface">The surface, the device should draw to.</param>
+		/// <param name="format">The initial surface format, device uses for drawing.</param>
+		/// <param name="frameBufferSize">The initial size of the frame buffers.</param>
+		/// <param name="frameBuffers">The initial number of frame buffers.</param>
+		/// <param name="extensions">The required extensions the device gets initialized with.</param>
 		explicit VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions = { });
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;

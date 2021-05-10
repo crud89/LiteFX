@@ -173,17 +173,23 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
 	/// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
 	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
-	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue> requires 
+	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
+	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
+	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TVertexBufferLayout, typename TIndexBufferLayout> requires 
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-		rtti::implements<TSwapChain, ISwapChain >&&
-		rtti::implements<TCommandQueue, ICommandQueue>
+		rtti::implements<TSwapChain, ISwapChain> &&
+		rtti::implements<TCommandQueue, ICommandQueue> &&
+		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
+		rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
 	class IGraphicsDevice {
 	public:
 		using surface_type = TSurface;
 		using adapter_type = TGraphicsAdapter;
 		using swap_chain_type = TSwapChain;
 		using command_queue_type = TCommandQueue;
+		using vertex_buffer_layout_type = TVertexBufferLayout;
+		using index_buffer_layout_type = TIndexBufferLayout;
 
 	public:
 		virtual ~IGraphicsDevice() noexcept = default;
@@ -273,7 +279,7 @@ namespace LiteFX::Rendering {
 		template <typename TRenderPass, typename TDerived, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
 			rtti::implements<TRenderPass, IRenderPass> &&
 			rtti::has_builder<TRenderPass> &&
-			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue>>
+			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TVertexBufferLayout, TIndexBufferLayout>>
 		TBuilder build(TArgs&&... _args) const {
 			// NOTE: If the cast raises an exception here, check the `TDerived` type - it must be equal to the parent graphics device class that calls this function.
 			return TBuilder(makeUnique<TRenderPass>(dynamic_cast<const TDerived&>(*this), std::forward<TArgs>(_args)...));
@@ -288,11 +294,15 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
 	/// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
 	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
-	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TCommandQueue = TGraphicsDevice::command_queue_type> requires
+	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
+	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
+	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TVertexBufferLayout = TGraphicsDevice::vertex_buffer_layout_type, typename TIndexBufferLayout = TGraphicsDevice::index_buffer_layout_type> requires
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TSwapChain, ISwapChain> &&
-		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue>>
+		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
+		rtti::implements<TIndexBufferLayout, IIndexBufferLayout> &&
+		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TVertexBufferLayout, TIndexBufferLayout>>
 	class IRenderBackend : public IBackend {
 	public:
 		virtual ~IRenderBackend() noexcept = default;
