@@ -211,7 +211,7 @@ const Array<String> VulkanBackend::getEnabledValidationLayers() const noexcept
     return m_impl->m_layers;
 }
 
-UniquePtr<VulkanSurface> VulkanBackend::createSurface(surface_callback predicate)
+UniquePtr<VulkanSurface> VulkanBackend::createSurface(surface_callback predicate) const
 {
     auto surface = predicate(this->handle());
     return makeUnique<VulkanSurface>(surface, this->handle());
@@ -223,7 +223,7 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(surface_callback predicate
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 
-UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd)
+UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd) const
 {
     VkWin32SurfaceCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;

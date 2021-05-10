@@ -36,11 +36,11 @@ public:
 private:
 	GlfwWindowPtr m_window;
 	Optional<UInt32> m_adapterId;
-	UniquePtr<ISurface> m_surface;
-	SharedPtr<IViewport> m_viewport;
-	SharedPtr<IScissor> m_scissor;
+	UniquePtr<VulkanSurface> m_surface;
 	UniquePtr<VulkanDevice> m_device;
 	UniquePtr<VulkanRenderPass> m_renderPass;
+	SharedPtr<IViewport> m_viewport;
+	SharedPtr<IScissor> m_scissor;
 	UniquePtr<IVertexBuffer> m_vertexBuffer;
 	UniquePtr<IIndexBuffer> m_indexBuffer;
 	UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;

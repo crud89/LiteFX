@@ -558,7 +558,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="predicate">A callback that gets called with the backend instance handle and creates the surface instance</param>
 		/// <returns>The instance of the created surface.</returns>
 		/// <seealso cref="surface_callback" />
-		UniquePtr<VulkanSurface> createSurface(surface_callback predicate);
+		UniquePtr<VulkanSurface> createSurface(surface_callback predicate) const;
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 		/// <summary>
@@ -566,7 +566,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="hwnd">The window handle on which the surface should be created.</param>
 		/// <returns>The instance of the created surface.</returns>
-		UniquePtr<VulkanSurface> createSurface(const HWND& hwnd);
+		UniquePtr<VulkanSurface> createSurface(const HWND& hwnd) const;
 #endif
 
 	public:

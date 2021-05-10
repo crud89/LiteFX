@@ -104,6 +104,9 @@ void SampleApp::initBuffers()
 
 void SampleApp::run() 
 {
+    // Store the window handle.
+    auto window = m_window.get();
+
     // Start by creating the surface and selecting the adapter.
     auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
     auto adapter = backend->findAdapter(m_adapterId);
@@ -111,16 +114,16 @@ void SampleApp::run()
     if (adapter == nullptr)
         adapter = backend->findAdapter(std::nullopt);
 
-    m_surface = backend->createSurface([this](const VkInstance& instance) {
+    m_surface = backend->createSurface([&window](const VkInstance& instance) {
         VkSurfaceKHR surface;
-        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window.get(), nullptr, &surface), "Unable to create GLFW window surface.");
-        
+        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
+
         return surface;
     });
 
     // Get the proper frame buffer size.
     int width, height;
-    ::glfwGetFramebufferSize(m_window.get(), &width, &height);
+    ::glfwGetFramebufferSize(window, &width, &height);
 
     // Create viewport and scissors.
     m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
@@ -134,7 +137,7 @@ void SampleApp::run()
     this->initBuffers();
 
     // Run application loop until the window is closed.
-    while (!::glfwWindowShouldClose(m_window.get()))
+    while (!::glfwWindowShouldClose(window))
     {
         this->handleEvents();
         this->drawFrame();
@@ -156,7 +159,7 @@ void SampleApp::run()
     m_device = nullptr;
 
     // Destroy the window.
-    ::glfwDestroyWindow(m_window.get());
+    ::glfwDestroyWindow(window);
     ::glfwTerminate();
 }
 

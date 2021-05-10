@@ -59,7 +59,7 @@ int main(const int argc, const char** argv)
 	// Create the app.
 	try 
 	{
-		App::build<SampleApp>(std::move(window))
+		App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
 			.make<VulkanBackend>(requiredExtensions, enabledLayers)
