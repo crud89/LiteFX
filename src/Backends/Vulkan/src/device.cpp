@@ -177,7 +177,7 @@ public:
 				continue;
 			
 			Array<float> priorities;
-			std::for_each(family.queues().begin(), family.queues().end(), [&priorities](const auto& queue) { priorities.push_back(static_cast<Float>(queue->getPriority()) / 100.f); });
+			std::for_each(family.queues().begin(), family.queues().end(), [&priorities](const auto& queue) { priorities.push_back(static_cast<Float>(queue->priority()) / 100.f); });
 
 			VkDeviceQueueCreateInfo queueCreateInfo = {};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;

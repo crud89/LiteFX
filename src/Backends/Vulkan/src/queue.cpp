@@ -89,17 +89,17 @@ void VulkanQueue::release()
 	m_impl->release();
 }
 
-VkCommandPool VulkanQueue::getCommandPool() const noexcept
+const VkCommandPool& VulkanQueue::commandPool() const noexcept
 {
 	return m_impl->m_commandPool;
 }
 
-UInt32 VulkanQueue::getFamilyId() const noexcept
+const UInt32& VulkanQueue::familyId() const noexcept
 {
 	return m_impl->m_familyId;
 }
 
-UInt32 VulkanQueue::getQueueId() const noexcept
+const UInt32& VulkanQueue::queueId() const noexcept
 {
 	return m_impl->m_queueId;
 }
@@ -109,17 +109,17 @@ bool VulkanQueue::isBound() const noexcept
 	return m_impl->m_bound;
 }
 
-QueueType VulkanQueue::getType() const noexcept
+const QueueType& VulkanQueue::type() const noexcept
 {
 	return m_impl->m_type;
 }
 
-QueuePriority VulkanQueue::getPriority() const noexcept
+const QueuePriority& VulkanQueue::priority() const noexcept
 {
 	return m_impl->m_priority;
 }
 
-UniquePtr<ICommandBuffer> VulkanQueue::createCommandBuffer() const
+UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer() const
 {
 	return makeUnique<VulkanCommandBuffer>(*this);
 }

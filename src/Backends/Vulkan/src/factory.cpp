@@ -67,10 +67,10 @@ UniquePtr<IImage> VulkanGraphicsFactory::createImage(const Format& format, const
 	imageInfo.samples = ::getSamples(samples);
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-	Array<UInt32> queues{ m_impl->m_device.graphicsQueue().getFamilyId() };
+	Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
 
-	if (m_impl->m_device.transferQueue().getFamilyId() != m_impl->m_device.graphicsQueue().getFamilyId())
-		queues.push_back(m_impl->m_device.transferQueue().getFamilyId());
+	if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+		queues.push_back(m_impl->m_device.transferQueue().familyId());
 
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
@@ -98,7 +98,7 @@ UniquePtr<IImage> VulkanGraphicsFactory::createAttachment(const Format& format, 
 	imageInfo.samples = ::getSamples(samples);
 	imageInfo.usage = (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
-	UInt32 queues[] = { m_impl->m_device.graphicsQueue().getFamilyId() };
+	UInt32 queues[] = { m_impl->m_device.graphicsQueue().familyId() };
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.queueFamilyIndexCount = 1;
 	imageInfo.pQueueFamilyIndices = queues;
@@ -137,10 +137,10 @@ UniquePtr<IBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, c
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().getFamilyId() };
+		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
 
-		if (m_impl->m_device.transferQueue().getFamilyId() != m_impl->m_device.graphicsQueue().getFamilyId())
-			queues.push_back(m_impl->m_device.transferQueue().getFamilyId());
+		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+			queues.push_back(m_impl->m_device.transferQueue().familyId());
 
 		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
@@ -182,10 +182,10 @@ UniquePtr<IVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanV
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().getFamilyId() };
+		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
 
-		if (m_impl->m_device.transferQueue().getFamilyId() != m_impl->m_device.graphicsQueue().getFamilyId())
-			queues.push_back(m_impl->m_device.transferQueue().getFamilyId());
+		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+			queues.push_back(m_impl->m_device.transferQueue().familyId());
 
 		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
@@ -227,10 +227,10 @@ UniquePtr<IIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanInd
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().getFamilyId() };
+		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
 
-		if (m_impl->m_device.transferQueue().getFamilyId() != m_impl->m_device.graphicsQueue().getFamilyId())
-			queues.push_back(m_impl->m_device.transferQueue().getFamilyId());
+		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+			queues.push_back(m_impl->m_device.transferQueue().familyId());
 
 		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
@@ -278,10 +278,10 @@ UniquePtr<IConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(const Vul
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().getFamilyId() };
+		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
 
-		if (m_impl->m_device.transferQueue().getFamilyId() != m_impl->m_device.graphicsQueue().getFamilyId())
-			queues.push_back(m_impl->m_device.transferQueue().getFamilyId());
+		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+			queues.push_back(m_impl->m_device.transferQueue().familyId());
 
 		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
@@ -319,10 +319,10 @@ UniquePtr<ITexture> VulkanGraphicsFactory::createTexture(const VulkanDescriptorL
 	imageInfo.samples = ::getSamples(samples);
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_SAMPLED_BIT);
 
-	Array<UInt32> queues{ m_impl->m_device.graphicsQueue().getFamilyId() };
+	Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
 
-	if (m_impl->m_device.transferQueue().getFamilyId() != m_impl->m_device.graphicsQueue().getFamilyId())
-		queues.push_back(m_impl->m_device.transferQueue().getFamilyId());
+	if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+		queues.push_back(m_impl->m_device.transferQueue().familyId());
 
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());

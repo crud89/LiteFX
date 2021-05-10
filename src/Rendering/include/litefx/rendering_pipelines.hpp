@@ -138,22 +138,22 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Transfers data from the <paramref name="source" /> buffer into the objects local memory.
         /// </summary>
-        /// <param name="commandQueue">The command queue to issue the transfer command to.</param>
+        /// <param name="commandBuffer">The command buffer to issue the transfer command to.</param>
         /// <param name="source">The source buffer to transfer data from.</param>
         /// <param name="size">The size (in bytes) to transfer from the source buffer.</param>
         /// <param name="sourceOffset">The offset (in bytes) from where to start transferring in the source buffer.</param>
         /// <param name="targetOffset">The offset (in bytes) to which the data will be transferred in the object memory.</param>
-        virtual void transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) = 0;
+        virtual void transferFrom(const ICommandBuffer* commandBuffer, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) = 0;
 
         /// <summary>
         /// Transfers data from the objects local memory into the <paramref name="target" /> buffer.
         /// </summary>
-        /// <param name="commandQueue">The command queue to issue the transfer command to.</param>
+        /// <param name="commandBuffer">The command buffer to issue the transfer command to.</param>
         /// <param name="target">The target buffer to transfer data to.</param>
         /// <param name="size">The size (in bytes) to transfer to the target buffer.</param>
         /// <param name="sourceOffset">The offset (in bytes) from where to start transferring in the object memory.</param>
         /// <param name="targetOffset">The offset (in bytes) to which the data will be transferred in the target buffer.</param>
-        virtual void transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const = 0;
+        virtual void transferTo(const ICommandBuffer* commandBuffer, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const = 0;
     };
 
     /// <summary>

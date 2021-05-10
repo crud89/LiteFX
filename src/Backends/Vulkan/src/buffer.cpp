@@ -33,62 +33,42 @@ void _VMABufferBase::map(const void* const data, const size_t& size)
 	::vmaUnmapMemory(m_allocator, m_allocationInfo);
 }
 
-void _VMABufferBase::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
+void _VMABufferBase::transferFrom(const ICommandBuffer* commandBuffer, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
 {
-	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
+	auto transferBuffer = dynamic_cast<const VulkanCommandBuffer*>(commandBuffer);
 	auto sourceBuffer = dynamic_cast<const IResource<VkBuffer>*>(source);
 
 	if (sourceBuffer == nullptr)
 		throw std::invalid_argument("The transfer source buffer must be initialized and a valid Vulkan buffer.");
 
-	if (transferQueue == nullptr)
-		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
+	if (transferBuffer == nullptr)
+		throw std::invalid_argument("The command buffer must be initialized and a valid Vulkan command buffer.");
 	
-	auto device = transferQueue->getDevice();
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
-
-	// Begin the transfer recording.
-	commandBuffer->begin();
-
 	// Create a copy command and add it to the command buffer.
 	VkBufferCopy copyInfo{};
 	copyInfo.size = size;
 	copyInfo.srcOffset = sourceOffset;
 	copyInfo.dstOffset = targetOffset;
-	::vkCmdCopyBuffer(commandBuffer->handle(), sourceBuffer->handle(), this->handle(), 1, &copyInfo);
-
-	// End the transfer recording and submit the buffer.
-	commandBuffer->end();
-	commandBuffer->submit(true);
+	::vkCmdCopyBuffer(transferBuffer->handle(), sourceBuffer->handle(), this->handle(), 1, &copyInfo);
 }
 
-void _VMABufferBase::transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
+void _VMABufferBase::transferTo(const ICommandBuffer* commandBuffer, IBuffer* target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
 {
-	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
+	auto transferBuffer = dynamic_cast<const VulkanCommandBuffer*>(commandBuffer);
 	auto targetBuffer = dynamic_cast<const IResource<VkBuffer>*>(target);
 
 	if (targetBuffer == nullptr)
 		throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
 
-	if (transferQueue == nullptr)
-		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
-
-	auto device = transferQueue->getDevice();
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
-
-	// Begin the transfer recording.
-	commandBuffer->begin();
+	if (transferBuffer == nullptr)
+		throw std::invalid_argument("The command buffer must be initialized and a valid Vulkan command buffer.");
 
 	// Create a copy command and add it to the command buffer.
 	VkBufferCopy copyInfo{};
 	copyInfo.size = size;
 	copyInfo.srcOffset = sourceOffset;
 	copyInfo.dstOffset = targetOffset;
-	::vkCmdCopyBuffer(commandBuffer->handle(), this->handle(), targetBuffer->handle(), 1, &copyInfo);
-
-	// End the transfer recording and submit the buffer.
-	commandBuffer->end();
-	commandBuffer->submit(true);
+	::vkCmdCopyBuffer(transferBuffer->handle(), this->handle(), targetBuffer->handle(), 1, &copyInfo);
 }
 
 // ------------------------------------------------------------------------------------------------

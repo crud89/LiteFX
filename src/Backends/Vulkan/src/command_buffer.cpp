@@ -22,7 +22,7 @@ public:
 	~VulkanCommandBufferImpl()
 	{
 		::vkDestroyFence(m_parent->getDevice()->handle(), m_fence, nullptr);
-		::vkFreeCommandBuffers(m_parent->getDevice()->handle(), m_parent->parent().getCommandPool(), 1, &m_parent->handle());
+		::vkFreeCommandBuffers(m_parent->getDevice()->handle(), m_parent->parent().commandPool(), 1, &m_parent->handle());
 	}
 
 public:
@@ -40,7 +40,7 @@ public:
 		VkCommandBufferAllocateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		bufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		bufferInfo.commandPool = m_parent->parent().getCommandPool();
+		bufferInfo.commandPool = m_parent->parent().commandPool();
 		bufferInfo.commandBufferCount = 1;
 
 		VkCommandBuffer buffer;

@@ -64,14 +64,14 @@ namespace LiteFX::Rendering::Backends {
 		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="targetOffset" />
 		/// parameters are ignored and can be simply set to <c>0</c>.
 		/// </remarks>
-		virtual void transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) override;
+		virtual void transferFrom(const ICommandBuffer* commandBuffer, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) override;
 
 		/// <inheritdoc />
 		/// <remarks>
 		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="sourceOffset" />
 		/// parameters are ignored and can be simply set to <c>0</c>.
 		/// </remarks>
-		virtual void transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
+		virtual void transferTo(const ICommandBuffer* commandBuffer, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
 
 	public:
 		static UniquePtr<ITexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);

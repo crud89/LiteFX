@@ -78,6 +78,8 @@ void SampleApp::initBuffers()
 {
     // Get the pipeline instance.
     auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
+    auto commandBuffer = m_device->bufferQueue().createCommandBuffer();
+    commandBuffer->begin();
 
     // Create the staging buffer.
     auto stagedVertices = pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
@@ -85,7 +87,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(&m_device->bufferQueue(), stagedVertices.get(), stagedVertices->getSize());
+    m_vertexBuffer->transferFrom(commandBuffer.get(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
     auto stagedIndices = pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
@@ -93,13 +95,17 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
-    m_indexBuffer->transferFrom(&m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
+    m_indexBuffer->transferFrom(commandBuffer.get(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
     m_perFrameBindings = pipeline->makeBufferPool(DescriptorSets::PerFrame);
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
     m_perObjectBindings = pipeline->makeBufferPool(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
+    
+    // End and submit the command buffer.
+    commandBuffer->end();
+    commandBuffer->submit();
 }
 
 void SampleApp::run() 

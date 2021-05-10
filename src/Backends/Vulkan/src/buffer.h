@@ -24,10 +24,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual void map(const void* const data, const size_t& size) override;
 		
 		/// <inheritdoc />
-		virtual void transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) override;
+		virtual void transferFrom(const ICommandBuffer* commandBuffer, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) override;
 		
 		/// <inheritdoc />
-		virtual void transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
+		virtual void transferTo(const ICommandBuffer* commandBuffer, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
 	};
 
 	class _VMABuffer : public _VMABufferBase, public Buffer {

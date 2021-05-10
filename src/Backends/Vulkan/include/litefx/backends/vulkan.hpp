@@ -388,31 +388,71 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// 
+	/// Represents a Vulkan command queue.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public ICommandQueue, public IResource<VkQueue> {
+	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public ICommandQueue<VulkanCommandBuffer>, public IResource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	
 	public:
+		/// <summary>
+		/// Initializes the Vulkan command queue.
+		/// </summary>
+		/// <param name="device">The device, commands get send to.</param>
+		/// <param name="type">The type of the command queue.</param>
+		/// <param name="priority">The priority, of which commands are issued on the device.</param>
+		/// <param name="familyId">The ID of the queue family.</param>
+		/// <param name="queueId">The ID of the queue.</param>
 		explicit VulkanQueue(const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId);
 		VulkanQueue(const VulkanQueue&) = delete;
 		VulkanQueue(VulkanQueue&&) = delete;
 		virtual ~VulkanQueue() noexcept;
 
+		// VulkanQueue interface.
 	public:
-		virtual VkCommandPool getCommandPool() const noexcept;
-		virtual UInt32 getFamilyId() const noexcept;
-		virtual UInt32 getQueueId() const noexcept;
+		/// <summary>
+		/// Returns a reference of the command pool that is used to allocate commands.
+		/// </summary>
+		/// <remarks>
+		/// Note that the command pool does only exist, if the queue is bound on a device.
+		/// </remarks>
+		/// <seealso cref="isBound" />
+		/// <seealso cref="bind" />
+		/// <seealso cref="release" />
+		/// <returns>A reference of the command pool that is used to allocate commands</returns>
+		virtual const VkCommandPool& commandPool() const noexcept;
 
+		/// <summary>
+		/// Returns the queue family ID.
+		/// </summary>
+		/// <returns>The queue family ID.</returns>
+		virtual const UInt32& familyId() const noexcept;
+
+		/// <summary>
+		/// Returns the queue ID.
+		/// </summary>
+		/// <returns>The queue ID.</returns>
+		virtual const UInt32& queueId() const noexcept;
+
+		// ICommandQueue interface.
 	public:
+		/// <inheritdoc />
 		virtual bool isBound() const noexcept override;
-		virtual QueuePriority getPriority() const noexcept override;
-		virtual QueueType getType() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const QueuePriority& priority() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const QueueType& type() const noexcept override;
 
 	public:
+		/// <inheritdoc />
 		virtual void bind() override;
+
+		/// <inheritdoc />
 		virtual void release() override;
-		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer() const override;
 	};
 
 	/// <summary>

@@ -191,21 +191,16 @@ const VkImageView& _VMATexture::getImageView() const noexcept
 	return this->view();
 }
 
-void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
+void _VMATexture::transferFrom(const ICommandBuffer* commandBuffer, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
 {
-	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
+	auto transferBuffer = dynamic_cast<const VulkanCommandBuffer*>(commandBuffer);
 	auto sourceBuffer = dynamic_cast<const IResource<VkBuffer>*>(source);
 
 	if (sourceBuffer == nullptr)
 		throw std::invalid_argument("The transfer source buffer must be initialized and a valid Vulkan buffer.");
 
-	if (transferQueue == nullptr)
-		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
-
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
-
-	// Begin the transfer recording.
-	commandBuffer->begin();
+	if (transferBuffer == nullptr)
+		throw std::invalid_argument("The command buffer must be initialized and a valid Vulkan command buffer.");
 
 	// First, transition the image into a fitting layout, so that it can receive transfers.
 	VkImageMemoryBarrier beginTransitionBarrier = {};
@@ -224,7 +219,7 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	beginTransitionBarrier.srcAccessMask = 0;
 	beginTransitionBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
+	::vkCmdPipelineBarrier(transferBuffer->handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
 
 	// Create a copy command and add it to the command buffer.
 	VkBufferImageCopy copyInfo{};
@@ -242,7 +237,7 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	copyInfo.imageOffset = { 0, 0, 0 };
 	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
 
-	::vkCmdCopyBufferToImage(commandBuffer->handle(), sourceBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyInfo);
+	::vkCmdCopyBufferToImage(transferBuffer->handle(), sourceBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyInfo);
 
 	// Last, transition the image back into the required layout for rendering.
 	VkImageMemoryBarrier endTransitionBarrier = {};
@@ -277,16 +272,12 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
 		targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 
-	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
-	
-	// End the transfer recording and submit the buffer.
-	commandBuffer->end();
-	commandBuffer->submit(true);
+	::vkCmdPipelineBarrier(transferBuffer->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
 }
 
-void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
+void _VMATexture::transferTo(const ICommandBuffer* commandBuffer, IBuffer* target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
 {
-	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
+	auto transferBuffer = dynamic_cast<const VulkanCommandBuffer*>(commandBuffer);
 	auto targetBuffer = dynamic_cast<const IResource<VkBuffer>*>(target);
 	auto layout = dynamic_cast<const VulkanDescriptorLayout*>(this->getLayout());
 	assert(layout != nullptr);
@@ -294,13 +285,8 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	if (targetBuffer == nullptr)
 		throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
 
-	if (transferQueue == nullptr)
-		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
-
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
-
-	// Begin the transfer recording.
-	commandBuffer->begin();
+	if (transferBuffer == nullptr)
+		throw std::invalid_argument("The command buffer must be initialized and a valid Vulkan command buffer.");
 
 	// First, transition the image into a fitting layout, so that it can receive transfers.
 	VkImageMemoryBarrier beginTransitionBarrier = {};
@@ -319,7 +305,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	beginTransitionBarrier.srcAccessMask = 0;
 	beginTransitionBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
+	::vkCmdPipelineBarrier(transferBuffer->handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
 
 	// Create a copy command and add it to the command buffer.
 	VkBufferImageCopy copyInfo{};
@@ -335,7 +321,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	copyInfo.imageOffset = { 0, 0, 0 };
 	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
 
-	::vkCmdCopyImageToBuffer(commandBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, targetBuffer->handle(), 1, &copyInfo);
+	::vkCmdCopyImageToBuffer(transferBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, targetBuffer->handle(), 1, &copyInfo);
 
 	// Last, transition the image back into the required layout for rendering.
 	VkImageMemoryBarrier endTransitionBarrier = {};
@@ -370,11 +356,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
 		targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 
-	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
-
-	// End the transfer recording and submit the buffer.
-	commandBuffer->end();
-	commandBuffer->submit(true);
+	::vkCmdPipelineBarrier(transferBuffer->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
 }
 
 UniquePtr<ITexture> _VMATexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)

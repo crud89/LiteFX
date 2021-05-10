@@ -139,21 +139,60 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// 
+	/// Represents a command queue.
 	/// </summary>
-	class LITEFX_RENDERING_API ICommandQueue {
+	/// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="ICommandBuffer"/>.</typeparam>
+	template <typename TCommandBuffer> requires
+		rtti::implements<TCommandBuffer, ICommandBuffer>
+	class ICommandQueue {
+	public:
+		using command_buffer_type = TCommandBuffer;
+
 	public:
 		virtual ~ICommandQueue() noexcept = default;
 
 	public:
+		/// <summary>
+		/// Returns <c>true</c>, if the command queue is bound on the parent device.
+		/// </summary>
+		/// <remarks>
+		/// Before a command queue can receive commands, it needs to be bound to a device. This ensures, that the queue is actually able to allocate commands. A 
+		/// command queue starts in unbound state until <see cref="bind" /> gets called. Destroying the queue also releases it by calling <see cref="release" />.
+		/// </remarks>
+		/// <seealso cref="bind" />
+		/// <seealso cref="release" />
+		/// <returns><c>true</c>, if the command queue is bound on a device.</returns>
 		virtual bool isBound() const noexcept = 0;
-		virtual QueuePriority getPriority() const noexcept = 0;
-		virtual QueueType getType() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the priority of the queue.
+		/// </summary>
+		/// <returns>The priority of the queue.</returns>
+		virtual const QueuePriority& priority() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the type of the queue.
+		/// </summary>
+		/// <returns>The type of the queue.</returns>
+		virtual const QueueType& type() const noexcept = 0;
 
 	public:
+		/// <summary>
+		/// Binds the queue on the parent device.
+		/// </summary>
+		/// <seealso cref="isBound" />
 		virtual void bind() = 0;
+
+		/// <summary>
+		/// Releases the queue from the parent device.
+		/// </summary>
 		virtual void release() = 0;
-		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const = 0;
+
+		/// <summary>
+		/// Creates a command buffer that can be used to allocate commands on the queue.
+		/// </summary>
+		/// <returns>The instance of the command buffer.</returns>
+		virtual UniquePtr<TCommandBuffer> createCommandBuffer() const = 0;
 	};
 
 	/// <summary>
@@ -283,15 +322,17 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
 	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
 	/// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
+	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer" />.</typeparam>
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
 	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TFactory, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type> requires
+	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TFactory, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type> requires
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSwapChain, ISwapChain> &&
-		rtti::implements<TCommandQueue, ICommandQueue> &&
+		rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
 		rtti::implements<TFactory, IGraphicsFactory<TVertexBufferLayout, TIndexBufferLayout, TDescriptorLayout>> &&
+		rtti::implements<TCommandBuffer, ICommandBuffer> &&
 		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
 		rtti::implements<TIndexBufferLayout, IIndexBufferLayout> &&
 		rtti::implements<TDescriptorLayout, IDescriptorLayout>
@@ -324,31 +365,6 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <returns>The factory instance, used to create instances from the device.</returns>
 		virtual const TFactory& factory() const noexcept = 0;
-				
-		/// <summary>
-		/// Waits until the device is idle.
-		/// </summary>
-		/// <remarks>
-		/// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
-		/// may safely be released.
-		/// </remarks>
-		virtual void wait() = 0;
-
-		// TODO: Move into IFrameBuffer instance ("present buffer"?) and move it to the swap chain. See issue #22.
-		virtual void resize(int width, int height) = 0;
-		virtual const TSwapChain& swapChain() const noexcept = 0;
-		virtual size_t getBufferWidth() const noexcept = 0;
-		virtual size_t getBufferHeight() const noexcept = 0;
-		//virtual Color getBackColor() const noexcept = 0;
-		//virtual void setBackColor(const Color& color) = 0;
-
-		/// <summary>
-		/// Returns an array of supported formats, that can be drawn to the surface.
-		/// </summary>
-		/// <returns>An array of supported formats, that can be drawn to the surface.</returns>
-		/// <see cref="surface" />
-		/// <seealso cref="ISurface" />
-		virtual Array<Format> getSurfaceFormats() const = 0;
 
 		/// <summary>
 		/// Returns the instance of the queue, used to process draw calls.
@@ -374,6 +390,32 @@ namespace LiteFX::Rendering {
 		/// <returns>The instance of the queue used for host-device transfers.</returns>
 		virtual const TCommandQueue& bufferQueue() const noexcept = 0;
 
+	public:
+		/// <summary>
+		/// Waits until the device is idle.
+		/// </summary>
+		/// <remarks>
+		/// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
+		/// may safely be released.
+		/// </remarks>
+		virtual void wait() = 0;
+
+		// TODO: Move into IFrameBuffer instance ("present buffer"?) and move it to the swap chain. See issue #22.
+		virtual void resize(int width, int height) = 0;
+		virtual const TSwapChain& swapChain() const noexcept = 0;
+		virtual size_t getBufferWidth() const noexcept = 0;
+		virtual size_t getBufferHeight() const noexcept = 0;
+		//virtual Color getBackColor() const noexcept = 0;
+		//virtual void setBackColor(const Color& color) = 0;
+
+		/// <summary>
+		/// Returns an array of supported formats, that can be drawn to the surface.
+		/// </summary>
+		/// <returns>An array of supported formats, that can be drawn to the surface.</returns>
+		/// <see cref="surface" />
+		/// <seealso cref="ISurface" />
+		virtual Array<Format> getSurfaceFormats() const = 0;
+
 	protected:
 		/// <summary>
 		/// Initializes a new render pass of type <typeparamref name="T"/> and returns a builder instance for it.
@@ -385,7 +427,7 @@ namespace LiteFX::Rendering {
 			rtti::implements<TRenderPass, IRenderPass> &&
 			rtti::has_builder<TRenderPass> &&
 			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TFactory>>
-		TBuilder build(TArgs&&... _args) const {
+		[[nodiscard]] TBuilder build(TArgs&&... _args) const {
 			// NOTE: If the cast raises an exception here, check the `TDerived` type - it must be equal to the parent graphics device class that calls this function.
 			return TBuilder(makeUnique<TRenderPass>(dynamic_cast<const TDerived&>(*this), std::forward<TArgs>(_args)...));
 		}
