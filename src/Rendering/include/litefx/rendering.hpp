@@ -71,7 +71,7 @@ namespace LiteFX::Rendering {
 		virtual const Vector4f& clearValues() const noexcept = 0;
 
 		/// <summary>
-		/// Returns <c>true</c>, if the target should be made persistent for access after the render pass has finished.
+		/// Returns <c>true</c>, if the target should not be made persistent for access after the render pass has finished.
 		/// </summary>
 		/// <remarks>
 		/// A render target can be marked as volatile if it does not need to be accessed after the render pass has finished. This can be used to optimize away unnecessary GPU/CPU 
@@ -79,7 +79,7 @@ namespace LiteFX::Rendering {
 		/// of reading it from the GPU after the lighting pass has finished and then discarding it anyway, it can be marked as volatile in order to prevent it from being read from
 		/// the GPU memory again in the first place.
 		/// </remarks>
-		/// <returns><c>true</c>, if the target should be made persistent for access after the render pass has finished.</returns>
+		/// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
 		virtual const bool& isVolatile() const noexcept = 0;
 	};
 
@@ -91,6 +91,16 @@ namespace LiteFX::Rendering {
 		LITEFX_IMPLEMENTATION(RenderTargetImpl);
 
 	public:
+		/// <summary>
+		/// Initializes the render target.
+		/// </summary>
+		/// <param name="type">The type of the render target.</param>
+		/// <param name="format">The format of the render target.</param>
+		/// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
+		/// <param name="clearValues">The values with which the render target gets cleared.</param>
+		/// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
+		/// <param name="samples">The number of samples of the render target when used with multi-sampling.</param>
+		/// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
 		explicit RenderTarget(const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false);
 		RenderTarget(const RenderTarget&) = delete;
 		RenderTarget(RenderTarget&&) = delete;
