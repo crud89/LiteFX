@@ -148,25 +148,6 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer, public IResource<VkCommandBuffer> {
-		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
-
-	public:
-		explicit VulkanCommandBuffer(const VulkanQueue& queue);
-		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
-		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
-		virtual ~VulkanCommandBuffer() noexcept;
-
-	public:
-		virtual void begin() const override;
-		virtual void end() const override;
-		virtual void submit(const bool& waitForQueue = false) const override;
-		virtual void submit(const Array<VkSemaphore>& waitForSemaphores, const Array<VkPipelineStageFlags>& waitForStages, const Array<VkSemaphore>& signalSemaphores = { }, const bool& waitForQueue = false) const;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_VULKAN_API VulkanInputAssembler : public virtual VulkanRuntimeObject<VulkanRenderPipeline>, public InputAssembler {
 		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
@@ -388,6 +369,42 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Records commands for a <see cref="VulkanCommandQueue" />
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer, public IResource<VkCommandBuffer> {
+		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
+
+	public:
+		/// <summary>
+		/// Initializes the command buffer from a command queue.
+		/// </summary>
+		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
+		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
+		explicit VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin = false);
+		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
+		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
+		virtual ~VulkanCommandBuffer() noexcept;
+
+		// Vulkan command buffer interface.
+	public:
+		virtual void submit(const Array<VkSemaphore>& waitForSemaphores, const Array<VkPipelineStageFlags>& waitForStages, const Array<VkSemaphore>& signalSemaphores = { }, const bool& waitForQueue = false) const;
+
+		// ICommandBuffer interface.
+	public:
+		/// <inheritdoc />
+		virtual void wait() const override;
+
+		/// <inheritdoc />
+		virtual void begin() const override;
+
+		/// <inheritdoc />
+		virtual void end(const bool& submit, const bool& wait = false) const override;
+
+		/// <inheritdoc />
+		virtual void submit(const bool& wait = false) const override;
+	};
+
+	/// <summary>
 	/// Represents a Vulkan command queue.
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public ICommandQueue<VulkanCommandBuffer>, public IResource<VkQueue> {
@@ -452,7 +469,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void release() override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer() const override;
+		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
 	};
 
 	/// <summary>

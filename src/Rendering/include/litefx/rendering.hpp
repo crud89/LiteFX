@@ -13,23 +13,6 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_RENDERING_API ICommandBuffer {
-	public:
-		virtual ~ICommandBuffer() noexcept = default;
-
-	public:
-		template <std::derived_from<ICommandQueue> TCommandQueue>
-		const TCommandQueue* getQueue() const noexcept;
-
-	public:
-		virtual void begin() const = 0;
-		virtual void end() const = 0;
-		virtual void submit(const bool& waitForQueue = false) const = 0;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_RENDERING_API IRenderTarget {
 	public:
 		virtual ~IRenderTarget() noexcept = default;
@@ -139,6 +122,48 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
+	/// Represents a command buffer, that buffers commands that should be submitted to a <see cref="ICommandQueue" />.
+	/// </summary>
+	class LITEFX_RENDERING_API ICommandBuffer {
+	public:
+		virtual ~ICommandBuffer() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Waits for the command buffer to be executed.
+		/// </summary>
+		/// <remarks>
+		/// If the command buffer gets submitted, it does not necessarily get executed straight away. If you depend on a command buffer to be finished, you can call this method.
+		/// </remarks>
+		virtual void wait() const = 0;
+
+		/// <summary>
+		/// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="ICommandQueue" />.
+		/// </summary>
+		/// <remarks>
+		/// Note that, if a command buffer has been submitted before, this method waits for the earlier commands to be executed by calling <see cref="wait" />.
+		/// </remarks>
+		virtual void begin() const = 0;
+
+		/// <summary>
+		/// Ends recording commands on the command buffer.
+		/// </summary>
+		/// <param name="submit">If set to <c>true</c>, the command buffer is automatically submitted by calling the <see cref="submit" /> method.</param>
+		/// <param name="wait">If <paramref name="submit" /> is set to <c>true</c>, this parameter gets passed to the <see cref="submit" /> method.</param>
+		/// <seealso cref="submit" />
+		virtual void end(const bool& submit = true, const bool& wait = false) const = 0;
+
+		/// <summary>
+		/// Submits the command buffer to the parent command queue.
+		/// </summary>
+		/// <remarks>
+		/// </remarks>
+		/// <param name="wait">If set to <c>true</c>, the command buffer blocks, until the submitted commands have been executed.</param>
+		/// <seealso cref="wait" />
+		virtual void submit(const bool& wait = false) const = 0;
+	};
+
+	/// <summary>
 	/// Represents a command queue.
 	/// </summary>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="ICommandBuffer"/>.</typeparam>
@@ -191,8 +216,9 @@ namespace LiteFX::Rendering {
 		/// <summary>
 		/// Creates a command buffer that can be used to allocate commands on the queue.
 		/// </summary>
+		/// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
 		/// <returns>The instance of the command buffer.</returns>
-		virtual UniquePtr<TCommandBuffer> createCommandBuffer() const = 0;
+		virtual UniquePtr<TCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const = 0;
 	};
 
 	/// <summary>

@@ -58,8 +58,7 @@ public:
 		if (m_type == QueueType::Transfer)
 			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-		if (::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
-			throw std::runtime_error("Unable to create command pool.");
+		raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
 
 		m_bound = true;
 	}
@@ -119,7 +118,7 @@ const QueuePriority& VulkanQueue::priority() const noexcept
 	return m_impl->m_priority;
 }
 
-UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer() const
+UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
 {
-	return makeUnique<VulkanCommandBuffer>(*this);
+	return makeUnique<VulkanCommandBuffer>(*this, beginRecording);
 }

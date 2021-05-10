@@ -328,7 +328,7 @@ public:
     {
         auto commandBuffer = this->getCurrentCommandBuffer();
         ::vkCmdEndRenderPass(commandBuffer->handle());
-        commandBuffer->end();
+        commandBuffer->end(false);
 
         // Submit the command buffer.
 

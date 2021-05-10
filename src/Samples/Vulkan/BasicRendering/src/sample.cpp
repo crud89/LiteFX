@@ -78,8 +78,7 @@ void SampleApp::initBuffers()
 {
     // Get the pipeline instance.
     auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
-    auto commandBuffer = m_device->bufferQueue().createCommandBuffer();
-    commandBuffer->begin();
+    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
 
     // Create the staging buffer.
     auto stagedVertices = pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
@@ -104,8 +103,7 @@ void SampleApp::initBuffers()
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
     
     // End and submit the command buffer.
-    commandBuffer->end();
-    commandBuffer->submit();
+    commandBuffer->end(true, true);
 }
 
 void SampleApp::run() 

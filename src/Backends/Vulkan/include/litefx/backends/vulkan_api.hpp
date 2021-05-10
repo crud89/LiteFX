@@ -150,7 +150,7 @@ namespace LiteFX::Rendering::Backends {
 
     template <typename TException, typename ...TArgs>
     inline void raiseIfFailed(VkResult result, const std::string& message, TArgs&&... args) {
-        if (result == VK_SUCCESS) // [[likely]]
+        [[likely]] if (result == VK_SUCCESS)
             return;
 
         throw TException(VulkanPlatformException("Result: {0}", result), fmt::format(message, std::forward<TArgs>(args)...));
