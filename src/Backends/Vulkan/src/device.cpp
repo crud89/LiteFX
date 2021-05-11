@@ -306,17 +306,17 @@ void VulkanDevice::wait() const
 	raiseIfFailed<RuntimeException>(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
 }
 
-//void VulkanDevice::resize(const Size2d& renderArea, VulkanFrameBuffer& presentBuffer) const
-//{
-//	// Wait for the device to be idle.
-//	// TODO: this may not be required and may slow down the resizing... we might be able to get rid of it (possibly by doing some manual synchronization).
-//	this->wait();
-//
-//	// Reset the swap chain.
-//	auto buffers = this->swapChain().buffers();
-//	auto format = this->swapChain().surfaceFormat();
-//	auto images = m_impl->m_swapChain->reset(format, renderArea, buffers);
-//
-//	// Resize the frame buffer.
-//	presentBuffer.resize(renderArea, std::move(images));
-//}
+void VulkanDevice::resize(const Size2d& renderArea, VulkanFrameBuffer& presentBuffer) const
+{
+	// Wait for the device to be idle.
+	// TODO: this may not be required and may slow down the resizing... we might be able to get rid of it (possibly by doing some manual synchronization).
+	this->wait();
+
+	// Reset the swap chain.
+	auto buffers = this->swapChain().buffers();
+	auto format = this->swapChain().surfaceFormat();
+	auto images = m_impl->m_swapChain->reset(format, renderArea, buffers);
+
+	// Resize the frame buffer.
+	presentBuffer.resize(renderArea, std::move(images));
+}

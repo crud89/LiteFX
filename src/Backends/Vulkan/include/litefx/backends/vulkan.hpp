@@ -664,7 +664,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void wait() const override;
 
 		/// <inheritdoc />
-		//void resize(const Size2d& renderArea, TRenderPass& presentPass) const override;
+		void resize(const Size2d& renderArea, TRenderPass& presentPass) const override;
 	};
 
 	/// <summary>

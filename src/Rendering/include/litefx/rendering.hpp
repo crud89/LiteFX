@@ -11,6 +11,76 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API IShaderProgram {
+	public:
+		virtual ~IShaderProgram() noexcept = default;
+
+	public:
+		virtual Array<const IShaderModule*> getModules() const noexcept = 0;
+		virtual void use(UniquePtr<IShaderModule>&& module) = 0;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class IRenderPipelineLayout {
+	public:
+		virtual ~IRenderPipelineLayout() noexcept = default;
+
+	public:
+		virtual const IShaderProgram* getProgram() const noexcept = 0;
+		virtual Array<const IDescriptorSetLayout*> getDescriptorSetLayouts() const noexcept = 0;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	template <typename TRenderPipelineLayout> requires
+		rtti::implements<TRenderPipelineLayout, IRenderPipelineLayout>
+	class IRenderPipeline {
+	public:
+		using pipeline_layout_type = TRenderPipelineLayout;
+
+	public:
+		virtual ~IRenderPipeline() noexcept = default;
+
+	public:
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		virtual const String& name() const noexcept = 0;
+
+		/// <summary>
+		/// Gets the ID of the pipeline.
+		/// </summary>
+		/// <remarks>
+		/// The pipeline ID must be unique within the render pass.
+		/// </remarks>
+		/// <returns>The ID of the pipeline.</returns>
+		virtual const UInt32& id() const noexcept = 0;
+
+		virtual const IRenderPipelineLayout* layout() const noexcept = 0;
+		virtual SharedPtr<IInputAssembler> inputAssembler() const noexcept = 0;
+		virtual SharedPtr<IRasterizer> rasterizer() const noexcept = 0;
+		virtual Array<const IViewport*> viewports() const noexcept = 0;
+		virtual Array<const IScissor*> scissors() const noexcept = 0;
+
+	public:
+		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
+		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
+		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
+		virtual void bind(const IVertexBuffer* buffer) const = 0;
+		virtual void bind(const IIndexBuffer* buffer) const = 0;
+		virtual void bind(IDescriptorSet* buffer) const = 0;
+		virtual void use() const = 0;
+		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
+		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
+	};
+
+	/// <summary>
 	/// Stores multiple <see cref="IRenderTarget" /> instances, as well as a <see cref="ICommandBuffer" /> instance, that records draw commands.
 	/// </summary>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
@@ -86,6 +156,86 @@ namespace LiteFX::Rendering {
 		/// <param name="renderArea">The new dimensions of the frame buffer.</param>
 		/// <param name="presentImage">The swap chain image, that should be bound to the present target.</param>
 		virtual void resize(const Size2d& renderArea, UniquePtr<TImage>&& presentImage) = 0;
+	};
+
+	/// <summary>
+	/// Represents a render pass.
+	/// </summary>
+	/// <remarks>
+	/// A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the
+	/// GPU, that processes data using different <see cref="IRenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="IFrameBuffer" />.
+	/// </remarks>
+	/// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
+	/// <typeparam name="TRenderPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IRenderPipelineLayout" />.</typeparam>
+	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
+	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
+	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
+	template <typename TRenderPipeline, typename TFrameBuffer, typename TRenderPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImage = TFrameBuffer::image_type> requires
+		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>> &&
+		rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout>>
+	class IRenderPass {
+	public:
+		using frame_buffer_type = TFrameBuffer;
+		using render_pipeline_type = TRenderPipeline;
+
+	public:
+		virtual ~IRenderPass() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Returns the current frame buffer from of the render pass.
+		/// </summary>
+		/// <remarks>
+		/// The frame buffer can only be obtained, if the render pass has been started by calling <see cref="begin" />. If the render pass has ended or not yet started, the
+		/// method will instead raise an exception.
+		/// </remarks>
+		/// <param name="buffer">The index of the frame buffer.</param>
+		/// <returns>A back buffer used by the render pass.</returns>
+		virtual const TFrameBuffer& frameBuffer() const noexcept = 0;
+
+		/// <summary>
+		/// Returns an array of all render pipelines, owned by the render pass.
+		/// </summary>
+		/// <returns>An array of all render pipelines, owned by the render pass.</returns>
+		/// <seealso cref="IRenderPipeline" />
+		virtual Array<const IRenderPipeline*> pipelines() const noexcept = 0;
+		
+		/// <summary>
+		/// Returns the render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.
+		/// </summary>
+		/// <param name="id">The ID of the requested render pipeline.</param>
+		/// <returns>The render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.</returns>
+		/// <seealso cref="IRenderPipeline" />
+		virtual const IRenderPipeline* pipeline(const UInt32& id) const noexcept = 0;
+
+		/// <summary>
+		/// Returns the input attachment the render pass is consuming.
+		/// </summary>
+		/// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
+		virtual const Array<const InputAttachmentMapping&> inputAttachments() const noexcept = 0;
+
+	public:
+		/// <summary>
+		/// Begins the render pass.
+		/// </summary>
+		/// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
+		virtual void begin(const UInt32& buffer) = 0;
+
+		/// <summary>
+		/// Ends the render pass.
+		/// </summary>
+		/// <remarks>
+		/// If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.
+		/// </remarks>
+		/// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
+		virtual void end() const = 0;
+
+		/// <summary>
+		/// Resets the frame buffers of the render pass.
+		/// </summary>
+		/// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
+		/// <param name="presentImages">The swap chain images, used to initialize the present render targets.</param>
+		virtual void resetFrameBuffers(const Size2d& renderArea, UniquePtr<TImage>&& presentImages) = 0;
 	};
 
 	/// <summary>
@@ -332,29 +482,26 @@ namespace LiteFX::Rendering {
 	/// common objects. Second, it owns the device state, which contains objects required for communication between your application and the graphics driver. Most notably, those objects
 	/// contain the <see cref="ISwapChain" /> instance and the <see cref="ICommandQueue" /> instances used for data and command transfer.
 	/// </remarks>
-	/// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
+	/// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
 	/// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
+	/// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
 	/// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
 	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
-	/// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
+	/// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="IRenderPass" />.</typeparam>
+	/// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
 	/// <typeparam name="TImage">The type of the swap chain image interface. Must inherit from <see cref="IImage" />.</typeparam>
 	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer" />.</typeparam>
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
 	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TFrameBuffer, typename TFactory, typename TImage = TSwapChain::image_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type> requires
+	template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TImage = TSwapChain::image_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type> requires
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSwapChain, ISwapChain<TImage>> &&
-		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>> &&
 		rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
 		rtti::implements<TFactory, IGraphicsFactory<TVertexBufferLayout, TIndexBufferLayout, TDescriptorLayout>> &&
-		rtti::implements<TCommandBuffer, ICommandBuffer> &&
-		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
-		rtti::implements<TIndexBufferLayout, IIndexBufferLayout> &&
-		rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-		std::derived_from<TImage, IImage>
+		rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer>>
 	class IGraphicsDevice {
 	public:
 		using surface_type = TSurface;
@@ -363,6 +510,7 @@ namespace LiteFX::Rendering {
 		using command_queue_type = TCommandQueue;
 		using factory_type = TFactory;
 		using frame_buffer_type = TFrameBuffer;
+		using render_pass_type = TRenderPass;
 
 	public:
 		virtual ~IGraphicsDevice() noexcept = default;
@@ -444,7 +592,7 @@ namespace LiteFX::Rendering {
 		/// <seealso cref="ISwapChain" />
 		/// <seealso cref="IFrameBuffer" />
 		/// <seealso cref="IRenderPass" />
-		//virtual void resize(const Size2d& renderArea, TRenderPass& presentPass) const = 0;
+		virtual void resize(const Size2d& renderArea, TRenderPass& presentPass) const = 0;
 
 	protected:
 		/// <summary>
@@ -456,7 +604,7 @@ namespace LiteFX::Rendering {
 		template <typename TRenderPass, typename TDerived, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
 			rtti::implements<TRenderPass, IRenderPass> &&
 			rtti::has_builder<TRenderPass> &&
-			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TFrameBuffer, TFactory>>
+			rtti::implements<TDerived, IGraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
 		[[nodiscard]] TBuilder build(TArgs&&... _args) const {
 			// NOTE: If the cast raises an exception here, check the `TDerived` type - it must be equal to the parent graphics device class that calls this function.
 			return TBuilder(makeUnique<TRenderPass>(dynamic_cast<const TDerived&>(*this), std::forward<TArgs>(_args)...));
@@ -472,10 +620,8 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
 	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
 	/// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
-	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type> requires
-		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-		rtti::implements<TSurface, ISurface> &&
-		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TFrameBuffer, TFactory>>
+	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
+		rtti::implements<TGraphicsDevice, IGraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
 	class IRenderBackend : public IBackend {
 	public:
 		virtual ~IRenderBackend() noexcept = default;

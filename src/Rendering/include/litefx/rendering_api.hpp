@@ -558,6 +558,19 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API IShaderModule {
+	public:
+		virtual ~IShaderModule() noexcept = default;
+
+	public:
+		virtual const ShaderStage& getType() const noexcept = 0;
+		virtual const String& getFileName() const noexcept = 0;
+		virtual const String& getEntryPoint() const noexcept = 0;
+	};
+
+	/// <summary>
 	/// Represents a render target, i.e. an abstract view of the output of an <see cref="IRenderPass" />.
 	/// </remarks>
 	/// <remarks>
@@ -805,38 +818,179 @@ namespace LiteFX::Rendering {
 		virtual void submit(const bool& wait = false) const = 0;
 	};
 
-
-	// TODO: Remove me.
-	class LITEFX_RENDERING_API IRequiresInitialization {
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API IInputAssembler {
 	public:
+		virtual ~IInputAssembler() noexcept = default;
+
+	public:
+		virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const = 0;
+		virtual const IVertexBufferLayout* getVertexBufferLayout(const UInt32& binding) const = 0;
+		virtual const IIndexBufferLayout* getIndexBufferLayout() const = 0;
+		virtual const PrimitiveTopology getTopology() const noexcept = 0;
+		virtual void setTopology(const PrimitiveTopology& topology) = 0;
+
+	public:
+		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) = 0;
+		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) = 0;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API InputAssembler : public IInputAssembler {
+		LITEFX_IMPLEMENTATION(InputAssemblerImpl);
+
+	public:
+		explicit InputAssembler();
+		InputAssembler(InputAssembler&&) noexcept = delete;
+		InputAssembler(const InputAssembler&) noexcept = delete;
+		virtual ~InputAssembler() noexcept;
+
+	public:
+		virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const override;
+		virtual const IVertexBufferLayout* getVertexBufferLayout(const UInt32& binding) const override;
+		virtual const IIndexBufferLayout* getIndexBufferLayout() const override;
+		virtual const PrimitiveTopology getTopology() const noexcept override;
+		virtual void setTopology(const PrimitiveTopology& topology) override;
+
+	public:
+		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) override;
+		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API IRasterizer {
+	public:
+		virtual ~IRasterizer() noexcept = default;
+
+	public:
+		virtual PolygonMode getPolygonMode() const noexcept = 0;
+		virtual void setPolygonMode(const PolygonMode& mode) noexcept = 0;
+		virtual CullMode getCullMode() const noexcept = 0;
+		virtual void setCullMode(const CullMode& mode) noexcept = 0;
+		virtual CullOrder getCullOrder() const noexcept = 0;
+		virtual void setCullOrder(const CullOrder& order) noexcept = 0;
+
 		/// <summary>
 		/// 
 		/// </summary>
+		/// <remarks>
+		/// Note that line width is not supported in DirectX and is only emulated under Vulkan. Instead of forcing this value, it is recommended to 
+		/// use a custom shader for it.
+		/// </remarks>
 		/// <returns></returns>
-		virtual bool isInitialized() const noexcept = 0;
+		virtual Float getLineWidth() const noexcept = 0;
+		virtual void setLineWidth(const Float& width) noexcept = 0;
+		virtual bool getDepthBiasEnabled() const noexcept = 0;
+		virtual void setDepthBiasEnabled(const bool& enable) noexcept = 0;
+		virtual float getDepthBiasClamp() const noexcept = 0;
+		virtual void setDepthBiasClamp(const float& clamp) noexcept = 0;
+		virtual float getDepthBiasConstantFactor() const noexcept = 0;
+		virtual void setDepthBiasConstantFactor(const float& factor) noexcept = 0;
+		virtual float getDepthBiasSlopeFactor() const noexcept = 0;
+		virtual void setDepthBiasSlopeFactor(const float& factor) noexcept = 0;
 	};
 
-	//template <typename TOwner, typename TDevice>
-	//class LITEFX_RENDERING_API IDeviceContext {
-	//private:
-	//	const TOwner& m_parent;
-	//	const TDevice& m_device;
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API Rasterizer : public IRasterizer {
+		LITEFX_IMPLEMENTATION(RasterizerImpl);
 
-	//public:
-	//	explicit VulkanRuntimeObject(const TParent& parent, const TDevice& device) :
-	//		m_parent(parent), m_device(device)
-	//	{
-	//		if (device == nullptr)
-	//			throw RuntimeException("The device must be initialized.");
-	//	}
+	public:
+		explicit Rasterizer();
+		Rasterizer(Rasterizer&&) noexcept = delete;
+		Rasterizer(const Rasterizer&) noexcept = delete;
+		virtual ~Rasterizer() noexcept;
 
-	//	VulkanRuntimeObject(VulkanRuntimeObject&&) = delete;
-	//	VulkanRuntimeObject(const VulkanRuntimeObject&) = delete;
-	//	virtual ~VulkanRuntimeObject() noexcept = default;
+	public:
+		virtual PolygonMode getPolygonMode() const noexcept override;
+		virtual void setPolygonMode(const PolygonMode& mode) noexcept override;
+		virtual CullMode getCullMode() const noexcept override;
+		virtual void setCullMode(const CullMode& mode) noexcept override;
+		virtual CullOrder getCullOrder() const noexcept override;
+		virtual void setCullOrder(const CullOrder& order) noexcept override;
+		virtual Float getLineWidth() const noexcept override;
+		virtual void setLineWidth(const Float& width) noexcept override;
+		virtual bool getDepthBiasEnabled() const noexcept override;
+		virtual void setDepthBiasEnabled(const bool& enable) noexcept override;
+		virtual float getDepthBiasClamp() const noexcept override;
+		virtual void setDepthBiasClamp(const float& clamp) noexcept override;
+		virtual float getDepthBiasConstantFactor() const noexcept override;
+		virtual void setDepthBiasConstantFactor(const float& factor) noexcept override;
+		virtual float getDepthBiasSlopeFactor() const noexcept override;
+		virtual void setDepthBiasSlopeFactor(const float& factor) noexcept override;
+	};
 
-	//public:
-	//	virtual const TParent& parent() const noexcept { return m_parent; }
-	//	virtual const VulkanDevice* getDevice() const noexcept { return m_device; };
-	//};
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API IViewport {
+	public:
+		virtual ~IViewport() noexcept = default;
+
+	public:
+		virtual RectF getRectangle() const noexcept = 0;
+		virtual void setRectangle(const RectF& rectangle) noexcept = 0;
+		virtual float getMinDepth() const noexcept = 0;
+		virtual void setMinDepth(const float& depth) const noexcept = 0;
+		virtual float getMaxDepth() const noexcept = 0;
+		virtual void setMaxDepth(const float& depth) const noexcept = 0;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API Viewport : public IViewport {
+		LITEFX_IMPLEMENTATION(ViewportImpl);
+
+	public:
+		explicit Viewport(const RectF& clientRect = { }, const Float& minDepth = 0.f, const Float& maxDepth = 1.f);
+		Viewport(Viewport&&) noexcept = delete;
+		Viewport(const Viewport&) noexcept = delete;
+		virtual ~Viewport() noexcept;
+
+	public:
+		virtual RectF getRectangle() const noexcept override;
+		virtual void setRectangle(const RectF& rectangle) noexcept override;
+		virtual Float getMinDepth() const noexcept override;
+		virtual void setMinDepth(const Float& depth) const noexcept override;
+		virtual Float getMaxDepth() const noexcept override;
+		virtual void setMaxDepth(const Float& depth) const noexcept override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API IScissor {
+	public:
+		virtual ~IScissor() noexcept = default;
+
+	public:
+		virtual RectF getRectangle() const noexcept = 0;
+		virtual void setRectangle(const RectF& rectangle) noexcept = 0;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_RENDERING_API Scissor : public IScissor {
+		LITEFX_IMPLEMENTATION(ScissorImpl);
+
+	public:
+		explicit Scissor(const RectF& scissorRect = { });
+		Scissor(Scissor&&) noexcept = delete;
+		Scissor(const Scissor&) noexcept = delete;
+		virtual ~Scissor() noexcept;
+
+	public:
+		virtual RectF getRectangle() const noexcept override;
+		virtual void setRectangle(const RectF& rectangle) noexcept override;
+	};
 
 }
