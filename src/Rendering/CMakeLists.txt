@@ -23,6 +23,7 @@ SET(RENDERING_SOURCES
     "src/viewport.cpp"
     "src/scissor.cpp"
     "src/render_target.cpp"
+    "src/input_attachment_mapping.cpp"
     "src/buffer.cpp"
     "src/vertex_buffer.cpp"
     "src/index_buffer.cpp"

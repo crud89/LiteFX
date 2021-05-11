@@ -575,6 +575,10 @@ namespace LiteFX::Rendering {
 		/// <summary>
 		/// Returns the location of the render target output attachment within the fragment shader.
 		/// </summary>
+		/// <remarks>
+		/// The locations of all render targets of a frame buffer must be within a continuous domain, starting at <c>0</c>. A frame buffer validates the render target locations
+		/// when it is initialized and will raise an exception, if a location is either not mapped or assigned multiple times.
+		/// </remarks>
 		/// <returns>The location of the render target output attachment within the fragment shader</returns>
 		virtual const UInt32& location() const noexcept = 0;
 
@@ -712,6 +716,51 @@ namespace LiteFX::Rendering {
 	public:
 		/// <inheritdoc />
 		virtual void reset(UniquePtr<IImage>&& image) override;
+	};
+
+	/// <summary>
+	/// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="IRenderPass" />
+	/// </summary>
+	class LITEFX_RENDERING_API IInputAttachmentMapping {
+	public:
+		virtual ~IInputAttachmentMapping() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Returns a reference of the render target that is mapped to the input attachment.
+		/// </summary>
+		/// <returns>A reference of the render target that is mapped to the input attachment.</returns>
+		virtual const RenderTarget& renderTarget() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the location of the input attachment, the render target will be bound to.
+		/// </summary>
+		/// <remarks>
+		/// The locations of all input attachments for a frame buffer must be within a continuous domain, starting at <c>0</c>. A frame buffer validates the locations
+		/// when it is initialized and will raise an exception, if a location is either not mapped or assigned multiple times.
+		/// </remarks>
+		/// <returns>The location of the input attachment, the render target will be bound to.</returns>
+		virtual const UInt32& location() const noexcept = 0;
+	};
+
+	/// <summary>
+	/// Implements a <see cref="IInputAttachmentMapping" />.
+	/// </summary>
+	class LITEFX_RENDERING_API InputAttachmentMapping : public IInputAttachmentMapping {
+		LITEFX_IMPLEMENTATION(InputAttachmentMappingImpl);
+
+	public:
+		InputAttachmentMapping(const RenderTarget& renderTarget, const UInt32& location);
+		InputAttachmentMapping(const InputAttachmentMapping&) noexcept;
+		InputAttachmentMapping(InputAttachmentMapping&&) noexcept;
+		virtual ~InputAttachmentMapping() noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual const RenderTarget& renderTarget() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& location() const noexcept override;
 	};
 
 	/// <summary>
