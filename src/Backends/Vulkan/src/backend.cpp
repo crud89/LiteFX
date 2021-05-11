@@ -55,7 +55,8 @@ private:
     }
 
 public:
-    ~VulkanBackendImpl() {
+    ~VulkanBackendImpl() 
+    {
         if (m_debugMessenger != nullptr && vkDestroyDebugUtilsMessenger != nullptr)
             vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, nullptr);
     }
@@ -64,16 +65,19 @@ public:
 public:
     VkInstance initialize()
     {
-        // Parse the extensions.
-        std::vector<const char*> requiredExtensions(m_extensions.size()), enabledLayers(m_layers.size());
-        std::generate(requiredExtensions.begin(), requiredExtensions.end(), [this, i = 0]() mutable { return m_extensions[i++].data(); });
-        std::generate(enabledLayers.begin(), enabledLayers.end(), [this, i = 0]() mutable { return m_layers[i++].data(); });
-
         // Check if all extensions are available.
+        auto const requiredExtensions = m_extensions | 
+            std::views::transform([this](const auto& extension) { return extension.c_str(); }) |
+            ranges::to<Array<const char*>>();
+
         if (!VulkanBackend::validateExtensions(m_extensions))
             throw InvalidArgumentException("Some required Vulkan extensions are not supported by the system.");
 
         // Check if all extensions are available.
+        auto const enabledLayers = m_layers | 
+            std::views::transform([this](const auto& layer) { return layer.c_str(); }) |
+            ranges::to<Array<const char*>>();
+
         if (!VulkanBackend::validateLayers(m_layers))
             throw InvalidArgumentException("Some required Vulkan layers are not supported by the system.");
 
@@ -144,23 +148,11 @@ public:
         ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, nullptr);
 
         Array<VkPhysicalDevice> handles(adapters);
-        Array<UniquePtr<VulkanGraphicsAdapter>> instances(adapters);
-
         ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, handles.data());
-        std::generate(instances.begin(), instances.end(), [this, &handles, i = 0]() mutable {
-            return makeUnique<VulkanGraphicsAdapter>(handles[i++]);
-        });
 
-        m_adapters = std::move(instances);
-    }
-
-public:
-    Array<const VulkanGraphicsAdapter*> listAdapters() const noexcept
-    {
-        Array<const VulkanGraphicsAdapter*> results(m_adapters.size());
-        std::generate(results.begin(), results.end(), [&, i = 0]() mutable { return m_adapters[i++].get(); });
-
-        return results;
+        m_adapters = handles | 
+            std::views::transform([this](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
+            ranges::to<Array<UniquePtr<VulkanGraphicsAdapter>>>();
     }
 
     const VulkanGraphicsAdapter* findAdapter(const Optional<uint32_t> adapterId) const noexcept
@@ -198,12 +190,17 @@ BackendType VulkanBackend::getType() const noexcept
 
 Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
-    return m_impl->listAdapters();
+    return m_impl->m_adapters | 
+        std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) |
+        ranges::to<Array<const VulkanGraphicsAdapter*>>();
 }
 
 const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& adapterId) const
 {
-    return m_impl->findAdapter(adapterId);
+    [[likely]] if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; }); match != m_impl->m_adapters.end())
+        return match->get();
+
+    return nullptr;
 }
 
 const Array<String> VulkanBackend::getEnabledValidationLayers() const noexcept
@@ -246,12 +243,14 @@ bool VulkanBackend::validateExtensions(const Array<String>& extensions) noexcept
 {
     auto availableExtensions = VulkanBackend::getAvailableExtensions();
 
-    return std::all_of(extensions.begin(), extensions.end(), [&availableExtensions](const String& extension) {
-        return std::find_if(availableExtensions.begin(), availableExtensions.end(), [&extension](String& str) {
+    return std::ranges::all_of(extensions, [&availableExtensions](const auto& extension) {
+        auto match = std::ranges::find_if(availableExtensions, [&extension](const auto& str) {
             return std::equal(str.begin(), str.end(), extension.begin(), extension.end(), [](char a, char b) {
                 return std::tolower(a) == std::tolower(b);
             });
-        }) != availableExtensions.end();
+        }); 
+
+        return match != availableExtensions.end();
     });
 }
 
@@ -261,24 +260,25 @@ Array<String> VulkanBackend::getAvailableExtensions() noexcept
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, nullptr);
 
     Array<VkExtensionProperties> availableExtensions(extensions);
-    Array<String> extensionNames(extensions);
-
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, availableExtensions.data());
-    std::generate(extensionNames.begin(), extensionNames.end(), [&availableExtensions, i = 0]() mutable { return availableExtensions[i++].extensionName; });
 
-    return extensionNames;
+    return availableExtensions | 
+        std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) |
+        ranges::to<Array<String>>();
 }
 
-bool VulkanBackend::validateLayers(const Array<String>& validationLayers) noexcept
+bool VulkanBackend::validateLayers(const Array<String>& layers) noexcept
 {
-    auto layers = VulkanBackend::getValidationLayers();
+    auto availableExtensions = VulkanBackend::getAvailableExtensions();
 
-    return std::all_of(validationLayers.begin(), validationLayers.end(), [&layers](const String& layer) {
-        return std::find_if(layers.begin(), layers.end(), [&layer](String& str) {
+    return std::ranges::all_of(layers, [&availableExtensions](const auto& layer) {
+        auto match = std::ranges::find_if(availableExtensions, [&layer](const auto& str) {
             return std::equal(str.begin(), str.end(), layer.begin(), layer.end(), [](char a, char b) {
                 return std::tolower(a) == std::tolower(b);
             });
-        }) != layers.end();
+        });
+
+        return match != availableExtensions.end();
     });
 }
 
@@ -288,12 +288,11 @@ Array<String> VulkanBackend::getValidationLayers() noexcept
     ::vkEnumerateInstanceLayerProperties(&layers, nullptr);
 
     Array<VkLayerProperties> availableLayers(layers);
-    Array<String> layerNames(layers);
-
     ::vkEnumerateInstanceLayerProperties(&layers, availableLayers.data());
-    std::generate(layerNames.begin(), layerNames.end(), [&availableLayers, i = 0]() mutable { return availableLayers[i++].layerName; });
 
-    return layerNames;
+    return availableLayers | 
+        std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) |
+        ranges::to<Array<String>>();
 }
 
 // ------------------------------------------------------------------------------------------------

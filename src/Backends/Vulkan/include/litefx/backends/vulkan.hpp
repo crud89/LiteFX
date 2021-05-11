@@ -343,32 +343,6 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanSwapChain : public virtual VulkanRuntimeObject<VulkanDevice>, public ISwapChain, public IResource<VkSwapchainKHR> {
-		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
-
-	public:
-		explicit VulkanSwapChain(const VulkanDevice& device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format = Format::B8G8R8A8_SRGB);
-		VulkanSwapChain(const VulkanSwapChain&) = delete;
-		VulkanSwapChain(VulkanSwapChain&&) = delete;
-		virtual ~VulkanSwapChain() noexcept;
-
-	public:
-		virtual const Size2d& getBufferSize() const noexcept override;
-		virtual size_t getWidth() const noexcept override;
-		virtual size_t getHeight() const noexcept override;
-		virtual const Format& getFormat() const noexcept override;
-		virtual UInt32 swapBackBuffer() const override;
-		virtual void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers) override;
-		virtual UInt32 getBuffers() const noexcept override;
-
-	public:
-		virtual Array<const IImage*> getFrames() const noexcept;
-		virtual const VkSemaphore& getCurrentSemaphore() const noexcept;
-	};
-
-	/// <summary>
 	/// Records commands for a <see cref="VulkanCommandQueue" />
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer, public IResource<VkCommandBuffer> {
@@ -387,6 +361,13 @@ namespace LiteFX::Rendering::Backends {
 
 		// Vulkan command buffer interface.
 	public:
+		/// <summary>
+		/// Submits the command buffer.
+		/// </summary>
+		/// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
+		/// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
+		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
+		/// <param name="waitForQueue"><c>true</c> to wait for the command queue to be idle.</param>
 		virtual void submit(const Array<VkSemaphore>& waitForSemaphores, const Array<VkPipelineStageFlags>& waitForStages, const Array<VkSemaphore>& signalSemaphores = { }, const bool& waitForQueue = false) const;
 
 		// ICommandBuffer interface.
@@ -398,14 +379,114 @@ namespace LiteFX::Rendering::Backends {
 		virtual void begin() const override;
 
 		/// <inheritdoc />
-		virtual void end(const bool& submit, const bool& wait = false) const override;
+		virtual void end(const bool& submit = true, const bool& wait = false) const override;
 
 		/// <inheritdoc />
 		virtual void submit(const bool& wait = false) const override;
 	};
 
 	/// <summary>
-	/// Represents a Vulkan command queue.
+	/// Implements a Vulkan frame buffer.
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanFrameBuffer : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IFrameBuffer<VulkanCommandBuffer, IVulkanImage>, public IResource<VkFramebuffer> {
+		LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
+
+	public:
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="renderPass"></param>
+		/// <param name="size"></param>
+		/// <param name="renderTargets"></param>
+		VulkanFrameBuffer(const VulkanRenderPass& renderPass, const Size2d& size, const Array<RenderTarget>& renderTargets);
+		VulkanFrameBuffer(const VulkanFrameBuffer&) noexcept = delete;
+		VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
+		virtual ~VulkanFrameBuffer() noexcept;
+
+		// Vulkan frame buffer interface.
+	public:
+		/// <summary>
+		/// Returns a reference of the semaphore, that can be used to signal, that the frame buffer is finished.
+		/// </summary>
+		/// <returns>A reference of the semaphore, that can be used to signal, that the frame buffer is finished.</returns>
+		virtual const VkSemaphore& semaphore() const noexcept;
+
+		// IFrameBuffer interface.
+	public:
+		/// <inheritdoc />
+		virtual const Size2d& size() const noexcept override;
+
+		/// <inheritdoc />
+		virtual size_t getWidth() const noexcept override;
+
+		/// <inheritdoc />
+		virtual size_t getHeight() const noexcept override;
+
+		/// <inheritdoc />
+		virtual Array<std::reference_wrapper<const RenderTarget>> renderTargets() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const VulkanCommandBuffer& commandBuffer() const noexcept override;
+
+		/// <inheritdoc />
+		virtual bool hasPresentTarget() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		virtual void resize(const Size2d& newSize, UniquePtr<IVulkanImage>&& presentImage) override;
+	};
+
+	/// <summary>
+	/// Implements a Vulkan swap chain.
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanSwapChain : public virtual VulkanRuntimeObject<VulkanDevice>, public ISwapChain<IVulkanImage>, public IResource<VkSwapchainKHR> {
+		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a Vulkan swap chain.
+		/// </summary>
+		/// <param name="device">The device that owns the swap chain.</param>
+		/// <param name="format">The initial surface format.</param>
+		/// <param name="renderArea">The initial size of the render area.</param>
+		/// <param name="buffers">The initial number of buffers.</param>
+		explicit VulkanSwapChain(const VulkanDevice& device, const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers);
+		VulkanSwapChain(const VulkanSwapChain&) = delete;
+		VulkanSwapChain(VulkanSwapChain&&) = delete;
+		virtual ~VulkanSwapChain() noexcept;
+
+		// Vulkan Swap Chain interface.
+	public:
+		/// <summary>
+		/// Returns a reference of the current swap semaphore, a command queue can wait on for presenting.
+		/// </summary>
+		/// <returns>A reference of the current swap semaphore, a command queue can wait on for presenting.</returns>
+		virtual const VkSemaphore& semaphore() const noexcept;
+
+		// ISwapChain interface.
+	public:
+		/// <inheritdoc />
+		virtual const Format& surfaceFormat() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& buffers() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Size2d& renderArea() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		virtual Array<Format> getSurfaceFormats() const noexcept override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual Array<UniquePtr<IVulkanImage>> reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual UInt32 swapBackBuffer() const override;
+	};
+
+	/// <summary>
+	/// Implements a Vulkan command queue.
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public ICommandQueue<VulkanCommandBuffer>, public IResource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
@@ -473,70 +554,6 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Represents a Vulkan graphics adapter.
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
-		LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a graphics adapter instance with a physical device.
-		/// </summary>
-		/// <param name="adapter">The phyiscal device to initialize the instance with.</param>
-		explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
-		VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
-		VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
-		virtual ~VulkanGraphicsAdapter() noexcept;
-
-	public:
-		/// <inheritdoc />
-		virtual String getName() const noexcept override;
-		
-		/// <inheritdoc />
-		virtual UInt32 getVendorId() const noexcept override;
-		
-		/// <inheritdoc />
-		virtual UInt32 getDeviceId() const noexcept override;
-		
-		/// <inheritdoc />
-		virtual GraphicsAdapterType getType() const noexcept override;
-		
-		/// <inheritdoc />
-		virtual UInt32 getDriverVersion() const noexcept override;
-		
-		/// <inheritdoc />
-		virtual UInt32 getApiVersion() const noexcept override;
-		
-		/// <inheritdoc />
-		virtual UInt64 getDedicatedMemory() const noexcept override;
-	};
-
-	/// <summary>
-	/// Represents a Vulkan surface.
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanSurface : public ISurface, public IResource<VkSurfaceKHR> {
-		LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
-
-	public:
-		/// <summary>
-		/// Initializes the surface from a surface and instance handle.
-		/// </summary>
-		/// <param name="surface">The handle of the Vulkan surface.</param>
-		/// <param name="instance">The handle of the parent instance.</param>
-		VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
-		VulkanSurface(const VulkanSurface&) = delete;
-		VulkanSurface(VulkanSurface&&) = delete;
-		virtual ~VulkanSurface() noexcept;
-
-	public:
-		/// <summary>
-		/// Returns the handle of the backend, the surface has been created from.
-		/// </summary>
-		/// <returns>The handle of the backend, the surface has been created from.</returns>
-		const VkInstance& instance() const noexcept;
-	};
-
-	/// <summary>
 	/// A graphics factory that produces objects for a <see cref="VulkanDevice" />.
 	/// </summary>
 	/// <remarks>
@@ -582,9 +599,9 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Represents a Vulkan graphics device.
+	/// Implements a Vulkan graphics device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanGraphicsFactory>, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanFrameBuffer, VulkanGraphicsFactory>, public IResource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -602,7 +619,28 @@ namespace LiteFX::Rendering::Backends {
 		VulkanDevice(VulkanDevice&&) = delete;
 		virtual ~VulkanDevice() noexcept;
 
+		// Vulkan Device interface.
 	public:
+		/// <summary>
+		/// Returns the array that stores the extensions that were used to initialize the device.
+		/// </summary>
+		/// <returns>A reference to the array that stores the extensions that were used to initialize the device.</returns>
+		virtual const Array<String>& getExtensions() const noexcept;
+
+	public:
+		/// <summary>
+		/// Returns a builder for a <see cref="VulkanRenderPass" />.
+		/// </summary>
+		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		/// <seealso cref="IGraphicsDevice::build" />
+		VulkanRenderPassBuilder buildRenderPass() const;
+
+
+		// IGraphicsDevice interface.
+	public:
+		/// <inheritdoc />
+		virtual const VulkanSwapChain& swapChain() const noexcept override;
+
 		/// <inheritdoc />
 		virtual const VulkanSurface& surface() const noexcept override;
 
@@ -621,44 +659,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const VulkanQueue& bufferQueue() const noexcept override;
 
+	public:
 		/// <inheritdoc />
-		virtual void wait() override;
+		virtual void wait() const override;
 
-		virtual Array<Format> getSurfaceFormats() const override;
-		virtual const VulkanSwapChain& swapChain() const noexcept override;
-		virtual Array<UniquePtr<IImage>> createSwapChainImages(const ISwapChain* swapChain) const;
-		virtual size_t getBufferWidth() const noexcept override;
-		virtual size_t getBufferHeight() const noexcept override;
-		virtual void resize(int width, int height) override;
-
-	public:
-		/// <summary>
-		/// Returns the array that stores the extensions that were used to initialize the device.
-		/// </summary>
-		/// <returns>A reference to the array that stores the extensions that were used to initialize the device.</returns>
-		virtual const Array<String>& getExtensions() const noexcept;
-
-		/// <summary>
-		/// Validates a set of extensions, i.e. checks if all elements of <paramref name="extensions" /> are supported by the device.
-		/// </summary>
-		/// <param name="extensions">A list of required extensions. If one of the extensions in the list is not supported, the method returns <c>false</c>.</param>
-		/// <returns><c>true</c>, if all elements of <paramref name="extensions" /> are supported by the device.</returns>
-		/// <seealso cref="getAvailableDeviceExtensions" />
-		virtual bool validateDeviceExtensions(const Array<String>& extensions) const noexcept;
-
-		/// <summary>
-		/// Returns a list of all available device extensions.
-		/// </summary>
-		/// <returns>A list of all available device extensions.</returns>
-		virtual Array<String> getAvailableDeviceExtensions() const noexcept; 
-
-	public:
-		/// <summary>
-		/// Returns a builder for a <see cref="VulkanRenderPass" />.
-		/// </summary>
-		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		/// <seealso cref="IGraphicsDevice::build" />
-		VulkanRenderPassBuilder buildRenderPass() const;
+		/// <inheritdoc />
+		//void resize(const Size2d& renderArea, TRenderPass& presentPass) const override;
 	};
 
 	/// <summary>

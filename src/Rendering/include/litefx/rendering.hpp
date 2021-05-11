@@ -11,190 +11,145 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	/// <summary>
-	/// Represents a render target, i.e. an abstract view of the target of a <see cref="IRenderPass" />.
-	/// </remarks>
-	/// <remarks>
-	/// A render target represents one output of a render pass. It is contained by a <see cref="IFrameBuffer" />, that records draw commands for it.
-	/// </remarks>
-	/// <seealso cref="RenderTarget" />
-	/// <seealso cref="IFrameBuffer" />
-	class LITEFX_RENDERING_API IRenderTarget {
-	public:
-		virtual ~IRenderTarget() noexcept = default;
-
-	public:
-		/// <summary>
-		/// Returns the type of the render target.
-		/// </summary>
-		/// <returns>The type of the render target.</returns>
-		virtual const RenderTargetType& type() const noexcept = 0;
-
-		/// <summary>
-		/// Returns the number of samples of the render target when used for multi-sampling.
-		/// </summary>
-		/// <returns>The number of samples of the render target.</returns>
-		virtual const MultiSamplingLevel& samples() const noexcept = 0;
-		
-		/// <summary>
-		/// Returns the internal format of the render target.
-		/// </summary>
-		/// <returns>The internal format of the render target.</returns>
-		virtual const Format& format() const noexcept = 0;
-
-		/// <summary>
-		/// Returns <c>true</c>, if the render target should be cleared, when the render pass is started. If the <see cref="format" /> is set to a depth format, this clears the
-		/// depth buffer. Otherwise it clears the color buffer.
-		/// </summary>
-		/// <returns><c>true</c>, if the render target should be cleared, when the render pass is started</returns>
-		/// <seealso cref="clearStencil" />
-		/// <seealso cref="clearValues" />
-		virtual const bool& clearBuffer() const noexcept = 0;
-
-		/// <summary>
-		/// Returns <c>true</c>, if the render target stencil should be cleared, when the render pass is started. If the <see cref="format" /> is does not contain a stencil channel,
-		/// this has no effect.
-		/// </summary>
-		/// <returns><c>true</c>, if the render target stencil should be cleared, when the render pass is started</returns>
-		/// <seealso cref="clearStencil" />
-		/// <seealso cref="clearValues" />
-		virtual const bool& clearStencil() const noexcept = 0;
-
-		/// <summary>
-		/// Returns the value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.
-		/// </summary>
-		/// <remarks>
-		/// If the <see cref="format" /> is a color format and <see cref="clearBuffer" /> is specified, this contains the clear color. However, if the format is a depth/stencil 
-		/// format, the R and G channels contain the depth and stencil value to clear the buffer with. Note that the stencil buffer is only cleared, if <see cref="clearStencil" />
-		/// is specified and vice versa.
-		/// </remarks>
-		/// <returns>The value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.</returns>
-		virtual const Vector4f& clearValues() const noexcept = 0;
-
-		/// <summary>
-		/// Returns <c>true</c>, if the target should not be made persistent for access after the render pass has finished.
-		/// </summary>
-		/// <remarks>
-		/// A render target can be marked as volatile if it does not need to be accessed after the render pass has finished. This can be used to optimize away unnecessary GPU/CPU 
-		/// memory round-trips. For example a depth buffer may only be used as an input for the lighting stage of a deferred renderer, but is not required after this. So instead
-		/// of reading it from the GPU after the lighting pass has finished and then discarding it anyway, it can be marked as volatile in order to prevent it from being read from
-		/// the GPU memory again in the first place.
-		/// </remarks>
-		/// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
-		virtual const bool& isVolatile() const noexcept = 0;
-	};
-
-	/// <summary>
-	/// Implements a render target.
-	/// </summary>
-	/// <see cref="IRenderTarget" />
-	class LITEFX_RENDERING_API RenderTarget : public IRenderTarget {
-		LITEFX_IMPLEMENTATION(RenderTargetImpl);
-
-	public:
-		/// <summary>
-		/// Initializes the render target.
-		/// </summary>
-		/// <param name="type">The type of the render target.</param>
-		/// <param name="format">The format of the render target.</param>
-		/// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
-		/// <param name="clearValues">The values with which the render target gets cleared.</param>
-		/// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
-		/// <param name="samples">The number of samples of the render target when used with multi-sampling.</param>
-		/// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
-		explicit RenderTarget(const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false);
-		RenderTarget(const RenderTarget&) = delete;
-		RenderTarget(RenderTarget&&) = delete;
-		virtual ~RenderTarget() noexcept;
-
-	public:
-		/// <inheritdoc />
-		virtual const RenderTargetType& type() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const MultiSamplingLevel& samples() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const Format& format() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const bool& clearBuffer() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const bool& clearStencil() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const Vector4f& clearValues() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const bool& isVolatile() const noexcept override;
-	};
-
-	/// <summary>
 	/// Stores multiple <see cref="IRenderTarget" /> instances, as well as a <see cref="ICommandBuffer" /> instance, that records draw commands.
 	/// </summary>
+	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
+	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
 	/// <seealso cref="RenderTarget" />
+	template <typename TCommandBuffer, typename TImage> requires
+		rtti::implements<TCommandBuffer, ICommandBuffer> &&
+		std::derived_from<TImage, IImage>
 	class IFrameBuffer {
 	public:
+		using command_buffer_type = TCommandBuffer;
+		using image_type = TImage;
+
+	public:
 		virtual ~IFrameBuffer() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Returns the current size of the frame buffer.
+		/// </summary>
+		/// <returns>The current size of the frame buffer.</returns>
+		/// <seealso cref="height" />
+		/// <seealso cref="width" />
+		/// <seealso cref="resize" />
+		virtual const Size2d& size() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the current width of the frame buffer.
+		/// </summary>
+		/// <returns>The current width of the frame buffer.</returns>
+		/// <seealso cref="height" />
+		/// <seealso cref="size" />
+		/// <seealso cref="resize" />
+		virtual size_t getWidth() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the current height of the frame buffer.
+		/// </summary>
+		/// <returns>The current height of the frame buffer.</returns
+		/// <seealso cref="width" />
+		/// <seealso cref="size" />
+		/// <seealso cref="resize" />
+		virtual size_t getHeight() const noexcept = 0;
+
+		/// <summary>
+		/// Returns a list of render targets, contained by the frame buffer.
+		/// </summary>
+		/// <returns>A list of render targets, contained by the frame buffer.</returns>
+		virtual Array<std::reference_wrapper<const RenderTarget>> renderTargets() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the command buffer that records draw commands for the frame buffer.
+		/// </summary>
+		/// <returns>The command buffer that records draw commands for the frame buffer</returns>
+		virtual const TCommandBuffer& commandBuffer() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if one of the render targets is used for presentation on a swap chain.
+		/// </summary>
+		/// <returns><c>true</c>, if one of the render targets is used for presentation on a swap chain.</returns>
+		/// <seealso cref="renderTargets" />
+		virtual bool hasPresentTarget() const noexcept = 0;
+
+	public:
+		/// <summary>
+		/// Causes the frame buffer to be invalidated and recreated with a new size.
+		/// </summary>
+		/// <remarks>
+		/// A frame buffer resize causes all render target resources (i.e. images) to be re-created. This is done by the implementation itself, except for present targets, which require
+		/// a view of an image created on a <see cref="ISwapChain" />. If the frame buffer has a present target, it should expect the <paramref name="presentImage" /> to be provided,
+		/// which will then be passed to the appropriate render target. Otherwise it can ignore this parameter.
+		/// </remarks>
+		/// <param name="renderArea">The new dimensions of the frame buffer.</param>
+		/// <param name="presentImage">The swap chain image, that should be bound to the present target.</param>
+		virtual void resize(const Size2d& renderArea, UniquePtr<TImage>&& presentImage) = 0;
 	};
 
 	/// <summary>
-	/// Represents a swap chain, i.e. a chain of multiple <see cref="IFrameBuffer" /> instances, that can be presented to a <see cref="ISurface" />.
+	/// Represents a swap chain, i.e. a chain of multiple <see cref="IImage" /> instances, that can be presented to a <see cref="ISurface" />.
 	/// </summary>
-	class LITEFX_RENDERING_API ISwapChain {
+	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
+	template <typename TImage> requires
+		std::derived_from<TImage, IImage>
+	class ISwapChain {
+	public:
+		using image_type = TImage;
+
 	public:
 		virtual ~ISwapChain() noexcept = default;
 
 	public:
-		virtual const Size2d& getBufferSize() const noexcept = 0;
-		virtual size_t getWidth() const noexcept = 0;
-		virtual size_t getHeight() const noexcept = 0;
-		virtual const Format& getFormat() const noexcept = 0;
-		virtual UInt32 swapBackBuffer() const = 0;
-		virtual void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers) = 0;
-		virtual UInt32 getBuffers() const noexcept = 0;
-	};
+		/// <summary>
+		/// Returns the swap chain image format.
+		/// </summary>
+		/// <returns>The swap chain image format.</returns>
+		virtual const Format& surfaceFormat() const noexcept = 0;
 
-	/// <summary>
-	/// Represents a command buffer, that buffers commands that should be submitted to a <see cref="ICommandQueue" />.
-	/// </summary>
-	class LITEFX_RENDERING_API ICommandBuffer {
+		/// <summary>
+		/// Returns the number of images in the swap chain.
+		/// </summary>
+		/// <returns>The number of images in the swap chain.</returns>
+		virtual const UInt32& buffers() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the size of the render area.
+		/// </summary>
+		/// <returns>The size of the render area.</returns>
+		virtual const Size2d& renderArea() const noexcept = 0;
+
 	public:
-		virtual ~ICommandBuffer() noexcept = default;
-
-	public:
 		/// <summary>
-		/// Waits for the command buffer to be executed.
+		/// Returns an array of supported formats, that can be drawn to the surface.
+		/// </summary>
+		/// <returns>An array of supported formats, that can be drawn to the surface.</returns>
+		/// <see cref="surface" />
+		/// <seealso cref="ISurface" />
+		virtual Array<Format> getSurfaceFormats() const noexcept = 0;
+
+		/// <summary>
+		/// Causes the swap chain to be re-created. All frame and command buffers will be invalidated and rebuilt.
 		/// </summary>
 		/// <remarks>
-		/// If the command buffer gets submitted, it does not necessarily get executed straight away. If you depend on a command buffer to be finished, you can call this method.
+		/// There is no guarantee, that the swap chain images will end up in the exact format, as specified by <paramref name="surfaceFormat" />. If the format itself is not
+		/// supported, a compatible format may be looked up. If the lookup fails, the method may raise an exception.
+		/// 
+		/// Similarly, it is not guaranteed, that the number of images in the array returned matches the number specified in <paramref name="buffers" />. A swap chain may 
+		/// require a minimum number of images or may constraint a maximum number of images. In both cases, <paramref name="buffers" /> will be clamped.
 		/// </remarks>
-		virtual void wait() const = 0;
+		/// <param name="surfaceFormat">The swap chain image format.</param>
+		/// <param name="renderArea">The dimensions of the frame buffers.</param>
+		/// <param name="buffers">The number of buffers in the swap chain.</param>
+		/// <returns>An array, containing the swap chain images.</returns>
+		[[nodiscard]] virtual Array<UniquePtr<TImage>> reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
 
 		/// <summary>
-		/// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="ICommandQueue" />.
+		/// Swaps the front buffer with the next back buffer in order.
 		/// </summary>
-		/// <remarks>
-		/// Note that, if a command buffer has been submitted before, this method waits for the earlier commands to be executed by calling <see cref="wait" />.
-		/// </remarks>
-		virtual void begin() const = 0;
-
-		/// <summary>
-		/// Ends recording commands on the command buffer.
-		/// </summary>
-		/// <param name="submit">If set to <c>true</c>, the command buffer is automatically submitted by calling the <see cref="submit" /> method.</param>
-		/// <param name="wait">If <paramref name="submit" /> is set to <c>true</c>, this parameter gets passed to the <see cref="submit" /> method.</param>
-		/// <seealso cref="submit" />
-		virtual void end(const bool& submit = true, const bool& wait = false) const = 0;
-
-		/// <summary>
-		/// Submits the command buffer to the parent command queue.
-		/// </summary>
-		/// <remarks>
-		/// </remarks>
-		/// <param name="wait">If set to <c>true</c>, the command buffer blocks, until the submitted commands have been executed.</param>
-		/// <seealso cref="wait" />
-		virtual void submit(const bool& wait = false) const = 0;
+		/// <returns>A reference of the front buffer after the buffer swap.</returns>
+		[[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
 	};
 
 	/// <summary>
@@ -382,20 +337,24 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
 	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
 	/// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
+	/// <typeparam name="TImage">The type of the swap chain image interface. Must inherit from <see cref="IImage" />.</typeparam>
+	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer" />.</typeparam>
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
 	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TFactory, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type> requires
+	template <typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TFrameBuffer, typename TFactory, typename TImage = TSwapChain::image_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type> requires
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-		rtti::implements<TSwapChain, ISwapChain> &&
+		rtti::implements<TSwapChain, ISwapChain<TImage>> &&
+		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>> &&
 		rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
 		rtti::implements<TFactory, IGraphicsFactory<TVertexBufferLayout, TIndexBufferLayout, TDescriptorLayout>> &&
 		rtti::implements<TCommandBuffer, ICommandBuffer> &&
 		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
 		rtti::implements<TIndexBufferLayout, IIndexBufferLayout> &&
-		rtti::implements<TDescriptorLayout, IDescriptorLayout>
+		rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
+		std::derived_from<TImage, IImage>
 	class IGraphicsDevice {
 	public:
 		using surface_type = TSurface;
@@ -403,6 +362,7 @@ namespace LiteFX::Rendering {
 		using swap_chain_type = TSwapChain;
 		using command_queue_type = TCommandQueue;
 		using factory_type = TFactory;
+		using frame_buffer_type = TFrameBuffer;
 
 	public:
 		virtual ~IGraphicsDevice() noexcept = default;
@@ -419,6 +379,12 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <returns>A reference of the graphics adapter, the device uses for drawing.</returns>
 		virtual const TGraphicsAdapter& adapter() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the swap chain, that contains the back and front buffers used for presentation.
+		/// </summary>
+		/// <returns>The swap chain, that contains the back and front buffers used for presentation.</returns>
+		virtual const TSwapChain& swapChain() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the factory instance, used to create instances from the device.
@@ -458,21 +424,27 @@ namespace LiteFX::Rendering {
 		/// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
 		/// may safely be released.
 		/// </remarks>
-		virtual void wait() = 0;
-
-		// TODO: Move into IFrameBuffer instance ("present buffer"?) and move it to the swap chain. See issue #22.
-		virtual void resize(int width, int height) = 0;
-		virtual const TSwapChain& swapChain() const noexcept = 0;
-		virtual size_t getBufferWidth() const noexcept = 0;
-		virtual size_t getBufferHeight() const noexcept = 0;
+		virtual void wait() const = 0;
 
 		/// <summary>
-		/// Returns an array of supported formats, that can be drawn to the surface.
+		/// Resizes the render area of the swap chain and resets the frame buffers on the provided render pass.
 		/// </summary>
-		/// <returns>An array of supported formats, that can be drawn to the surface.</returns>
-		/// <see cref="surface" />
-		/// <seealso cref="ISurface" />
-		virtual Array<Format> getSurfaceFormats() const = 0;
+		/// <remarks>
+		/// This method is a helper to simplify frame buffer resize events. It resets the <see cref="swapChain" /> instance and uses the returned images to reset the frame buffer of the 
+		/// render pass, provided in <paramref name="presentPass" />. This is equivalent to calling <see cref="ISwapChain::reset" /> on the device swap chain, followed by a call to
+		/// <see cref="IRenderPass::reset" /> with the newly created swap chain images. 
+		/// 
+		/// Note that you are responsible for ensuring, that the provided render pass actually contains the present targets. If it doesn't, the swap chain images will be destroyed and 
+		/// remain unaccessible.
+		/// 
+		/// Other render passes still need to be resized manually, if required.
+		/// </remarks>
+		/// <param name="renderArea">The new size of the render area.</param>
+		/// <param name="presentPass">The render pass that is responsible for presenting.</param>
+		/// <seealso cref="ISwapChain" />
+		/// <seealso cref="IFrameBuffer" />
+		/// <seealso cref="IRenderPass" />
+		//virtual void resize(const Size2d& renderArea, TRenderPass& presentPass) const = 0;
 
 	protected:
 		/// <summary>
@@ -484,7 +456,7 @@ namespace LiteFX::Rendering {
 		template <typename TRenderPass, typename TDerived, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
 			rtti::implements<TRenderPass, IRenderPass> &&
 			rtti::has_builder<TRenderPass> &&
-			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TFactory>>
+			rtti::implements<TDerived, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TFrameBuffer, TFactory>>
 		[[nodiscard]] TBuilder build(TArgs&&... _args) const {
 			// NOTE: If the cast raises an exception here, check the `TDerived` type - it must be equal to the parent graphics device class that calls this function.
 			return TBuilder(makeUnique<TRenderPass>(dynamic_cast<const TDerived&>(*this), std::forward<TArgs>(_args)...));
@@ -500,11 +472,10 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
 	/// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
 	/// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
-	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type> requires
+	template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type> requires
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSurface, ISurface> &&
-		rtti::implements<TSwapChain, ISwapChain> &&
-		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TFactory>>
+		rtti::implements<TGraphicsDevice, IGraphicsDevice<TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TFrameBuffer, TFactory>>
 	class IRenderBackend : public IBackend {
 	public:
 		virtual ~IRenderBackend() noexcept = default;

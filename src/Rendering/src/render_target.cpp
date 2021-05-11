@@ -16,6 +16,7 @@ private:
     MultiSamplingLevel m_samples = MultiSamplingLevel::x1;
     bool m_clearBuffer = false, m_clearStencil = false, m_volatile = false;
     Vector4f m_clearValues;
+    UniquePtr<IImage> m_image;
 
 public:
     RenderTargetImpl(RenderTarget* parent, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const MultiSamplingLevel& samples, const bool& isVolatile) :
@@ -33,7 +34,22 @@ RenderTarget::RenderTarget(const RenderTargetType& type, const Format& format, c
 {
 }
 
+RenderTarget::RenderTarget(const RenderTarget& _other) noexcept :
+    m_impl(makePimpl<RenderTargetImpl>(this, _other.type(), _other.format(), _other.clearBuffer(), _other.clearValues(), _other.clearStencil(), _other.samples(), _other.isVolatile()))
+{
+}
+
+RenderTarget::RenderTarget(RenderTarget&& _other) noexcept :
+    m_impl(makePimpl<RenderTargetImpl>(this, std::move(_other.m_impl->m_type), std::move(_other.m_impl->m_format), std::move(_other.m_impl->m_clearBuffer), std::move(_other.m_impl->m_clearValues), std::move(_other.m_impl->m_clearStencil), std::move(_other.m_impl->m_samples), std::move(_other.m_impl->m_volatile)))
+{
+}
+
 RenderTarget::~RenderTarget() noexcept = default;
+
+const IImage* RenderTarget::image() const noexcept
+{
+    return m_impl->m_image.get();
+}
 
 const RenderTargetType& RenderTarget::type() const noexcept
 {
@@ -68,4 +84,12 @@ const Vector4f& RenderTarget::clearValues() const noexcept
 const bool& RenderTarget::isVolatile() const noexcept
 {
     return m_impl->m_volatile;
+}
+
+void RenderTarget::reset(UniquePtr<IImage>&& image)
+{
+    if (image == nullptr)
+        throw ArgumentNotInitializedException("The image must be initialized.");
+
+    m_impl->m_image = std::move(image);
 }

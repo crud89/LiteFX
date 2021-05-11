@@ -32,11 +32,7 @@ namespace LiteFX::Rendering {
     class IShaderModule;
     class IShaderProgram;
     class ITexture;
-    class ISwapChain;
-    class ISurface;
-	class ICommandBuffer;
 	class IRenderPass;
-	class IRenderTarget;
 	class IBufferLayout;
 	class IVertexBufferLayout;
 	class IIndexBufferLayout;
@@ -561,6 +557,197 @@ namespace LiteFX::Rendering {
 		virtual ~ISurface() noexcept = default;
 	};
 
+	/// <summary>
+	/// Represents a render target, i.e. an abstract view of the output of an <see cref="IRenderPass" />.
+	/// </remarks>
+	/// <remarks>
+	/// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="IFrameBuffer" />, that records 
+	/// draw commands for it.
+	/// </remarks>
+	/// <seealso cref="RenderTarget" />
+	/// <seealso cref="IFrameBuffer" />
+	/// <seealso cref="IImage" />
+	class LITEFX_RENDERING_API IRenderTarget {
+	public:
+		virtual ~IRenderTarget() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Returns the render target image resource.
+		/// </summary>
+		/// <remarks>
+		/// The render target image is not automatically generated when the render target itself gets generated. Instead, it is either provided by a <see cref="IFrameBuffer" /> or 
+		/// a <see cref="ISwapChain" /> by calling the <see cref="reset" /> method.
+		/// </remarks>
+		/// <returns>The render target image resource.</returns>
+		/// <seealso cref="reset" />
+		virtual const IImage* image() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the type of the render target.
+		/// </summary>
+		/// <returns>The type of the render target.</returns>
+		virtual const RenderTargetType& type() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the number of samples of the render target when used for multi-sampling.
+		/// </summary>
+		/// <returns>The number of samples of the render target.</returns>
+		virtual const MultiSamplingLevel& samples() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the internal format of the render target.
+		/// </summary>
+		/// <returns>The internal format of the render target.</returns>
+		virtual const Format& format() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if the render target should be cleared, when the render pass is started. If the <see cref="format" /> is set to a depth format, this clears the
+		/// depth buffer. Otherwise it clears the color buffer.
+		/// </summary>
+		/// <returns><c>true</c>, if the render target should be cleared, when the render pass is started</returns>
+		/// <seealso cref="clearStencil" />
+		/// <seealso cref="clearValues" />
+		virtual const bool& clearBuffer() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if the render target stencil should be cleared, when the render pass is started. If the <see cref="format" /> is does not contain a stencil channel,
+		/// this has no effect.
+		/// </summary>
+		/// <returns><c>true</c>, if the render target stencil should be cleared, when the render pass is started</returns>
+		/// <seealso cref="clearStencil" />
+		/// <seealso cref="clearValues" />
+		virtual const bool& clearStencil() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.
+		/// </summary>
+		/// <remarks>
+		/// If the <see cref="format" /> is a color format and <see cref="clearBuffer" /> is specified, this contains the clear color. However, if the format is a depth/stencil 
+		/// format, the R and G channels contain the depth and stencil value to clear the buffer with. Note that the stencil buffer is only cleared, if <see cref="clearStencil" />
+		/// is specified and vice versa.
+		/// </remarks>
+		/// <returns>The value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.</returns>
+		virtual const Vector4f& clearValues() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if the target should not be made persistent for access after the render pass has finished.
+		/// </summary>
+		/// <remarks>
+		/// A render target can be marked as volatile if it does not need to be accessed after the render pass has finished. This can be used to optimize away unnecessary GPU/CPU 
+		/// memory round-trips. For example a depth buffer may only be used as an input for the lighting stage of a deferred renderer, but is not required after this. So instead
+		/// of reading it from the GPU after the lighting pass has finished and then discarding it anyway, it can be marked as volatile in order to prevent it from being read from
+		/// the GPU memory again in the first place.
+		/// </remarks>
+		/// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
+		virtual const bool& isVolatile() const noexcept = 0;
+
+	public:
+		/// <summary>
+		/// Resets the render targets image resource.
+		/// </summary>
+		/// <param name="image">The image resource to use.</param>
+		/// <seealso cref="image" />
+		virtual void reset(UniquePtr<IImage>&& image) = 0;
+	};
+
+	/// <summary>
+	/// Implements a render target.
+	/// </summary>
+	/// <see cref="IRenderTarget" />
+	class LITEFX_RENDERING_API RenderTarget : public IRenderTarget {
+		LITEFX_IMPLEMENTATION(RenderTargetImpl);
+
+	public:
+		/// <summary>
+		/// Initializes the render target.
+		/// </summary>
+		/// <param name="type">The type of the render target.</param>
+		/// <param name="format">The format of the render target.</param>
+		/// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
+		/// <param name="clearValues">The values with which the render target gets cleared.</param>
+		/// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
+		/// <param name="samples">The number of samples of the render target when used with multi-sampling.</param>
+		/// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
+		explicit RenderTarget(const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false);
+		RenderTarget(const RenderTarget&) noexcept;
+		RenderTarget(RenderTarget&&) noexcept;
+		virtual ~RenderTarget() noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual const IImage* image() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const RenderTargetType& type() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const MultiSamplingLevel& samples() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Format& format() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const bool& clearBuffer() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const bool& clearStencil() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Vector4f& clearValues() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const bool& isVolatile() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		virtual void reset(UniquePtr<IImage>&& image) override;
+	};
+
+	/// <summary>
+	/// Represents a command buffer, that buffers commands that should be submitted to a <see cref="ICommandQueue" />.
+	/// </summary>
+	class LITEFX_RENDERING_API ICommandBuffer {
+	public:
+		virtual ~ICommandBuffer() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Waits for the command buffer to be executed.
+		/// </summary>
+		/// <remarks>
+		/// If the command buffer gets submitted, it does not necessarily get executed straight away. If you depend on a command buffer to be finished, you can call this method.
+		/// </remarks>
+		virtual void wait() const = 0;
+
+		/// <summary>
+		/// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="ICommandQueue" />.
+		/// </summary>
+		/// <remarks>
+		/// Note that, if a command buffer has been submitted before, this method waits for the earlier commands to be executed by calling <see cref="wait" />.
+		/// </remarks>
+		virtual void begin() const = 0;
+
+		/// <summary>
+		/// Ends recording commands on the command buffer.
+		/// </summary>
+		/// <param name="submit">If set to <c>true</c>, the command buffer is automatically submitted by calling the <see cref="submit" /> method.</param>
+		/// <param name="wait">If <paramref name="submit" /> is set to <c>true</c>, this parameter gets passed to the <see cref="submit" /> method.</param>
+		/// <seealso cref="submit" />
+		virtual void end(const bool& submit = true, const bool& wait = false) const = 0;
+
+		/// <summary>
+		/// Submits the command buffer to the parent command queue.
+		/// </summary>
+		/// <remarks>
+		/// </remarks>
+		/// <param name="wait">If set to <c>true</c>, the command buffer blocks, until the submitted commands have been executed.</param>
+		/// <seealso cref="wait" />
+		virtual void submit(const bool& wait = false) const = 0;
+	};
+
+
+	// TODO: Remove me.
 	class LITEFX_RENDERING_API IRequiresInitialization {
 	public:
 		/// <summary>

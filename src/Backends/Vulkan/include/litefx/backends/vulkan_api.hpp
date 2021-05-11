@@ -104,7 +104,6 @@ namespace LiteFX::Rendering::Backends {
     class VulkanSwapChain;
     class VulkanQueue;
     class VulkanDevice;
-    class VulkanGraphicsAdapter;
     class VulkanBackend;
     class VulkanRenderPipeline;
     class VulkanRenderPipelineLayout;
@@ -123,6 +122,89 @@ namespace LiteFX::Rendering::Backends {
     class VulkanConstantBuffer;
     class VulkanSampler;
 
+    /// <summary>
+    /// Represents a Vulkan graphics adapter.
+    /// </summary>
+    class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
+        LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
+
+    public:
+        /// <summary>
+        /// Initializes a graphics adapter instance with a physical device.
+        /// </summary>
+        /// <param name="adapter">The phyiscal device to initialize the instance with.</param>
+        explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
+        VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
+        VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
+        virtual ~VulkanGraphicsAdapter() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual String getName() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getVendorId() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getDeviceId() const noexcept override;
+
+        /// <inheritdoc />
+        virtual GraphicsAdapterType getType() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getDriverVersion() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getApiVersion() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt64 getDedicatedMemory() const noexcept override;
+    };
+
+    /// <summary>
+    /// Represents a Vulkan surface.
+    /// </summary>
+    class LITEFX_VULKAN_API VulkanSurface : public ISurface, public IResource<VkSurfaceKHR> {
+        LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
+
+    public:
+        /// <summary>
+        /// Initializes the surface from a surface and instance handle.
+        /// </summary>
+        /// <param name="surface">The handle of the Vulkan surface.</param>
+        /// <param name="instance">The handle of the parent instance.</param>
+        VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
+        VulkanSurface(const VulkanSurface&) = delete;
+        VulkanSurface(VulkanSurface&&) = delete;
+        virtual ~VulkanSurface() noexcept;
+
+    public:
+        /// <summary>
+        /// Returns the handle of the backend, the surface has been created from.
+        /// </summary>
+        /// <returns>The handle of the backend, the surface has been created from.</returns>
+        const VkInstance& instance() const noexcept;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_VULKAN_API IVulkanImage : public virtual IImage, public virtual IResource<VkImage> {
+    public:
+        virtual ~IVulkanImage() noexcept = default;
+
+    public:
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        virtual const VkImageView& getImageView() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TParent"></typeparam>
     template <typename TParent>
     class LITEFX_VULKAN_API VulkanRuntimeObject {
     private:
@@ -148,6 +230,14 @@ namespace LiteFX::Rendering::Backends {
 
     DEFINE_EXCEPTION(VulkanPlatformException, std::runtime_error);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TException"></typeparam>
+    /// <typeparam name="...TArgs"></typeparam>
+    /// <param name="result"></param>
+    /// <param name="message"></param>
+    /// <param name="...args"></param>
     template <typename TException, typename ...TArgs>
     inline void raiseIfFailed(VkResult result, const std::string& message, TArgs&&... args) {
         [[likely]] if (result == VK_SUCCESS)

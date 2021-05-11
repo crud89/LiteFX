@@ -14,6 +14,7 @@
 #include <memory>
 #include <functional>
 #include <variant>
+#include <ranges>
 
 #include "traits.hpp"
 #include "string.hpp"
@@ -145,6 +146,36 @@ namespace LiteFX {
 	template <class T>
 	SharedPtr<T> makeShared(UniquePtr<T>&& ptr) {
 		return std::make_shared<T>(ptr.release());
+	}
+
+	/// <summary>
+	/// Contains helpers for working with ranges and views.
+	/// </summary>
+	namespace ranges {
+
+		template <typename TContainer>
+		struct to_container { };
+
+		template <typename TContainer, std::ranges::range TRange> requires 
+			std::convertible_to<std::ranges::range_value_t<TRange>, typename TContainer::value_type>
+		inline TContainer operator|(TRange&& range, to_container<TContainer>) {
+			auto it = range | std::views::common;
+			return TContainer{ it.begin(), it.end() };
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// This may be replaced by <c>std::views::to</c> in the future.
+		/// </remarks>
+		/// <returns></returns>
+		template <std::ranges::range TContainer> requires 
+			(!std::ranges::view<TContainer>)
+		auto to() {
+			return to_container<TContainer>{};
+		}
+
 	}
 
 #if (defined(BUILD_LITEFX_PIMPL) && BUILD_LITEFX_PIMPL) || (!defined(BUILD_LITEFX_PIMPL)) && !defined(LITEFX_IMPLEMENTATION)

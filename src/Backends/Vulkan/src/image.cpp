@@ -62,7 +62,7 @@ _VMAImage::_VMAImage(const VulkanDevice& device, VkImage image, const UInt32& el
 }
 
 _VMAImage::_VMAImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
-    _VMAImageBase(device, image, allocator, allocation), Image(elements, ::getSize(format) * extent.width() * extent.height(), extent, format)
+    IResource(image), _VMAImageBase(device, image, allocator, allocation), Image(elements, ::getSize(format) * extent.width() * extent.height(), extent, format)
 {
 	VkImageViewCreateInfo createInfo = {};
 
@@ -147,7 +147,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 _VMATexture::_VMATexture(const VulkanDevice& device, const VulkanDescriptorLayout* layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
-	_VMAImageBase(device, image, allocator, allocation), Texture(layout, elements, ::getSize(format)* extent.width()* extent.height(), extent, format, levels, samples), m_impl(makePimpl<_VMATextureImpl>(this, imageLayout, layout))
+	IResource(image), _VMAImageBase(device, image, allocator, allocation), Texture(layout, elements, ::getSize(format)* extent.width()* extent.height(), extent, format, levels, samples), m_impl(makePimpl<_VMATextureImpl>(this, imageLayout, layout))
 {
 	VkImageViewCreateInfo createInfo = {};
 

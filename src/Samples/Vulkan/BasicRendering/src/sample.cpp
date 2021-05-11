@@ -195,8 +195,10 @@ void SampleApp::handleEvents()
 
 void SampleApp::drawFrame()
 {
+    auto backBuffer = m_device->swapChain().swapBackBuffer();
+
     // Begin rendering.
-    m_renderPass->begin();
+    m_renderPass->begin(backBuffer);
 
     // Get the pipeline and bind it.
     auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
@@ -231,5 +233,5 @@ void SampleApp::drawFrame()
     m_renderPass->drawIndexed(indices.size());
 
     // End the frame.
-    m_renderPass->end(true);
+    m_renderPass->end(backBuffer, true);
 }

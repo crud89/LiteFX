@@ -29,7 +29,7 @@ private:
 		QueueFamily(const UInt32& id, const UInt32& queueCount, const QueueType& type) :
 			m_id(id), m_queueCount(queueCount), m_type(type) { 
 		}
-		QueueFamily(const QueueFamily&) = delete;
+		QueueFamily(const QueueFamily& _other) = delete;
 		QueueFamily(QueueFamily&& _other) {
 			m_queues = std::move(_other.m_queues);
 			m_id = std::move(_other.m_id);
@@ -83,34 +83,7 @@ private:
 	void defineMandatoryExtensions() noexcept
 	{
 		m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	}
-
-public:
-	bool validateDeviceExtensions(const Array<String>& extensions) const noexcept
-	{
-		auto availableExtensions = this->getAvailableDeviceExtensions();
-
-		return std::all_of(extensions.begin(), extensions.end(), [&availableExtensions](const String& extension) {
-			return std::find_if(availableExtensions.begin(), availableExtensions.end(), [&extension](String& str) {
-				return std::equal(str.begin(), str.end(), extension.begin(), extension.end(), [](char a, char b) {
-					return std::tolower(a) == std::tolower(b);
-					});
-				}) != availableExtensions.end();
-			});
-	}
-
-	Array<String> getAvailableDeviceExtensions() const noexcept
-	{
-		uint32_t extensions = 0;
-		::vkEnumerateDeviceExtensionProperties(m_adapter.handle(), nullptr, &extensions, nullptr);
-
-		Array<VkExtensionProperties> availableExtensions(extensions);
-		Array<String> extensionNames(extensions);
-
-		::vkEnumerateDeviceExtensionProperties(m_adapter.handle(), nullptr, &extensions, availableExtensions.data());
-		std::generate(extensionNames.begin(), extensionNames.end(), [&availableExtensions, i = 0]() mutable { return availableExtensions[i++].extensionName; });
-
-		return extensionNames;
+		//m_extensions.push_back(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
 	}
 
 public:
@@ -119,32 +92,34 @@ public:
 		// Find an available command queues.
 		uint32_t queueFamilies = 0;
 		::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter.handle(), &queueFamilies, nullptr);
+
 		Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
 		::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter.handle(), &queueFamilies, familyProperties.data());
 
-		std::for_each(familyProperties.begin(), familyProperties.end(), [this, i = 0](const auto& familyProperty) mutable {
-			QueueType type = QueueType::None;
+		m_families = familyProperties | 
+			std::views::transform([i = 0](const VkQueueFamilyProperties& familyProperty) mutable {
+				QueueType type = QueueType::None;
 
-			if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
-				type |= QueueType::Compute;
-			if (familyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-				type |= QueueType::Graphics;
-			if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
-				type |= QueueType::Transfer;
-			
-			m_families.push_back(QueueFamily(i++, familyProperty.queueCount, type));
-		});
+				if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
+					type |= QueueType::Compute;
+				if (familyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+					type |= QueueType::Graphics;
+				if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
+					type |= QueueType::Transfer;
+
+				return QueueFamily(i++, familyProperty.queueCount, type);
+			}) |
+			ranges::to<Array<QueueFamily>>();
 	}
 
 	VkDevice initialize(const Format& format)
 	{
-		if (!this->validateDeviceExtensions(m_extensions))
-			throw std::runtime_error("Some required device extensions are not supported by the system.");
+		if (!VulkanBackend::validateExtensions(m_extensions))
+			throw InvalidArgumentException("Some required device extensions are not supported by the system.");
 
-		// Parse the extensions.
-		// NOTE: For legacy support we should also set the device validation layers here.
-		std::vector<const char*> requiredExtensions(m_extensions.size());
-		std::generate(requiredExtensions.begin(), requiredExtensions.end(), [this, i = 0]() mutable { return m_extensions[i++].data(); });
+		auto const requiredExtensions = m_extensions | 
+			std::views::transform([](const auto& extension) { return extension.c_str(); }) |
+			ranges::to<Array<const char*>>();
 
 		// Create graphics and transfer queue.
 		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, m_surface.handle());
@@ -152,7 +127,7 @@ public:
 		m_bufferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 
 		if (m_graphicsQueue == nullptr)
-			throw std::runtime_error("Unable to find a fitting command queue to present the specified surface.");
+			throw RuntimeException("Unable to find a fitting command queue to present the specified surface.");
 
 		if (m_transferQueue == nullptr)
 		{
@@ -168,24 +143,24 @@ public:
 		}
 
 		// Define used queue families.
-		Array<VkDeviceQueueCreateInfo> queueCreateInfos;
+		Array<Array<Float>> queuePriorities;
+		auto const queueCreateInfos = m_families |
+			std::views::filter([](const QueueFamily& family) { return family.active() > 0; }) |
+			std::views::transform([&queuePriorities](const QueueFamily& family) {
+				auto const priorities = family.queues() | 
+					std::views::transform([](const UniquePtr<VulkanQueue>& queue) { return static_cast<Float>(queue->priority()) / 100.f; }) |
+					ranges::to<Array<Float>>();
 
-		for (const auto& family : m_families)
-		{
-			// Ignore, if no queues have been created.
-			if (family.active() == 0) 
-				continue;
-			
-			Array<float> priorities;
-			std::for_each(family.queues().begin(), family.queues().end(), [&priorities](const auto& queue) { priorities.push_back(static_cast<Float>(queue->priority()) / 100.f); });
+				VkDeviceQueueCreateInfo queueCreateInfo = {};
+				queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+				queueCreateInfo.queueFamilyIndex = family.id();
+				queueCreateInfo.queueCount = family.active();
+				queueCreateInfo.pQueuePriorities = priorities.data();
+				queuePriorities.push_back(priorities);
 
-			VkDeviceQueueCreateInfo queueCreateInfo = {};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = family.id();
-			queueCreateInfo.queueCount = family.active();
-			queueCreateInfo.pQueuePriorities = priorities.data();
-			queueCreateInfos.push_back(queueCreateInfo);
-		}
+				return queueCreateInfo;
+			}) |
+			ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
 		// Define the device features.
 		VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -201,9 +176,7 @@ public:
 
 		// Create the device.
 		VkDevice device;
-
-		if (::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device) != VK_SUCCESS)
-			throw std::runtime_error("Unable to create Vulkan device.");
+		raiseIfFailed<RuntimeException>(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 
 		return device;
 	}
@@ -215,7 +188,7 @@ public:
 
 	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		m_swapChain = makeUnique<VulkanSwapChain>(*m_parent, frameBufferSize, frameBuffers, format);
+		m_swapChain = makeUnique<VulkanSwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
 	}
 
 	void createQueues()
@@ -225,59 +198,31 @@ public:
 		m_bufferQueue->bind();
 	}
 
-	void wait()
-	{
-		if (::vkDeviceWaitIdle(m_parent->handle()) != VK_SUCCESS)
-			throw std::runtime_error("Unable to wait for the device.");
-	}
-
-	void resize(int width, int height)
-	{
-		// Wait for the device to be idle.
-		this->wait();
-
-		// Reset the swap chain.
-		m_swapChain->reset(Size2d(width, height), m_swapChain->getBuffers());
-	}
-
 public:
-	Array<Format> getSurfaceFormats() const
-	{
-		uint32_t formats;
-		::vkGetPhysicalDeviceSurfaceFormatsKHR(m_adapter.handle(), m_surface.handle(), &formats, nullptr);
-
-		Array<VkSurfaceFormatKHR> availableFormats(formats);
-		Array<Format> surfaceFormats(formats);
-
-		::vkGetPhysicalDeviceSurfaceFormatsKHR(m_adapter.handle(), m_surface.handle(), &formats, availableFormats.data());
-		std::generate(surfaceFormats.begin(), surfaceFormats.end(), [&availableFormats, i = 0]() mutable { return getFormat(availableFormats[i++].format); });
-
-		return surfaceFormats;
-	}
-
 	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority)
 	{
 		// If a transfer queue is requested, look up only dedicated transfer queues. If none is available, fallbacks need to be handled manually. Every queue implicitly handles transfer.
 		auto match = type == QueueType::Transfer ?
-			std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable { return family.type() == QueueType::Transfer; }) :
-			std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable { return LITEFX_FLAG_IS_SET(family.type(), type); });
+			std::ranges::find_if(m_families, [](const auto& family) { return family.type() == QueueType::Transfer; }) :
+			std::ranges::find_if(m_families, [&](const auto& family) { return LITEFX_FLAG_IS_SET(family.type(), type); });
 
 		return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
 	}
 
 	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority, const VkSurfaceKHR& surface)
 	{
-		auto match = std::find_if(m_families.begin(), m_families.end(), [&](const QueueFamily& family) mutable {
-			if (!LITEFX_FLAG_IS_SET(family.type(), type))
-				return false;
+		[[likely]] if (auto match = std::ranges::find_if(m_families, [&](const auto& family) {
+				if (!LITEFX_FLAG_IS_SET(family.type(), type))
+					return false;
 
-			VkBool32 canPresent = VK_FALSE;
-			::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter.handle(), family.id(), surface, &canPresent);
+				VkBool32 canPresent = VK_FALSE;
+				::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter.handle(), family.id(), surface, &canPresent);
 
-			return static_cast<bool>(canPresent);
-		});
-
-		return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
+				return static_cast<bool>(canPresent);
+			}); match != m_families.end())
+			return match->createQueue(*m_parent, priority);
+		
+		return nullptr;
 	}
 };
 
@@ -311,34 +256,19 @@ VulkanDevice::~VulkanDevice() noexcept
 	::vkDestroyDevice(this->handle(), nullptr);
 }
 
-size_t VulkanDevice::getBufferWidth() const noexcept
-{
-	return m_impl->m_swapChain->getWidth();
-}
-
-size_t VulkanDevice::getBufferHeight() const noexcept
-{
-	return m_impl->m_swapChain->getHeight();
-}
-
-const VulkanQueue& VulkanDevice::graphicsQueue() const noexcept
-{
-	return *m_impl->m_graphicsQueue;
-}
-
-const VulkanQueue& VulkanDevice::transferQueue() const noexcept
-{
-	return *m_impl->m_transferQueue;
-}
-
-const VulkanQueue& VulkanDevice::bufferQueue() const noexcept
-{
-	return *m_impl->m_bufferQueue;
-}
-
 const Array<String>& VulkanDevice::getExtensions() const noexcept
 {
 	return m_impl->m_extensions;
+}
+
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const
+{
+	return this->build<VulkanRenderPass, VulkanDevice>();
+}
+
+const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
+{
+	return *m_impl->m_swapChain;
 }
 
 const VulkanSurface& VulkanDevice::surface() const noexcept
@@ -356,58 +286,37 @@ const VulkanGraphicsFactory& VulkanDevice::factory() const noexcept
 	return *m_impl->m_factory;
 }
 
-Array<Format> VulkanDevice::getSurfaceFormats() const
+const VulkanQueue& VulkanDevice::graphicsQueue() const noexcept
 {
-	return m_impl->getSurfaceFormats();
+	return *m_impl->m_graphicsQueue;
 }
 
-const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
+const VulkanQueue& VulkanDevice::transferQueue() const noexcept
 {
-	return *m_impl->m_swapChain;
+	return *m_impl->m_transferQueue;
 }
 
-Array<UniquePtr<IImage>> VulkanDevice::createSwapChainImages(const ISwapChain* sc) const
+const VulkanQueue& VulkanDevice::bufferQueue() const noexcept
 {
-	auto swapChain = dynamic_cast<const VulkanSwapChain*>(sc);
-
-	if (swapChain == nullptr)
-		throw std::runtime_error("The swap chain is not a valid Vulkan swap chain.");
-
-	uint32_t imageCount;
-	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &imageCount, nullptr);
-	auto size = swapChain->getBufferSize();
-	auto format = swapChain->getFormat();
-
-	Array<VkImage> imageChain(imageCount);
-	Array<UniquePtr<IImage>> images(imageCount);
-
-	::vkGetSwapchainImagesKHR(this->handle(), swapChain->handle(), &imageCount, imageChain.data());
-	std::generate(images.begin(), images.end(), [&, i = 0]() mutable { return makeUnique<_VMAImage>(*this, imageChain[i++], 1, size, format); });
-
-	return images;
+	return *m_impl->m_bufferQueue;
 }
 
-bool VulkanDevice::validateDeviceExtensions(const Array<String>& extensions) const noexcept
+void VulkanDevice::wait() const
 {
-	return m_impl->validateDeviceExtensions(extensions);
+	raiseIfFailed<RuntimeException>(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
 }
 
-Array<String> VulkanDevice::getAvailableDeviceExtensions() const noexcept
-{
-	return m_impl->getAvailableDeviceExtensions();
-}
-
-void VulkanDevice::wait()
-{
-	m_impl->wait();
-}
-
-void VulkanDevice::resize(int width, int height)
-{
-	m_impl->resize(width, height);
-}
-
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const
-{
-	return this->build<VulkanRenderPass, VulkanDevice>();
-}
+//void VulkanDevice::resize(const Size2d& renderArea, VulkanFrameBuffer& presentBuffer) const
+//{
+//	// Wait for the device to be idle.
+//	// TODO: this may not be required and may slow down the resizing... we might be able to get rid of it (possibly by doing some manual synchronization).
+//	this->wait();
+//
+//	// Reset the swap chain.
+//	auto buffers = this->swapChain().buffers();
+//	auto format = this->swapChain().surfaceFormat();
+//	auto images = m_impl->m_swapChain->reset(format, renderArea, buffers);
+//
+//	// Resize the frame buffer.
+//	presentBuffer.resize(renderArea, std::move(images));
+//}

@@ -8,15 +8,7 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
-	class IVulkanImage : public virtual IImage {
-	public:
-		virtual ~IVulkanImage() noexcept = default;
-
-	public:
-		virtual const VkImageView& getImageView() const noexcept = 0;
-	};
-
-	class _VMAImageBase : public VulkanRuntimeObject<VulkanDevice>, public virtual IVulkanImage, public IResource<VkImage> {
+	class _VMAImageBase : public VulkanRuntimeObject<VulkanDevice>, public virtual IVulkanImage {
 		LITEFX_IMPLEMENTATION(_VMAImageBaseImpl);
 
 	public:
