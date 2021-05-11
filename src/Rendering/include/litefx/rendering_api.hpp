@@ -573,6 +573,12 @@ namespace LiteFX::Rendering {
 
 	public:
 		/// <summary>
+		/// Returns the location of the render target output attachment within the fragment shader.
+		/// </summary>
+		/// <returns>The location of the render target output attachment within the fragment shader</returns>
+		virtual const UInt32& location() const noexcept = 0;
+
+		/// <summary>
 		/// Returns the render target image resource.
 		/// </summary>
 		/// <remarks>
@@ -662,6 +668,7 @@ namespace LiteFX::Rendering {
 		/// <summary>
 		/// Initializes the render target.
 		/// </summary>
+		/// <param name="location">The location of the render target ouput attachment.</param>
 		/// <param name="type">The type of the render target.</param>
 		/// <param name="format">The format of the render target.</param>
 		/// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
@@ -669,12 +676,15 @@ namespace LiteFX::Rendering {
 		/// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
 		/// <param name="samples">The number of samples of the render target when used with multi-sampling.</param>
 		/// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
-		explicit RenderTarget(const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false);
+		explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false);
 		RenderTarget(const RenderTarget&) noexcept;
 		RenderTarget(RenderTarget&&) noexcept;
 		virtual ~RenderTarget() noexcept;
 
 	public:
+		/// <inheritdoc />
+		virtual const UInt32& location() const noexcept override;
+
 		/// <inheritdoc />
 		virtual const IImage* image() const noexcept override;
 
