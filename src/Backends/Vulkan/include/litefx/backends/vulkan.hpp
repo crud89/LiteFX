@@ -354,9 +354,9 @@ namespace LiteFX::Rendering::Backends {
 		/// 
 		/// </summary>
 		/// <param name="renderPass"></param>
-		/// <param name="size"></param>
-		/// <param name="renderTargets"></param>
-		VulkanFrameBuffer(const VulkanRenderPass& renderPass, const Size2d& size, const Array<RenderTarget>& renderTargets);
+		/// <param name="bufferIndex"></param>
+		/// <param name="renderArea">The initial size of the render area.</param>
+		VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea);
 		VulkanFrameBuffer(const VulkanFrameBuffer&) noexcept = delete;
 		VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
 		virtual ~VulkanFrameBuffer() noexcept;
@@ -372,6 +372,9 @@ namespace LiteFX::Rendering::Backends {
 		// IFrameBuffer interface.
 	public:
 		/// <inheritdoc />
+		virtual const UInt32& bufferIndex() const noexcept override;
+
+		/// <inheritdoc />
 		virtual const Size2d& size() const noexcept override;
 
 		/// <inheritdoc />
@@ -384,7 +387,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanCommandBuffer& commandBuffer() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool hasPresentTarget() const noexcept override;
+		virtual Array<const IVulkanImage*> images() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const IVulkanImage& image(const UInt32& location) const override;
+
+	public:
+		/// <inheritdoc />
+		virtual void resize(const Size2d& renderArea) override;
 	};
 
 	/// <summary>
@@ -438,6 +448,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Span<const RenderTarget> renderTargets() const noexcept override;
+
+		/// <inheritdoc />
+		virtual bool hasPresentTarget() const noexcept override;
 
 		/// <inheritdoc />
 		virtual Span<const VulkanInputAttachmentMapping> inputAttachments() const noexcept override;
@@ -630,7 +643,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <remarks>
 	/// Internally this factory implementation is based on <a href="https://gpuopen.com/vulkan-memory-allocator/" target="_blank">Vulkan Memory Allocator</a>.
 	/// </remarks>
-	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanVertexBufferLayout, VulkanIndexBufferLayout, VulkanDescriptorLayout> {
+	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanVertexBufferLayout, VulkanIndexBufferLayout, VulkanDescriptorLayout, IVulkanImage> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
 
 	public:
@@ -645,10 +658,10 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<IImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IVulkanImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IVulkanImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;

@@ -35,7 +35,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VkImageView& getImageView() const noexcept override;
 
 	public:
-		static UniquePtr<IImage> allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IVulkanImage> allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	class _VMATexture : public _VMAImageBase, public Texture {

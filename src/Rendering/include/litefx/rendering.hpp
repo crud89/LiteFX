@@ -81,7 +81,7 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// Stores multiple <see cref="IRenderTarget" /> instances, as well as a <see cref="ICommandBuffer" /> instance, that records draw commands.
+	/// Stores the images for the output attachments for a back buffer of a <see cref="IRenderPass" />, as well as a <see cref="ICommandBuffer" /> instance, that records draw commands.
 	/// </summary>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
@@ -98,6 +98,16 @@ namespace LiteFX::Rendering {
 		virtual ~IFrameBuffer() noexcept = default;
 
 	public:
+		/// <summary>
+		/// Returns the index of the buffer within the <see cref="IRenderPass" />.
+		/// </summary>
+		/// <remarks>
+		/// A render pass stores multiple frame buffers, each with their own index. Calling <see cref="IRenderPass::frameBuffer" /> with this index on the frame buffers render
+		/// pass returns the current frame buffer instance (i.e. the same instance, as the one, the index has been requested from).
+		/// </remarks>
+		/// <returns>the index of the buffer within the <see cref="IRenderPass" />.</returns>
+		virtual const UInt32& bufferIndex() const noexcept = 0;
+
 		/// <summary>
 		/// Returns the current size of the frame buffer.
 		/// </summary>
@@ -132,11 +142,16 @@ namespace LiteFX::Rendering {
 		virtual const TCommandBuffer& commandBuffer() const noexcept = 0;
 
 		/// <summary>
-		/// Returns <c>true</c>, if one of the render targets is used for presentation on a swap chain.
+		/// Returns the images that store the output attachments for the render targets of the <see cref="IRenderPass" />.
 		/// </summary>
-		/// <returns><c>true</c>, if one of the render targets is used for presentation on a swap chain.</returns>
-		/// <seealso cref="renderTargets" />
-		virtual bool hasPresentTarget() const noexcept = 0;
+		/// <returns>The images that store the output attachments for the render targets of the <see cref="IRenderPass" />.</returns>
+		virtual Array<const TImage*> images() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.
+		/// </summary>
+		/// <returns>The image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.</returns>
+		virtual const TImage& image(const UInt32& location) const = 0;
 
 	public:
 		/// <summary>
@@ -162,9 +177,8 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-	template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type, typename TImage = typename TFrameBuffer::image_type> requires
-		//rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>
-		std::derived_from<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>
+	template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type, typename TImage = typename TFrameBuffer::image_type> /*requires
+		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>*/
 	class IInputAttachmentMappingSource {
 	public:
 		using frame_buffer_type = TFrameBuffer;
@@ -288,6 +302,13 @@ namespace LiteFX::Rendering {
 		/// <seealso cref="IFrameBuffer" />
 		/// <seealso cref="frameBuffer" />
 		virtual Span<const RenderTarget> renderTargets() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if one of the render targets is used for presentation on a swap chain.
+		/// </summary>
+		/// <returns><c>true</c>, if one of the render targets is used for presentation on a swap chain.</returns>
+		/// <seealso cref="renderTargets" />
+		virtual bool hasPresentTarget() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the input attachment the render pass is consuming.
@@ -471,10 +492,12 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
 	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-	template <typename TVertexBufferLayout, typename TIndexBufferLayout, typename TDescriptorLayout> requires
+		/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
+	template <typename TVertexBufferLayout, typename TIndexBufferLayout, typename TDescriptorLayout, typename TImage> requires
 		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
 		rtti::implements<TIndexBufferLayout, IIndexBufferLayout> &&
-		rtti::implements<TDescriptorLayout, IDescriptorLayout>
+		rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
+		std::derived_from<TImage, IImage>
 	class IGraphicsFactory {
 	public:
 		using vertex_buffer_layout_type = TVertexBufferLayout;
@@ -493,7 +516,7 @@ namespace LiteFX::Rendering {
 		/// <param name="levels">The number of mip map levels of the image.</param>
 		/// <param name="samples">The number of samples, the image should be sampled with.</param>
 		/// <returns>An instance of the image.</returns>
-		virtual UniquePtr<IImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+		virtual UniquePtr<TImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
 		/// <summary>
 		/// Creates an image that is used as render target attachment.
@@ -502,7 +525,7 @@ namespace LiteFX::Rendering {
 		/// <param name="size">The extent of the image.</param>
 		/// <param name="samples">The number of samples, the image should be sampled with.</param>
 		/// <returns>The instance of the attachment image.</returns>
-		virtual UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+		virtual UniquePtr<TImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
 		/// <summary>
 		/// Creates a buffer of type <paramref name="type" />.
@@ -606,7 +629,7 @@ namespace LiteFX::Rendering {
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSwapChain, ISwapChain<TImage>> &&
 		rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
-		rtti::implements<TFactory, IGraphicsFactory<TVertexBufferLayout, TIndexBufferLayout, TDescriptorLayout>> &&
+		rtti::implements<TFactory, IGraphicsFactory<TVertexBufferLayout, TIndexBufferLayout, TDescriptorLayout, TImage>> &&
 		rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
 	class IGraphicsDevice {
 	public:

@@ -109,7 +109,7 @@ const VkImageView& _VMAImage::getImageView() const noexcept
 	return this->view();
 }
 
-UniquePtr<IImage> _VMAImage::allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanImage> _VMAImage::allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
     // Allocate the buffer.
     VkImage image;

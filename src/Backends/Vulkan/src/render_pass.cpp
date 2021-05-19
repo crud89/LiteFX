@@ -209,6 +209,10 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget
     m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), IResource<VkRenderPass>(nullptr)
 {
     this->handle() = m_impl->initialize();
+
+    // Initialize the frame buffers.
+    m_impl->m_frameBuffers.resize(device.swapChain().buffers());
+    std::ranges::generate(m_impl->m_frameBuffers, [this, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*this, i++, this->parent().swapChain().renderArea()); });
 }
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device) noexcept :
@@ -264,6 +268,11 @@ Span<const RenderTarget> VulkanRenderPass::renderTargets() const noexcept
     return m_impl->m_renderTargets;
 }
 
+bool VulkanRenderPass::hasPresentTarget() const noexcept
+{
+    return std::ranges::any_of(m_impl->m_renderTargets, [](const auto& renderTarget) { return renderTarget.type() == RenderTargetType::Present; });
+}
+
 Span<const VulkanInputAttachmentMapping> VulkanRenderPass::inputAttachments() const noexcept
 {
     return m_impl->m_inputAttachments;
@@ -312,7 +321,7 @@ void VulkanRenderPass::end() const
     frameBuffer->commandBuffer().end(false);
 
     // Submit the command buffer.
-    if (!frameBuffer->hasPresentTarget())
+    if (!this->hasPresentTarget())
         frameBuffer->commandBuffer().submit();
     else
     {

@@ -11,14 +11,16 @@ public:
 	friend class VulkanFrameBuffer;
 
 private:
-	Array<RenderTarget> m_renderTargets;
+    Array<UniquePtr<IVulkanImage>> m_outputAttachments;
+    Array<const IVulkanImage*> m_renderTargetViews;
 	UniquePtr<VulkanCommandBuffer> m_commandBuffer;
 	Size2d m_size;
 	VkSemaphore m_semaphore;
+    UInt32 m_bufferIndex;
 
 public:
-	VulkanFrameBufferImpl(VulkanFrameBuffer* parent) : 
-		base(parent) 
+    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const UInt32& bufferIndex) :
+        base(parent), m_bufferIndex(bufferIndex)
 	{
 		// Initialize the semaphore.
 		VkSemaphoreCreateInfo semaphoreInfo{};
@@ -32,55 +34,60 @@ public:
 	}
 
 public:
-	VkFramebuffer initialize(const Size2d& size, const Array<RenderTarget>& renderTargets)
+	VkFramebuffer initialize(const Size2d& size)
 	{
+        // Retrieve the image views for the input and output attachments.
         Array<VkImageView> attachmentViews;
-        Array<UniquePtr<IImage>> attachmentImages;
 
-        std::for_each(std::begin(dependencyTargets), std::end(dependencyTargets), [&, a = 0](const auto& target) mutable {
-            auto inputAttachmentImage = dynamic_cast<const IVulkanImage*>(m_dependency->m_impl->m_attachmentImages[i][a++].get());
+        // Start with the input attachments.
+        // NOTE: We assume, that the parent render pass provides the attachments in an sorted manner.
+        std::ranges::for_each(m_parent->parent().inputAttachments(), [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
+            if (inputAttachment.location() != i) [[unlikely]]
+                LITEFX_WARNING(VULKAN_LOG, "Remapped input attachment from location {0} to location {1}. Please make sure that the input attachments are sorted within the render pass and do not have any gaps in their location mappings.", inputAttachment.location(), i);
 
-            if (inputAttachmentImage == nullptr)
-                throw std::invalid_argument("An input attachment of the render pass dependency is not a valid Vulkan image.");
+            if (inputAttachment.renderTarget().type() == RenderTargetType::Present)
+                throw InvalidArgumentException("The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
 
-            attachmentViews.push_back(inputAttachmentImage->getImageView());
+            // Store the image view from the source frame buffer.
+            attachmentViews.push_back(inputAttachment.inputAttachmentSource().frameBuffer(m_bufferIndex).image(i++).getImageView());
         });
 
-        std::for_each(std::begin(m_targets), std::end(m_targets), [&, a = attachmentViews.size()](const auto& target) mutable {
-            if (m_presentAttachment.has_value() && a++ == m_presentAttachment->attachment)
+        // Initialize the output attachments from render targets of the parent render pass.
+        // NOTE: Again, we assume, that the parent render pass provides the render targets in an sorted manner.
+        std::ranges::for_each(m_parent->parent().renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
+            if (renderTarget.location() != i++) [[unlikely]]
+                LITEFX_WARNING(VULKAN_LOG, "Remapped render target from location {0} to location {1}. Please make sure that the render targets are sorted within the render pass and do not have any gaps in their location mappings.", renderTarget.location(), i - 1);
+
+            if (renderTarget.type() == RenderTargetType::Present)
             {
-                // Acquire an image view from the swap chain.
-                auto swapChainImage = dynamic_cast<const IVulkanImage*>(frames[i]);
-
-                if (swapChainImage == nullptr)
-                    throw std::invalid_argument("A frame of the provided swap chain is not a valid Vulkan texture.");
-
-                attachmentViews.push_back(swapChainImage->getImageView());
+                // If the render target is a present target, acquire an image view from the swap chain.
+                auto swapChainImages = m_parent->getDevice()->swapChain().images();
+                auto image = swapChainImages[m_bufferIndex];
+                m_renderTargetViews.push_back(image);
+                attachmentViews.push_back(image->getImageView());
             }
             else
             {
                 // Create an image view for the render target.
-                auto image = this->makeImageView(target.get());
-                attachmentViews.push_back(dynamic_cast<const IVulkanImage*>(image.get())->getImageView());
-                attachmentImages.push_back(std::move(image));
+                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), size, renderTarget.samples());
+                attachmentViews.push_back(image->getImageView());
+                m_renderTargetViews.push_back(image.get());
+                m_outputAttachments.push_back(std::move(image));
             }
         });
 
+        // Allocate the frame buffer.
         VkFramebufferCreateInfo frameBufferInfo{};
         frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        frameBufferInfo.renderPass = renderPass;
+        frameBufferInfo.renderPass = m_parent->parent().handle();
         frameBufferInfo.attachmentCount = static_cast<UInt32>(attachmentViews.size());
         frameBufferInfo.pAttachments = attachmentViews.data();
-        frameBufferInfo.width = m_parent->getDevice()->swapChain().getBufferSize().width();
-        frameBufferInfo.height = m_parent->getDevice()->swapChain().getBufferSize().height();
+        frameBufferInfo.width = size.width();
+        frameBufferInfo.height = size.height();
         frameBufferInfo.layers = 1;
 
         VkFramebuffer frameBuffer;
-
-        if (::vkCreateFramebuffer(m_parent->getDevice()->handle(), &frameBufferInfo, nullptr, &frameBuffer) != VK_SUCCESS)
-            throw std::runtime_error("Unable to create frame buffer from swap chain frame.");
-
-        m_attachmentImages[i++] = std::move(attachmentImages);
+        raiseIfFailed<RuntimeException>(::vkCreateFramebuffer(m_parent->getDevice()->handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
 
         return frameBuffer;
 	}
@@ -90,10 +97,10 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const Size2d& size, const Array<RenderTarget>& renderTargets) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), IResource(nullptr)
+VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea) :
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), IResource(nullptr)
 {
-	this->handle() = m_impl->initialize(size, renderTargets);
+    this->resize(renderArea);
 }
 
 VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
@@ -101,6 +108,11 @@ VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
 const VkSemaphore& VulkanFrameBuffer::semaphore() const noexcept
 {
 	return m_impl->m_semaphore;
+}
+
+const UInt32& VulkanFrameBuffer::bufferIndex() const noexcept
+{
+    return m_impl->m_bufferIndex;
 }
 
 const Size2d& VulkanFrameBuffer::size() const noexcept
@@ -118,24 +130,25 @@ size_t VulkanFrameBuffer::getHeight() const noexcept
 	return m_impl->m_size.height();
 }
 
-Array<std::reference_wrapper<const RenderTarget>> VulkanFrameBuffer::renderTargets() const noexcept
-{
-	return m_impl->m_renderTargets | 
-		std::views::transform([](const RenderTarget& renderTarget) { return std::ref(renderTarget); }) |
-		ranges::to<Array<std::reference_wrapper<const RenderTarget>>>();
-}
-
 const VulkanCommandBuffer& VulkanFrameBuffer::commandBuffer() const noexcept
 {
 	return *m_impl->m_commandBuffer;
 }
 
-bool VulkanFrameBuffer::hasPresentTarget() const noexcept
+Array<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 {
-	return std::ranges::any_of(m_impl->m_renderTargets, [](const auto& renderTarget) { return renderTarget.type() == RenderTargetType::Present; });
+    return m_impl->m_renderTargetViews;
 }
 
-void VulkanFrameBuffer::resize(const Size2d& newSize, UniquePtr<IVulkanImage>&& presentImage)
+const IVulkanImage& VulkanFrameBuffer::image(const UInt32& location) const
 {
-	throw;
+    if (location >= m_impl->m_renderTargetViews.size())
+        throw ArgumentOutOfRangeException("No render target is mapped to location {0}.", location);
+
+    return *m_impl->m_renderTargetViews[location];
+}
+
+void VulkanFrameBuffer::resize(const Size2d& renderArea)
+{
+    this->handle() = m_impl->initialize(renderArea);
 }
