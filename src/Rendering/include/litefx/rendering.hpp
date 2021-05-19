@@ -177,8 +177,8 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-	template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type, typename TImage = typename TFrameBuffer::image_type> /*requires
-		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>*/
+	template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type, typename TImage = typename TFrameBuffer::image_type> requires
+		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>
 	class IInputAttachmentMappingSource {
 	public:
 		using frame_buffer_type = TFrameBuffer;
@@ -246,10 +246,10 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TRenderPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImage = TFrameBuffer::image_type> //requires
-		//rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>
-		//rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout>>
-		//rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>
+	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TRenderPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImage = TFrameBuffer::image_type> requires
+		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>> /*&&
+		rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout>> &&
+		rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
 	class IRenderPass : public IInputAttachmentMappingSource<TFrameBuffer> {
 	public:
 		using frame_buffer_type = TFrameBuffer;
