@@ -654,14 +654,6 @@ namespace LiteFX::Rendering {
         virtual void updateAll(const ISampler* sampler) const = 0;
 
         /// <summary>
-        /// Attaches the attachment identified by <paramref cref="attachmentId" /> of <paramref cref="renderPass" /> to the descriptor bound at <paramref cref="binding" />.
-        /// </summary>
-        /// <param name="binding">The input attachment binding point.</param>
-        /// <param name="renderPass">The render pass to request the attachment from.</param>
-        /// <param name="attachmentId">The id of the attachment.</param>
-        virtual void attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const = 0;
-
-        /// <summary>
         /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
         /// </summary>
         /// <param name="binding">The input attachment binding point.</param>
@@ -701,21 +693,6 @@ namespace LiteFX::Rendering {
         virtual void use(SharedPtr<IInputAssembler> inputAssembler) = 0;
         virtual void use(SharedPtr<IViewport> viewport) = 0;
         virtual void use(SharedPtr<IScissor> scissor) = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TRenderPass>
-    class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
-    public:
-        using Builder<TDerived, TRenderPass>::Builder;
-
-    public:
-        virtual void use(UniquePtr<IRenderTarget>&& target) = 0;
-        virtual void use(UniquePtr<IRenderPipeline>&& pipeline) = 0;
-        virtual TDerived& attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& dependsOn(const IRenderPass* renderPass) = 0;
     };
 
     /// <summary>

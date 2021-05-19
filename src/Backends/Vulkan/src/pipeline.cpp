@@ -154,8 +154,8 @@ public:
 
 		// Setup color blend state.
 		// TODO: Add blend parameters to render target.
-		auto targets = m_parent->parent().getTargets();
-		auto colorAttachments = std::count_if(std::begin(targets), std::end(targets), [](const auto& target) { return target->type() != RenderTargetType::DepthStencil; });
+		auto targets = m_parent->parent().renderTargets();
+		auto colorAttachments = std::count_if(std::begin(targets), std::end(targets), [](const RenderTarget& target) { return target.type() != RenderTargetType::DepthStencil; });
 		
 		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments(colorAttachments);
 		std::generate(std::begin(colorBlendAttachments), std::end(colorBlendAttachments), []() {
@@ -252,14 +252,14 @@ VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, c
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
-	if (this->isInitialized())
+	//if (this->isInitialized())
 		::vkDestroyPipeline(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-bool VulkanRenderPipeline::isInitialized() const noexcept
-{
-	return this->handle() != nullptr;
-}
+//bool VulkanRenderPipeline::isInitialized() const noexcept
+//{
+//	return this->handle() != nullptr;
+//}
 
 const String& VulkanRenderPipeline::name() const noexcept
 {
@@ -271,30 +271,30 @@ const UInt32& VulkanRenderPipeline::id() const noexcept
 	return m_impl->m_id;
 }
 
-void VulkanRenderPipeline::initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler> inputAssembler, SharedPtr<IRasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
-{
-	if (this->isInitialized())
-		throw RuntimeException("The render pipeline already has been initialized.");
+//void VulkanRenderPipeline::initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler> inputAssembler, SharedPtr<IRasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
+//{
+//	if (this->isInitialized())
+//		throw RuntimeException("The render pipeline already has been initialized.");
+//
+//	this->handle() = m_impl->initialize(std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors));
+//}
 
-	this->handle() = m_impl->initialize(std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors));
-}
-
-const IRenderPipelineLayout* VulkanRenderPipeline::getLayout() const noexcept
+const IRenderPipelineLayout* VulkanRenderPipeline::layout() const noexcept
 {
 	return m_impl->m_layout.get();
 }
 
-SharedPtr<IInputAssembler> VulkanRenderPipeline::getInputAssembler() const noexcept
+SharedPtr<IInputAssembler> VulkanRenderPipeline::inputAssembler() const noexcept
 {
 	return m_impl->m_inputAssembler;
 }
 
-SharedPtr<IRasterizer> VulkanRenderPipeline::getRasterizer() const noexcept
+SharedPtr<IRasterizer> VulkanRenderPipeline::rasterizer() const noexcept
 {
 	return m_impl->m_rasterizer;
 }
 
-Array<const IViewport*> VulkanRenderPipeline::getViewports() const noexcept
+Array<const IViewport*> VulkanRenderPipeline::viewports() const noexcept
 {
 	Array<const IViewport*> viewports(m_impl->m_viewports.size());
 	std::generate(std::begin(viewports), std::end(viewports), [&, i = 0]() mutable { return m_impl->m_viewports[i++].get(); });
@@ -302,7 +302,7 @@ Array<const IViewport*> VulkanRenderPipeline::getViewports() const noexcept
 	return viewports;
 }
 
-Array<const IScissor*> VulkanRenderPipeline::getScissors() const noexcept
+Array<const IScissor*> VulkanRenderPipeline::scissors() const noexcept
 {
 	Array<const IScissor*> scissors(m_impl->m_scissors.size());
 	std::generate(std::begin(scissors), std::end(scissors), [&, i = 0]() mutable { return m_impl->m_scissors[i++].get(); });

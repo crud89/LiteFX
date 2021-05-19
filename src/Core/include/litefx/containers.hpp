@@ -55,6 +55,13 @@ namespace LiteFX {
 	using Array = std::vector<T>;
 
 	/// <summary>
+	/// Represents a view of an array.
+	/// </summary>
+	/// <typeparam name="T">The type of the array elements.</typeparam>
+	template<class T>
+	using Span = std::span<T>;
+
+	/// <summary>
 	/// Represents an optional value.
 	/// </summary>
 	/// <typeparam name="T">The type of the optional value.</typeparam>

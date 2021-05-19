@@ -180,8 +180,13 @@ void SampleApp::resize(int width, int height)
         return;
 
     // Resize the frame buffer and recreate the swap chain.
-    m_device->resize(width, height);
-    m_renderPass->resetFramebuffer();
+    auto surfaceFormat = m_device->swapChain().surfaceFormat();
+    auto renderArea = Size2d(width, height);
+    m_device->swapChain().reset(surfaceFormat, renderArea, 3);
+    // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
+    //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
+    //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
+    m_renderPass->resizeFrameBuffers(renderArea);
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));

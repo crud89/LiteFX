@@ -10,7 +10,6 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanRenderPipelineBuilder;
 	class VulkanRenderPipelineLayoutBuilder;
 	class VulkanShaderProgramBuilder;
-	class VulkanRenderPassBuilder;
 	class VulkanRasterizerBuilder;
 	class VulkanViewportBuilder;
 	class VulkanInputAssemblerBuilder;
@@ -67,27 +66,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual VulkanShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
-	};
-	
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPassBuilder : public RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass> {
-	public:
-		VulkanRenderPassBuilder(UniquePtr<VulkanRenderPass>&& instance);
-		virtual ~VulkanRenderPassBuilder() noexcept;
-
-	public:
-		virtual UniquePtr<VulkanRenderPass> go() override;
-
-	public:
-		virtual VulkanRenderPipelineBuilder addPipeline(const UInt32& id, const String& name = "");
-
-	public:
-		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;
-		virtual void use(UniquePtr<IRenderTarget>&& target) override;
-		virtual VulkanRenderPassBuilder& attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clear = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& dependsOn(const IRenderPass* renderPass) override;
 	};
 
 	/// <summary>

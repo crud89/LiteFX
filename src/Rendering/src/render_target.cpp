@@ -16,7 +16,6 @@ private:
     MultiSamplingLevel m_samples = MultiSamplingLevel::x1;
     bool m_clearBuffer = false, m_clearStencil = false, m_volatile = false;
     Vector4f m_clearValues;
-    UniquePtr<IImage> m_image;
     UInt32 m_location;
 
 public:
@@ -52,11 +51,6 @@ const UInt32& RenderTarget::location() const noexcept
     return m_impl->m_location;
 }
 
-const IImage* RenderTarget::image() const noexcept
-{
-    return m_impl->m_image.get();
-}
-
 const RenderTargetType& RenderTarget::type() const noexcept
 {
     return m_impl->m_type;
@@ -90,12 +84,4 @@ const Vector4f& RenderTarget::clearValues() const noexcept
 const bool& RenderTarget::isVolatile() const noexcept
 {
     return m_impl->m_volatile;
-}
-
-void RenderTarget::reset(UniquePtr<IImage>&& image)
-{
-    if (image == nullptr)
-        throw ArgumentNotInitializedException("The image must be initialized.");
-
-    m_impl->m_image = std::move(image);
 }

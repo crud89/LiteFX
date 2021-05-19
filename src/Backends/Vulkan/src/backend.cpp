@@ -17,9 +17,11 @@ private:
     const App& m_app;
 
 public:
-    VulkanBackendImpl(VulkanBackend* parent, const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
-        base(parent), m_extensions(extensions), m_layers(validationLayers), m_app(app)
+    VulkanBackendImpl(VulkanBackend* parent, const App& app, Span<String> extensions, Span<String> validationLayers) :
+        base(parent), m_app(app)
     {
+        m_extensions.assign(std::begin(extensions), std::end(extensions));
+        m_layers.assign(std::begin(validationLayers), std::end(validationLayers));
     }
 
 #ifndef NDEBUG
@@ -66,20 +68,16 @@ public:
     VkInstance initialize()
     {
         // Check if all extensions are available.
-        auto const requiredExtensions = m_extensions | 
-            std::views::transform([this](const auto& extension) { return extension.c_str(); }) |
-            ranges::to<Array<const char*>>();
-
         if (!VulkanBackend::validateExtensions(m_extensions))
             throw InvalidArgumentException("Some required Vulkan extensions are not supported by the system.");
 
-        // Check if all extensions are available.
-        auto const enabledLayers = m_layers | 
-            std::views::transform([this](const auto& layer) { return layer.c_str(); }) |
-            ranges::to<Array<const char*>>();
+        auto requiredExtensions = m_extensions | std::views::transform([this](const auto& extension) { return extension.c_str(); }) | ranges::to<Array<const char*>>();
 
+        // Check if all extensions are available.
         if (!VulkanBackend::validateLayers(m_layers))
             throw InvalidArgumentException("Some required Vulkan layers are not supported by the system.");
+
+        auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | ranges::to<Array<const char*>>();
 
         // Get the app instance.
         auto appName = m_app.getName();
@@ -99,10 +97,10 @@ public:
 
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(m_extensions.size());
+        createInfo.enabledExtensionCount = static_cast<UInt32>(requiredExtensions.size());
         createInfo.ppEnabledExtensionNames = requiredExtensions.data();
-        createInfo.enabledLayerCount = static_cast<uint32_t>(m_layers.size());
-        createInfo.ppEnabledLayerNames = m_layers.size() == 0 ? nullptr : enabledLayers.data();
+        createInfo.enabledLayerCount = static_cast<UInt32>(enabledLayers.size());
+        createInfo.ppEnabledLayerNames = enabledLayers.data();
 
 #ifndef NDEBUG
         VkDebugUtilsMessengerCreateInfoEXT debugCallbackInfo = {};
@@ -170,7 +168,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBackend::VulkanBackend(const App& app, const Array<String>& extensions, const Array<String>& validationLayers) :
+VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<String> validationLayers) :
     m_impl(makePimpl<VulkanBackendImpl>(this, app, extensions, validationLayers)), IResource(nullptr)
 {
     this->handle() = m_impl->initialize();
@@ -190,20 +188,18 @@ BackendType VulkanBackend::getType() const noexcept
 
 Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
-    return m_impl->m_adapters | 
-        std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) |
-        ranges::to<Array<const VulkanGraphicsAdapter*>>();
+    return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const VulkanGraphicsAdapter*>>();
 }
 
 const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& adapterId) const
 {
-    [[likely]] if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; }); match != m_impl->m_adapters.end())
+    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
         return match->get();
 
     return nullptr;
 }
 
-const Array<String> VulkanBackend::getEnabledValidationLayers() const noexcept
+Span<const String> VulkanBackend::getEnabledValidationLayers() const noexcept
 {
     return m_impl->m_layers;
 }
@@ -239,7 +235,7 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd) const
 // Static interface.
 // ------------------------------------------------------------------------------------------------
 
-bool VulkanBackend::validateExtensions(const Array<String>& extensions) noexcept
+bool VulkanBackend::validateExtensions(Span<const String> extensions) noexcept
 {
     auto availableExtensions = VulkanBackend::getAvailableExtensions();
 
@@ -256,7 +252,7 @@ bool VulkanBackend::validateExtensions(const Array<String>& extensions) noexcept
 
 Array<String> VulkanBackend::getAvailableExtensions() noexcept
 {
-    uint32_t extensions = 0;
+    UInt32 extensions = 0;
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, nullptr);
 
     Array<VkExtensionProperties> availableExtensions(extensions);
@@ -267,7 +263,7 @@ Array<String> VulkanBackend::getAvailableExtensions() noexcept
         ranges::to<Array<String>>();
 }
 
-bool VulkanBackend::validateLayers(const Array<String>& layers) noexcept
+bool VulkanBackend::validateLayers(Span<const String> layers) noexcept
 {
     auto availableExtensions = VulkanBackend::getAvailableExtensions();
 
@@ -284,7 +280,7 @@ bool VulkanBackend::validateLayers(const Array<String>& layers) noexcept
 
 Array<String> VulkanBackend::getValidationLayers() noexcept
 {
-    uint32_t layers = 0;
+    UInt32 layers = 0;
     ::vkEnumerateInstanceLayerProperties(&layers, nullptr);
 
     Array<VkLayerProperties> availableLayers(layers);

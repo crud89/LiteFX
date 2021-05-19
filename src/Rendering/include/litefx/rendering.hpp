@@ -126,12 +126,6 @@ namespace LiteFX::Rendering {
 		virtual size_t getHeight() const noexcept = 0;
 
 		/// <summary>
-		/// Returns a list of render targets, contained by the frame buffer.
-		/// </summary>
-		/// <returns>A list of render targets, contained by the frame buffer.</returns>
-		virtual Array<std::reference_wrapper<const RenderTarget>> renderTargets() const noexcept = 0;
-
-		/// <summary>
 		/// Returns the command buffer that records draw commands for the frame buffer.
 		/// </summary>
 		/// <returns>The command buffer that records draw commands for the frame buffer</returns>
@@ -150,12 +144,79 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <remarks>
 		/// A frame buffer resize causes all render target resources (i.e. images) to be re-created. This is done by the implementation itself, except for present targets, which require
-		/// a view of an image created on a <see cref="ISwapChain" />. If the frame buffer has a present target, it should expect the <paramref name="presentImage" /> to be provided,
-		/// which will then be passed to the appropriate render target. Otherwise it can ignore this parameter.
+		/// a view of an image created on a <see cref="ISwapChain" />. If the frame buffer has a present target, it calls <see cref="ISwapChain::images" /> on the parent devices' swap 
+		/// chain. Note that there should only be one render pass, that contains present targets, otherwise the images are written by different render passes, which may result in 
+		/// undefined behavior.
 		/// </remarks>
 		/// <param name="renderArea">The new dimensions of the frame buffer.</param>
-		/// <param name="presentImage">The swap chain image, that should be bound to the present target.</param>
-		virtual void resize(const Size2d& renderArea, UniquePtr<TImage>&& presentImage) = 0;
+		virtual void resize(const Size2d& renderArea) = 0;
+	};
+
+	/// <summary>
+	/// Represents the source for an input attachment mapping.
+	/// </summary>
+	/// <remarks>
+	/// This interface is implemented by a <see cref="IRenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="IFrameBuffer" /> 
+	/// during initialization or re-creation, in order to resolve input attachment dependencies.
+	/// </remarks>
+	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
+	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
+	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
+	template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type, typename TImage = typename TFrameBuffer::image_type> requires
+		//rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>
+		std::derived_from<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>
+	class IInputAttachmentMappingSource {
+	public:
+		using frame_buffer_type = TFrameBuffer;
+
+	public:
+		virtual ~IInputAttachmentMappingSource() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Returns the frame buffer with the index provided in <paramref name="buffer" />.
+		/// </summary>
+		/// <param name="buffer">The index of a frame buffer within the source.</param>
+		/// <returns>The frame buffer with the index provided in <paramref name="buffer" />.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="buffer" /> does not map to a frame buffer within the source.</exception>
+		virtual const TFrameBuffer& frameBuffer(const UInt32& buffer) const = 0;
+	};
+
+	/// <summary>
+	/// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="IRenderPass" />.
+	/// </summary>
+	/// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="IInputAttachmentMappingSource" />.</typeparam>
+	template <typename TInputAttachmentMappingSource, typename TFrameBuffer = TInputAttachmentMappingSource::frame_buffer_type> requires
+		rtti::implements<TInputAttachmentMappingSource, IInputAttachmentMappingSource<TFrameBuffer>>
+	class IInputAttachmentMapping {
+	public:
+		using input_attachment_mapping_source_type = TInputAttachmentMappingSource;
+
+	public:
+		virtual ~IInputAttachmentMapping() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Returns the source of the input attachment render target.
+		/// </summary>
+		/// <returns>The source of the input attachment render target.</returns>
+		virtual const TInputAttachmentMappingSource& inputAttachmentSource() const noexcept = 0;
+
+		/// <summary>
+		/// Returns a reference of the render target that is mapped to the input attachment.
+		/// </summary>
+		/// <returns>A reference of the render target that is mapped to the input attachment.</returns>
+		virtual const RenderTarget& renderTarget() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the location of the input attachment, the render target will be bound to.
+		/// </summary>
+		/// <remarks>
+		/// The locations of all input attachments for a frame buffer must be within a continuous domain, starting at <c>0</c>. A frame buffer validates the locations
+		/// when it is initialized and will raise an exception, if a location is either not mapped or assigned multiple times.
+		/// </remarks>
+		/// <returns>The location of the input attachment, the render target will be bound to.</returns>
+		virtual const UInt32& location() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -168,15 +229,18 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
 	/// <typeparam name="TRenderPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IRenderPipelineLayout" />.</typeparam>
 	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
+	/// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-	template <typename TRenderPipeline, typename TFrameBuffer, typename TRenderPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImage = TFrameBuffer::image_type> requires
-		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>> &&
-		rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout>>
-	class IRenderPass {
+	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TRenderPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImage = TFrameBuffer::image_type> //requires
+		//rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>>
+		//rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout>>
+		//rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>
+	class IRenderPass : public IInputAttachmentMappingSource<TFrameBuffer> {
 	public:
 		using frame_buffer_type = TFrameBuffer;
 		using render_pipeline_type = TRenderPipeline;
+		using input_attachment_mapping_type = TInputAttachmentMapping;
 
 	public:
 		virtual ~IRenderPass() noexcept = default;
@@ -191,28 +255,45 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <param name="buffer">The index of the frame buffer.</param>
 		/// <returns>A back buffer used by the render pass.</returns>
-		virtual const TFrameBuffer& frameBuffer() const noexcept = 0;
+		virtual const TFrameBuffer& activeFrameBuffer() const = 0;
 
 		/// <summary>
-		/// Returns an array of all render pipelines, owned by the render pass.
+		/// Returns a list of all frame buffers.
 		/// </summary>
-		/// <returns>An array of all render pipelines, owned by the render pass.</returns>
-		/// <seealso cref="IRenderPipeline" />
-		virtual Array<const IRenderPipeline*> pipelines() const noexcept = 0;
-		
+		/// <returns>A list of all frame buffers. </returns>
+		virtual Array<const TFrameBuffer*> frameBuffers() const noexcept = 0;
+
 		/// <summary>
 		/// Returns the render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.
 		/// </summary>
 		/// <param name="id">The ID of the requested render pipeline.</param>
 		/// <returns>The render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.</returns>
 		/// <seealso cref="IRenderPipeline" />
-		virtual const IRenderPipeline* pipeline(const UInt32& id) const noexcept = 0;
+		virtual const TRenderPipeline& pipeline(const UInt32& id) const = 0;
+
+		/// <summary>
+		/// Returns an array of all render pipelines, owned by the render pass.
+		/// </summary>
+		/// <returns>An array of all render pipelines, owned by the render pass.</returns>
+		/// <seealso cref="IRenderPipeline" />
+		virtual Array<const TRenderPipeline*> pipelines() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the list of render targets, the render pass renders into.
+		/// </summary>
+		/// <remarks>
+		/// Note that the actual render target image resources are stored within the individual <see cref="IFrameBuffer" />s of the render pass.
+		/// </remarks>
+		/// <returns>A list of render targets, the render pass renders into.</returns>
+		/// <seealso cref="IFrameBuffer" />
+		/// <seealso cref="frameBuffer" />
+		virtual Span<const RenderTarget> renderTargets() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the input attachment the render pass is consuming.
 		/// </summary>
 		/// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
-		virtual const Array<const InputAttachmentMapping&> inputAttachments() const noexcept = 0;
+		virtual Span<const TInputAttachmentMapping> inputAttachments() const noexcept = 0;
 
 	public:
 		/// <summary>
@@ -234,8 +315,27 @@ namespace LiteFX::Rendering {
 		/// Resets the frame buffers of the render pass.
 		/// </summary>
 		/// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
-		/// <param name="presentImages">The swap chain images, used to initialize the present render targets.</param>
-		virtual void resetFrameBuffers(const Size2d& renderArea, UniquePtr<TImage>&& presentImages) = 0;
+		virtual void resizeFrameBuffers(const Size2d& renderArea) = 0;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	template <typename TDerived, typename TRenderPass, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TInputAttachmentMapping = typename TRenderPass::input_attachment_mapping_type> requires
+		rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
+	class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
+	public:
+		using Builder<TDerived, TRenderPass>::Builder;
+
+	public:
+		virtual void use(RenderTarget&& target) = 0;
+		virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
+		virtual void use(UniquePtr<TRenderPipeline>&& pipeline) = 0;
+
+	public:
+		virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& inputAttachment(const UInt32& location, const RenderTarget& renderTarget, const TRenderPass& renderPass) = 0;
 	};
 
 	/// <summary>
@@ -270,6 +370,12 @@ namespace LiteFX::Rendering {
 		/// <returns>The size of the render area.</returns>
 		virtual const Size2d& renderArea() const noexcept = 0;
 
+		/// <summary>
+		/// Returns an array of the swap chain present images.
+		/// </summary>
+		/// <returns>Returns an array of the swap chain present images.</returns>
+		virtual Array<const TImage*> images() const noexcept = 0;
+
 	public:
 		/// <summary>
 		/// Returns an array of supported formats, that can be drawn to the surface.
@@ -286,14 +392,13 @@ namespace LiteFX::Rendering {
 		/// There is no guarantee, that the swap chain images will end up in the exact format, as specified by <paramref name="surfaceFormat" />. If the format itself is not
 		/// supported, a compatible format may be looked up. If the lookup fails, the method may raise an exception.
 		/// 
-		/// Similarly, it is not guaranteed, that the number of images in the array returned matches the number specified in <paramref name="buffers" />. A swap chain may 
+		/// Similarly, it is not guaranteed, that the number of images returned by <see cref="images" /> matches the number specified in <paramref name="buffers" />. A swap chain may 
 		/// require a minimum number of images or may constraint a maximum number of images. In both cases, <paramref name="buffers" /> will be clamped.
 		/// </remarks>
 		/// <param name="surfaceFormat">The swap chain image format.</param>
 		/// <param name="renderArea">The dimensions of the frame buffers.</param>
 		/// <param name="buffers">The number of buffers in the swap chain.</param>
-		/// <returns>An array, containing the swap chain images.</returns>
-		[[nodiscard]] virtual Array<UniquePtr<TImage>> reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
+		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
 
 		/// <summary>
 		/// Swaps the front buffer with the next back buffer in order.
@@ -491,17 +596,18 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
 	/// <typeparam name="TImage">The type of the swap chain image interface. Must inherit from <see cref="IImage" />.</typeparam>
 	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
+	/// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer" />.</typeparam>
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
 	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-	template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TImage = TSwapChain::image_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type> requires
+	template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping = TRenderPass::input_attachment_mapping_type, typename TImage = TSwapChain::image_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type > requires
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSwapChain, ISwapChain<TImage>> &&
 		rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
 		rtti::implements<TFactory, IGraphicsFactory<TVertexBufferLayout, TIndexBufferLayout, TDescriptorLayout>> &&
-		rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer>>
+		rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
 	class IGraphicsDevice {
 	public:
 		using surface_type = TSurface;
@@ -573,42 +679,6 @@ namespace LiteFX::Rendering {
 		/// may safely be released.
 		/// </remarks>
 		virtual void wait() const = 0;
-
-		/// <summary>
-		/// Resizes the render area of the swap chain and resets the frame buffers on the provided render pass.
-		/// </summary>
-		/// <remarks>
-		/// This method is a helper to simplify frame buffer resize events. It resets the <see cref="swapChain" /> instance and uses the returned images to reset the frame buffer of the 
-		/// render pass, provided in <paramref name="presentPass" />. This is equivalent to calling <see cref="ISwapChain::reset" /> on the device swap chain, followed by a call to
-		/// <see cref="IRenderPass::reset" /> with the newly created swap chain images. 
-		/// 
-		/// Note that you are responsible for ensuring, that the provided render pass actually contains the present targets. If it doesn't, the swap chain images will be destroyed and 
-		/// remain unaccessible.
-		/// 
-		/// Other render passes still need to be resized manually, if required.
-		/// </remarks>
-		/// <param name="renderArea">The new size of the render area.</param>
-		/// <param name="presentPass">The render pass that is responsible for presenting.</param>
-		/// <seealso cref="ISwapChain" />
-		/// <seealso cref="IFrameBuffer" />
-		/// <seealso cref="IRenderPass" />
-		virtual void resize(const Size2d& renderArea, TRenderPass& presentPass) const = 0;
-
-	protected:
-		/// <summary>
-		/// Initializes a new render pass of type <typeparamref name="T"/> and returns a builder instance for it.
-		/// </summary>
-		/// <param name="_args">The arguments which are passed to the constructor of the render pass.</param>
-		/// <typeparam name="TRenderPass">The type of the render pass. The type must implement <see cref="IRenderPass" /> interface.</typeparam>
-		/// <typeparam name="TDerived">The actual type of the parent graphics device that calls the build method.</typeparam>
-		template <typename TRenderPass, typename TDerived, typename ...TArgs, typename TBuilder = TRenderPass::builder> requires
-			rtti::implements<TRenderPass, IRenderPass> &&
-			rtti::has_builder<TRenderPass> &&
-			rtti::implements<TDerived, IGraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
-		[[nodiscard]] TBuilder build(TArgs&&... _args) const {
-			// NOTE: If the cast raises an exception here, check the `TDerived` type - it must be equal to the parent graphics device class that calls this function.
-			return TBuilder(makeUnique<TRenderPass>(dynamic_cast<const TDerived&>(*this), std::forward<TArgs>(_args)...));
-		}
 	};
 
 	/// <summary>

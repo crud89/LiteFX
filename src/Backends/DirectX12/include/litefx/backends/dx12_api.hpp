@@ -140,7 +140,7 @@ namespace LiteFX::Rendering::Backends {
 
     template <typename TException, typename ...TArgs>
     inline void raiseIfFailed(HRESULT hr, const std::string& message, TArgs&&... args) {
-        if (SUCCEEDED(hr)) // [[likely]]
+        if (SUCCEEDED(hr)) [[likely]]
             return;
 
         _com_error error(hr);

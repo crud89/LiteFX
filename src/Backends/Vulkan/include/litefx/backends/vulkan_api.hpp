@@ -99,7 +99,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
 
-    // Forward declarations.
+    // API declarations.
     class VulkanTexture;
     class VulkanSwapChain;
     class VulkanQueue;
@@ -108,6 +108,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanRenderPipeline;
     class VulkanRenderPipelineLayout;
     class VulkanRenderPass;
+    class VulkanInputAttachmentMapping;
     class VulkanRasterizer;
     class VulkanInputAssembler;
     class VulkanShaderModule;
@@ -121,6 +122,9 @@ namespace LiteFX::Rendering::Backends {
     class VulkanIndexBuffer;
     class VulkanConstantBuffer;
     class VulkanSampler;
+
+    // Builder declarations.
+    class VulkanRenderPassBuilder;
 
     /// <summary>
     /// Represents a Vulkan graphics adapter.
@@ -240,7 +244,7 @@ namespace LiteFX::Rendering::Backends {
     /// <param name="...args"></param>
     template <typename TException, typename ...TArgs>
     inline void raiseIfFailed(VkResult result, const std::string& message, TArgs&&... args) {
-        [[likely]] if (result == VK_SUCCESS)
+        if (result == VK_SUCCESS) [[likely]]
             return;
 
         throw TException(VulkanPlatformException("Result: {0}", result), fmt::format(message, std::forward<TArgs>(args)...));

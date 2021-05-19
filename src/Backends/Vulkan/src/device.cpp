@@ -66,9 +66,11 @@ private:
 	UniquePtr<VulkanGraphicsFactory> m_factory;
 
 public:
-	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Array<String>& extensions = { }) :
-		base(parent), m_extensions(extensions), m_adapter(adapter), m_surface(surface)
+	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, Span<String> extensions) :
+		base(parent), m_adapter(adapter), m_surface(surface)
 	{
+		m_extensions.assign(std::begin(extensions), std::end(extensions));
+
 		this->defineMandatoryExtensions();
 		this->loadQueueFamilies();
 	}
@@ -112,14 +114,12 @@ public:
 			ranges::to<Array<QueueFamily>>();
 	}
 
-	VkDevice initialize(const Format& format)
+	VkDevice initialize()
 	{
 		if (!VulkanBackend::validateExtensions(m_extensions))
 			throw InvalidArgumentException("Some required device extensions are not supported by the system.");
 
-		auto const requiredExtensions = m_extensions | 
-			std::views::transform([](const auto& extension) { return extension.c_str(); }) |
-			ranges::to<Array<const char*>>();
+		auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | ranges::to<Array<const char*>>();
 
 		// Create graphics and transfer queue.
 		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, m_surface.handle());
@@ -204,14 +204,14 @@ public:
 		// If a transfer queue is requested, look up only dedicated transfer queues. If none is available, fallbacks need to be handled manually. Every queue implicitly handles transfer.
 		auto match = type == QueueType::Transfer ?
 			std::ranges::find_if(m_families, [](const auto& family) { return family.type() == QueueType::Transfer; }) :
-			std::ranges::find_if(m_families, [&](const auto& family) { return LITEFX_FLAG_IS_SET(family.type(), type); });
+			std::ranges::find_if(m_families, [&type](const auto& family) { return LITEFX_FLAG_IS_SET(family.type(), type); });
 
 		return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
 	}
 
 	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority, const VkSurfaceKHR& surface)
 	{
-		[[likely]] if (auto match = std::ranges::find_if(m_families, [&](const auto& family) {
+		if (auto match = std::ranges::find_if(m_families, [&](const auto& family) {
 				if (!LITEFX_FLAG_IS_SET(family.type(), type))
 					return false;
 
@@ -219,7 +219,7 @@ public:
 				::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter.handle(), family.id(), surface, &canPresent);
 
 				return static_cast<bool>(canPresent);
-			}); match != m_families.end())
+			}); match != m_families.end()) [[likely]]
 			return match->createQueue(*m_parent, priority);
 		
 		return nullptr;
@@ -230,10 +230,15 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Array<String>& extensions) :
+VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, Span<String> extensions) :
+	VulkanDevice(adapter, surface, Format::B8G8R8A8_SRGB, { 800, 600 }, 3, extensions)
+{
+}
+
+VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
 	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, surface, extensions))
 {
-	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {1}, Adapter: {2}, Format: {3}, Extensions: {4} }}...", fmt::ptr(&surface), adapter.getDeviceId(), format, Join(this->getExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(&surface), adapter.getDeviceId(), Join(this->enabledExtensions(), ", "));
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
 	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
@@ -241,7 +246,7 @@ VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSur
 	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 	
-	this->handle() = m_impl->initialize(format);
+	this->handle() = m_impl->initialize();
 	m_impl->createQueues();
 	m_impl->createFactory();
 	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
@@ -256,14 +261,19 @@ VulkanDevice::~VulkanDevice() noexcept
 	::vkDestroyDevice(this->handle(), nullptr);
 }
 
-const Array<String>& VulkanDevice::getExtensions() const noexcept
+Span<const String> VulkanDevice::enabledExtensions() const noexcept
 {
 	return m_impl->m_extensions;
 }
 
+VulkanSwapChain& VulkanDevice::swapChain() noexcept
+{
+	return *m_impl->m_swapChain;
+}
+
 VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const
 {
-	return this->build<VulkanRenderPass, VulkanDevice>();
+	return VulkanRenderPassBuilder();
 }
 
 const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
@@ -304,19 +314,4 @@ const VulkanQueue& VulkanDevice::bufferQueue() const noexcept
 void VulkanDevice::wait() const
 {
 	raiseIfFailed<RuntimeException>(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
-}
-
-void VulkanDevice::resize(const Size2d& renderArea, VulkanFrameBuffer& presentBuffer) const
-{
-	// Wait for the device to be idle.
-	// TODO: this may not be required and may slow down the resizing... we might be able to get rid of it (possibly by doing some manual synchronization).
-	this->wait();
-
-	// Reset the swap chain.
-	auto buffers = this->swapChain().buffers();
-	auto format = this->swapChain().surfaceFormat();
-	auto images = m_impl->m_swapChain->reset(format, renderArea, buffers);
-
-	// Resize the frame buffer.
-	presentBuffer.resize(renderArea, std::move(images));
 }

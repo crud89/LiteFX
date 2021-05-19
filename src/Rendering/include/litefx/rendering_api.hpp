@@ -27,12 +27,10 @@ namespace LiteFX::Rendering {
 	class IRasterizer;
 	class IViewport;
 	class IScissor;
-    class IRenderPipeline;
     class IRenderPipelineLayout;
     class IShaderModule;
     class IShaderProgram;
     class ITexture;
-	class IRenderPass;
 	class IBufferLayout;
 	class IVertexBufferLayout;
 	class IIndexBufferLayout;
@@ -574,10 +572,11 @@ namespace LiteFX::Rendering {
 	/// Represents a render target, i.e. an abstract view of the output of an <see cref="IRenderPass" />.
 	/// </remarks>
 	/// <remarks>
-	/// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="IFrameBuffer" />, that records 
-	/// draw commands for it.
+	/// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="IRenderPass" />, that contains 
+	/// the <see cref="IFrameBuffer" />, that stores the actual render target image resource.
 	/// </remarks>
 	/// <seealso cref="RenderTarget" />
+	/// <seealso cref="IRenderPass" />
 	/// <seealso cref="IFrameBuffer" />
 	/// <seealso cref="IImage" />
 	class LITEFX_RENDERING_API IRenderTarget {
@@ -594,17 +593,6 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <returns>The location of the render target output attachment within the fragment shader</returns>
 		virtual const UInt32& location() const noexcept = 0;
-
-		/// <summary>
-		/// Returns the render target image resource.
-		/// </summary>
-		/// <remarks>
-		/// The render target image is not automatically generated when the render target itself gets generated. Instead, it is either provided by a <see cref="IFrameBuffer" /> or 
-		/// a <see cref="ISwapChain" /> by calling the <see cref="reset" /> method.
-		/// </remarks>
-		/// <returns>The render target image resource.</returns>
-		/// <seealso cref="reset" />
-		virtual const IImage* image() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the type of the render target.
@@ -664,14 +652,6 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
 		virtual const bool& isVolatile() const noexcept = 0;
-
-	public:
-		/// <summary>
-		/// Resets the render targets image resource.
-		/// </summary>
-		/// <param name="image">The image resource to use.</param>
-		/// <seealso cref="image" />
-		virtual void reset(UniquePtr<IImage>&& image) = 0;
 	};
 
 	/// <summary>
@@ -703,9 +683,6 @@ namespace LiteFX::Rendering {
 		virtual const UInt32& location() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const IImage* image() const noexcept override;
-
-		/// <inheritdoc />
 		virtual const RenderTargetType& type() const noexcept override;
 
 		/// <inheritdoc />
@@ -725,55 +702,6 @@ namespace LiteFX::Rendering {
 
 		/// <inheritdoc />
 		virtual const bool& isVolatile() const noexcept override;
-
-	public:
-		/// <inheritdoc />
-		virtual void reset(UniquePtr<IImage>&& image) override;
-	};
-
-	/// <summary>
-	/// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="IRenderPass" />
-	/// </summary>
-	class LITEFX_RENDERING_API IInputAttachmentMapping {
-	public:
-		virtual ~IInputAttachmentMapping() noexcept = default;
-
-	public:
-		/// <summary>
-		/// Returns a reference of the render target that is mapped to the input attachment.
-		/// </summary>
-		/// <returns>A reference of the render target that is mapped to the input attachment.</returns>
-		virtual const RenderTarget& renderTarget() const noexcept = 0;
-
-		/// <summary>
-		/// Returns the location of the input attachment, the render target will be bound to.
-		/// </summary>
-		/// <remarks>
-		/// The locations of all input attachments for a frame buffer must be within a continuous domain, starting at <c>0</c>. A frame buffer validates the locations
-		/// when it is initialized and will raise an exception, if a location is either not mapped or assigned multiple times.
-		/// </remarks>
-		/// <returns>The location of the input attachment, the render target will be bound to.</returns>
-		virtual const UInt32& location() const noexcept = 0;
-	};
-
-	/// <summary>
-	/// Implements a <see cref="IInputAttachmentMapping" />.
-	/// </summary>
-	class LITEFX_RENDERING_API InputAttachmentMapping : public IInputAttachmentMapping {
-		LITEFX_IMPLEMENTATION(InputAttachmentMappingImpl);
-
-	public:
-		InputAttachmentMapping(const RenderTarget& renderTarget, const UInt32& location);
-		InputAttachmentMapping(const InputAttachmentMapping&) noexcept;
-		InputAttachmentMapping(InputAttachmentMapping&&) noexcept;
-		virtual ~InputAttachmentMapping() noexcept;
-
-	public:
-		/// <inheritdoc />
-		virtual const RenderTarget& renderTarget() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const UInt32& location() const noexcept override;
 	};
 
 	/// <summary>

@@ -283,14 +283,6 @@ void VulkanDescriptorSet::updateAll(const ISampler* sampler) const
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 }
 
-void VulkanDescriptorSet::attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const
-{
-    if (renderPass == nullptr)
-        throw std::invalid_argument("The render pass must be initialized.");
-    
-    this->attach(binding, renderPass->getAttachment(attachmentId));
-}
-
 void VulkanDescriptorSet::attach(const UInt32& binding, const IImage* image) const
 {
     auto resource = dynamic_cast<const IVulkanImage*>(image);

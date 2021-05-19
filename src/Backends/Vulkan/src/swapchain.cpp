@@ -18,6 +18,7 @@ private:
 	UInt32 m_buffers { };
 	Array<VkSemaphore> m_swapSemaphores { };
 	std::atomic_uint32_t m_currentImage { };
+	Array<UniquePtr<IVulkanImage>> m_presentImages { };
 
 public:
 	VulkanSwapChainImpl(VulkanSwapChain* parent) : 
@@ -43,7 +44,7 @@ public:
 		auto surfaceFormats = this->getSurfaceFormats(adapter, surface);
 		Format selectedFormat{ Format::None };
 		
-		[[likely]] if (auto match = std::ranges::find_if(surfaceFormats, [format](const Format& surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end())
+		if (auto match = std::ranges::find_if(surfaceFormats, [format](const Format& surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
 			selectedFormat = *match;
 		else
 			throw InvalidArgumentException("The requested format is not supported by this device.");
@@ -154,9 +155,7 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		return availableFormats | 
-			std::views::transform([](const VkSurfaceFormatKHR& format) { return ::getFormat(format.format); }) |
-			ranges::to<Array<Format>>();
+		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return ::getFormat(format.format); }) | ranges::to<Array<Format>>();
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
@@ -167,7 +166,7 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		[[likely]] if (auto match = std::ranges::find_if(availableFormats, [&format](const VkSurfaceFormatKHR& surfaceFormat) { return surfaceFormat.format == ::getFormat(format); }); match != availableFormats.end())
+		if (auto match = std::ranges::find_if(availableFormats, [&format](const VkSurfaceFormatKHR& surfaceFormat) { return surfaceFormat.format == ::getFormat(format); }); match != availableFormats.end()) [[likely]]
 			return match->colorSpace;
 
 		return VK_COLOR_SPACE_MAX_ENUM_KHR;
@@ -185,11 +184,6 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, const Format& surfa
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;
-
-Array<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
-{
-	return m_impl->getSurfaceFormats(this->getDevice()->adapter().handle(), this->getDevice()->surface().handle());
-}
 
 const VkSemaphore& VulkanSwapChain::semaphore() const noexcept
 {
@@ -211,7 +205,17 @@ const Size2d& VulkanSwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-Array<UniquePtr<IVulkanImage>> VulkanSwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
+Array<const IVulkanImage*> VulkanSwapChain::images() const noexcept
+{
+	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IVulkanImage>& image) { return image.get(); }) | ranges::to<Array<const IVulkanImage*>>();
+}
+
+Array<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
+{
+	return m_impl->getSurfaceFormats(this->getDevice()->adapter().handle(), this->getDevice()->surface().handle());
+}
+
+void VulkanSwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
 {
 	// Cleanup and re-initialize.
 	m_impl->cleanup();
@@ -222,7 +226,7 @@ Array<UniquePtr<IVulkanImage>> VulkanSwapChain::reset(const Format& surfaceForma
 	Array<VkImage> imageChain(m_impl->m_buffers);
 	::vkGetSwapchainImagesKHR(this->getDevice()->handle(), this->handle(), &m_impl->m_buffers, imageChain.data());
 
-	return imageChain | 
+	m_impl->m_presentImages = imageChain |
 		std::views::transform([this](const VkImage& image) { return makeUnique<_VMAImage>(*this->getDevice(), image, 1, m_impl->m_renderArea, m_impl->m_format); }) |
 		ranges::to<Array<UniquePtr<IVulkanImage>>>();
 }
