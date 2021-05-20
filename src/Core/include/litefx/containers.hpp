@@ -279,8 +279,10 @@ namespace LiteFX {
 		using pointer_type = TPointer;
 		using builder_type = Builder<derived_type, instance_type, parent_type, pointer_type>;
 
-	protected:
+	public:
 		const T* instance() const noexcept { return m_instance.get(); }
+
+	protected:
 		T* instance() noexcept { return m_instance.get(); }
 
 	public:
@@ -331,10 +333,12 @@ namespace LiteFX {
 		using pointer_type = TPointer;
 		using builder_type = Builder<derived_type, instance_type, parent_type, pointer_type>;
 
-	protected:
+	public:
 		const T* instance() const noexcept { return m_instance.get(); }
+		const TParent& parent() const noexcept { return m_parent; }
+
+	protected:
 		T* instance() noexcept { return m_instance.get(); }
-		//const TParent& parent() const noexcept { return m_parent; }
 
 	public:
 		explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
