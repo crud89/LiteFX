@@ -35,22 +35,183 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// 
+	/// Describes a vertex buffer.
 	/// </summary>
-	template <typename TRenderPipelineLayout> requires
-		rtti::implements<TRenderPipelineLayout, IRenderPipelineLayout>
+	template <typename TVertexBufferLayout> requires
+		rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
+	class IVertexBuffer : public virtual IBuffer, public virtual IBindable {
+	public:
+		using vertex_buffer_layout_type = TVertexBufferLayout;
+
+	public:
+		virtual ~IVertexBuffer() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Gets the layout of the vertex buffer.
+		/// </summary>
+		/// <returns>The layout of the vertex buffer.</returns>
+		virtual const TVertexBufferLayout& layout() const noexcept = 0;
+	};
+
+	/// <summary>
+	/// A base class for a vertex buffer.
+	/// </summary>
+	template <typename TVertexBufferLayout> requires
+		rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
+	class VertexBuffer : public Buffer, public virtual IVertexBuffer<TVertexBufferLayout> {
+	public:
+		/// <summary>
+		/// Creates a new vertex buffer.
+		/// </summary>
+		/// <param name="layout">The layout of the vertex buffer.</param>
+		/// <param name="elements">The number of elements in this buffer.</param>
+		VertexBuffer(const TVertexBufferLayout& layout, const UInt32& elements) :
+			Buffer(BufferType::Vertex, elements, elements* layout.elementSize()) { }
+		VertexBuffer(VertexBuffer&&) = delete;
+		VertexBuffer(const VertexBuffer&) = delete;
+		virtual ~VertexBuffer() noexcept = default;
+	};
+
+	/// <summary>
+	/// Describes an index buffer.
+	/// </summary>
+	template <typename TIndexBufferLayout> requires
+		rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
+	class IIndexBuffer : public virtual IBuffer {
+	public:
+		using index_buffer_layout_type = TIndexBufferLayout;
+
+	public:
+		virtual ~IIndexBuffer() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Gets the layout of the index buffer.
+		/// </summary>
+		/// <returns>The layout of the index buffer.</returns>
+		virtual const TIndexBufferLayout& layout() const noexcept = 0;
+	};
+
+	/// <summary>
+	/// A base class for an index buffer.
+	/// </summary>
+	template <typename TIndexBufferLayout> requires
+		rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
+	class IndexBuffer : public Buffer, public virtual IIndexBuffer<TIndexBufferLayout> {
+	public:
+		/// <summary>
+		/// Creates a new index buffer.
+		/// </summary>
+		/// <param name="layout">The layout of the index buffer.</param>
+		/// <param name="elements">The number of elements in this buffer.</param>
+		IndexBuffer(const TIndexBufferLayout& layout, const UInt32& elements) :
+			Buffer(BufferType::Index, elements, elements* layout.elementSize()) { }
+		IndexBuffer(IndexBuffer&&) = delete;
+		IndexBuffer(const IndexBuffer&) = delete;
+		virtual ~IndexBuffer() noexcept = default;
+	};
+
+	/// <summary>
+	/// Represents a the input assembler state of a <see cref="IRenderPipeline" />.
+	/// </summary>
+	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
+	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
+	template <typename TVertexBufferLayout, typename TIndexBufferLayout> requires
+		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
+		rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
+	class IInputAssembler {
+	public:
+		using vertex_buffer_layout_type = TVertexBufferLayout;
+		using index_buffer_layout_type = TIndexBufferLayout;
+
+	public:
+		virtual ~IInputAssembler() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Returns all vertex buffer layouts of the input assembly.
+		/// </summary>
+		/// <returns>All vertex buffer layouts of the input assembly.</returns>
+		virtual Array<const TVertexBufferLayout*> vertexBufferLayouts() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the vertex buffer layout for binding provided with <paramref name="binding" />.
+		/// </summary>
+		/// <param name="binding">The binding point of the vertex buffer layout.</param>
+		/// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
+		virtual const TVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const = 0;
+
+		/// <summary>
+		/// Returns the index buffer layout.
+		/// </summary>
+		/// <returns>The index buffer layout.</returns>
+		virtual const TIndexBufferLayout& indexBufferLayout() const = 0;
+
+		/// <summary>
+		/// Returns the primitive topology.
+		/// </summary>
+		/// <returns>The primitive topology.</returns>
+		virtual const PrimitiveTopology& topology() const noexcept = 0;
+	};
+
+	/// <summary>
+	/// Builds a <see cref="IInputAssembler" />.
+	/// </summary>
+	template <typename TDerived, typename TInputAssembler, typename TParent, typename TVertexBufferLayout = TInputAssembler::vertex_buffer_layout_type, typename TIndexBufferLayout = TInputAssembler::index_buffer_layout_type> requires
+		rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>>
+	class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>> {
+	public:
+		using Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>>::Builder;
+
+	public:
+		/// <summary>
+		/// Specifies the topology to initialize the input assembler with.
+		/// </summary>
+		/// <param name="topology">The topology to initialize the input assembler with.</param>
+		virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
+
+		/// <summary>
+		/// Adds a vertex buffer layout to the input assembler. Can be called multiple times.
+		/// </summary>
+		/// <param name="layout">The layout to add to the input assembler.</param>
+		virtual void use(UniquePtr<TVertexBufferLayout>&& layout) = 0;
+
+		/// <summary>
+		/// Adds an index buffer layout to the input assembler. Can only be called once.
+		/// </summary>
+		/// <param name="layout"></param>
+		/// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</excpetion>
+		virtual void use(UniquePtr<TIndexBufferLayout>&& layout) = 0;
+	};
+
+	/// <summary>
+	/// Represents a render pipeline state.
+	/// </summary>
+	/// <typeparam name="TRenderPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IRenderPipelineLayout"/>.</typeparam>
+	/// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="IInputAssembler"/>.</typeparam>
+	/// <typeparam name="TVertexBuffer">The type of the vertex buffer. Must implement <see cref="IVertexBuffer"/>.</typeparam>
+	/// <typeparam name="TIndexBuffer">The type of the index buffer. Must implement <see cref="IIndexBuffer"/>.</typeparam>
+	template <typename TRenderPipelineLayout, typename TInputAssembler, typename TVertexBuffer, typename TIndexBuffer, typename TVertexBufferLayout = TVertexBuffer::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBuffer::index_buffer_layout_type> requires
+		rtti::implements<TRenderPipelineLayout, IRenderPipelineLayout> &&
+		rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
+		std::derived_from<TVertexBuffer, IVertexBuffer<TVertexBufferLayout>> &&
+		std::derived_from<TIndexBuffer, IIndexBuffer<TIndexBufferLayout>>
 	class IRenderPipeline {
 	public:
 		using pipeline_layout_type = TRenderPipelineLayout;
+		using vertex_buffer_type = TVertexBuffer;
+		using index_buffer_type = TIndexBuffer;
+		using input_assembler_type = TInputAssembler;
 
 	public:
 		virtual ~IRenderPipeline() noexcept = default;
 
 	public:
 		/// <summary>
-		/// 
+		/// Returns the name of the render pipeline.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>The name of the render pipeline.</returns>
 		virtual const String& name() const noexcept = 0;
 
 		/// <summary>
@@ -62,22 +223,146 @@ namespace LiteFX::Rendering {
 		/// <returns>The ID of the pipeline.</returns>
 		virtual const UInt32& id() const noexcept = 0;
 
-		virtual const IRenderPipelineLayout* layout() const noexcept = 0;
-		virtual SharedPtr<IInputAssembler> inputAssembler() const noexcept = 0;
+		/// <summary>
+		/// Returns the layout of the render pipeline.
+		/// </summary>
+		/// <returns>The layout of the render pipeline.</returns>
+		virtual const TRenderPipelineLayout& layout() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the input assembler state used by the render pipeline.
+		/// </summary>
+		/// <returns>The input assembler state used by the render pipeline.</returns>
+		virtual SharedPtr<TInputAssembler> inputAssembler() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the rasterizer state used by the render pipeline.
+		/// </summary>
+		/// <returns>The rasterizer state used by the render pipeline.</returns>
 		virtual SharedPtr<IRasterizer> rasterizer() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the viewports, the render pipeline can draw to.
+		/// </summary>
+		/// <returns>The viewports, the render pipeline can draw to.</returns>
 		virtual Array<const IViewport*> viewports() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the scissors of the render pipeline.
+		/// </summary>
+		/// <returns>The scissors of the render pipeline.</returns>
 		virtual Array<const IScissor*> scissors() const noexcept = 0;
 
+		/// <summary>
+		/// Returns the descriptor set with the index provided in <paramref name="descriptorSet" />.
+		/// </summary>
+		/// <param name="descriptorSet">The index of the descriptor set.</param>
+		/// <returns>The descriptor set with the provided index.</returns>
+		virtual const IDescriptorSet* descriptorSet(const UInt32& descriptorSet) const = 0;
+
 	public:
-		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const = 0;
-		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const = 0;
-		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const = 0;
-		virtual void bind(const IVertexBuffer* buffer) const = 0;
-		virtual void bind(const IIndexBuffer* buffer) const = 0;
-		virtual void bind(IDescriptorSet* buffer) const = 0;
+		/// <summary>
+		/// Binds a vertex buffer to the pipeline.
+		/// </summary>
+		/// <remarks>
+		/// After binding the vertex buffer, the next call to <see cref="draw" /> or <see cref="drawIndexed" /> will read from it, until another vertex buffer is bound. 
+		/// </remarks>
+		/// <param name="buffer">The vertex buffer to bind to the pipeline.</param>
+		/// <seealso cref="IVertexBuffer" />
+		/// <seealso cref="draw" />
+		/// <seealso cref="drawIndexed" />
+		virtual void bind(const TVertexBuffer& buffer) const = 0;
+
+		/// <summary>
+		/// Binds a index buffer to the pipeline.
+		/// </summary>
+		/// <remarks>
+		/// After binding the index buffer, the next call to <see cref="drawIndexed" /> will read from it, until another index buffer is bound. 
+		/// </remarks>
+		/// <param name="buffer">The index buffer to bind to the pipeline.</param>
+		/// <seealso cref="IIndexBuffer" />
+		/// <seealso cref="drawIndexed" />
+		virtual void bind(const TIndexBuffer& buffer) const = 0;
+
+		/// <summary>
+		/// Binds the provided descriptor set.
+		/// </summary>
+		/// <param name="descriptorSet">The descriptor set to bind.</param>
+		virtual void bind(IDescriptorSet* descriptorSet) const = 0;
+
+		/// <summary>
+		/// Binds the render pipeline to its parent render pass.
+		/// </summary>
 		virtual void use() const = 0;
+
+	public:
+		/// <summary>
+		/// Draws a number of vertices from the currently bound vertex buffer.
+		/// </summary>
+		/// <param name="vertices">The number of vertices to draw.</param>
+		/// <param name="instances">The number of instances to draw.</param>
+		/// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
+		/// <param name="firstInstance">The index of the first instance to draw.</param>
 		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const = 0;
+		
+		/// <summary>
+		/// Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.
+		/// </summary>
+		/// <param name="indices">The number of indices to draw.</param>
+		/// <param name="instances">The number of instances to draw.</param>
+		/// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
+		/// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
+		/// <param name="firstInstance">The index of the first instance to draw.</param>
 		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const = 0;
+
+		/// <summary>
+		/// Draws all vertices from the vertex buffer provided in <paramref name="vertexBuffer" />.
+		/// </summary>
+		/// <remarks>
+		/// This helper method binds the vertex buffer and issues a draw command for all vertices.
+		/// </remarks>
+		/// <param name="vertexBuffer">The vertex buffer to draw from.</param>
+		/// <param name="instances">The number of instances to draw.</param>
+		/// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
+		/// <param name="firstInstance">The index of the first instance to draw.</param>
+		virtual void draw(const TVertexBuffer& vertexBuffer, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const {
+			this->bind(vertexBuffer);
+			this->draw(vertexBuffer.elements(), instances, firstVertex, firstInstance);
+		}
+
+		/// <summary>
+		/// Draws the currently bound vertex buffer using the index buffer provided in <paramref name="indexBuffer" />.
+		/// </summary>
+		/// <remarks>
+		/// This helper method binds the index buffer and issues a draw command for all indices.
+		/// </remarks>
+		/// <param name="indexBuffer">The index buffer to draw with.</param>
+		/// <param name="instances">The number of instances to draw.</param>
+		/// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
+		/// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
+		/// <param name="firstInstance">The index of the first instance to draw.</param>
+		virtual void drawIndexed(const TIndexBuffer& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
+			this->bind(indexBuffer);
+			this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
+		}
+
+		/// <summary>
+		/// Draws the vertex buffer provided by <paramref name="vertexBuffer" /> using the index buffer, provided by <paramref name="indexBuffer" />.
+		/// </summary>
+		/// <remarks>
+		/// This helper method binds the provided vertex and index buffers and issues a draw command for all indices.
+		/// </remarks>
+		/// <param name="vertexBuffer">The vertex buffer to draw from.</param>
+		/// <param name="indexBuffer">The index buffer to draw with.</param>
+		/// <param name="instances">The number of instances to draw.</param>
+		/// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
+		/// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
+		/// <param name="firstInstance">The index of the first instance to draw.</param>
+		virtual void drawIndexed(const TVertexBuffer& vertexBuffer, const TIndexBuffer& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
+			this->bind(vertexBuffer);
+			this->bind(indexBuffer);
+			this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
+		}
 	};
 
 	/// <summary>
@@ -246,6 +531,7 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
+	// TODO: Add concepts to constrain render pipeline and input attachments properly.
 	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TRenderPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImage = TFrameBuffer::image_type> requires
 		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImage>> /*&&
 		rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout>> &&
@@ -489,19 +775,19 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// Describes a factory that creates objects for a <see cref="IGraphicsDevice" />.
 	/// </summary>
-	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
-	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-		/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-	template <typename TVertexBufferLayout, typename TIndexBufferLayout, typename TDescriptorLayout, typename TImage> requires
-		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
-		rtti::implements<TIndexBufferLayout, IIndexBufferLayout> &&
+	/// <typeparam name="TVertexBuffer">The type of the vertex buffer. Must implement <see cref="IVertexBuffer" />.</typeparam>
+	/// <typeparam name="TIndexBuffer">The type of the index buffer. Must implement <see cref="IIndexBuffer" />.</typeparam>
+	/// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
+	template <typename TDescriptorLayout, typename TImage, typename TVertexBuffer, typename TIndexBuffer, typename TVertexBufferLayout = TVertexBuffer::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBuffer::index_buffer_layout_type> requires
 		rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
+		std::derived_from<TVertexBuffer, IVertexBuffer<TVertexBufferLayout>> &&
+		std::derived_from<TIndexBuffer, IIndexBuffer<TIndexBufferLayout>> &&
 		std::derived_from<TImage, IImage>
 	class IGraphicsFactory {
 	public:
-		using vertex_buffer_layout_type = TVertexBufferLayout;
-		using index_buffer_layout_type = TIndexBufferLayout;
+		using vertex_buffer_type = TVertexBuffer;
+		using index_buffer_type = TIndexBuffer;
 		using descriptor_layout_type = TDescriptorLayout;
 
 	public:
@@ -544,25 +830,29 @@ namespace LiteFX::Rendering {
 		/// Creates a vertex buffer, based on the <paramref name="layout" />
 		/// </summary>
 		/// <remarks>
+		/// A vertex buffer can be used by different <see cref="IRenderPipeline" />s, as long as they share a common input assembler state.
+		/// 
 		/// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
 		/// </remarks>
 		/// <param name="layout">The layout of the vertex buffer.</param>
 		/// <param name="usage">The buffer usage.</param>
 		/// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
 		/// <returns>The instance of the vertex buffer.</returns>
-		virtual UniquePtr<IVertexBuffer> createVertexBuffer(const TVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
+		virtual UniquePtr<TVertexBuffer> createVertexBuffer(const TVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 
 		/// <summary>
 		/// Creates an index buffer, based on the <paramref name="layout" />.
 		/// </summary>
 		/// <remarks>
+		/// An index buffer can be used by different <see cref="IRenderPipeline" />s, as long as they share a common input assembler state.
+		/// 
 		/// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
 		/// </remarks>
 		/// <param name="layout">The layout of the index buffer.</param>
 		/// <param name="usage">The buffer usage.</param>
 		/// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
 		/// <returns>The instance of the index buffer.</returns>
-		virtual UniquePtr<IIndexBuffer> createIndexBuffer(const TIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+		virtual UniquePtr<TIndexBuffer> createIndexBuffer(const TIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
 
 		/// <summary>
 		/// Creates a constant buffer, based on the <paramref name="layout" />.
@@ -624,12 +914,12 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
 	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-	template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping = TRenderPass::input_attachment_mapping_type, typename TImage = TSwapChain::image_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferLayout = TFactory::vertex_buffer_layout_type, typename TIndexBufferLayout = TFactory::index_buffer_layout_type, typename TDescriptorLayout = TFactory::descriptor_layout_type > requires
+	template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping = TRenderPass::input_attachment_mapping_type, typename TImage = TSwapChain::image_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBuffer = TFactory::vertex_buffer_type, typename TIndexBuffer = TFactory::index_buffer_type, typename TDescriptorLayout = TFactory::descriptor_layout_type > requires
 		rtti::implements<TSurface, ISurface> &&
 		rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
 		rtti::implements<TSwapChain, ISwapChain<TImage>> &&
 		rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
-		rtti::implements<TFactory, IGraphicsFactory<TVertexBufferLayout, TIndexBufferLayout, TDescriptorLayout, TImage>> &&
+		rtti::implements<TFactory, IGraphicsFactory<TDescriptorLayout, TImage, TVertexBuffer, TIndexBuffer>> &&
 		rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
 	class IGraphicsDevice {
 	public:

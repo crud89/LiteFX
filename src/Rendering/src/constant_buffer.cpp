@@ -15,7 +15,9 @@ private:
 
 public:
     ConstantBufferImpl(ConstantBuffer* parent, const IDescriptorLayout* layout) :
-        base(parent), m_layout(layout) { }
+        base(parent), m_layout(layout) 
+    {
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +25,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 ConstantBuffer::ConstantBuffer(const IDescriptorLayout* layout, const UInt32& elements) :
-    m_impl(makePimpl<ConstantBufferImpl>(this, layout)), Buffer(layout->getType(), elements, layout->getElementSize() * elements)
+    m_impl(makePimpl<ConstantBufferImpl>(this, layout)), Buffer(layout->type(), elements, layout->elementSize() * elements)
 {
     if (layout == nullptr)
         throw std::invalid_argument("The constant buffer descriptor layout must be initialized.");
@@ -31,9 +33,9 @@ ConstantBuffer::ConstantBuffer(const IDescriptorLayout* layout, const UInt32& el
 
 ConstantBuffer::~ConstantBuffer() noexcept = default;
 
-UInt32 ConstantBuffer::getBinding() const noexcept
+const UInt32& ConstantBuffer::binding() const noexcept
 {
-    return m_impl->m_layout->getBinding();
+    return m_impl->m_layout->binding();
 }
 
 const IDescriptorLayout* ConstantBuffer::getLayout() const noexcept

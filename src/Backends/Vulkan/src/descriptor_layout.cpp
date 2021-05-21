@@ -53,10 +53,10 @@ public:
         Array<VkDescriptorSetLayoutBinding> bindings;
 
         std::for_each(std::begin(m_layouts), std::end(m_layouts), [&, i = 0](const UniquePtr<IDescriptorLayout>& layout) mutable {
-            auto bindingPoint = layout->getBinding();
-            auto type = layout->getDescriptorType();
+            auto bindingPoint = layout->binding();
+            auto type = layout->descriptorType();
 
-            LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), type, layout->getElementSize(), 0, bindingPoint);
+            LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), type, layout->elementSize(), 0, bindingPoint);
 
             VkDescriptorSetLayoutBinding binding = {};
             binding.binding = bindingPoint;
@@ -104,7 +104,7 @@ public:
 
     const IDescriptorLayout* getLayout(const UInt32& binding) const noexcept
     {
-        auto layout = std::find_if(std::begin(m_layouts), std::end(m_layouts), [&](const UniquePtr<IDescriptorLayout>& layout) { return layout->getBinding() == binding; });
+        auto layout = std::find_if(std::begin(m_layouts), std::end(m_layouts), [&](const UniquePtr<IDescriptorLayout>& layout) { return layout->binding() == binding; });
 
         return layout == m_layouts.end() ? nullptr : layout->get();
     }
@@ -189,7 +189,7 @@ VulkanRenderPipelineLayoutBuilder& VulkanDescriptorSetLayoutBuilder::go()
 
 VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::addDescriptor(UniquePtr<IDescriptorLayout>&& layout)
 {
-    if (this->instance()->getShaderStages() != ShaderStage::Fragment && layout->getDescriptorType() == DescriptorType::InputAttachment)
+    if (this->instance()->getShaderStages() != ShaderStage::Fragment && layout->descriptorType() == DescriptorType::InputAttachment)
         throw std::invalid_argument("Input attachments must only be used from the fragment stage.");
 
     this->instance()->m_impl->m_layouts.push_back(std::move(layout));

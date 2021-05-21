@@ -41,22 +41,22 @@ VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanInputAssembler& i
 
 VulkanVertexBufferLayout::~VulkanVertexBufferLayout() noexcept = default;
 
-size_t VulkanVertexBufferLayout::getElementSize() const noexcept
+size_t VulkanVertexBufferLayout::elementSize() const noexcept
 {
     return m_impl->m_vertexSize;
 }
 
-UInt32 VulkanVertexBufferLayout::getBinding() const noexcept
+const UInt32& VulkanVertexBufferLayout::binding() const noexcept
 {
     return m_impl->m_binding;
 }
 
-BufferType VulkanVertexBufferLayout::getType() const noexcept
+const BufferType& VulkanVertexBufferLayout::type() const noexcept
 {
     return BufferType::Vertex;
 }
 
-Array<const BufferAttribute*> VulkanVertexBufferLayout::getAttributes() const noexcept
+Array<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const noexcept
 {
     return m_impl->getAttributes();
 }
@@ -73,7 +73,7 @@ VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(U
 
 VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
 {
-    return this->addAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->getAttributes().size()), offset, format, semantic, semanticIndex)));
+    return this->addAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->attributes().size()), offset, format, semantic, semanticIndex)));
 }
 
 VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)

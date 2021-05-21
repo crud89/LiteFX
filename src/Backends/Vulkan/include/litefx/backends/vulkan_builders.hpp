@@ -12,7 +12,6 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanShaderProgramBuilder;
 	class VulkanRasterizerBuilder;
 	class VulkanViewportBuilder;
-	class VulkanInputAssemblerBuilder;
 	class VulkanDescriptorSetLayoutBuilder;
 	class VulkanVertexBufferLayoutBuilder;
 
@@ -71,36 +70,6 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline, VulkanRenderPassBuilder> {
-		LITEFX_IMPLEMENTATION(VulkanRenderPipelineBuilderImpl);
-
-	public:
-		VulkanRenderPipelineBuilder(VulkanRenderPassBuilder& parent, UniquePtr<VulkanRenderPipeline>&& instance);
-		VulkanRenderPipelineBuilder(VulkanRenderPipelineBuilder&&) = delete;
-		VulkanRenderPipelineBuilder(const VulkanRenderPipelineBuilder&) = delete;
-		virtual ~VulkanRenderPipelineBuilder() noexcept;
-
-	public:
-		virtual VulkanRenderPipelineLayoutBuilder layout();
-		virtual VulkanRasterizerBuilder rasterizer();
-		virtual VulkanInputAssemblerBuilder inputAssembler();
-		virtual VulkanRenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
-		virtual VulkanRenderPipelineBuilder& withInputAssembler(SharedPtr<IInputAssembler> inputAssembler);
-		virtual VulkanRenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
-		virtual VulkanRenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
-
-	public:
-		virtual VulkanRenderPassBuilder& go() override;
-		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
-		virtual void use(SharedPtr<IRasterizer> rasterizer) override;
-		virtual void use(SharedPtr<IInputAssembler> inputAssembler) override;
-		virtual void use(SharedPtr<IViewport> viewport) override;
-		virtual void use(SharedPtr<IScissor> scissor) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
 	class LITEFX_VULKAN_API VulkanRasterizerBuilder : public RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder> {
 	public:
 		using RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder>::RasterizerBuilder;
@@ -114,25 +83,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
 		virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
 		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanInputAssemblerBuilder : public InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder> {
-	public:
-		using InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder>::InputAssemblerBuilder;
-
-	public:
-		virtual VulkanVertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
-
-	public:
-		virtual VulkanInputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
-		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) override;
-		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) override;
-
-	public:
-		virtual VulkanInputAssemblerBuilder& withIndexType(const IndexType& type);
 	};
 
 	/// <summary>

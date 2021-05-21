@@ -162,10 +162,10 @@ UniquePtr<IBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, c
 	return _VMABuffer::allocate(type, elements, size, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<IVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<VulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	bufferInfo.size = layout.getElementSize() * elements;
+	bufferInfo.size = layout.elementSize() * elements;
 
 	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
@@ -204,13 +204,13 @@ UniquePtr<IVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanV
 	}
 
 	// Create a buffer using VMA.
-	return _VMAVertexBuffer::allocate(&layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	return _VMAVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<IIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<VulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	bufferInfo.size = layout.getElementSize() * elements;
+	bufferInfo.size = layout.elementSize() * elements;
 
 	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 
@@ -249,17 +249,17 @@ UniquePtr<IIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanInd
 	}
 
 	// Create a buffer using VMA.
-	return _VMAIndexBuffer::allocate(&layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	return _VMAIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 UniquePtr<IConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	bufferInfo.size = layout.getElementSize() * elements;
+	bufferInfo.size = layout.elementSize() * elements;
 
 	VkBufferUsageFlags usageFlags = {};
 
-	switch (layout.getType())
+	switch (layout.type())
 	{
 	case BufferType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
 	case BufferType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; break;

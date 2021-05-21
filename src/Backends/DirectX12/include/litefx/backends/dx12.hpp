@@ -259,7 +259,7 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual UniquePtr<IVertexBuffer> makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding = 0) const override;
 		virtual UniquePtr<IIndexBuffer> makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const override;
-		virtual UniquePtr<IDescriptorSet> makeBufferPool(const UInt32& bufferSet) const override;
+		virtual UniquePtr<IDescriptorSet> makeDescriptorSet(const UInt32& bufferSet) const override;
 		virtual void bind(const IVertexBuffer* buffer) const override;
 		virtual void bind(const IIndexBuffer* buffer) const override;
 		virtual void bind(IDescriptorSet* buffer) const override;

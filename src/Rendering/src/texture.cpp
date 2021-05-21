@@ -33,9 +33,9 @@ Texture::Texture(const IDescriptorLayout* layout, const UInt32& elements, const 
 
 Texture::~Texture() noexcept = default;
 
-UInt32 Texture::getBinding() const noexcept
+const UInt32& Texture::binding() const noexcept
 {
-    return m_impl->m_layout->getBinding();
+    return m_impl->m_layout->binding();
 }
 
 const IDescriptorLayout* Texture::getLayout() const noexcept

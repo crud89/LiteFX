@@ -144,9 +144,9 @@ void SampleApp::initBuffers()
     m_indexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
-    m_perFrameBindings = geometryPipeline->makeBufferPool(DescriptorSets::PerFrame);
+    m_perFrameBindings = geometryPipeline->makeDescriptorSet(DescriptorSets::PerFrame);
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
-    m_perObjectBindings = geometryPipeline->makeBufferPool(DescriptorSets::PerInstance);
+    m_perObjectBindings = geometryPipeline->makeDescriptorSet(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
 
     // Create buffers for lighting pass.
@@ -162,7 +162,7 @@ void SampleApp::initBuffers()
     m_viewPlaneIndexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create the G-Buffer bindings.
-    m_gBufferBindings = lightingPipeline->makeBufferPool(DescriptorSets::PerFrame);
+    m_gBufferBindings = lightingPipeline->makeDescriptorSet(DescriptorSets::PerFrame);
 }
 
 void SampleApp::run() 

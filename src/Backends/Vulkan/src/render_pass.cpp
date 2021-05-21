@@ -383,8 +383,8 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPassBuilder::VulkanRenderPassBuilder() noexcept :
-    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this)), RenderPassBuilder(UniquePtr<VulkanRenderPass>(new VulkanRenderPass()))
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device) noexcept :
+    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this)), RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass>(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device)))
 {
 }
 

@@ -28,6 +28,34 @@ namespace LiteFX::Rendering::Backends {
 
     constexpr char VULKAN_LOG[] = "Backend::Vulkan";
 
+    // API declarations.
+    class VulkanTexture;
+    class VulkanSwapChain;
+    class VulkanQueue;
+    class VulkanDevice;
+    class VulkanBackend;
+    class VulkanRenderPipeline;
+    class VulkanRenderPipelineLayout;
+    class VulkanRenderPass;
+    class VulkanInputAttachmentMapping;
+    class VulkanRasterizer;
+    class VulkanInputAssembler;
+    class VulkanShaderModule;
+    class VulkanShaderProgram;
+    class VulkanCommandBuffer;
+    class VulkanDescriptorSetLayout;
+    class VulkanVertexBufferLayout;
+    class VulkanIndexBufferLayout;
+    class VulkanDescriptorLayout;
+    class VulkanVertexBuffer;
+    class VulkanIndexBuffer;
+    class VulkanConstantBuffer;
+    class VulkanSampler;
+
+    // Builder declarations.
+    class VulkanInputAssemblerBuilder;
+    class VulkanRenderPassBuilder;
+
     // Conversion helpers.
     /// <summary>
     /// 
@@ -98,33 +126,6 @@ namespace LiteFX::Rendering::Backends {
     /// 
     /// </summary>
     VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
-
-    // API declarations.
-    class VulkanTexture;
-    class VulkanSwapChain;
-    class VulkanQueue;
-    class VulkanDevice;
-    class VulkanBackend;
-    class VulkanRenderPipeline;
-    class VulkanRenderPipelineLayout;
-    class VulkanRenderPass;
-    class VulkanInputAttachmentMapping;
-    class VulkanRasterizer;
-    class VulkanInputAssembler;
-    class VulkanShaderModule;
-    class VulkanShaderProgram;
-    class VulkanCommandBuffer;
-    class VulkanDescriptorSetLayout;
-    class VulkanVertexBufferLayout;
-    class VulkanIndexBufferLayout;
-    class VulkanDescriptorLayout;
-    class VulkanVertexBuffer;
-    class VulkanIndexBuffer;
-    class VulkanConstantBuffer;
-    class VulkanSampler;
-
-    // Builder declarations.
-    class VulkanRenderPassBuilder;
 
     /// <summary>
     /// Represents a Vulkan graphics adapter.

@@ -41,26 +41,34 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<IBuffer> allocate(const BufferType& type, const UInt32& elements, const size_t& size, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	class _VMAVertexBuffer : public _VMABufferBase, public VertexBuffer {
+	class _VMAVertexBuffer : public _VMABufferBase, public virtual VulkanVertexBuffer {
 	public:
-		_VMAVertexBuffer(VkBuffer buffer, const IVertexBufferLayout* layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
+		_VMAVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
 		_VMAVertexBuffer(_VMAVertexBuffer&&) = delete;
 		_VMAVertexBuffer(const _VMAVertexBuffer&) = delete;
 		virtual ~_VMAVertexBuffer() noexcept;
 
 	public:
-		static UniquePtr<IVertexBuffer> allocate(const IVertexBufferLayout* layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		/// <inheritdoc />
+		virtual const VulkanVertexBufferLayout& layout() const noexcept override;
+
+	public:
+		static UniquePtr<VulkanVertexBuffer> allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	class _VMAIndexBuffer : public _VMABufferBase, public IndexBuffer {
+	class _VMAIndexBuffer : public _VMABufferBase, public virtual VulkanIndexBuffer {
 	public:
-		_VMAIndexBuffer(VkBuffer buffer, const IIndexBufferLayout* layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
+		_VMAIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
 		_VMAIndexBuffer(_VMAIndexBuffer&&) = delete;
 		_VMAIndexBuffer(const _VMAIndexBuffer&) = delete;
 		virtual ~_VMAIndexBuffer() noexcept;
 
 	public:
-		static UniquePtr<IIndexBuffer> allocate(const IIndexBufferLayout* layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		/// <inheritdoc />
+		virtual const VulkanIndexBufferLayout& layout() const noexcept override;
+
+	public:
+		static UniquePtr<VulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	class _VMAConstantBuffer : public _VMABufferBase, public ConstantBuffer {
@@ -73,5 +81,4 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		static UniquePtr<IConstantBuffer> allocate(const IDescriptorLayout* layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
-
 }

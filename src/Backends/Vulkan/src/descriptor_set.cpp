@@ -123,18 +123,18 @@ void VulkanDescriptorSet::update(const IConstantBuffer* buffer) const
 
     VkDescriptorBufferInfo bufferInfo{ };
     bufferInfo.buffer = resource->handle();
-    bufferInfo.range = buffer->getSize();
+    bufferInfo.range = buffer->size();
     bufferInfo.offset = 0;
 
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = m_impl->m_descriptorSets[m_impl->m_currentSet];
-    descriptorWrite.dstBinding = buffer->getLayout()->getBinding();
+    descriptorWrite.dstBinding = buffer->getLayout()->binding();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pBufferInfo = &bufferInfo;
 
-    switch (buffer->getLayout()->getDescriptorType())
+    switch (buffer->getLayout()->descriptorType())
     {
     case DescriptorType::Uniform: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
     case DescriptorType::Storage: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
@@ -159,7 +159,7 @@ void VulkanDescriptorSet::update(const ITexture* texture) const
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     descriptorWrite.dstSet = m_impl->m_descriptorSets[m_impl->m_currentSet];
-    descriptorWrite.dstBinding = texture->getBinding();
+    descriptorWrite.dstBinding = texture->binding();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
@@ -181,7 +181,7 @@ void VulkanDescriptorSet::update(const ISampler* sampler) const
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
     descriptorWrite.dstSet = m_impl->m_descriptorSets[m_impl->m_currentSet];
-    descriptorWrite.dstBinding = sampler->getBinding();
+    descriptorWrite.dstBinding = sampler->binding();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
@@ -198,7 +198,7 @@ void VulkanDescriptorSet::updateAll(const IConstantBuffer* buffer) const
 
     VkDescriptorBufferInfo bufferInfo{ };
     bufferInfo.buffer = resource->handle();
-    bufferInfo.range = buffer->getSize();
+    bufferInfo.range = buffer->size();
     bufferInfo.offset = 0;
 
     Array<VkWriteDescriptorSet> descriptorWrites(m_impl->m_descriptorSets.size());
@@ -208,12 +208,12 @@ void VulkanDescriptorSet::updateAll(const IConstantBuffer* buffer) const
 
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
-        descriptorWrite.dstBinding = buffer->getLayout()->getBinding();
+        descriptorWrite.dstBinding = buffer->getLayout()->binding();
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pBufferInfo = &bufferInfo;
 
-        switch (buffer->getLayout()->getDescriptorType())
+        switch (buffer->getLayout()->descriptorType())
         {
         case DescriptorType::Uniform: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
         case DescriptorType::Storage: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
@@ -244,7 +244,7 @@ void VulkanDescriptorSet::updateAll(const ITexture* texture) const
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
-        descriptorWrite.dstBinding = texture->getBinding();
+        descriptorWrite.dstBinding = texture->binding();
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pImageInfo = &imageInfo;
@@ -272,7 +272,7 @@ void VulkanDescriptorSet::updateAll(const ISampler* sampler) const
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
         descriptorWrite.dstSet = m_impl->m_descriptorSets[i++];
-        descriptorWrite.dstBinding = sampler->getBinding();
+        descriptorWrite.dstBinding = sampler->binding();
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pImageInfo = &imageInfo;

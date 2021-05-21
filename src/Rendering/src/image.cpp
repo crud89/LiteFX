@@ -17,7 +17,9 @@ private:
 
 public:
     ImageImpl(Image* parent, const UInt32& elements, const UInt32& size, const Size2d& extent, const Format& format) :
-        base(parent), m_elements(elements), m_size(size), m_extent(extent), m_format(format) { }
+        base(parent), m_elements(elements), m_size(size), m_extent(extent), m_format(format) 
+    {
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -31,22 +33,22 @@ Image::Image(const UInt32& elements, const size_t& size, const Size2d& extent, c
 
 Image::~Image() noexcept = default;
 
-UInt32 Image::getElements() const noexcept
+const UInt32& Image::elements() const noexcept
 {
     return m_impl->m_elements;
 }
 
-size_t Image::getSize() const noexcept
+size_t Image::size() const noexcept
 {
     return m_impl->m_size;
 }
 
-Size2d Image::getExtent() const noexcept
+const Size2d& Image::extent() const noexcept
 {
     return m_impl->m_extent;
 }
 
-Format Image::getFormat() const noexcept
+const Format& Image::format() const noexcept
 {
     return m_impl->m_format;
 }

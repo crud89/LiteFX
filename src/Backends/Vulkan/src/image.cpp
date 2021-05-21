@@ -235,7 +235,7 @@ void _VMATexture::transferFrom(const ICommandBuffer* commandBuffer, IBuffer* sou
 	copyInfo.imageSubresource.layerCount = 1;
 
 	copyInfo.imageOffset = { 0, 0, 0 };
-	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
+	copyInfo.imageExtent = { static_cast<UInt32>(this->extent().width()), static_cast<UInt32>(this->extent().height()), 1 };
 
 	::vkCmdCopyBufferToImage(transferBuffer->handle(), sourceBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyInfo);
 
@@ -319,7 +319,7 @@ void _VMATexture::transferTo(const ICommandBuffer* commandBuffer, IBuffer* targe
 	copyInfo.imageSubresource.layerCount = 1;
 
 	copyInfo.imageOffset = { 0, 0, 0 };
-	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
+	copyInfo.imageExtent = { static_cast<UInt32>(this->extent().width()), static_cast<UInt32>(this->extent().height()), 1 };
 
 	::vkCmdCopyImageToBuffer(transferBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, targetBuffer->handle(), 1, &copyInfo);
 

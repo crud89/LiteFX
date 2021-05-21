@@ -92,9 +92,9 @@ void SampleApp::createRenderPasses()
 //    m_indexBuffer->transferFrom(m_device->getTransferQueue(), stagedIndices.get(), stagedIndices->getSize());
 //
 //    // Create a uniform buffers for the camera and transform information.
-//    m_perFrameBindings = m_renderPass->makeBufferPool(DescriptorSets::PerFrame);
+//    m_perFrameBindings = m_renderPass->makeDescriptorSet(DescriptorSets::PerFrame);
 //    m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
-//    m_perObjectBindings = m_renderPass->makeBufferPool(DescriptorSets::PerInstance);
+//    m_perObjectBindings = m_renderPass->makeDescriptorSet(DescriptorSets::PerInstance);
 //    m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
 //}
 //

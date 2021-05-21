@@ -23,7 +23,6 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX::Math;
 
 	// Forward declarations.
-	class IInputAssembler;
 	class IRasterizer;
 	class IViewport;
 	class IScissor;
@@ -41,8 +40,6 @@ namespace LiteFX::Rendering {
 	class ITransferable;
 	class IDeviceMemory;
 	class IBuffer;
-	class IVertexBuffer;
-	class IIndexBuffer;
 	class IConstantBuffer;
 	class IDescriptor;
 	class IImage;
@@ -53,8 +50,6 @@ namespace LiteFX::Rendering {
 	class Viewport;
 	class Scissor;
 	class Buffer;
-	class VertexBuffer;
-	class IndexBuffer;
 	class ConstantBuffer;
 	class Image;
 	class Texture;
@@ -746,48 +741,7 @@ namespace LiteFX::Rendering {
 		virtual void submit(const bool& wait = false) const = 0;
 	};
 
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_RENDERING_API IInputAssembler {
-	public:
-		virtual ~IInputAssembler() noexcept = default;
-
-	public:
-		virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const = 0;
-		virtual const IVertexBufferLayout* getVertexBufferLayout(const UInt32& binding) const = 0;
-		virtual const IIndexBufferLayout* getIndexBufferLayout() const = 0;
-		virtual const PrimitiveTopology getTopology() const noexcept = 0;
-		virtual void setTopology(const PrimitiveTopology& topology) = 0;
-
-	public:
-		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) = 0;
-		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) = 0;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_RENDERING_API InputAssembler : public IInputAssembler {
-		LITEFX_IMPLEMENTATION(InputAssemblerImpl);
-
-	public:
-		explicit InputAssembler();
-		InputAssembler(InputAssembler&&) noexcept = delete;
-		InputAssembler(const InputAssembler&) noexcept = delete;
-		virtual ~InputAssembler() noexcept;
-
-	public:
-		virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const override;
-		virtual const IVertexBufferLayout* getVertexBufferLayout(const UInt32& binding) const override;
-		virtual const IIndexBufferLayout* getIndexBufferLayout() const override;
-		virtual const PrimitiveTopology getTopology() const noexcept override;
-		virtual void setTopology(const PrimitiveTopology& topology) override;
-
-	public:
-		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) override;
-		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) override;
-	};
+	// TODO: Make rasterizer state immutable.
 
 	/// <summary>
 	/// 

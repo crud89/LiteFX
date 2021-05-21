@@ -16,30 +16,33 @@ private:
 
 public:
     BufferImpl(Buffer* parent, const BufferType& type, const UInt32& elements, const UInt32& size) :
-        base(parent), m_type(type), m_elements(elements), m_size(size) { }
+        base(parent), m_type(type), m_elements(elements), m_size(size) 
+    {
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Buffer::Buffer(const BufferType& type, const UInt32& elements, const UInt32& size) : m_impl(makePimpl<BufferImpl>(this, type, elements, size))
+Buffer::Buffer(const BufferType& type, const UInt32& elements, const UInt32& size) : 
+    m_impl(makePimpl<BufferImpl>(this, type, elements, size))
 {
 }
 
 Buffer::~Buffer() noexcept = default;
 
-UInt32 Buffer::getElements() const noexcept
+const UInt32& Buffer::elements() const noexcept
 {
     return m_impl->m_elements;
 }
 
-size_t Buffer::getSize() const noexcept
+size_t Buffer::size() const noexcept
 {
     return m_impl->m_size;
 }
 
-BufferType Buffer::getType() const noexcept
+const BufferType& Buffer::type() const noexcept
 {
     return m_impl->m_type;
 }
