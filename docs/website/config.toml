@@ -3,6 +3,7 @@ disableKinds = ["section", "taxonomy", "term", "RSS", "robotsTXT"]
 defaultContentLanguage = "en"
 theme = "hugo-scroll"
 title = "LiteFX - An extensible, descriptive, modern computer graphics and rendering engine, written in C++20."
+publishDir = "../"
 
 [params]
     copyright = "© 2021 Carsten Rudolph"
