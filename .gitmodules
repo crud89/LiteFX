@@ -1,3 +1,6 @@
 [submodule "src/Modules/vcpkg"]
 	path = src/Modules/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
+[submodule "docs/themes/hugo-scroll"]
+	path = docs/themes/hugo-scroll
+	url = https://github.com/janraasch/hugo-scroll.git
