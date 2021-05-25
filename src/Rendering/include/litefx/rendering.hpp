@@ -302,7 +302,7 @@ namespace LiteFX::Rendering {
 		/// Returns the binding point, the buffer will be bound to.
 		/// </summary>
 		/// <remarks>
-		/// In GLSL, the binding point is identified by the <c>binding</c> keyword, whilst in HLSL the the binding maps to a register.
+		/// In GLSL, the binding point is identified by the <c>binding</c> keyword, whilst in HLSL the binding maps to a register.
 		/// </remarks>
 		/// <returns>The binding point, the buffer will be bound to.</returns>
 		virtual const UInt32& binding() const noexcept = 0;
@@ -404,7 +404,7 @@ namespace LiteFX::Rendering {
 	/// 
 	/// <list type="bullet">
 	///   <item>
-	///     <term>Naive</term>
+	///     <term>Naive:</term>
 	///     <description>
 	///     The naive approach most closely matches earlier graphics API concepts. Create one buffer per descriptor and synchronize frames. This basically means that each 
 	///     back buffer swap is synchronized to wait for the graphics pipeline. This way, writing to a buffer ensures, that it is only read within the frame of reference and 
@@ -413,7 +413,7 @@ namespace LiteFX::Rendering {
 	///     </description>
 	///   </item>
 	///   <item>
-	///     <term>Array of Buffers</term>
+	///     <term>Array of Buffers:</term>
 	///     <description>
 	///     The helper methods for creating and updating constant buffers are able to create buffer arrays. Those arrays can be used to create a buffer for each frame in 
 	///     flight. When binding a buffer to a descriptor, it is possible to bind only one element of the array. This way, each frame has its own buffer and does not 
@@ -421,7 +421,7 @@ namespace LiteFX::Rendering {
 	///     </description>
 	///   </item>
 	///   <item>
-	///     <term>Ring-Buffer</term>
+	///     <term>Ring-Buffer:</term>
 	///     <description>
 	///     The most efficient (yet not always applicable) approach involves creating one large buffer array, that is bound to multiple descriptor sets. This ensures that
 	///     the buffer memory stays contiguous and does not get fragmented. However, this requires to know upfront, how many buffers are required for each descriptor, which
@@ -558,8 +558,8 @@ namespace LiteFX::Rendering {
 	/// 
 	/// For more information on buffer binding and resource management, refer to the remarks of the <see cref="IDescriptorSet" /> interface.
 	/// </remarks>
-	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement from <see cref="IDescriptorLayout"/>.</typeparam>
-	/// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement from <see cref="IDescriptorSet"/>.</typeparam>
+	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout"/>.</typeparam>
+	/// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
 	/// <seealso cref="IDescriptorLayout" />
 	/// <seealso cref="IDescriptorSet" />
 	template <typename TDescriptorLayout, typename TDescriptorSet, typename TBufferInterface = TDescriptorLayout::buffer_interface_type, typename TConstantBuffer = TDescriptorLayout::constant_buffer_type, typename TTexture = TDescriptorLayout::texture_type, typename TSampler = TDescriptorLayout::sampler_type, typename TImage = TDescriptorLayout::image_type> requires
@@ -695,22 +695,31 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// 
+	/// Represents a shader program, consisting of multiple <see cref="IShaderModule" />s.
 	/// </summary>
-	class LITEFX_RENDERING_API IShaderProgram {
+	/// <typeparam name="TShaderModule">The type of the shader module. Must implement <see cref="IShaderModule"/>.</typeparam>
+	template <typename TShaderModule> requires
+		rtti::implements<TShaderModule, IShaderModule>
+	class IShaderProgram {
+	public:
+		using shader_module_type = TShaderModule;
+
 	public:
 		virtual ~IShaderProgram() noexcept = default;
 
 	public:
-		virtual Array<const IShaderModule*> getModules() const noexcept = 0;
-		virtual void use(UniquePtr<IShaderModule>&& module) = 0;
+		/// <summary>
+		/// Returns the modules, the shader program is build from.
+		/// </summary>
+		/// <returns>The modules, the shader program is build from.</returns>
+		virtual Array<const TShaderModule*> modules() const noexcept = 0;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	template <typename TDerived, typename TShaderProgram, typename TParent> requires
-		rtti::implements<TShaderProgram, IShaderProgram>
+	template <typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = TShaderProgram::shader_module_type> requires
+		rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
 	class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
 	public:
 		using Builder<TDerived, TShaderProgram, TParent>::Builder;
@@ -726,28 +735,47 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// 
+	/// Represents a the layout of a <see cref="IRenderPipeline" />.
 	/// </summary>
-	template <typename TDescriptorSetLayout, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
-		rtti::implements<TDescriptorSetLayout, IDescriptorSetLayout<TDescriptorLayout, TDescriptorSet>>
+	/// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="IDescriptorSetLayout"/>.</typeparam>
+	/// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="IShaderProgram"/>.</typeparam>
+	template <typename TDescriptorSetLayout, typename TShaderProgram, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TShaderModule = TShaderProgram::shader_module_type> requires
+		rtti::implements<TDescriptorSetLayout, IDescriptorSetLayout<TDescriptorLayout, TDescriptorSet>> &&
+		rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
 	class IRenderPipelineLayout {
 	public:
 		using descriptor_set_layout_type = TDescriptorSetLayout;
+		using shader_program_type = TShaderProgram;
 
 	public:
 		virtual ~IRenderPipelineLayout() noexcept = default;
 
 	public:
-		virtual const IShaderProgram* program() const noexcept = 0;
-		virtual const TDescriptorSetLayout& layout(const UInt32& space) = 0;
+		/// <summary>
+		/// Returns the shader program, the pipeline uses for drawing.
+		/// </summary>
+		/// <returns>The shader program, the pipeline uses for drawing.</returns>
+		virtual const TShaderProgram& program() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.
+		/// </summary>
+		/// <param name="space">The space to request the descriptor set layout for.</param>
+		/// <returns>The descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.</returns>
+		virtual const TDescriptorSetLayout& layout(const UInt32& space) const = 0;
+
+		/// <summary>
+		/// Returns all descriptor set layouts, the pipeline has been initialized with.
+		/// </summary>
+		/// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
 		virtual Array<const TDescriptorSetLayout*> layouts() const noexcept = 0;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type> requires
-		rtti::implements<TPipelineLayout, IRenderPipelineLayout<TDescriptorSetLayout>>
+	template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
+		rtti::implements<TPipelineLayout, IRenderPipelineLayout<TDescriptorSetLayout, TShaderProgram>>
 	class RenderPipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
 	public:
 		using Builder<TDerived, TPipelineLayout, TParent>::Builder;
@@ -761,8 +789,8 @@ namespace LiteFX::Rendering {
 	/// Describes a vertex buffer.
 	/// </summary>
 	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="IBuffer"/>.</typeparam>
-	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement from <see cref="ICommandBuffer"/>.</typeparam>
-	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement from <see cref="IVertexBufferLayout"/>.</typeparam>
+	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
+	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
 	template <typename TDerived, typename TVertexBufferLayout, typename TCommandBuffer = TDerived::command_buffer_type> requires
 		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
 		std::derived_from<TDerived, IVertexBuffer<TDerived, TVertexBufferLayout, TCommandBuffer>>
@@ -785,8 +813,8 @@ namespace LiteFX::Rendering {
 	/// Describes an index buffer.
 	/// </summary>
 	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="IBuffer"/>.</typeparam>
-	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement from <see cref="ICommandBuffer"/>.</typeparam>
-	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement from <see cref="IIndexBufferLayout"/>.</typeparam>
+	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
+	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
 	template <typename TDerived, typename TIndexBufferLayout, typename TCommandBuffer = TDerived::command_buffer_type> requires
 		rtti::implements<TIndexBufferLayout, IIndexBufferLayout> &&
 		std::derived_from<TDerived, IIndexBuffer<TDerived, TIndexBufferLayout, TCommandBuffer>>
@@ -887,10 +915,11 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IIndexBuffer"/>.</typeparam>
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
 	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
+	/// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="IShaderProgram"/>.</typeparam>
 	/// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="IDescriptorSetLayout"/>.</typeparam>
 	/// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
-	template <typename TRenderPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout = TRenderPipelineLayout::descriptor_set_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
-		rtti::implements<TRenderPipelineLayout, IRenderPipelineLayout<TDescriptorSetLayout>> &&
+	template <typename TRenderPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
+		rtti::implements<TRenderPipelineLayout, IRenderPipelineLayout<TDescriptorSetLayout, TShaderProgram>> &&
 		rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
 		std::derived_from<TVertexBufferInterface, IVertexBuffer<TVertexBufferInterface, TVertexBufferLayout>> &&
 		std::derived_from<TIndexBufferInterface, IIndexBuffer<TIndexBufferInterface, TIndexBufferLayout>>
@@ -1621,7 +1650,7 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// Represents the graphics device that a rendering backend is doing work on.
+	/// Represents the graphics device that a rendering back-end is doing work on.
 	/// </summary>
 	/// <remarks>
 	/// The graphics device is the central instance of a renderer. It has two major roles. First, it maintains the <see cref="IGraphicsFactory" /> instance, that is used to facilitate
@@ -1723,7 +1752,7 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// Defines a backend, that provides a device instance for a certain surface and graphics adapter.
+	/// Defines a back-end, that provides a device instance for a certain surface and graphics adapter.
 	/// </summary>
 	/// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
 	/// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
@@ -1748,8 +1777,8 @@ namespace LiteFX::Rendering {
 		/// Finds an adapter using its unique ID.
 		/// </summary>
 		/// <remarks>
-		/// Note that the adapter ID is optional, which allows the backend to return a default adapter instance. Which adapter is used as <i>default</i> adapter, depends on
-		/// the actual backend implementation. The interface does not make any constraints on the default adapter to choose. A naive implementation might simply return the 
+		/// Note that the adapter ID is optional, which allows the back-end to return a default adapter instance. Which adapter is used as <i>default</i> adapter, depends on
+		/// the actual back-end implementation. The interface does not make any constraints on the default adapter to choose. A naive implementation might simply return the 
 		/// first available adapter.
 		/// </remarks>
 		/// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
@@ -1768,5 +1797,4 @@ namespace LiteFX::Rendering {
 			return makeUnique<TGraphicsDevice>(adapter, surface, std::forward<TArgs>(_args)...);
 		}
 	};
-
 }

@@ -562,16 +562,33 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// 
+	/// Represents a single shader module, i.e. a part of a <see cref="IShaderProgram" />.
 	/// </summary>
+	/// <remarks>
+	/// A shader module corresponds to a single shader source file.
+	/// </remarks>
 	class LITEFX_RENDERING_API IShaderModule {
 	public:
 		virtual ~IShaderModule() noexcept = default;
 
 	public:
-		virtual const ShaderStage& getType() const noexcept = 0;
-		virtual const String& getFileName() const noexcept = 0;
-		virtual const String& getEntryPoint() const noexcept = 0;
+		/// <summary>
+		/// Returns the type of the shader module.
+		/// </summary>
+		/// <returns>The type of the shader module.</returns>
+		virtual const ShaderStage& type() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the file name of the shader module.
+		/// </summary>
+		/// <returns>The file name of the shader module.</returns>
+		virtual const String& fileName() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the name of the shader module entry point.
+		/// </summary>
+		/// <returns>The name of the shader module entry point.</returns>
+		virtual const String& entryPoint() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -752,76 +769,128 @@ namespace LiteFX::Rendering {
 		virtual void submit(const bool& wait = false) const = 0;
 	};
 
-	// TODO: Make rasterizer state immutable.
-
 	/// <summary>
-	/// 
+	/// Represents the rasterizer state of a <see cref="IRenderPipeline" />.
 	/// </summary>
 	class LITEFX_RENDERING_API IRasterizer {
 	public:
 		virtual ~IRasterizer() noexcept = default;
 
 	public:
-		virtual PolygonMode getPolygonMode() const noexcept = 0;
-		virtual void setPolygonMode(const PolygonMode& mode) noexcept = 0;
-		virtual CullMode getCullMode() const noexcept = 0;
-		virtual void setCullMode(const CullMode& mode) noexcept = 0;
-		virtual CullOrder getCullOrder() const noexcept = 0;
-		virtual void setCullOrder(const CullOrder& order) noexcept = 0;
+		/// <summary>
+		/// Returns the polygon mode of the rasterizer state.
+		/// </summary>
+		/// <returns>The polygon mode of the rasterizer state.</returns>
+		virtual const PolygonMode& polygonMode() const noexcept = 0;
 
 		/// <summary>
-		/// 
+		/// Returns the cull mode of the rasterizer state.
+		/// </summary>
+		/// <returns>The cull mode of the rasterizer state.</returns>
+		virtual const CullMode& cullMode() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the cull mode of the rasterizer state.
+		/// </summary>
+		/// <returns>The cull mode of the rasterizer state.</returns>
+		virtual const CullOrder& cullOrder() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the line width of the rasterizer state.
 		/// </summary>
 		/// <remarks>
 		/// Note that line width is not supported in DirectX and is only emulated under Vulkan. Instead of forcing this value, it is recommended to 
 		/// use a custom shader for it.
 		/// </remarks>
-		/// <returns></returns>
-		virtual Float getLineWidth() const noexcept = 0;
-		virtual void setLineWidth(const Float& width) noexcept = 0;
-		virtual bool getDepthBiasEnabled() const noexcept = 0;
-		virtual void setDepthBiasEnabled(const bool& enable) noexcept = 0;
-		virtual float getDepthBiasClamp() const noexcept = 0;
-		virtual void setDepthBiasClamp(const float& clamp) noexcept = 0;
-		virtual float getDepthBiasConstantFactor() const noexcept = 0;
-		virtual void setDepthBiasConstantFactor(const float& factor) noexcept = 0;
-		virtual float getDepthBiasSlopeFactor() const noexcept = 0;
-		virtual void setDepthBiasSlopeFactor(const float& factor) noexcept = 0;
+		/// <returns>The line width of the rasterizer state.</returns>
+		virtual const Float& lineWidth() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if the depth bias is used.
+		/// </summary>
+		/// <remarks>
+		/// The depth bias can be used to alter the depth value function, i.e. how the values within the depth buffer are distributed. By default, the depth buffer
+		/// uses an exponential function scale to increase precision for closer objects. The values provided with <see cref="depthBiasClamp" />, 
+		/// <see cref="depthBiasConstantFactor" /> and <see cref="depthBiasSlopeFactor" /> are used to change the domain clamping, offset and steepness of the depth
+		/// value distribution.
+		/// </remarks>
+		/// <returns><c>true</c>, if the depth bias is used.</returns>
+		virtual bool useDepthBias() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the depth bias clamp.
+		/// </summary>
+		/// <returns>The depth bias clamp.</returns>
+		/// <seealso cref="useDepthBias" />
+		virtual const Float& depthBiasClamp() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the constant depth bias factor.
+		/// </summary>
+		/// <returns>The constant depth bias factor.</returns>
+		/// <seealso cref="useDepthBias" />
+		virtual const Float& depthBiasConstantFactor() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the depth bias slope factor.
+		/// </summary>
+		/// <returns>The depth bias slope factor.</returns>
+		/// <seealso cref="useDepthBias" />
+		virtual const Float& depthBiasSlopeFactor() const noexcept = 0;
 	};
 
 	/// <summary>
-	/// 
+	/// Implements a <see cref="IRasterizer" />.
 	/// </summary>
 	class LITEFX_RENDERING_API Rasterizer : public IRasterizer {
 		LITEFX_IMPLEMENTATION(RasterizerImpl);
 
 	public:
-		explicit Rasterizer();
-		Rasterizer(Rasterizer&&) noexcept = delete;
-		Rasterizer(const Rasterizer&) noexcept = delete;
+		/// <summary>
+		/// Initializes a new rasterizer instance.
+		/// </summary>
+		/// <param name="polygonMode">The polygon mode of the rasterizer state.</param>
+		/// <param name="cullMode">The cull mode of the rasterizer state.</param>
+		/// <param name="cullOrder">The cull order of the rasterizer state.</param>
+		/// <param name="lineWidth">The line width of the rasterizer state.</param>
+		/// <param name="useDepthBias"><c>true</c>, if the rasterizer state uses the depth bias.</param>
+		/// <param name="depthBiasClamp">The depth bias clamp value of the rasterizer state.</param>
+		/// <param name="depthBiasConstantFactor">The depth bias constant factor of the rasterizer state.</param>
+		/// <param name="depthBiasSlopeFactor">The depth bias slope factor of the rasterizer state.</param>
+		/// <returns></returns>
+		explicit Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept;
+		Rasterizer(Rasterizer&&) noexcept;
+		Rasterizer(const Rasterizer&) noexcept;
 		virtual ~Rasterizer() noexcept;
 
 	public:
-		virtual PolygonMode getPolygonMode() const noexcept override;
-		virtual void setPolygonMode(const PolygonMode& mode) noexcept override;
-		virtual CullMode getCullMode() const noexcept override;
-		virtual void setCullMode(const CullMode& mode) noexcept override;
-		virtual CullOrder getCullOrder() const noexcept override;
-		virtual void setCullOrder(const CullOrder& order) noexcept override;
-		virtual Float getLineWidth() const noexcept override;
-		virtual void setLineWidth(const Float& width) noexcept override;
-		virtual bool getDepthBiasEnabled() const noexcept override;
-		virtual void setDepthBiasEnabled(const bool& enable) noexcept override;
-		virtual float getDepthBiasClamp() const noexcept override;
-		virtual void setDepthBiasClamp(const float& clamp) noexcept override;
-		virtual float getDepthBiasConstantFactor() const noexcept override;
-		virtual void setDepthBiasConstantFactor(const float& factor) noexcept override;
-		virtual float getDepthBiasSlopeFactor() const noexcept override;
-		virtual void setDepthBiasSlopeFactor(const float& factor) noexcept override;
+		/// <inheritdoc />
+		virtual const PolygonMode& polygonMode() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const CullMode& cullMode() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const CullOrder& cullOrder() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Float& lineWidth() const noexcept override;
+
+		/// <inheritdoc />
+		virtual bool useDepthBias() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Float& depthBiasClamp() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Float& depthBiasConstantFactor() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Float& depthBiasSlopeFactor() const noexcept override;
 	};
 
 	/// <summary>
-	/// 
+	/// Builds a <see cref="Rasterizer" />.
 	/// </summary>
 	template <typename TDerived, typename TRasterizer, typename TParent> requires
 		rtti::implements<TRasterizer, IRasterizer>
@@ -830,14 +899,53 @@ namespace LiteFX::Rendering {
 		using Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>>::Builder;
 
 	public:
-		virtual TDerived& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) = 0;
-		virtual TDerived& withCullMode(const CullMode& cullMode = CullMode::BackFaces) = 0;
-		virtual TDerived& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) = 0;
-		virtual TDerived& withLineWidth(const Float& lineWidth = 1.f) = 0;
-		virtual TDerived& enableDepthBias(const bool& enable = false) = 0;
-		virtual TDerived& withDepthBiasClamp(const Float& clamp = 0.f) = 0;
-		virtual TDerived& withDepthBiasConstantFactor(const Float& factor = 0.f) = 0;
-		virtual TDerived& withDepthBiasSlopeFactor(const Float& factor = 0.f) = 0;
+		/// <summary>
+		/// Initializes the rasterizer state with the provided polygon mode.
+		/// </summary>
+		/// <param name="mode">The polygon mode to initialize the rasterizer state with.</param>
+		virtual TDerived& withPolygonMode(const PolygonMode& mode) noexcept = 0;
+
+		/// <summary>
+		/// Initializes the rasterizer state with the provided cull mode.
+		/// </summary>
+		/// <param name="mode">The cull mode to initialize the rasterizer state with.</param>
+		virtual TDerived& withCullMode(const CullMode& mode) noexcept = 0;
+
+		/// <summary>
+		/// Initializes the rasterizer state with the provided cull order.
+		/// </summary>
+		/// <param name="order">The cull order to initialize the rasterizer state with.</param>
+		virtual TDerived& withCullOrder(const CullOrder& order) noexcept = 0;
+
+		/// <summary>
+		/// Initializes the rasterizer state with the provided line width.
+		/// </summary>
+		/// <param name="width">The line width to initialize the rasterizer state with.</param>
+		virtual TDerived& withLineWidth(const Float& width) noexcept = 0;
+
+		/// <summary>
+		/// Initializes the rasterizer state to use depth bias.
+		/// </summary>
+		/// <param name="enable"><c>true</c>, if the rasterizer should use depth bias.</param>
+		virtual TDerived& enableDepthBias(const bool& enable) noexcept = 0;
+
+		/// <summary>
+		/// Initializes the rasterizer state with the provided depth bias clamp.
+		/// </summary>
+		/// <param name="clamp">The depth bias clamp to initialize the rasterizer state with.</param>
+		virtual TDerived& withDepthBiasClamp(const Float& clamp) noexcept = 0;
+
+		/// <summary>
+		/// Initializes the rasterizer state with the provided depth bias constant factor.
+		/// </summary>
+		/// <param name="factor">The depth bias constant factor to initialize the rasterizer state with.</param>
+		virtual TDerived& withDepthBiasConstantFactor(const Float& factor) noexcept = 0;
+
+		/// <summary>
+		/// Initializes the rasterizer state with the provided depth bias slope factor.
+		/// </summary>
+		/// <param name="factor">The depth bias slope factor to initialize the rasterizer state with.</param>
+		virtual TDerived& withDepthBiasSlopeFactor(const Float& factor) noexcept = 0;
 	};
 
 	/// <summary>
