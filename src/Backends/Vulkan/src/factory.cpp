@@ -79,7 +79,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createImage(const Format& format,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return _VMAImage::allocate(m_impl->m_device, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanImage::allocate(m_impl->m_device, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
@@ -106,10 +106,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return _VMAImage::allocate(m_impl->m_device, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanImage::allocate(m_impl->m_device, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
-UniquePtr<IBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = size;
@@ -162,7 +162,7 @@ UniquePtr<IBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, c
 	return _VMABuffer::allocate(type, elements, size, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<VulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
@@ -207,7 +207,7 @@ UniquePtr<VulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const Vu
 	return _VMAVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<VulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
@@ -252,7 +252,7 @@ UniquePtr<VulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Vulk
 	return _VMAIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<IConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
@@ -303,7 +303,7 @@ UniquePtr<IConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(const Vul
 	return _VMAConstantBuffer::allocate(&layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
-UniquePtr<ITexture> VulkanGraphicsFactory::createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -331,10 +331,10 @@ UniquePtr<ITexture> VulkanGraphicsFactory::createTexture(const VulkanDescriptorL
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return _VMATexture::allocate(m_impl->m_device, &layout, 1, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanTexture::allocate(m_impl->m_device, layout, 1, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
-UniquePtr<ISampler> VulkanGraphicsFactory::createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
-	return makeUnique<VulkanSampler>(m_impl->m_device, &layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+	return makeUnique<VulkanSampler>(m_impl->m_device, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
 }

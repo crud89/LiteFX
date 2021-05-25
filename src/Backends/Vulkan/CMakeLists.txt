@@ -14,7 +14,6 @@ FIND_PACKAGE(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 # Collect header & source files.
 SET(VULKAN_BACKEND_HEADERS
     "include/litefx/backends/vulkan_api.hpp"
-    "include/litefx/backends/vulkan_builders.hpp"
     "include/litefx/backends/vulkan_formatters.hpp"
     "include/litefx/backends/vulkan.hpp"
 )
@@ -49,7 +48,6 @@ SET(VULKAN_BACKEND_SOURCES
     "src/descriptor_layout.cpp"
     "src/buffer.cpp"
     "src/image.cpp"
-    "src/sampler.cpp"
 )
 
 # Add shared library project.

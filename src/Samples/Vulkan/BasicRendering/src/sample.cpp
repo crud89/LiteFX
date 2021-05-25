@@ -169,6 +169,7 @@ void SampleApp::run()
 
 void SampleApp::initialize()
 {
+    ::glfwSetWindowUserPointer(m_window.get(), this);
     ::glfwSetFramebufferSizeCallback(m_window.get(), ::onResize); 
 }
 

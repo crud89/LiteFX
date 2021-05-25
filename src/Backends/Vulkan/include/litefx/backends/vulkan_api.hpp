@@ -29,32 +29,11 @@ namespace LiteFX::Rendering::Backends {
     constexpr char VULKAN_LOG[] = "Backend::Vulkan";
 
     // API declarations.
-    class VulkanTexture;
-    class VulkanSwapChain;
-    class VulkanQueue;
     class VulkanDevice;
-    class VulkanBackend;
-    class VulkanRenderPipeline;
-    class VulkanRenderPipelineLayout;
-    class VulkanRenderPass;
-    class VulkanInputAttachmentMapping;
-    class VulkanRasterizer;
-    class VulkanInputAssembler;
-    class VulkanShaderModule;
-    class VulkanShaderProgram;
-    class VulkanCommandBuffer;
-    class VulkanDescriptorSetLayout;
     class VulkanVertexBufferLayout;
     class VulkanIndexBufferLayout;
+    class VulkanCommandBuffer;
     class VulkanDescriptorLayout;
-    class VulkanVertexBuffer;
-    class VulkanIndexBuffer;
-    class VulkanConstantBuffer;
-    class VulkanSampler;
-
-    // Builder declarations.
-    class VulkanInputAssemblerBuilder;
-    class VulkanRenderPassBuilder;
 
     // Conversion helpers.
     /// <summary>
@@ -194,7 +173,39 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
-    class LITEFX_VULKAN_API IVulkanImage : public virtual IImage, public virtual IResource<VkImage> {
+    class LITEFX_VULKAN_API IVulkanBuffer : public virtual IBuffer<IVulkanBuffer, VulkanCommandBuffer>, public virtual IResource<VkBuffer> {
+    public:
+        virtual ~IVulkanBuffer() noexcept = default;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_VULKAN_API IVulkanVertexBuffer : public virtual IVertexBuffer<IVulkanVertexBuffer, VulkanVertexBufferLayout, VulkanCommandBuffer>, public virtual IVulkanBuffer {
+    public:
+        virtual ~IVulkanVertexBuffer() noexcept = default;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_VULKAN_API IVulkanIndexBuffer : public virtual IIndexBuffer<IVulkanIndexBuffer, VulkanIndexBufferLayout, VulkanCommandBuffer>, public virtual IVulkanBuffer {
+    public:
+        virtual ~IVulkanIndexBuffer() noexcept = default;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_VULKAN_API IVulkanConstantBuffer : public virtual IConstantBuffer<IVulkanConstantBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public virtual IVulkanBuffer {
+    public:
+        virtual ~IVulkanConstantBuffer() noexcept = default;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_VULKAN_API IVulkanImage : public IImage, public virtual IResource<VkImage> {
     public:
         virtual ~IVulkanImage() noexcept = default;
 
@@ -203,7 +214,26 @@ namespace LiteFX::Rendering::Backends {
         /// 
         /// </summary>
         /// <returns></returns>
-        virtual const VkImageView& getImageView() const noexcept = 0;
+        virtual const VkImageView& imageView() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_VULKAN_API IVulkanTexture : public ITexture<IVulkanTexture, IVulkanBuffer, VulkanCommandBuffer>, public virtual IVulkanImage {
+    public:
+        virtual ~IVulkanTexture() noexcept = default;
+
+    public:
+        virtual const VkImageLayout& imageLayout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class LITEFX_VULKAN_API IVulkanSampler : public ISampler<VulkanDescriptorLayout>, public IResource<VkSampler> {
+    public:
+        virtual ~IVulkanSampler() noexcept = default;
     };
 
     /// <summary>

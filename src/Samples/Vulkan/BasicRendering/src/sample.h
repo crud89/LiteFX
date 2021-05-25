@@ -50,7 +50,7 @@ public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId)
 	{
-		::glfwSetWindowUserPointer(m_window.get(), this);
+		this->initialize();
 	}
 
 private:

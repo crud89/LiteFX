@@ -3,14 +3,13 @@
 #include <litefx/rendering.hpp>
 
 #include "vulkan_api.hpp"
-#include "vulkan_builders.hpp"
 #include "vulkan_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
-	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet, public IResource<VkDescriptorPool> {
+	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanConstantBuffer, IVulkanTexture, IVulkanSampler, IVulkanImage, IVulkanBuffer>, public IResource<VkDescriptorPool> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
 	public:
@@ -20,37 +19,41 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDescriptorSet() noexcept;
 
 	public:
-		// TODO: Find a way to abstract this.
-		virtual const VkDescriptorSet swapBuffer();
+		/// <inheritdoc />
+		virtual UniquePtr<IVulkanConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IVulkanTexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IVulkanSampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void update(const IVulkanConstantBuffer& buffer) const override;
+		
+		/// <inheritdoc />
+		virtual void update(const IVulkanTexture& texture) const override;
+		
+		/// <inheritdoc />
+		virtual void update(const IVulkanSampler& sampler) const override;
+				
+		/// <inheritdoc />
+		virtual void attach(const UInt32& binding, const IVulkanImage& image) const override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanDescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<VulkanDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanRenderPipelineLayoutBuilder> {
+	public:
+		using DescriptorSetLayoutBuilder<VulkanDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanRenderPipelineLayoutBuilder>::DescriptorSetLayoutBuilder;
 
 	public:
-		virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept override;
-		virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept override;
-		virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const noexcept override;
+		virtual VulkanRenderPipelineLayoutBuilder& go() override;
 
-		/// <inheritdoc />
-		virtual void update(const IConstantBuffer* buffer) const override;
-		
-		/// <inheritdoc />
-		virtual void update(const ITexture* texture) const override;
-		
-		/// <inheritdoc />
-		virtual void update(const ISampler* sampler) const override;
-		
-		/// <inheritdoc />
-		virtual void updateAll(const IConstantBuffer* buffer) const override;
-		
-		/// <inheritdoc />
-		virtual void updateAll(const ITexture* texture) const override;
-		
-		/// <inheritdoc />
-		virtual void updateAll(const ISampler* sampler) const override;
-		
-		/// <inheritdoc />
-		//virtual void attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const override;
-		
-		/// <inheritdoc />
-		virtual void attach(const UInt32& binding, const IImage* image) const override;
+	public:
+		virtual VulkanDescriptorSetLayoutBuilder& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) override;
+		virtual VulkanDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
 	};
 
 	/// <summary>
@@ -87,6 +90,26 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const BufferType& type() const noexcept override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanVertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
+	public:
+		using VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
+
+	public:
+		virtual VulkanVertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <reamrks>
+		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
+		/// </reamrks>
+		virtual VulkanVertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+		virtual VulkanVertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
 	};
 
 	/// <summary>
@@ -232,6 +255,30 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutBuilderImpl);
+
+	public:
+		VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineBuilder& parent, UniquePtr<VulkanRenderPipelineLayout>&& instance);
+		VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineLayoutBuilder&&) = delete;
+		VulkanRenderPipelineLayoutBuilder(const VulkanRenderPipelineLayoutBuilder&) = delete;
+		virtual ~VulkanRenderPipelineLayoutBuilder() noexcept;
+
+	public:
+		virtual VulkanShaderProgramBuilder shaderProgram();
+		virtual VulkanDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
+
+	public:
+		virtual VulkanRenderPipelineBuilder& go() override;
+
+	public:
+		virtual void use(UniquePtr<IShaderProgram>&& program) override;
+		virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_VULKAN_API VulkanShaderModule : public virtual VulkanRuntimeObject<VulkanDevice>, public IShaderModule, public IResource<VkShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
@@ -271,26 +318,18 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSampler : public VulkanRuntimeObject<VulkanDevice>, public virtual Sampler, public IResource<VkSampler> {
-		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
+	class LITEFX_VULKAN_API VulkanShaderProgramBuilder : public ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder> {
+	public:
+		using ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder>::ShaderProgramBuilder;
 
 	public:
-		explicit VulkanSampler(
-			const VulkanDevice& device,
-			const IDescriptorLayout* layout,
-			const FilterMode& magFilter = FilterMode::Nearest, 
-			const FilterMode& minFilter = FilterMode::Nearest, 
-			const BorderMode& borderU = BorderMode::Repeat, 
-			const BorderMode& borderV = BorderMode::Repeat, 
-			const BorderMode& borderW = BorderMode::Repeat, 
-			const MipMapMode& mipMapMode = MipMapMode::Nearest, 
-			const Float& mipMapBias = 0.f, 
-			const Float& maxLod = std::numeric_limits<Float>::max(), 
-			const Float& minLod = 0.f, 
-			const Float& anisotropy = 0.f);
-		VulkanSampler(VulkanSampler&&) = delete;
-		VulkanSampler(const VulkanSampler&) = delete;
-		virtual ~VulkanSampler() noexcept;
+		virtual VulkanShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
+		virtual VulkanShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual VulkanShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual VulkanShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual VulkanShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual VulkanShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual VulkanShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
 	};
 
 	/// <summary>
@@ -441,23 +480,25 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanVertexBuffer : public virtual VertexBuffer<VulkanVertexBufferLayout>, public virtual IResource<VkBuffer> {
+	class LITEFX_VULKAN_API VulkanRasterizerBuilder : public RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder> {
 	public:
-		virtual ~VulkanVertexBuffer() noexcept = default;
+		using RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder>::RasterizerBuilder;
+
+	public:
+		virtual VulkanRasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) override;
+		virtual VulkanRasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
+		virtual VulkanRasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
+		virtual VulkanRasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
+		virtual VulkanRasterizerBuilder& enableDepthBias(const bool& enable = false) override;
+		virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
+		virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
+		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanIndexBuffer : public virtual IndexBuffer<VulkanIndexBufferLayout>, public virtual IResource<VkBuffer> {
-	public:
-		virtual ~VulkanIndexBuffer() noexcept = default;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IRenderPipeline<VulkanRenderPipelineLayout, VulkanInputAssembler, VulkanVertexBuffer, VulkanIndexBuffer>, public IResource<VkPipeline> {
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IRenderPipeline<VulkanRenderPipelineLayout, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer>, public IResource<VkPipeline> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -848,7 +889,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <remarks>
 	/// Internally this factory implementation is based on <a href="https://gpuopen.com/vulkan-memory-allocator/" target="_blank">Vulkan Memory Allocator</a>.
 	/// </remarks>
-	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanDescriptorLayout, IVulkanImage, VulkanVertexBuffer, VulkanIndexBuffer> {
+	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanDescriptorLayout, IVulkanImage, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanConstantBuffer, IVulkanBuffer, IVulkanTexture, IVulkanSampler> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
 
 	public:
@@ -869,22 +910,22 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IVulkanImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
+		virtual UniquePtr<IVulkanBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
+		virtual UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
+		virtual UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IConstantBuffer> createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
+		virtual UniquePtr<IVulkanConstantBuffer> createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<ITexture> createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IVulkanTexture> createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<ISampler> createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		virtual UniquePtr<IVulkanSampler> createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 	};
 
 	/// <summary>
@@ -1056,5 +1097,16 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const VulkanGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanBackendBuilder : public Builder<VulkanBackendBuilder, VulkanBackend, AppBuilder> {
+	public:
+		using builder_type::Builder;
+
+	public:
+		virtual AppBuilder& go() override;
 	};
 }

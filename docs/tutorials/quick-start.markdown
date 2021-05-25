@@ -32,6 +32,7 @@ public:
 	SimpleApp(GLFWwindow* window) : 
 		App(), m_window(window)
 	{
+		this->initialize();
 	}
 
 public:

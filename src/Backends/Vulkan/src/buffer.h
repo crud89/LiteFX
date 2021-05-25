@@ -63,7 +63,7 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<VulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	class _VMAConstantBuffer : public _VMABufferBase, public ConstantBuffer {
+	class _VMAConstantBuffer : public _VMABufferBase, public VulkanConstantBuffer {
 	public:
 		_VMAConstantBuffer(VkBuffer buffer, const IDescriptorLayout* layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
 		_VMAConstantBuffer(_VMAConstantBuffer&&) = delete;
