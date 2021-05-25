@@ -13,6 +13,8 @@ public:
     friend class VulkanDescriptorSetLayout;
 
 private:
+
+
     UInt32 m_setId;
     ShaderStage m_stages;
     Dictionary<DescriptorType, UInt32> m_poolSizes = {

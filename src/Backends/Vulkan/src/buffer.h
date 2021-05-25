@@ -49,10 +49,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~_VMAVertexBuffer() noexcept;
 
 	public:
-		/// <inheritdoc />
-		virtual const VulkanVertexBufferLayout& layout() const noexcept override;
-
-	public:
 		static UniquePtr<VulkanVertexBuffer> allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
@@ -62,10 +58,6 @@ namespace LiteFX::Rendering::Backends {
 		_VMAIndexBuffer(_VMAIndexBuffer&&) = delete;
 		_VMAIndexBuffer(const _VMAIndexBuffer&) = delete;
 		virtual ~_VMAIndexBuffer() noexcept;
-
-	public:
-		/// <inheritdoc />
-		virtual const VulkanIndexBufferLayout& layout() const noexcept override;
 
 	public:
 		static UniquePtr<VulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);

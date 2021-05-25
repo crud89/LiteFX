@@ -22,41 +22,6 @@ namespace LiteFX::Rendering {
 	using namespace LiteFX;
 	using namespace LiteFX::Math;
 
-	// Forward declarations.
-	class IRasterizer;
-	class IViewport;
-	class IScissor;
-    class IRenderPipelineLayout;
-    class IShaderModule;
-    class IShaderProgram;
-    class ITexture;
-	class IBufferLayout;
-	class IVertexBufferLayout;
-	class IIndexBufferLayout;
-	class IDescriptorLayout;
-	class IDescriptorSetLayout;
-	class IMappable;
-	class IBindable;
-	class ITransferable;
-	class IDeviceMemory;
-	class IBuffer;
-	class IConstantBuffer;
-	class IDescriptor;
-	class IImage;
-	class ITexture;
-	class ISampler;
-	class IDescriptorSet;
-
-	class Viewport;
-	class Scissor;
-	class Buffer;
-	class ConstantBuffer;
-	class Image;
-	class Texture;
-	class Sampler;
-
-	// Common interface declarations.
-
 	// Define enumerations.
 	/// <summary>
 	/// Defines different types of graphics adapters.
@@ -290,19 +255,65 @@ namespace LiteFX::Rendering {
 		Unknown = 0x7FFFFFFF
 	};
 
+	/// <summary>
+	/// Describes the type of a <see cref="IDescriptor" />.
+	/// </summary>
+	/// <seealso cref="IDescriptorLayout" />
 	enum class LITEFX_RENDERING_API DescriptorType {
+		/// <summary>
+		/// A uniform buffer object (UBO) in Vulkan. Maps to a constant buffer view (CBV) in DirectX.
+		/// </summary>
 		Uniform         = 0x00000001,
+
+		/// <summary>
+		/// A shader storage buffer object (SSBO) in Vulkan. Maps to an unordered access view (UAV) in DirectX.
+		/// </summary>
 		Storage         = 0x00000002,
+
+		/// <summary>
+		/// A sampled image in Vulkan. Maps to a shader resource view (SRV) in DirectX.
+		/// </summary>
 		Image           = 0x00000003,
+		
+		/// <summary>
+		/// A sampler state of a texture or image.
+		/// </summary>
 		Sampler         = 0x00000004,
+
+		/// <summary>
+		/// The result of a render target from an earlier render pass. Maps to a <c>SubpassInput</c> in HLSL.
+		/// </summary>
 		InputAttachment = 0x00000005
 	};
 
+	/// <summary>
+	/// Describes the type of a <see cref="IBuffer" />.
+	/// </summary>
+	/// <seealso cref="IBufferLayout" />
 	enum class LITEFX_RENDERING_API BufferType {
+		/// <summary>
+		/// Describes a vertex buffer.
+		/// </summary>
 		Vertex = 0x00000001,
+		
+		/// <summary>
+		/// Describes an index buffer.
+		/// </summary>
 		Index = 0x00000002,
+
+		/// <summary>
+		/// Describes an uniform buffer object (Vulkan) or constant buffer view (DirectX).
+		/// </summary>
 		Uniform = 0x00000003,
+
+		/// <summary>
+		/// Describes a shader storage buffer object (Vulkan) or unordered access view (DirectX).
+		/// </summary>
 		Storage = 0x00000004,
+
+		/// <summary>
+		/// Describes another type of buffer, such as samplers or images.
+		/// </summary>
 		Other = 0x7FFFFFFF
 	};
 
@@ -812,6 +823,26 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// 
 	/// </summary>
+	template <typename TDerived, typename TRasterizer, typename TParent> requires
+		rtti::implements<TRasterizer, IRasterizer>
+	class RasterizerBuilder : public Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>> {
+	public:
+		using Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>>::Builder;
+
+	public:
+		virtual TDerived& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) = 0;
+		virtual TDerived& withCullMode(const CullMode& cullMode = CullMode::BackFaces) = 0;
+		virtual TDerived& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) = 0;
+		virtual TDerived& withLineWidth(const Float& lineWidth = 1.f) = 0;
+		virtual TDerived& enableDepthBias(const bool& enable = false) = 0;
+		virtual TDerived& withDepthBiasClamp(const Float& clamp = 0.f) = 0;
+		virtual TDerived& withDepthBiasConstantFactor(const Float& factor = 0.f) = 0;
+		virtual TDerived& withDepthBiasSlopeFactor(const Float& factor = 0.f) = 0;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
 	class LITEFX_RENDERING_API IViewport {
 	public:
 		virtual ~IViewport() noexcept = default;
@@ -875,4 +906,71 @@ namespace LiteFX::Rendering {
 		virtual void setRectangle(const RectF& rectangle) noexcept override;
 	};
 
+	/// <summary>
+	/// Stores meta data about a buffer attribute, i.e. a member or field of a descriptor or buffer.
+	/// </summary>
+	class LITEFX_RENDERING_API BufferAttribute {
+		LITEFX_IMPLEMENTATION(BufferAttributeImpl);
+
+	public:
+		/// <summary>
+		/// Initializes an empty buffer attribute.
+		/// </summary>
+		BufferAttribute();
+
+		/// <summary>
+		/// Initializes a new buffer attribute.
+		/// </summary>
+		/// <param name="location">The location the buffer attribute is bound to.</param>
+		/// <param name="offset">The offset of the attribute relative to the buffer.</param>
+		/// <param name="format">The format of the buffer attribute.</param>
+		/// <param name="semantic">The semantic of the buffer attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the buffer attribute.</param>
+		BufferAttribute(const UInt32& location, const UInt32& offset, const BufferFormat& format, const AttributeSemantic& semantic, const UInt32& semanticIndex = 0);
+		BufferAttribute(BufferAttribute&&) noexcept;
+		BufferAttribute(const BufferAttribute&);
+		virtual ~BufferAttribute() noexcept;
+
+	public:
+		/// <summary>
+		/// Returns the location of the buffer attribute.
+		/// </summary>
+		/// <remarks>
+		/// Locations can only be specified in Vulkan and are implicitly generated based on semantics for DirectX. However, it is a good practice to provide them anyway.
+		/// </remarks>
+		/// <returns>The location of the buffer attribute.</returns>
+		virtual const UInt32& location() const noexcept;
+
+		/// <summary>
+		/// Returns the format of the buffer attribute.
+		/// </summary>
+		/// <returns>The format of the buffer attribute.</returns>
+		virtual const BufferFormat& format() const noexcept;
+
+		/// <summary>
+		/// Returns the offset of the buffer attribute.
+		/// </summary>
+		/// <returns>The offset of the buffer attribute.</returns>
+		virtual const UInt32& offset() const noexcept;
+
+		/// <summary>
+		/// Returns the semantic of the buffer attribute.
+		/// </summary>
+		/// <remarks>
+		/// Semantics are only used in DirectX and HLSL, however it is a good practice to provide them anyway.
+		/// </remarks>
+		/// <returns>The semantic of the buffer attribute.</returns>
+		/// <seealso cref="semanticIndex" />
+		virtual const AttributeSemantic& semantic() const noexcept;
+
+		/// <summary>
+		/// Returns the semantic index of the buffer attribute.
+		/// </summary>
+		/// <remarks>
+		/// Semantics are only used in DirectX and HLSL, however it is a good practice to provide them anyway.
+		/// </remarks>
+		/// <returns>The semantic index of the buffer attribute.</returns>
+		/// <seealso cref="semantic" />
+		virtual const UInt32& semanticIndex() const noexcept;
+	};
 }

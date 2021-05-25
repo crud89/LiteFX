@@ -165,6 +165,34 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDescriptorSetLayout() noexcept;
 
 	public:
+		/// <summary>
+		/// The size of each descriptor pool.
+		/// </summary>
+		/// <remarks>
+		/// Descriptors are allocated from descriptor pools in Vulkan. Each descriptor pool has a number of descriptor sets it can hand out. Before allocating a new descriptor set
+		/// the layout tries to find an unused descriptor set, that it can hand out. If there are no free descriptor sets, the layout tries to allocate a new one. This is only possible
+		/// if the descriptor pool is not yet full, in which case a new pool needs to be created. All created pools are cached and destroyed, if the layout itself gets destroyed, 
+		/// causing all descriptor sets allocated from the layout to be invalidated. 
+		/// 
+		/// In general, if the number of required descriptor sets can be pre-calculated, it should be used as a pool size. Otherwise there is a trade-off to be made, based on the 
+		/// frequency of which new descriptor sets are required. A small pool size is more memory efficient, but can have a significant runtime cost, as long as new allocations happen
+		/// and no descriptor sets can be reused. A large pool size on the other hand is faster, whilst it may leave a large chunk of descriptor sets unallocated. Keep in mind, that the 
+		/// layout might not be the only active layout, hence a large portion of descriptor sets might end up not being used.
+		/// </remarks>
+		/// <returns></returns>
+		/// <seealso cref="pools" />
+		/// <seealso cref="IDescriptorSetLayout::allocate" />
+		virtual const UInt32& poolSize() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the number of active descriptor pools.
+		/// </summary>
+		/// <returns>The number of active descriptor pools.</returns>
+		/// <seealso cref="poolSize" />
+		/// <seealso cref="IDescriptorSetLayout::allocate" />
+		virtual size_t pools() const noexcept = 0;
+
+	public:
 		virtual Array<const IDescriptorLayout*> getLayouts() const noexcept override;
 		virtual const IDescriptorLayout* getLayout(const UInt32& binding) const noexcept override;
 		virtual const UInt32& getSetId() const noexcept override;

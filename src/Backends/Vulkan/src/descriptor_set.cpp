@@ -13,6 +13,7 @@ public:
     friend class VulkanDescriptorSet;
 
 private:
+    Map<
     Array<VkDescriptorSet> m_descriptorSets;
     UInt32 m_currentSet = 0;
 

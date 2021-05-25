@@ -11,7 +11,6 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 SET(RENDERING_HEADERS
     "include/litefx/rendering_api.hpp"
     "include/litefx/rendering_formatters.hpp"
-    "include/litefx/rendering_pipelines.hpp"
     "include/litefx/rendering.hpp"
 )
 
@@ -22,11 +21,6 @@ SET(RENDERING_SOURCES
     "src/viewport.cpp"
     "src/scissor.cpp"
     "src/render_target.cpp"
-    "src/buffer.cpp"
-    "src/constant_buffer.cpp"
-    "src/image.cpp"
-    "src/texture.cpp"
-    "src/sampler.cpp"
 )
 
 # Add shared library project.

@@ -320,7 +320,7 @@ void VulkanRenderPipeline::bind(IDescriptorSet* descriptorSet) const
 	// TODO: According to the docs (https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html), a descriptor set must only be altered
 	//       after it has been drawn, so we may have to re-consider how descriptor sets work.
 	const VkDescriptorSet descriptorSets[] = { resource->swapBuffer() };
-	::vkCmdBindDescriptorSets(this->parent().activeFrameBuffer().commandBuffer().handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_vkLayout->handle(), resource->parent().getSetId(), 1, descriptorSets, 0, nullptr);
+	::vkCmdBindDescriptorSets(this->parent().activeFrameBuffer().commandBuffer().handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_vkLayout->handle(), resource->parent().space(), 1, descriptorSets, 0, nullptr);
 }
 
 void VulkanRenderPipeline::use() const 
