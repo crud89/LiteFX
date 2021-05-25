@@ -7,3 +7,6 @@
 [submodule "docs/modules/doxygen-awesome-css"]
 	path = docs/modules/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
+[submodule "docs/themes/hugo-scroll"]
+	path = docs/themes/hugo-scroll
+	url = https://github.com/janraasch/hugo-scroll.git
