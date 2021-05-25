@@ -40,6 +40,7 @@ public:
 App::App() : 
 	m_impl(makePimpl<AppImpl>(this)) 
 {
+	this->initialize();
 }
 
 App::~App() noexcept = default;
