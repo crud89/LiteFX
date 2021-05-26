@@ -358,6 +358,11 @@ void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
+VulkanRenderPipelineBuilder VulkanRenderPass::makePipeline(const UInt32& id, const String& name) const noexcept
+{
+    return VulkanRenderPipelineBuilder(*this, id, name);
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------

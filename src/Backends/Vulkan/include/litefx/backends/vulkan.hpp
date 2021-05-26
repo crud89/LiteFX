@@ -844,24 +844,29 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// 
+	/// Implements a Vulkan <see cref="IRenderPipeline" />.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IRenderPipeline<VulkanRenderPipelineLayout, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer>, public IResource<VkPipeline> {
+	/// <seealso cref="VulkanRenderPipelineBuilder" />
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IRenderPipeline<VulkanRenderPipelineLayout, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanBuffer>, public IResource<VkPipeline> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
 	public:
 		/// <summary>
-		/// 
+		/// Initializes a new Vulkan render pipeline.
 		/// </summary>
 		/// <param name="renderPass"></param>
 		/// <param name="id"></param>
 		/// <param name="name"></param>
-		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
 
+	private:
+		VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept;
+
+		// IRenderPipeline interface.
 	public:
 		/// <inheritdoc />
 		virtual const String& name() const noexcept override;
@@ -884,51 +889,107 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual Array<const IScissor*> scissors() const noexcept override;
 
-		/// <inheritdoc />
-		virtual const IDescriptorSet* descriptorSet(const UInt32& descriptorSet) const override;
-
 	public:
 		/// <inheritdoc />
-		virtual void bind(const VulkanVertexBuffer& buffer) const override;
+		virtual void bind(const IVulkanVertexBuffer& buffer) const override;
 
 		/// <inheritdoc />
-		virtual void bind(const VulkanIndexBuffer& buffer) const override;
+		virtual void bind(const IVulkanIndexBuffer& buffer) const override;
 
 		/// <inheritdoc />
-		virtual void bind(IDescriptorSet* descriptorSet) const override;
+		virtual void bind(const VulkanDescriptorSet& descriptorSet) const override;
 
 		/// <inheritdoc />
 		virtual void use() const override;
+
+		/// <inheritdoc />
+		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
+
+		/// <inheritdoc />
+		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
 	};
 
 	/// <summary>
-	/// 
+	/// Builds a Vulkan <see cref="IRenderPipeline" />.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline, VulkanRenderPassBuilder> {
+	/// <seealso cref="VulkanRenderPipeline" />
+	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineBuilderImpl);
 
 	public:
-		VulkanRenderPipelineBuilder(VulkanRenderPassBuilder& parent, UniquePtr<VulkanRenderPipeline>&& instance);
+		/// <summary>
+		/// Initializes a Vulkan render pipeline builder.
+		/// </summary>
+		/// <param name="renderPass">The parent render pass</param>
+		/// <param name="id">A unique identifier for the render pipeline.</param>
+		/// <param name="name">A debug name for the render pipeline.</param>
+		explicit VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
 		VulkanRenderPipelineBuilder(VulkanRenderPipelineBuilder&&) = delete;
 		VulkanRenderPipelineBuilder(const VulkanRenderPipelineBuilder&) = delete;
 		virtual ~VulkanRenderPipelineBuilder() noexcept;
 
+		// IBuilder interface.
 	public:
-		virtual VulkanRenderPipelineLayoutBuilder layout();
-		virtual VulkanRasterizerBuilder rasterizer();
-		virtual VulkanInputAssemblerBuilder inputAssembler();
-		virtual VulkanRenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
-		virtual VulkanRenderPipelineBuilder& withInputAssembler(SharedPtr<VulkanInputAssembler> inputAssembler);
-		virtual VulkanRenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
-		virtual VulkanRenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
+		/// <inheritdoc />
+		[[nodiscard]] virtual UniquePtr<VulkanRenderPipeline> go() override;
 
+		// RenderPipelineBuilder interface.
 	public:
-		virtual VulkanRenderPassBuilder& go() override;
-		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
-		virtual void use(SharedPtr<IRasterizer> rasterizer) override;
+		/// <inheritdoc />
+		virtual void use(UniquePtr<VulkanRenderPipelineLayout>&& layout) override;
+
+		/// <inheritdoc />
+		virtual void use(SharedPtr<Rasterizer> rasterizer) override;
+
+		/// <inheritdoc />
 		virtual void use(SharedPtr<VulkanInputAssembler> inputAssembler) override;
+
+		/// <inheritdoc />
 		virtual void use(SharedPtr<IViewport> viewport) override;
+
+		/// <inheritdoc />
 		virtual void use(SharedPtr<IScissor> scissor) override;
+
+		// VulkanRenderPipelineBuilder.
+	public:
+		/// <summary>
+		/// Builds a <see cref="VulkanRenderPipelineLayout" /> for the render pipeline.
+		/// </summary>
+		virtual VulkanRenderPipelineLayoutBuilder layout();
+
+		/// <summary>
+		/// Builds a <see cref="VulkanRasterizer" /> for the render pipeline.
+		/// </summary>
+		virtual VulkanRasterizerBuilder rasterizer();
+
+		/// <summary>
+		/// Builds a <see cref="VulkanInputAssembler" /> for the render pipeline.
+		/// </summary>
+		virtual VulkanInputAssemblerBuilder inputAssembler();
+
+		/// <summary>
+		/// Uses the provided rasterizer state for the render pipeline.
+		/// </summary>
+		/// <param name="rasterizer">The rasterizer state used by the render pipeline.</param>
+		virtual VulkanRenderPipelineBuilder& withRasterizer(SharedPtr<VulkanRasterizer> rasterizer);
+
+		/// <summary>
+		/// Uses the provided input assembler state for the render pipeline.
+		/// </summary>
+		/// <param name="inputAssembler">The input assembler state used by the render pipeline.</param>
+		virtual VulkanRenderPipelineBuilder& withInputAssembler(SharedPtr<VulkanInputAssembler> inputAssembler);
+
+		/// <summary>
+		/// Adds the provided viewport to the render pipeline.
+		/// </summary>
+		/// <param name="viewport">The viewport to add to the render pipeline.</param>
+		virtual VulkanRenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
+
+		/// <summary>
+		/// Adds the provided scissor to the render pipeline.
+		/// </summary>
+		/// <param name="scissor">The scissor to add to the render pipeline.</param>
+		virtual VulkanRenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
 	};
 
 	/// <summary>
@@ -1052,6 +1113,17 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
+
+		// VulkanRenderPass.
+	public:
+		/// <summary>
+		/// Starts building a render pipeline.
+		/// </summary>
+		/// <param name="id">A unique ID for the render pipeline.</param>
+		/// <param name="name">A debug name for the render pipeline.</param>
+		/// <seealso cref="VulkanRenderPipeline" />
+		/// <seealso cref="VulkanRenderPipelineBuilder" />
+		virtual VulkanRenderPipelineBuilder makePipeline(const UInt32& id, const String& name = "") const noexcept;
 	};
 
 	/// <summary>

@@ -318,14 +318,8 @@ namespace LiteFX {
 		}
 
 		[[nodiscard]]
-		virtual UniquePtr<T> go() {
+		virtual TPointer go() {
 			return std::move(m_instance);
-		}
-
-		template <typename TInstance>
-		[[nodiscard]]
-		UniquePtr<TInstance> goFor() {
-			return UniquePtr<TInstance>(dynamic_cast<TInstance*>(this->go().release()));
 		}
 	};
 
