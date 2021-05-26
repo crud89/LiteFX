@@ -114,7 +114,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipelineLayoutBuilder::VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineBuilder& parent) :
-    RenderPipelineLayoutBuilder(parent, makeUnique<VulkanRenderPipeline>(*parent.instance())), m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this))
+    RenderPipelineLayoutBuilder(parent, makeUnique<VulkanRenderPipeline>(*std::as_const(parent).instance())), m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this))
 {
 }
 

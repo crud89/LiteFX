@@ -71,8 +71,8 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanRenderPipelineLayoutBuilder& parent) :
-    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this)), ShaderProgramBuilder(parent, makeUnique<VulkanShaderProgram>(*parent.instance()))
+VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(VulkanRenderPipelineLayoutBuilder& parent) :
+    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this)), ShaderProgramBuilder(parent, makeUnique<VulkanShaderProgram>(*std::as_const(parent).instance()))
 {
 }
 

@@ -707,7 +707,7 @@ namespace LiteFX::Rendering {
 			return this->addDescriptor(DescriptorType::Sampler, binding, 0);
 		}
 
-		virtual void use(UniquePtr<IDescriptorLayout>&& layout) {
+		virtual void use(UniquePtr<TDescriptorLayout>&& layout) {
 			this->addDescriptor(std::move(layout));
 		}
 	};

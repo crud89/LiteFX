@@ -227,7 +227,7 @@ void VulkanSwapChain::reset(const Format& surfaceFormat, const Size2d& renderAre
 	::vkGetSwapchainImagesKHR(this->getDevice()->handle(), this->handle(), &m_impl->m_buffers, imageChain.data());
 
 	m_impl->m_presentImages = imageChain |
-		std::views::transform([this](const VkImage& image) { return makeUnique<_VMAImage>(*this->getDevice(), image, 1, m_impl->m_renderArea, m_impl->m_format); }) |
+		std::views::transform([this](const VkImage& image) { return makeUnique<VulkanImage>(*this->getDevice(), image, 1, m_impl->m_renderArea, m_impl->m_format); }) |
 		ranges::to<Array<UniquePtr<IVulkanImage>>>();
 }
 

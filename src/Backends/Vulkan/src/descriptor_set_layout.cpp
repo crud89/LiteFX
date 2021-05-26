@@ -270,7 +270,7 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(const VulkanRenderPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
+VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanRenderPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
     m_impl(makePimpl<VulkanDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize)), DescriptorSetLayoutBuilder(parent, makeUnique<VulkanDescriptorSetLayout>(*parent.instance()))
 {
 }

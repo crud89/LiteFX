@@ -49,7 +49,7 @@ public:
                 throw InvalidArgumentException("The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
 
             // Store the image view from the source frame buffer.
-            attachmentViews.push_back(inputAttachment.inputAttachmentSource().frameBuffer(m_bufferIndex).image(i++).getImageView());
+            attachmentViews.push_back(inputAttachment.inputAttachmentSource().frameBuffer(m_bufferIndex).image(i++).imageView());
         });
 
         // Initialize the output attachments from render targets of the parent render pass.
@@ -64,13 +64,13 @@ public:
                 auto swapChainImages = m_parent->getDevice()->swapChain().images();
                 auto image = swapChainImages[m_bufferIndex];
                 m_renderTargetViews.push_back(image);
-                attachmentViews.push_back(image->getImageView());
+                attachmentViews.push_back(image->imageView());
             }
             else
             {
                 // Create an image view for the render target.
                 auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), size, renderTarget.samples());
-                attachmentViews.push_back(image->getImageView());
+                attachmentViews.push_back(image->imageView());
                 m_renderTargetViews.push_back(image.get());
                 m_outputAttachments.push_back(std::move(image));
             }

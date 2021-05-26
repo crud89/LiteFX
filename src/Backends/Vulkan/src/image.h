@@ -130,7 +130,6 @@ namespace LiteFX::Rendering::Backends {
 		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="sourceOffset" />
 		/// parameters are ignored and can be simply set to <c>0</c>.
 		/// </remarks>
-		/// <inheritdoc />
 		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
 
 		// IVulkanTexture interface.

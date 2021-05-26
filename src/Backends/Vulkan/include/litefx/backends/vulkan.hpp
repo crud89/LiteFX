@@ -242,7 +242,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanDescriptorSetLayout" />
 	/// <seealso cref="IVulkanBuffer" />
-	class LITEFX_VULKAN_API IVulkanConstantBuffer : public IConstantBuffer<IVulkanBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public IVulkanBuffer {
+	class LITEFX_VULKAN_API IVulkanConstantBuffer : public IConstantBuffer<IVulkanBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public virtual IVulkanBuffer {
 	public:
 		virtual ~IVulkanConstantBuffer() noexcept = default;
 	};
@@ -447,7 +447,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="space">The space the descriptor set is bound to.</param>
 		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
 		/// <param name="poolSize">The size of the descriptor pools used for descriptor set allocations.</param>
-		explicit VulkanDescriptorSetLayoutBuilder(const VulkanRenderPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 1024);
+		explicit VulkanDescriptorSetLayoutBuilder(VulkanRenderPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 1024);
 		VulkanDescriptorSetLayoutBuilder(const VulkanDescriptorSetLayoutBuilder&) = delete;
 		VulkanDescriptorSetLayoutBuilder(VulkanDescriptorSetLayoutBuilder&&) = delete;
 		virtual ~VulkanDescriptorSetLayoutBuilder() noexcept;
@@ -564,7 +564,7 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a Vulkan shader program builder.
 		/// </summary>
 		/// <param name="parent">The parent pipeline layout builder.</param>
-		explicit VulkanShaderProgramBuilder(const VulkanRenderPipelineLayoutBuilder& parent);
+		explicit VulkanShaderProgramBuilder(VulkanRenderPipelineLayoutBuilder& parent);
 		VulkanShaderProgramBuilder(const VulkanShaderProgramBuilder&) = delete;
 		VulkanShaderProgramBuilder(VulkanShaderProgramBuilder&&) = delete;
 		virtual ~VulkanShaderProgramBuilder() noexcept;
