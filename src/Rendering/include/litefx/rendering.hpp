@@ -48,13 +48,29 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
+	/// Base interface for buffer objects.
+	/// </summary>
+	/// <seealso cref="ITransferableBuffer" />
+	class IBuffer : public IDeviceMemory, public IMappable {
+	public:
+		virtual ~IBuffer() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Returns the type of the buffer.
+		/// </summary>
+		/// <returns>The type of the buffer.</returns>
+		virtual const BufferType& type() const noexcept = 0;
+	};
+
+	/// <summary>
 	/// Allows the object to transfer data between its local memory from or to an arbitrary <see cref="LiteFX::Rendering::IBuffer" /> object.
 	/// </summary>
 	/// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="IDeviceMemory"/>.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement from <see cref="ICommandBuffer"/>.</typeparam>
 	template <typename TBuffer, typename TCommandBuffer> requires
 		rtti::implements<TCommandBuffer, ICommandBuffer> &&
-		std::derived_from<TBuffer, IMappable>   // TODO: This should actually be IBuffer, but otoh this isn't a guarantee that a transfer is possible either. IMappable just prevents image-image transfers (which would require a separate interface).
+		std::derived_from<TBuffer, IBuffer>
 	class ITransferable {
 	public:
 		using command_buffer_type = TCommandBuffer;
@@ -86,24 +102,17 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// Describes a generic buffer object.
+	/// Describes a transferable buffer object. Should be used as base class for all buffers.
 	/// </summary>
 	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="IBuffer"/>.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement from <see cref="ICommandBuffer"/>.</typeparam>
 	/// <seealso cref="IDescriptor" />
 	/// <seealso cref="IDescriptorSet" />
 	template <typename TDerived, typename TCommandBuffer> requires
-		std::derived_from<TDerived, IBuffer<TDerived, TCommandBuffer>>
-	class IBuffer : public IDeviceMemory, public ITransferable<TDerived, TCommandBuffer>, public IMappable {
+		std::derived_from<TDerived, IBuffer>
+	class ITransferableBuffer : public ITransferable<TDerived, TCommandBuffer>, public IBuffer {
 	public:
-		virtual ~IBuffer() noexcept = default;
-
-	public:
-		/// <summary>
-		/// Returns the type of the buffer.
-		/// </summary>
-		/// <returns>The type of the buffer.</returns>
-		virtual const BufferType& type() const noexcept = 0;
+		virtual ~ITransferableBuffer() noexcept = default;
 	};
 
 	/// <summary>
@@ -148,11 +157,12 @@ namespace LiteFX::Rendering {
 	/// <remarks>
 	/// Constant buffers are used to represent both: UBOs/CBVs and SSBOs/UAVs. The actual type of buffer is described by the descriptors <see cref="IBufferLayout" /> type.
 	/// </remarks>
-	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="IBuffer"/>.</typeparam>
+	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="ITransferableBuffer"/>.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement from <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must inherit from <see cref="IDescriptorLayout"/>.</typeparam>
-	template <typename TDerived, typename TCommandBuffer, typename TDescriptorLayout>
-	class IConstantBuffer : public IBuffer<TDerived, TCommandBuffer>, public IDescriptor<TDescriptorLayout> {
+	template <typename TDerived, typename TCommandBuffer, typename TDescriptorLayout> requires
+		std::derived_from<TDerived, ITransferableBuffer<TDerived, TCommandBuffer>>
+	class IConstantBuffer : public ITransferableBuffer<TDerived, TCommandBuffer>, public IDescriptor<TDescriptorLayout> {
 	public:
 		virtual ~IConstantBuffer() noexcept = default;
 	};
@@ -185,8 +195,9 @@ namespace LiteFX::Rendering {
 	/// A texture can be seen as an <see cref="IImage" />, that can be bound to a descriptor.
 	/// </remarks>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must inherit from <see cref="IDescriptorLayout"/>.</typeparam>
-	/// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="IBuffer"/>.</typeparam>
-	template <typename TDescriptorLayout, typename TBuffer, typename TCommandBuffer>
+	/// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="ITransferableBuffer"/>.</typeparam>
+	template <typename TDescriptorLayout, typename TBuffer, typename TCommandBuffer> requires
+		std::derived_from<TBuffer, ITransferableBuffer<TBuffer, TCommandBuffer>>
 	class ITexture : public virtual IImage, public IDescriptor<TDescriptorLayout>, public ITransferable<TBuffer, TCommandBuffer> {
 	public:
 		virtual ~ITexture() noexcept = default;
@@ -453,7 +464,7 @@ namespace LiteFX::Rendering {
 		std::derived_from<TTexture, ITexture<TDescriptorLayout, TBufferInterface, TCommandBuffer>> &&
 		std::derived_from<TSampler, ISampler<TDescriptorLayout>> &&
 		std::derived_from<TImage, IImage> &&
-		std::derived_from<TBufferInterface, IBuffer<TBufferInterface, TCommandBuffer>>
+		std::derived_from<TBufferInterface, ITransferableBuffer<TBufferInterface, TCommandBuffer>>
 	class IDescriptorSet {
 	public:
 		using constant_buffer_type = TConstantBuffer;
@@ -788,13 +799,13 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// Describes a vertex buffer.
 	/// </summary>
-	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="IBuffer"/>.</typeparam>
+	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="ITransferableBuffer"/>.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
 	template <typename TDerived, typename TVertexBufferLayout, typename TCommandBuffer> requires
 		rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
 		std::derived_from<TDerived, IVertexBuffer<TDerived, TVertexBufferLayout, TCommandBuffer>>
-	class IVertexBuffer : public virtual IBuffer<TDerived, TCommandBuffer>, public virtual IBindable {
+	class IVertexBuffer : public virtual ITransferableBuffer<TDerived, TCommandBuffer>, public virtual IBindable {
 	public:
 		using vertex_buffer_layout_type = TVertexBufferLayout;
 
@@ -812,13 +823,13 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// Describes an index buffer.
 	/// </summary>
-	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="IBuffer"/>.</typeparam>
+	/// <typeparam name="TDerived">The derived type of the buffer as CRTP parameter. Must inherit from <see cref="ITransferableBuffer"/>.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
 	template <typename TDerived, typename TIndexBufferLayout, typename TCommandBuffer> requires
 		rtti::implements<TIndexBufferLayout, IIndexBufferLayout> &&
 		std::derived_from<TDerived, IIndexBuffer<TDerived, TIndexBufferLayout, TCommandBuffer>>
-	class IIndexBuffer : public virtual IBuffer<TDerived, TCommandBuffer> {
+	class IIndexBuffer : public virtual ITransferableBuffer<TDerived, TCommandBuffer> {
 	public:
 		using index_buffer_layout_type = TIndexBufferLayout;
 
@@ -1521,7 +1532,7 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TIndexBufferInterface">The type of the index buffer. Must implement <see cref="IIndexBuffer" />.</typeparam>
 	/// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
 	/// <typeparam name="TConstantBufferInterface">The type of the constant buffer interface. Must inherit from <see cref="IConstantBuffer"/>.</typeparam>
-	/// <typeparam name="TGenericBufferInterface">The type of the generic buffer interface. Must inherit from <see cref="IBuffer"/>.</typeparam>
+	/// <typeparam name="TGenericBufferInterface">The type of the generic buffer interface. Must inherit from <see cref="ITransferableBuffer"/>.</typeparam>
 	/// <typeparam name="TTextureInterface">The type of the texture interface. Must inherit from <see cref="ITexture"/>.</typeparam>
 	/// <typeparam name="TSamplerInterface">The type of the sampler interface. Must inherit from <see cref="ISampler"/>.</typeparam>
 	/// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
@@ -1534,7 +1545,7 @@ namespace LiteFX::Rendering {
 		std::derived_from<TImageInterface, IImage> &&
 		std::derived_from<TConstantBufferInterface, IConstantBuffer<TConstantBufferInterface, TCommandBuffer, TDescriptorLayout>> &&
 		std::derived_from<TConstantBufferInterface, TGenericBufferInterface> &&
-		std::derived_from<TGenericBufferInterface, IBuffer<TGenericBufferInterface, TCommandBuffer>> &&
+		std::derived_from<TGenericBufferInterface, ITransferableBuffer<TGenericBufferInterface, TCommandBuffer>> &&
 		std::derived_from<TTextureInterface, ITexture<TDescriptorLayout, TGenericBufferInterface, TCommandBuffer>> &&
 		std::derived_from<TSamplerInterface, ISampler<TDescriptorLayout>>
 	class IGraphicsFactory {
