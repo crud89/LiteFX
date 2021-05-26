@@ -12,6 +12,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Records commands for a <see cref="VulkanCommandQueue" />
 	/// </summary>
+	/// <seealso cref="VulkanQueue" />
 	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer, public IResource<VkCommandBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
@@ -55,6 +56,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan vertex buffer layout.
 	/// </summary>
+	/// <seealso cref="VulkanVertexBuffer" />
 	class LITEFX_VULKAN_API VulkanVertexBufferLayout : public virtual VulkanRuntimeObject<VulkanInputAssembler>, public IVertexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferLayoutImpl);
 		LITEFX_BUILDER(VulkanVertexBufferLayoutBuilder);
@@ -91,6 +93,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Builds a see <cref="VulkanVertexBufferLayout" />.
 	/// </summary>
+	/// <seealso cref="VulkanVertexBufferLayout" />
 	class LITEFX_VULKAN_API VulkanVertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
 	public:
 		using VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
@@ -160,6 +163,12 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IDescriptorLayout" />
 	/// </summary>
+	/// <seealso cref="IVulkanConstantBuffer" />
+	/// <seealso cref="IVulkanImage" />
+	/// <seealso cref="IVulkanTexture" />
+	/// <seealso cref="IVulkanSampler" />
+	/// <seealso cref="VulkanDescriptorSet" />
+	/// <seealso cref="VulkanDescriptorSetLayout" />
 	class LITEFX_VULKAN_API VulkanDescriptorLayout : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorLayout {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorLayoutImpl);
 
@@ -196,6 +205,11 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents the base interface for a Vulkan buffer implementation.
 	/// </summary>
+	/// <seealso cref="IVulkanDescriptorSet" />
+	/// <seealso cref="IVulkanConstantBuffer" />
+	/// <seealso cref="IVulkanConstantTexture" />
+	/// <seealso cref="IVulkanVertexBuffer" />
+	/// <seealso cref="IVulkanIndexBuffer" />
 	class LITEFX_VULKAN_API IVulkanBuffer : public virtual ITransferableBuffer<IVulkanBuffer, VulkanCommandBuffer>, public virtual IResource<VkBuffer> {
 	public:
 		virtual ~IVulkanBuffer() noexcept = default;
@@ -204,6 +218,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents a Vulkan vertex buffer.
 	/// </summary>
+	/// <seealso cref="VulkanVertexBufferLayout" />
+	/// <seealso cref="IVulkanBuffer" />
 	class LITEFX_VULKAN_API IVulkanVertexBuffer : public IVertexBuffer<IVulkanBuffer, VulkanVertexBufferLayout, VulkanCommandBuffer>, public IVulkanBuffer {
 	public:
 		virtual ~IVulkanVertexBuffer() noexcept = default;
@@ -212,6 +228,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents a Vulkan index buffer.
 	/// </summary>
+	/// <seealso cref="VulkanIndexBufferLayout" />
+	/// <seealso cref="IVulkanBuffer" />
 	class LITEFX_VULKAN_API IVulkanIndexBuffer : public IIndexBuffer<IVulkanBuffer, VulkanIndexBufferLayout, VulkanCommandBuffer>, public IVulkanBuffer {
 	public:
 		virtual ~IVulkanIndexBuffer() noexcept = default;
@@ -220,6 +238,10 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents a Vulkan uniform or storage buffer.
 	/// </summary>
+	/// <seealso cref="VulkanDescriptorLayout" />
+	/// <seealso cref="VulkanDescriptorSet" />
+	/// <seealso cref="VulkanDescriptorSetLayout" />
+	/// <seealso cref="IVulkanBuffer" />
 	class LITEFX_VULKAN_API IVulkanConstantBuffer : public IConstantBuffer<IVulkanBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public IVulkanBuffer {
 	public:
 		virtual ~IVulkanConstantBuffer() noexcept = default;
@@ -228,6 +250,11 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents a Vulkan sampled image or the base interface for a texture.
 	/// </summary>
+	/// <seealso cref="VulkanDescriptorLayout" />
+	/// <seealso cref="VulkanDescriptorSet" />
+	/// <seealso cref="VulkanDescriptorSetLayout" />
+	/// <seealso cref="IVulkanTexture" />
+	/// <seealso cref="IVulkanSampler" />
 	class LITEFX_VULKAN_API IVulkanImage : public IImage, public virtual IResource<VkImage> {
 	public:
 		virtual ~IVulkanImage() noexcept = default;
@@ -243,6 +270,12 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents a Vulkan texture.
 	/// </summary>
+	/// <seealso cref="VulkanDescriptorLayout" />
+	/// <seealso cref="VulkanDescriptorSet" />
+	/// <seealso cref="VulkanDescriptorSetLayout" />
+	/// <seealso cref="IVulkanImage" />
+	/// <seealso cref="IVulkanSampler" />
+	/// <seealso cref="IVulkanBuffer" />
 	class LITEFX_VULKAN_API IVulkanTexture : public ITexture<VulkanDescriptorLayout, IVulkanBuffer, VulkanCommandBuffer>, public IVulkanImage {
 	public:
 		virtual ~IVulkanTexture() noexcept = default;
@@ -258,6 +291,11 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents a Vulkan sampler.
 	/// </summary>
+	/// <seealso cref="VulkanDescriptorLayout" />
+	/// <seealso cref="VulkanDescriptorSet" />
+	/// <seealso cref="VulkanDescriptorSetLayout" />
+	/// <seealso cref="IVulkanImage" />
+	/// <seealso cref="IVulkanTexture" />
 	class LITEFX_VULKAN_API IVulkanSampler : public ISampler<VulkanDescriptorLayout>, public IResource<VkSampler> {
 	public:
 		virtual ~IVulkanSampler() noexcept = default;
@@ -266,6 +304,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IDescriptorSet" />.
 	/// </summary>
+	/// <seealso cref="VulkanDescriptorSetLayout" />
 	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanConstantBuffer, IVulkanTexture, IVulkanSampler, IVulkanImage, IVulkanBuffer, VulkanCommandBuffer>, public IResource<VkDescriptorSet> {
 	public:
 		/// <summary>
@@ -304,6 +343,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IDescriptorSetLayout" />.
 	/// </summary>
+	/// <seealso cref="VulkanDescriptorSet" />
+	/// <seealso cref="VulkanDescriptorSetLayoutBuilder" />
 	class LITEFX_VULKAN_API VulkanDescriptorSetLayout : public virtual VulkanRuntimeObject<VulkanRenderPipelineLayout>, public IDescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public IResource<VkDescriptorSetLayout> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
 		LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
@@ -394,6 +435,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Builds a <see cref="VulkanDescriptorSetLayout" />.
 	/// </summary>
+	/// <seealso cref="VulkanDescriptorSetLayout" />
 	class LITEFX_VULKAN_API VulkanDescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<VulkanDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanRenderPipelineLayoutBuilder> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutBuilderImpl);
 
@@ -447,6 +489,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IShaderModule" />.
 	/// </summary>
+	/// <seealso cref="VulkanShaderProgram" />
 	class LITEFX_VULKAN_API VulkanShaderModule : public virtual VulkanRuntimeObject<VulkanDevice>, public IShaderModule, public IResource<VkShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
@@ -485,6 +528,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IShaderProgram" />.
 	/// </summary>
+	/// <seealso cref="VulkanShaderProgramBuilder" />
 	class LITEFX_VULKAN_API VulkanShaderProgram : public virtual VulkanRuntimeObject<VulkanRenderPipelineLayout>, public IShaderProgram<VulkanShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
 		LITEFX_BUILDER(VulkanShaderProgramBuilder);
@@ -511,6 +555,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Builds a Vulkan <see cref="IShaderProgram" />.
 	/// </summary>
+	/// <seealso cref="VulkanShaderProgram" />
 	class LITEFX_VULKAN_API VulkanShaderProgramBuilder : public ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder> {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramBuilderImpl);
 
@@ -556,6 +601,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IRenderPipelineLayout" />.
 	/// </summary>
+	/// <seealso cref="VulkanRenderPipelineLayoutBuilder" />
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject<VulkanRenderPipeline>, public IRenderPipelineLayout<VulkanDescriptorSetLayout, VulkanShaderProgram>, public IResource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
@@ -590,6 +636,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Builds a Vulkan <see cref="IRenderPipelineLayout" />.
 	/// </summary>
+	/// <seealso cref="VulkanRenderPipelineLayout" />
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutBuilderImpl);
 
@@ -677,14 +724,11 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_VULKAN_API VulkanInputAssemblerBuilder : public InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder> {
 		LITEFX_IMPLEMENTATION(VulkanInputAssemblerBuilderImpl);
 
-		// TODO: Create overload that can create input assemblers from a device directly.
-
 	public:
 		/// <summary>
-		/// 
+		/// Initializes a Vulkan input assembler builder.
 		/// </summary>
-		/// <param name="parent"></param>
-		/// <returns></returns>
+		/// <param name="parent">The parent render pipeline builder.</param>
 		explicit VulkanInputAssemblerBuilder(VulkanRenderPipelineBuilder& parent) noexcept;
 		VulkanInputAssemblerBuilder(const VulkanInputAssemblerBuilder&) noexcept = delete;
 		VulkanInputAssemblerBuilder(VulkanInputAssemblerBuilder&&) noexcept = delete;
@@ -722,34 +766,81 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// 
+	/// Implements a Vulkan <see cref="IRasterizer" />.
 	/// </summary>
+	/// <seealso cref="VulkanRasterizerBuilder" />
 	class LITEFX_VULKAN_API VulkanRasterizer : public virtual VulkanRuntimeObject<VulkanRenderPipeline>, public Rasterizer {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
 	public:
-		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline) noexcept;
+		/// <summary>
+		/// Initializes a new Vulkan rasterizer state.
+		/// </summary>
+		/// <param name="pipeline">The parent pipeline, the rasterizer state is created for.</param>
+		/// <param name="polygonMode">The polygon mode used by the pipeline.</param>
+		/// <param name="cullMode">The cull mode used by the pipeline.</param>
+		/// <param name="cullOrder">The cull order used by the pipeline.</param>
+		/// <param name="lineWidth">The line width used by the pipeline.</param>
+		/// <param name="useDepthBias"><c>true</c>, if the depth bias should be enabled.</param>
+		/// <param name="depthBiasClamp">The clamp value of the depth bias state.</param>
+		/// <param name="depthBiasConstantFactor">The constant factor of the depth bias state.</param>
+		/// <param name="depthBiasSlopeFactor">The slope factor of the depth bias state.</param>
+		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept;
 		VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
 		VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
 		virtual ~VulkanRasterizer() noexcept;
+
+	private:
+		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline) noexcept;
 	};
 
 	/// <summary>
-	/// 
+	/// Builds a Vulkan <see cref="IRasterizer" />.
 	/// </summary>
+	/// <seealso cref="VulkanRasterizer" />
 	class LITEFX_VULKAN_API VulkanRasterizerBuilder : public RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder> {
-	public:
-		using RasterizerBuilder<VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder>::RasterizerBuilder;
+		LITEFX_IMPLEMENTATION(VulkanRasterizerBuilderImpl);
 
 	public:
-		virtual VulkanRasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) override;
-		virtual VulkanRasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
-		virtual VulkanRasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
-		virtual VulkanRasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
-		virtual VulkanRasterizerBuilder& enableDepthBias(const bool& enable = false) override;
-		virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
-		virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
-		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
+		/// <summary>
+		/// Initializes a Vulkan input assembler builder.
+		/// </summary>
+		/// <param name="parent">The parent render pipeline builder.</param>
+		explicit VulkanRasterizerBuilder(VulkanRenderPipelineBuilder& parent) noexcept;
+		VulkanRasterizerBuilder(const VulkanRasterizerBuilder&) noexcept = delete;
+		VulkanRasterizerBuilder(VulkanRasterizerBuilder&&) noexcept = delete;
+		virtual ~VulkanRasterizerBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& go() override;
+
+		// RasterizerBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanRasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) noexcept override;
+
+		/// <inheritdoc />
+		virtual VulkanRasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) noexcept override;
+
+		/// <inheritdoc />
+		virtual VulkanRasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) noexcept override;
+
+		/// <inheritdoc />
+		virtual VulkanRasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) noexcept override;
+
+		/// <inheritdoc />
+		virtual VulkanRasterizerBuilder& enableDepthBias(const bool& enable = false) noexcept override;
+
+		/// <inheritdoc />
+		virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) noexcept override;
+
+		/// <inheritdoc />
+		virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) noexcept override;
+
+		/// <inheritdoc />
+		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) noexcept override;
 	};
 
 	/// <summary>

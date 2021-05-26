@@ -87,3 +87,43 @@ const Float& Rasterizer::depthBiasSlopeFactor() const noexcept
 {
     return m_impl->m_depthBiasSlopeFactor;
 }
+
+PolygonMode& Rasterizer::polygonMode() noexcept
+{
+    return m_impl->m_polygonMode;
+}
+
+CullMode& Rasterizer::cullMode() noexcept
+{
+    return m_impl->m_cullMode;
+}
+
+CullOrder& Rasterizer::cullOrder() noexcept
+{
+    return m_impl->m_cullOrder;
+}
+
+Float& Rasterizer::lineWidth() noexcept
+{
+    return m_impl->m_lineWidth;
+}
+
+bool& Rasterizer::useDepthBias() noexcept
+{
+    return m_impl->m_depthBias;
+}
+
+Float& Rasterizer::depthBiasClamp() noexcept
+{
+    return m_impl->m_depthBiasClamp;
+}
+
+Float& Rasterizer::depthBiasConstantFactor() noexcept
+{
+    return m_impl->m_depthBiasConstantFactor;
+}
+
+Float& Rasterizer::depthBiasSlopeFactor() noexcept
+{
+    return m_impl->m_depthBiasSlopeFactor;
+}

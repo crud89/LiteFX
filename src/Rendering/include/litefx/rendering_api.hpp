@@ -857,7 +857,6 @@ namespace LiteFX::Rendering {
 		/// <param name="depthBiasClamp">The depth bias clamp value of the rasterizer state.</param>
 		/// <param name="depthBiasConstantFactor">The depth bias constant factor of the rasterizer state.</param>
 		/// <param name="depthBiasSlopeFactor">The depth bias slope factor of the rasterizer state.</param>
-		/// <returns></returns>
 		explicit Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept;
 		Rasterizer(Rasterizer&&) noexcept;
 		Rasterizer(const Rasterizer&) noexcept;
@@ -887,6 +886,16 @@ namespace LiteFX::Rendering {
 
 		/// <inheritdoc />
 		virtual const Float& depthBiasSlopeFactor() const noexcept override;
+
+	protected:
+		virtual PolygonMode& polygonMode() noexcept;
+		virtual CullMode& cullMode() noexcept;
+		virtual CullOrder& cullOrder() noexcept;
+		virtual Float& lineWidth() noexcept;
+		virtual bool& useDepthBias() noexcept;
+		virtual Float& depthBiasClamp() noexcept;
+		virtual Float& depthBiasConstantFactor() noexcept;
+		virtual Float& depthBiasSlopeFactor() noexcept;
 	};
 
 	/// <summary>
