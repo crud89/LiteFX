@@ -12,33 +12,29 @@ public:
     friend class VulkanRenderPipelineLayout;
 
 private:
-    UniquePtr<IShaderProgram> m_shaderProgram;
-    Array<UniquePtr<IDescriptorSetLayout>> m_descriptorSetLayouts;
+    UniquePtr<VulkanShaderProgram> m_shaderProgram;
+    Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
-    VulkanRenderPipelineLayoutImpl(VulkanRenderPipelineLayout* parent) : 
-        base(parent) 
-    { 
+    VulkanRenderPipelineLayoutImpl(VulkanRenderPipelineLayout* parent, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts) :
+        base(parent), m_shaderProgram(std::move(shaderProgram)), m_descriptorSetLayouts(std::move(descriptorLayouts))
+    {
+    }
+
+    VulkanRenderPipelineLayoutImpl(VulkanRenderPipelineLayout* parent) :
+        base(parent)
+    {
     }
 
 public:
-    VkPipelineLayout initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts)
+    VkPipelineLayout initialize()
     {
-        if (shaderProgram == nullptr)
-            throw std::runtime_error("The shader program must be initialized.");
+        // Query for the descriptor set layout handles.
+        auto descriptorSetLayouts = m_descriptorSetLayouts |
+            std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |
+            ranges::to<Array<VkDescriptorSetLayout>>();
 
-        Array<VkDescriptorSetLayout> descriptorSetLayouts(descriptorLayouts.size());
-
-        std::generate(std::begin(descriptorSetLayouts), std::end(descriptorSetLayouts), [&, i = 0]() mutable {
-            auto descriptorSetLayout = dynamic_cast<const VulkanDescriptorSetLayout*>(descriptorLayouts[i++].get());
-
-            if (descriptorSetLayout != nullptr && descriptorSetLayout->handle() != nullptr)
-                return descriptorSetLayout->handle();
-            else
-                throw RuntimeException("At least one of the descriptor sets is not properly initialized or not a valid Vulkan descriptor set.");
-        });
-
-        LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Sets: {1} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size());
+        LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size());
 
         // Create the pipeline layout.
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -48,13 +44,7 @@ public:
         pipelineLayoutInfo.pushConstantRangeCount = 0;
 
         VkPipelineLayout layout;
-
-        if (::vkCreatePipelineLayout(m_parent->getDevice()->handle(), &pipelineLayoutInfo, nullptr, &layout) != VK_SUCCESS)
-            throw std::runtime_error("Unable to create pipeline layout.");
-
-        m_shaderProgram = std::move(shaderProgram);
-        m_descriptorSetLayouts = std::move(descriptorLayouts);
-
+        raiseIfFailed<RuntimeException>(::vkCreatePipelineLayout(m_parent->getDevice()->handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
         return layout;
     }
 };
@@ -63,41 +53,40 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) :
-    VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr), m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this))
+VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorSetLayouts) :
+    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this, shaderProgram, descriptorSetLayouts)), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr)
+{
+    this->handle() = m_impl->initialize();
+}
+
+VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept :
+    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr)
 {
 }
 
 VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept
 {
-    if (this->handle() != nullptr)
-        ::vkDestroyPipelineLayout(this->getDevice()->handle(), this->handle(), nullptr);
+    ::vkDestroyPipelineLayout(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-//bool VulkanRenderPipelineLayout::isInitialized() const noexcept
-//{
-//    return this->handle() != nullptr;
-//}
-//
-//void VulkanRenderPipelineLayout::initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts)
-//{
-//    if (this->isInitialized())
-//        throw RuntimeException("The render pipeline layout already has been initialized.");
-//
-//    this->handle() = m_impl->initialize(std::move(shaderProgram), std::move(descriptorLayouts));
-//}
-
-const IShaderProgram* VulkanRenderPipelineLayout::getProgram() const noexcept
+const VulkanShaderProgram& VulkanRenderPipelineLayout::program() const noexcept
 {
-    return m_impl->m_shaderProgram.get();
+    return *m_impl->m_shaderProgram.get();
 }
 
-Array<const IDescriptorSetLayout*> VulkanRenderPipelineLayout::getDescriptorSetLayouts() const noexcept
+const VulkanDescriptorSetLayout& VulkanRenderPipelineLayout::layout(const UInt32& space) const
 {
-    Array<const IDescriptorSetLayout*> layouts(m_impl->m_descriptorSetLayouts.size());
-    std::generate(std::begin(layouts), std::end(layouts), [&, i = 0]() mutable { return m_impl->m_descriptorSetLayouts[i++].get(); });
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
+        return *match->get();
 
-    return layouts;
+    throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
+}
+
+Array<const VulkanDescriptorSetLayout*> VulkanRenderPipelineLayout::layouts() const noexcept
+{
+    return m_impl->m_descriptorSetLayouts |
+        std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); }) |
+        ranges::to<Array<const VulkanDescriptorSetLayout*>>();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -110,8 +99,8 @@ public:
     friend class VulkanRenderPipelineLayout;
 
 private:
-    UniquePtr<IShaderProgram> m_shaderProgram;
-    Array<UniquePtr<IDescriptorSetLayout>> m_descriptorSetLayouts;
+    UniquePtr<VulkanShaderProgram> m_shaderProgram;
+    Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
     VulkanRenderPipelineLayoutBuilderImpl(VulkanRenderPipelineLayoutBuilder* parent) :
@@ -124,8 +113,8 @@ public:
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineLayoutBuilder::VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineBuilder& parent, UniquePtr<VulkanRenderPipelineLayout>&& instance) :
-    RenderPipelineLayoutBuilder(parent, std::move(instance)), m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this))
+VulkanRenderPipelineLayoutBuilder::VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineBuilder& parent) :
+    RenderPipelineLayoutBuilder(parent, makeUnique<VulkanRenderPipeline>(*parent.instance())), m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this))
 {
 }
 
@@ -133,12 +122,15 @@ VulkanRenderPipelineLayoutBuilder::~VulkanRenderPipelineLayoutBuilder() noexcept
 
 VulkanRenderPipelineBuilder& VulkanRenderPipelineLayoutBuilder::go()
 {
-    this->instance()->initialize(std::move(m_impl->m_shaderProgram), std::move(m_impl->m_descriptorSetLayouts));
+    auto instance = this->instance();
+    instance->m_impl->m_shaderProgram = std::move(m_impl->m_shaderProgram);
+    instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
+    instance->handle() = instance->m_impl->initialize();
     
     return RenderPipelineLayoutBuilder::go();
 }
 
-void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& program)
+void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<VulkanShaderProgram>&& program)
 {
 #ifndef NDEBUG
     if (m_impl->m_shaderProgram != nullptr)
@@ -148,7 +140,7 @@ void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& program)
     m_impl->m_shaderProgram = std::move(program);
 }
 
-void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<IDescriptorSetLayout>&& layout)
+void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<VulkanDescriptorSetLayout>&& layout)
 {
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
@@ -158,7 +150,7 @@ VulkanShaderProgramBuilder VulkanRenderPipelineLayoutBuilder::shaderProgram()
     return this->make<VulkanShaderProgram>();
 }
 
-VulkanDescriptorSetLayoutBuilder VulkanRenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& id, const ShaderStage& stages)
+VulkanDescriptorSetLayoutBuilder VulkanRenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages, const UInt32& poolSize)
 {
-    return this->make<VulkanDescriptorSetLayout>(id, stages);
+    return this->make<VulkanDescriptorSetLayout>(space, stages, poolSize);
 }
