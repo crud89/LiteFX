@@ -8,7 +8,7 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
-	class _VMABufferBase : public virtual IBuffer, public IResource<VkBuffer> {
+	class _VMABufferBase : public virtual ITransferableBuffer, public IResource<VkBuffer> {
 	private:
 		VmaAllocator m_allocator;
 		VmaAllocation m_allocationInfo;

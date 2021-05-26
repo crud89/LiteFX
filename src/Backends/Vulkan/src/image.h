@@ -35,6 +35,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual size_t size() const noexcept override;
 
+		/// <inheritdoc />
+		virtual size_t elementSize() const noexcept override;
+
 		// IImage interface.
 	public:
 		/// <inheritdoc />

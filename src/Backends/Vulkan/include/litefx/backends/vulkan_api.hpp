@@ -20,6 +20,7 @@
 #  pragma message ("Vulkan: No supported surface platform detected.")
 #endif
 
+#include <litefx/rendering.hpp>
 #include <vulkan/vulkan.h>
 
 namespace LiteFX::Rendering::Backends {
@@ -28,12 +29,47 @@ namespace LiteFX::Rendering::Backends {
 
     constexpr char VULKAN_LOG[] = "Backend::Vulkan";
 
-    // API declarations.
-    class VulkanDevice;
+	// Forward declarations.
     class VulkanVertexBufferLayout;
     class VulkanIndexBufferLayout;
-    class VulkanCommandBuffer;
     class VulkanDescriptorLayout;
+    class VulkanDescriptorSetLayout;
+    class VulkanDescriptorSet;
+    class VulkanRenderPipelineLayout;
+    class VulkanShaderModule;
+    class VulkanShaderProgram;
+    class VulkanCommandBuffer;
+    class VulkanInputAssembler;
+    class VulkanRasterizer;
+    class VulkanRenderPipeline;
+    class VulkanFrameBuffer;
+    class VulkanRenderPass;
+    class VulkanInputAttachmentMapping;
+    class VulkanSwapChain;
+    class VulkanQueue;
+    class VulkanGraphicsFactory;
+    class VulkanDevice;
+    class VulkanBackend;
+
+    // Interface declarations.
+    class IVulkanBuffer;
+    class IVulkanVertexBuffer;
+    class IVulkanIndexBuffer;
+    class IVulkanConstantBuffer;
+    class IVulkanImage;
+    class IVulkanTexture;
+    class IVulkanSampler;
+
+    // Builder declarations.
+    class VulkanVertexBufferLayoutBuilder;
+    class VulkanDescriptorSetLayoutBuilder;
+    class VulkanRenderPipelineLayoutBuilder;
+    class VulkanShaderProgramBuilder;
+    class VulkanInputAssemblerBuilder;
+    class VulkanRasterizerBuilder;
+    class VulkanRenderPipelineBuilder;
+    class VulkanRenderPassBuilder;
+    class VulkanBackendBuilder;
 
     // Conversion helpers.
     /// <summary>
@@ -168,72 +204,6 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>The handle of the backend, the surface has been created from.</returns>
         const VkInstance& instance() const noexcept;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_VULKAN_API IVulkanBuffer : public virtual IBuffer<IVulkanBuffer, VulkanCommandBuffer>, public virtual IResource<VkBuffer> {
-    public:
-        virtual ~IVulkanBuffer() noexcept = default;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_VULKAN_API IVulkanVertexBuffer : public virtual IVertexBuffer<IVulkanVertexBuffer, VulkanVertexBufferLayout, VulkanCommandBuffer>, public virtual IVulkanBuffer {
-    public:
-        virtual ~IVulkanVertexBuffer() noexcept = default;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_VULKAN_API IVulkanIndexBuffer : public virtual IIndexBuffer<IVulkanIndexBuffer, VulkanIndexBufferLayout, VulkanCommandBuffer>, public virtual IVulkanBuffer {
-    public:
-        virtual ~IVulkanIndexBuffer() noexcept = default;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_VULKAN_API IVulkanConstantBuffer : public virtual IConstantBuffer<IVulkanConstantBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public virtual IVulkanBuffer {
-    public:
-        virtual ~IVulkanConstantBuffer() noexcept = default;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_VULKAN_API IVulkanImage : public IImage, public virtual IResource<VkImage> {
-    public:
-        virtual ~IVulkanImage() noexcept = default;
-
-    public:
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        virtual const VkImageView& imageView() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_VULKAN_API IVulkanTexture : public ITexture<IVulkanTexture, IVulkanBuffer, VulkanCommandBuffer>, public virtual IVulkanImage {
-    public:
-        virtual ~IVulkanTexture() noexcept = default;
-
-    public:
-        virtual const VkImageLayout& imageLayout() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    class LITEFX_VULKAN_API IVulkanSampler : public ISampler<VulkanDescriptorLayout>, public IResource<VkSampler> {
-    public:
-        virtual ~IVulkanSampler() noexcept = default;
     };
 
     /// <summary>

@@ -77,8 +77,13 @@ const UInt32& VulkanImage::elements() const noexcept
 
 size_t VulkanImage::size() const noexcept
 {
+	return this->elementSize() * m_impl->m_elements;
+}
+
+size_t VulkanImage::elementSize() const noexcept
+{
 	// Rough estimation, that does not include alignment.
-	return ::getSize(m_impl->m_format) * m_impl->m_extent.width() * m_impl->m_extent.height() * m_impl->m_elements;
+	return ::getSize(m_impl->m_format) * m_impl->m_extent.width() * m_impl->m_extent.height();
 }
 
 const Size2d& VulkanImage::extent() const noexcept
@@ -234,7 +239,7 @@ void VulkanTexture::transferFrom(const VulkanCommandBuffer& commandBuffer, const
 	endTransitionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	VkPipelineStageFlags targetStages = {};
-	auto shaderStages = m_impl->m_descriptorLayout.parent().getShaderStages();
+	auto shaderStages = m_impl->m_descriptorLayout.parent().shaderStages();
 
 	if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
 		targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;

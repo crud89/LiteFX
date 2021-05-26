@@ -10,11 +10,13 @@
 #include <optional>
 #include <map>
 #include <vector>
+#include <queue>
 #include <tuple>
 #include <memory>
 #include <functional>
 #include <variant>
 #include <ranges>
+#include <mutex>
 
 #include "traits.hpp"
 #include "string.hpp"
@@ -53,6 +55,13 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the array elements.</typeparam>
 	template<class T>
 	using Array = std::vector<T>;
+
+	/// <summary>
+	/// Represents a queue.
+	/// </summary>
+	/// <typeparam name="T">The type of the queue elements.</typeparam>
+	template<class T>
+	using Queue = std::queue<T>;
 
 	/// <summary>
 	/// Represents a view of an array.
