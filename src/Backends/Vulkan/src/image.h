@@ -72,7 +72,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="ITexture" />.
 	/// </summary>
-	class VulkanTexture : public VulkanImage, public IVulkanTexture {
+	class VulkanTexture : public VulkanImage, public virtual IVulkanTexture {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:

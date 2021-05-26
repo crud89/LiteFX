@@ -498,7 +498,7 @@ namespace LiteFX::Rendering {
 	/// Represents a physical graphics adapter.
 	/// </summary>
 	/// <remarks>
-	/// A graphics adapter can be seen as an actual phyiscal device that can run graphics computations. Typically this resembles a GPU that is connected
+	/// A graphics adapter can be seen as an actual physical device that can run graphics computations. Typically this resembles a GPU that is connected
 	/// to the bus. However, it can also represent an emulated, virtual adapter, such as a software rasterizer.
 	/// </remarks>
 	class LITEFX_RENDERING_API IGraphicsAdapter {
@@ -688,7 +688,7 @@ namespace LiteFX::Rendering {
 		/// <summary>
 		/// Initializes the render target.
 		/// </summary>
-		/// <param name="location">The location of the render target ouput attachment.</param>
+		/// <param name="location">The location of the render target output attachment.</param>
 		/// <param name="type">The type of the render target.</param>
 		/// <param name="format">The format of the render target.</param>
 		/// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>

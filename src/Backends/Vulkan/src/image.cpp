@@ -121,6 +121,7 @@ UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const U
 
 	return makeUnique<VulkanImage>(device, image, elements, extent, format, allocator, allocation);
 }
+
 // ------------------------------------------------------------------------------------------------
 // Texture shared implementation.
 // ------------------------------------------------------------------------------------------------

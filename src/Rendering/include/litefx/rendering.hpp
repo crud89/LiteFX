@@ -918,11 +918,11 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="IShaderProgram"/>.</typeparam>
 	/// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="IDescriptorSetLayout"/>.</typeparam>
 	/// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
-	template <typename TRenderPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
+	template <typename TRenderPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TCommandBuffer = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
 		rtti::implements<TRenderPipelineLayout, IRenderPipelineLayout<TDescriptorSetLayout, TShaderProgram>> &&
 		rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
-		std::derived_from<TVertexBufferInterface, IVertexBuffer<TVertexBufferInterface, TVertexBufferLayout>> &&
-		std::derived_from<TIndexBufferInterface, IIndexBuffer<TIndexBufferInterface, TIndexBufferLayout>>
+		std::derived_from<TVertexBufferInterface, IVertexBuffer<TVertexBufferInterface, TVertexBufferLayout, TCommandBuffer>> &&
+		std::derived_from<TIndexBufferInterface, IIndexBuffer<TIndexBufferInterface, TIndexBufferLayout, TCommandBuffer>>
 	class IRenderPipeline {
 	public:
 		using pipeline_layout_type = TRenderPipelineLayout;
@@ -1529,8 +1529,8 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TCommandBuffer">The type of the index command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	template <typename TDescriptorLayout, typename TImageInterface, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TConstantBufferInterface, typename TGenericBufferInterface, typename TTextureInterface, typename TSamplerInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type, typename TCommandBuffer = TGenericBufferInterface::command_buffer_type> requires
 		rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-		std::derived_from<TVertexBufferInterface, IVertexBuffer<TVertexBufferInterface, TVertexBufferLayout>> &&
-		std::derived_from<TIndexBufferInterface, IIndexBuffer<TIndexBufferInterface, TIndexBufferLayout>> &&
+		std::derived_from<TVertexBufferInterface, IVertexBuffer<TVertexBufferInterface, TVertexBufferLayout, TCommandBuffer>> &&
+		std::derived_from<TIndexBufferInterface, IIndexBuffer<TIndexBufferInterface, TIndexBufferLayout, TCommandBuffer>> &&
 		std::derived_from<TImageInterface, IImage> &&
 		std::derived_from<TConstantBufferInterface, IConstantBuffer<TConstantBufferInterface, TCommandBuffer, TDescriptorLayout>> &&
 		std::derived_from<TConstantBufferInterface, TGenericBufferInterface> &&
