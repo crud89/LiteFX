@@ -32,6 +32,11 @@ public:
     {
     }
 
+    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent) :
+        base(parent)
+    {
+    }
+
 public:
     VkDescriptorSetLayout initialize()
     {
@@ -148,6 +153,11 @@ VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanRenderPipelineL
     m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, descriptorLayouts, space, stages, poolSize)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice()), IResource<VkDescriptorSetLayout>(nullptr)
 {
     this->handle() = m_impl->initialize();
+}
+
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout) noexcept :
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice()), IResource<VkDescriptorSetLayout>(nullptr)
+{
 }
 
 VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept

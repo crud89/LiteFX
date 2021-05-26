@@ -89,22 +89,37 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// 
+	/// Builds a see <cref="VulkanVertexBufferLayout" />.
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanVertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
 	public:
 		using VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
 
 	public:
+		/// <inheritdoc />
 		virtual VulkanVertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
 
+	public:
 		/// <summary>
-		/// 
+		/// Adds an attribute to the vertex buffer layout.
 		/// </summary>
 		/// <reamrks>
 		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
 		/// </reamrks>
+		/// <param name="format">The format of the attribute.</param>
+		/// <param name="offset">The offset of the attribute within a buffer element.</param>
+		/// <param name="semantic">The semantic of the attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the attribute.</param>
 		virtual VulkanVertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+
+		/// <summary>
+		/// Adds an attribute to the vertex buffer layout.
+		/// </summary>
+		/// <param name="location">The location, the attribute is bound to.</param>
+		/// <param name="format">The format of the attribute.</param>
+		/// <param name="offset">The offset of the attribute within a buffer element.</param>
+		/// <param name="semantic">The semantic of the attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the attribute.</param>
 		virtual VulkanVertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
 	};
 
@@ -308,7 +323,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDescriptorSetLayout() noexcept;
 
 	private:
-		explicit VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout);
+		explicit VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout) noexcept;
 
 	public:
 		/// <inheritdoc />
@@ -397,11 +412,15 @@ namespace LiteFX::Rendering::Backends {
 
 		// IBuilder interface.
 	public:
+		/// <inheritdoc />
 		virtual VulkanRenderPipelineLayoutBuilder& go() override;
 
 		// DescriptorSetLayoutBuilder interface.
 	public:
+		/// <inheritdoc />
 		virtual VulkanDescriptorSetLayoutBuilder& addDescriptor(UniquePtr<VulkanDescriptorLayout>&& layout) override;
+		
+		/// <inheritdoc />
 		virtual VulkanDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
 
 		// VulkanDescriptorSetLayoutBuilder.
@@ -423,6 +442,115 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="poolSize">The size of the descriptor pools used for descriptor set allocations.</param>
 		virtual VulkanDescriptorSetLayoutBuilder& poolSize(const UInt32& poolSize) noexcept;
+	};
+
+	/// <summary>
+	/// Implements a Vulkan <see cref="IShaderModule" />.
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanShaderModule : public virtual VulkanRuntimeObject<VulkanDevice>, public IShaderModule, public IResource<VkShaderModule> {
+		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new Vulkan shader module.
+		/// </summary>
+		/// <param name="device">The parent device, this shader module has been created from.</param>
+		/// <param name="type">The shader stage, this module is used in.</param>
+		/// <param name="fileName">The file name of the module source.</param>
+		/// <param name="entryPoint">The name of the module entry point.</param>
+		explicit VulkanShaderModule(const VulkanDevice& device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
+		VulkanShaderModule(const VulkanShaderModule&) noexcept = delete;
+		VulkanShaderModule(VulkanShaderModule&&) noexcept = delete;
+		virtual ~VulkanShaderModule() noexcept;
+
+		// IShaderModule interface.
+	public:
+		/// <inheritdoc />
+		virtual const String& fileName() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const String& entryPoint() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const ShaderStage& type() const noexcept override;
+
+	public:
+		/// <summary>
+		/// Returns the shader stage creation info for convenience.
+		/// </summary>
+		/// <returns>The shader stage creation info for convenience.</returns>
+		virtual VkPipelineShaderStageCreateInfo shaderStageDefinition() const;
+	};
+
+	/// <summary>
+	/// Implements a Vulkan <see cref="IShaderProgram" />.
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanShaderProgram : public virtual VulkanRuntimeObject<VulkanRenderPipelineLayout>, public IShaderProgram<VulkanShaderModule> {
+		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
+		LITEFX_BUILDER(VulkanShaderProgramBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a new Vulkan shader program.
+		/// </summary>
+		/// <param name="pipelineLayout">The parent pipeline layout to initialize the shader program from.</param>
+		/// <param name="modules">The shader modules used by the shader program.</param>
+		explicit VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanShaderModule>>&& modules);
+		VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
+		VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
+		virtual ~VulkanShaderProgram() noexcept;
+
+	private:
+		explicit VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout) noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual Array<const VulkanShaderModule*> modules() const noexcept override;
+	};
+
+	/// <summary>
+	/// Builds a Vulkan <see cref="IShaderProgram" />.
+	/// </summary>
+	class LITEFX_VULKAN_API VulkanShaderProgramBuilder : public ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(VulkanShaderProgramBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a Vulkan shader program builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		explicit VulkanShaderProgramBuilder(const VulkanRenderPipelineLayoutBuilder& parent);
+		VulkanShaderProgramBuilder(const VulkanShaderProgramBuilder&) = delete;
+		VulkanShaderProgramBuilder(VulkanShaderProgramBuilder&&) = delete;
+		virtual ~VulkanShaderProgramBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineLayoutBuilder& go() override;
+
+		// ShaderProgramBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
 	};
 
 	/// <summary>
@@ -469,62 +597,6 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual void use(UniquePtr<IShaderProgram>&& program) override;
 		virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanShaderModule : public virtual VulkanRuntimeObject<VulkanDevice>, public IShaderModule, public IResource<VkShaderModule> {
-		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
-
-	public:
-		explicit VulkanShaderModule(const VulkanDevice& device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
-		VulkanShaderModule(const VulkanShaderModule&) noexcept = delete;
-		VulkanShaderModule(VulkanShaderModule&&) noexcept = delete;
-		virtual ~VulkanShaderModule() noexcept;
-
-	public:
-		virtual const String& getFileName() const noexcept override;
-		virtual const String& getEntryPoint() const noexcept override;
-		virtual const ShaderStage& getType() const noexcept override;
-
-	public:
-		virtual VkPipelineShaderStageCreateInfo getShaderStageDefinition() const;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanShaderProgram : public virtual VulkanRuntimeObject<VulkanRenderPipelineLayout>, public IShaderProgram {
-		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
-		LITEFX_BUILDER(VulkanShaderProgramBuilder);
-
-	public:
-		explicit VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout);
-		VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
-		VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
-		virtual ~VulkanShaderProgram() noexcept;
-
-	public:
-		virtual Array<const IShaderModule*> getModules() const noexcept override;
-		virtual void use(UniquePtr<IShaderModule>&& module) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanShaderProgramBuilder : public ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder> {
-	public:
-		using ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder>::ShaderProgramBuilder;
-
-	public:
-		virtual VulkanShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
-		virtual VulkanShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual VulkanShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual VulkanShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual VulkanShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual VulkanShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual VulkanShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
 	};
 
 	/// <summary>
