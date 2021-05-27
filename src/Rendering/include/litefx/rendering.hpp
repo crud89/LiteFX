@@ -156,7 +156,7 @@ namespace LiteFX::Rendering {
 	/// Base interface for buffer objects.
 	/// </summary>
 	/// <seealso cref="ITransferableBuffer" />
-	class IBuffer : public IDeviceMemory, public IMappable {
+	class IBuffer : public virtual IDeviceMemory, public IMappable {
 	public:
 		virtual ~IBuffer() noexcept = default;
 

@@ -210,7 +210,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IVulkanConstantTexture" />
 	/// <seealso cref="IVulkanVertexBuffer" />
 	/// <seealso cref="IVulkanIndexBuffer" />
-	class LITEFX_VULKAN_API IVulkanBuffer : public virtual ITransferableBuffer<IVulkanBuffer, VulkanCommandBuffer>, public virtual IResource<VkBuffer> {
+	class LITEFX_VULKAN_API IVulkanBuffer : public ITransferableBuffer<IVulkanBuffer, VulkanCommandBuffer>, public virtual IResource<VkBuffer> {
 	public:
 		virtual ~IVulkanBuffer() noexcept = default;
 	};
@@ -242,7 +242,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanDescriptorSetLayout" />
 	/// <seealso cref="IVulkanBuffer" />
-	class LITEFX_VULKAN_API IVulkanConstantBuffer : public IConstantBuffer<IVulkanBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public virtual IVulkanBuffer {
+	class LITEFX_VULKAN_API IVulkanConstantBuffer : public IConstantBuffer<IVulkanBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public IVulkanBuffer {
 	public:
 		virtual ~IVulkanConstantBuffer() noexcept = default;
 	};
@@ -255,7 +255,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanDescriptorSetLayout" />
 	/// <seealso cref="IVulkanTexture" />
 	/// <seealso cref="IVulkanSampler" />
-	class LITEFX_VULKAN_API IVulkanImage : public IImage, public virtual IResource<VkImage> {
+	class LITEFX_VULKAN_API IVulkanImage : public IImage, public IResource<VkImage> {
 	public:
 		virtual ~IVulkanImage() noexcept = default;
 

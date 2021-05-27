@@ -8,69 +8,134 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
-	class _VMABufferBase : public virtual ITransferableBuffer, public IResource<VkBuffer> {
-	private:
-		VmaAllocator m_allocator;
-		VmaAllocation m_allocationInfo;
+	class VulkanBuffer : public VulkanRuntimeObject<VulkanDevice>, public IVulkanBuffer {
+		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
 
 	public:
-		_VMABufferBase(VkBuffer buffer, VmaAllocator& allocator, VmaAllocation allocation);
-		_VMABufferBase(_VMABufferBase&&) = delete;
-		_VMABufferBase(const _VMABufferBase&) = delete;
-		virtual ~_VMABufferBase() noexcept;
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="device"></param>
+		/// <param name="buffer"></param>
+		/// <param name="type"></param>
+		/// <param name="elements"></param>
+		/// <param name="elementSize"></param>
+		/// <param name="allocator"></param>
+		/// <param name="allocation"></param>
+		explicit VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		VulkanBuffer(VulkanBuffer&&) = delete;
+		VulkanBuffer(const VulkanBuffer&) = delete;
+		virtual ~VulkanBuffer() noexcept;
 
+		// ITransferable interface.
+	public:
+		/// <inheritdoc />
+		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) override;
+
+		/// <inheritdoc />
+		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
+
+		// IBuffer interface.
+	public:
+		/// <inheritdoc />
+		virtual const BufferType& type() const noexcept override;
+
+		// IDeviceMemory interface.
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& elements() const noexcept override;
+
+		/// <inheritdoc />
+		virtual size_t size() const noexcept override;
+
+		/// <inheritdoc />
+		virtual size_t elementSize() const noexcept override;
+
+		// IMappable interface.
 	public:
 		/// <inheritdoc />
 		virtual void map(const void* const data, const size_t& size) override;
-		
+
+		// VulkanBuffer.
+	public:
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="elements"></param>
+		/// <param name="elementSize"></param>
+		/// <param name="allocator"></param>
+		/// <param name="createInfo"></param>
+		/// <param name="allocationInfo"></param>
+		/// <param name="allocationResult"></param>
+		/// <returns></returns>
+		static UniquePtr<IVulkanBuffer> allocate(const VulkanDevice& device, const BufferType& type, const UInt32& elements, const size_t& elementSize, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+	};
+
+	class VulkanVertexBuffer : public VulkanBuffer, public virtual IVulkanVertexBuffer {
+		LITEFX_IMPLEMENTATION(VulkanVertexBufferImpl);
+
+	public:
+		explicit VulkanVertexBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		VulkanVertexBuffer(VulkanVertexBuffer&&) = delete;
+		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
+		virtual ~VulkanVertexBuffer() noexcept;
+
+		// IVertexBuffer interface.
+	public:
 		/// <inheritdoc />
-		virtual void transferFrom(const ICommandBuffer* commandBuffer, IBuffer* source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) override;
-		
+		const VulkanVertexBufferLayout& layout() const noexcept override;
+
+		// IBindable interface.
+	public:
 		/// <inheritdoc />
-		virtual void transferTo(const ICommandBuffer* commandBuffer, IBuffer* target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
+		virtual const UInt32& binding() const noexcept override;
+
+		// VulkanVertexBuffer.
+	public:
+		static UniquePtr<IVulkanVertexBuffer> allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	class _VMABuffer : public _VMABufferBase, public Buffer {
-	public:
-		_VMABuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& size, VmaAllocator& allocator, VmaAllocation allocation);
-		_VMABuffer(_VMABuffer&&) = delete;
-		_VMABuffer(const _VMABuffer&) = delete;
-		virtual ~_VMABuffer() noexcept;
+	class VulkanIndexBuffer : public VulkanBuffer, public virtual IVulkanIndexBuffer {
+		LITEFX_IMPLEMENTATION(VulkanIndexBufferImpl);
 
 	public:
-		static UniquePtr<IBuffer> allocate(const BufferType& type, const UInt32& elements, const size_t& size, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		explicit VulkanIndexBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		VulkanIndexBuffer(VulkanIndexBuffer&&) = delete;
+		VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
+		virtual ~VulkanIndexBuffer() noexcept;
+
+		// IIndexBuffer interface.
+	public:
+		/// <inheritdoc />
+		virtual const VulkanIndexBufferLayout& layout() const noexcept override;
+
+		// VulkanIndexBuffer.
+	public:
+		static UniquePtr<IVulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	class _VMAVertexBuffer : public _VMABufferBase, public virtual VulkanVertexBuffer {
-	public:
-		_VMAVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
-		_VMAVertexBuffer(_VMAVertexBuffer&&) = delete;
-		_VMAVertexBuffer(const _VMAVertexBuffer&) = delete;
-		virtual ~_VMAVertexBuffer() noexcept;
+	class VulkanConstantBuffer : public VulkanBuffer, public virtual IVulkanConstantBuffer {
+		LITEFX_IMPLEMENTATION(VulkanConstantBufferImpl);
 
 	public:
-		static UniquePtr<VulkanVertexBuffer> allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-	};
+		explicit VulkanConstantBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanDescriptorLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		VulkanConstantBuffer(VulkanConstantBuffer&&) = delete;
+		VulkanConstantBuffer(const VulkanConstantBuffer&) = delete;
+		virtual ~VulkanConstantBuffer() noexcept;
 
-	class _VMAIndexBuffer : public _VMABufferBase, public virtual VulkanIndexBuffer {
+		// IDescriptor interface.
 	public:
-		_VMAIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
-		_VMAIndexBuffer(_VMAIndexBuffer&&) = delete;
-		_VMAIndexBuffer(const _VMAIndexBuffer&) = delete;
-		virtual ~_VMAIndexBuffer() noexcept;
+		/// <inheritdoc />
+		const VulkanDescriptorLayout& layout() const noexcept override;
 
+		// IBindable interface.
 	public:
-		static UniquePtr<VulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-	};
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
 
-	class _VMAConstantBuffer : public _VMABufferBase, public VulkanConstantBuffer {
+		// VulkanConstantBuffer.
 	public:
-		_VMAConstantBuffer(VkBuffer buffer, const IDescriptorLayout* layout, const UInt32& elements, VmaAllocator& allocator, VmaAllocation allocation);
-		_VMAConstantBuffer(_VMAConstantBuffer&&) = delete;
-		_VMAConstantBuffer(const _VMAConstantBuffer&) = delete;
-		virtual ~_VMAConstantBuffer() noexcept;
-
-	public:
-		static UniquePtr<IConstantBuffer> allocate(const IDescriptorLayout* layout, const UInt32& elements, VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IVulkanConstantBuffer> allocate(const VulkanDescriptorLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 }
