@@ -109,10 +109,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 	return VulkanImage::allocate(m_impl->m_device, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	bufferInfo.size = size;
+	bufferInfo.size = elementSize * static_cast<size_t>(elements);
 
 	VkBufferUsageFlags usageFlags = {};
 
@@ -158,7 +158,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	return VulkanBuffer::allocate(m_impl->m_device, type, elements, size, m_impl->m_allocator, bufferInfo, allocInfo);
+	return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const

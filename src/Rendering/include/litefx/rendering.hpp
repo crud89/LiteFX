@@ -1617,10 +1617,10 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <param name="type">The type of the buffer.</param>
 		/// <param name="usage">The buffer usage.</param>
-		/// <param name="size">The overall size of the buffer (in bytes).</param>
+		/// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
 		/// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
 		/// <returns>The instance of the buffer.</returns>
-		virtual UniquePtr<TGenericBufferInterface> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements = 1) const = 0;
+		virtual UniquePtr<TGenericBufferInterface> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1) const = 0;
 
 		/// <summary>
 		/// Creates a vertex buffer, based on the <paramref name="layout" />
