@@ -185,6 +185,7 @@ void SampleApp::run()
     m_cameraBindings = nullptr;
     m_perFrameBindings.clear();
     m_cameraBuffer = nullptr;
+    m_cameraStagingBuffer = nullptr;
     m_transformBuffer = nullptr;
     m_vertexBuffer = nullptr;
     m_indexBuffer = nullptr;
