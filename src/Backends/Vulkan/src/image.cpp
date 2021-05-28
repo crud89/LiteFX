@@ -20,7 +20,7 @@ private:
 
 public:
 	VulkanImageImpl(VulkanImage* parent, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
-		base(parent), m_allocator(allocator), m_allocationInfo(allocation)
+		base(parent), m_allocator(allocator), m_allocationInfo(allocation), m_elements(elements), m_extent(extent), m_format(format)
 	{
 		VkImageViewCreateInfo createInfo = {};
 

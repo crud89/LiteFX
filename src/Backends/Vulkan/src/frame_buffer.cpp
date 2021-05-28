@@ -26,6 +26,9 @@ public:
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
+
+        // Retrieve a command buffer from the graphics queue..
+        m_commandBuffer = m_parent->getDevice()->graphicsQueue().createCommandBuffer(false);
 	}
 
 	~VulkanFrameBufferImpl()
