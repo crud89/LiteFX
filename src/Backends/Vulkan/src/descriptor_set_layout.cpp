@@ -22,6 +22,13 @@ private:
         { VK_DESCRIPTOR_TYPE_SAMPLER, 0 },
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 0 }
     };
+    Dictionary<VkDescriptorType, UInt32> m_poolSizeMapping {
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1 },
+        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 2 },
+        { VK_DESCRIPTOR_TYPE_SAMPLER, 3 },
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 4 },
+    };
     ShaderStage m_stages;
     UInt32 m_space, m_poolSize;
     mutable std::mutex m_mutex;
@@ -76,21 +83,23 @@ public:
             if (type == DescriptorType::InputAttachment && m_stages != ShaderStage::Fragment)
                 throw RuntimeException("Unable to bind input attachment at {0} to a descriptor set that is accessible from other stages, than the fragment shader.", bindingPoint);
 
+            int poolSizeIndex = 0;
+
             switch (type)
             {
-            case DescriptorType::Uniform:         binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;   break;
-            case DescriptorType::Storage:         binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;   break;
-            case DescriptorType::Image:           binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;    break;
-            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;          break;
-            case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT; break;
+            case DescriptorType::Uniform:         binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;    break;
+            case DescriptorType::Storage:         binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;    break;
+            case DescriptorType::Image:           binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;     break;
+            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;           break;
+            case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;  break;
             default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped."); return;
             }
 
-            m_poolSizes[binding.descriptorType].descriptorCount++;
+            m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
             bindings.push_back(binding);
         });
 
-        LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input attachments: {6} }}...", m_space, m_descriptorLayouts.size(), m_poolSizes[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER].descriptorCount, m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER].descriptorCount, m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE].descriptorCount, m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLER].descriptorCount, m_poolSizes[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT].descriptorCount);
+        LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input attachments: {6} }}...", m_space, m_descriptorLayouts.size(), m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount);
 
         // Create the descriptor set layout.
         VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
@@ -109,7 +118,7 @@ public:
 
     void addDescriptorPool()
     {
-        LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", m_poolSizes[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER].descriptorCount, m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER].descriptorCount, m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE].descriptorCount, m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLER].descriptorCount, m_poolSizes[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT].descriptorCount, m_poolSize);
+        LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, m_poolSize);
 
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
