@@ -19,15 +19,15 @@ private:
     UInt32 m_bufferIndex;
 
 public:
-    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const UInt32& bufferIndex) :
-        base(parent), m_bufferIndex(bufferIndex)
+    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const UInt32& bufferIndex, const Size2d& renderArea) :
+        base(parent), m_bufferIndex(bufferIndex), m_size(renderArea)
 	{
 		// Initialize the semaphore.
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
 
-        // Retrieve a command buffer from the graphics queue..
+        // Retrieve a command buffer from the graphics queue.
         m_commandBuffer = m_parent->getDevice()->graphicsQueue().createCommandBuffer(false);
 	}
 
@@ -37,7 +37,7 @@ public:
 	}
 
 public:
-	VkFramebuffer initialize(const Size2d& size)
+	VkFramebuffer initialize()
 	{
         // Retrieve the image views for the input and output attachments.
         Array<VkImageView> attachmentViews;
@@ -72,7 +72,7 @@ public:
             else
             {
                 // Create an image view for the render target.
-                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), size, renderTarget.samples());
+                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, renderTarget.samples());
                 attachmentViews.push_back(image->imageView());
                 m_renderTargetViews.push_back(image.get());
                 m_outputAttachments.push_back(std::move(image));
@@ -85,8 +85,8 @@ public:
         frameBufferInfo.renderPass = m_parent->parent().handle();
         frameBufferInfo.attachmentCount = static_cast<UInt32>(attachmentViews.size());
         frameBufferInfo.pAttachments = attachmentViews.data();
-        frameBufferInfo.width = size.width();
-        frameBufferInfo.height = size.height();
+        frameBufferInfo.width = m_size.width();
+        frameBufferInfo.height = m_size.height();
         frameBufferInfo.layers = 1;
 
         VkFramebuffer frameBuffer;
@@ -101,9 +101,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkFramebuffer>(nullptr)
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex, renderArea)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkFramebuffer>(nullptr)
 {
-    this->resize(renderArea);
+    this->handle() = m_impl->initialize();
 }
 
 VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
@@ -153,5 +153,6 @@ const IVulkanImage& VulkanFrameBuffer::image(const UInt32& location) const
 
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
 {
-    this->handle() = m_impl->initialize(renderArea);
+    m_impl->m_size = renderArea;
+    this->handle() = m_impl->initialize();
 }

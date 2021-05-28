@@ -40,6 +40,7 @@ VulkanBuffer::~VulkanBuffer() noexcept
 
 void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
 {
+	// TODO: Don't ignore alignment!!!
 	// TODO: Use multiple VkBufferCopys to allow to copy multiple array elements. Currently only one contiguous block can be copied at a time.
 	VkBufferCopy copyInfo{};
 	copyInfo.size = size;
@@ -50,6 +51,7 @@ void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const 
 
 void VulkanBuffer::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
 {
+	// TODO: Don't ignore alignment!!!
 	// TODO: Use multiple VkBufferCopys to allow to copy multiple array elements. Currently only one contiguous block can be copied at a time.
 	VkBufferCopy copyInfo{};
 	copyInfo.size = size;
