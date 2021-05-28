@@ -69,6 +69,13 @@ namespace LiteFX {
 			Logger::sinkTo(sink.get());
 			return *this;
 		}
+
+		template <typename TBackend, typename ...TArgs> requires
+			rtti::implements<TBackend, IBackend>
+		AppBuilder& useBackend(TArgs&&... args) {
+			this->use(makeUnique<TBackend>(*this->instance(), std::forward<TArgs>(args)...));
+			return *this;
+		}
 	};
 
 	class LITEFX_APPMODEL_API AppVersion {
