@@ -15,6 +15,7 @@ private:
     Array<UniquePtr<BufferAttribute>> m_attributes;
     size_t m_vertexSize;
     UInt32 m_binding;
+    BufferType m_bufferType{ BufferType::Vertex };
 
 public:
     VulkanVertexBufferLayoutImpl(VulkanVertexBufferLayout* parent, const size_t& vertexSize, const UInt32& binding) : 
@@ -53,7 +54,7 @@ const UInt32& VulkanVertexBufferLayout::binding() const noexcept
 
 const BufferType& VulkanVertexBufferLayout::type() const noexcept
 {
-    return BufferType::Vertex;
+    return m_impl->m_bufferType;
 }
 
 Array<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const noexcept

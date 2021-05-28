@@ -228,6 +228,8 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate() const noexc
     // Otherwise, pick and remove one from the list.
     auto descriptorSet = makeUnique<VulkanDescriptorSet>(*this, m_impl->m_freeDescriptorSets.front());
     m_impl->m_freeDescriptorSets.pop();
+
+    return descriptorSet;
 }
 
 void VulkanDescriptorSetLayout::free(const VulkanDescriptorSet& descriptorSet) const noexcept
