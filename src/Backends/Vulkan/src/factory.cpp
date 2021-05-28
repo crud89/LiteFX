@@ -158,8 +158,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	// Create a buffer using VMA.
-	return _VMABuffer::allocate(type, elements, size, m_impl->m_allocator, bufferInfo, allocInfo);
+	return VulkanBuffer::allocate(m_impl->m_device, type, elements, size, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
@@ -203,8 +202,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const V
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	// Create a buffer using VMA.
-	return _VMAVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	return VulkanVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
@@ -249,7 +247,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Vul
 	}
 
 	// Create a buffer using VMA.
-	return _VMAIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	return VulkanIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const
@@ -300,7 +298,7 @@ UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(con
 	}
 
 	// Create a buffer using VMA.
-	return _VMAConstantBuffer::allocate(&layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	return VulkanConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 }
 
 UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const

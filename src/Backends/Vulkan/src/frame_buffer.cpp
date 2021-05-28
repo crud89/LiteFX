@@ -98,7 +98,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), IResource(nullptr)
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkFramebuffer>(nullptr)
 {
     this->resize(renderArea);
 }

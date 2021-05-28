@@ -53,14 +53,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorSetLayouts) :
-    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this, shaderProgram, descriptorSetLayouts)), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr)
+VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts) :
+    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts))), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(nullptr)
 {
     this->handle() = m_impl->initialize();
 }
 
 VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept :
-    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), IResource<VkPipelineLayout>(nullptr)
+    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(nullptr)
 {
 }
 
@@ -114,7 +114,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipelineLayoutBuilder::VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineBuilder& parent) :
-    RenderPipelineLayoutBuilder(parent, makeUnique<VulkanRenderPipeline>(*std::as_const(parent).instance())), m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this))
+    m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this)), RenderPipelineLayoutBuilder(parent, UniquePtr<VulkanRenderPipelineLayout>(new VulkanRenderPipelineLayout(*std::as_const(parent).instance())))
 {
 }
 
@@ -147,10 +147,10 @@ void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<VulkanDescriptorSetLayout>
 
 VulkanShaderProgramBuilder VulkanRenderPipelineLayoutBuilder::shaderProgram()
 {
-    return this->make<VulkanShaderProgram>();
+    return VulkanShaderProgramBuilder(*this);
 }
 
 VulkanDescriptorSetLayoutBuilder VulkanRenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages, const UInt32& poolSize)
 {
-    return this->make<VulkanDescriptorSetLayout>(space, stages, poolSize);
+    return VulkanDescriptorSetLayoutBuilder(*this, space, stages, poolSize);
 }

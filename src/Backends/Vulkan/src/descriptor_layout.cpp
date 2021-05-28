@@ -13,12 +13,19 @@ public:
 private:
     size_t m_elementSize;
     UInt32 m_binding;
-    DescriptorType m_type;
+    DescriptorType m_descriptorType;
+    BufferType m_bufferType;
 
 public:
     VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, const DescriptorType& type, const UInt32& binding, const size_t& elementSize) :
-        base(parent), m_type(type), m_binding(binding), m_elementSize(elementSize) 
-    { 
+        base(parent), m_descriptorType(type), m_binding(binding), m_elementSize(elementSize)
+    {
+        switch (m_descriptorType)
+        {
+        case DescriptorType::Uniform: m_bufferType = BufferType::Uniform; break;
+        case DescriptorType::Storage: m_bufferType = BufferType::Storage; break;
+        default: m_bufferType = BufferType::Other; break;
+        }
     }
 };
 
@@ -45,15 +52,10 @@ const UInt32& VulkanDescriptorLayout::binding() const noexcept
 
 const BufferType& VulkanDescriptorLayout::type() const noexcept
 {
-    switch (m_impl->m_type)
-    {
-    case DescriptorType::Uniform: return BufferType::Uniform;
-    case DescriptorType::Storage: return BufferType::Storage;
-    default: return BufferType::Other;
-    }
+    return m_impl->m_bufferType;
 }
 
 const DescriptorType& VulkanDescriptorLayout::descriptorType() const noexcept
 {
-    return m_impl->m_type;
+    return m_impl->m_descriptorType;
 }

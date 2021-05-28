@@ -156,7 +156,7 @@ namespace LiteFX::Rendering {
 	/// Base interface for buffer objects.
 	/// </summary>
 	/// <seealso cref="ITransferableBuffer" />
-	class IBuffer : public virtual IDeviceMemory, public IMappable {
+	class IBuffer : public virtual IDeviceMemory, public virtual IMappable {
 	public:
 		virtual ~IBuffer() noexcept = default;
 
@@ -215,7 +215,7 @@ namespace LiteFX::Rendering {
 	/// <seealso cref="IDescriptorSet" />
 	template <typename TBufferInterface, typename TCommandBuffer> /*requires
 		std::derived_from<TBufferInterface, IBuffer>*/
-	class ITransferableBuffer : public ITransferable<TBufferInterface, TCommandBuffer>, public IBuffer {
+	class ITransferableBuffer : public virtual ITransferable<TBufferInterface, TCommandBuffer>, public virtual IBuffer {
 	public:
 		virtual ~ITransferableBuffer() noexcept = default;
 	};
@@ -241,7 +241,7 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must inherit from <see cref="IDescriptorLayout"/>.</typeparam>
 	template <typename TDescriptorLayout> requires
 		rtti::implements<TDescriptorLayout, IDescriptorLayout>
-	class IDescriptor : public IBindable {
+	class IDescriptor : public virtual IBindable {
 	public:
 		using descriptor_layout_type = TDescriptorLayout;
 
@@ -267,7 +267,7 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must inherit from <see cref="IDescriptorLayout"/>.</typeparam>
 	template <typename TBufferInterface, typename TCommandBuffer, typename TDescriptorLayout> requires
 		std::derived_from<TBufferInterface, ITransferableBuffer<TBufferInterface, TCommandBuffer>>
-	class IConstantBuffer : public ITransferableBuffer<TBufferInterface, TCommandBuffer>, public IDescriptor<TDescriptorLayout> {
+	class IConstantBuffer : public virtual ITransferableBuffer<TBufferInterface, TCommandBuffer>, public virtual IDescriptor<TDescriptorLayout> {
 	public:
 		virtual ~IConstantBuffer() noexcept = default;
 	};
@@ -275,7 +275,7 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// Describes a generic image.
 	/// </summary>
-	class IImage : public IDeviceMemory {
+	class IImage : public virtual IDeviceMemory {
 	public:
 		virtual ~IImage() noexcept = default;
 
@@ -303,7 +303,7 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TBufferInterface">The type of the buffer interface. Must inherit from <see cref="ITransferableBuffer"/>.</typeparam>
 	template <typename TDescriptorLayout, typename TBufferInterface, typename TCommandBuffer> requires
 		std::derived_from<TBufferInterface, ITransferableBuffer<TBufferInterface, TCommandBuffer>>
-	class ITexture : public virtual IImage, public IDescriptor<TDescriptorLayout>, public ITransferable<TBufferInterface, TCommandBuffer> {
+	class ITexture : public virtual IImage, public virtual IDescriptor<TDescriptorLayout>, public ITransferable<TBufferInterface, TCommandBuffer> {
 	public:
 		virtual ~ITexture() noexcept = default;
 
@@ -328,7 +328,7 @@ namespace LiteFX::Rendering {
 	/// </summary>
 	/// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must inherit from <see cref="IDescriptorLayout"/>.</typeparam>
 	template <typename TDescriptorLayout>
-	class ISampler : public IDescriptor<TDescriptorLayout> {
+	class ISampler : public virtual IDescriptor<TDescriptorLayout> {
 	public:
 		virtual ~ISampler() noexcept = default;
 
@@ -1126,7 +1126,7 @@ namespace LiteFX::Rendering {
 		/// Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.
 		/// </summary>
 		/// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
-		virtual void use(SharedPtr<Rasterizer> rasterizer) = 0;
+		virtual void use(SharedPtr<IRasterizer> rasterizer) = 0;
 		
 		/// <summary>
 		/// Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.
@@ -1418,11 +1418,12 @@ namespace LiteFX::Rendering {
 	public:
 		virtual void use(RenderTarget&& target) = 0;
 		virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
-		virtual void use(UniquePtr<TRenderPipeline>&& pipeline) = 0;
 
 	public:
 		virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
 		virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(UniquePtr<TInputAttachmentMapping>& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(UniquePtr<TInputAttachmentMapping>& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
 		virtual TDerived& inputAttachment(const UInt32& location, const RenderTarget& renderTarget, const TRenderPass& renderPass) = 0;
 	};
 

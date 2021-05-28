@@ -39,7 +39,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
-	IResource(adapter), m_impl(makePimpl<VulkanGraphicsAdapterImpl>(this))
+	Resource<VkPhysicalDevice>(adapter), m_impl(makePimpl<VulkanGraphicsAdapterImpl>(this))
 {
 }
 

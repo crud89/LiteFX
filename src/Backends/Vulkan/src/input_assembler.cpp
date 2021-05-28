@@ -30,7 +30,7 @@ public:
 
         m_indexBufferLayout = std::move(indexBufferLayout);
 
-        for (const auto& vertexBufferLayout : vertexBufferLayouts)
+        for (auto& vertexBufferLayout : vertexBufferLayouts)
         {
             if (vertexBufferLayout == nullptr)
                 throw ArgumentNotInitializedException("One of the provided vertex buffer layouts is not initialized.");
@@ -147,5 +147,5 @@ void VulkanInputAssemblerBuilder::use(UniquePtr<VulkanIndexBufferLayout>&& layou
 VulkanRenderPipelineBuilder& VulkanInputAssemblerBuilder::go()
 {
     this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
-    return VulkanInputAssemblerBuilder::go();
+    return InputAssemblerBuilder::go();
 }

@@ -55,7 +55,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
-	IResource<VkImage>(image), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanImageImpl>(this, elements, extent, format, allocator, allocation))
+	m_impl(makePimpl<VulkanImageImpl>(this, elements, extent, format, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkImage>(image)
 {
 }
 
@@ -312,7 +312,7 @@ void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const I
 	endTransitionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	VkPipelineStageFlags targetStages = {};
-	auto shaderStages = m_impl->m_descriptorLayout.parent().getShaderStages();
+	auto shaderStages = m_impl->m_descriptorLayout.parent().shaderStages();
 
 	if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
 		targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
@@ -432,7 +432,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanSampler::VulkanSampler(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
-	IResource<VkSampler>(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanSamplerImpl>(this, layout, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
+	Resource<VkSampler>(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanSamplerImpl>(this, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
 {
 	this->handle() = m_impl->initialize();
 }
@@ -490,4 +490,14 @@ const Float& VulkanSampler::getMaxLOD() const noexcept
 const Float& VulkanSampler::getMinLOD() const noexcept
 {
 	return m_impl->m_minLod;
+}
+
+const UInt32& VulkanSampler::binding() const noexcept
+{
+	return m_impl->m_layout.binding();
+}
+
+const VulkanDescriptorLayout& VulkanSampler::layout() const noexcept
+{
+	return m_impl->m_layout;
 }

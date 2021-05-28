@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRasterizer::VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept :
+VulkanRasterizer::VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const bool& useDepthBias, const Float& depthBiasClamp, const Float& depthBiasConstantFactor, const Float& depthBiasSlopeFactor) noexcept :
     Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, useDepthBias, depthBiasClamp, depthBiasConstantFactor, depthBiasSlopeFactor), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice())
 {
 }
@@ -44,6 +44,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
+
+VulkanRasterizerBuilder::VulkanRasterizerBuilder(VulkanRenderPipelineBuilder& parent) noexcept :
+    m_impl(makePimpl<VulkanRasterizerBuilderImpl>(this)), RasterizerBuilder(parent, UniquePtr<VulkanRasterizer>(new VulkanRasterizer(*std::as_const(parent).instance())))
+{
+}
+
+VulkanRasterizerBuilder::~VulkanRasterizerBuilder() noexcept = default;
 
 VulkanRenderPipelineBuilder& VulkanRasterizerBuilder::go()
 {

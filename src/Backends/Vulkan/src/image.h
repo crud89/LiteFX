@@ -11,7 +11,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IImage" />.
 	/// </summary>
-	class VulkanImage : public VulkanRuntimeObject<VulkanDevice>, public IVulkanImage {
+	class VulkanImage : public VulkanRuntimeObject<VulkanDevice>, public IVulkanImage, public Resource<VkImage> {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 
 	public:
@@ -49,7 +49,7 @@ namespace LiteFX::Rendering::Backends {
 		// IVulkanImage interface.
 	public:
 		/// <inheritdoc />
-		virtual const VkImageView& imageView() const noexcept;
+		virtual const VkImageView& imageView() const noexcept override;
 
 	protected:
 		virtual VmaAllocator& allocator() const noexcept;
@@ -75,7 +75,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="ITexture" />.
 	/// </summary>
-	class VulkanTexture : public VulkanImage, public virtual IVulkanTexture {
+	class VulkanTexture : public VulkanImage, public IVulkanTexture {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
@@ -132,6 +132,12 @@ namespace LiteFX::Rendering::Backends {
 		/// </remarks>
 		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
 
+		// IVulkanImage interface.
+	public:
+		virtual const VkImageView& imageView() const noexcept override {
+			return VulkanImage::imageView();
+		}
+
 		// IVulkanTexture interface.
 	public:
 		virtual const VkImageLayout& imageLayout() const noexcept override;
@@ -158,7 +164,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="ISampler" />.
 	/// </summary>
-	class VulkanSampler : public VulkanRuntimeObject<VulkanDevice>, public IVulkanSampler {
+	class VulkanSampler : public VulkanRuntimeObject<VulkanDevice>, public IVulkanSampler, public Resource<VkSampler> {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
 
 	public:
@@ -213,5 +219,14 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const Float& getMinLOD() const noexcept override;
+
+		// IBindable interface.
+	public:
+		virtual const UInt32& binding() const noexcept override;
+
+		// IDescriptor interface.
+	public:
+		/// <inheritdoc />
+		virtual const VulkanDescriptorLayout& layout() const noexcept override;
 	};
 }

@@ -13,7 +13,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Records commands for a <see cref="VulkanCommandQueue" />
 	/// </summary>
 	/// <seealso cref="VulkanQueue" />
-	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer, public IResource<VkCommandBuffer> {
+	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer, public Resource<VkCommandBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
@@ -210,7 +210,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IVulkanConstantTexture" />
 	/// <seealso cref="IVulkanVertexBuffer" />
 	/// <seealso cref="IVulkanIndexBuffer" />
-	class LITEFX_VULKAN_API IVulkanBuffer : public ITransferableBuffer<IVulkanBuffer, VulkanCommandBuffer>, public virtual IResource<VkBuffer> {
+	class LITEFX_VULKAN_API IVulkanBuffer : public virtual ITransferableBuffer<IVulkanBuffer, VulkanCommandBuffer>, public virtual IResource<VkBuffer> {
 	public:
 		virtual ~IVulkanBuffer() noexcept = default;
 	};
@@ -220,7 +220,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanVertexBufferLayout" />
 	/// <seealso cref="IVulkanBuffer" />
-	class LITEFX_VULKAN_API IVulkanVertexBuffer : public IVertexBuffer<IVulkanBuffer, VulkanVertexBufferLayout, VulkanCommandBuffer>, public IVulkanBuffer {
+	class LITEFX_VULKAN_API IVulkanVertexBuffer : public virtual IVertexBuffer<IVulkanBuffer, VulkanVertexBufferLayout, VulkanCommandBuffer>, public IVulkanBuffer {
 	public:
 		virtual ~IVulkanVertexBuffer() noexcept = default;
 	};
@@ -230,7 +230,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanIndexBufferLayout" />
 	/// <seealso cref="IVulkanBuffer" />
-	class LITEFX_VULKAN_API IVulkanIndexBuffer : public IIndexBuffer<IVulkanBuffer, VulkanIndexBufferLayout, VulkanCommandBuffer>, public IVulkanBuffer {
+	class LITEFX_VULKAN_API IVulkanIndexBuffer : public virtual IIndexBuffer<IVulkanBuffer, VulkanIndexBufferLayout, VulkanCommandBuffer>, public IVulkanBuffer {
 	public:
 		virtual ~IVulkanIndexBuffer() noexcept = default;
 	};
@@ -242,7 +242,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanDescriptorSetLayout" />
 	/// <seealso cref="IVulkanBuffer" />
-	class LITEFX_VULKAN_API IVulkanConstantBuffer : public IConstantBuffer<IVulkanBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public IVulkanBuffer {
+	class LITEFX_VULKAN_API IVulkanConstantBuffer : public virtual IConstantBuffer<IVulkanBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public IVulkanBuffer {
 	public:
 		virtual ~IVulkanConstantBuffer() noexcept = default;
 	};
@@ -255,7 +255,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanDescriptorSetLayout" />
 	/// <seealso cref="IVulkanTexture" />
 	/// <seealso cref="IVulkanSampler" />
-	class LITEFX_VULKAN_API IVulkanImage : public IImage, public IResource<VkImage> {
+	class LITEFX_VULKAN_API IVulkanImage : public virtual IImage, public virtual IResource<VkImage> {
 	public:
 		virtual ~IVulkanImage() noexcept = default;
 
@@ -276,7 +276,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IVulkanImage" />
 	/// <seealso cref="IVulkanSampler" />
 	/// <seealso cref="IVulkanBuffer" />
-	class LITEFX_VULKAN_API IVulkanTexture : public ITexture<VulkanDescriptorLayout, IVulkanBuffer, VulkanCommandBuffer>, public IVulkanImage {
+	class LITEFX_VULKAN_API IVulkanTexture : public virtual ITexture<VulkanDescriptorLayout, IVulkanBuffer, VulkanCommandBuffer>, public IVulkanImage {
 	public:
 		virtual ~IVulkanTexture() noexcept = default;
 
@@ -296,7 +296,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanDescriptorSetLayout" />
 	/// <seealso cref="IVulkanImage" />
 	/// <seealso cref="IVulkanTexture" />
-	class LITEFX_VULKAN_API IVulkanSampler : public ISampler<VulkanDescriptorLayout>, public IResource<VkSampler> {
+	class LITEFX_VULKAN_API IVulkanSampler : public ISampler<VulkanDescriptorLayout>, public virtual IResource<VkSampler> {
 	public:
 		virtual ~IVulkanSampler() noexcept = default;
 	};
@@ -305,7 +305,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="IDescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanConstantBuffer, IVulkanTexture, IVulkanSampler, IVulkanImage, IVulkanBuffer, VulkanCommandBuffer>, public IResource<VkDescriptorSet> {
+	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanConstantBuffer, IVulkanTexture, IVulkanSampler, IVulkanImage, IVulkanBuffer, VulkanCommandBuffer>, public Resource<VkDescriptorSet> {
 	public:
 		/// <summary>
 		/// Initializes a new descriptor set.
@@ -345,7 +345,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanDescriptorSetLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanDescriptorSetLayout : public virtual VulkanRuntimeObject<VulkanRenderPipelineLayout>, public IDescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public IResource<VkDescriptorSetLayout> {
+	class LITEFX_VULKAN_API VulkanDescriptorSetLayout : public virtual VulkanRuntimeObject<VulkanRenderPipelineLayout>, public IDescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
 		LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
 
@@ -490,7 +490,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="IShaderModule" />.
 	/// </summary>
 	/// <seealso cref="VulkanShaderProgram" />
-	class LITEFX_VULKAN_API VulkanShaderModule : public virtual VulkanRuntimeObject<VulkanDevice>, public IShaderModule, public IResource<VkShaderModule> {
+	class LITEFX_VULKAN_API VulkanShaderModule : public virtual VulkanRuntimeObject<VulkanDevice>, public IShaderModule, public Resource<VkShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
 	public:
@@ -602,7 +602,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="IRenderPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject<VulkanRenderPipeline>, public IRenderPipelineLayout<VulkanDescriptorSetLayout, VulkanShaderProgram>, public IResource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject<VulkanRenderPipeline>, public IRenderPipelineLayout<VulkanDescriptorSetLayout, VulkanShaderProgram>, public Resource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 
@@ -613,7 +613,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="pipeline">The parent pipeline state the layout describes.</param>
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
-		explicit VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorSetLayouts);
+		explicit VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts);
 		VulkanRenderPipelineLayout(VulkanRenderPipelineLayout&&) noexcept = delete;
 		VulkanRenderPipelineLayout(const VulkanRenderPipelineLayout&) noexcept = delete;
 		virtual ~VulkanRenderPipelineLayout() noexcept;
@@ -847,7 +847,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="IRenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IRenderPipeline<VulkanRenderPipelineLayout, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanBuffer>, public IResource<VkPipeline> {
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IRenderPipeline<VulkanRenderPipelineLayout, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanBuffer>, public Resource<VkPipeline> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -858,7 +858,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderPass"></param>
 		/// <param name="id"></param>
 		/// <param name="name"></param>
-		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name = "");
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -939,7 +939,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(UniquePtr<VulkanRenderPipelineLayout>&& layout) override;
 
 		/// <inheritdoc />
-		virtual void use(SharedPtr<Rasterizer> rasterizer) override;
+		virtual void use(SharedPtr<IRasterizer> rasterizer) override;
 
 		/// <inheritdoc />
 		virtual void use(SharedPtr<VulkanInputAssembler> inputAssembler) override;
@@ -971,7 +971,7 @@ namespace LiteFX::Rendering::Backends {
 		/// Uses the provided rasterizer state for the render pipeline.
 		/// </summary>
 		/// <param name="rasterizer">The rasterizer state used by the render pipeline.</param>
-		virtual VulkanRenderPipelineBuilder& withRasterizer(SharedPtr<VulkanRasterizer> rasterizer);
+		virtual VulkanRenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
 
 		/// <summary>
 		/// Uses the provided input assembler state for the render pipeline.
@@ -995,7 +995,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan frame buffer.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanFrameBuffer : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IFrameBuffer<VulkanCommandBuffer, IVulkanImage>, public IResource<VkFramebuffer> {
+	class LITEFX_VULKAN_API VulkanFrameBuffer : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IFrameBuffer<VulkanCommandBuffer, IVulkanImage>, public Resource<VkFramebuffer> {
 		LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
 
 	public:
@@ -1049,7 +1049,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan render pass.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanRenderPass : public virtual VulkanRuntimeObject<VulkanDevice>, public IRenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public IResource<VkRenderPass> {
+	class LITEFX_VULKAN_API VulkanRenderPass : public virtual VulkanRuntimeObject<VulkanDevice>, public IRenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
@@ -1137,18 +1137,15 @@ namespace LiteFX::Rendering::Backends {
 		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
 		virtual ~VulkanRenderPassBuilder() noexcept;
-
-	public:
-		virtual VulkanRenderPipelineBuilder addPipeline(const UInt32& id, const String& name = "");
-
 	public:
 		virtual void use(RenderTarget&& target) override;
 		virtual void use(VulkanInputAttachmentMapping&& inputAttachment) override;
-		virtual void use(UniquePtr<VulkanRenderPipeline>&& pipeline) override;
 
 	public:
 		virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 		virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(UniquePtr<VulkanInputAttachmentMapping>& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(UniquePtr<VulkanInputAttachmentMapping>& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& location, const RenderTarget& renderTarget, const VulkanRenderPass& renderPass) override;
 
 	public:
@@ -1174,6 +1171,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanInputAttachmentMapping() noexcept;
 
 	public:
+		inline VulkanInputAttachmentMapping& operator=(const VulkanInputAttachmentMapping&) noexcept;
+		inline VulkanInputAttachmentMapping& operator=(VulkanInputAttachmentMapping&&) noexcept;
+
+	public:
+		/// <inheritdoc />
 		virtual const VulkanRenderPass& inputAttachmentSource() const noexcept override;
 
 		/// <inheritdoc />
@@ -1186,7 +1188,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan swap chain.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSwapChain : public virtual VulkanRuntimeObject<VulkanDevice>, public ISwapChain<IVulkanImage>, public IResource<VkSwapchainKHR> {
+	class LITEFX_VULKAN_API VulkanSwapChain : public virtual VulkanRuntimeObject<VulkanDevice>, public ISwapChain<IVulkanImage>, public Resource<VkSwapchainKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
@@ -1238,7 +1240,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan command queue.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public ICommandQueue<VulkanCommandBuffer>, public IResource<VkQueue> {
+	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public ICommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	
 	public:
@@ -1351,7 +1353,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan graphics device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass>, public IResource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass>, public Resource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -1431,7 +1433,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanDevice>, public IResource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanDevice>, public Resource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 		LITEFX_BUILDER(VulkanBackendBuilder);
 

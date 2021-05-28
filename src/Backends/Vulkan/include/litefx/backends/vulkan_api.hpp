@@ -145,7 +145,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Represents a Vulkan graphics adapter.
     /// </summary>
-    class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public IResource<VkPhysicalDevice> {
+    class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
 
     public:
@@ -184,7 +184,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Represents a Vulkan surface.
     /// </summary>
-    class LITEFX_VULKAN_API VulkanSurface : public ISurface, public IResource<VkSurfaceKHR> {
+    class LITEFX_VULKAN_API VulkanSurface : public ISurface, public Resource<VkSurfaceKHR> {
         LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
 
     public:

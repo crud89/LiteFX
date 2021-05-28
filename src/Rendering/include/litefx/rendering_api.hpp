@@ -702,6 +702,10 @@ namespace LiteFX::Rendering {
 		virtual ~RenderTarget() noexcept;
 
 	public:
+		inline RenderTarget& operator=(const RenderTarget&) noexcept;
+		inline RenderTarget& operator=(RenderTarget&&) noexcept;
+
+	public:
 		/// <inheritdoc />
 		virtual const UInt32& location() const noexcept override;
 

@@ -25,7 +25,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanSurface::VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent) :
-	IResource(surface), m_impl(makePimpl<VulkanSurfaceImpl>(this, parent))
+	Resource<VkSurfaceKHR>(surface), m_impl(makePimpl<VulkanSurfaceImpl>(this, parent))
 {
 }
 

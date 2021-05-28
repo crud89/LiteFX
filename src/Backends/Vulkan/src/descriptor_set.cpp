@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, VkDescriptorSet descriptorSet) :
-    VulkanRuntimeObject<VulkanDescriptorSetLayout>(layout, layout.getDevice()), IResource<VkDescriptorSet>(descriptorSet)
+    VulkanRuntimeObject<VulkanDescriptorSetLayout>(layout, layout.getDevice()), Resource<VkDescriptorSet>(descriptorSet)
 {
     if (descriptorSet == nullptr)
         throw ArgumentNotInitializedException("The descriptor set handle must be initialized.");

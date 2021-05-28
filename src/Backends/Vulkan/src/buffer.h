@@ -8,7 +8,7 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
-	class VulkanBuffer : public VulkanRuntimeObject<VulkanDevice>, public IVulkanBuffer {
+	class VulkanBuffer : public VulkanRuntimeObject<VulkanDevice>, public IVulkanBuffer, public Resource<VkBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
 
 	public:
@@ -72,7 +72,7 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<IVulkanBuffer> allocate(const VulkanDevice& device, const BufferType& type, const UInt32& elements, const size_t& elementSize, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	class VulkanVertexBuffer : public VulkanBuffer, public virtual IVulkanVertexBuffer {
+	class VulkanVertexBuffer : public VulkanBuffer, public IVulkanVertexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferImpl);
 
 	public:
@@ -96,7 +96,7 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<IVulkanVertexBuffer> allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	class VulkanIndexBuffer : public VulkanBuffer, public virtual IVulkanIndexBuffer {
+	class VulkanIndexBuffer : public VulkanBuffer, public IVulkanIndexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferImpl);
 
 	public:
@@ -115,7 +115,7 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<IVulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
-	class VulkanConstantBuffer : public VulkanBuffer, public virtual IVulkanConstantBuffer {
+	class VulkanConstantBuffer : public VulkanBuffer, public IVulkanConstantBuffer {
 		LITEFX_IMPLEMENTATION(VulkanConstantBufferImpl);
 
 	public:

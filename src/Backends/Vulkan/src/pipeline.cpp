@@ -22,7 +22,7 @@ private:
 	String m_name;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
 		base(parent), m_id(id), m_name(name), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
@@ -179,7 +179,7 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(&m_layout->program()), modules.size());
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
-			std::views::transform([](const VulkanShaderModule& shaderModule) { return shaderModule.shaderStageDefinition(); }) |
+			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
 			ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
@@ -213,14 +213,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, layout, inputAssembler, rasterizer, viewports, scissors)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), IResource<VkPipeline>(nullptr)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept : 
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), IResource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(nullptr)
 {
 }
 
@@ -301,6 +301,16 @@ void VulkanRenderPipeline::use() const
 	::vkCmdSetScissor(commandBuffer, 0, static_cast<UInt32>(scissors.size()), scissors.data());
 }
 
+void VulkanRenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
+{
+	::vkCmdDraw(this->parent().activeFrameBuffer().commandBuffer().handle(), vertices, instances, firstVertex, firstInstance);
+}
+
+void VulkanRenderPipeline::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const
+{
+	::vkCmdDrawIndexed(this->parent().activeFrameBuffer().commandBuffer().handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -329,7 +339,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
-	RenderPipelineBuilder(makeUnique<VulkanRenderPipeline>(renderPass)), m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this))
+	m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>(new VulkanRenderPipeline(renderPass)))
 {
 	this->instance()->m_impl->m_id = id;
 	this->instance()->m_impl->m_name = name;
@@ -360,14 +370,19 @@ void VulkanRenderPipelineBuilder::use(UniquePtr<VulkanRenderPipelineLayout>&& la
 	m_impl->m_layout = std::move(layout);
 }
 
-void VulkanRenderPipelineBuilder::use(SharedPtr<Rasterizer> rasterizer)
+void VulkanRenderPipelineBuilder::use(SharedPtr<IRasterizer> rasterizer)
 {
 #ifndef NDEBUG
 	if (m_impl->m_rasterizer != nullptr)
 		LITEFX_WARNING(VULKAN_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
 #endif
 
-	m_impl->m_rasterizer = rasterizer;
+	auto vulkanRasterizer = std::dynamic_pointer_cast<VulkanRasterizer>(rasterizer);
+
+	if (vulkanRasterizer == nullptr)
+		throw InvalidArgumentException("The provided rasterizer must be a Vulkan rasterizer instance.");
+
+	m_impl->m_rasterizer = vulkanRasterizer;
 }
 
 void VulkanRenderPipelineBuilder::use(SharedPtr<VulkanInputAssembler> inputAssembler)
@@ -392,12 +407,12 @@ void VulkanRenderPipelineBuilder::use(SharedPtr<IScissor> scissor)
 
 VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::layout()
 {
-	return this->make<VulkanRenderPipelineLayout>();
+	return VulkanRenderPipelineLayoutBuilder(*this);
 }
 
 VulkanRasterizerBuilder VulkanRenderPipelineBuilder::rasterizer()
 {
-	return this->make<VulkanRasterizer>();
+	return VulkanRasterizerBuilder(*this);
 }
 
 VulkanInputAssemblerBuilder VulkanRenderPipelineBuilder::inputAssembler()
@@ -405,7 +420,7 @@ VulkanInputAssemblerBuilder VulkanRenderPipelineBuilder::inputAssembler()
 	return VulkanInputAssemblerBuilder(*this);
 }
 
-VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withRasterizer(SharedPtr<VulkanRasterizer> rasterizer)
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withRasterizer(SharedPtr<IRasterizer> rasterizer)
 {
 	this->use(std::move(rasterizer));
 	return *this;

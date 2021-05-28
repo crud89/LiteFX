@@ -28,7 +28,7 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 VulkanBuffer::VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), IResource<VkBuffer>(buffer)
+	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkBuffer>(buffer)
 {
 }
 
@@ -228,6 +228,11 @@ VulkanConstantBuffer::~VulkanConstantBuffer() noexcept = default;
 const VulkanDescriptorLayout& VulkanConstantBuffer::layout() const noexcept
 {
 	return m_impl->m_layout;
+}
+
+const UInt32& VulkanConstantBuffer::binding() const noexcept
+{
+	return m_impl->m_layout.binding();
 }
 
 UniquePtr<IVulkanConstantBuffer> VulkanConstantBuffer::allocate(const VulkanDescriptorLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo * allocationResult)

@@ -54,7 +54,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin) :
-	m_impl(makePimpl<VulkanCommandBufferImpl>(this)), VulkanRuntimeObject<VulkanQueue>(queue, queue.getDevice()), IResource(nullptr)
+	m_impl(makePimpl<VulkanCommandBufferImpl>(this)), VulkanRuntimeObject<VulkanQueue>(queue, queue.getDevice()), Resource<VkCommandBuffer>(nullptr)
 {
 	if (!queue.isBound())
 		throw InvalidArgumentException("You must bind the queue before creating a command buffer from it.");

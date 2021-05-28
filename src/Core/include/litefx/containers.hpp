@@ -255,22 +255,34 @@ namespace LiteFX {
 
 	template <class THandle>
 	class IResource {
+	public:
+		virtual ~IResource() noexcept = default;
+
+	protected:
+		virtual THandle& handle() noexcept = 0;
+
+	public:
+		virtual const THandle& handle() const noexcept = 0;
+	};
+
+	template <class THandle>
+	class Resource : public virtual IResource<THandle> {
 	private:
 		THandle m_handle;
 
 	protected:
-		explicit IResource(const THandle handle) noexcept : m_handle(handle) { }
+		explicit Resource(const THandle handle) noexcept : m_handle(handle) { }
 
 	public:
-		IResource(const IResource&) = delete;
-		IResource(IResource&&) = delete;
-		virtual ~IResource() noexcept = default;
+		Resource(const Resource&) = delete;
+		Resource(Resource&&) = delete;
+		virtual ~Resource() noexcept = default;
 
 	protected:
-		THandle& handle() noexcept { return m_handle; }
+		THandle& handle() noexcept override { return m_handle; }
 
 	public:
-		const THandle& handle() const noexcept { return m_handle; }
+		const THandle& handle() const noexcept override { return m_handle; }
 	};
 
 	template <typename TDerived, typename T, typename TParent = std::nullptr_t, typename TPointer = UniquePtr<T>>
@@ -305,14 +317,14 @@ namespace LiteFX {
 		template <typename TInstance>
 		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
-		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
-		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible<TInstance, const T&, TArgs...>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
+			std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
-		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
-		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
+			std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
 			return TBuilder(*static_cast<TDerived*>(this), makeShared<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
@@ -354,14 +366,14 @@ namespace LiteFX {
 		template <typename TInstance>
 		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
-		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
-		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
+			std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
-		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
-		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
+			std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
 			return TBuilder(*static_cast<TDerived*>(this), makeShared<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}

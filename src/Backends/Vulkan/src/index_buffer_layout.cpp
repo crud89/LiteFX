@@ -11,10 +11,15 @@ public:
     friend class VulkanIndexBufferLayout;
 
 private:
-    IndexType m_type;
+    IndexType m_indexType;
+    UInt32 m_binding{ 0 };
+    BufferType m_bufferType{ BufferType::Index };
 
 public:
-    VulkanIndexBufferLayoutImpl(VulkanIndexBufferLayout* parent, const IndexType& type) : base(parent), m_type(type) { }
+    VulkanIndexBufferLayoutImpl(VulkanIndexBufferLayout* parent, const IndexType& type) : 
+        base(parent), m_indexType(type)
+    {
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -30,20 +35,20 @@ VulkanIndexBufferLayout::~VulkanIndexBufferLayout() noexcept = default;
 
 size_t VulkanIndexBufferLayout::elementSize() const noexcept
 {
-    return static_cast<UInt32>(m_impl->m_type) >> 3;
+    return static_cast<UInt32>(m_impl->m_indexType) >> 3;
 }
 
 const UInt32& VulkanIndexBufferLayout::binding() const noexcept
 {
-    return 0;
+    return m_impl->m_binding;
 }
 
 const BufferType& VulkanIndexBufferLayout::type() const noexcept
 {
-    return BufferType::Index;
+    return m_impl->m_bufferType;
 }
 
 const IndexType& VulkanIndexBufferLayout::indexType() const noexcept
 {
-    return m_impl->m_type;
+    return m_impl->m_indexType;
 }

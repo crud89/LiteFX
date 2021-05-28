@@ -31,7 +31,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanShaderModule>>&& modules) :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this, modules)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this, std::move(modules))), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
@@ -72,7 +72,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(VulkanRenderPipelineLayoutBuilder& parent) :
-    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this)), ShaderProgramBuilder(parent, makeUnique<VulkanShaderProgram>(*std::as_const(parent).instance()))
+    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this)), ShaderProgramBuilder(parent, UniquePtr<VulkanShaderProgram>(new VulkanShaderProgram(*std::as_const(parent).instance())))
 {
 }
 
@@ -88,7 +88,7 @@ VulkanRenderPipelineLayoutBuilder& VulkanShaderProgramBuilder::go()
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
 {
-    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(this->instance()->getDevice(), type, fileName, entryPoint));
+    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(*this->instance()->getDevice(), type, fileName, entryPoint));
     return *this;
 }
 

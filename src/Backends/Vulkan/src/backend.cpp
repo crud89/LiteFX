@@ -169,7 +169,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<String> validationLayers) :
-    m_impl(makePimpl<VulkanBackendImpl>(this, app, extensions, validationLayers)), IResource(nullptr)
+    m_impl(makePimpl<VulkanBackendImpl>(this, app, extensions, validationLayers)), Resource<VkInstance>(nullptr)
 {
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters();

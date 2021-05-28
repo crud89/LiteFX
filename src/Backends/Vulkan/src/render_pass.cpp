@@ -206,7 +206,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), IResource<VkRenderPass>(nullptr)
+    m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(nullptr)
 {
     this->handle() = m_impl->initialize();
 
@@ -216,7 +216,7 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget
 }
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device) noexcept :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), IResource<VkRenderPass>(nullptr)
+    m_impl(makePimpl<VulkanRenderPassImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(nullptr)
 {
 }
 
@@ -415,16 +415,6 @@ void VulkanRenderPassBuilder::use(VulkanInputAttachmentMapping&& attachment)
     m_impl->m_inputAttachments.push_back(std::move(attachment));
 }
 
-void VulkanRenderPassBuilder::use(UniquePtr<VulkanRenderPipeline>&& pipeline)
-{
-    m_impl->m_pipelines.push_back(std::move(pipeline));
-}
-
-VulkanRenderPipelineBuilder VulkanRenderPassBuilder::addPipeline(const UInt32& id, const String& name)
-{
-    return this->make<VulkanRenderPipeline>(id, name);
-}
-
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
@@ -435,6 +425,21 @@ VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const RenderTarge
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile));
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(UniquePtr<VulkanInputAttachmentMapping>& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+{
+    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
+    //       until the render pass is initialized, so we silently ignore this for now.
+    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, samples, clearValues, clear, clearStencil, isVolatile);
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(UniquePtr<VulkanInputAttachmentMapping>& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+{
+    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile);
+    output = makeUnique<VulkanInputAttachmentMapping>(*this->instance(), renderTarget, location);
+    m_impl->m_renderTargets.push_back(renderTarget);
     return *this;
 }
 

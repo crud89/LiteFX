@@ -236,7 +236,7 @@ VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSur
 }
 
 VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
-	IResource(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, surface, extensions))
+	Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, surface, extensions))
 {
 	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(&surface), adapter.getDeviceId(), Join(this->enabledExtensions(), ", "));
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
@@ -273,7 +273,7 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 
 VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const
 {
-	return VulkanRenderPassBuilder();
+	return VulkanRenderPassBuilder(*this);
 }
 
 const VulkanSwapChain& VulkanDevice::swapChain() const noexcept

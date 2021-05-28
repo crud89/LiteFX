@@ -46,6 +46,34 @@ RenderTarget::RenderTarget(RenderTarget&& _other) noexcept :
 
 RenderTarget::~RenderTarget() noexcept = default;
 
+RenderTarget& RenderTarget::operator=(const RenderTarget& _other) noexcept
+{
+    m_impl->m_location = _other.m_impl->m_location;
+    m_impl->m_type = _other.m_impl->m_type;
+    m_impl->m_format = _other.m_impl->m_format;
+    m_impl->m_clearBuffer = _other.m_impl->m_clearBuffer;
+    m_impl->m_clearValues = _other.m_impl->m_clearValues;
+    m_impl->m_clearStencil = _other.m_impl->m_clearStencil;
+    m_impl->m_samples = _other.m_impl->m_samples;
+    m_impl->m_volatile = _other.m_impl->m_volatile;
+
+    return *this;
+}
+
+RenderTarget& RenderTarget::operator=(RenderTarget&& _other) noexcept
+{
+    m_impl->m_location = std::move(_other.m_impl->m_location);
+    m_impl->m_type = std::move(_other.m_impl->m_type);
+    m_impl->m_format = std::move(_other.m_impl->m_format);
+    m_impl->m_clearBuffer = std::move(_other.m_impl->m_clearBuffer);
+    m_impl->m_clearValues = std::move(_other.m_impl->m_clearValues);
+    m_impl->m_clearStencil = std::move(_other.m_impl->m_clearStencil);
+    m_impl->m_samples = std::move(_other.m_impl->m_samples);
+    m_impl->m_volatile = std::move(_other.m_impl->m_volatile);
+    
+    return *this;
+}
+
 const UInt32& RenderTarget::location() const noexcept
 {
     return m_impl->m_location;
