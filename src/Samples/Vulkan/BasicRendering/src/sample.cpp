@@ -213,6 +213,9 @@ void SampleApp::resize(int width, int height)
     if (m_device == nullptr)
         return;
 
+    // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
+    m_device->wait();
+
     // Resize the frame buffer and recreate the swap chain.
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(width, height);
