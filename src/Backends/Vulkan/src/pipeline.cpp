@@ -13,63 +13,52 @@ public:
 	friend class VulkanRenderPipeline;
 
 private:
-	const VulkanRenderPipelineLayout* m_vkLayout;
-	UniquePtr<IRenderPipelineLayout> m_layout;
-	SharedPtr<IInputAssembler> m_inputAssembler;
-	SharedPtr<IRasterizer> m_rasterizer;
+	UniquePtr<VulkanRenderPipelineLayout> m_layout;
+	SharedPtr<VulkanInputAssembler> m_inputAssembler;
+	SharedPtr<VulkanRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
-	const UInt32 m_id;
-	const String m_name;
+	UInt32 m_id;
+	String m_name;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name) :
-		base(parent), m_id(id), m_name(name)
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+		base(parent), m_id(id), m_name(name), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	{
+	}
+
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent) :
+		base(parent)
 	{
 	}
 
 public:
-	VkPipeline initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler>&& inputAssembler, SharedPtr<IRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
+	VkPipeline initialize()
 	{
-		if (inputAssembler == nullptr)
-			throw ArgumentNotInitializedException("The input assembler must be initialized.");
-
-		if (rasterizer == nullptr)
-			throw ArgumentNotInitializedException("The rasterizer must be initialized.");
-
-		auto pipelineLayout = dynamic_cast<const VulkanRenderPipelineLayout*>(layout.get());
-
-		if (pipelineLayout == nullptr)
-			throw InvalidArgumentException("The pipeline layout is not a valid Vulkan pipeline layout instance.");
-
-		auto program = pipelineLayout->getProgram();
-
-		if (program == nullptr)
-			throw InvalidArgumentException("The pipeline shader program must be initialized.");
-
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline for layout {0}...", fmt::ptr(pipelineLayout));
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline {1} (\"{2}\") for layout {0}...", fmt::ptr(m_layout.get()), m_id, m_name);
 		
 		// Get the device.
 		auto device = m_parent->getDevice();
 
 		// Setup rasterizer state.
+		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {};
 		rasterizerState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizerState.depthClampEnable = VK_FALSE;
 		rasterizerState.rasterizerDiscardEnable = VK_FALSE;
-		rasterizerState.polygonMode = getPolygonMode(rasterizer->getPolygonMode());
-		rasterizerState.lineWidth = rasterizer->getLineWidth();
-		rasterizerState.cullMode = getCullMode(rasterizer->getCullMode());
-		rasterizerState.frontFace = rasterizer->getCullOrder() == CullOrder::ClockWise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		rasterizerState.depthBiasEnable = rasterizer->getDepthBiasEnabled();
-		rasterizerState.depthBiasClamp = rasterizer->getDepthBiasClamp();
-		rasterizerState.depthBiasConstantFactor = rasterizer->getDepthBiasConstantFactor();
-		rasterizerState.depthBiasSlopeFactor = rasterizer->getDepthBiasSlopeFactor();
+		rasterizerState.polygonMode = ::getPolygonMode(rasterizer.polygonMode());
+		rasterizerState.lineWidth = rasterizer.lineWidth();
+		rasterizerState.cullMode = ::getCullMode(rasterizer.cullMode());
+		rasterizerState.frontFace = rasterizer.cullOrder() == CullOrder::ClockWise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizerState.depthBiasEnable = rasterizer.useDepthBias();
+		rasterizerState.depthBiasClamp = rasterizer.depthBiasClamp();
+		rasterizerState.depthBiasConstantFactor = rasterizer.depthBiasConstantFactor();
+		rasterizerState.depthBiasSlopeFactor = rasterizer.depthBiasSlopeFactor();
 
-		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer->getPolygonMode(), rasterizer->getCullMode(), rasterizer->getCullOrder(), rasterizer->getLineWidth());
+		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
 		
 		if (rasterizerState.depthBiasEnable)
-			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer->getDepthBiasClamp(), rasterizer->getDepthBiasConstantFactor(), rasterizer->getDepthBiasSlopeFactor());
+			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthBiasClamp(), rasterizer.depthBiasConstantFactor(), rasterizer.depthBiasSlopeFactor());
 		else
 			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias disabled.");
 
@@ -82,41 +71,39 @@ public:
 		Array<VkVertexInputBindingDescription> vertexInputBindings;
 		Array<VkVertexInputAttributeDescription> vertexInputAttributes;
 
-		LITEFX_TRACE(VULKAN_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", inputAssembler->getTopology());
+		LITEFX_TRACE(VULKAN_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", m_inputAssembler->topology());
 
 		// Set primitive topology.
-		inputAssembly.topology = getPrimitiveTopology(inputAssembler->getTopology());
+		inputAssembly.topology = ::getPrimitiveTopology(m_inputAssembler->topology());
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		// Parse vertex input descriptors.
-		auto vertexLayouts = inputAssembler->getVertexBufferLayouts();
+		auto vertexLayouts = m_inputAssembler->vertexBufferLayouts();
 
-		std::for_each(std::begin(vertexLayouts), std::end(vertexLayouts), [&, l = 0](const IVertexBufferLayout* layout) mutable {
-			auto bufferAttributes = layout->getAttributes();
-			auto bindingPoint = layout->getBinding();
+		std::ranges::for_each(vertexLayouts, [&, l = 0](const IVertexBufferLayout* layout) mutable {
+			auto bufferAttributes = layout->attributes();
+			auto bindingPoint = layout->binding();
 
-			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->getElementSize(), bindingPoint);
+			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->elementSize(), bindingPoint);
 
 			VkVertexInputBindingDescription binding = {};
 			binding.binding = bindingPoint;
-			binding.stride = static_cast<UInt32>(layout->getElementSize());
+			binding.stride = static_cast<UInt32>(layout->elementSize());
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-			Array<VkVertexInputAttributeDescription> currentAttributes(bufferAttributes.size());
+			Array<VkVertexInputAttributeDescription> currentAttributes = bufferAttributes |
+				std::views::transform([&bufferAttributes, &bindingPoint, i = 0](const BufferAttribute* attribute) mutable {
+					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, bufferAttributes.size(), attribute->location(), attribute->offset(), attribute->format());
 
-			std::generate(std::begin(currentAttributes), std::end(currentAttributes), [&, i = 0]() mutable {
-				auto attribute = bufferAttributes[i++];
+					VkVertexInputAttributeDescription descriptor{};
+					descriptor.binding = bindingPoint;
+					descriptor.location = attribute->location();
+					descriptor.offset = attribute->offset();
+					descriptor.format = ::getFormat(attribute->format());
 
-				LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", i, bufferAttributes.size(), attribute->getLocation(), attribute->getOffset(), attribute->getFormat());
-
-				VkVertexInputAttributeDescription descriptor{};
-				descriptor.binding = bindingPoint;
-				descriptor.location = attribute->getLocation();
-				descriptor.offset = attribute->getOffset();
-				descriptor.format = getFormat(attribute->getFormat());
-
-				return descriptor;
-			});
+					return descriptor;
+				}) |
+				ranges::to<Array<VkVertexInputAttributeDescription>>();
 
 			vertexInputAttributes.insert(std::end(vertexInputAttributes), std::begin(currentAttributes), std::end(currentAttributes));
 			vertexInputBindings.push_back(binding);
@@ -131,8 +118,8 @@ public:
 		// Setup viewport state.
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-		viewportState.viewportCount = static_cast<UInt32>(viewports.size());
-		viewportState.scissorCount = static_cast<UInt32>(scissors.size());
+		viewportState.viewportCount = static_cast<UInt32>(m_viewports.size());
+		viewportState.scissorCount = static_cast<UInt32>(m_scissors.size());
 
 		// Setup dynamic state.
 		Array<VkDynamicState> dynamicStates { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR };
@@ -154,11 +141,11 @@ public:
 
 		// Setup color blend state.
 		// TODO: Add blend parameters to render target.
-		auto targets = m_parent->parent().getTargets();
-		auto colorAttachments = std::count_if(std::begin(targets), std::end(targets), [](const auto& target) { return target->getType() != RenderTargetType::Depth; });
+		auto targets = m_parent->parent().renderTargets();
+		auto colorAttachments = std::ranges::count_if(targets, [](const RenderTarget& target) { return target.type() != RenderTargetType::DepthStencil; });
 		
 		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments(colorAttachments);
-		std::generate(std::begin(colorBlendAttachments), std::end(colorBlendAttachments), []() {
+		std::ranges::generate(colorBlendAttachments, []() {
 			VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
 
 			colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -184,25 +171,16 @@ public:
 		depthStencilState.depthTestEnable = VK_TRUE;		// TODO: From depth/stencil state.
 		depthStencilState.depthBoundsTestEnable = VK_FALSE;
 		depthStencilState.stencilTestEnable = VK_FALSE;		// TODO: From depth/stencil state.
-		depthStencilState.depthWriteEnable = std::any_of(std::begin(targets), std::end(targets), [](const auto& t) { return t->getType() == RenderTargetType::Depth; });
+		depthStencilState.depthWriteEnable = std::ranges::any_of(targets, [](const RenderTarget& target) { return target.type() == RenderTargetType::DepthStencil; });
 		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
 
 		// Setup shader stages.
-		auto modules = program->getModules();
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(program), modules.size());
+		auto modules = m_layout->program().modules();
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(&m_layout->program()), modules.size());
 
-		Array<VkPipelineShaderStageCreateInfo> shaderStages(modules.size());
-
-		std::generate(std::begin(shaderStages), std::end(shaderStages), [&, i = 0]() mutable {
-			auto module = dynamic_cast<const VulkanShaderModule*>(modules[i++]);
-
-			if (module == nullptr)
-				throw std::invalid_argument("The provided shader module is not a valid Vulkan shader.");
-
-			LITEFX_TRACE(VULKAN_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", i, modules.size(), module->getFileName(), module->getType(), module->getEntryPoint());
-
-			return module->getShaderStageDefinition();
-		});
+		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
+			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
+			ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
@@ -215,7 +193,7 @@ public:
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDepthStencilState = &depthStencilState;
 		pipelineInfo.pDynamicState = &dynamicState;
-		pipelineInfo.layout = pipelineLayout->handle();
+		pipelineInfo.layout = std::as_const(*m_layout.get()).handle();
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineInfo.stageCount = modules.size();
 		pipelineInfo.pStages = shaderStages.data();
@@ -225,17 +203,7 @@ public:
 		pipelineInfo.subpass = 0;
 
 		VkPipeline pipeline;
-		auto result = ::vkCreateGraphicsPipelines(device->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
-
-		if (result != VK_SUCCESS)
-			throw std::runtime_error(fmt::format("Unable to create render pipeline: {0}", result));
-
-		m_layout = std::move(layout);
-		m_vkLayout = pipelineLayout;
-		m_inputAssembler = std::move(inputAssembler);
-		m_rasterizer = std::move(rasterizer);
-		m_viewports = std::move(viewports);
-		m_scissors = std::move(scissors);
+		raiseIfFailed<RuntimeException>(::vkCreateGraphicsPipelines(device->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 		return pipeline;
 	}
@@ -245,20 +213,20 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), IResource<VkPipeline>(nullptr)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(nullptr)
+{
+	this->handle() = m_impl->initialize();
+}
+
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept : 
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(nullptr)
 {
 }
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
-	if (this->isInitialized())
-		::vkDestroyPipeline(this->getDevice()->handle(), this->handle(), nullptr);
-}
-
-bool VulkanRenderPipeline::isInitialized() const noexcept
-{
-	return this->handle() != nullptr;
+	::vkDestroyPipeline(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
 const String& VulkanRenderPipeline::name() const noexcept
@@ -271,134 +239,76 @@ const UInt32& VulkanRenderPipeline::id() const noexcept
 	return m_impl->m_id;
 }
 
-void VulkanRenderPipeline::initialize(UniquePtr<IRenderPipelineLayout>&& layout, SharedPtr<IInputAssembler> inputAssembler, SharedPtr<IRasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors)
+const VulkanRenderPipelineLayout& VulkanRenderPipeline::layout() const noexcept 
 {
-	if (this->isInitialized())
-		throw RuntimeException("The render pipeline already has been initialized.");
-
-	this->handle() = m_impl->initialize(std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors));
+	return *m_impl->m_layout;
 }
 
-const IRenderPipelineLayout* VulkanRenderPipeline::getLayout() const noexcept
-{
-	return m_impl->m_layout.get();
-}
-
-SharedPtr<IInputAssembler> VulkanRenderPipeline::getInputAssembler() const noexcept
+SharedPtr<VulkanInputAssembler> VulkanRenderPipeline::inputAssembler() const noexcept 
 {
 	return m_impl->m_inputAssembler;
 }
 
-SharedPtr<IRasterizer> VulkanRenderPipeline::getRasterizer() const noexcept
+SharedPtr<IRasterizer> VulkanRenderPipeline::rasterizer() const noexcept 
 {
 	return m_impl->m_rasterizer;
 }
 
-Array<const IViewport*> VulkanRenderPipeline::getViewports() const noexcept
+Array<const IViewport*> VulkanRenderPipeline::viewports() const noexcept 
 {
-	Array<const IViewport*> viewports(m_impl->m_viewports.size());
-	std::generate(std::begin(viewports), std::end(viewports), [&, i = 0]() mutable { return m_impl->m_viewports[i++].get(); });
-
-	return viewports;
+	return m_impl->m_viewports |
+		std::views::transform([](const SharedPtr<IViewport>& viewport) { return viewport.get(); }) |
+		ranges::to<Array<const IViewport*>>();
 }
 
-Array<const IScissor*> VulkanRenderPipeline::getScissors() const noexcept
+Array<const IScissor*> VulkanRenderPipeline::scissors() const noexcept 
 {
-	Array<const IScissor*> scissors(m_impl->m_scissors.size());
-	std::generate(std::begin(scissors), std::end(scissors), [&, i = 0]() mutable { return m_impl->m_scissors[i++].get(); });
-
-	return scissors;
+	return m_impl->m_scissors |
+		std::views::transform([](const SharedPtr<IScissor>& scissor) { return scissor.get(); }) |
+		ranges::to<Array<const IScissor*>>();
 }
 
-void VulkanRenderPipeline::bind(const IVertexBuffer* buffer) const
+void VulkanRenderPipeline::bind(const IVulkanVertexBuffer& buffer) const 
 {
-	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-	auto commandBuffer = this->parent().getVkCommandBuffer();
-
-	if (resource == nullptr)
-		throw std::invalid_argument("The provided vertex buffer is not a valid Vulkan buffer.");
-
-	// Depending on the type, bind the buffer accordingly.
 	constexpr VkDeviceSize offsets[] = { 0 };
-
-	::vkCmdBindVertexBuffers(commandBuffer->handle(), 0, 1, &resource->handle(), offsets);
+	::vkCmdBindVertexBuffers(this->parent().activeFrameBuffer().commandBuffer().handle(), buffer.binding(), 1, &buffer.handle(), offsets);
 }
 
-void VulkanRenderPipeline::bind(const IIndexBuffer* buffer) const
+void VulkanRenderPipeline::bind(const IVulkanIndexBuffer& buffer) const 
 {
-	auto resource = dynamic_cast<const IResource<VkBuffer>*>(buffer);
-	auto commandBuffer = this->parent().getVkCommandBuffer();
-
-	if (resource == nullptr)
-		throw std::invalid_argument("The provided index buffer is not a valid Vulkan buffer.");
-
-	::vkCmdBindIndexBuffer(commandBuffer->handle(), resource->handle(), 0, buffer->getLayout()->getIndexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+	::vkCmdBindIndexBuffer(this->parent().activeFrameBuffer().commandBuffer().handle(), buffer.handle(), 0, buffer.layout().indexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 }
 
-void VulkanRenderPipeline::bind(IDescriptorSet* descriptorSet) const
+void VulkanRenderPipeline::bind(const VulkanDescriptorSet& descriptorSet) const
 {
-	auto resource = dynamic_cast<VulkanDescriptorSet*>(descriptorSet);
-	auto commandBuffer = this->parent().getVkCommandBuffer();
-
-	if (resource == nullptr)
-		throw std::invalid_argument("The provided descriptor set is not a valid Vulkan descriptor set.");
-
-	const VkDescriptorSet descriptorSets[] = { resource->swapBuffer() };
-
-	// TODO: Synchronize with possible update calls on this command buffer, first.
-	::vkCmdBindDescriptorSets(commandBuffer->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_impl->m_vkLayout->handle(), resource->parent().getSetId(), 1, descriptorSets, 0, nullptr);
+	::vkCmdBindDescriptorSets(this->parent().activeFrameBuffer().commandBuffer().handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
 }
 
-void VulkanRenderPipeline::use() const
+void VulkanRenderPipeline::use() const 
 {
-	// TODO: Make this more efficient by buffering the viewports and scissors (and only updating with each `use` call).
-	Array<VkViewport> viewports(m_impl->m_viewports.size());
-	Array<VkRect2D> scissors(m_impl->m_scissors.size());
-	VkPipelineViewportStateCreateInfo viewportState = {};
-	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	auto viewports = m_impl->m_viewports |
+		std::views::transform([](const auto& viewport) { return VkViewport{.x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth()}; }) |
+		ranges::to<Array<VkViewport>>();
+	
+	auto scissors = m_impl->m_scissors |
+		std::views::transform([](const auto& scissor) { return VkRect2D{VkOffset2D{.x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, VkExtent2D{.width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };}) |
+		ranges::to<Array<VkRect2D>>();
 
-	std::for_each(std::begin(m_impl->m_viewports), std::end(m_impl->m_viewports), [i = 0, &viewports](const auto& viewport) mutable {
-		viewports[i].x = viewport->getRectangle().x();
-		viewports[i].y = viewport->getRectangle().y();
-		viewports[i].width = viewport->getRectangle().width();
-		viewports[i].height = viewport->getRectangle().height();
-		viewports[i].minDepth = viewport->getMinDepth();
-		viewports[i].maxDepth = viewport->getMaxDepth();
-
-		i++;
-	});
-
-	std::for_each(std::begin(m_impl->m_scissors), std::end(m_impl->m_scissors), [i = 0, &scissors](const auto& scissor) mutable {
-		scissors[i].offset = { static_cast<Int32>(scissor->getRectangle().x()), static_cast<Int32>(scissor->getRectangle().y()) };
-		scissors[i].extent = { static_cast<UInt32>(scissor->getRectangle().width()), static_cast<UInt32>(scissor->getRectangle().height()) };
-
-		i++;
-	});
-
-	::vkCmdBindPipeline(this->parent().getVkCommandBuffer()->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
-	::vkCmdSetViewport(this->parent().getVkCommandBuffer()->handle(), 0, static_cast<UInt32>(viewports.size()), viewports.data());
-	::vkCmdSetScissor(this->parent().getVkCommandBuffer()->handle(), 0, static_cast<UInt32>(scissors.size()), scissors.data());
+	// Bind the pipeline and setup the dynamic state.
+	auto commandBuffer = this->parent().activeFrameBuffer().commandBuffer().handle();
+	::vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
+	::vkCmdSetViewport(commandBuffer, 0, static_cast<UInt32>(viewports.size()), viewports.data());
+	::vkCmdSetScissor(commandBuffer, 0, static_cast<UInt32>(scissors.size()), scissors.data());
 }
 
-UniquePtr<IVertexBuffer> VulkanRenderPipeline::makeVertexBuffer(const BufferUsage& usage, const UInt32& elements, const UInt32& binding) const
+void VulkanRenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
 {
-	return this->getDevice()->createVertexBuffer(m_impl->m_inputAssembler->getVertexBufferLayout(binding), usage, elements);
+	::vkCmdDraw(this->parent().activeFrameBuffer().commandBuffer().handle(), vertices, instances, firstVertex, firstInstance);
 }
 
-UniquePtr<IIndexBuffer> VulkanRenderPipeline::makeIndexBuffer(const BufferUsage& usage, const UInt32& elements, const IndexType& indexType) const
+void VulkanRenderPipeline::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const
 {
-	return this->getDevice()->createIndexBuffer(m_impl->m_inputAssembler->getIndexBufferLayout(), usage, elements);
-}
-
-UniquePtr<IDescriptorSet> VulkanRenderPipeline::makeBufferPool(const UInt32& setId) const
-{
-	auto layouts = m_impl->m_layout->getDescriptorSetLayouts();
-	auto match = std::find_if(std::begin(layouts), std::end(layouts), [&](const IDescriptorSetLayout* layout) { return layout->getSetId() == setId; });
-
-	if (match == layouts.end())
-		throw std::invalid_argument("The requested buffer set is not defined.");
-
-	return (*match)->createBufferPool();
+	::vkCmdDrawIndexed(this->parent().activeFrameBuffer().commandBuffer().handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -411,9 +321,9 @@ public:
 	friend class VulkanRenderPipelineBuilder;
 
 private:
-	UniquePtr<IRenderPipelineLayout> m_layout;
-	SharedPtr<IInputAssembler> m_inputAssembler;
-	SharedPtr<IRasterizer> m_rasterizer;
+	UniquePtr<VulkanRenderPipelineLayout> m_layout;
+	SharedPtr<VulkanInputAssembler> m_inputAssembler;
+	SharedPtr<VulkanRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
 
@@ -428,21 +338,29 @@ public:
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(VulkanRenderPassBuilder& parent, UniquePtr<VulkanRenderPipeline>&& instance) :
-	RenderPipelineBuilder(parent, std::move(instance)), m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this))
+VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>(new VulkanRenderPipeline(renderPass)))
 {
+	this->instance()->m_impl->m_id = id;
+	this->instance()->m_impl->m_name = name;
 }
 
 VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
 
-VulkanRenderPassBuilder& VulkanRenderPipelineBuilder::go()
+UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
 {
-	this->instance()->initialize(std::move(m_impl->m_layout), std::move(m_impl->m_inputAssembler), std::move(m_impl->m_rasterizer), std::move(m_impl->m_viewports), std::move(m_impl->m_scissors));
+	auto instance = this->instance(); 
+	instance->m_impl->m_layout = std::move(m_impl->m_layout);
+	instance->m_impl->m_inputAssembler = std::move(m_impl->m_inputAssembler);
+	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
+	instance->m_impl->m_viewports = std::move(m_impl->m_viewports);
+	instance->m_impl->m_scissors = std::move(m_impl->m_scissors);
+	instance->handle() = instance->m_impl->initialize();
 
 	return RenderPipelineBuilder::go();
 }
 
-void VulkanRenderPipelineBuilder::use(UniquePtr<IRenderPipelineLayout>&& layout)
+void VulkanRenderPipelineBuilder::use(UniquePtr<VulkanRenderPipelineLayout>&& layout)
 {
 #ifndef NDEBUG
 	if (m_impl->m_layout != nullptr)
@@ -459,10 +377,15 @@ void VulkanRenderPipelineBuilder::use(SharedPtr<IRasterizer> rasterizer)
 		LITEFX_WARNING(VULKAN_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
 #endif
 
-	m_impl->m_rasterizer = rasterizer;
+	auto vulkanRasterizer = std::dynamic_pointer_cast<VulkanRasterizer>(rasterizer);
+
+	if (vulkanRasterizer == nullptr)
+		throw InvalidArgumentException("The provided rasterizer must be a Vulkan rasterizer instance.");
+
+	m_impl->m_rasterizer = vulkanRasterizer;
 }
 
-void VulkanRenderPipelineBuilder::use(SharedPtr<IInputAssembler> inputAssembler)
+void VulkanRenderPipelineBuilder::use(SharedPtr<VulkanInputAssembler> inputAssembler)
 {
 #ifndef NDEBUG
 	if (m_impl->m_inputAssembler != nullptr)
@@ -484,17 +407,17 @@ void VulkanRenderPipelineBuilder::use(SharedPtr<IScissor> scissor)
 
 VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::layout()
 {
-	return this->make<VulkanRenderPipelineLayout>();
+	return VulkanRenderPipelineLayoutBuilder(*this);
 }
 
 VulkanRasterizerBuilder VulkanRenderPipelineBuilder::rasterizer()
 {
-	return this->make<VulkanRasterizer>();
+	return VulkanRasterizerBuilder(*this);
 }
 
 VulkanInputAssemblerBuilder VulkanRenderPipelineBuilder::inputAssembler()
 {
-	return this->make<VulkanInputAssembler>();
+	return VulkanInputAssemblerBuilder(*this);
 }
 
 VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withRasterizer(SharedPtr<IRasterizer> rasterizer)
@@ -503,7 +426,7 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withRasterizer(SharedP
 	return *this;
 }
 
-VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withInputAssembler(SharedPtr<IInputAssembler> inputAssembler)
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::withInputAssembler(SharedPtr<VulkanInputAssembler> inputAssembler)
 {
 	this->use(std::move(inputAssembler));
 	return *this;

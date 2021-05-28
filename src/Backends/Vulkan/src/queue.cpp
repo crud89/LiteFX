@@ -58,8 +58,7 @@ public:
 		if (m_type == QueueType::Transfer)
 			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-		if (::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
-			throw std::runtime_error("Unable to create command pool.");
+		raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
 
 		m_bound = true;
 	}
@@ -70,7 +69,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanQueue::VulkanQueue(const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
-	IResource(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanQueueImpl>(this, type, priority, familyId, queueId))
+	Resource<VkQueue>(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanQueueImpl>(this, type, priority, familyId, queueId))
 {
 }
 
@@ -89,17 +88,17 @@ void VulkanQueue::release()
 	m_impl->release();
 }
 
-VkCommandPool VulkanQueue::getCommandPool() const noexcept
+const VkCommandPool& VulkanQueue::commandPool() const noexcept
 {
 	return m_impl->m_commandPool;
 }
 
-UInt32 VulkanQueue::getFamilyId() const noexcept
+const UInt32& VulkanQueue::familyId() const noexcept
 {
 	return m_impl->m_familyId;
 }
 
-UInt32 VulkanQueue::getQueueId() const noexcept
+const UInt32& VulkanQueue::queueId() const noexcept
 {
 	return m_impl->m_queueId;
 }
@@ -109,17 +108,17 @@ bool VulkanQueue::isBound() const noexcept
 	return m_impl->m_bound;
 }
 
-QueueType VulkanQueue::getType() const noexcept
+const QueueType& VulkanQueue::type() const noexcept
 {
 	return m_impl->m_type;
 }
 
-QueuePriority VulkanQueue::getPriority() const noexcept
+const QueuePriority& VulkanQueue::priority() const noexcept
 {
 	return m_impl->m_priority;
 }
 
-UniquePtr<ICommandBuffer> VulkanQueue::createCommandBuffer() const
+UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
 {
-	return makeUnique<VulkanCommandBuffer>(*this);
+	return makeUnique<VulkanCommandBuffer>(*this, beginRecording);
 }

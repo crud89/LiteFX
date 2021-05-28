@@ -3,6 +3,10 @@
 
 using namespace LiteFX::Logging;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class ConsoleSink::ConsoleSinkImpl : public Implement<ConsoleSink> {
 public:
     friend class ConsoleSink;
@@ -20,6 +24,10 @@ public:
         m_sink->set_pattern(pattern);
     }
 };
+
+// ------------------------------------------------------------------------------------------------
+// Shared interface.
+// ------------------------------------------------------------------------------------------------
 
 ConsoleSink::ConsoleSink(const LogLevel& level, const String& pattern) :
     m_impl(makePimpl<ConsoleSinkImpl>(this, level, pattern))

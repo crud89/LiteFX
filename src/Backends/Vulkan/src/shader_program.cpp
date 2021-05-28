@@ -12,11 +12,16 @@ public:
     friend class VulkanShaderProgram;
 
 private:
-    Array<UniquePtr<IShaderModule>> m_modules;
+    Array<UniquePtr<VulkanShaderModule>> m_modules;
 
 public:
-    VulkanShaderProgramImpl(VulkanShaderProgram* parent) : 
-        base(parent) 
+    VulkanShaderProgramImpl(VulkanShaderProgram* parent, Array<UniquePtr<VulkanShaderModule>>&& modules) :
+        base(parent), m_modules(std::move(modules))
+    {
+    }
+
+    VulkanShaderProgramImpl(VulkanShaderProgram* parent) :
+        base(parent)
     {
     }
 };
@@ -25,38 +30,65 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout) :
+VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanShaderModule>>&& modules) :
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this, std::move(modules))), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+{
+}
+
+VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout) noexcept :
     m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
 
-Array<const IShaderModule*> VulkanShaderProgram::getModules() const noexcept
+Array<const VulkanShaderModule*> VulkanShaderProgram::modules() const noexcept
 {
-    Array<const IShaderModule*> modules(m_impl->m_modules.size());
-    std::generate(std::begin(modules), std::end(modules), [&, i = 0]() mutable { return m_impl->m_modules[i++].get(); });
-
-    return modules;
-}
-
-void VulkanShaderProgram::use(UniquePtr<IShaderModule>&& module)
-{
-    if (module == nullptr)
-        throw std::invalid_argument("The shader module must be initialized.");
-
-    m_impl->m_modules.push_back(std::move(module));
+    return m_impl->m_modules |
+        std::views::transform([](const UniquePtr<VulkanShaderModule>& shader) { return shader.get(); }) |
+        ranges::to<Array<const VulkanShaderModule*>>();
 }
 
 // ------------------------------------------------------------------------------------------------
-// Builder interface.
+// Builder implementation.
 // ------------------------------------------------------------------------------------------------
+
+class VulkanShaderProgramBuilder::VulkanShaderProgramBuilderImpl : public Implement<VulkanShaderProgramBuilder> {
+public:
+    friend class VulkanShaderProgramBuilder;
+
+private:
+    Array<UniquePtr<VulkanShaderModule>> m_modules;
+
+public:
+    VulkanShaderProgramBuilderImpl(VulkanShaderProgramBuilder* parent) :
+        base(parent)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Builder shared interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(VulkanRenderPipelineLayoutBuilder& parent) :
+    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this)), ShaderProgramBuilder(parent, UniquePtr<VulkanShaderProgram>(new VulkanShaderProgram(*std::as_const(parent).instance())))
+{
+}
+
+VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
+
+VulkanRenderPipelineLayoutBuilder& VulkanShaderProgramBuilder::go()
+{
+    auto instance = this->instance();
+    instance->m_impl->m_modules = std::move(m_impl->m_modules);
+
+    return ShaderProgramBuilder::go();
+}
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
 {
-    auto device = this->instance()->getDevice();
-    this->instance()->use(makeUnique<VulkanShaderModule>(*device, type, fileName, entryPoint));
-
+    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(*this->instance()->getDevice(), type, fileName, entryPoint));
     return *this;
 }
 

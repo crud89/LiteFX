@@ -20,6 +20,7 @@
 #  pragma message ("Vulkan: No supported surface platform detected.")
 #endif
 
+#include <litefx/rendering.hpp>
 #include <vulkan/vulkan.h>
 
 namespace LiteFX::Rendering::Backends {
@@ -27,6 +28,48 @@ namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Rendering;
 
     constexpr char VULKAN_LOG[] = "Backend::Vulkan";
+
+	// Forward declarations.
+    class VulkanVertexBufferLayout;
+    class VulkanIndexBufferLayout;
+    class VulkanDescriptorLayout;
+    class VulkanDescriptorSetLayout;
+    class VulkanDescriptorSet;
+    class VulkanRenderPipelineLayout;
+    class VulkanShaderModule;
+    class VulkanShaderProgram;
+    class VulkanCommandBuffer;
+    class VulkanInputAssembler;
+    class VulkanRasterizer;
+    class VulkanRenderPipeline;
+    class VulkanFrameBuffer;
+    class VulkanRenderPass;
+    class VulkanInputAttachmentMapping;
+    class VulkanSwapChain;
+    class VulkanQueue;
+    class VulkanGraphicsFactory;
+    class VulkanDevice;
+    class VulkanBackend;
+
+    // Interface declarations.
+    class IVulkanBuffer;
+    class IVulkanVertexBuffer;
+    class IVulkanIndexBuffer;
+    class IVulkanConstantBuffer;
+    class IVulkanImage;
+    class IVulkanTexture;
+    class IVulkanSampler;
+
+    // Builder declarations.
+    class VulkanVertexBufferLayoutBuilder;
+    class VulkanDescriptorSetLayoutBuilder;
+    class VulkanRenderPipelineLayoutBuilder;
+    class VulkanShaderProgramBuilder;
+    class VulkanInputAssemblerBuilder;
+    class VulkanRasterizerBuilder;
+    class VulkanRenderPipelineBuilder;
+    class VulkanRenderPassBuilder;
+    class VulkanBackendBuilder;
 
     // Conversion helpers.
     /// <summary>
@@ -99,30 +142,74 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
 
-    // Forward declarations.
-    class VulkanTexture;
-    class VulkanSwapChain;
-    class VulkanQueue;
-    class VulkanDevice;
-    class VulkanGraphicsAdapter;
-    class VulkanBackend;
-    class VulkanRenderPipeline;
-    class VulkanRenderPipelineLayout;
-    class VulkanRenderPass;
-    class VulkanRasterizer;
-    class VulkanInputAssembler;
-    class VulkanShaderModule;
-    class VulkanShaderProgram;
-    class VulkanCommandBuffer;
-    class VulkanDescriptorSetLayout;
-    class VulkanVertexBufferLayout;
-    class VulkanIndexBufferLayout;
-    class VulkanDescriptorLayout;
-    class VulkanVertexBuffer;
-    class VulkanIndexBuffer;
-    class VulkanConstantBuffer;
-    class VulkanSampler;
+    /// <summary>
+    /// Represents a Vulkan graphics adapter.
+    /// </summary>
+    class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
+        LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
 
+    public:
+        /// <summary>
+        /// Initializes a graphics adapter instance with a physical device.
+        /// </summary>
+        /// <param name="adapter">The phyiscal device to initialize the instance with.</param>
+        explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
+        VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
+        VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
+        virtual ~VulkanGraphicsAdapter() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual String getName() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getVendorId() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getDeviceId() const noexcept override;
+
+        /// <inheritdoc />
+        virtual GraphicsAdapterType getType() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getDriverVersion() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getApiVersion() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt64 getDedicatedMemory() const noexcept override;
+    };
+
+    /// <summary>
+    /// Represents a Vulkan surface.
+    /// </summary>
+    class LITEFX_VULKAN_API VulkanSurface : public ISurface, public Resource<VkSurfaceKHR> {
+        LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
+
+    public:
+        /// <summary>
+        /// Initializes the surface from a surface and instance handle.
+        /// </summary>
+        /// <param name="surface">The handle of the Vulkan surface.</param>
+        /// <param name="instance">The handle of the parent instance.</param>
+        VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
+        VulkanSurface(const VulkanSurface&) = delete;
+        VulkanSurface(VulkanSurface&&) = delete;
+        virtual ~VulkanSurface() noexcept;
+
+    public:
+        /// <summary>
+        /// Returns the handle of the backend, the surface has been created from.
+        /// </summary>
+        /// <returns>The handle of the backend, the surface has been created from.</returns>
+        const VkInstance& instance() const noexcept;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TParent"></typeparam>
     template <typename TParent>
     class LITEFX_VULKAN_API VulkanRuntimeObject {
     private:
@@ -146,4 +233,21 @@ namespace LiteFX::Rendering::Backends {
         virtual const VulkanDevice* getDevice() const noexcept { return m_device; };
     };
 
+    DEFINE_EXCEPTION(VulkanPlatformException, std::runtime_error);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TException"></typeparam>
+    /// <typeparam name="...TArgs"></typeparam>
+    /// <param name="result"></param>
+    /// <param name="message"></param>
+    /// <param name="...args"></param>
+    template <typename TException, typename ...TArgs>
+    inline void raiseIfFailed(VkResult result, const std::string& message, TArgs&&... args) {
+        if (result == VK_SUCCESS) [[likely]]
+            return;
+
+        throw TException(VulkanPlatformException("Result: {0}", result), fmt::format(message, std::forward<TArgs>(args)...));
+    }
 }

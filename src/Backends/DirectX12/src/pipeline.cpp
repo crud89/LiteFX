@@ -290,7 +290,7 @@ UniquePtr<IIndexBuffer> DirectX12RenderPipeline::makeIndexBuffer(const BufferUsa
 	throw;
 }
 
-UniquePtr<IDescriptorSet> DirectX12RenderPipeline::makeBufferPool(const UInt32 & setId) const
+UniquePtr<IDescriptorSet> DirectX12RenderPipeline::makeDescriptorSet(const UInt32 & setId) const
 {
 	throw;
 }

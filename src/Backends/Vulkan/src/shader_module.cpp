@@ -57,7 +57,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, const ShaderStage& type, const String& fileName, const String& entryPoint) :
-	IResource(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanShaderModuleImpl>(this, type, fileName, entryPoint))
+	Resource<VkShaderModule>(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanShaderModuleImpl>(this, type, fileName, entryPoint))
 {
 	this->handle() = m_impl->initialize();
 }
@@ -67,28 +67,28 @@ VulkanShaderModule::~VulkanShaderModule() noexcept
 	::vkDestroyShaderModule(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-const ShaderStage& VulkanShaderModule::getType() const noexcept
+const ShaderStage& VulkanShaderModule::type() const noexcept
 {
 	return m_impl->m_type;
 }
 
-const String& VulkanShaderModule::getFileName() const noexcept
+const String& VulkanShaderModule::fileName() const noexcept
 {
 	return m_impl->m_fileName;
 }
 
-const String& VulkanShaderModule::getEntryPoint() const noexcept
+const String& VulkanShaderModule::entryPoint() const noexcept
 {
 	return m_impl->m_entryPoint;
 }
 
-VkPipelineShaderStageCreateInfo VulkanShaderModule::getShaderStageDefinition() const
+VkPipelineShaderStageCreateInfo VulkanShaderModule::shaderStageDefinition() const
 {
 	VkPipelineShaderStageCreateInfo shaderStageDefinition = {};
 	shaderStageDefinition.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shaderStageDefinition.module = this->handle();
-	shaderStageDefinition.pName = this->getEntryPoint().c_str();
-	shaderStageDefinition.stage = getShaderStage(this->getType());
+	shaderStageDefinition.pName = this->entryPoint().c_str();
+	shaderStageDefinition.stage = getShaderStage(this->type());
 
 	return shaderStageDefinition;
 }

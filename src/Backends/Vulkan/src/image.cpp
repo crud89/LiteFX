@@ -6,138 +6,144 @@ using namespace LiteFX::Rendering::Backends;
 // Image Base implementation.
 // ------------------------------------------------------------------------------------------------
 
-class _VMAImageBase::_VMAImageBaseImpl : public Implement<_VMAImageBase> {
+class VulkanImage::VulkanImageImpl : public Implement<VulkanImage> {
 public:
-	friend class _VMAImageBase;
+	friend class VulkanImage;
 
 private:
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocationInfo;
 	VkImageView m_view;
+	Format m_format;
+	Size2d m_extent;
+	UInt32 m_elements;
 
 public:
-	_VMAImageBaseImpl(_VMAImageBase* parent, VmaAllocator allocator, VmaAllocation allocation) :
+	VulkanImageImpl(VulkanImage* parent, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
 		base(parent), m_allocator(allocator), m_allocationInfo(allocation)
 	{
-	}
+		VkImageViewCreateInfo createInfo = {};
 
-public:
+		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		createInfo.image = m_parent->handle();
+		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.format = ::getFormat(m_format);
+		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.levelCount = 1;
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.layerCount = 1;
+
+		if (!::hasDepth(m_format))
+			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		else
+			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		// NOTE: This is not allowed - depending on what's read/written, a separate image view should be created.
+		//if (::hasStencil(format))
+		//	createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
+		raiseIfFailed<RuntimeException>(::vkCreateImageView(m_parent->getDevice()->handle(), &createInfo, nullptr, &m_view), "Unable to create image view.");
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-_VMAImageBase::_VMAImageBase(const VulkanDevice& device, VkImage image, VmaAllocator allocator, VmaAllocation allocation) :
-	IResource(image), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<_VMAImageBaseImpl>(this, allocator, allocation))
+VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
+	m_impl(makePimpl<VulkanImageImpl>(this, elements, extent, format, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkImage>(image)
 {
 }
 
-_VMAImageBase::~_VMAImageBase() noexcept 
+VulkanImage::~VulkanImage() noexcept 
 {
-}
+	::vkDestroyImageView(this->getDevice()->handle(), m_impl->m_view, nullptr);
 
-VmaAllocator& _VMAImageBase::allocator() const noexcept
-{
-	return m_impl->m_allocator;
-}
-
-VmaAllocation& _VMAImageBase::allocationInfo() const noexcept
-{
-	return m_impl->m_allocationInfo;
-}
-
-VkImageView& _VMAImageBase::view() const noexcept
-{
-	return m_impl->m_view;
-}
-
-// ------------------------------------------------------------------------------------------------
-// Image.
-// ------------------------------------------------------------------------------------------------
-
-_VMAImage::_VMAImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format)
-	: _VMAImage(device, image, elements, extent, format, nullptr, nullptr)
-{
-}
-
-_VMAImage::_VMAImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
-    _VMAImageBase(device, image, allocator, allocation), Image(elements, ::getSize(format) * extent.width() * extent.height(), extent, format)
-{
-	VkImageViewCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	createInfo.image = image;
-	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	createInfo.format = ::getFormat(format);
-	createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-	createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-	createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-	createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-	if (!::hasDepth(format))
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	else
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-	// NOTE: This is not allowed - depending on what's read/written, a separate image view should be created.
-	//if (::hasStencil(format))
-	//	createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-
-	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-	createInfo.subresourceRange.layerCount = 1;
-
-	if (::vkCreateImageView(device.handle(), &createInfo, nullptr, &this->view()) != VK_SUCCESS)
-		throw std::runtime_error("Unable to create image view!");
-}
-
-_VMAImage::~_VMAImage() noexcept
-{
-	::vkDestroyImageView(this->getDevice()->handle(), this->view(), nullptr);
-
-	if (this->allocator() != nullptr && this->allocationInfo() != nullptr)
+	if (m_impl->m_allocator != nullptr && m_impl->m_allocationInfo != nullptr)
 	{
-		::vmaDestroyImage(this->allocator(), this->handle(), this->allocationInfo());
+		::vmaDestroyImage(m_impl->m_allocator, this->handle(), m_impl->m_allocationInfo);
 		LITEFX_TRACE(VULKAN_LOG, "Destroyed image {0}", fmt::ptr(this->handle()));
 	}
 }
 
-const VkImageView& _VMAImage::getImageView() const noexcept
+const UInt32& VulkanImage::elements() const noexcept
 {
-	return this->view();
+	return m_impl->m_elements;
 }
 
-UniquePtr<IImage> _VMAImage::allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+size_t VulkanImage::size() const noexcept
 {
-    // Allocate the buffer.
-    VkImage image;
-    VmaAllocation allocation;
+	return this->elementSize() * m_impl->m_elements;
+}
 
-    if (::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult) != VK_SUCCESS)
-        throw std::runtime_error("Unable to allocate texture.");
-    
-    LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4} }}", fmt::ptr(image), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format);
+size_t VulkanImage::elementSize() const noexcept
+{
+	// Rough estimation, that does not include alignment.
+	return ::getSize(m_impl->m_format) * m_impl->m_extent.width() * m_impl->m_extent.height();
+}
 
-    return makeUnique<_VMAImage>(device, image, elements, extent, format, allocator, allocation);
+const Size2d& VulkanImage::extent() const noexcept
+{
+	return m_impl->m_extent;
+}
+
+const Format& VulkanImage::format() const noexcept
+{
+	return m_impl->m_format;
+}
+
+const VkImageView& VulkanImage::imageView() const noexcept
+{
+	return m_impl->m_view;
+}
+
+VmaAllocator& VulkanImage::allocator() const noexcept
+{
+	return m_impl->m_allocator;
+}
+
+VmaAllocation& VulkanImage::allocationInfo() const noexcept
+{
+	return m_impl->m_allocationInfo;
+}
+
+VkImageView& VulkanImage::imageView() noexcept
+{
+	return m_impl->m_view;
+}
+
+UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+{
+	VkImage image;
+	VmaAllocation allocation;
+
+	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4} }}", fmt::ptr(image), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format);
+
+	return makeUnique<VulkanImage>(device, image, elements, extent, format, allocator, allocation);
 }
 
 // ------------------------------------------------------------------------------------------------
 // Texture shared implementation.
 // ------------------------------------------------------------------------------------------------
 
-class _VMATexture::_VMATextureImpl : public Implement<_VMATexture> {
+class VulkanTexture::VulkanTextureImpl : public Implement<VulkanTexture> {
 public:
-	friend class _VMATexture;
+	friend class VulkanTexture;
 
 private:
+	const VulkanDescriptorLayout& m_descriptorLayout;
 	VkImageLayout m_imageLayout;
-	const VulkanDescriptorLayout* m_descriptorLayout;
+	MultiSamplingLevel m_samples;
+	UInt32 m_levels;
 
 public:
-	_VMATextureImpl(_VMATexture* parent, VkImageLayout imageLayout, const VulkanDescriptorLayout* descriptorLayout) :
-		base(parent), m_imageLayout(imageLayout), m_descriptorLayout(descriptorLayout)
+	VulkanTextureImpl(VulkanTexture* parent, VkImageLayout imageLayout, const VulkanDescriptorLayout& descriptorLayout, const UInt32& levels, const MultiSamplingLevel& samples) :
+		base(parent), m_imageLayout(imageLayout), m_descriptorLayout(descriptorLayout), m_samples(samples), m_levels(levels)
 	{
 	}
 };
@@ -146,67 +152,40 @@ public:
 // Texture shared interface.
 // ------------------------------------------------------------------------------------------------
 
-_VMATexture::_VMATexture(const VulkanDevice& device, const VulkanDescriptorLayout* layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
-	_VMAImageBase(device, image, allocator, allocation), Texture(layout, elements, ::getSize(format)* extent.width()* extent.height(), extent, format, levels, samples), m_impl(makePimpl<_VMATextureImpl>(this, imageLayout, layout))
+VulkanTexture::VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
+	VulkanImage(device, image, elements, extent, format, allocator, allocation), m_impl(makePimpl<VulkanTextureImpl>(this, imageLayout, layout, levels, samples))
 {
-	VkImageViewCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	createInfo.image = image;
-	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	createInfo.format = ::getFormat(format);
-	createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-	createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-	createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-	createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-	if (!::hasDepth(format))
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	else
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-	// NOTE: This is not allowed - depending on what's read/written, a separate image view should be created.
-	//if (::hasStencil(format))
-	//	createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-
-	createInfo.subresourceRange.baseMipLevel = 0;
-	//createInfo.subresourceRange.levelCount = levels;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-	createInfo.subresourceRange.layerCount = 1;
-
-	if (::vkCreateImageView(device.handle(), &createInfo, nullptr, &this->view()) != VK_SUCCESS)
-		throw std::runtime_error("Unable to create image view!");
 }
 
-_VMATexture::~_VMATexture() noexcept
+VulkanTexture::~VulkanTexture() noexcept = default;
+
+const UInt32& VulkanTexture::binding() const noexcept
 {
-	::vkDestroyImageView(this->getDevice()->handle(), this->view(), nullptr);
-	::vmaDestroyImage(this->allocator(), this->handle(), this->allocationInfo());
-	LITEFX_TRACE(VULKAN_LOG, "Destroyed image {0}", fmt::ptr(this->handle()));
+	return m_impl->m_descriptorLayout.binding();
 }
 
-const VkImageView& _VMATexture::getImageView() const noexcept
+const VulkanDescriptorLayout& VulkanTexture::layout() const noexcept
 {
-	return this->view();
+	return m_impl->m_descriptorLayout;
 }
 
-void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
+const MultiSamplingLevel& VulkanTexture::samples() const noexcept
 {
-	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
-	auto sourceBuffer = dynamic_cast<const IResource<VkBuffer>*>(source);
+	return m_impl->m_samples;
+}
 
-	if (sourceBuffer == nullptr)
-		throw std::invalid_argument("The transfer source buffer must be initialized and a valid Vulkan buffer.");
+const UInt32& VulkanTexture::levels() const noexcept
+{
+	return m_impl->m_levels;
+}
 
-	if (transferQueue == nullptr)
-		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
+const VkImageLayout& VulkanTexture::imageLayout() const noexcept
+{
+	return m_impl->m_imageLayout;
+}
 
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
-
-	// Begin the transfer recording.
-	commandBuffer->begin();
-
+void VulkanTexture::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
+{
 	// First, transition the image into a fitting layout, so that it can receive transfers.
 	VkImageMemoryBarrier beginTransitionBarrier = {};
 	beginTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -217,32 +196,30 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	beginTransitionBarrier.image = this->handle();
 	beginTransitionBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	beginTransitionBarrier.subresourceRange.baseMipLevel = 0;
-	//beginTransitionBarrier.subresourceRange.levelCount = this->getLevels();
+	//beginTransitionBarrier.subresourceRange.levelCount = m_impl->m_levels;
 	beginTransitionBarrier.subresourceRange.levelCount = 1;
 	beginTransitionBarrier.subresourceRange.baseArrayLayer = 0;
 	beginTransitionBarrier.subresourceRange.layerCount = 1;
 	beginTransitionBarrier.srcAccessMask = 0;
 	beginTransitionBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
+	::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
 
 	// Create a copy command and add it to the command buffer.
 	VkBufferImageCopy copyInfo{};
 	copyInfo.bufferOffset = sourceOffset;
-
+	
 	// TODO: Support padded buffer formats.
 	copyInfo.bufferRowLength = 0;
 	copyInfo.bufferImageHeight = 0;
-
 	copyInfo.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	copyInfo.imageSubresource.mipLevel = 0;
 	copyInfo.imageSubresource.baseArrayLayer = 0;
 	copyInfo.imageSubresource.layerCount = 1;
-
 	copyInfo.imageOffset = { 0, 0, 0 };
-	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
+	copyInfo.imageExtent = { static_cast<UInt32>(this->extent().width()), static_cast<UInt32>(this->extent().height()), 1 };
 
-	::vkCmdCopyBufferToImage(commandBuffer->handle(), sourceBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyInfo);
+	::vkCmdCopyBufferToImage(commandBuffer.handle(), source.handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyInfo);
 
 	// Last, transition the image back into the required layout for rendering.
 	VkImageMemoryBarrier endTransitionBarrier = {};
@@ -262,7 +239,7 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	endTransitionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	VkPipelineStageFlags targetStages = {};
-	auto shaderStages = m_impl->m_descriptorLayout->parent().getShaderStages();
+	auto shaderStages = m_impl->m_descriptorLayout.parent().shaderStages();
 
 	if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
 		targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
@@ -277,31 +254,11 @@ void _VMATexture::transferFrom(const ICommandQueue* commandQueue, IBuffer* sourc
 	if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
 		targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 
-	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
-	
-	// End the transfer recording and submit the buffer.
-	commandBuffer->end();
-	commandBuffer->submit(true);
+	::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
 }
 
-void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
+void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
 {
-	auto transferQueue = dynamic_cast<const VulkanQueue*>(commandQueue);
-	auto targetBuffer = dynamic_cast<const IResource<VkBuffer>*>(target);
-	auto layout = dynamic_cast<const VulkanDescriptorLayout*>(this->getLayout());
-	assert(layout != nullptr);
-
-	if (targetBuffer == nullptr)
-		throw std::invalid_argument("The transfer target buffer must be initialized and a valid Vulkan buffer.");
-
-	if (transferQueue == nullptr)
-		throw std::invalid_argument("The transfer queue must be initialized and a valid Vulkan command queue.");
-
-	auto commandBuffer = makeUnique<const VulkanCommandBuffer>(*transferQueue);
-
-	// Begin the transfer recording.
-	commandBuffer->begin();
-
 	// First, transition the image into a fitting layout, so that it can receive transfers.
 	VkImageMemoryBarrier beginTransitionBarrier = {};
 	beginTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -319,7 +276,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	beginTransitionBarrier.srcAccessMask = 0;
 	beginTransitionBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
+	::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &beginTransitionBarrier);
 
 	// Create a copy command and add it to the command buffer.
 	VkBufferImageCopy copyInfo{};
@@ -333,9 +290,9 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	copyInfo.imageSubresource.layerCount = 1;
 
 	copyInfo.imageOffset = { 0, 0, 0 };
-	copyInfo.imageExtent = { static_cast<UInt32>(this->getExtent().width()), static_cast<UInt32>(this->getExtent().height()), 1 };
+	copyInfo.imageExtent = { static_cast<UInt32>(this->extent().width()), static_cast<UInt32>(this->extent().height()), 1 };
 
-	::vkCmdCopyImageToBuffer(commandBuffer->handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, targetBuffer->handle(), 1, &copyInfo);
+	::vkCmdCopyImageToBuffer(commandBuffer.handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, target.handle(), 1, &copyInfo);
 
 	// Last, transition the image back into the required layout for rendering.
 	VkImageMemoryBarrier endTransitionBarrier = {};
@@ -355,7 +312,7 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	endTransitionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	VkPipelineStageFlags targetStages = {};
-	auto shaderStages = m_impl->m_descriptorLayout->parent().getShaderStages();
+	auto shaderStages = m_impl->m_descriptorLayout.parent().shaderStages();
 
 	if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
 		targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
@@ -370,26 +327,177 @@ void _VMATexture::transferTo(const ICommandQueue* commandQueue, IBuffer* target,
 	if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
 		targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 
-	::vkCmdPipelineBarrier(commandBuffer->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
-
-	// End the transfer recording and submit the buffer.
-	commandBuffer->end();
-	commandBuffer->submit(true);
+	::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
 }
 
-UniquePtr<ITexture> _VMATexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout* layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	if (layout == nullptr)
-		throw std::invalid_argument("The layout must be initialized.");
-
 	// Allocate the buffer.
 	VkImage image;
 	VmaAllocation allocation;
 	
-	if (::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult) != VK_SUCCESS)
-		throw std::runtime_error("Unable to allocate texture.");
-
+	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Elements: {5}, Levels: {6}, Samples: {7} }}", fmt::ptr(image), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, elements, levels, samples);
 
-	return makeUnique<_VMATexture>(device, layout, image, createInfo.initialLayout, elements, extent, format, levels, samples, allocator, allocation);
+	return makeUnique<VulkanTexture>(device, layout, image, createInfo.initialLayout, elements, extent, format, levels, samples, allocator, allocation);
+}
+
+// ------------------------------------------------------------------------------------------------
+// Sampler implementation.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanSampler::VulkanSamplerImpl : public Implement<VulkanSampler> {
+public:
+	friend class VulkanSampler;
+
+private:
+	const VulkanDescriptorLayout& m_layout;
+	FilterMode m_magFilter, m_minFilter;
+	BorderMode m_borderU, m_borderV, m_borderW;
+	MipMapMode m_mipMapMode;
+	Float m_mipMapBias;
+	Float m_minLod, m_maxLod;
+	Float m_anisotropy;
+
+public:
+	VulkanSamplerImpl(VulkanSampler* parent, const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+		base(parent), m_layout(layout), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
+	{
+	}
+
+private:
+	VkFilter getFilterMode(const FilterMode& mode)
+	{
+		switch (mode)
+		{
+		case FilterMode::Linear: return VK_FILTER_LINEAR;
+		case FilterMode::Nearest: return VK_FILTER_NEAREST;
+		default: throw std::invalid_argument("Invalid filter mode.");
+		}
+	}
+
+	VkSamplerMipmapMode getMipMapMode(const MipMapMode& mode)
+	{
+		switch (mode)
+		{
+		case MipMapMode::Linear: return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		case MipMapMode::Nearest: return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+		default: throw std::invalid_argument("Invalid mip map mode.");
+		}
+	}
+
+	VkSamplerAddressMode getBorderMode(const BorderMode& mode)
+	{
+		switch (mode)
+		{
+		case BorderMode::Repeat: return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		case BorderMode::ClampToEdge: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		case BorderMode::ClampToBorder: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+		case BorderMode::RepeatMirrored: return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+		case BorderMode::ClampToEdgeMirrored: return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+		default: throw std::invalid_argument("Invalid border mode.");
+		}
+	}
+
+public:
+	VkSampler initialize()
+	{
+		VkSamplerCreateInfo samplerInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+		samplerInfo.magFilter = getFilterMode(m_magFilter);
+		samplerInfo.minFilter = getFilterMode(m_minFilter);
+		samplerInfo.addressModeU = getBorderMode(m_borderU);
+		samplerInfo.addressModeV = getBorderMode(m_borderV);
+		samplerInfo.addressModeW = getBorderMode(m_borderW);
+		samplerInfo.anisotropyEnable = m_anisotropy > 0.f ? VK_TRUE : VK_FALSE;
+		samplerInfo.maxAnisotropy = m_anisotropy;
+		samplerInfo.mipmapMode = getMipMapMode(m_mipMapMode);
+		samplerInfo.mipLodBias = m_mipMapBias;
+		samplerInfo.minLod = m_minLod;
+		samplerInfo.maxLod = m_maxLod;
+
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+		VkSampler sampler;
+		raiseIfFailed<RuntimeException>(::vkCreateSampler(m_parent->getDevice()->handle(), &samplerInfo, nullptr, &sampler), "Unable to create sampler.");
+
+		return sampler;
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
+// Sampler shared interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanSampler::VulkanSampler(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+	Resource<VkSampler>(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanSamplerImpl>(this, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
+{
+	this->handle() = m_impl->initialize();
+}
+
+VulkanSampler::~VulkanSampler() noexcept
+{
+	::vkDestroySampler(this->getDevice()->handle(), this->handle(), nullptr);
+}
+
+const FilterMode& VulkanSampler::getMinifyingFilter() const noexcept
+{
+	return m_impl->m_minFilter;
+}
+
+const FilterMode& VulkanSampler::getMagnifyingFilter() const noexcept
+{
+	return m_impl->m_magFilter;
+}
+
+const BorderMode& VulkanSampler::getBorderModeU() const noexcept
+{
+	return m_impl->m_borderU;
+}
+
+const BorderMode& VulkanSampler::getBorderModeV() const noexcept
+{
+	return m_impl->m_borderV;
+}
+
+const BorderMode& VulkanSampler::getBorderModeW() const noexcept
+{
+	return m_impl->m_borderW;
+}
+
+const Float& VulkanSampler::getAnisotropy() const noexcept
+{
+	return m_impl->m_anisotropy;
+}
+
+const MipMapMode& VulkanSampler::getMipMapMode() const noexcept
+{
+	return m_impl->m_mipMapMode;
+}
+
+const Float& VulkanSampler::getMipMapBias() const noexcept
+{
+	return m_impl->m_mipMapBias;
+}
+
+const Float& VulkanSampler::getMaxLOD() const noexcept
+{
+	return m_impl->m_maxLod;
+}
+
+const Float& VulkanSampler::getMinLOD() const noexcept
+{
+	return m_impl->m_minLod;
+}
+
+const UInt32& VulkanSampler::binding() const noexcept
+{
+	return m_impl->m_layout.binding();
+}
+
+const VulkanDescriptorLayout& VulkanSampler::layout() const noexcept
+{
+	return m_impl->m_layout;
 }

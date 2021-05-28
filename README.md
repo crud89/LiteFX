@@ -3,10 +3,10 @@
 An extensible, descriptive, modern computer graphics and rendering engine.
 
 <p align="center">
-  <img src="/docs/img/banner_m.jpg">
+  <img src="https://github.com/crud89/LiteFX/blob/main/docs/img/banner_m.jpg">
 </p>
 
-![GitHub](https://img.shields.io/github/license/aschratt/litefx.svg) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/aschratt/litefx/release?label=Build) ![Latest release](https://img.shields.io/github/release/aschratt/litefx.svg) ![Released at](https://img.shields.io/github/release-date/aschratt/litefx.svg) [![Documentation](https://img.shields.io/badge/docs-gh--pages-70dcf4.svg)](https://litefx.github.io/docs/#/)
+![GitHub](https://img.shields.io/github/license/crud89/litefx.svg) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/crud89/litefx/release?label=Build) ![Latest release](https://img.shields.io/github/release/crud89/litefx.svg) ![Released at](https://img.shields.io/github/release-date/crud89/litefx.svg) [![Documentation](https://img.shields.io/badge/docs-gh--pages-70dcf4.svg)](https://litefx.github.io/docs/#/)
 
 ## About
 
@@ -112,17 +112,17 @@ You can customize the engine build, according to your specific needs. From Visua
 
 ## Getting Started
 
-For a collection of tutorials and more in-depth information on how to use the engine and work with the code base, take a look at the [project wiki](https://github.com/Aschratt/LiteFX/wiki).
+For a collection of tutorials and more in-depth information on how to use the engine and work with the code base, take a look at the [project wiki](https://github.com/crud89/LiteFX/wiki).
 
 ## Contribute
 
-If you are having trouble using the engine, found a bug or have suggestions, just drop an [issue](https://github.com/Aschratt/LiteFX/issues). Keep in mind that this project is developed in my free time and I might not be able to provide any advanced support. If you want to, feel free to provide improvements by creating a pull request.
+If you are having trouble using the engine, found a bug or have suggestions, just drop an [issue](https://github.com/crud89/LiteFX/issues). Keep in mind that this project is developed in my free time and I might not be able to provide any advanced support. If you want to, feel free to provide improvements by creating a pull request.
 
 ## Projects using LiteFX
 
 <!-- Currently none, lol -->
 
-Want to add yours? Feel free to [contact](mailto:litefx@aschratt.com?subject=[GitHub]%20LiteFX%20Project%20List) me!
+Want to add yours? Feel free to [contact](mailto:litefx@crudolph.io?subject=[GitHub]%20LiteFX%20Project%20List) me!
 
 ## License
 

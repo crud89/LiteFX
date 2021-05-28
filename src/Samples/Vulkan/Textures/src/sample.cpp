@@ -97,7 +97,7 @@ void SampleApp::loadTexture()
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
     // Create the texture and transfer the pixel contents to it.
-    m_perMaterialBindings = pipeline->makeBufferPool(DescriptorSets::PerMaterial);
+    m_perMaterialBindings = pipeline->makeDescriptorSet(DescriptorSets::PerMaterial);
     m_texture = m_perMaterialBindings->makeTexture(0, Format::R8G8B8A8_SRGB, Size2d(width, height));
     auto stagedTexture = m_device->createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->getSize());
     stagedTexture->map(imageData.get(), m_texture->getSize());
@@ -133,9 +133,9 @@ void SampleApp::initBuffers()
     m_indexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
-    m_perFrameBindings = pipeline->makeBufferPool(DescriptorSets::PerFrame);
+    m_perFrameBindings = pipeline->makeDescriptorSet(DescriptorSets::PerFrame);
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
-    m_perObjectBindings = pipeline->makeBufferPool(DescriptorSets::PerInstance);
+    m_perObjectBindings = pipeline->makeDescriptorSet(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
 }
 

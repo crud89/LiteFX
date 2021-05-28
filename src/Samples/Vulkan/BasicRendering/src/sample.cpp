@@ -78,6 +78,7 @@ void SampleApp::initBuffers()
 {
     // Get the pipeline instance.
     auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
+    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
 
     // Create the staging buffer.
     auto stagedVertices = pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
@@ -85,7 +86,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(m_device->bufferQueue(), stagedVertices.get(), stagedVertices->getSize());
+    m_vertexBuffer->transferFrom(commandBuffer.get(), stagedVertices.get(), stagedVertices->getSize());
 
     // Create the staging buffer for the indices.
     auto stagedIndices = pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
@@ -93,34 +94,54 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
-    m_indexBuffer->transferFrom(m_device->bufferQueue(), stagedIndices.get(), stagedIndices->getSize());
+    m_indexBuffer->transferFrom(commandBuffer.get(), stagedIndices.get(), stagedIndices->getSize());
 
     // Create a uniform buffers for the camera and transform information.
-    m_perFrameBindings = pipeline->makeBufferPool(DescriptorSets::PerFrame);
+    m_perFrameBindings = pipeline->makeDescriptorSet(DescriptorSets::PerFrame);
     m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
-    m_perObjectBindings = pipeline->makeBufferPool(DescriptorSets::PerInstance);
+    m_perObjectBindings = pipeline->makeDescriptorSet(DescriptorSets::PerInstance);
     m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
+    
+    // End and submit the command buffer.
+    commandBuffer->end(true, true);
 }
 
 void SampleApp::run() 
 {
+    // Store the window handle.
+    auto window = m_window.get();
+
+    // Start by creating the surface and selecting the adapter.
+    auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
+    auto adapter = backend->findAdapter(m_adapterId);
+
+    if (adapter == nullptr)
+        adapter = backend->findAdapter(std::nullopt);
+
+    m_surface = backend->createSurface([&window](const VkInstance& instance) {
+        VkSurfaceKHR surface;
+        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
+
+        return surface;
+    });
+
     // Get the proper frame buffer size.
     int width, height;
-    ::glfwGetFramebufferSize(m_window.get(), &width, &height);
+    ::glfwGetFramebufferSize(window, &width, &height);
 
     // Create viewport and scissors.
     m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = this->getRenderBackend()->createDevice<VulkanDevice>(Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+    m_device = backend->createDevice(*adapter, *m_surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
 
     // Initialize resources.
     this->createRenderPasses();
     this->initBuffers();
 
     // Run application loop until the window is closed.
-    while (!::glfwWindowShouldClose(m_window.get()))
+    while (!::glfwWindowShouldClose(window))
     {
         this->handleEvents();
         this->drawFrame();
@@ -142,12 +163,13 @@ void SampleApp::run()
     m_device = nullptr;
 
     // Destroy the window.
-    ::glfwDestroyWindow(m_window.get());
+    ::glfwDestroyWindow(window);
     ::glfwTerminate();
 }
 
 void SampleApp::initialize()
 {
+    ::glfwSetWindowUserPointer(m_window.get(), this);
     ::glfwSetFramebufferSizeCallback(m_window.get(), ::onResize); 
 }
 
@@ -159,8 +181,13 @@ void SampleApp::resize(int width, int height)
         return;
 
     // Resize the frame buffer and recreate the swap chain.
-    m_device->resize(width, height);
-    m_renderPass->resetFramebuffer();
+    auto surfaceFormat = m_device->swapChain().surfaceFormat();
+    auto renderArea = Size2d(width, height);
+    m_device->swapChain().reset(surfaceFormat, renderArea, 3);
+    // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
+    //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
+    //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
+    m_renderPass->resizeFrameBuffers(renderArea);
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
@@ -174,8 +201,10 @@ void SampleApp::handleEvents()
 
 void SampleApp::drawFrame()
 {
+    auto backBuffer = m_device->swapChain().swapBackBuffer();
+
     // Begin rendering.
-    m_renderPass->begin();
+    m_renderPass->begin(backBuffer);
 
     // Get the pipeline and bind it.
     auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
@@ -210,5 +239,5 @@ void SampleApp::drawFrame()
     m_renderPass->drawIndexed(indices.size());
 
     // End the frame.
-    m_renderPass->end(true);
+    m_renderPass->end(backBuffer, true);
 }
