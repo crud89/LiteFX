@@ -107,8 +107,17 @@ public:
 			return semaphore;
 		});
 
+		// Create the swap chain images.
+		auto actualRenderArea = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
+		Array<VkImage> imageChain(images);
+		::vkGetSwapchainImagesKHR(m_parent->getDevice()->handle(), swapChain, &images, imageChain.data());
+
+		m_presentImages = imageChain |
+			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(*m_parent->getDevice(), image, 1, actualRenderArea, selectedFormat); }) |
+			ranges::to<Array<UniquePtr<IVulkanImage>>>();
+
 		// Store state variables.
-		m_renderArea = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
+		m_renderArea = actualRenderArea;
 		m_format = selectedFormat;
 		m_buffers = images;
 		m_currentImage = 0;
@@ -220,15 +229,6 @@ void VulkanSwapChain::reset(const Format& surfaceFormat, const Size2d& renderAre
 	// Cleanup and re-initialize.
 	m_impl->cleanup();
 	this->handle() = m_impl->initialize(surfaceFormat, renderArea, buffers);
-
-	// Get the swap chain images and return them.
-	UInt32 imageCount = m_impl->m_buffers;	// NOTE: No guarantee, that this equals buffers (since it may have been clamped)!
-	Array<VkImage> imageChain(m_impl->m_buffers);
-	::vkGetSwapchainImagesKHR(this->getDevice()->handle(), this->handle(), &m_impl->m_buffers, imageChain.data());
-
-	m_impl->m_presentImages = imageChain |
-		std::views::transform([this](const VkImage& image) { return makeUnique<VulkanImage>(*this->getDevice(), image, 1, m_impl->m_renderArea, m_impl->m_format); }) |
-		ranges::to<Array<UniquePtr<IVulkanImage>>>();
 }
 
 UInt32 VulkanSwapChain::swapBackBuffer() const
