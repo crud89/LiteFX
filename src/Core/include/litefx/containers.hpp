@@ -10,10 +10,13 @@
 #include <optional>
 #include <map>
 #include <vector>
+#include <queue>
 #include <tuple>
 #include <memory>
 #include <functional>
 #include <variant>
+#include <ranges>
+#include <mutex>
 
 #include "traits.hpp"
 #include "string.hpp"
@@ -33,55 +36,162 @@
 
 namespace LiteFX {
 
+	/// <summary>
+	/// Represents a handle type.
+	/// </summary>
 	using Handle = void*;
 
+	/// <summary>
+	/// Represents a dictionary that maps a key to a certain value.
+	/// </summary>
+	/// <typeparam name="TKey">The type of the key.</typeparam>
+	/// <typeparam name="TVal">The type of the value.</typeparam>
 	template<class TKey, class TVal>
 	using Dictionary = std::map<TKey, TVal>;
 
+	/// <summary>
+	/// Represents a dynamic array.
+	/// </summary>
+	/// <typeparam name="T">The type of the array elements.</typeparam>
 	template<class T>
 	using Array = std::vector<T>;
 
+	/// <summary>
+	/// Represents a queue.
+	/// </summary>
+	/// <typeparam name="T">The type of the queue elements.</typeparam>
+	template<class T>
+	using Queue = std::queue<T>;
+
+	/// <summary>
+	/// Represents a view of an array.
+	/// </summary>
+	/// <typeparam name="T">The type of the array elements.</typeparam>
+	template<class T>
+	using Span = std::span<T>;
+
+	/// <summary>
+	/// Represents an optional value.
+	/// </summary>
+	/// <typeparam name="T">The type of the optional value.</typeparam>
 	template<class T>
 	using Optional = std::optional<T>;
 
+	/// <summary>
+	/// Represents a unique pointer, that expresses exclusive ownership.
+	/// </summary>
+	/// <typeparam name="T">The type of the object the pointer points to.</typeparam>
+	/// <typeparam name="TDeleter">The deleter for the pointed object.</typeparam>
 	template<class T, class TDeleter = std::default_delete<T>>
 	using UniquePtr = std::unique_ptr<T, TDeleter>;
 
+	/// <summary>
+	/// Represents a shared pointer, that expresses non-exclusive ownership.
+	/// </summary>
+	/// <typeparam name="T">The type of the object the pointer points to.</typeparam>
 	template <class T>
 	using SharedPtr = std::shared_ptr<T>;
 
+	/// <summary>
+	/// Represents a weak pointer, that expresses a reference to a shared pointer instance.
+	/// </summary>
+	/// <typeparam name="T">The type of the object the pointer points to.</typeparam>
 	template <class T>
 	using WeakPtr = std::weak_ptr<T>;
 
+	/// <summary>
+	/// Represents a tuple of multiple objects.
+	/// </summary>
+	/// <typeparam name="...T">The types of the objects, contained by the tuple.</typeparam>
 	template <class... T>
 	using Tuple = std::tuple<T...>;
 
+	/// <summary>
+	/// Represents a variant of objects.
+	/// </summary>
+	/// <typeparam name="...T">The types of the objects, that can be contained by the tuple.</typeparam>
 	template <class... T>
 	using Variant = std::variant<T...>;
 
+	/// <summary>
+	/// Creates a new unique pointer.
+	/// </summary>
+	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
+	/// <returns>A new unique pointer.</returns>
 	template <class T>
 	UniquePtr<T> makeUnique() {
 		return std::make_unique<T>();
 	}
 
+	/// <summary>
+	/// Creates a new unique pointer.
+	/// </summary>
+	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
+	/// <returns>A new unique pointer.</returns>
 	template <class T, class... TArgs>
 	UniquePtr<T> makeUnique(TArgs&&... _args) {
 		return std::make_unique<T>(std::forward<TArgs>(_args)...);
 	}
 
+	/// <summary>
+	/// Creates a new shared pointer.
+	/// </summary>
+	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
+	/// <returns>A new shared pointer.</returns>
 	template <class T>
 	SharedPtr<T> makeShared() {
 		return std::make_shared<T>();
 	}
 
+	/// <summary>
+	/// Creates a new shared pointer.
+	/// </summary>
+	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
+	/// <returns>A new shared pointer.</returns>
 	template <class T, class... TArgs>
 	SharedPtr<T> makeShared(TArgs&&... _args) {
 		return std::make_shared<T>(std::forward<TArgs>(_args)...);
 	}
 
+	/// <summary>
+	/// Transfers a unique pointer to a shared pointer. The unique pointer will be released during this process.
+	/// </summary>
+	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
+	/// <param name="ptr">The unique pointer that should be turned into a shared pointer.</param>
+	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	SharedPtr<T> makeShared(UniquePtr<T>& ptr) {
+	SharedPtr<T> makeShared(UniquePtr<T>&& ptr) {
 		return std::make_shared<T>(ptr.release());
+	}
+
+	/// <summary>
+	/// Contains helpers for working with ranges and views.
+	/// </summary>
+	namespace ranges {
+
+		template <typename TContainer>
+		struct to_container { };
+
+		template <typename TContainer, std::ranges::range TRange> requires 
+			std::convertible_to<std::ranges::range_value_t<TRange>, typename TContainer::value_type>
+		inline TContainer operator|(TRange&& range, to_container<TContainer>) {
+			auto it = range | std::views::common;
+			return TContainer{ it.begin(), it.end() };
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// This may be replaced by <c>std::views::to</c> in the future.
+		/// </remarks>
+		/// <returns></returns>
+		template <std::ranges::range TContainer> requires 
+			(!std::ranges::view<TContainer>)
+		auto to() {
+			return to_container<TContainer>{};
+		}
+
 	}
 
 #if (defined(BUILD_LITEFX_PIMPL) && BUILD_LITEFX_PIMPL) || (!defined(BUILD_LITEFX_PIMPL)) && !defined(LITEFX_IMPLEMENTATION)
@@ -145,22 +255,34 @@ namespace LiteFX {
 
 	template <class THandle>
 	class IResource {
+	public:
+		virtual ~IResource() noexcept = default;
+
+	protected:
+		virtual THandle& handle() noexcept = 0;
+
+	public:
+		virtual const THandle& handle() const noexcept = 0;
+	};
+
+	template <class THandle>
+	class Resource : public virtual IResource<THandle> {
 	private:
 		THandle m_handle;
 
 	protected:
-		explicit IResource(const THandle handle) noexcept : m_handle(handle) { }
+		explicit Resource(const THandle handle) noexcept : m_handle(handle) { }
 
 	public:
-		IResource(const IResource&) = delete;
-		IResource(IResource&&) = delete;
-		virtual ~IResource() noexcept = default;
+		Resource(const Resource&) = delete;
+		Resource(Resource&&) = delete;
+		virtual ~Resource() noexcept = default;
 
 	protected:
-		THandle& handle() noexcept { return m_handle; }
+		THandle& handle() noexcept override { return m_handle; }
 
 	public:
-		const THandle& handle() const noexcept { return m_handle; }
+		const THandle& handle() const noexcept override { return m_handle; }
 	};
 
 	template <typename TDerived, typename T, typename TParent = std::nullptr_t, typename TPointer = UniquePtr<T>>
@@ -178,8 +300,10 @@ namespace LiteFX {
 		using pointer_type = TPointer;
 		using builder_type = Builder<derived_type, instance_type, parent_type, pointer_type>;
 
-	protected:
+	public:
 		const T* instance() const noexcept { return m_instance.get(); }
+
+	protected:
 		T* instance() noexcept { return m_instance.get(); }
 
 	public:
@@ -193,27 +317,21 @@ namespace LiteFX {
 		template <typename TInstance>
 		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
-		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
-		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible<TInstance, const T&, TArgs...>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
+			std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
-		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
-		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
+			std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
 			return TBuilder(*static_cast<TDerived*>(this), makeShared<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
 		[[nodiscard]]
-		virtual UniquePtr<T> go() {
+		virtual TPointer go() {
 			return std::move(m_instance);
-		}
-
-		template <typename TInstance>
-		[[nodiscard]]
-		UniquePtr<TInstance> goFor() {
-			return UniquePtr<TInstance>(dynamic_cast<TInstance*>(this->go().release()));
 		}
 	};
 
@@ -230,10 +348,12 @@ namespace LiteFX {
 		using pointer_type = TPointer;
 		using builder_type = Builder<derived_type, instance_type, parent_type, pointer_type>;
 
-	protected:
+	public:
 		const T* instance() const noexcept { return m_instance.get(); }
+		const TParent& parent() const noexcept { return m_parent; }
+
+	protected:
 		T* instance() noexcept { return m_instance.get(); }
-		//const TParent& parent() const noexcept { return m_parent; }
 
 	public:
 		explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
@@ -246,14 +366,14 @@ namespace LiteFX {
 		template <typename TInstance>
 		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
 
-		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
-		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
+			std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
 			return TBuilder(*static_cast<TDerived*>(this), makeUnique<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
 
-		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder>
-		requires std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
+		template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, SharedPtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
+			std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>
 		TBuilder make(TArgs&&... _args) {
 			return TBuilder(*static_cast<TDerived*>(this), makeShared<TInstance>(*m_instance.get(), std::forward<TArgs>(_args)...));
 		}
