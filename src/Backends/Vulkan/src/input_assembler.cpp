@@ -111,7 +111,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder(VulkanRenderPipelineBuilder& parent) noexcept :
-    m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder>(parent, UniquePtr<VulkanInputAssembler>(new VulkanInputAssembler(*std::as_const(parent).instance()->getDevice())))
+    m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder>(parent, SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler(*std::as_const(parent).instance()->getDevice())))
 {
 }
 

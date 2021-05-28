@@ -46,7 +46,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRasterizerBuilder::VulkanRasterizerBuilder(VulkanRenderPipelineBuilder& parent) noexcept :
-    m_impl(makePimpl<VulkanRasterizerBuilderImpl>(this)), RasterizerBuilder(parent, UniquePtr<VulkanRasterizer>(new VulkanRasterizer(*std::as_const(parent).instance())))
+    m_impl(makePimpl<VulkanRasterizerBuilderImpl>(this)), RasterizerBuilder(parent, SharedPtr<VulkanRasterizer>(new VulkanRasterizer(*std::as_const(parent).instance())))
 {
 }
 
