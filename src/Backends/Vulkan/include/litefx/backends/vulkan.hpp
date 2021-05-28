@@ -1435,14 +1435,13 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanDevice>, public Resource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
-		LITEFX_BUILDER(VulkanBackendBuilder);
 
 	public:
 		/// <summary>
 		/// Initializes a new vulkan rendering backend.
 		/// </summary>
 		/// <param name="app">An instance of the app that owns the backend.</param>
-		/// <param name="extensions">A set of extensions to enable on the graphics device.</param>
+		/// <param name="extensions">A set of instance extensions to enable on the backend instance.</param>
 		/// <param name="validationLayers">A set of validation layers to enable on the rendering backend.</param>
 		explicit VulkanBackend(const App& app, const Span<String> extensions = { }, const Span<String> validationLayers = { });
 		VulkanBackend(const VulkanBackend&) noexcept = delete;
@@ -1485,27 +1484,29 @@ namespace LiteFX::Rendering::Backends {
 		/// Returns <c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.
 		/// </summary>
 		/// <returns><c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.</returns>
-		/// <seealso cref="getAvailableExtensions" />
-		static bool validateExtensions(Span<const String> extensions) noexcept;
+		/// <seealso cref="getAvailableInstanceExtensions" />
+		static bool validateInstanceExtensions(Span<const String> extensions) noexcept;
 
 		/// <summary>
 		/// Returns a list of available extensions.
 		/// </summary>
 		/// <returns>A list of available extensions.</returns>
-		static Array<String> getAvailableExtensions() noexcept;
+		/// <seealso cref="validateInstanceExtensions" />
+		static Array<String> getAvailableInstanceExtensions() noexcept;
 
 		/// <summary>
 		/// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
 		/// </summary>
 		/// <returns><c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.</returns>
-		/// <seealso cref="getValidationLayers" />
-		static bool validateLayers(const Span<const String> validationLayers) noexcept;
+		/// <seealso cref="getInstanceValidationLayers" />
+		static bool validateInstanceLayers(const Span<const String> validationLayers) noexcept;
 
 		/// <summary>
 		/// Returns a list of available validation layers.
 		/// </summary>
 		/// <returns>A list of available validation layers.</returns>
-		static Array<String> getValidationLayers() noexcept;
+		/// <seealso cref="validateInstanceLayers" />
+		static Array<String> getInstanceValidationLayers() noexcept;
 
 		// IBackend interface.
 	public:
@@ -1519,16 +1520,5 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const VulkanGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackendBuilder : public Builder<VulkanBackendBuilder, VulkanBackend, AppBuilder> {
-	public:
-		using builder_type::Builder;
-
-	public:
-		virtual AppBuilder& go() override;
 	};
 }

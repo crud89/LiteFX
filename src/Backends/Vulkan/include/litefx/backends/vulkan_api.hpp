@@ -179,6 +179,35 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         virtual UInt64 getDedicatedMemory() const noexcept override;
+
+    public:
+        /// <summary>
+        /// Returns <c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.
+        /// </summary>
+        /// <returns><c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.</returns>
+        /// <seealso cref="getAvailableDeviceExtensions" />
+        bool validateDeviceExtensions(Span<const String> extensions) const noexcept;
+
+        /// <summary>
+        /// Returns a list of available extensions.
+        /// </summary>
+        /// <returns>A list of available extensions.</returns>
+        /// <seealso cref="validateDeviceExtensions" />
+        Array<String> getAvailableDeviceExtensions() const noexcept;
+
+        /// <summary>
+        /// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
+        /// </summary>
+        /// <returns><c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.</returns>
+        /// <seealso cref="getDeviceValidationLayers" />
+        bool validateDeviceLayers(const Span<const String> validationLayers) const noexcept;
+
+        /// <summary>
+        /// Returns a list of available validation layers.
+        /// </summary>
+        /// <returns>A list of available validation layers.</returns>
+        /// <seealso cref="validateDeviceLayers" />
+        Array<String> getDeviceValidationLayers() const noexcept;
     };
 
     /// <summary>

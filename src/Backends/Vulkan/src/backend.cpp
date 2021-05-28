@@ -68,13 +68,13 @@ public:
     VkInstance initialize()
     {
         // Check if all extensions are available.
-        if (!VulkanBackend::validateExtensions(m_extensions))
+        if (!VulkanBackend::validateInstanceExtensions(m_extensions))
             throw InvalidArgumentException("Some required Vulkan extensions are not supported by the system.");
 
         auto requiredExtensions = m_extensions | std::views::transform([this](const auto& extension) { return extension.c_str(); }) | ranges::to<Array<const char*>>();
 
         // Check if all extensions are available.
-        if (!VulkanBackend::validateLayers(m_layers))
+        if (!VulkanBackend::validateInstanceLayers(m_layers))
             throw InvalidArgumentException("Some required Vulkan layers are not supported by the system.");
 
         auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | ranges::to<Array<const char*>>();
@@ -173,6 +173,14 @@ VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<Strin
 {
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters();
+
+    LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+    LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(this->getAvailableInstanceExtensions(), ", "));
+    LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(this->getInstanceValidationLayers(), ", "));
+    LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+
+    if (this->getEnabledValidationLayers().size() > 0)
+        LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(this->getEnabledValidationLayers(), ", "));
 }
 
 VulkanBackend::~VulkanBackend() noexcept 
@@ -235,22 +243,25 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd) const
 // Static interface.
 // ------------------------------------------------------------------------------------------------
 
-bool VulkanBackend::validateExtensions(Span<const String> extensions) noexcept
+bool VulkanBackend::validateInstanceExtensions(Span<const String> extensions) noexcept
 {
-    auto availableExtensions = VulkanBackend::getAvailableExtensions();
+    auto availableExtensions = VulkanBackend::getAvailableInstanceExtensions();
 
     return std::ranges::all_of(extensions, [&availableExtensions](const auto& extension) {
         auto match = std::ranges::find_if(availableExtensions, [&extension](const auto& str) {
             return std::equal(str.begin(), str.end(), extension.begin(), extension.end(), [](char a, char b) {
                 return std::tolower(a) == std::tolower(b);
             });
-        }); 
+        });
+
+        if (match == availableExtensions.end())
+            LITEFX_ERROR(VULKAN_LOG, "Extension {0} is not supported by this instance.", extension);
 
         return match != availableExtensions.end();
     });
 }
 
-Array<String> VulkanBackend::getAvailableExtensions() noexcept
+Array<String> VulkanBackend::getAvailableInstanceExtensions() noexcept
 {
     UInt32 extensions = 0;
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, nullptr);
@@ -263,22 +274,25 @@ Array<String> VulkanBackend::getAvailableExtensions() noexcept
         ranges::to<Array<String>>();
 }
 
-bool VulkanBackend::validateLayers(Span<const String> layers) noexcept
+bool VulkanBackend::validateInstanceLayers(Span<const String> layers) noexcept
 {
-    auto availableExtensions = VulkanBackend::getAvailableExtensions();
+    auto availableLayers = VulkanBackend::getInstanceValidationLayers();
 
-    return std::ranges::all_of(layers, [&availableExtensions](const auto& layer) {
-        auto match = std::ranges::find_if(availableExtensions, [&layer](const auto& str) {
+    return std::ranges::all_of(layers, [&availableLayers](const auto& layer) {
+        auto match = std::ranges::find_if(availableLayers, [&layer](const auto& str) {
             return std::equal(str.begin(), str.end(), layer.begin(), layer.end(), [](char a, char b) {
                 return std::tolower(a) == std::tolower(b);
             });
         });
 
-        return match != availableExtensions.end();
+        if (match == availableLayers.end())
+            LITEFX_ERROR(VULKAN_LOG, "Validation layer {0} is not supported by this instance.", layer);
+
+        return match != availableLayers.end();
     });
 }
 
-Array<String> VulkanBackend::getValidationLayers() noexcept
+Array<String> VulkanBackend::getInstanceValidationLayers() noexcept
 {
     UInt32 layers = 0;
     ::vkEnumerateInstanceLayerProperties(&layers, nullptr);
@@ -289,21 +303,4 @@ Array<String> VulkanBackend::getValidationLayers() noexcept
     return availableLayers | 
         std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) |
         ranges::to<Array<String>>();
-}
-
-// ------------------------------------------------------------------------------------------------
-// Builder interface.
-// ------------------------------------------------------------------------------------------------
-
-AppBuilder& VulkanBackendBuilder::go()
-{
-    LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
-    LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(VulkanBackend::getAvailableExtensions(), ", "));
-    LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(VulkanBackend::getValidationLayers(), ", "));
-    LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
-
-    if (this->instance()->getEnabledValidationLayers().size() > 0)
-        LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(this->instance()->getEnabledValidationLayers(), ", "));
-
-    return builder_type::go();
 }

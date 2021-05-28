@@ -116,7 +116,7 @@ public:
 
 	VkDevice initialize()
 	{
-		if (!VulkanBackend::validateExtensions(m_extensions))
+		if (!m_adapter.validateDeviceExtensions(m_extensions))
 			throw InvalidArgumentException("Some required device extensions are not supported by the system.");
 
 		auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | ranges::to<Array<const char*>>();
@@ -245,7 +245,13 @@ VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSur
 	LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
 	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
-	
+	LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(adapter.getAvailableDeviceExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(adapter.getDeviceValidationLayers(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+
+	if (extensions.size() > 0)
+		LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(extensions, ", "));
+
 	this->handle() = m_impl->initialize();
 	m_impl->createQueues();
 	m_impl->createFactory();
