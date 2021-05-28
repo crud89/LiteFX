@@ -106,7 +106,10 @@ VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const U
     this->handle() = m_impl->initialize();
 }
 
-VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
+VulkanFrameBuffer::~VulkanFrameBuffer() noexcept
+{
+    ::vkDestroyFramebuffer(this->getDevice()->handle(), this->handle(), nullptr);
+}
 
 const VkSemaphore& VulkanFrameBuffer::semaphore() const noexcept
 {
@@ -153,6 +156,10 @@ const IVulkanImage& VulkanFrameBuffer::image(const UInt32& location) const
 
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
 {
+    // Destroy the old frame buffer.
+    ::vkDestroyFramebuffer(this->getDevice()->handle(), this->handle(), nullptr);
+
+    // Reset the size and re-initialize the frame buffer.
     m_impl->m_size = renderArea;
     this->handle() = m_impl->initialize();
 }
