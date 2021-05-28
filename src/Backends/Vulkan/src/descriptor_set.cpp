@@ -52,7 +52,10 @@ void VulkanDescriptorSet::update(const IVulkanConstantBuffer& buffer, const UInt
     {
     case DescriptorType::Uniform: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
     case DescriptorType::Storage: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
-    default: throw std::runtime_error("Unsupported buffer type.");
+    default: 
+        LITEFX_WARNING(VULKAN_LOG, "The constant buffer is bound to a descriptor with an unsupported buffer type: {0}. Descriptor will be treated as uniform buffer.", buffer.layout().descriptorType());
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        break;
     }
 
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
