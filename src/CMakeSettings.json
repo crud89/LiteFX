@@ -13,6 +13,40 @@
       "variables": []
     },
     {
+      "name": "x64-Debug (Vulkan only)",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\..\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\..\\out\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "BUILD_DIRECTX_12_BACKEND",
+          "value": "OFF"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug (DX12 only)",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\..\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\..\\out\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "BUILD_VULKAN_BACKEND",
+          "value": "OFF"
+        }
+      ]
+    },
+    {
       "name": "x64-Release",
       "generator": "Ninja",
       "configurationType": "Release",
