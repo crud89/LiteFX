@@ -54,7 +54,10 @@ namespace LiteFX::Rendering::Backends {
 		// IMappable interface.
 	public:
 		/// <inheritdoc />
-		virtual void map(const void* const data, const size_t& size) override;
+		virtual void map(const void* const data, const size_t& size, const UInt32& element = 0) override;
+
+		/// <inheritdoc />
+		virtual void map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement = 0) override;
 
 		// VulkanBuffer.
 	public:

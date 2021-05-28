@@ -35,29 +35,42 @@ UniquePtr<IVulkanSampler> VulkanDescriptorSet::makeSampler(const UInt32& binding
 
 void VulkanDescriptorSet::update(const IVulkanConstantBuffer& buffer, const UInt32& bufferElement) const noexcept
 {
-    VkDescriptorBufferInfo bufferInfo{ };
-    bufferInfo.buffer = buffer.handle();
-    bufferInfo.range = buffer.elementSize();    // * elements;
-    bufferInfo.offset = bufferElement * buffer.elementSize();
-
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = this->handle();
     descriptorWrite.dstBinding = buffer.binding();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorCount = 1;    // = elements;
-    descriptorWrite.pBufferInfo = &bufferInfo;
+
+    size_t alignedSize = static_cast<size_t>(buffer.elementSize());
+    size_t alignment = 0;
 
     switch (buffer.layout().descriptorType())
     {
-    case DescriptorType::Uniform: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
-    case DescriptorType::Storage: descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
-    default: 
+    default:
         LITEFX_WARNING(VULKAN_LOG, "The constant buffer is bound to a descriptor with an unsupported buffer type: {0}. Descriptor will be treated as uniform buffer.", buffer.layout().descriptorType());
+        [[fallthrough]];
+    case DescriptorType::Uniform: 
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        alignment = this->getDevice()->adapter().getLimits().minUniformBufferOffsetAlignment;
+        break;
+    case DescriptorType::Storage: 
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        alignment = this->getDevice()->adapter().getLimits().minStorageBufferOffsetAlignment;
         break;
     }
 
+    if (alignment > 0)
+        alignedSize = (alignedSize + alignment - 1) & ~(alignment - 1);
+
+    // Create buffer info.
+    VkDescriptorBufferInfo bufferInfo{ };
+    bufferInfo.buffer = buffer.handle();
+    bufferInfo.range = alignedSize;    // * elements;
+    bufferInfo.offset = static_cast<size_t>(bufferElement) * alignedSize;
+
+    // Set the buffer info and update the descriptor set.
+    descriptorWrite.pBufferInfo = &bufferInfo;
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 

@@ -62,7 +62,7 @@ int main(const int argc, const char** argv)
 		App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
-			.make<VulkanBackend>(requiredExtensions, enabledLayers)
+			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
 			.go();
 	}
 	catch (const LiteFX::Exception& ex)

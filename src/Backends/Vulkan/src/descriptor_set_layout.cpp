@@ -120,10 +120,15 @@ public:
     {
         LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, m_poolSize);
 
+        // Filter pool sizes, since descriptorCount must be greater than 0, according to the specs.
+        auto poolSizes = m_poolSizes |
+            std::views::filter([](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0; }) |
+            ranges::to<Array<VkDescriptorPoolSize>>();
+
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = m_poolSizes.size();
-        poolInfo.pPoolSizes = m_poolSizes.data();
+        poolInfo.poolSizeCount = poolSizes.size();
+        poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = m_poolSize;
 
         VkDescriptorPool descriptorPool;
@@ -239,6 +244,13 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate() const noexc
     m_impl->m_freeDescriptorSets.pop();
 
     return descriptorSet;
+}
+
+Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(const UInt32& count) const noexcept
+{
+    Array<UniquePtr<VulkanDescriptorSet>> descriptorSets(count);
+    std::ranges::generate(descriptorSets, [this]() { return this->allocate(); });
+    return descriptorSets;
 }
 
 void VulkanDescriptorSetLayout::free(const VulkanDescriptorSet& descriptorSet) const noexcept

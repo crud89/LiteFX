@@ -122,7 +122,16 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <param name="data">The address that marks the beginning of the data to map.</param>
 		/// <param name="size">The number of bytes to map.</param>
-		virtual void map(const void* const data, const size_t& size) = 0;
+		/// <param name="element">The array element to map the data to.</param>
+		virtual void map(const void* const data, const size_t& size, const UInt32& element = 0) = 0;
+
+		/// <summary>
+		/// Maps the memory blocks within <paramref name="data" /> to the internal memory of an array.
+		/// </summary>
+		/// <param name="data">The data blocks to map.</param>
+		/// <param name="size">The size of each data block within <paramref name="data" />.</param>
+		/// <param name="firsElement">The first element of the array to map.</param>
+		virtual void map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement = 0) = 0;
 	};
 
 	/// <summary>
@@ -666,6 +675,13 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <returns>The instance of the descriptor set.</returns>
 		virtual UniquePtr<TDescriptorSet> allocate() const noexcept = 0;
+
+		/// <summary>
+		/// Allocates an array of descriptor sets.
+		/// </summary>
+		/// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+		/// <returns>The array of descriptor set instances.</returns>
+		virtual Array<UniquePtr<TDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept = 0;
 
 		/// <summary>
 		/// Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.

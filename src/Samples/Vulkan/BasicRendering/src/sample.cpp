@@ -3,9 +3,8 @@
 
 enum DescriptorSets : UInt32
 {
-    PerFrame = 0,                                       // All buffers that are updated for each frame.
-    PerInstance = 1,                                    // All buffers that are updated for each rendered instance.
-    VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
+    Constant = 0,                                       // All buffers that are immutable.
+    PerFrame = 1,                                       // All buffers that are updated each frame.
 };
 
 enum Pipelines : UInt32
@@ -37,73 +36,104 @@ static void onResize(GLFWwindow* window, int width, int height)
     app->resize(width, height);
 }
 
-void SampleApp::createRenderPasses()
+void SampleApp::initRenderGraph()
 {
     m_renderPass = m_device->buildRenderPass()
-        .attachTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
-        .addPipeline(Pipelines::Basic, "Basic")
-            .withViewport(m_viewport)
-            .withScissor(m_scissor)
-            .layout()
-                .shaderProgram()
-                    .addVertexShaderModule("shaders/basic.vert.spv")
-                    .addFragmentShaderModule("shaders/basic.frag.spv")
-                    .go()
-                .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex | ShaderStage::Fragment)
-                    .addUniform(0, sizeof(CameraBuffer))
-                    .go()
-                .addDescriptorSet(DescriptorSets::PerInstance, ShaderStage::Vertex)
-                    .addUniform(0, sizeof(TransformBuffer))
-                    .go()
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+        .go();
+}
+
+void SampleApp::initPipelines()
+{
+    m_pipeline = m_renderPass->makePipeline(Pipelines::Basic, "Basic")
+        .withViewport(m_viewport)
+        .withScissor(m_scissor)
+        .layout()
+            .shaderProgram()
+                .addVertexShaderModule("shaders/basic.vert.spv")
+                .addFragmentShaderModule("shaders/basic.frag.spv")
                 .go()
-            .rasterizer()
-                .withPolygonMode(PolygonMode::Solid)
-                .withCullMode(CullMode::BackFaces)
-                .withCullOrder(CullOrder::ClockWise)
-                .withLineWidth(1.f)
+            .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment, 1)
+                .addUniform(0, sizeof(CameraBuffer))
                 .go()
-            .inputAssembler()
-                .withTopology(PrimitiveTopology::TriangleList)
-                .withIndexType(IndexType::UInt16)
-                .addVertexBuffer(sizeof(Vertex), 0)
-                    .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                    .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                    .go()
+            .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex, 3)
+                .addUniform(0, sizeof(TransformBuffer))
+                .go()
+            .go()
+        .rasterizer()
+            .withPolygonMode(PolygonMode::Solid)
+            .withCullMode(CullMode::BackFaces)
+            .withCullOrder(CullOrder::ClockWise)
+            .withLineWidth(1.f)
+            .go()
+        .inputAssembler()
+            .withTopology(PrimitiveTopology::TriangleList)
+            .withIndexType(IndexType::UInt16)
+            .addVertexBuffer(sizeof(Vertex), 0)
+                .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+                .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
                 .go()
             .go()
         .go();
+
+    m_inputAssembler = m_pipeline->inputAssembler();
 }
 
 void SampleApp::initBuffers()
 {
     // Get the pipeline instance.
-    auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
 
     // Create the staging buffer.
-    auto stagedVertices = pipeline->makeVertexBuffer(BufferUsage::Staging, vertices.size());
+    auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex));
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    m_vertexBuffer = pipeline->makeVertexBuffer(BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(commandBuffer.get(), stagedVertices.get(), stagedVertices->getSize());
+    m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+    m_vertexBuffer->transferFrom(*commandBuffer.get(), *stagedVertices.get(), stagedVertices->size());
 
     // Create the staging buffer for the indices.
-    auto stagedIndices = pipeline->makeIndexBuffer(BufferUsage::Staging, indices.size(), IndexType::UInt16);
-    stagedIndices->map(indices.data(), indices.size() * sizeof(UInt16));
+    auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout().elementSize());
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    m_indexBuffer = pipeline->makeIndexBuffer(BufferUsage::Resource, indices.size(), IndexType::UInt16);
-    m_indexBuffer->transferFrom(commandBuffer.get(), stagedIndices.get(), stagedIndices->getSize());
+    m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+    m_indexBuffer->transferFrom(*commandBuffer.get(), *stagedIndices.get(), stagedIndices->size());
 
-    // Create a uniform buffers for the camera and transform information.
-    m_perFrameBindings = pipeline->makeDescriptorSet(DescriptorSets::PerFrame);
-    m_cameraBuffer = m_perFrameBindings->makeBuffer(0, BufferUsage::Dynamic);
-    m_perObjectBindings = pipeline->makeDescriptorSet(DescriptorSets::PerInstance);
-    m_transformBuffer = m_perObjectBindings->makeBuffer(0, BufferUsage::Dynamic);
+    // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
+    // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
+    auto& cameraBindingLayout = m_pipeline->layout().layout(DescriptorSets::Constant);
+    m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Staging, 1);
+    m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Resource, 1);
+
+    // Allocate the descriptor set and bind the camera buffer to it.
+    m_cameraBindings = cameraBindingLayout.allocate();
+    m_cameraBindings->update(*m_cameraBuffer.get(), 0);
+
+    // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
+    this->updateCamera(*commandBuffer.get());
+
+    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
+    // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
+    auto& transformBindingLayout = m_pipeline->layout().layout(DescriptorSets::PerFrame);
+    m_perFrameBindings = transformBindingLayout.allocate(3);
+    m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
+    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer.get(), i++); });
     
     // End and submit the command buffer.
     commandBuffer->end(true, true);
+}
+
+void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
+{
+    // Calculate the camera view/projection matrix.
+    auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
+    glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
+    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
+    camera.ViewProjection = projection * view;
+    m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer.get(), m_cameraStagingBuffer->size());
 }
 
 void SampleApp::run() 
@@ -137,7 +167,8 @@ void SampleApp::run()
     m_device = backend->createDevice(*adapter, *m_surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
 
     // Initialize resources.
-    this->createRenderPasses();
+    this->initRenderGraph();
+    this->initPipelines();
     this->initBuffers();
 
     // Run application loop until the window is closed.
@@ -151,14 +182,15 @@ void SampleApp::run()
     m_device->wait();
 
     // Destroy all resources.
-    m_perObjectBindings = nullptr;
-    m_perFrameBindings = nullptr;
+    m_cameraBindings = nullptr;
+    m_perFrameBindings.clear();
     m_cameraBuffer = nullptr;
     m_transformBuffer = nullptr;
     m_vertexBuffer = nullptr;
     m_indexBuffer = nullptr;
 
-    // Destroy the pipeline and the device.
+    // Destroy the pipeline, render pass and the device.
+    m_pipeline = nullptr;
     m_renderPass = nullptr;
     m_device = nullptr;
 
@@ -192,6 +224,11 @@ void SampleApp::resize(int width, int height)
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+
+    // Also update the camera.
+    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    this->updateCamera(*commandBuffer.get());
+    commandBuffer->end(true, true);
 }
 
 void SampleApp::handleEvents()
@@ -201,43 +238,33 @@ void SampleApp::handleEvents()
 
 void SampleApp::drawFrame()
 {
+    // Store the initial time this method has been called first.
+    static auto start = std::chrono::high_resolution_clock::now();
+
+    // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
-    // Begin rendering.
+    // Begin rendering on the render pass and use the only pipeline we've created for it.
     m_renderPass->begin(backBuffer);
+    m_pipeline->use();
 
-    // Get the pipeline and bind it.
-    auto pipeline = m_renderPass->getPipeline(Pipelines::Basic);
-    pipeline->use();
-
-    // Update transform buffer.
-    static auto start = std::chrono::high_resolution_clock::now();
+    // Get the amount of time that has passed since the first frame.
     auto now = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
-    auto aspectRatio = static_cast<float>(m_device->getBufferWidth()) / static_cast<float>(m_device->getBufferHeight());
 
-    // Compute camera view and projection.
-    glm::mat4 view       = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
-    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
-    camera.ViewProjection = projection * view;
-    m_cameraBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_perFrameBindings->update(m_cameraBuffer.get());
-    pipeline->bind(m_perFrameBindings.get());
-
-    // Draw the model.
-    pipeline->bind(m_vertexBuffer.get());
-    pipeline->bind(m_indexBuffer.get());
-    
-    // Compute world transform.
+    // Compute world transform and update the transform buffer.
     transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform));
-    m_perObjectBindings->update(m_transformBuffer.get());
-    pipeline->bind(m_perObjectBindings.get());
+    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
-    // Draw the object.
-    m_renderPass->drawIndexed(indices.size());
+    // Bind both descriptor sets to the pipeline.
+    m_pipeline->bind(*m_cameraBindings.get());
+    m_pipeline->bind(*m_perFrameBindings[backBuffer].get());
 
-    // End the frame.
-    m_renderPass->end(backBuffer, true);
+    // Bind the vertex and index buffers.
+    m_pipeline->bind(*m_vertexBuffer.get());
+    m_pipeline->bind(*m_indexBuffer.get());
+
+    // Draw the object and present the frame by ending the render pass.
+    m_pipeline->drawIndexed(m_indexBuffer->elements());
+    m_renderPass->end();
 }

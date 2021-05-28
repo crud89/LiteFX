@@ -10,10 +10,14 @@ class VulkanGraphicsAdapter::VulkanGraphicsAdapterImpl : public Implement<Vulkan
 public:
     friend class VulkanGraphicsAdapter;
 
+private:
+    VkPhysicalDeviceLimits m_limits;
+
 public:
     VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : 
         base(parent) 
     {
+        m_limits = this->getProperties().limits;
     }
 
 public:
@@ -90,6 +94,11 @@ UInt32 VulkanGraphicsAdapter::getApiVersion() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.apiVersion;
+}
+
+VkPhysicalDeviceLimits VulkanGraphicsAdapter::getLimits() const noexcept
+{
+    return m_impl->m_limits;
 }
 
 UInt64 VulkanGraphicsAdapter::getDedicatedMemory() const noexcept

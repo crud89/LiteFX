@@ -150,13 +150,13 @@ public:
 				auto const priorities = family.queues() | 
 					std::views::transform([](const UniquePtr<VulkanQueue>& queue) { return static_cast<Float>(queue->priority()) / 100.f; }) |
 					ranges::to<Array<Float>>();
+				queuePriorities.push_back(priorities);
 
 				VkDeviceQueueCreateInfo queueCreateInfo = {};
 				queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 				queueCreateInfo.queueFamilyIndex = family.id();
 				queueCreateInfo.queueCount = family.active();
-				queueCreateInfo.pQueuePriorities = priorities.data();
-				queuePriorities.push_back(priorities);
+				queueCreateInfo.pQueuePriorities = queuePriorities.back().data();
 
 				return queueCreateInfo;
 			}) |
@@ -175,6 +175,8 @@ public:
 		createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
 		// Create the device.
+		// NOTE: This can time-out under very mysterious circumstances, in which case the event log shows a TDR error. Unfortunately, the only way I found
+		//       to fix this is rebooting the entire system.
 		VkDevice device;
 		raiseIfFailed<RuntimeException>(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 

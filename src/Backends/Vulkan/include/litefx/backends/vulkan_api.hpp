@@ -182,6 +182,12 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
+        /// Returns the limits of the physical device.
+        /// </summary>
+        /// <returns>The limits of the physical device.</returns>
+        VkPhysicalDeviceLimits getLimits() const noexcept;
+
+        /// <summary>
         /// Returns <c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.
         /// </summary>
         /// <returns><c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.</returns>

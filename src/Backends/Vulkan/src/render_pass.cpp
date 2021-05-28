@@ -197,10 +197,6 @@ public:
         VkRenderPass renderPass;
         raiseIfFailed<RuntimeException>(::vkCreateRenderPass(m_parent->getDevice()->handle(), &renderPassState, nullptr, &renderPass), "Unable to create render pass.");
 
-        // Initialize the frame buffers.
-        m_frameBuffers.resize(m_parent->getDevice()->swapChain().buffers());
-        std::ranges::generate(m_frameBuffers, [this, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*m_parent, i++, m_parent->parent().swapChain().renderArea()); });
-
         return renderPass;
     }
 };
@@ -213,6 +209,10 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget
     m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(nullptr)
 {
     this->handle() = m_impl->initialize();
+
+    // Initialize the frame buffers.
+    m_impl->m_frameBuffers.resize(this->getDevice()->swapChain().buffers());
+    std::ranges::generate(m_impl->m_frameBuffers, [this, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*this, i++, this->parent().swapChain().renderArea()); });
 }
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device) noexcept :
@@ -401,6 +401,10 @@ UniquePtr<VulkanRenderPass> VulkanRenderPassBuilder::go()
     instance->m_impl->mapRenderTargets(m_impl->m_renderTargets);
     instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
     instance->handle() = instance->m_impl->initialize();
+
+    // Initialize the frame buffers.
+    instance->m_impl->m_frameBuffers.resize(instance->getDevice()->swapChain().buffers());
+    std::ranges::generate(instance->m_impl->m_frameBuffers, [&instance, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*instance, i++, instance->parent().swapChain().renderArea()); });
 
     return RenderPassBuilder::go();
 }

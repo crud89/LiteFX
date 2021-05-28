@@ -130,7 +130,7 @@ void VulkanCommandBuffer::submit(const Array<VkSemaphore>& waitForSemaphores, co
 	submitInfo.pCommandBuffers = &this->handle();
 
 	// Submit the command buffer to the transfer queue.
-	raiseIfFailed<RuntimeException>(::vkQueueSubmit(this->parent().handle(), 1, &submitInfo, m_impl->m_fence),"Unable to submit command buffer to queue.");
+	raiseIfFailed<RuntimeException>(::vkQueueSubmit(this->parent().handle(), 1, &submitInfo, m_impl->m_fence), "Unable to submit command buffer to queue.");
 
 	// If required, wait for the queue to return into idle state.
 	if (waitForQueue)

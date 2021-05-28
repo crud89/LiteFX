@@ -112,17 +112,33 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	bufferInfo.size = elementSize * static_cast<size_t>(elements);
-
 	VkBufferUsageFlags usageFlags = {};
+
+	size_t alignedSize = static_cast<size_t>(elementSize);
+	size_t alignment = 0;
 
 	switch (type)
 	{
-	case BufferType::Vertex:  usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;  break;
-	case BufferType::Index:   usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;   break;
-	case BufferType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
-	case BufferType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; break;
+	case BufferType::Vertex:  
+		usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;  
+		break;
+	case BufferType::Index:   
+		usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;   
+		break;
+	case BufferType::Uniform: 
+		usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		alignment = m_impl->m_device.adapter().getLimits().minUniformBufferOffsetAlignment;
+		break;
+	case BufferType::Storage: 
+		usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		alignment = m_impl->m_device.adapter().getLimits().minStorageBufferOffsetAlignment;
+		break;
 	}
+
+	if (alignment > 0)
+		alignedSize = (alignedSize + alignment - 1) & ~(alignment - 1);
+
+	bufferInfo.size = alignedSize * static_cast<size_t>(elements);
 
 	switch (usage)
 	{
@@ -131,21 +147,6 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 	}
 
 	bufferInfo.usage = usageFlags;
-
-	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
-	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	else
-	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
-
-		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
-			queues.push_back(m_impl->m_device.transferQueue().familyId());
-
-		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
-		bufferInfo.pQueueFamilyIndices = queues.data();
-	}
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
@@ -158,7 +159,27 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, m_impl->m_allocator, bufferInfo, allocInfo);
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+	{
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		bufferInfo.queueFamilyIndexCount = 0;
+
+		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, m_impl->m_allocator, bufferInfo, allocInfo);
+	}
+	else
+	{
+		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
+
+		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+			queues.push_back(m_impl->m_device.transferQueue().familyId());
+
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+		bufferInfo.pQueueFamilyIndices = queues.data();
+
+		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, m_impl->m_allocator, bufferInfo, allocInfo);
+	}
 }
 
 UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
@@ -176,21 +197,6 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const V
 
 	bufferInfo.usage = usageFlags;
 
-	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
-	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	else
-	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
-
-		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
-			queues.push_back(m_impl->m_device.transferQueue().familyId());
-
-		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
-		bufferInfo.pQueueFamilyIndices = queues.data();
-	}
-
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
@@ -202,7 +208,27 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const V
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	return VulkanVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+	{
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		bufferInfo.queueFamilyIndexCount = 0;
+
+		return VulkanVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	}
+	else
+	{
+		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
+
+		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+			queues.push_back(m_impl->m_device.transferQueue().familyId());
+
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+		bufferInfo.pQueueFamilyIndices = queues.data();
+
+		return VulkanVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	}
 }
 
 UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
@@ -220,21 +246,6 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Vul
 
 	bufferInfo.usage = usageFlags;
 
-	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
-	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	else
-	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
-
-		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
-			queues.push_back(m_impl->m_device.transferQueue().familyId());
-
-		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
-		bufferInfo.pQueueFamilyIndices = queues.data();
-	}
-
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
@@ -246,22 +257,53 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Vul
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	// Create a buffer using VMA.
-	return VulkanIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+	{
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		bufferInfo.queueFamilyIndexCount = 0;
+
+		return VulkanIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	}
+	else
+	{
+		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
+
+		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+			queues.push_back(m_impl->m_device.transferQueue().familyId());
+
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+		bufferInfo.pQueueFamilyIndices = queues.data();
+
+		return VulkanIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	}
 }
 
 UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	bufferInfo.size = layout.elementSize() * elements;
-
 	VkBufferUsageFlags usageFlags = {};
+
+	size_t alignedSize = static_cast<size_t>(layout.elementSize());
+	size_t alignment = 0;
 
 	switch (layout.type())
 	{
-	case BufferType::Uniform: usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
-	case BufferType::Storage: usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; break;
+	case BufferType::Uniform: 
+		usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; 
+		alignment = m_impl->m_device.adapter().getLimits().minUniformBufferOffsetAlignment;
+		break;
+	case BufferType::Storage: 
+		usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		alignment = m_impl->m_device.adapter().getLimits().minStorageBufferOffsetAlignment;
+		break;
 	}
+
+	if (alignment > 0)
+		alignedSize = (alignedSize + alignment - 1) & ~(alignment - 1);
+
+	bufferInfo.size = alignedSize * static_cast<size_t>(elements);
 
 	switch (usage)
 	{
@@ -271,21 +313,6 @@ UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(con
 
 	bufferInfo.usage = usageFlags;
 
-	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
-	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	else
-	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
-
-		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
-			queues.push_back(m_impl->m_device.transferQueue().familyId());
-
-		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
-		bufferInfo.pQueueFamilyIndices = queues.data();
-	}
-
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
@@ -297,8 +324,27 @@ UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(con
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	// Create a buffer using VMA.
-	return VulkanConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
+	{
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		bufferInfo.queueFamilyIndexCount = 0;
+
+		return VulkanConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	}
+	else
+	{
+		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
+
+		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
+			queues.push_back(m_impl->m_device.transferQueue().familyId());
+
+		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
+		bufferInfo.pQueueFamilyIndices = queues.data();
+
+		return VulkanConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	}
 }
 
 UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const

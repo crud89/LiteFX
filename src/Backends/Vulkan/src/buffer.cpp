@@ -78,16 +78,35 @@ size_t VulkanBuffer::elementSize() const noexcept
 	return m_impl->m_elementSize;
 }
 
-void VulkanBuffer::map(const void* const data, const size_t& size)
+void VulkanBuffer::map(const void* const data, const size_t& size, const UInt32& element)
 {
-	void* buffer;
-	raiseIfFailed<RuntimeException>(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, &buffer), "Unable to map buffer memory.");
-	auto result = ::memcpy_s(buffer, this->size(), data, size);
+	if (element >= m_impl->m_elements)
+		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+
+	size_t alignedSize = size;
+	size_t alignment = 0;
+
+	if (m_impl->m_type == BufferType::Uniform)
+		alignment = this->getDevice()->adapter().getLimits().minUniformBufferOffsetAlignment;
+	else if (m_impl->m_type == BufferType::Storage)
+		alignment = this->getDevice()->adapter().getLimits().minStorageBufferOffsetAlignment;
+
+	if (alignment > 0)
+		alignedSize = (size + alignment - 1) & ~(alignment - 1);
+
+	char* buffer;		// A pointer to the whole (aligned) buffer memory.
+	raiseIfFailed<RuntimeException>(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size);
 
 	if (result != 0)
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
+}
+
+void VulkanBuffer::map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement)
+{
+	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
 }
 
 UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const VulkanDevice& device, const BufferType& type, const UInt32& elements, const size_t& elementSize, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
