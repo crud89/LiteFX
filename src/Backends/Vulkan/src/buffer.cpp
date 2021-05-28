@@ -13,13 +13,13 @@ public:
 private:
 	BufferType m_type;
 	UInt32 m_elements;
-	size_t m_elementSize;
+	size_t m_elementSize, m_alignment;
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocation;
 
 public:
-	VulkanBufferImpl(VulkanBuffer* parent, const BufferType& type, const UInt32& elements, const size_t& elementSize, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_allocator(allocator), m_allocation(allocation)
+	VulkanBufferImpl(VulkanBuffer* parent, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_allocator(allocator), m_allocation(allocation)
 	{
 	}
 };
@@ -27,8 +27,8 @@ public:
 // ------------------------------------------------------------------------------------------------
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
-VulkanBuffer::VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkBuffer>(buffer)
+VulkanBuffer::VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkBuffer>(buffer)
 {
 }
 
@@ -38,26 +38,47 @@ VulkanBuffer::~VulkanBuffer() noexcept
 	LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", fmt::ptr(this->handle()));
 }
 
-void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
+void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
-	// TODO: Don't ignore alignment!!!
-	// TODO: Use multiple VkBufferCopys to allow to copy multiple array elements. Currently only one contiguous block can be copied at a time.
-	VkBufferCopy copyInfo{};
-	copyInfo.size = size;
-	copyInfo.srcOffset = sourceOffset;
-	copyInfo.dstOffset = targetOffset;
-	::vkCmdCopyBuffer(commandBuffer.handle(), source.handle(), this->handle(), 1, &copyInfo);
+	if (source.elements() < sourceElement + elements)
+		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+
+	if (this->elements() < targetElement + elements)
+		throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
+
+	// Depending on the alignment, the transfer can be combined into a single copy command.
+	Array<VkBufferCopy> copyInfos;
+
+	if (this->elementAlignment() == 0 && source.elementAlignment() == 0)
+	{
+		// Copy from unaligned to unaligned memory, so we can simply do one copy for the whole memory chunk.
+		VkBufferCopy copyInfo{};
+		copyInfo.size = source.elementSize() * elements;
+		copyInfo.srcOffset = sourceElement * source.elementSize();
+		copyInfo.dstOffset = targetElement * this->alignedElementSize();
+		copyInfos.push_back(copyInfo);
+	}
+	else
+	{
+		// All other options require us to record one command per element. Since `alignedElementSize` returns `elementSize`, if there's no alignment, it does 
+		// not matter which buffer is aligned or unaligned.
+		copyInfos.resize(elements);
+		std::ranges::generate(copyInfos, [this, &source, &sourceElement, &targetElement, i = 0]() mutable {
+			VkBufferCopy copyInfo{};
+			copyInfo.size = source.alignedElementSize();
+			copyInfo.srcOffset = (sourceElement + i) * source.alignedElementSize();
+			copyInfo.dstOffset = (targetElement + i) * this->alignedElementSize();
+			i++;
+			return copyInfo;
+		});
+	}
+
+	::vkCmdCopyBuffer(commandBuffer.handle(), source.handle(), this->handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
-void VulkanBuffer::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
+void VulkanBuffer::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
-	// TODO: Don't ignore alignment!!!
-	// TODO: Use multiple VkBufferCopys to allow to copy multiple array elements. Currently only one contiguous block can be copied at a time.
-	VkBufferCopy copyInfo{};
-	copyInfo.size = size;
-	copyInfo.srcOffset = sourceOffset;
-	copyInfo.dstOffset = targetOffset;
-	::vkCmdCopyBuffer(commandBuffer.handle(), this->handle(), target.handle(), 1, &copyInfo);
+	target.transferFrom(commandBuffer, *this, sourceElement, targetElement, elements);
 }
 
 const BufferType& VulkanBuffer::type() const noexcept
@@ -72,12 +93,22 @@ const UInt32& VulkanBuffer::elements() const noexcept
 
 size_t VulkanBuffer::size() const noexcept
 {
-	return static_cast<size_t>(m_impl->m_elements) * m_impl->m_elementSize;
+	return static_cast<size_t>(m_impl->m_elements) * this->alignedElementSize();
 }
 
 size_t VulkanBuffer::elementSize() const noexcept
 {
 	return m_impl->m_elementSize;
+}
+
+size_t VulkanBuffer::elementAlignment() const noexcept
+{
+	return m_impl->m_alignment;
+}
+
+size_t VulkanBuffer::alignedElementSize() const noexcept
+{
+	return m_impl->m_alignment == 0 ? m_impl->m_elementSize : (m_impl->m_elementSize + m_impl->m_alignment - 1) & ~(m_impl->m_alignment - 1);
 }
 
 void VulkanBuffer::map(const void* const data, const size_t& size, const UInt32& element)
@@ -86,12 +117,7 @@ void VulkanBuffer::map(const void* const data, const size_t& size, const UInt32&
 		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	size_t alignedSize = size;
-	size_t alignment = 0;
-
-	if (m_impl->m_type == BufferType::Uniform)
-		alignment = this->getDevice()->adapter().getLimits().minUniformBufferOffsetAlignment;
-	else if (m_impl->m_type == BufferType::Storage)
-		alignment = this->getDevice()->adapter().getLimits().minStorageBufferOffsetAlignment;
+	size_t alignment = this->elementAlignment();
 
 	if (alignment > 0)
 		alignedSize = (size + alignment - 1) & ~(alignment - 1);
@@ -111,7 +137,7 @@ void VulkanBuffer::map(Span<const void* const> data, const size_t& elementSize, 
 	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
 }
 
-UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const VulkanDevice& device, const BufferType& type, const UInt32& elements, const size_t& elementSize, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const VulkanDevice& device, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -119,7 +145,7 @@ UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const VulkanDevice& device, cons
 	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), type, elements, elementSize, elements * elementSize);
 
-	return makeUnique<VulkanBuffer>(device, buffer, type, elements, elementSize, allocator, allocation);
+	return makeUnique<VulkanBuffer>(device, buffer, type, elements, elementSize, alignment, allocator, allocation);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -145,7 +171,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanVertexBuffer::VulkanVertexBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-	m_impl(makePimpl<VulkanVertexBufferImpl>(this, layout)), VulkanBuffer(device, buffer, BufferType::Vertex, elements, layout.elementSize(), allocator, allocation)
+	m_impl(makePimpl<VulkanVertexBufferImpl>(this, layout)), VulkanBuffer(device, buffer, BufferType::Vertex, elements, layout.elementSize(), 0, allocator, allocation)
 {
 }
 
@@ -195,7 +221,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanIndexBuffer::VulkanIndexBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-	m_impl(makePimpl<VulkanIndexBufferImpl>(this, layout)), VulkanBuffer(device, buffer, BufferType::Index, elements, layout.elementSize(), allocator, allocation)
+	m_impl(makePimpl<VulkanIndexBufferImpl>(this, layout)), VulkanBuffer(device, buffer, BufferType::Index, elements, layout.elementSize(), 0, allocator, allocation)
 {
 }
 
@@ -239,8 +265,8 @@ public:
 // Constant buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanConstantBuffer::VulkanConstantBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanDescriptorLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-	m_impl(makePimpl<VulkanConstantBufferImpl>(this, layout)), VulkanBuffer(device, buffer, layout.type(), elements, layout.elementSize(), allocator, allocation)
+VulkanConstantBuffer::VulkanConstantBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanDescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+	m_impl(makePimpl<VulkanConstantBufferImpl>(this, layout)), VulkanBuffer(device, buffer, layout.type(), elements, layout.elementSize(), alignment, allocator, allocation)
 {
 }
 
@@ -256,7 +282,7 @@ const UInt32& VulkanConstantBuffer::binding() const noexcept
 	return m_impl->m_layout.binding();
 }
 
-UniquePtr<IVulkanConstantBuffer> VulkanConstantBuffer::allocate(const VulkanDescriptorLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo * allocationResult)
+UniquePtr<IVulkanConstantBuffer> VulkanConstantBuffer::allocate(const VulkanDescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo * allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -264,5 +290,5 @@ UniquePtr<IVulkanConstantBuffer> VulkanConstantBuffer::allocate(const VulkanDesc
 	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate constant buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), layout.type(), elements, layout.elementSize(), layout.elementSize() * elements);
 
-	return makeUnique<VulkanConstantBuffer>(*layout.getDevice(), buffer, layout, elements, allocator, allocation);
+	return makeUnique<VulkanConstantBuffer>(*layout.getDevice(), buffer, layout, elements, alignment, allocator, allocation);
 }

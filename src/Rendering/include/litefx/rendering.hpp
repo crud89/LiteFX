@@ -149,16 +149,43 @@ namespace LiteFX::Rendering {
 		virtual const UInt32& elements() const noexcept = 0;
 
 		/// <summary>
-		/// Gets the size (in bytes) of the memory chunk.
+		/// Gets the size (in bytes) of the aligned memory chunk.
 		/// </summary>
+		/// <remarks>
+		/// The size of the device memory block depends on different factors. The actual used memory of one element can be obtained by calling by the <see cref="elementSize" />. For 
+		/// different reasons, though, elements may be required to be aligned to a certain size. The size of one aligned element is returned by <see cref="alignedElementSize" />.
+		/// The size of the memory block, the elements get aligned to is returned by <see cref="elementAlignment" />.
+		/// </remarks>
 		/// <returns>The size (in bytes) of the memory chunk.</returns>
+		/// <seealso cref="elements" />
+		/// <seealso cref="elementSize" />
+		/// <seealso cref="elementAlignment" />
+		/// <seealso cref="alignedElementSize" />
 		virtual size_t size() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the size of a single element within the buffer. If there is only one element, this is equal to <see cref="size" />.
 		/// </summary>
 		/// <returns>The size of a single element within the buffer</returns>
+		/// <seealso cref="elementAlignment" />
+		/// <seealso cref="alignedElementSize" />
 		virtual size_t elementSize() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the alignment of a single element.
+		/// </summary>
+		/// <returns>The alignment of a single element.</returns>
+		/// <seealso cref="elementSize" />
+		/// <seealso cref="alignedElementSize" />
+		virtual size_t elementAlignment() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the actual size of the element in device memory.
+		/// </summary>
+		/// <returns>The actual size of the element in device memory.</returns>
+		/// <seealso cref="elementAlignment" />
+		/// <seealso cref="elementSize" />
+		virtual size_t alignedElementSize() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -199,20 +226,22 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <param name="commandBuffer">The command buffer to issue the transfer command to.</param>
 		/// <param name="source">The source buffer to transfer data from.</param>
-		/// <param name="size">The size (in bytes) to transfer from the source buffer.</param>
-		/// <param name="sourceOffset">The offset (in bytes) from where to start transferring in the source buffer.</param>
-		/// <param name="targetOffset">The offset (in bytes) to which the data will be transferred in the object memory.</param>
-		virtual void transferFrom(const TCommandBuffer& commandBuffer, const TBufferInterface& source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) = 0;
+		/// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
+		/// <param name="targetElement">The index of the first element in the current buffer to copy to.</param>
+		/// <param name="elements">The number of elements to copy from the source buffer into the current buffer.</param>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the current buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+		virtual void transferFrom(const TCommandBuffer& commandBuffer, const TBufferInterface& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const = 0;
 
 		/// <summary>
 		/// Transfers data from the objects local memory into the <paramref name="target" /> buffer.
 		/// </summary>
 		/// <param name="commandBuffer">The command buffer to issue the transfer command to.</param>
 		/// <param name="target">The target buffer to transfer data to.</param>
-		/// <param name="size">The size (in bytes) to transfer to the target buffer.</param>
-		/// <param name="sourceOffset">The offset (in bytes) from where to start transferring in the object memory.</param>
-		/// <param name="targetOffset">The offset (in bytes) to which the data will be transferred in the target buffer.</param>
-		virtual void transferTo(const TCommandBuffer& commandBuffer, const TBufferInterface& target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const = 0;
+		/// <param name="sourceElement">The index of the first element in the current buffer to copy.</param>
+		/// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
+		/// <param name="elements">The number of elements to copy from the current buffer into the target buffer.</param>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the target buffer or the current buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+		virtual void transferTo(const TCommandBuffer& commandBuffer, const TBufferInterface& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const = 0;
 	};
 
 	/// <summary>

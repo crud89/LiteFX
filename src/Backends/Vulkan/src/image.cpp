@@ -16,11 +16,11 @@ private:
 	VkImageView m_view;
 	Format m_format;
 	Size2d m_extent;
-	UInt32 m_elements;
+	UInt32 m_elements{ 1 };
 
 public:
-	VulkanImageImpl(VulkanImage* parent, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
-		base(parent), m_allocator(allocator), m_allocationInfo(allocation), m_elements(elements), m_extent(extent), m_format(format)
+	VulkanImageImpl(VulkanImage* parent, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
+		base(parent), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format)
 	{
 		VkImageViewCreateInfo createInfo = {};
 
@@ -54,8 +54,8 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
-	m_impl(makePimpl<VulkanImageImpl>(this, elements, extent, format, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkImage>(image)
+VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
+	m_impl(makePimpl<VulkanImageImpl>(this, extent, format, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkImage>(image)
 {
 }
 
@@ -84,6 +84,16 @@ size_t VulkanImage::elementSize() const noexcept
 {
 	// Rough estimation, that does not include alignment.
 	return ::getSize(m_impl->m_format) * m_impl->m_extent.width() * m_impl->m_extent.height();
+}
+
+size_t VulkanImage::elementAlignment() const noexcept
+{
+	return 0;
+}
+
+size_t VulkanImage::alignedElementSize() const noexcept
+{
+	return this->elementSize();
 }
 
 const Size2d& VulkanImage::extent() const noexcept
@@ -116,7 +126,7 @@ VkImageView& VulkanImage::imageView() noexcept
 	return m_impl->m_view;
 }
 
-UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkImage image;
 	VmaAllocation allocation;
@@ -124,7 +134,7 @@ UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const U
 	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4} }}", fmt::ptr(image), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format);
 
-	return makeUnique<VulkanImage>(device, image, elements, extent, format, allocator, allocation);
+	return makeUnique<VulkanImage>(device, image, extent, format, allocator, allocation);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -152,8 +162,8 @@ public:
 // Texture shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
-	VulkanImage(device, image, elements, extent, format, allocator, allocation), m_impl(makePimpl<VulkanTextureImpl>(this, imageLayout, layout, levels, samples))
+VulkanTexture::VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
+	VulkanImage(device, image, extent, format, allocator, allocation), m_impl(makePimpl<VulkanTextureImpl>(this, imageLayout, layout, levels, samples))
 {
 }
 
@@ -184,8 +194,14 @@ const VkImageLayout& VulkanTexture::imageLayout() const noexcept
 	return m_impl->m_imageLayout;
 }
 
-void VulkanTexture::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset)
+void VulkanTexture::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
+	if (elements != 1 || targetElement != 0)
+		throw ArgumentOutOfRangeException("Textures currently do not support transforms for more than one element. The target element is required to be 0 (is {0}) and the number of elements is required to be 1 (is {1}).", targetElement, elements);
+
+	if (source.elements() < sourceElement + elements)
+		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+
 	// First, transition the image into a fitting layout, so that it can receive transfers.
 	VkImageMemoryBarrier beginTransitionBarrier = {};
 	beginTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -207,15 +223,17 @@ void VulkanTexture::transferFrom(const VulkanCommandBuffer& commandBuffer, const
 
 	// Create a copy command and add it to the command buffer.
 	VkBufferImageCopy copyInfo{};
-	copyInfo.bufferOffset = sourceOffset;
-	
+
 	// TODO: Support padded buffer formats.
+	copyInfo.bufferOffset = source.alignedElementSize() * sourceElement;
 	copyInfo.bufferRowLength = 0;
 	copyInfo.bufferImageHeight = 0;
+
 	copyInfo.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	copyInfo.imageSubresource.mipLevel = 0;
 	copyInfo.imageSubresource.baseArrayLayer = 0;
 	copyInfo.imageSubresource.layerCount = 1;
+
 	copyInfo.imageOffset = { 0, 0, 0 };
 	copyInfo.imageExtent = { static_cast<UInt32>(this->extent().width()), static_cast<UInt32>(this->extent().height()), 1 };
 
@@ -257,8 +275,14 @@ void VulkanTexture::transferFrom(const VulkanCommandBuffer& commandBuffer, const
 	::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
 }
 
-void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const size_t& size, const size_t& sourceOffset, const size_t& targetOffset) const
+void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
+	if (elements != 1 || sourceElement != 0)
+		throw ArgumentOutOfRangeException("Textures currently do not support transforms for more than one element. The source element is required to be 0 (is {0}) and the number of elements is required to be 1 (is {1}).", targetElement, elements);
+
+	if (target.elements() <= targetElement + elements)
+		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
+
 	// First, transition the image into a fitting layout, so that it can receive transfers.
 	VkImageMemoryBarrier beginTransitionBarrier = {};
 	beginTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -280,7 +304,9 @@ void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const I
 
 	// Create a copy command and add it to the command buffer.
 	VkBufferImageCopy copyInfo{};
-	copyInfo.bufferOffset = 0;
+
+	// TODO: Support padded buffer formats.
+	copyInfo.bufferOffset = target.alignedElementSize() * targetElement;
 	copyInfo.bufferRowLength = 0;
 	copyInfo.bufferImageHeight = 0;
 
@@ -330,16 +356,16 @@ void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const I
 	::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
 }
 
-UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	// Allocate the buffer.
 	VkImage image;
 	VmaAllocation allocation;
 	
 	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Elements: {5}, Levels: {6}, Samples: {7} }}", fmt::ptr(image), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, elements, levels, samples);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Samples: {6} }}", fmt::ptr(image), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, samples);
 
-	return makeUnique<VulkanTexture>(device, layout, image, createInfo.initialLayout, elements, extent, format, levels, samples, allocator, allocation);
+	return makeUnique<VulkanTexture>(device, layout, image, createInfo.initialLayout, extent, format, levels, samples, allocator, allocation);
 }
 
 // ------------------------------------------------------------------------------------------------

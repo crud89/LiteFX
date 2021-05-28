@@ -79,7 +79,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createImage(const Format& format,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanImage::allocate(m_impl->m_device, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanImage::allocate(m_impl->m_device, size, format, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
@@ -106,7 +106,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanImage::allocate(m_impl->m_device, 1, size, format, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanImage::allocate(m_impl->m_device, size, format, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements) const
@@ -165,7 +165,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -178,7 +178,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 }
 
@@ -330,7 +330,7 @@ UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(con
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanConstantBuffer::allocate(layout, elements, alignment, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -343,7 +343,7 @@ UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(con
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanConstantBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanConstantBuffer::allocate(layout, elements, alignment, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 }
 
@@ -375,7 +375,7 @@ UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const VulkanDescr
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanTexture::allocate(m_impl->m_device, layout, 1, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanTexture::allocate(m_impl->m_device, layout, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const

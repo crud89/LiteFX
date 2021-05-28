@@ -85,20 +85,22 @@ void SampleApp::initBuffers()
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
 
     // Create the staging buffer.
+    // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
+    //       whole buffer.
     auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
-    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex));
+    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(*commandBuffer.get(), *stagedVertices.get(), stagedVertices->size());
+    m_vertexBuffer->transferFrom(*commandBuffer.get(), *stagedVertices.get(), 0, 0, vertices.size());
 
-    // Create the staging buffer for the indices.
+    // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout().elementSize());
+    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout().elementSize(), 0);
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    m_indexBuffer->transferFrom(*commandBuffer.get(), *stagedIndices.get(), stagedIndices->size());
+    m_indexBuffer->transferFrom(*commandBuffer.get(), *stagedIndices.get(), 0, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -133,7 +135,7 @@ void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
     projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer.get(), m_cameraStagingBuffer->size());
+    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer.get());
 }
 
 void SampleApp::run() 

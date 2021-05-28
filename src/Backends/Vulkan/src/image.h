@@ -22,7 +22,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="image"></param>
 		/// <param name="allocator"></param>
 		/// <param name="allocation"></param>
-		explicit VulkanImage(const VulkanDevice& device, VkImage image, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
+		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size2d& extent, const Format& format, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
 		VulkanImage(VulkanImage&&) = delete;
 		VulkanImage(const VulkanImage&) = delete;
 		virtual ~VulkanImage() noexcept;
@@ -37,6 +37,12 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual size_t elementSize() const noexcept override;
+
+		/// <inheritdoc />
+		virtual size_t elementAlignment() const noexcept override;
+
+		/// <inheritdoc />
+		virtual size_t alignedElementSize() const noexcept override;
 
 		// IImage interface.
 	public:
@@ -69,7 +75,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="allocationInfo"></param>
 		/// <param name="allocationResult"></param>
 		/// <returns></returns>
-		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const UInt32& elements, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
@@ -86,14 +92,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="layout"></param>
 		/// <param name="image"></param>
 		/// <param name="imageLayout"></param>
-		/// <param name="elements"></param>
 		/// <param name="extent"></param>
 		/// <param name="format"></param>
 		/// <param name="levels"></param>
 		/// <param name="samples"></param>
 		/// <param name="allocator"></param>
 		/// <param name="allocation"></param>
-		explicit VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
+		explicit VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
 		VulkanTexture(VulkanTexture&&) = delete;
 		VulkanTexture(const VulkanTexture&) = delete;
 		virtual ~VulkanTexture() noexcept;
@@ -119,18 +124,14 @@ namespace LiteFX::Rendering::Backends {
 		// ITransferable interface.
 	public:
 		/// <inheritdoc />
-		/// <remarks>
-		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="targetOffset" />
-		/// parameters are ignored and can be simply set to <c>0</c>.
-		/// </remarks>
-		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) override;
+		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
 		/// <remarks>
 		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="sourceOffset" />
 		/// parameters are ignored and can be simply set to <c>0</c>.
 		/// </remarks>
-		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const size_t& size, const size_t& sourceOffset = 0, const size_t& targetOffset = 0) const override;
+		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
 
 		// IVulkanImage interface.
 	public:
@@ -148,7 +149,6 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="device"></param>
 		/// <param name="layout"></param>
-		/// <param name="elements"></param>
 		/// <param name="extent"></param>
 		/// <param name="format"></param>
 		/// <param name="levels"></param>
@@ -158,7 +158,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="allocationInfo"></param>
 		/// <param name="allocationResult"></param>
 		/// <returns></returns>
-		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const UInt32& elements, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
