@@ -281,7 +281,155 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~IDirectX12Sampler() noexcept = default;
 	};
 
+	/// <summary>
+	/// Implements a DirectX12 <see cref="IDescriptorSet" />.
+	/// </summary>
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12ConstantBuffer, IDirectX12Texture, IDirectX12Sampler, IDirectX12Image, IDirectX12Buffer, DirectX12CommandBuffer>, public ComResource<ID3D12DescriptorHeap> {
+	public:
+		/// <summary>
+		/// Initializes a new descriptor set.
+		/// </summary>
+		/// <param name="layout">The parent descriptor set layout.</param>
+		/// <param name="descriptorHeap">A CPU-visible descriptor heap that contains all descriptors of the descriptor set.</param>
+		explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& descriptorHeap);
+		DirectX12DescriptorSet(DirectX12DescriptorSet&&) = delete;
+		DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
+		virtual ~DirectX12DescriptorSet() noexcept;
 
+	public:
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12ConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12Texture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12Sampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f) const override;
+
+		/// <inheritdoc />
+		virtual void update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void update(const IDirectX12Texture& texture) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void update(const IDirectX12Sampler& sampler) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void attach(const UInt32& binding, const IDirectX12Image& image) const noexcept override;
+	};
+
+	/// <summary>
+	/// Implements a DirectX12 <see cref="IDescriptorSetLayout" />.
+	/// </summary>
+	/// <seealso cref="DirectX12DescriptorSet" />
+	/// <seealso cref="DirectX12DescriptorSetLayoutBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayout : public virtual DirectX12RuntimeObject<DirectX12RenderPipelineLayout>, public IDescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet> {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
+		LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX12 descriptor set layout.
+		/// </summary>
+		/// <param name="pipelineLayout">The parent pipeline layout that contains the descriptor set layout.</param>
+		/// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
+		/// <param name="space">The space or set id of the descriptor set.</param>
+		/// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
+		explicit DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages);
+		DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) = delete;
+		DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout&) = delete;
+		virtual ~DirectX12DescriptorSetLayout() noexcept;
+
+	private:
+		explicit DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout) noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual Array<const DirectX12DescriptorLayout*> layouts() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12DescriptorLayout& layout(const UInt32& binding) const override;
+
+		/// <inheritdoc />
+		virtual const UInt32& space() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const ShaderStage& shaderStages() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32 uniforms() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32 storages() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32 images() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32 samplers() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32 inputAttachments() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		virtual UniquePtr<DirectX12DescriptorSet> allocate() const noexcept override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<DirectX12DescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void free(const DirectX12DescriptorSet& descriptorSet) const noexcept override;
+	};
+
+	/// <summary>
+	/// Builds a <see cref="DirectX12DescriptorSetLayout" />.
+	/// </summary>
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX12 descriptor set layout builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		/// <param name="space">The space the descriptor set is bound to.</param>
+		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
+		explicit DirectX12DescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
+		DirectX12DescriptorSetLayoutBuilder(const DirectX12DescriptorSetLayoutBuilder&) = delete;
+		DirectX12DescriptorSetLayoutBuilder(DirectX12DescriptorSetLayoutBuilder&&) = delete;
+		virtual ~DirectX12DescriptorSetLayoutBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+
+		// DescriptorSetLayoutBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12DescriptorSetLayoutBuilder& addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout) override;
+
+		/// <inheritdoc />
+		virtual DirectX12DescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
+
+		// DirectX12DescriptorSetLayoutBuilder.
+	public:
+		/// <summary>
+		/// Sets the space, the descriptor set is bound to.
+		/// </summary>
+		/// <param name="space">The space, the descriptor set is bound to.</param>
+		virtual DirectX12DescriptorSetLayoutBuilder& space(const UInt32& space) noexcept;
+
+		/// <summary>
+		/// Sets the shader stages, the descriptor set is accessible from.
+		/// </summary>
+		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
+		virtual DirectX12DescriptorSetLayoutBuilder& shaderStages(const ShaderStage& stages) noexcept;
+	};
 
 
 
@@ -420,21 +568,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual DirectX12ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
 		virtual DirectX12ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder> {
-	public:
-		using DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder>::DescriptorSetLayoutBuilder;
-
-	public:
-		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
-
-	public:
-		virtual DirectX12DescriptorSetLayoutBuilder& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) override;
-		virtual DirectX12DescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
 	};
 
 
@@ -688,75 +821,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<const IShaderModule*> getModules() const noexcept override;
 		virtual void use(UniquePtr<IShaderModule>&& module) override;
 	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayout : public virtual DirectX12RuntimeObject, public IDescriptorSetLayout {
-		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
-		LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
-
-	public:
-		explicit DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, const UInt32& id, const ShaderStage& stages);
-		DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) = delete;
-		DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout&) = delete;
-		virtual ~DirectX12DescriptorSetLayout() noexcept;
-
-	public:
-		virtual Array<const IDescriptorLayout*> getLayouts() const noexcept override;
-		virtual const IDescriptorLayout* getLayout(const UInt32& binding) const noexcept override;
-		virtual const UInt32& getSetId() const noexcept override;
-		virtual const ShaderStage& getShaderStages() const noexcept override;
-		virtual UniquePtr<IDescriptorSet> createBufferPool() const noexcept override;
-
-	public:
-		virtual UInt32 uniforms() const noexcept override;
-		virtual UInt32 storages() const noexcept override;
-		virtual UInt32 images() const noexcept override;
-		virtual UInt32 samplers() const noexcept override;
-		virtual UInt32 inputAttachments() const noexcept override;
-	};
-
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject, public IDescriptorSet, ComResource<ID3D12DescriptorHeap> {
-		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
-
-	public:
-		explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& bufferSet);
-		DirectX12DescriptorSet(DirectX12DescriptorSet&&) = delete;
-		DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
-		virtual ~DirectX12DescriptorSet() noexcept;
-
-	public:
-		virtual const IDescriptorSetLayout* getDescriptorSetLayout() const noexcept override;
-		virtual UniquePtr<IConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const noexcept override;
-		virtual UniquePtr<ITexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const noexcept override;
-		virtual UniquePtr<ISampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void update(const IConstantBuffer* buffer) const override;
-
-		/// <inheritdoc />
-		virtual void update(const ITexture* texture) const override;
-
-		/// <inheritdoc />
-		virtual void update(const ISampler* sampler) const override;
-
-		/// <inheritdoc />
-		virtual void updateAll(const IConstantBuffer* buffer) const override;
-
-		/// <inheritdoc />
-		virtual void updateAll(const ITexture* texture) const override;
-
-		/// <inheritdoc />
-		virtual void updateAll(const ISampler* sampler) const override;
-
-		/// <inheritdoc />
-		virtual void attach(const UInt32& binding, const IRenderPass* renderPass, const UInt32& attachmentId) const override;
-
-		/// <inheritdoc />
-		virtual void attach(const UInt32& binding, const IImage* image) const override;
-	};
-
+	
 	/// <summary>
 	/// Implements the DirectX12 <see cref="IRenderBackend" />.
 	/// </summary>
