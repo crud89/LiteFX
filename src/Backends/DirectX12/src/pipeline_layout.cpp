@@ -12,30 +12,35 @@ public:
     friend class DirectX12RenderPipelineLayout;
 
 private:
-    const DirectX12RenderPipeline& m_pipeline;
-    UniquePtr<IShaderProgram> m_shaderProgram;
-    Array<UniquePtr<IDescriptorSetLayout>> m_descriptorSetLayouts;
+    UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
+    Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
-    DirectX12RenderPipelineLayoutImpl(DirectX12RenderPipelineLayout* parent, const DirectX12RenderPipeline& pipeline) :
-        base(parent), m_pipeline(pipeline) { }
+    DirectX12RenderPipelineLayoutImpl(DirectX12RenderPipelineLayout* parent, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts) :
+        base(parent), m_shaderProgram(std::move(shaderProgram)), m_descriptorSetLayouts(std::move(descriptorLayouts))
+    {
+        if (shaderProgram == nullptr)
+            throw RuntimeException("The shader program must be initialized before creating a pipeline layout.");
+    }
+
+    DirectX12RenderPipelineLayoutImpl(DirectX12RenderPipelineLayout* parent) :
+        base(parent)
+    {
+    }
 
 public:
-    ComPtr<ID3D12RootSignature> initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts)
+    ComPtr<ID3D12RootSignature> initialize()
     {
         // Get the device.
         ComPtr<ID3D12Device> device;
-        raiseIfFailed<RuntimeException>(m_pipeline.handle()->GetDevice(IID_PPV_ARGS(&device)), "Unable to query device for creating a pipeline layout.");
-
-        if (shaderProgram == nullptr)
-            throw RuntimeException("The shader program must be initialized before creating a pipeline layout.");
+        raiseIfFailed<RuntimeException>(m_parent->parent().handle()->GetDevice(IID_PPV_ARGS(&device)), "Unable to query device for creating a pipeline layout.");
 
         // Define the descriptor range from descriptor set layouts.
         Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         Array<D3D12_ROOT_PARAMETER1> descriptorParameters;
         Array<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
 
-        std::for_each(std::begin(descriptorLayouts), std::end(descriptorLayouts), [&, space = 0](const auto& layout) mutable {
+        std::ranges::for_each(m_descriptorSetLayouts, [&, space = 0](const auto& layout) mutable {
             auto descriptorSetLayout = dynamic_cast<const DirectX12DescriptorSetLayout*>(layout.get());
 
             if (descriptorSetLayout == nullptr)
@@ -43,7 +48,7 @@ public:
 
             // Parse the shader stage descriptor.
             DWORD shaderStages = {};
-            auto stages = descriptorSetLayout->getShaderStages();
+            auto stages = descriptorSetLayout->shaderStages();
 
             if ((stages & ShaderStage::Vertex) == ShaderStage::Vertex)
                 shaderStages = shaderStages | D3D12_SHADER_VISIBILITY_VERTEX;
@@ -59,20 +64,20 @@ public:
                 shaderStages = D3D12_SHADER_VISIBILITY_ALL;
 
             // Define the root parameter ranges.
-            auto ranges = descriptorSetLayout->getLayouts();
+            auto ranges = descriptorSetLayout->layouts();
             Array<D3D12_DESCRIPTOR_RANGE1> rangeSet(ranges.size());
 
             std::generate(std::begin(rangeSet), std::end(rangeSet), [&, i = 0]() mutable {
                 const auto& range = ranges[i++];
 
                 D3D12_DESCRIPTOR_RANGE1 descriptorRange = {};
-                descriptorRange.BaseShaderRegister = range->getBinding();
+                descriptorRange.BaseShaderRegister = range->binding();
                 descriptorRange.NumDescriptors = 1;
                 descriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
                 descriptorRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
                 descriptorRange.RegisterSpace = space;
 
-                switch(range->getType())
+                switch(range->descriptorType())
                 { 
                 case DescriptorType::Uniform: descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV; break;
                 case DescriptorType::Storage: descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV; break;
@@ -107,10 +112,6 @@ public:
         ComPtr<ID3D12RootSignature> rootSignature;
         raiseIfFailed<RuntimeException>(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
 
-        // Store the shader program and descriptor layouts.
-        m_shaderProgram = std::move(shaderProgram);
-        m_descriptorSetLayouts = std::move(descriptorLayouts);
-
         return rootSignature;
     }
 };
@@ -119,37 +120,37 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
+DirectX12RenderPipelineLayout::DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts) :
+    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts)))
+{
+    this->handle() = m_impl->initialize();
+}
+
 DirectX12RenderPipelineLayout::DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline) :
-    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, pipeline))
+    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this))
 {
 }
 
 DirectX12RenderPipelineLayout::~DirectX12RenderPipelineLayout() noexcept = default;
 
-bool DirectX12RenderPipelineLayout::isInitialized() const noexcept
+const DirectX12ShaderProgram& DirectX12RenderPipelineLayout::program() const noexcept
 {
-    return this->handle() != nullptr;
+    return *m_impl->m_shaderProgram;
 }
 
-void DirectX12RenderPipelineLayout::initialize(UniquePtr<IShaderProgram>&& shaderProgram, Array<UniquePtr<IDescriptorSetLayout>>&& descriptorLayouts)
+const DirectX12DescriptorSetLayout& DirectX12RenderPipelineLayout::layout(const UInt32& space) const
 {
-    if (this->isInitialized())
-        throw RuntimeException("The render pipeline layout already has been initialized.");
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
+        return *match->get();
 
-    this->handle() = m_impl->initialize(std::move(shaderProgram), std::move(descriptorLayouts));
+    throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
 }
 
-const IShaderProgram* DirectX12RenderPipelineLayout::getProgram() const noexcept
+Array<const DirectX12DescriptorSetLayout*> DirectX12RenderPipelineLayout::layouts() const noexcept
 {
-    return m_impl->m_shaderProgram.get();
-}
-
-Array<const IDescriptorSetLayout*> DirectX12RenderPipelineLayout::getDescriptorSetLayouts() const noexcept
-{
-    Array<const IDescriptorSetLayout*> layouts(m_impl->m_descriptorSetLayouts.size());
-    std::generate(std::begin(layouts), std::end(layouts), [&, i = 0]() mutable { return m_impl->m_descriptorSetLayouts[i++].get(); });
-
-    return layouts;
+    return m_impl->m_descriptorSetLayouts |
+        std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); }) |
+        ranges::to<Array<const DirectX12DescriptorSetLayout*>>();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -162,8 +163,8 @@ public:
     friend class DirectX12RenderPipelineLayout;
 
 private:
-    UniquePtr<IShaderProgram> m_shaderProgram;
-    Array<UniquePtr<IDescriptorSetLayout>> m_descriptorSetLayouts;
+    UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
+    Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
     DirectX12RenderPipelineLayoutBuilderImpl(DirectX12RenderPipelineLayoutBuilder* parent) :
@@ -176,8 +177,8 @@ public:
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipelineLayoutBuilder::DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent, UniquePtr<DirectX12RenderPipelineLayout>&& instance) :
-    RenderPipelineLayoutBuilder(parent, std::move(instance)), m_impl(makePimpl<DirectX12RenderPipelineLayoutBuilderImpl>(this))
+DirectX12RenderPipelineLayoutBuilder::DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent) :
+    m_impl(makePimpl<DirectX12RenderPipelineLayoutBuilderImpl>(this)), RenderPipelineLayoutBuilder(parent, UniquePtr<DirectX12RenderPipelineLayout>(new DirectX12RenderPipelineLayout(*std::as_const(parent).instance())))
 {
 }
 
@@ -185,12 +186,15 @@ DirectX12RenderPipelineLayoutBuilder::~DirectX12RenderPipelineLayoutBuilder() no
 
 DirectX12RenderPipelineBuilder& DirectX12RenderPipelineLayoutBuilder::go()
 {
-    this->instance()->initialize(std::move(m_impl->m_shaderProgram), std::move(m_impl->m_descriptorSetLayouts));
+    auto instance = this->instance();
+    instance->m_impl->m_shaderProgram = std::move(m_impl->m_shaderProgram);
+    instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
+    instance->handle() = instance->m_impl->initialize();
 
     return RenderPipelineLayoutBuilder::go();
 }
 
-void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& program)
+void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<DirectX12ShaderProgram>&& program)
 {
 #ifndef NDEBUG
     if (m_impl->m_shaderProgram != nullptr)
@@ -200,17 +204,17 @@ void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IShaderProgram>&& progr
     m_impl->m_shaderProgram = std::move(program);
 }
 
-void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<IDescriptorSetLayout>&& layout)
+void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSetLayout>&& layout)
 {
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
 
 DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgram()
 {
-    return this->make<DirectX12ShaderProgram>();
+    return DirectX12ShaderProgramBuilder(*this);
 }
 
-DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& id, const ShaderStage& stages)
+DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages)
 {
-    return this->make<DirectX12DescriptorSetLayout>(id, stages);
+    return DirectX12DescriptorSetLayoutBuilder(*this, space, stages);
 }
