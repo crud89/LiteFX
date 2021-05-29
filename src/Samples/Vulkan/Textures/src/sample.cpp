@@ -201,7 +201,7 @@ void SampleApp::run()
         raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
 
         return surface;
-        });
+    });
 
     // Get the proper frame buffer size.
     int width, height;

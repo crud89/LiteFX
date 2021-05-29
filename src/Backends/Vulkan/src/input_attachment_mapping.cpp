@@ -16,8 +16,8 @@ private:
     UInt32 m_location;
 
 public:
-    VulkanInputAttachmentMappingImpl(VulkanInputAttachmentMapping* parent, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location) :
-        base(parent), m_renderPass(&renderPass), m_location(location), m_renderTarget(renderTarget)
+    VulkanInputAttachmentMappingImpl(VulkanInputAttachmentMapping* parent, const VulkanRenderPass* renderPass, const RenderTarget& renderTarget, const UInt32& location) :
+        base(parent), m_renderPass(renderPass), m_location(location), m_renderTarget(renderTarget)
     {
     }
 };
@@ -26,18 +26,23 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
+VulkanInputAttachmentMapping::VulkanInputAttachmentMapping() noexcept :
+    m_impl(makePimpl<VulkanInputAttachmentMappingImpl>(this, nullptr, RenderTarget {}, 0))
+{
+}
+
 VulkanInputAttachmentMapping::VulkanInputAttachmentMapping(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location) :
-    m_impl(makePimpl<VulkanInputAttachmentMappingImpl>(this, renderPass, renderTarget, location))
+    m_impl(makePimpl<VulkanInputAttachmentMappingImpl>(this, &renderPass, renderTarget, location))
 {
 }
 
 VulkanInputAttachmentMapping::VulkanInputAttachmentMapping(const VulkanInputAttachmentMapping& _other) noexcept :
-    m_impl(makePimpl<VulkanInputAttachmentMappingImpl>(this, *_other.m_impl->m_renderPass, _other.m_impl->m_renderTarget, _other.m_impl->m_location))
+    m_impl(makePimpl<VulkanInputAttachmentMappingImpl>(this, _other.m_impl->m_renderPass, _other.m_impl->m_renderTarget, _other.m_impl->m_location))
 {
 }
 
 VulkanInputAttachmentMapping::VulkanInputAttachmentMapping(VulkanInputAttachmentMapping&& _other) noexcept :
-    m_impl(makePimpl<VulkanInputAttachmentMappingImpl>(this, *_other.m_impl->m_renderPass, std::move(_other.m_impl->m_renderTarget), std::move(_other.m_impl->m_location)))
+    m_impl(makePimpl<VulkanInputAttachmentMappingImpl>(this, std::move(_other.m_impl->m_renderPass), std::move(_other.m_impl->m_renderTarget), std::move(_other.m_impl->m_location)))
 {
 }
 
@@ -61,9 +66,9 @@ VulkanInputAttachmentMapping& VulkanInputAttachmentMapping::operator=(VulkanInpu
     return *this;
 }
 
-const VulkanRenderPass& VulkanInputAttachmentMapping::inputAttachmentSource() const noexcept
+const VulkanRenderPass* VulkanInputAttachmentMapping::inputAttachmentSource() const noexcept
 {
-    return *m_impl->m_renderPass;
+    return m_impl->m_renderPass;
 }
 
 const UInt32& VulkanInputAttachmentMapping::location() const noexcept

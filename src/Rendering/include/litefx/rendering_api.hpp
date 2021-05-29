@@ -685,6 +685,8 @@ namespace LiteFX::Rendering {
 		LITEFX_IMPLEMENTATION(RenderTargetImpl);
 
 	public:
+		RenderTarget() noexcept;
+
 		/// <summary>
 		/// Initializes the render target.
 		/// </summary>

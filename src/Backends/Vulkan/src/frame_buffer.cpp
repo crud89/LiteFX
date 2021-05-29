@@ -51,8 +51,11 @@ public:
             if (inputAttachment.renderTarget().type() == RenderTargetType::Present)
                 throw InvalidArgumentException("The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
 
+            if (inputAttachment.inputAttachmentSource() == nullptr)
+                throw InvalidArgumentException("The input attachment mapped to location {0} has no initialized source.", i);
+
             // Store the image view from the source frame buffer.
-            attachmentViews.push_back(inputAttachment.inputAttachmentSource().frameBuffer(m_bufferIndex).image(i++).imageView());
+            attachmentViews.push_back(inputAttachment.inputAttachmentSource()->frameBuffer(m_bufferIndex).image(i++).imageView());
         });
 
         // Initialize the output attachments from render targets of the parent render pass.

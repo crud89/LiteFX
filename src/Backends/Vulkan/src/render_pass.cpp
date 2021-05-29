@@ -60,8 +60,10 @@ public:
 
         // Map input attachments.
         std::ranges::for_each(m_inputAttachments, [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
-            if (inputAttachment.location() != i++)
-                throw InvalidArgumentException("No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", i);
+            UInt32 currentIndex = i++;
+
+            if (inputAttachment.location() != currentIndex)
+                throw InvalidArgumentException("No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
 
             VkAttachmentDescription attachment{};
             attachment.format = getFormat(inputAttachment.renderTarget().format());
@@ -77,10 +79,10 @@ public:
             switch (inputAttachment.renderTarget().type()) 
             {
             case RenderTargetType::Present: [[unlikely]]
-                throw InvalidArgumentException("The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", i);
+                throw InvalidArgumentException("The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", currentIndex);
             case RenderTargetType::Color:
                 attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                inputAttachments.push_back({ static_cast<UInt32>(i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+                inputAttachments.push_back({ static_cast<UInt32>(currentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
                 attachments.push_back(attachment);
                 break;
             case RenderTargetType::DepthStencil:
@@ -92,11 +94,11 @@ public:
                     attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
                 else [[unlikely]]
                 {
-                    LITEFX_WARNING(VULKAN_LOG, "The depth/stencil input attachment at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", i, inputAttachment.renderTarget().format());
+                    LITEFX_WARNING(VULKAN_LOG, "The depth/stencil input attachment at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", currentIndex, inputAttachment.renderTarget().format());
                     attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
                 }
 
-                inputAttachments.push_back({ static_cast<UInt32>(i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+                inputAttachments.push_back({ static_cast<UInt32>(currentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
                 attachments.push_back(attachment);
                 break;
             }
@@ -104,6 +106,11 @@ public:
 
         // Map the render targets.
         std::ranges::for_each(m_renderTargets, [&, i = 0](const RenderTarget& renderTarget) mutable {
+            UInt32 currentIndex = i++;
+
+            if (renderTarget.location() != currentIndex)
+                throw InvalidArgumentException("No render target is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
+
             if ((renderTarget.type() == RenderTargetType::DepthStencil && depthTarget.has_value())) [[unlikely]]
                 throw InvalidArgumentException("The depth/stencil target at location {0} cannot be mapped. Another depth/stencil target is already bound to location {1} and only one is allowed.", renderTarget.location(), depthTarget->attachment);
             else if (renderTarget.type() == RenderTargetType::Present && presentTarget.has_value()) [[unlikely]]
@@ -129,7 +136,7 @@ public:
                 case RenderTargetType::Color:
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                     attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                    outputAttachments.push_back({ static_cast<UInt32>(i + inputAttachments.size()), attachment.finalLayout });
+                    outputAttachments.push_back({ static_cast<UInt32>(currentIndex + inputAttachments.size()), attachment.finalLayout });
                     break;
                 case RenderTargetType::DepthStencil:
                     if (::hasDepth(renderTarget.format()) && ::hasStencil(renderTarget.format())) [[likely]]
@@ -140,17 +147,17 @@ public:
                         attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
                     else [[unlikely]]
                     {
-                        LITEFX_WARNING(VULKAN_LOG, "The depth/stencil render target at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", i, renderTarget.format());
+                        LITEFX_WARNING(VULKAN_LOG, "The depth/stencil render target at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", currentIndex, renderTarget.format());
                         attachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
                     }
 
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                    depthTarget = VkAttachmentReference{ static_cast<UInt32>(i + inputAttachments.size()), attachment.finalLayout };
+                    depthTarget = VkAttachmentReference{ static_cast<UInt32>(currentIndex + inputAttachments.size()), attachment.finalLayout };
                     break;
                 case RenderTargetType::Present:
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                     attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-                    presentTarget = VkAttachmentReference { static_cast<UInt32>(i + inputAttachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+                    presentTarget = VkAttachmentReference { static_cast<UInt32>(currentIndex + inputAttachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
                     outputAttachments.push_back(presentTarget.value());
                     break;
                 }
@@ -263,6 +270,14 @@ Array<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noexcept
         ranges::to<Array<const VulkanRenderPipeline*>>();
 }
 
+const RenderTarget& VulkanRenderPass::renderTarget(const UInt32& location) const
+{
+    if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end())
+        return *match;
+
+    throw ArgumentOutOfRangeException("No render target is mapped to location {0} in this render pass.", location);
+}
+
 Span<const RenderTarget> VulkanRenderPass::renderTargets() const noexcept
 {
     return m_impl->m_renderTargets;
@@ -358,6 +373,20 @@ void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
+void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSet) const
+{
+    const auto backBuffer = m_impl->m_backBuffer;
+
+    std::ranges::for_each(m_impl->m_inputAttachments, [&descriptorSet, &backBuffer](const VulkanInputAttachmentMapping& inputAttachment) {
+#ifndef NDEBUG
+        if (inputAttachment.inputAttachmentSource() == nullptr)
+            throw RuntimeException("No source render pass has been specified for the input attachment mapped to location {0}.", inputAttachment.location());
+#endif
+
+        descriptorSet.attach(inputAttachment.location(), inputAttachment.inputAttachmentSource()->frameBuffer(backBuffer).image(inputAttachment.renderTarget().location()));
+    });
+}
+
 VulkanRenderPipelineBuilder VulkanRenderPass::makePipeline(const UInt32& id, const String& name) const noexcept
 {
     return VulkanRenderPipelineBuilder(*this, id, name);
@@ -432,23 +461,35 @@ VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const UInt32& loc
     return *this;
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(UniquePtr<VulkanInputAttachmentMapping>& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
     //       until the render pass is initialized, so we silently ignore this for now.
     return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, samples, clearValues, clear, clearStencil, isVolatile);
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(UniquePtr<VulkanInputAttachmentMapping>& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile);
-    output = makeUnique<VulkanInputAttachmentMapping>(*this->instance(), renderTarget, location);
+    output = std::move(VulkanInputAttachmentMapping(*this->instance(), renderTarget, location));
     m_impl->m_renderTargets.push_back(renderTarget);
     return *this;
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::inputAttachment(const UInt32& location, const RenderTarget& renderTarget, const VulkanRenderPass& renderPass)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::inputAttachment(const VulkanInputAttachmentMapping& inputAttachment)
 {
-    m_impl->m_inputAttachments.push_back(VulkanInputAttachmentMapping(renderPass, renderTarget, location));
+    m_impl->m_inputAttachments.push_back(inputAttachment);
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const UInt32& outputLocation)
+{
+    m_impl->m_inputAttachments.push_back(VulkanInputAttachmentMapping(renderPass, renderPass.renderTarget(outputLocation), inputLocation));
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
+{
+    m_impl->m_inputAttachments.push_back(VulkanInputAttachmentMapping(renderPass, renderTarget, inputLocation));
     return *this;
 }

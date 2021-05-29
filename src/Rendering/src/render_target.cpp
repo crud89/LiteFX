@@ -29,6 +29,11 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
+RenderTarget::RenderTarget() noexcept :
+    m_impl(makePimpl<RenderTargetImpl>(this, 0, RenderTargetType::Color, Format::None, false, Vector4f { 0.f, 0.f, 0.f, 0.f }, false, MultiSamplingLevel::x1, false))
+{
+}
+
 RenderTarget::RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const MultiSamplingLevel& samples, const bool& isVolatile) :
     m_impl(makePimpl<RenderTargetImpl>(this, location, type, format, clearBuffer, clearValues, clearStencil, samples, isVolatile))
 {

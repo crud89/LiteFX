@@ -1099,6 +1099,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<const VulkanRenderPipeline*> pipelines() const noexcept override;
 
 		/// <inheritdoc />
+		virtual const RenderTarget& renderTarget(const UInt32& location) const override;
+
+		/// <inheritdoc />
 		virtual Span<const RenderTarget> renderTargets() const noexcept override;
 
 		/// <inheritdoc />
@@ -1116,6 +1119,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
+
+		/// <inheritdoc />
+		virtual void updateAttachments(const VulkanDescriptorSet& descriptorSet) const override;
 
 		// VulkanRenderPass.
 	public:
@@ -1147,9 +1153,11 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 		virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& renderTarget(UniquePtr<VulkanInputAttachmentMapping>& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& renderTarget(UniquePtr<VulkanInputAttachmentMapping>& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& location, const RenderTarget& renderTarget, const VulkanRenderPass& renderPass) override;
+		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& inputAttachment(const VulkanInputAttachmentMapping& inputAttachment) override;
+		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const UInt32& outputLocation) override;
+		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
 
 	public:
 		virtual UniquePtr<VulkanRenderPass> go() override;
@@ -1162,6 +1170,8 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanInputAttachmentMappingImpl);
 
 	public:
+		VulkanInputAttachmentMapping() noexcept;
+
 		/// <summary>
 		/// Creates a new Vulkan input attachment mapping.
 		/// </summary>
@@ -1179,7 +1189,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual const VulkanRenderPass& inputAttachmentSource() const noexcept override;
+		virtual const VulkanRenderPass* inputAttachmentSource() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const RenderTarget& renderTarget() const noexcept override;

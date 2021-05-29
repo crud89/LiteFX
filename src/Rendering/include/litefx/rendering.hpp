@@ -809,6 +809,7 @@ namespace LiteFX::Rendering {
 	public:
 		using descriptor_set_layout_type = TDescriptorSetLayout;
 		using shader_program_type = TShaderProgram;
+		using descriptor_set_type = TDescriptorSet;
 
 	public:
 		virtual ~IRenderPipelineLayout() noexcept = default;
@@ -1325,7 +1326,7 @@ namespace LiteFX::Rendering {
 		/// Returns the source of the input attachment render target.
 		/// </summary>
 		/// <returns>The source of the input attachment render target.</returns>
-		virtual const TInputAttachmentMappingSource& inputAttachmentSource() const noexcept = 0;
+		virtual const TInputAttachmentMappingSource* inputAttachmentSource() const noexcept = 0;
 
 		/// <summary>
 		/// Returns a reference of the render target that is mapped to the input attachment.
@@ -1358,7 +1359,7 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
 	// TODO: Add concepts to constrain render pipeline and input attachments properly.
-	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TRenderPipelineLayout = TRenderPipeline::render_pipeline_layout_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImageInterface = TFrameBuffer::image_interface_type> requires
+	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TRenderPipelineLayout = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImageInterface = TFrameBuffer::image_interface_type> requires
 		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImageInterface>> /*&&
 		rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout>> &&
 		rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
@@ -1405,6 +1406,13 @@ namespace LiteFX::Rendering {
 		virtual Array<const TRenderPipeline*> pipelines() const noexcept = 0;
 
 		/// <summary>
+		/// Returns the render target mapped to the location provided by <paramref name="location" />.
+		/// </summary>
+		/// <param name="location">The location to return the render target for.</param>
+		/// <returns>The render target mapped to the location provided by <paramref name="location" />.</returns>
+		virtual const RenderTarget& renderTarget(const UInt32& location) const = 0;
+
+		/// <summary>
 		/// Returns the list of render targets, the render pass renders into.
 		/// </summary>
 		/// <remarks>
@@ -1449,6 +1457,12 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
 		virtual void resizeFrameBuffers(const Size2d& renderArea) = 0;
+
+		/// <summary>
+		/// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
+		/// </summary>
+		/// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
+		virtual void updateAttachments(const TDescriptorSet& descriptorSet) const = 0;
 	};
 
 	/// <summary>
@@ -1467,9 +1481,11 @@ namespace LiteFX::Rendering {
 	public:
 		virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
 		virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& renderTarget(UniquePtr<TInputAttachmentMapping>& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& renderTarget(UniquePtr<TInputAttachmentMapping>& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& inputAttachment(const UInt32& location, const RenderTarget& renderTarget, const TRenderPass& renderPass) = 0;
+		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& inputAttachment(const TInputAttachmentMapping& inputAttachment) = 0;
+		virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const UInt32& outputLocation) = 0;
+		virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const RenderTarget& renderTarget) = 0;
 	};
 
 	/// <summary>
