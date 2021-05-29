@@ -44,6 +44,81 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Implements a DirectX12 vertex buffer layout.
+	/// </summary>
+	/// <seealso cref="DirectX12VertexBufferLayoutBuilder" />
+	/// <seealso cref="DirectX12VertexBuffer" />
+	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout : public virtual DirectX12RuntimeObject<DirectX12InputAssembler>, public IVertexBufferLayout {
+		LITEFX_IMPLEMENTATION(DirectX12VertexBufferLayoutImpl);
+		LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a new vertex buffer layout.
+		/// </summary>
+		/// <param name="inputAssembler">The parent input assembler state, the vertex buffer layout is initialized for.</param>
+		/// <param name="vertexSize">The size of a single vertex.</param>
+		/// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+		explicit DirectX12VertexBufferLayout(const DirectX12InputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding = 0);
+		DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) = delete;
+		DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
+		virtual ~DirectX12VertexBufferLayout() noexcept;
+
+		// IVertexBufferLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual Array<const BufferAttribute*> attributes() const noexcept override;
+
+		// IBufferLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual size_t elementSize() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BufferType& type() const noexcept override;
+	};
+
+	/// <summary>
+	/// Builds a see <cref="DirectX12VertexBufferLayout" />.
+	/// </summary>
+	/// <seealso cref="DirectX12VertexBuffer" />
+	/// <seealso cref="DirectX12VertexBufferLayout" />
+	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
+	public:
+		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
+
+	public:
+		/// <inheritdoc />
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+
+	public:
+		/// <summary>
+		/// Adds an attribute to the vertex buffer layout.
+		/// </summary>
+		/// <reamrks>
+		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
+		/// </reamrks>
+		/// <param name="format">The format of the attribute.</param>
+		/// <param name="offset">The offset of the attribute within a buffer element.</param>
+		/// <param name="semantic">The semantic of the attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the attribute.</param>
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+
+		/// <summary>
+		/// Adds an attribute to the vertex buffer layout.
+		/// </summary>
+		/// <param name="location">The location, the attribute is bound to.</param>
+		/// <param name="format">The format of the attribute.</param>
+		/// <param name="offset">The offset of the attribute within a buffer element.</param>
+		/// <param name="semantic">The semantic of the attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the attribute.</param>
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+	};
+
+	/// <summary>
 	/// 
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12RenderPassBuilder : public RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass> {
@@ -153,26 +228,6 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
-	public:
-		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
-
-	public:
-		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <reamrks>
-		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
-		/// </reamrks>
-		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex = 0);
-		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex = 0);
 	};
 
 	/// <summary>
@@ -423,28 +478,6 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout : public virtual DirectX12RuntimeObject, public IVertexBufferLayout {
-		LITEFX_IMPLEMENTATION(DirectX12VertexBufferLayoutImpl);
-		LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
-
-	public:
-		explicit DirectX12VertexBufferLayout(const DirectX12InputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding = 0);
-		DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) = delete;
-		DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
-		virtual ~DirectX12VertexBufferLayout() noexcept;
-
-	public:
-		virtual size_t getElementSize() const noexcept override;
-		virtual UInt32 getBinding() const noexcept override;
-		virtual BufferType getType() const noexcept override;
-
-	public:
-		virtual Array<const BufferAttribute*> getAttributes() const noexcept override;
 	};
 
 	/// <summary>

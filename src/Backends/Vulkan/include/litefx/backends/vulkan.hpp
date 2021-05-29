@@ -57,6 +57,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan vertex buffer layout.
 	/// </summary>
 	/// <seealso cref="VulkanVertexBuffer" />
+	/// <seealso cref="VulkanVertexBufferLayoutBuilder" />
 	class LITEFX_VULKAN_API VulkanVertexBufferLayout : public virtual VulkanRuntimeObject<VulkanInputAssembler>, public IVertexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferLayoutImpl);
 		LITEFX_BUILDER(VulkanVertexBufferLayoutBuilder);
@@ -93,6 +94,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Builds a see <cref="VulkanVertexBufferLayout" />.
 	/// </summary>
+	/// <seealso cref="VulkanVertexBuffer" />
 	/// <seealso cref="VulkanVertexBufferLayout" />
 	class LITEFX_VULKAN_API VulkanVertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
 	public:

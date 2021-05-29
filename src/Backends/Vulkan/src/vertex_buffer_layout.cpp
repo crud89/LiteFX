@@ -19,15 +19,8 @@ private:
 
 public:
     VulkanVertexBufferLayoutImpl(VulkanVertexBufferLayout* parent, const size_t& vertexSize, const UInt32& binding) : 
-        base(parent), m_vertexSize(vertexSize), m_binding(binding) { }
-
-public:
-    Array<const BufferAttribute*> getAttributes() const noexcept
+        base(parent), m_vertexSize(vertexSize), m_binding(binding) 
     {
-        Array<const BufferAttribute*> attributes(m_attributes.size());
-        std::generate(std::begin(attributes), std::end(attributes), [&, i = 0]() mutable { return m_attributes[i++].get(); });
-        
-        return attributes;
     }
 };
 
@@ -59,7 +52,9 @@ const BufferType& VulkanVertexBufferLayout::type() const noexcept
 
 Array<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const noexcept
 {
-    return m_impl->getAttributes();
+    return m_impl->m_attributes |
+        std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); }) |
+        ranges::to<Array<const BufferAttribute*>>();
 }
 
 // ------------------------------------------------------------------------------------------------
