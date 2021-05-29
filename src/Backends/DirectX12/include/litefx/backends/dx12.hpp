@@ -196,6 +196,91 @@ namespace LiteFX::Rendering::Backends {
 		virtual const BufferType& type() const noexcept override;
 	};
 
+	/// <summary>
+	/// Represents the base interface for a DirectX12 buffer implementation.
+	/// </summary>
+	/// <seealso cref="IDirectX12DescriptorSet" />
+	/// <seealso cref="IDirectX12ConstantBuffer" />
+	/// <seealso cref="IDirectX12ConstantTexture" />
+	/// <seealso cref="IDirectX12VertexBuffer" />
+	/// <seealso cref="IDirectX12IndexBuffer" />
+	class LITEFX_DIRECTX12_API IDirectX12Buffer : public virtual ITransferableBuffer<IDirectX12Buffer, DirectX12CommandBuffer>, public virtual IResource<ComPtr<ID3D12Resource>> {
+	public:
+		virtual ~IDirectX12Buffer() noexcept = default;
+	};
+
+	/// <summary>
+	/// Represents a DirectX12 vertex buffer.
+	/// </summary>
+	/// <seealso cref="DirectX12VertexBufferLayout" />
+	/// <seealso cref="IDirectX12Buffer" />
+	class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual IVertexBuffer<IDirectX12Buffer, DirectX12VertexBufferLayout, DirectX12CommandBuffer>, public IDirectX12Buffer {
+	public:
+		virtual ~IDirectX12VertexBuffer() noexcept = default;
+	};
+
+	/// <summary>
+	/// Represents a DirectX12 index buffer.
+	/// </summary>
+	/// <seealso cref="DirectX12IndexBufferLayout" />
+	/// <seealso cref="IDirectX12Buffer" />
+	class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IIndexBuffer<IDirectX12Buffer, DirectX12IndexBufferLayout, DirectX12CommandBuffer>, public IDirectX12Buffer {
+	public:
+		virtual ~IDirectX12IndexBuffer() noexcept = default;
+	};
+
+	/// <summary>
+	/// Represents a DirectX12 uniform or storage buffer.
+	/// </summary>
+	/// <seealso cref="DirectX12DescriptorLayout" />
+	/// <seealso cref="DirectX12DescriptorSet" />
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	/// <seealso cref="IDirectX12Buffer" />
+	class LITEFX_DIRECTX12_API IDirectX12ConstantBuffer : public virtual IConstantBuffer<IDirectX12Buffer, DirectX12CommandBuffer, DirectX12DescriptorLayout>, public IDirectX12Buffer {
+	public:
+		virtual ~IDirectX12ConstantBuffer() noexcept = default;
+	};
+
+	/// <summary>
+	/// Represents a DirectX12 sampled image or the base interface for a texture.
+	/// </summary>
+	/// <seealso cref="DirectX12DescriptorLayout" />
+	/// <seealso cref="DirectX12DescriptorSet" />
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	/// <seealso cref="IDirectX12Texture" />
+	/// <seealso cref="IDirectX12Sampler" />
+	class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>> {
+	public:
+		virtual ~IDirectX12Image() noexcept = default;
+	};
+
+	/// <summary>
+	/// Represents a DirectX12 texture.
+	/// </summary>
+	/// <seealso cref="DirectX12DescriptorLayout" />
+	/// <seealso cref="DirectX12DescriptorSet" />
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	/// <seealso cref="IDirectX12Image" />
+	/// <seealso cref="IDirectX12Sampler" />
+	/// <seealso cref="IDirectX12Buffer" />
+	class LITEFX_DIRECTX12_API IDirectX12Texture : public virtual ITexture<DirectX12DescriptorLayout, IDirectX12Buffer, DirectX12CommandBuffer>, public IDirectX12Image {
+	public:
+		virtual ~IDirectX12Texture() noexcept = default;
+	};
+
+	/// <summary>
+	/// Represents a DirectX12 sampler.
+	/// </summary>
+	/// <seealso cref="DirectX12DescriptorLayout" />
+	/// <seealso cref="DirectX12DescriptorSet" />
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	/// <seealso cref="IDirectX12Image" />
+	/// <seealso cref="IDirectX12Texture" />
+	class LITEFX_DIRECTX12_API IDirectX12Sampler : public ISampler<DirectX12DescriptorLayout>, public virtual IResource<ComPtr<ID3D12Resource>> {
+	public:
+		virtual ~IDirectX12Sampler() noexcept = default;
+	};
+
 
 
 
