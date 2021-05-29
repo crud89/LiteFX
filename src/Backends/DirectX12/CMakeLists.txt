@@ -38,7 +38,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/shader_program.cpp"
     "src/descriptor_layout.cpp"
     "src/descriptor_set.cpp"
-    "src/constant_buffer.cpp"
+    "src/descriptor_set_layout.cpp"
 )
 
 # Add shared library project.

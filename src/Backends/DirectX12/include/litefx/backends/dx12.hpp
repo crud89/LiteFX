@@ -154,6 +154,47 @@ namespace LiteFX::Rendering::Backends {
 		virtual const BufferType& type() const noexcept override;
 	};
 
+	/// <summary>
+	/// Implements a DirectX12 <see cref="IDescriptorLayout" />
+	/// </summary>
+	/// <seealso cref="IDirectX12ConstantBuffer" />
+	/// <seealso cref="IDirectX12Image" />
+	/// <seealso cref="IDirectX12Texture" />
+	/// <seealso cref="IDirectX12Sampler" />
+	/// <seealso cref="DirectX12DescriptorSet" />
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorLayout {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorLayoutImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX12 descriptor layout.
+		/// </summary>
+		/// <param name="descriptorSetLayout">The parent descriptor set layout.</param>
+		/// <param name="type">The type of the descriptor.</param>
+		/// <param name="binding">The binding point for the descriptor.</param>
+		/// <param name="elementSize">The size of the descriptor.</param>
+		explicit DirectX12DescriptorLayout(const DirectX12DescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize);
+		DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
+		DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
+		virtual ~DirectX12DescriptorLayout() noexcept;
+
+		// IDescriptorLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual const DescriptorType& descriptorType() const noexcept override;
+
+		// IBufferLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual size_t elementSize() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BufferType& type() const noexcept override;
+	};
 
 
 
@@ -630,29 +671,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IImage* image) const override;
 	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public virtual DirectX12RuntimeObject, public IDescriptorLayout {
-		LITEFX_IMPLEMENTATION(DirectX12DescriptorLayoutImpl);
-
-	public:
-		explicit DirectX12DescriptorLayout(const DirectX12DescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize);
-		DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
-		DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
-		virtual ~DirectX12DescriptorLayout() noexcept;
-
-	public:
-		virtual size_t getElementSize() const noexcept override;
-		virtual UInt32 getBinding() const noexcept override;
-		virtual BufferType getType() const noexcept override;
-
-	public:
-		virtual const IDescriptorSetLayout* getDescriptorSet() const noexcept override;
-		virtual DescriptorType getDescriptorType() const noexcept override;
-	};
-
 
 	/// <summary>
 	/// Implements the DirectX12 <see cref="IRenderBackend" />.
