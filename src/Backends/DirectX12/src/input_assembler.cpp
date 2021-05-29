@@ -110,36 +110,36 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder(DirectX12RenderPipelineBuilder & parent) noexcept :
+DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept :
     m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder>(parent, SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler(*std::as_const(parent).instance()->getDevice())))
 {
 }
 
 DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = default;
 
-DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::addVertexBuffer(const size_t & elementSize, const UInt32 & binding)
+DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::addVertexBuffer(const size_t& elementSize, const UInt32& binding)
 {
     return this->make<DirectX12VertexBufferLayout>(elementSize, binding);
 }
 
-DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::withIndexType(const IndexType & type)
+DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::withIndexType(const IndexType& type)
 {
     this->use(makeUnique<DirectX12IndexBufferLayout>(*this->instance(), type));
     return *this;
 }
 
-DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::withTopology(const PrimitiveTopology & topology)
+DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::withTopology(const PrimitiveTopology& topology)
 {
     m_impl->m_primitiveTopology = topology;
     return *this;
 }
 
-void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12VertexBufferLayout> && layout)
+void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12VertexBufferLayout>&& layout)
 {
     m_impl->m_vertexBufferLayouts.push_back(std::move(layout));
 }
 
-void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12IndexBufferLayout> && layout)
+void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12IndexBufferLayout>&& layout)
 {
     m_impl->m_indexBufferLayout = std::move(layout);
 }

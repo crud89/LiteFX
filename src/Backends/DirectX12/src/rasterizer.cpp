@@ -45,7 +45,7 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RasterizerBuilder::DirectX12RasterizerBuilder(DirectX12RenderPipelineBuilder & parent) noexcept :
+DirectX12RasterizerBuilder::DirectX12RasterizerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept :
     m_impl(makePimpl<DirectX12RasterizerBuilderImpl>(this)), RasterizerBuilder(parent, SharedPtr<DirectX12Rasterizer>(new DirectX12Rasterizer(*std::as_const(parent).instance())))
 {
 }
@@ -66,25 +66,25 @@ DirectX12RenderPipelineBuilder& DirectX12RasterizerBuilder::go()
     return RasterizerBuilder::go();
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withPolygonMode(const PolygonMode & mode) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withPolygonMode(const PolygonMode& mode) noexcept
 {
     m_impl->m_polygonMode = mode;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withCullMode(const CullMode & cullMode) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withCullMode(const CullMode& cullMode) noexcept
 {
     m_impl->m_cullMode = cullMode;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withCullOrder(const CullOrder & cullOrder) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withCullOrder(const CullOrder& cullOrder) noexcept
 {
     m_impl->m_cullOrder = cullOrder;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withLineWidth(const Float & lineWidth) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withLineWidth(const Float& lineWidth) noexcept
 {
     m_impl->m_lineWidth = lineWidth;
     return *this;
@@ -96,19 +96,19 @@ DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::enableDepthBias(const bo
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthBiasClamp(const Float & clamp) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthBiasClamp(const Float& clamp) noexcept
 {
     m_impl->m_depthBiasClamp = clamp;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthBiasConstantFactor(const Float & factor) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthBiasConstantFactor(const Float& factor) noexcept
 {
     m_impl->m_depthBiasConstantFactor = factor;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthBiasSlopeFactor(const Float & factor) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthBiasSlopeFactor(const Float& factor) noexcept
 {
     m_impl->m_depthBiasSlopeFactor = factor;
     return *this;
