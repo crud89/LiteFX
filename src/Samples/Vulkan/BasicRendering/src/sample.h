@@ -117,8 +117,19 @@ public:
 	}
 
 private:
+	/// <summary>
+	/// Initializes the render pass.
+	/// </summary>
 	void initRenderGraph();
+
+	/// <summary>
+	/// Initializes the render pipelines.
+	/// </summary>
 	void initPipelines();
+
+	/// <summary>
+	/// Initializes the buffers.
+	/// </summary>
 	void initBuffers();
 
 	/// <summary>

@@ -13,8 +13,8 @@ struct FragmentData
     float Depth : SV_DEPTH;
 };
 
-Texture2D diffuseMap : register(t0, space2);
-SamplerState diffuse : register(s1, space2);
+Texture2D diffuseMap : register(t1, space0);
+SamplerState diffuse : register(s2, space0);
 
 FragmentData main(VertexData input)
 {

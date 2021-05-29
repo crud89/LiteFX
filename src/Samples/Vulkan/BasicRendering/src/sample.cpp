@@ -92,7 +92,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(*commandBuffer.get(), *stagedVertices.get(), 0, 0, vertices.size());
+    m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
@@ -100,7 +100,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    m_indexBuffer->transferFrom(*commandBuffer.get(), *stagedIndices.get(), 0, 0, indices.size());
+    m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -110,17 +110,17 @@ void SampleApp::initBuffers()
 
     // Allocate the descriptor set and bind the camera buffer to it.
     m_cameraBindings = cameraBindingLayout.allocate();
-    m_cameraBindings->update(*m_cameraBuffer.get(), 0);
+    m_cameraBindings->update(*m_cameraBuffer, 0);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    this->updateCamera(*commandBuffer.get());
+    this->updateCamera(*commandBuffer);
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = m_pipeline->layout().layout(DescriptorSets::PerFrame);
     m_perFrameBindings = transformBindingLayout.allocate(3);
     m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
-    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer.get(), i++); });
+    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
     
     // End and submit the command buffer.
     commandBuffer->end(true, true);
@@ -135,7 +135,7 @@ void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
     projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer.get());
+    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
 }
 
 void SampleApp::run() 
@@ -233,7 +233,7 @@ void SampleApp::resize(int width, int height)
 
     // Also update the camera.
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
-    this->updateCamera(*commandBuffer.get());
+    this->updateCamera(*commandBuffer);
     commandBuffer->end(true, true);
 }
 
@@ -263,12 +263,12 @@ void SampleApp::drawFrame()
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    m_pipeline->bind(*m_cameraBindings.get());
-    m_pipeline->bind(*m_perFrameBindings[backBuffer].get());
+    m_pipeline->bind(*m_cameraBindings);
+    m_pipeline->bind(*m_perFrameBindings[backBuffer]);
 
     // Bind the vertex and index buffers.
-    m_pipeline->bind(*m_vertexBuffer.get());
-    m_pipeline->bind(*m_indexBuffer.get());
+    m_pipeline->bind(*m_vertexBuffer);
+    m_pipeline->bind(*m_indexBuffer);
 
     // Draw the object and present the frame by ending the render pass.
     m_pipeline->drawIndexed(m_indexBuffer->elements());

@@ -183,7 +183,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit VulkanSampler(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f);
+		explicit VulkanSampler(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f);
 		VulkanSampler(VulkanSampler&&) = delete;
 		VulkanSampler(const VulkanSampler&) = delete;
 		virtual ~VulkanSampler() noexcept;

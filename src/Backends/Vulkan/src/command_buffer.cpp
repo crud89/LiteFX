@@ -19,12 +19,6 @@ public:
 	{
 	}
 
-	~VulkanCommandBufferImpl()
-	{
-		::vkDestroyFence(m_parent->getDevice()->handle(), m_fence, nullptr);
-		::vkFreeCommandBuffers(m_parent->getDevice()->handle(), m_parent->parent().commandPool(), 1, &m_parent->handle());
-	}
-
 public:
 	VkCommandBuffer initialize()
 	{
@@ -65,7 +59,11 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const bool& b
 		this->begin();
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default;
+VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
+{
+	::vkDestroyFence(this->getDevice()->handle(), m_impl->m_fence, nullptr);
+	::vkFreeCommandBuffers(this->getDevice()->handle(), this->parent().commandPool(), 1, &this->handle());
+}
 
 void VulkanCommandBuffer::wait() const
 {

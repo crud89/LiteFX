@@ -34,34 +34,125 @@ public:
 	AppVersion getVersion() const noexcept override { return version(); }
 
 private:
+	/// <summary>
+	/// Stores the GLFW window pointer.
+	/// </summary>
 	GlfwWindowPtr m_window;
-	SharedPtr<IViewport> m_viewport;
-	SharedPtr<IScissor> m_scissor;
+
+	/// <summary>
+	/// Stores the preferred adapter ID (<c>std::nullopt</c>, if the default adapter is used).
+	/// </summary>
+	Optional<UInt32> m_adapterId;
+
+	/// <summary>
+	/// Stores the surface used to create the device.
+	/// </summary>
+	UniquePtr<VulkanSurface> m_surface;
+
+	/// <summary>
+	/// Stores the main device instance.
+	/// </summary>
 	UniquePtr<VulkanDevice> m_device;
+
+	/// <summary>
+	/// Stores the only render pass used in this sample.
+	/// </summary>
 	UniquePtr<VulkanRenderPass> m_renderPass;
-	UniquePtr<IVertexBuffer> m_vertexBuffer;
-	UniquePtr<IIndexBuffer> m_indexBuffer;
-	UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;
-	UniquePtr<IDescriptorSet> m_perFrameBindings, m_perObjectBindings, m_perMaterialBindings;
-	UniquePtr<ITexture> m_texture;
-	UniquePtr<ISampler> m_sampler;
+
+	/// <summary>
+	/// Stores the only render pipeline used in this sample.
+	/// </summary>
+	UniquePtr<VulkanRenderPipeline> m_pipeline;
+
+	/// <summary>
+	/// Stores a reference of the input assembler state.
+	/// </summary>
+	SharedPtr<VulkanInputAssembler> m_inputAssembler;
+
+	/// <summary>
+	/// Stores the viewport.
+	/// </summary>
+	SharedPtr<IViewport> m_viewport;
+
+	/// <summary>
+	/// Stores the scissor.
+	/// </summary>
+	SharedPtr<IScissor> m_scissor;
+
+	/// <summary>
+	/// Stores the vertex buffer for the quad rendered in this sample.
+	/// </summary>
+	UniquePtr<IVulkanVertexBuffer> m_vertexBuffer;
+
+	/// <summary>
+	/// Stores the index buffer for the quad rendered in this sample.
+	/// </summary>
+	UniquePtr<IVulkanIndexBuffer> m_indexBuffer;
+
+	/// <summary>
+	/// Stores the buffer that contains the camera information. Since the camera is static, we only need one (immutable) buffer for it, so the buffer will only contain one element.
+	/// </summary>
+	UniquePtr<IVulkanConstantBuffer> m_cameraBuffer, m_cameraStagingBuffer;
+
+	/// <summary>
+	/// Stores the buffer that holds the object transform. The buffer will contain three elements, since we have three frames in flight.
+	/// </summary>
+	UniquePtr<IVulkanConstantBuffer> m_transformBuffer;
+
+	/// <summary>
+	/// Stores the bindings to the transform buffer.
+	/// </summary>
+	Array<UniquePtr<VulkanDescriptorSet>> m_perFrameBindings;
+
+	/// <summary>
+	/// Stores the binding for the camera buffer, the texture and the sampler.
+	/// </summary>
+	UniquePtr<VulkanDescriptorSet> m_constantBindings;
+
+	/// <summary>
+	/// Stores the texture.
+	/// </summary>
+	UniquePtr<IVulkanTexture> m_texture;
+
+	/// <summary>
+	/// Stores the sampler state for <see cref="m_texture" />.
+	/// </summary>
+	UniquePtr<IVulkanSampler> m_sampler;
 
 public:
-	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {
-		::glfwSetWindowUserPointer(m_window.get(), this);
-
+	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
+		App(), m_window(std::move(window)), m_adapterId(adapterId)
+	{
 		this->initialize();
 	}
 
 private:
-	void loadTexture();
-	void createRenderPasses();
+	/// <summary>
+	/// Initializes the render pass.
+	/// </summary>
+	void initRenderGraph();
+
+	/// <summary>
+	/// Initializes the render pipelines.
+	/// </summary>
+	void initPipelines();
+
+	/// <summary>
+	/// Initializes the buffers.
+	/// </summary>
 	void initBuffers();
 
+	/// <summary>
+	/// Loads the texture.
+	/// </summary>
+	void loadTexture();
+
+	/// <summary>
+	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
+	/// </summary>
+	void updateCamera(const VulkanCommandBuffer& commandBuffer);
+
 public:
-	virtual const IRenderBackend* getRenderBackend() const noexcept {
-		return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
-	}
 	virtual void run() override;
 	virtual void initialize() override;
 	virtual void resize(int width, int height) override;

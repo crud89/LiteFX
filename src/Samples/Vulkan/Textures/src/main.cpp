@@ -12,8 +12,8 @@ int main(const int argc, const char** argv)
 	const String appName = SampleApp::name();
 
 	CLI::App app{ "Demonstrates texture loading and creation.", appName };
-
 	Optional<uint32_t> adapterId;
+
 	auto validationLayers = app.add_option("-l,--layers")->take_all();
 	app.add_option("-a,--adapter", adapterId)->take_first();
 
@@ -59,19 +59,10 @@ int main(const int argc, const char** argv)
 	// Create the app.
 	try 
 	{
-		App::build<SampleApp>(std::move(window))
+		App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
-			.make<VulkanBackend>(requiredExtensions, enabledLayers)
-				.withAdapterOrDefault(adapterId)
-				.withSurface([&windowPtr](const VkInstance& instance) {
-					VkSurfaceKHR surface;
-					
-					if (::glfwCreateWindowSurface(instance, windowPtr, nullptr, &surface) != VK_SUCCESS)
-						throw std::runtime_error("Unable to create GLFW window surface.");
-					
-					return surface;
-				}).go()
+			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
 			.go();
 	}
 	catch (const LiteFX::Exception& ex)

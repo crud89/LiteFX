@@ -28,9 +28,9 @@ UniquePtr<IVulkanTexture> VulkanDescriptorSet::makeTexture(const UInt32& binding
     return this->getDevice()->factory().createTexture(this->parent().layout(binding), format, size, levels, samples);
 }
 
-UniquePtr<IVulkanSampler> VulkanDescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+UniquePtr<IVulkanSampler> VulkanDescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) const
 {
-    return this->getDevice()->factory().createSampler(this->parent().layout(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+    return this->getDevice()->factory().createSampler(this->parent().layout(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
 void VulkanDescriptorSet::update(const IVulkanConstantBuffer& buffer, const UInt32& bufferElement) const noexcept
