@@ -150,7 +150,7 @@ void SampleApp::run()
     if (adapter == nullptr)
         adapter = backend->findAdapter(std::nullopt);
 
-    m_surface = backend->createSurface([&window](const VkInstance& instance) {
+    auto surface = backend->createSurface([&window](const VkInstance& instance) {
         VkSurfaceKHR surface;
         raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
 
@@ -166,7 +166,7 @@ void SampleApp::run()
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = backend->createDevice(*adapter, *m_surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+    m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
 
     // Initialize resources.
     this->initRenderGraph();

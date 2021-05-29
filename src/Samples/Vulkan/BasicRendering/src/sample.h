@@ -45,11 +45,6 @@ private:
 	Optional<UInt32> m_adapterId;
 
 	/// <summary>
-	/// Stores the surface used to create the device.
-	/// </summary>
-	UniquePtr<VulkanSurface> m_surface;
-
-	/// <summary>
 	/// Stores the main device instance.
 	/// </summary>
 	UniquePtr<VulkanDevice> m_device;
