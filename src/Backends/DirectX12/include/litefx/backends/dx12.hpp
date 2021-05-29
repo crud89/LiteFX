@@ -620,6 +620,169 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12DescriptorSetLayoutBuilder addDescriptorSet(const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
 	};
 
+	/// <summary>
+	/// Implements the DirectX12 input assembler state.
+	/// </summary>
+	/// <seealso cref="DirectX12InputAssemblerBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public virtual DirectX12RuntimeObject<DirectX12Device>, public IInputAssembler<DirectX12VertexBufferLayout, DirectX12IndexBufferLayout> {
+		LITEFX_IMPLEMENTATION(DirectX12InputAssemblerImpl);
+		LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX12 input assembler state.
+		/// </summary>
+		/// <param name="device">The parent device.</param>
+		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+		/// <param name="indexBufferLayout">The index buffer layout.</param>
+		/// <param name="primitiveTopology">The primitive topology.</param>
+		explicit DirectX12InputAssembler(const DirectX12Device& device, Array<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology = PrimitiveTopology::TriangleList);
+		DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
+		DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
+		virtual ~DirectX12InputAssembler() noexcept;
+
+	private:
+		explicit DirectX12InputAssembler(const DirectX12Device& device) noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual Array<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12VertexBufferLayout& vertexBufferLayout(const UInt32& binding) const override;
+
+		/// <inheritdoc />
+		virtual const DirectX12IndexBufferLayout& indexBufferLayout() const override;
+
+		/// <inheritdoc />
+		virtual const PrimitiveTopology& topology() const noexcept override;
+	};
+
+	/// <summary>
+	/// Builds a <see cref="DirectX12InputAssembler" />.
+	/// </summary>
+	/// <seealso cref="DirectX12InputAssembler" />
+	class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12InputAssemblerBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX12 input assembler builder.
+		/// </summary>
+		/// <param name="parent">The parent render pipeline builder.</param>
+		explicit DirectX12InputAssemblerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept;
+		DirectX12InputAssemblerBuilder(const DirectX12InputAssemblerBuilder&) noexcept = delete;
+		DirectX12InputAssemblerBuilder(DirectX12InputAssemblerBuilder&&) noexcept = delete;
+		virtual ~DirectX12InputAssemblerBuilder() noexcept;
+
+	public:
+		/// <summary>
+		/// Starts building a vertex buffer layout.
+		/// </summary>
+		/// <param name="elementSize">The size of a vertex within the vertex buffer.</param>
+		/// <param name="binding">The binding point to bind the vertex buffer to.</param>
+		virtual DirectX12VertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
+
+		/// <summary>
+		/// Starts building an index buffer layout.
+		/// </summary>
+		/// <param name="type">The type of the index buffer.</param>
+		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
+
+		// IInputAssemblerBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12InputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
+
+		/// <inheritdoc />
+		virtual void use(UniquePtr<DirectX12VertexBufferLayout>&& layout) override;
+
+		/// <inheritdoc />
+		virtual void use(UniquePtr<DirectX12IndexBufferLayout>&& layout) override;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& go() override;
+	};
+
+	/// <summary>
+	/// Implements a DirectX12 <see cref="IRasterizer" />.
+	/// </summary>
+	/// <seealso cref="DirectX12RasterizerBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12Rasterizer : public virtual DirectX12RuntimeObject<DirectX12RenderPipeline>, public Rasterizer {
+		LITEFX_BUILDER(DirectX12RasterizerBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX12 rasterizer state.
+		/// </summary>
+		/// <param name="pipeline">The parent pipeline, the rasterizer state is created for.</param>
+		/// <param name="polygonMode">The polygon mode used by the pipeline.</param>
+		/// <param name="cullMode">The cull mode used by the pipeline.</param>
+		/// <param name="cullOrder">The cull order used by the pipeline.</param>
+		/// <param name="lineWidth">The line width used by the pipeline.</param>
+		/// <param name="useDepthBias"><c>true</c>, if the depth bias should be enabled.</param>
+		/// <param name="depthBiasClamp">The clamp value of the depth bias state.</param>
+		/// <param name="depthBiasConstantFactor">The constant factor of the depth bias state.</param>
+		/// <param name="depthBiasSlopeFactor">The slope factor of the depth bias state.</param>
+		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept;
+		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
+		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
+		virtual ~DirectX12Rasterizer() noexcept;
+
+	private:
+		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline) noexcept;
+	};
+
+	/// <summary>
+	/// Builds a DirectX12 <see cref="IRasterizer" />.
+	/// </summary>
+	/// <seealso cref="DirectX12Rasterizer" />
+	class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12RasterizerBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX12 input assembler builder.
+		/// </summary>
+		/// <param name="parent">The parent render pipeline builder.</param>
+		explicit DirectX12RasterizerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept;
+		DirectX12RasterizerBuilder(const DirectX12RasterizerBuilder&) noexcept = delete;
+		DirectX12RasterizerBuilder(DirectX12RasterizerBuilder&&) noexcept = delete;
+		virtual ~DirectX12RasterizerBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& go() override;
+
+		// RasterizerBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& enableDepthBias(const bool& enable = false) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) noexcept override;
+	};
 
 
 
@@ -678,43 +841,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(SharedPtr<IInputAssembler> inputAssembler) override;
 		virtual void use(SharedPtr<IViewport> viewport) override;
 		virtual void use(SharedPtr<IScissor> scissor) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder> {
-	public:
-		using RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder>::RasterizerBuilder;
-
-	public:
-		virtual DirectX12RasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) override;
-		virtual DirectX12RasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
-		virtual DirectX12RasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
-		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
-		virtual DirectX12RasterizerBuilder& enableDepthBias(const bool& enable = false) override;
-		virtual DirectX12RasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
-		virtual DirectX12RasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
-		virtual DirectX12RasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder> {
-	public:
-		using InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder>::InputAssemblerBuilder;
-
-	public:
-		virtual DirectX12VertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
-
-	public:
-		virtual DirectX12InputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
-		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) override;
-		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) override;
-
-	public:
-		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
 	};
 
 	/// <summary>
@@ -880,32 +1006,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual void bind(const IIndexBuffer* buffer) const override;
 		virtual void bind(IDescriptorSet* buffer) const override;
 		virtual void use() const override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public virtual DirectX12RuntimeObject, public InputAssembler {
-		LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
-
-	public:
-		explicit DirectX12InputAssembler(const DirectX12RenderPipeline& pipeline) noexcept;
-		DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
-		DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
-		virtual ~DirectX12InputAssembler() noexcept;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Rasterizer : public virtual DirectX12RuntimeObject, public Rasterizer {
-		LITEFX_BUILDER(DirectX12RasterizerBuilder);
-
-	public:
-		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline) noexcept;
-		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
-		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
-		virtual ~DirectX12Rasterizer() noexcept;
 	};
 	
 	/// <summary>
