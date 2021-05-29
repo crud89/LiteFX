@@ -12,7 +12,7 @@ public:
     friend class DirectX12ShaderProgram;
 
 private:
-    Array<UniquePtr<IShaderModule>> m_modules;
+    Array<UniquePtr<DirectX12ShaderModule>> m_modules;
 
 public:
     DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent) : 
@@ -26,65 +26,93 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout) :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject(pipelineLayout.getDevice())
+    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject(pipelineLayout, pipelineLayout.getDevice())
+{
+}
+
+DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout) noexcept :
+    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject<DirectX12RenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
 DirectX12ShaderProgram::~DirectX12ShaderProgram() noexcept = default;
 
-Array<const IShaderModule*> DirectX12ShaderProgram::getModules() const noexcept
+Array<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noexcept
 {
-    Array<const IShaderModule*> modules(m_impl->m_modules.size());
-    std::generate(std::begin(modules), std::end(modules), [&, i = 0]() mutable { return m_impl->m_modules[i++].get(); });
-
-    return modules;
-}
-
-void DirectX12ShaderProgram::use(UniquePtr<IShaderModule>&& module)
-{
-    if (module == nullptr)
-        throw std::invalid_argument("The shader module must be initialized.");
-
-    m_impl->m_modules.push_back(std::move(module));
+    return m_impl->m_modules |
+        std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); }) |
+        ranges::to<Array<const DirectX12ShaderModule*>>();
 }
 
 // ------------------------------------------------------------------------------------------------
-// Builder interface.
+// Builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
-{
-    this->instance()->use(makeUnique<DirectX12ShaderModule>(type, fileName, entryPoint));
+class DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilderImpl : public Implement<DirectX12ShaderProgramBuilder> {
+public:
+    friend class DirectX12ShaderProgramBuilder;
 
+private:
+    Array<UniquePtr<DirectX12ShaderModule>> m_modules;
+
+public:
+    DirectX12ShaderProgramBuilderImpl(DirectX12ShaderProgramBuilder* parent) :
+        base(parent)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Builder shared interface.
+// ------------------------------------------------------------------------------------------------
+
+DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(DirectX12RenderPipelineLayoutBuilder& parent) :
+    m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this)), ShaderProgramBuilder(parent, UniquePtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(*std::as_const(parent).instance())))
+{
+}
+
+DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = default;
+
+DirectX12RenderPipelineLayoutBuilder& DirectX12ShaderProgramBuilder::go()
+{
+    auto instance = this->instance();
+    instance->m_impl->m_modules = std::move(m_impl->m_modules);
+
+    return ShaderProgramBuilder::go();
+}
+
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addShaderModule(const ShaderStage & type, const String & fileName, const String & entryPoint)
+{
+    m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(*this->instance()->getDevice(), type, fileName, entryPoint));
     return *this;
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addVertexShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addVertexShaderModule(const String & fileName, const String & entryPoint)
 {
     return this->addShaderModule(ShaderStage::Vertex, fileName, entryPoint);
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addTessellationControlShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addTessellationControlShaderModule(const String & fileName, const String & entryPoint)
 {
     return this->addShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addTessellationEvaluationShaderModule(const String & fileName, const String & entryPoint)
 {
     return this->addShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addGeometryShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addGeometryShaderModule(const String & fileName, const String & entryPoint)
 {
     return this->addShaderModule(ShaderStage::Geometry, fileName, entryPoint);
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addFragmentShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addFragmentShaderModule(const String & fileName, const String & entryPoint)
 {
     return this->addShaderModule(ShaderStage::Fragment, fileName, entryPoint);
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addComputeShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::addComputeShaderModule(const String & fileName, const String & entryPoint)
 {
     return this->addShaderModule(ShaderStage::Compute, fileName, entryPoint);
 }

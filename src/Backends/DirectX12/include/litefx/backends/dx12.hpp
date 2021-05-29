@@ -431,6 +431,114 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12DescriptorSetLayoutBuilder& shaderStages(const ShaderStage& stages) noexcept;
 	};
 
+	/// <summary>
+	/// Implements a DirectX12 <see cref="IShaderModule" />.
+	/// </summary>
+	/// <seealso cref="DirectX12ShaderProgram" />
+	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public virtual DirectX12RuntimeObject<DirectX12Device>, public IShaderModule {
+		LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX12 shader module.
+		/// </summary>
+		/// <param name="device">The parent device, this shader module has been created from.</param>
+		/// <param name="type">The shader stage, this module is used in.</param>
+		/// <param name="fileName">The file name of the module source.</param>
+		/// <param name="entryPoint">The name of the module entry point.</param>
+		explicit DirectX12ShaderModule(const DirectX12Device& device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
+		DirectX12ShaderModule(const DirectX12ShaderModule&) noexcept = delete;
+		DirectX12ShaderModule(DirectX12ShaderModule&&) noexcept = delete;
+		virtual ~DirectX12ShaderModule() noexcept;
+
+		// IShaderModule interface.
+	public:
+		/// <inheritdoc />
+		virtual const String& fileName() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const String& entryPoint() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const ShaderStage& type() const noexcept override;
+
+		// DirectX12 Shader module.
+	public:
+		virtual const D3D12_SHADER_BYTECODE& bytecode() const noexcept;
+	};
+
+	/// <summary>
+	/// Implements a DirectX12 <see cref="IShaderProgram" />.
+	/// </summary>
+	/// <seealso cref="DirectX12ShaderProgramBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12ShaderProgram : public virtual DirectX12RuntimeObject<DirectX12RenderPipelineLayout>, public IShaderProgram<DirectX12ShaderModule> {
+		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
+		LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX12 shader program.
+		/// </summary>
+		/// <param name="pipelineLayout">The parent pipeline layout to initialize the shader program from.</param>
+		/// <param name="modules">The shader modules used by the shader program.</param>
+		explicit DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12ShaderModule>>&& modules);
+		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
+		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
+		virtual ~DirectX12ShaderProgram() noexcept;
+
+	private:
+		explicit DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout) noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual Array<const DirectX12ShaderModule*> modules() const noexcept override;
+	};
+
+	/// <summary>
+	/// Builds a DirectX12 <see cref="IShaderProgram" />.
+	/// </summary>
+	/// <seealso cref="DirectX12ShaderProgram" />
+	class LITEFX_DIRECTX12_API DirectX12ShaderProgramBuilder : public ShaderProgramBuilder<DirectX12ShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX12 shader program builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		explicit DirectX12ShaderProgramBuilder(DirectX12RenderPipelineLayoutBuilder& parent);
+		DirectX12ShaderProgramBuilder(const DirectX12ShaderProgramBuilder&) = delete;
+		DirectX12ShaderProgramBuilder(DirectX12ShaderProgramBuilder&&) = delete;
+		virtual ~DirectX12ShaderProgramBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+
+		// ShaderProgramBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
+	};
 
 
 
@@ -552,24 +660,6 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
 	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12ShaderProgramBuilder : public ShaderProgramBuilder<DirectX12ShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder> {
-	public:
-		using ShaderProgramBuilder<DirectX12ShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder>::ShaderProgramBuilder;
-
-	public:
-		virtual DirectX12ShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
-		virtual DirectX12ShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual DirectX12ShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual DirectX12ShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual DirectX12ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual DirectX12ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
-		virtual DirectX12ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
-	};
-
 
 	/// <summary>
 	/// 
@@ -786,40 +876,6 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public IShaderModule, public IResource<D3D12_SHADER_BYTECODE> {
-		LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
-
-	public:
-		explicit DirectX12ShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
-		virtual ~DirectX12ShaderModule() noexcept;
-
-	public:
-		virtual const String& getFileName() const noexcept override;
-		virtual const String& getEntryPoint() const noexcept override;
-		virtual const ShaderStage& getType() const noexcept override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12ShaderProgram : public virtual DirectX12RuntimeObject, public IShaderProgram {
-		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
-		LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
-
-	public:
-		explicit DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout);
-		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
-		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
-		virtual ~DirectX12ShaderProgram() noexcept;
-
-	public:
-		virtual Array<const IShaderModule*> getModules() const noexcept override;
-		virtual void use(UniquePtr<IShaderModule>&& module) override;
 	};
 	
 	/// <summary>
