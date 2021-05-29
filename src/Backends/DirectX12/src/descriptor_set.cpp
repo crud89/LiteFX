@@ -47,7 +47,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& bufferSet) :
-    IComResource<ID3D12DescriptorHeap>(nullptr), DirectX12RuntimeObject(bufferSet.getDevice()), m_impl(makePimpl<DirectX12DescriptorSetImpl>(this, bufferSet))
+    ComResource<ID3D12DescriptorHeap>(nullptr), DirectX12RuntimeObject(bufferSet.getDevice()), m_impl(makePimpl<DirectX12DescriptorSetImpl>(this, bufferSet))
 {
     this->handle() = m_impl->initialize();
 }

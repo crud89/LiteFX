@@ -30,7 +30,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter) :
-    IComResource<IDXGIAdapter4>(adapter), m_impl(makePimpl<DirectX12GraphicsAdapterImpl>(this))
+    ComResource<IDXGIAdapter4>(adapter), m_impl(makePimpl<DirectX12GraphicsAdapterImpl>(this))
 {
 }
 
@@ -60,17 +60,17 @@ GraphicsAdapterType DirectX12GraphicsAdapter::getType() const noexcept
     return LITEFX_FLAG_IS_SET(properties.Flags, DXGI_ADAPTER_FLAG3_SOFTWARE) ? GraphicsAdapterType::CPU : GraphicsAdapterType::GPU;
 }
 
-uint32_t DirectX12GraphicsAdapter::getDriverVersion() const noexcept
+UInt32 DirectX12GraphicsAdapter::getDriverVersion() const noexcept
 {
     return 0;
 }
 
-uint32_t DirectX12GraphicsAdapter::getApiVersion() const noexcept
+UInt32 DirectX12GraphicsAdapter::getApiVersion() const noexcept
 {
     return 0;
 }
 
-uint32_t DirectX12GraphicsAdapter::getDedicatedMemory() const noexcept
+UInt64 DirectX12GraphicsAdapter::getDedicatedMemory() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.DedicatedVideoMemory;

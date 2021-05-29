@@ -120,7 +120,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipelineLayout::DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline) :
-    IComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, pipeline))
+    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, pipeline))
 {
 }
 

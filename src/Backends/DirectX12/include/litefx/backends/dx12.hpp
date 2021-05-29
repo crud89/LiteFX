@@ -11,79 +11,207 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	/// <summary>
-	/// 
+	/// Records commands for a <see cref="DirectX12CommandQueue" />
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Backend : public RenderBackend, public IComResource<IDXGIFactory7> {
-		LITEFX_IMPLEMENTATION(DirectX12BackendImpl);
-		LITEFX_BUILDER(DirectX12BackendBuilder);
+	/// <seealso cref="DirectX12CommandQueue" />
+	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer, public DirectX12RuntimeObject<DirectX12Queue>, public ComResource<ID3D12GraphicsCommandList4> {
+		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
 	public:
-		explicit DirectX12Backend(const App& app, const bool& advancedSoftwareRasterizer = false);
-		DirectX12Backend(const DirectX12Backend&) noexcept = delete;
-		DirectX12Backend(DirectX12Backend&&) noexcept = delete;
-		virtual ~DirectX12Backend();
+		/// <summary>
+		/// Initializes the command buffer from a command queue.
+		/// </summary>
+		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
+		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
+		explicit DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin = false);
+		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
+		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
+		virtual ~DirectX12CommandBuffer() noexcept;
 
+		// ICommandBuffer interface.
 	public:
-		virtual Array<const IGraphicsAdapter*> listAdapters() const override;
-		virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const override;
-		virtual const ISurface* getSurface() const noexcept override;
-		virtual const IGraphicsAdapter* getAdapter() const noexcept override;
-
-	public:
-		virtual void use(const IGraphicsAdapter* adapter) override;
-		virtual void use(UniquePtr<ISurface>&& surface) override;
-
-	public:
-		virtual void enableAdvancedSoftwareRasterizer(const bool& enable = false);
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter : public IGraphicsAdapter, public IComResource<IDXGIAdapter4> {
-		LITEFX_IMPLEMENTATION(DirectX12GraphicsAdapterImpl);
-
-	public:
-		explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
-		DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
-		DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) = delete;
-		virtual ~DirectX12GraphicsAdapter() noexcept;
-
-	public:
-		virtual String getName() const noexcept override;
-		virtual uint32_t getVendorId() const noexcept override;
-		virtual uint32_t getDeviceId() const noexcept override;
-		virtual GraphicsAdapterType getType() const noexcept override;
-		
 		/// <inheritdoc />
-		/// <remarks>
-		/// This property is not supported by DirectX 12. The method always returns `0`.
-		/// </remarks>
-		virtual uint32_t getDriverVersion() const noexcept override;
+		virtual void wait() const override;
 
 		/// <inheritdoc />
-		/// <remarks>
-		/// This property is not supported by DirectX 12. The method always returns `0`.
-		/// </remarks>
-		virtual uint32_t getApiVersion() const noexcept override;
-		virtual uint32_t getDedicatedMemory() const noexcept override;
+		virtual void begin() const override;
+
+		/// <inheritdoc />
+		virtual void end(const bool& submit = true, const bool& wait = false) const override;
+
+		/// <inheritdoc />
+		virtual void submit(const bool& wait = false) const override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Surface : public ISurface, public IResource<HWND> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPassBuilder : public RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass> {
 	public:
-		DirectX12Surface(const HWND& hwnd) noexcept;
-		DirectX12Surface(const DirectX12Surface&) = delete;
-		DirectX12Surface(DirectX12Surface&&) = delete;
-		virtual ~DirectX12Surface() noexcept;
+		DirectX12RenderPassBuilder(UniquePtr<DirectX12RenderPass>&& instance);
+		virtual ~DirectX12RenderPassBuilder() noexcept;
+
+	public:
+		virtual UniquePtr<DirectX12RenderPass> go() override;
+
+	public:
+		virtual DirectX12RenderPipelineBuilder addPipeline(const UInt32& id, const String& name = "");
+
+	public:
+		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;
+		virtual void use(UniquePtr<IRenderTarget>&& target) override;
+		virtual DirectX12RenderPassBuilder& attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& dependsOn(const IRenderPass* renderPass) override;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Device : public GraphicsDevice, public IComResource<ID3D12Device5> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline, DirectX12RenderPassBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineBuilderImpl);
+
+	public:
+		DirectX12RenderPipelineBuilder(DirectX12RenderPassBuilder& parent, UniquePtr<DirectX12RenderPipeline>&& instance);
+		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
+		DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
+		virtual ~DirectX12RenderPipelineBuilder() noexcept;
+
+	public:
+		virtual DirectX12RenderPipelineLayoutBuilder layout();
+		virtual DirectX12RasterizerBuilder rasterizer();
+		virtual DirectX12InputAssemblerBuilder inputAssembler();
+		virtual DirectX12RenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
+		virtual DirectX12RenderPipelineBuilder& withInputAssembler(SharedPtr<IInputAssembler> inputAssembler);
+		virtual DirectX12RenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
+		virtual DirectX12RenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
+
+	public:
+		virtual DirectX12RenderPassBuilder& go() override;
+		virtual void use(UniquePtr<IRenderPipelineLayout>&& layout) override;
+		virtual void use(SharedPtr<IRasterizer> rasterizer) override;
+		virtual void use(SharedPtr<IInputAssembler> inputAssembler) override;
+		virtual void use(SharedPtr<IViewport> viewport) override;
+		virtual void use(SharedPtr<IScissor> scissor) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12RenderPipelineLayout, DirectX12RenderPipelineBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutBuilderImpl);
+
+	public:
+		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent, UniquePtr<DirectX12RenderPipelineLayout>&& instance);
+		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineLayoutBuilder&&) = delete;
+		DirectX12RenderPipelineLayoutBuilder(const DirectX12RenderPipelineLayoutBuilder&) = delete;
+		virtual ~DirectX12RenderPipelineLayoutBuilder() noexcept;
+
+	public:
+		virtual DirectX12ShaderProgramBuilder shaderProgram();
+		virtual DirectX12DescriptorSetLayoutBuilder addDescriptorSet(const UInt32& id, const ShaderStage& stages);
+
+	public:
+		virtual DirectX12RenderPipelineBuilder& go() override;
+
+	public:
+		virtual void use(UniquePtr<IShaderProgram>&& program) override;
+		virtual void use(UniquePtr<IDescriptorSetLayout>&& layout) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder> {
+	public:
+		using RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder>::RasterizerBuilder;
+
+	public:
+		virtual DirectX12RasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) override;
+		virtual DirectX12RasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) override;
+		virtual DirectX12RasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) override;
+		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) override;
+		virtual DirectX12RasterizerBuilder& enableDepthBias(const bool& enable = false) override;
+		virtual DirectX12RasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) override;
+		virtual DirectX12RasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) override;
+		virtual DirectX12RasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder> {
+	public:
+		using InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder>::InputAssemblerBuilder;
+
+	public:
+		virtual DirectX12VertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
+
+	public:
+		virtual DirectX12InputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
+		virtual void use(UniquePtr<IVertexBufferLayout>&& layout) override;
+		virtual void use(UniquePtr<IIndexBufferLayout>&& layout) override;
+
+	public:
+		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
+	public:
+		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
+
+	public:
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <reamrks>
+		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
+		/// </reamrks>
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex = 0);
+		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex = 0);
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12ShaderProgramBuilder : public ShaderProgramBuilder<DirectX12ShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder> {
+	public:
+		using ShaderProgramBuilder<DirectX12ShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder>::ShaderProgramBuilder;
+
+	public:
+		virtual DirectX12ShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		virtual DirectX12ShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder> {
+	public:
+		using DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder>::DescriptorSetLayoutBuilder;
+
+	public:
+		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+
+	public:
+		virtual DirectX12DescriptorSetLayoutBuilder& addDescriptor(UniquePtr<IDescriptorLayout>&& layout) override;
+		virtual DirectX12DescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
+	};
+
+
+	/// <summary>
+	/// 
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12Device : public GraphicsDevice, public ComResource<ID3D12Device5> {
 		LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
 
 	public:
@@ -120,7 +248,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Queue : public ICommandQueue, public IComResource<ID3D12CommandQueue> {
+	class LITEFX_DIRECTX12_API DirectX12Queue : public ICommandQueue, public ComResource<ID3D12CommandQueue> {
 		LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
 
 	public:
@@ -142,28 +270,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer, public IComResource<ID3D12GraphicsCommandList4> {
-		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
-
-	public:
-		explicit DirectX12CommandBuffer(const DirectX12Queue* queue);
-		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
-		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
-		virtual ~DirectX12CommandBuffer() noexcept;
-
-	public:
-		virtual const ICommandQueue* getQueue() const noexcept override;
-
-	public:
-		virtual void begin() const override;
-		virtual void end() const override;
-		virtual void submit(const bool& waitForQueue = false) const override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12SwapChain : public virtual DirectX12RuntimeObject, public ISwapChain, public IComResource<IDXGISwapChain4> {
+	class LITEFX_DIRECTX12_API DirectX12SwapChain : public virtual DirectX12RuntimeObject, public ISwapChain, public ComResource<IDXGISwapChain4> {
 		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
 
 	public:
@@ -221,7 +328,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12RuntimeObject, public IRenderPipeline, public IComResource<ID3D12PipelineState> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12RuntimeObject, public IRenderPipeline, public ComResource<ID3D12PipelineState> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 
@@ -269,7 +376,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// 
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public virtual DirectX12RuntimeObject, public IRenderPipelineLayout, public IComResource<ID3D12RootSignature> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public virtual DirectX12RuntimeObject, public IRenderPipelineLayout, public ComResource<ID3D12RootSignature> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineLayoutBuilder);
 
@@ -423,7 +530,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt32 inputAttachments() const noexcept override;
 	};
 
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject, public IDescriptorSet, IComResource<ID3D12DescriptorHeap> {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject, public IDescriptorSet, ComResource<ID3D12DescriptorHeap> {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
 	public:
@@ -485,4 +592,42 @@ namespace LiteFX::Rendering::Backends {
 		virtual DescriptorType getDescriptorType() const noexcept override;
 	};
 
+
+	/// <summary>
+	/// Implements the DirectX12 <see cref="IRenderBackend" />.
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12Backend : public IRenderBackend<DirectX12Device>, public ComResource<IDXGIFactory7> {
+		LITEFX_IMPLEMENTATION(DirectX12BackendImpl);
+		LITEFX_BUILDER(DirectX12BackendBuilder);
+
+	public:
+		explicit DirectX12Backend(const App& app, const bool& advancedSoftwareRasterizer = false);
+		DirectX12Backend(const DirectX12Backend&) noexcept = delete;
+		DirectX12Backend(DirectX12Backend&&) noexcept = delete;
+		virtual ~DirectX12Backend();
+
+		// IBackend interface.
+	public:
+		/// <inheritdoc />
+		virtual BackendType getType() const noexcept override;
+
+		// IRenderBackend interface.
+	public:
+		/// <inheritdoc />
+		virtual Array<const DirectX12GraphicsAdapter*> listAdapters() const override;
+
+		/// <inheritdoc />
+		virtual const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt32>& adapterId = std::nullopt) const override;
+
+	public:
+		/// <summary>
+		/// Enables <a href="https://docs.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp" target="_blank">Windows Advanced Software Rasterization (WARP)</a>.
+		/// </summary>
+		/// <remarks>
+		/// Enabling software rasterization disables hardware rasterization. Requesting adapters using <see cref="findAdapter" /> or <see cref="listAdapters" />
+		/// will only return WARP-compatible adapters.
+		/// </remarks>
+		/// <param name="enable"><c>true</c>, if advanced software rasterization should be used.</param>
+		virtual void enableAdvancedSoftwareRasterizer(const bool& enable = false);
+	};
 }

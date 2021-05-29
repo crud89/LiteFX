@@ -143,7 +143,7 @@ namespace LiteFX::Rendering::Backends {
     VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
 
     /// <summary>
-    /// Represents a Vulkan graphics adapter.
+    /// Represents a Vulkan <see cref="IGraphicsAdapter" />.
     /// </summary>
     class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
@@ -217,7 +217,7 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
-    /// Represents a Vulkan surface.
+    /// Represents a Vulkan <see cref="ISurface" />.
     /// </summary>
     class LITEFX_VULKAN_API VulkanSurface : public ISurface, public Resource<VkSurfaceKHR> {
         LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
@@ -256,7 +256,7 @@ namespace LiteFX::Rendering::Backends {
             m_parent(parent), m_device(device) 
         {
             if (device == nullptr)
-                throw RuntimeException("The device must be initialized.");
+                throw ArgumentNotInitializedException("The device must be initialized.");
         }
 
         VulkanRuntimeObject(VulkanRuntimeObject&&) = delete;

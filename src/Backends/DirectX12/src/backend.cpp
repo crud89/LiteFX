@@ -48,7 +48,7 @@ public:
 
         if (enableWarp)
         {
-            raiseIfFailed<RuntimeException>(m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterization adapters.");
+            raiseIfFailed<RuntimeException>(m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterizer adapters.");
             raiseIfFailed<RuntimeException>(adapterInterface.As(&adapterInstance), "The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
             m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
         }
@@ -94,7 +94,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Backend::DirectX12Backend(const App& app, const bool& useAdvancedSoftwareRasterizer) :
-    RenderBackend(app), m_impl(makePimpl<DirectX12BackendImpl>(this)), IComResource<IDXGIFactory7>(nullptr)
+    RenderBackend(app), m_impl(makePimpl<DirectX12BackendImpl>(this)), ComResource<IDXGIFactory7>(nullptr)
 {
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters(useAdvancedSoftwareRasterizer);
@@ -144,66 +144,4 @@ void DirectX12Backend::use(UniquePtr<ISurface>&& surface)
 void DirectX12Backend::enableAdvancedSoftwareRasterizer(const bool& enable)
 {
     m_impl->loadAdapters(enable);
-}
-
-// ------------------------------------------------------------------------------------------------
-// Builder interface.
-// ------------------------------------------------------------------------------------------------
-
-AppBuilder& DirectX12BackendBuilder::go()
-{
-    auto adapter = this->instance()->getAdapter();
-    auto surface = this->instance()->getSurface();
-
-    if (adapter == nullptr)
-        throw RuntimeException("No adapter has been defined to use for this backend.");
-
-    if (surface == nullptr)
-        throw RuntimeException("No surface has been defined to use for this backend.");
-
-    Logger::get(DIRECTX12_LOG).info("Creating DirectX12 rendering backend for adapter {0} ({1}).", adapter->getName(), adapter->getDeviceId());
-
-    Logger::get(DIRECTX12_LOG).debug("--------------------------------------------------------------------------");
-    Logger::get(DIRECTX12_LOG).debug("Vendor: {0:#0x}", adapter->getVendorId());
-    Logger::get(DIRECTX12_LOG).debug("Dedicated Memory: {0} Bytes", adapter->getDedicatedMemory());
-    Logger::get(DIRECTX12_LOG).debug("--------------------------------------------------------------------------");
-
-    return builder_type::go();
-}
-
-DirectX12BackendBuilder& DirectX12BackendBuilder::useAdvancedSoftwareRasterizer(const bool& enable)
-{
-    this->instance()->enableAdvancedSoftwareRasterizer(enable);
-    return *this;
-}
-
-DirectX12BackendBuilder& DirectX12BackendBuilder::withSurface(UniquePtr<ISurface>&& surface)
-{
-    Logger::get(DIRECTX12_LOG).trace("Setting surface...");
-    this->instance()->use(std::move(surface));
-    return *this;
-}
-
-DirectX12BackendBuilder& DirectX12BackendBuilder::withAdapter(const UInt32& adapterId)
-{
-    auto adapter = this->instance()->findAdapter(adapterId);
-
-    if (adapter == nullptr)
-        throw InvalidArgumentException("The argument `adapterId` is invalid.");
-
-    Logger::get(DIRECTX12_LOG).trace("Using adapter id: {0}...", adapterId);
-    this->instance()->use(adapter);
-    return *this;
-}
-
-DirectX12BackendBuilder& DirectX12BackendBuilder::withAdapterOrDefault(const Optional<UInt32>& adapterId)
-{
-    auto adapter = this->instance()->findAdapter(adapterId);
-
-    if (adapter == nullptr)
-        adapter = this->instance()->findAdapter(std::nullopt);
-
-    Logger::get(DIRECTX12_LOG).trace("Using adapter id: {0}...", adapter->getDeviceId());
-    this->instance()->use(adapter);
-    return *this;
 }

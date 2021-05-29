@@ -34,6 +34,46 @@ namespace LiteFX::Rendering::Backends {
 
     constexpr char DIRECTX12_LOG[] = "Backend::DirectX12";
 
+    // Forward declarations.
+    class DirectX12SwapChain;
+    class DirectX12Queue;
+    class DirectX12Device;
+    class DirectX12GraphicsAdapter;
+    class DirectX12Backend;
+    class DirectX12RenderPipeline;
+    class DirectX12RenderPipelineLayout;
+    class DirectX12RenderPass;
+    class DirectX12Rasterizer;
+    class DirectX12InputAssembler;
+    class DirectX12ShaderModule;
+    class DirectX12ShaderProgram;
+    class DirectX12CommandBuffer;
+    class DirectX12DescriptorSetLayout;
+    class DirectX12DescriptorSet;
+    class DirectX12VertexBufferLayout;
+    class DirectX12IndexBufferLayout;
+    class DirectX12Surface;
+
+    // Interface declarations.
+    class IDirectX12Buffer;
+    class IDirectX12VertexBuffer;
+    class IDirectX12IndexBuffer;
+    class IDirectX12ConstantBuffer;
+    class IDirectX12Image;
+    class IDirectX12Texture;
+    class IDirectX12Sampler;
+
+    // Builder declarations.
+    class DirectX12VertexBufferLayoutBuilder;
+    class DirectX12DescriptorSetLayoutBuilder;
+    class DirectX12RenderPipelineLayoutBuilder;
+    class DirectX12ShaderProgramBuilder;
+    class DirectX12InputAssemblerBuilder;
+    class DirectX12RasterizerBuilder;
+    class DirectX12RenderPipelineBuilder;
+    class DirectX12RenderPassBuilder;
+    class DirectX12BackendBuilder;
+
     // Conversion helpers.
     /// <summary>
     /// 
@@ -44,11 +84,6 @@ namespace LiteFX::Rendering::Backends {
     /// 
     /// </summary>
     DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const Format& format);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    //BufferFormat LITEFX_DIRECTX12_API getFormat(const VkFormat& format);
 
     /// <summary>
     /// 
@@ -95,45 +130,94 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     LPCTSTR LITEFX_DIRECTX12_API getSemanticName(const AttributeSemantic& semantic);
 
-    template <class THandle>
-    using IComResource = IResource<ComPtr<THandle>>;
-
-    // Forward declarations.
-    //class DirectX12Texture;
-    class DirectX12SwapChain;
-    class DirectX12Queue;
-    class DirectX12Device;
-    class DirectX12GraphicsAdapter;
-    class DirectX12Backend;
-    class DirectX12RenderPipeline;
-    class DirectX12RenderPipelineLayout;
-    class DirectX12RenderPass;
-    class DirectX12Rasterizer;
-    class DirectX12InputAssembler;
-    class DirectX12ShaderModule;
-    class DirectX12ShaderProgram;
-    class DirectX12CommandBuffer;
-    class DirectX12DescriptorSetLayout;
-    class DirectX12DescriptorSet;
-    class DirectX12VertexBufferLayout;
-    class DirectX12IndexBufferLayout;
-    //class DirectX12VertexBuffer;
-    //class DirectX12IndexBuffer;
-    //class DirectX12ConstantBuffer;
-    //class DirectX12Sampler;
-    class DirectX12Surface;
-
-    class LITEFX_DIRECTX12_API DirectX12RuntimeObject {
-        LITEFX_IMPLEMENTATION(DirectX12RuntimeObjectImpl);
+    /// <summary>
+    /// Implements a DirectX12 <see cref="IGraphicsAdapter" />.
+    /// </summary>
+    class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter : public IGraphicsAdapter, public ComResource<IDXGIAdapter4> {
+        LITEFX_IMPLEMENTATION(DirectX12GraphicsAdapterImpl);
 
     public:
-        explicit DirectX12RuntimeObject(const DirectX12Device* device);
+        /// <summary>
+        /// Initializes a new DirectX12 graphics adapter.
+        /// </summary>
+        /// <param name="adapter">The DXGI adapter interface pointer.</param>
+        explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
+        DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
+        DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) = delete;
+        virtual ~DirectX12GraphicsAdapter() noexcept;
+
+    public:
+        /// <inheritdoc />
+        virtual String getName() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getVendorId() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 getDeviceId() const noexcept override;
+
+        /// <inheritdoc />
+        virtual GraphicsAdapterType getType() const noexcept override;
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// This property is not supported by DirectX 12. The method always returns `0`.
+        /// </remarks>
+        virtual UInt32 getDriverVersion() const noexcept override;
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// This property is not supported by DirectX 12. The method always returns `0`.
+        /// </remarks>
+        virtual UInt32 getApiVersion() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt64 getDedicatedMemory() const noexcept override;
+    };
+
+    /// <summary>
+    /// Implements a DirectX12 <see cref="ISurface" />.
+    /// </summary>
+    class LITEFX_DIRECTX12_API DirectX12Surface : public ISurface, public Resource<HWND> {
+    public:
+        /// <summary>
+        /// Initializes a new DirectX 12 surface.
+        /// </summary>
+        /// <param name="hwnd">The window handle.</param>
+        explicit DirectX12Surface(const HWND& hwnd) noexcept;
+        DirectX12Surface(const DirectX12Surface&) = delete;
+        DirectX12Surface(DirectX12Surface&&) = delete;
+        virtual ~DirectX12Surface() noexcept;
+    };
+
+    /// <summary>
+    /// A resource that is hold by a <c>ComPtr</c>.
+    /// </summary>
+    /// <typeparam name="THandle">The type of the resource interface.</typeparam>
+    template <class THandle>
+    using ComResource = Resource<ComPtr<THandle>>;
+
+    template <typename TParent>
+    class LITEFX_DIRECTX12_API DirectX12RuntimeObject {
+    private:
+        const TParent& m_parent;
+        const DirectX12Device* m_device;
+
+    public:
+        explicit DirectX12RuntimeObject(const TParent& parent, const DirectX12Device* device) :
+            m_parent(parent), m_device(device)
+        {
+            if (device == nullptr)
+                throw ArgumentNotInitializedException("The device must be initialized.");
+        }
+
         DirectX12RuntimeObject(DirectX12RuntimeObject&&) = delete;
         DirectX12RuntimeObject(const DirectX12RuntimeObject&) = delete;
-        virtual ~DirectX12RuntimeObject() noexcept;
+        virtual ~DirectX12RuntimeObject() noexcept = default;
 
     public:
-        virtual const DirectX12Device* getDevice() const noexcept;
+        virtual const TParent& parent() const noexcept { return m_parent; }
+        virtual const DirectX12Device* getDevice() const noexcept { return m_device; };
     };
 
     DEFINE_EXCEPTION(DX12PlatformException, std::runtime_error);

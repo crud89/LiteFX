@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Surface::DirectX12Surface(const HWND& handle) noexcept :
-	IResource(handle)
+	Resource<HWND>(handle)
 {
 }
 

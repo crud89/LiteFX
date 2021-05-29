@@ -94,7 +94,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Queue::DirectX12Queue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority) :
-	IComResource<ID3D12CommandQueue>(nullptr), m_impl(makePimpl<DirectX12QueueImpl>(this))
+	ComResource<ID3D12CommandQueue>(nullptr), m_impl(makePimpl<DirectX12QueueImpl>(this))
 {
 	this->handle() = m_impl->initialize(device, type, priority);
 }
