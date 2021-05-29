@@ -933,6 +933,56 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
 	};
 
+	/// <summary>
+	/// Implements a DirectX12 frame buffer.
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12FrameBuffer : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public IFrameBuffer<DirectX12CommandBuffer, IDirectX12Image> {
+		LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX12 frame buffer.
+		/// </summary>
+		/// <param name="renderPass">The parent render pass of the frame buffer.</param>
+		/// <param name="bufferIndex">The index of the frame buffer within the parent render pass.</param>
+		/// <param name="renderArea">The initial size of the render area.</param>
+		DirectX12FrameBuffer(const DirectX12RenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea);
+		DirectX12FrameBuffer(const DirectX12FrameBuffer&) noexcept = delete;
+		DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = delete;
+		virtual ~DirectX12FrameBuffer() noexcept;
+
+		// IFrameBuffer interface.
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& bufferIndex() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Size2d& size() const noexcept override;
+
+		/// <inheritdoc />
+		virtual size_t getWidth() const noexcept override;
+
+		/// <inheritdoc />
+		virtual size_t getHeight() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12CommandBuffer& commandBuffer() const noexcept override;
+
+		/// <inheritdoc />
+		virtual Array<const IDirectX12Image*> images() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const IDirectX12Image& image(const UInt32& location) const override;
+
+	public:
+		/// <inheritdoc />
+		virtual void resize(const Size2d& renderArea) override;
+	};
+
+
+
+
+
 
 
 
