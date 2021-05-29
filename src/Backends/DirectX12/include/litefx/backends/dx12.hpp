@@ -119,6 +119,55 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Implements a DirectX12 index buffer layout.
+	/// </summary>
+	/// <seealso cref="DirectX12IndexBuffer" />
+	/// <seealso cref="DirectX12VertexBufferLayout" />
+	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout : public virtual DirectX12RuntimeObject<DirectX12InputAssembler>, public IIndexBufferLayout {
+		LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new index buffer layout
+		/// </summary>
+		/// <param name="inputAssembler">The parent input assembler state, the index buffer layout is initialized for.</param>
+		/// <param name="type">The type of the indices within the index buffer.</param>
+		explicit DirectX12IndexBufferLayout(const DirectX12InputAssembler& inputAssembler, const IndexType& type);
+		DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) = delete;
+		DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) = delete;
+		virtual ~DirectX12IndexBufferLayout() noexcept;
+
+		// IIndexBufferLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual const IndexType& indexType() const noexcept override;
+
+		// IBufferLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual size_t elementSize() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BufferType& type() const noexcept override;
+	};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/// <summary>
 	/// 
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12RenderPassBuilder : public RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass> {
@@ -478,27 +527,6 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout : public virtual DirectX12RuntimeObject, public IIndexBufferLayout {
-		LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
-
-	public:
-		explicit DirectX12IndexBufferLayout(const DirectX12InputAssembler& inputAssembler, const IndexType& type);
-		DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) = delete;
-		DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) = delete;
-		virtual ~DirectX12IndexBufferLayout() noexcept;
-
-	public:
-		virtual size_t getElementSize() const noexcept override;
-		virtual UInt32 getBinding() const noexcept override;
-		virtual BufferType getType() const noexcept override;
-
-	public:
-		virtual const IndexType& getIndexType() const noexcept override;
 	};
 
 	/// <summary>

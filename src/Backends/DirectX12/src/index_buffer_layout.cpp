@@ -11,10 +11,15 @@ public:
     friend class DirectX12IndexBufferLayout;
 
 private:
-    IndexType m_type;
+    IndexType m_indexType;
+    UInt32 m_binding{ 0 };
+    BufferType m_bufferType{ BufferType::Index };
 
 public:
-    DirectX12IndexBufferLayoutImpl(DirectX12IndexBufferLayout* parent, const IndexType& type) : base(parent), m_type(type) { }
+    DirectX12IndexBufferLayoutImpl(DirectX12IndexBufferLayout* parent, const IndexType& type) : 
+        base(parent), m_indexType(type) 
+    {
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -22,28 +27,28 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(const DirectX12InputAssembler& inputAssembler, const IndexType& type) :
-    m_impl(makePimpl<DirectX12IndexBufferLayoutImpl>(this, type)), DirectX12RuntimeObject(inputAssembler.getDevice())
+    m_impl(makePimpl<DirectX12IndexBufferLayoutImpl>(this, type)), DirectX12RuntimeObject(inputAssembler, inputAssembler.getDevice())
 {
 }
 
 DirectX12IndexBufferLayout::~DirectX12IndexBufferLayout() noexcept = default;
 
-size_t DirectX12IndexBufferLayout::getElementSize() const noexcept
+size_t DirectX12IndexBufferLayout::elementSize() const noexcept
 {
-    return static_cast<UInt32>(m_impl->m_type) >> 3;
+    return static_cast<UInt32>(m_impl->m_indexType) >> 3;
 }
 
-UInt32 DirectX12IndexBufferLayout::getBinding() const noexcept
+const UInt32& DirectX12IndexBufferLayout::binding() const noexcept
 {
     return 0;
 }
 
-BufferType DirectX12IndexBufferLayout::getType() const noexcept
+const BufferType& DirectX12IndexBufferLayout::type() const noexcept
 {
     return BufferType::Index;
 }
 
-const IndexType& DirectX12IndexBufferLayout::getIndexType() const noexcept
+const IndexType& DirectX12IndexBufferLayout::indexType() const noexcept
 {
-    return m_impl->m_type;
+    return m_impl->m_indexType;
 }

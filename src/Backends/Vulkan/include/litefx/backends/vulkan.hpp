@@ -131,6 +131,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan index buffer layout.
 	/// </summary>
+	/// <seealso cref="VulkanIndexBuffer" />
+	/// <seealso cref="VulkanVertexBufferLayout" />
 	class LITEFX_VULKAN_API VulkanIndexBufferLayout : public virtual VulkanRuntimeObject<VulkanInputAssembler>, public IIndexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferLayoutImpl);
 

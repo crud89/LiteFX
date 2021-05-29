@@ -33,7 +33,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/rasterizer.cpp"
     "src/input_assembler.cpp"
     "src/vertex_buffer_layout.cpp"
-    "src/index_buffer.cpp"
+    "src/index_buffer_layout.cpp"
     "src/shader_module.cpp"
     "src/shader_program.cpp"
     "src/descriptor_layout.cpp"
