@@ -76,6 +76,13 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12RenderPassBuilder;
     class DirectX12BackendBuilder;
 
+    /// <summary>
+    /// A resource that is hold by a <c>ComPtr</c>.
+    /// </summary>
+    /// <typeparam name="THandle">The type of the resource interface.</typeparam>
+    template <class THandle>
+    using ComResource = Resource<ComPtr<THandle>>;
+
     // Conversion helpers.
     /// <summary>
     /// 
@@ -191,13 +198,6 @@ namespace LiteFX::Rendering::Backends {
         DirectX12Surface(DirectX12Surface&&) = delete;
         virtual ~DirectX12Surface() noexcept;
     };
-
-    /// <summary>
-    /// A resource that is hold by a <c>ComPtr</c>.
-    /// </summary>
-    /// <typeparam name="THandle">The type of the resource interface.</typeparam>
-    template <class THandle>
-    using ComResource = Resource<ComPtr<THandle>>;
 
     template <typename TParent>
     class LITEFX_DIRECTX12_API DirectX12RuntimeObject {

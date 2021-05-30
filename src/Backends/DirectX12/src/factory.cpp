@@ -1,6 +1,6 @@
 #include <litefx/backends/dx12.hpp>
-#include "buffer.h"
-#include "image.h"
+//#include "buffer.h"
+//#include "image.h"
 
 // TODO: Include D3D12 Memory Allocator.
 
@@ -78,5 +78,5 @@ UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const Direc
 
 UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const DirectX12DescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
-	return makeUnique<DirectX12Sampler>(m_impl->m_device, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+	throw;
 }

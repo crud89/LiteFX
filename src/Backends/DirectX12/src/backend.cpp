@@ -15,10 +15,13 @@ private:
     const IGraphicsAdapter* m_adapter{ nullptr };
     UniquePtr<ISurface> m_surface{ nullptr };
     ComPtr<ID3D12Debug> m_debugInterface;
+    const App& m_app;
 
 public:
-    DirectX12BackendImpl(DirectX12Backend* parent) :
-        base(parent) { }
+    DirectX12BackendImpl(DirectX12Backend* parent, const App& app) :
+        base(parent), m_app(app)
+    { 
+    }
 
 public:
     [[nodiscard]]
@@ -68,25 +71,6 @@ public:
             }
         }
     }
-
-public:
-    Array<const IGraphicsAdapter*> listAdapters() const noexcept
-    {
-        Array<const IGraphicsAdapter*> results(m_adapters.size());
-        std::generate(results.begin(), results.end(), [&, i = 0]() mutable { return m_adapters[i++].get(); });
-
-        return results;
-    }
-
-    const IGraphicsAdapter* findAdapter(const Optional<uint32_t> adapterId) const noexcept
-    {
-        auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<IGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
-
-        if (match != m_adapters.end())
-            return match->get();
-
-        return nullptr;
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -94,51 +78,30 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Backend::DirectX12Backend(const App& app, const bool& useAdvancedSoftwareRasterizer) :
-    RenderBackend(app), m_impl(makePimpl<DirectX12BackendImpl>(this)), ComResource<IDXGIFactory7>(nullptr)
+    m_impl(makePimpl<DirectX12BackendImpl>(this, app)), ComResource<IDXGIFactory7>(nullptr)
 {
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters(useAdvancedSoftwareRasterizer);
 }
 
-DirectX12Backend::~DirectX12Backend() noexcept
+DirectX12Backend::~DirectX12Backend() noexcept = default;
+
+BackendType DirectX12Backend::getType() const noexcept
 {
-    m_impl.destroy();
+    return BackendType::Rendering;
 }
 
-Array<const IGraphicsAdapter*> DirectX12Backend::listAdapters() const
+Array<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
 {
-    return m_impl->listAdapters();
+    return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const DirectX12GraphicsAdapter*>>();
 }
 
-const IGraphicsAdapter* DirectX12Backend::findAdapter(const Optional<uint32_t>& adapterId) const
+const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt32>& adapterId) const
 {
-    return m_impl->findAdapter(adapterId);
-}
+    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
+        return match->get();
 
-const ISurface* DirectX12Backend::getSurface() const noexcept
-{
-    return m_impl->m_surface.get();
-}
-
-const IGraphicsAdapter* DirectX12Backend::getAdapter() const noexcept
-{
-    return m_impl->m_adapter;
-}
-
-void DirectX12Backend::use(const IGraphicsAdapter* adapter)
-{
-    if (adapter == nullptr)
-        throw ArgumentNotInitializedException("The adapter must be initialized.");
-
-    m_impl->m_adapter = adapter;
-}
-
-void DirectX12Backend::use(UniquePtr<ISurface>&& surface)
-{
-    if (surface == nullptr)
-        throw ArgumentNotInitializedException("The surface must be initialized.");
-
-    m_impl->m_surface = std::move(surface);
+    return nullptr;
 }
 
 void DirectX12Backend::enableAdvancedSoftwareRasterizer(const bool& enable)
