@@ -27,6 +27,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/queue.cpp"
     "src/swapchain.cpp"
     "src/frame_buffer.cpp"
+    "src/input_attachment_mapping.cpp"
     "src/render_pass.cpp"
     "src/command_buffer.cpp"
     "src/pipeline.cpp"

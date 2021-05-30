@@ -12,82 +12,39 @@ public:
     friend class DirectX12RenderPass;
 
 private:
-    Array<UniquePtr<IRenderPipeline>> m_pipelines;
-    const DirectX12Device* m_device;
-    //const DirectX12SwapChain* m_swapChain{ nullptr };
-    //const DirectX12Queue* m_queue{ nullptr };
-    Array<UniquePtr<IRenderTarget>> m_targets;
-    //Array<VkClearValue> m_clearValues;
-    //Array<VkFramebuffer> m_frameBuffers;
-    //Array<UniquePtr<DirectX12CommandBuffer>> m_commandBuffers;
-    //UInt32 m_backBuffer{ 0 };
-    //Array<VkSemaphore> m_semaphores;
-    const DirectX12RenderPass* m_dependency{ nullptr };
-    //bool m_present{ false };
-
-    ///// <summary>
-    ///// Stores the images for all attachments (except the present attachment, which is a swap-chain image) and maps them to the frame buffer index.
-    ///// </summary>
-    //Dictionary<UInt32, Array<UniquePtr<IImage>>> m_attachmentImages;
+    Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
+    Array<RenderTarget> m_renderTargets;
+    Array<DirectX12InputAttachmentMapping> m_inputAttachments;
+    Array<UniquePtr<DirectX12FrameBuffer>> m_frameBuffers;
+    const DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
+    UInt32 m_backBuffer{ 0 };
 
 public:
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device* device) : 
-        base(parent), m_device(device)
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent, Span<RenderTarget> renderTargets, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+        base(parent)
     {
-        if (device == nullptr)
-            throw ArgumentNotInitializedException("The device is not a valid DirectX 12 device.");
+        this->mapRenderTargets(renderTargets);
+        this->mapInputAttachments(inputAttachments);
     }
 
-public:
-    void initialize()
-    {
-    }
-
-    void begin()
-    {
-    }
-
-    void end(const bool present = false)
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent) :
+        base(parent)
     {
     }
 
 public:
-    //const DirectX12CommandBuffer* getCurrentCommandBuffer() const noexcept
-    //{
-    //    return m_commandBuffers[m_backBuffer].get();
-    //}
-
-    //const VkSemaphore& getCurrentSemaphore() const noexcept
-    //{
-    //    return m_semaphores[m_backBuffer];
-    //}
-
-    void addTarget(UniquePtr<IRenderTarget>&& target)
+    void mapRenderTargets(Span<RenderTarget> renderTargets)
     {
-        m_targets.push_back(std::move(target));
+        m_renderTargets.assign(std::begin(renderTargets), std::end(renderTargets));
+        //std::ranges::sort(m_renderTargets, [this](const RenderTarget& a, const RenderTarget& b) { return a.location() < b.location(); });
+        std::sort(std::begin(m_renderTargets), std::end(m_renderTargets), [](const RenderTarget& a, const RenderTarget& b) { return a.location() < b.location(); });
     }
 
-    Array<const IRenderTarget*> getTargets() const noexcept
+    void mapInputAttachments(Span<DirectX12InputAttachmentMapping> inputAttachments)
     {
-        Array<const IRenderTarget*> targets(m_targets.size());
-        std::generate(std::begin(targets), std::end(targets), [&, i = 0]() mutable { return m_targets[i++].get(); });
-
-        return targets;
-    }
-
-    UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target)
-    {
-        auto it = std::find_if(std::begin(m_targets), std::end(m_targets), [target](const UniquePtr<IRenderTarget>& t) { return t.get() == target; });
-
-        if (it == m_targets.end())
-            return UniquePtr<IRenderTarget>();
-        else
-        {
-            auto result = std::move(*it);
-            m_targets.erase(it);
-
-            return std::move(result);
-        }
+        m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
+        //std::ranges::sort(m_inputAttachments, [this](const DirectX12InputAttachmentMapping& a, const DirectX12InputAttachmentMapping& b) { return a.location() < b.location(); });
+        std::sort(std::begin(m_inputAttachments), std::end(m_inputAttachments), [](const DirectX12InputAttachmentMapping& a, const DirectX12InputAttachmentMapping& b) { return a.location() < b.location(); });
     }
 };
 
@@ -95,138 +52,119 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPass::DirectX12RenderPass(const IGraphicsDevice* device) :
-    DirectX12RenderPass(dynamic_cast<const DirectX12Device*>(device))
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+    m_impl(makePimpl<DirectX12RenderPassImpl>(this, renderTargets, inputAttachments)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
 {
+    // Initialize the frame buffers.
+    m_impl->m_frameBuffers.resize(this->getDevice()->swapChain().buffers());
+    std::ranges::generate(m_impl->m_frameBuffers, [this, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*this, i++, this->parent().swapChain().renderArea()); });
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device* device) :
-    m_impl(makePimpl<DirectX12RenderPassImpl>(this, device)), DirectX12RuntimeObject(device)
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device) noexcept :
+    m_impl(makePimpl<DirectX12RenderPassImpl>(this)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
 {
 }
 
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
 
-const DirectX12Device* DirectX12RenderPass::getDevice() const noexcept
+const DirectX12FrameBuffer& DirectX12RenderPass::frameBuffer(const UInt32& buffer) const
 {
-    return m_impl->m_device;
+    if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
+        throw ArgumentOutOfRangeException("The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
+
+    return *m_impl->m_frameBuffers[buffer].get();
 }
 
-const DirectX12CommandBuffer* DirectX12RenderPass::getDXCommandBuffer() const noexcept
+const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
 {
-    throw;
+    if (m_impl->m_activeFrameBuffer == nullptr)
+        throw RuntimeException("No frame buffer is active, since the render pass has not begun.");
+
+    return *m_impl->m_activeFrameBuffer;
 }
 
-const ICommandBuffer* DirectX12RenderPass::getCommandBuffer() const noexcept
+Array<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noexcept
 {
-    throw;
+    return m_impl->m_frameBuffers |
+        std::views::transform([](const UniquePtr<DirectX12FrameBuffer>& frameBuffer) { return frameBuffer.get(); }) |
+        ranges::to<Array<const DirectX12FrameBuffer*>>();
 }
 
-const UInt32 DirectX12RenderPass::getCurrentBackBuffer() const
+const DirectX12RenderPipeline& DirectX12RenderPass::pipeline(const UInt32& id) const
 {
-    throw;
+    if (auto match = std::ranges::find_if(m_impl->m_pipelines, [&id](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline->id() == id; }); match != m_impl->m_pipelines.end())
+        return *match->get();
+
+    throw InvalidArgumentException("No render pipeline with the ID {0} is contained by this render pass.", id);
 }
 
-void DirectX12RenderPass::addTarget(UniquePtr<IRenderTarget>&& target)
+Array<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
 {
-    m_impl->addTarget(std::move(target));
+    return m_impl->m_pipelines |
+        std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | ranges::to<Array<const DirectX12RenderPipeline*>>() |
+        ranges::to<Array<const DirectX12RenderPipeline*>>();
 }
 
-const Array<const IRenderTarget*> DirectX12RenderPass::getTargets() const noexcept
+const RenderTarget& DirectX12RenderPass::renderTarget(const UInt32& location) const
 {
-    return m_impl->getTargets();
+    if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end())
+        return *match;
+
+    throw ArgumentOutOfRangeException("No render target is mapped to location {0} in this render pass.", location);
 }
 
-UniquePtr<IRenderTarget> DirectX12RenderPass::removeTarget(const IRenderTarget* target)
+Span<const RenderTarget> DirectX12RenderPass::renderTargets() const noexcept
 {
-    return m_impl->removeTarget(target);
+    return m_impl->m_renderTargets;
 }
 
-Array<const IRenderPipeline*> DirectX12RenderPass::getPipelines() const noexcept
+bool DirectX12RenderPass::hasPresentTarget() const noexcept
 {
-    Array<const IRenderPipeline*> pipelines(m_impl->m_pipelines.size());
-    std::generate(std::begin(pipelines), std::end(pipelines), [&, i = 0]() mutable { return m_impl->m_pipelines[i++].get(); });
-
-    return pipelines;
+    return std::ranges::any_of(m_impl->m_renderTargets, [](const auto& renderTarget) { return renderTarget.type() == RenderTargetType::Present; });
 }
 
-const IRenderPipeline* DirectX12RenderPass::getPipeline(const UInt32& id) const noexcept
+Span<const DirectX12InputAttachmentMapping> DirectX12RenderPass::inputAttachments() const noexcept
 {
-    auto match = std::find_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; });
-
-    return match == m_impl->m_pipelines.end() ? nullptr : match->get();
+    return m_impl->m_inputAttachments;
 }
 
-void DirectX12RenderPass::addPipeline(UniquePtr<IRenderPipeline>&& pipeline)
-{
-    if (pipeline == nullptr)
-        throw ArgumentNotInitializedException("The pipeline must be initialized.");
-
-    auto id = pipeline->id();
-    auto match = std::find_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; });
-
-    if (match != m_impl->m_pipelines.end())
-        throw InvalidArgumentException("Another pipeline with the ID {0} already has been registered. Pipeline IDs must be unique within a render pass.", id);
-
-    m_impl->m_pipelines.push_back(std::move(pipeline));
-}
-
-void DirectX12RenderPass::removePipeline(const UInt32& id)
-{
-    m_impl->m_pipelines.erase(std::remove_if(std::begin(m_impl->m_pipelines), std::end(m_impl->m_pipelines), [&id](const auto& pipeline) { return pipeline->id() == id; }), std::end(m_impl->m_pipelines));
-}
-
-void DirectX12RenderPass::setDependency(const IRenderPass* renderPass)
-{
-    auto dependency = dynamic_cast<const DirectX12RenderPass*>(renderPass);
-
-    if (dependency == nullptr)
-        throw std::invalid_argument("The render pass dependency must be a valid DirectX12 render pass.");
-
-    m_impl->m_dependency = dependency;
-}
-
-const IRenderPass* DirectX12RenderPass::getDependency() const noexcept
-{
-    return m_impl->m_dependency;
-}
-
-void DirectX12RenderPass::begin() const
-{
-    m_impl->begin();
-}
-
-void DirectX12RenderPass::end(const bool& present)
-{
-    m_impl->end(present);
-}
-
-void DirectX12RenderPass::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
+void DirectX12RenderPass::begin(const UInt32& buffer)
 {
     throw;
 }
 
-void DirectX12RenderPass::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const
-{
-    throw;
-}
-
-const IImage* DirectX12RenderPass::getAttachment(const UInt32& attachmentId) const
-{
-    throw;
-}
-
-void DirectX12RenderPass::resetFramebuffer()
+void DirectX12RenderPass::end() const
 {
     throw;
 }
 
 // ------------------------------------------------------------------------------------------------
-// Builder interface.
+// Builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(UniquePtr<DirectX12RenderPass>&& instance) :
-    RenderPassBuilder(std::move(instance))
+class DirectX12RenderPassBuilder::DirectX12RenderPassBuilderImpl : public Implement<DirectX12RenderPassBuilder> {
+public:
+    friend class DirectX12RenderPassBuilder;
+    friend class DirectX12RenderPass;
+
+private:
+    Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
+    Array<DirectX12InputAttachmentMapping> m_inputAttachments;
+    Array<RenderTarget> m_renderTargets;
+
+public:
+    DirectX12RenderPassBuilderImpl(DirectX12RenderPassBuilder* parent) :
+        base(parent)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Builder shared interface.
+// ------------------------------------------------------------------------------------------------
+
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device) noexcept :
+    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device)))
 {
 }
 
@@ -235,53 +173,68 @@ DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
 UniquePtr<DirectX12RenderPass> DirectX12RenderPassBuilder::go()
 {
     auto instance = this->instance();
-    instance->m_impl->initialize();
+    instance->m_impl->mapRenderTargets(m_impl->m_renderTargets);
+    instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
+
+    // Initialize the frame buffers.
+    instance->m_impl->m_frameBuffers.resize(instance->getDevice()->swapChain().buffers());
+    std::ranges::generate(instance->m_impl->m_frameBuffers, [&instance, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*instance, i++, instance->parent().swapChain().renderArea()); });
 
     return RenderPassBuilder::go();
 }
 
-void DirectX12RenderPassBuilder::use(UniquePtr<IRenderTarget>&& target)
+void DirectX12RenderPassBuilder::use(RenderTarget&& target)
 {
-    this->instance()->addTarget(std::move(target));
+    m_impl->m_renderTargets.push_back(std::move(target));
 }
 
-void DirectX12RenderPassBuilder::use(UniquePtr<IRenderPipeline>&& pipeline)
+void DirectX12RenderPassBuilder::use(DirectX12InputAttachmentMapping&& attachment)
 {
-    //if (pipeline == nullptr)
-    //    throw std::invalid_argument("The pipeline must be initialized.");
-
-    //this->instance()->m_impl->m_pipeline = std::move(pipeline);
-    throw;
+    m_impl->m_inputAttachments.push_back(std::move(attachment));
 }
 
-DirectX12RenderPipelineBuilder DirectX12RenderPassBuilder::addPipeline(const UInt32& id, const String& name)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    return this->make<DirectX12RenderPipeline>(id, name);
+    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
+    //       until the render pass is initialized, so we silently ignore this for now.
+    return this->renderTarget(static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, samples, clearValues, clear, clearStencil, isVolatile);
 }
 
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clearColor, bool clearStencil, bool isVolatile)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    UniquePtr<IRenderTarget> target = makeUnique<RenderTarget>();
-    target->setType(type);
-    target->setFormat(format);
-    target->setSamples(samples);
-    target->setClearBuffer(clearColor);
-    target->setClearStencil(clearStencil);
-    target->setVolatile(isVolatile);
-    target->setClearValues(clearValues);
-
-    this->use(std::move(target));
-
+    m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile));
     return *this;
 }
 
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::dependsOn(const IRenderPass* renderPass)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    //if (renderPass == nullptr)
-    //    throw std::invalid_argument("The render pass must be initialized.");
+    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
+    //       until the render pass is initialized, so we silently ignore this for now.
+    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, samples, clearValues, clear, clearStencil, isVolatile);
+}
 
-    //this->instance()->setDependency(renderPass);
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+{
+    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile);
+    output = std::move(DirectX12InputAttachmentMapping(*this->instance(), renderTarget, location));
+    m_impl->m_renderTargets.push_back(renderTarget);
+    return *this;
+}
 
-    //return *this;
-    throw;
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const DirectX12InputAttachmentMapping& inputAttachment)
+{
+    m_impl->m_inputAttachments.push_back(inputAttachment);
+    return *this;
+}
+
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const UInt32& outputLocation)
+{
+    m_impl->m_inputAttachments.push_back(DirectX12InputAttachmentMapping(renderPass, renderPass.renderTarget(outputLocation), inputLocation));
+    return *this;
+}
+
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
+{
+    m_impl->m_inputAttachments.push_back(DirectX12InputAttachmentMapping(renderPass, renderTarget, inputLocation));
+    return *this;
 }

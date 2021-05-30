@@ -979,35 +979,166 @@ namespace LiteFX::Rendering::Backends {
 		virtual void resize(const Size2d& renderArea) override;
 	};
 
+	/// <summary>
+	/// Implements a DirectX12 render pass.
+	/// </summary>
+	/// <seealso cref="DirectX12RenderPassBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12RenderPass : public virtual DirectX12RuntimeObject<DirectX12Device>, public IRenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
+		LITEFX_BUILDER(DirectX12RenderPassBuilder);
 
+	public:
+		/// <summary>
+		/// Creates and initializes a new DirectX12 render pass instance.
+		/// </summary>
+		/// <param name="device"></param>
+		/// <param name="renderTargets"></param>
+		/// <param name="inputAttachments"></param>
+		explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+		DirectX12RenderPass(const DirectX12RenderPass&) = delete;
+		DirectX12RenderPass(DirectX12RenderPass&&) = delete;
+		virtual ~DirectX12RenderPass() noexcept;
 
+	private:
+		/// <summary>
+		/// Creates an uninitialized DirectX12 render pass instance.
+		/// </summary>
+		/// <remarks>
+		/// This constructor is called by the <see cref="DirectX12RenderPassBuilder" /> in order to create a render pass instance without initializing it. The instance 
+		/// is only initialized after calling <see cref="DirectX12RenderPassBuilder::go" />.
+		/// </remarks>
+		/// <param name="device">The parent device of the render pass.</param>
+		explicit DirectX12RenderPass(const DirectX12Device& device) noexcept;
 
+		// IInputAttachmentMappingSource interface.
+	public:
+		/// <inheritdoc />
+		virtual const DirectX12FrameBuffer& frameBuffer(const UInt32& buffer) const override;
 
+		// IRenderPass interface.
+	public:
+		/// <inheritdoc />
+		virtual const DirectX12FrameBuffer& activeFrameBuffer() const override;
 
+		/// <inheritdoc />
+		virtual Array<const DirectX12FrameBuffer*> frameBuffers() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const DirectX12RenderPipeline& pipeline(const UInt32& id) const override;
 
+		/// <inheritdoc />
+		virtual Array<const DirectX12RenderPipeline*> pipelines() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const RenderTarget& renderTarget(const UInt32& location) const override;
+
+		/// <inheritdoc />
+		virtual Span<const RenderTarget> renderTargets() const noexcept override;
+
+		/// <inheritdoc />
+		virtual bool hasPresentTarget() const noexcept override;
+
+		/// <inheritdoc />
+		virtual Span<const DirectX12InputAttachmentMapping> inputAttachments() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		virtual void begin(const UInt32& buffer) override;
+
+		/// <inheritdoc />
+		virtual void end() const override;
+
+		/// <inheritdoc />
+		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
+
+		/// <inheritdoc />
+		virtual void updateAttachments(const DirectX12DescriptorSet& descriptorSet) const override;
+
+		// DirectX12RenderPass.
+	public:
+		/// <summary>
+		/// Starts building a render pipeline.
+		/// </summary>
+		/// <param name="id">A unique ID for the render pipeline.</param>
+		/// <param name="name">A debug name for the render pipeline.</param>
+		/// <seealso cref="DirectX12RenderPipeline" />
+		/// <seealso cref="DirectX12RenderPipelineBuilder" />
+		virtual DirectX12RenderPipelineBuilder makePipeline(const UInt32& id, const String& name = "") const noexcept;
+	};
 
 	/// <summary>
-	/// 
+	/// Implements the DirectX12 <see cref="RenderPassBuilder" />.
 	/// </summary>
+	/// <seealso cref="DirectX12RenderPass" />
 	class LITEFX_DIRECTX12_API DirectX12RenderPassBuilder : public RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPassBuilderImpl)
+
 	public:
-		DirectX12RenderPassBuilder(UniquePtr<DirectX12RenderPass>&& instance);
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device) noexcept;
+		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
+		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
 		virtual ~DirectX12RenderPassBuilder() noexcept;
+	public:
+		virtual void use(RenderTarget&& target) override;
+		virtual void use(DirectX12InputAttachmentMapping&& inputAttachment) override;
+
+	public:
+		virtual DirectX12RenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& inputAttachment(const DirectX12InputAttachmentMapping& inputAttachment) override;
+		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const UInt32& outputLocation) override;
+		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
 
 	public:
 		virtual UniquePtr<DirectX12RenderPass> go() override;
-
-	public:
-		virtual DirectX12RenderPipelineBuilder addPipeline(const UInt32& id, const String& name = "");
-
-	public:
-		virtual void use(UniquePtr<IRenderPipeline>&& pipeline) override;
-		virtual void use(UniquePtr<IRenderTarget>&& target) override;
-		virtual DirectX12RenderPassBuilder& attachTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& dependsOn(const IRenderPass* renderPass) override;
 	};
+
+	/// <summary>
+	/// Implements a <see cref="IInputAttachmentMapping" />.
+	/// </summary>
+	/// <seealso cref="DirectX12RenderPass" />
+	/// <seealso cref="DirectX12RenderPassBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12InputAttachmentMapping : public IInputAttachmentMapping<DirectX12RenderPass> {
+		LITEFX_IMPLEMENTATION(DirectX12InputAttachmentMappingImpl);
+
+	public:
+		DirectX12InputAttachmentMapping() noexcept;
+
+		/// <summary>
+		/// Creates a new DirectX12 input attachment mapping.
+		/// </summary>
+		/// <param name="renderPass">The render pass to fetch the input attachment from.</param>
+		/// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
+		/// <param name="location">The location to bind the input attachment to.</param>
+		DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location);
+		DirectX12InputAttachmentMapping(const DirectX12InputAttachmentMapping&) noexcept;
+		DirectX12InputAttachmentMapping(DirectX12InputAttachmentMapping&&) noexcept;
+		virtual ~DirectX12InputAttachmentMapping() noexcept;
+
+	public:
+		inline DirectX12InputAttachmentMapping& operator=(const DirectX12InputAttachmentMapping&) noexcept;
+		inline DirectX12InputAttachmentMapping& operator=(DirectX12InputAttachmentMapping&&) noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual const DirectX12RenderPass* inputAttachmentSource() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const RenderTarget& renderTarget() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& location() const noexcept override;
+	};
+
+
+
+
+
+
+
+
 
 	/// <summary>
 	/// 
@@ -1086,44 +1217,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt32 swapBackBuffer() const override;
 		virtual void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers) override;
 		virtual UInt32 getBuffers() const noexcept override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12RenderPass : public virtual DirectX12RuntimeObject, public IRenderPass {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
-		LITEFX_BUILDER(DirectX12RenderPassBuilder);
-
-	public:
-		explicit DirectX12RenderPass(const IGraphicsDevice* device);	// Adapter for builder interface.
-		explicit DirectX12RenderPass(const DirectX12Device* device);
-		DirectX12RenderPass(const DirectX12RenderPass&) = delete;
-		DirectX12RenderPass(DirectX12RenderPass&&) = delete;
-		virtual ~DirectX12RenderPass() noexcept;
-
-	public:
-		virtual const DirectX12Device* getDevice() const noexcept;
-		virtual const DirectX12CommandBuffer* getDXCommandBuffer() const noexcept;
-
-	public:
-		virtual const ICommandBuffer* getCommandBuffer() const noexcept override;
-		virtual const UInt32 getCurrentBackBuffer() const override;
-		virtual void addTarget(UniquePtr<IRenderTarget>&& target) override;
-		virtual const Array<const IRenderTarget*> getTargets() const noexcept override;
-		virtual UniquePtr<IRenderTarget> removeTarget(const IRenderTarget* target) override;
-		virtual Array<const IRenderPipeline*> getPipelines() const noexcept override;
-		virtual const IRenderPipeline* getPipeline(const UInt32& id) const noexcept override;
-		virtual void addPipeline(UniquePtr<IRenderPipeline>&& pipeline) override;
-		virtual void removePipeline(const UInt32& id) override;
-		virtual void setDependency(const IRenderPass* renderPass = nullptr) override;
-		virtual const IRenderPass* getDependency() const noexcept override;
-		virtual void begin() const override;
-		virtual void end(const bool& present = false) override;
-		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
-		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
-		virtual const IImage* getAttachment(const UInt32& attachmentId) const override;
-		virtual void resetFramebuffer() override;
 	};
 	
 	/// <summary>

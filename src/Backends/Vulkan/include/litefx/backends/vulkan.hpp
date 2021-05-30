@@ -1056,6 +1056,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan render pass.
 	/// </summary>
+	/// <seealso cref="VulkanRenderPassBuilder" />
 	class LITEFX_VULKAN_API VulkanRenderPass : public virtual VulkanRuntimeObject<VulkanDevice>, public IRenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
@@ -1142,6 +1143,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements the Vulkan <see cref="RenderPassBuilder" />.
 	/// </summary>
+	/// <seealso cref="VulkanRenderPass" />
 	class LITEFX_VULKAN_API VulkanRenderPassBuilder : public RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassBuilderImpl)
 
@@ -1170,6 +1172,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a <see cref="IInputAttachmentMapping" />.
 	/// </summary>
+	/// <seealso cref="VulkanRenderPass" />
+	/// <seealso cref="VulkanRenderPassBuilder" />
 	class LITEFX_VULKAN_API VulkanInputAttachmentMapping : public IInputAttachmentMapping<VulkanRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanInputAttachmentMappingImpl);
 

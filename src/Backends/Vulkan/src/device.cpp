@@ -1,5 +1,4 @@
 #include <litefx/backends/vulkan.hpp>
-#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 

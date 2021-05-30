@@ -35,24 +35,26 @@ namespace LiteFX::Rendering::Backends {
     constexpr char DIRECTX12_LOG[] = "Backend::DirectX12";
 
     // Forward declarations.
-    class DirectX12SwapChain;
-    class DirectX12Queue;
-    class DirectX12Device;
-    class DirectX12GraphicsAdapter;
-    class DirectX12Backend;
-    class DirectX12RenderPipeline;
+    class DirectX12VertexBufferLayout;
+    class DirectX12IndexBufferLayout;
+    class DirectX12DescriptorLayout;
+    class DirectX12DescriptorSetLayout;
+    class DirectX12DescriptorSet;
     class DirectX12RenderPipelineLayout;
-    class DirectX12RenderPass;
-    class DirectX12Rasterizer;
-    class DirectX12InputAssembler;
     class DirectX12ShaderModule;
     class DirectX12ShaderProgram;
     class DirectX12CommandBuffer;
-    class DirectX12DescriptorSetLayout;
-    class DirectX12DescriptorSet;
-    class DirectX12VertexBufferLayout;
-    class DirectX12IndexBufferLayout;
-    class DirectX12Surface;
+    class DirectX12InputAssembler;
+    class DirectX12Rasterizer;
+    class DirectX12RenderPipeline;
+    class DirectX12FrameBuffer;
+    class DirectX12RenderPass;
+    class DirectX12InputAttachmentMapping;
+    class DirectX12SwapChain;
+    class DirectX12Queue;
+    class DirectX12GraphicsFactory;
+    class DirectX12Device;
+    class DirectX12Backend;
 
     // Interface declarations.
     class IDirectX12Buffer;
