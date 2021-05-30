@@ -1261,6 +1261,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan command queue.
 	/// </summary>
+	/// <seealso cref="VulkanCommandBuffer" />
 	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public ICommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	

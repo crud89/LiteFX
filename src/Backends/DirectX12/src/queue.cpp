@@ -11,46 +11,34 @@ public:
 	friend class DirectX12Queue;
 
 private:
-	const DirectX12Device* m_device;
 	QueueType m_type;
 	QueuePriority m_priority;
 	bool m_bound;
 
 public:
-	DirectX12QueueImpl(DirectX12Queue* parent) :
-		base(parent), m_bound(false) { }
-
-	~DirectX12QueueImpl()
+	DirectX12QueueImpl(DirectX12Queue* parent, const QueueType& type, const QueuePriority& priority) :
+		base(parent), m_bound(false), m_type(type), m_priority(priority)
 	{
-		this->release();
 	}
 
 public:
 	[[nodiscard]]
-	ComPtr<ID3D12CommandQueue> initialize(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority)
+	ComPtr<ID3D12CommandQueue> initialize()
 	{
-		if (device == nullptr)
-			throw ArgumentNotInitializedException("The device must be initialized.");
-
-		m_device = dynamic_cast<const DirectX12Device*>(device);
-
-		if (m_device == nullptr)
-			throw InvalidArgumentException("The device must be a valid DirectX 12 device.");
-
 		ComPtr<ID3D12CommandQueue> commandQueue;
 
 		D3D12_COMMAND_QUEUE_DESC desc = {};
 		desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		desc.NodeMask = 0;
 
-		if (LITEFX_FLAG_IS_SET(type, QueueType::Graphics))
+		if (LITEFX_FLAG_IS_SET(m_type, QueueType::Graphics))
 			desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		else if (LITEFX_FLAG_IS_SET(type, QueueType::Compute))
+		else if (LITEFX_FLAG_IS_SET(m_type, QueueType::Compute))
 			desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-		else if (LITEFX_FLAG_IS_SET(type, QueueType::Transfer))
+		else if (LITEFX_FLAG_IS_SET(m_type, QueueType::Transfer))
 			desc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
 
-		switch (priority)
+		switch (m_priority)
 		{
 		default:
 		case QueuePriority::Normal:
@@ -64,16 +52,16 @@ public:
 			break;
 		}
 
-		raiseIfFailed<RuntimeException>(m_device->handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", type, priority);
-
-		m_type = type;
-		m_priority = priority;
+		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
 
 		return commandQueue;
 	}
 
 	void release()
 	{
+		if (!m_bound)
+			return;
+
 		// TODO: Destroy command pool, if bound.
 		m_bound = false;
 	}
@@ -93,15 +81,30 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Queue::DirectX12Queue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority) :
-	ComResource<ID3D12CommandQueue>(nullptr), m_impl(makePimpl<DirectX12QueueImpl>(this))
+DirectX12Queue::DirectX12Queue(const DirectX12Device& device, const QueueType& type, const QueuePriority& priority) :
+	ComResource<ID3D12CommandQueue>(nullptr), DirectX12RuntimeObject(device, &device), m_impl(makePimpl<DirectX12QueueImpl>(this, type, priority))
 {
-	this->handle() = m_impl->initialize(device, type, priority);
+	this->handle() = m_impl->initialize();
 }
 
 DirectX12Queue::~DirectX12Queue() noexcept
 {
 	this->release();
+}
+
+bool DirectX12Queue::isBound() const noexcept
+{
+	return m_impl->m_bound;
+}
+
+const QueueType& DirectX12Queue::type() const noexcept
+{
+	return m_impl->m_type;
+}
+
+const QueuePriority& DirectX12Queue::priority() const noexcept
+{
+	return m_impl->m_priority;
 }
 
 void DirectX12Queue::bind()
@@ -114,27 +117,7 @@ void DirectX12Queue::release()
 	m_impl->release();
 }
 
-bool DirectX12Queue::isBound() const noexcept
+UniquePtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording) const
 {
-	return m_impl->m_bound;
-}
-
-QueueType DirectX12Queue::getType() const noexcept
-{
-	return m_impl->m_type;
-}
-
-QueuePriority DirectX12Queue::getPriority() const noexcept
-{
-	return m_impl->m_priority;
-}
-
-const IGraphicsDevice* DirectX12Queue::getDevice() const noexcept
-{
-	return m_impl->m_device;
-}
-
-UniquePtr<ICommandBuffer> DirectX12Queue::createCommandBuffer() const
-{
-	return makeUnique<DirectX12CommandBuffer>(this);
+	return makeUnique<DirectX12CommandBuffer>(*this, beginRecording);
 }

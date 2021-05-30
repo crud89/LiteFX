@@ -73,20 +73,7 @@ VulkanQueue::VulkanQueue(const VulkanDevice& device, const QueueType& type, cons
 {
 }
 
-VulkanQueue::~VulkanQueue() noexcept
-{
-	this->release();
-}
-
-void VulkanQueue::bind()
-{
-	m_impl->bind();
-}
-
-void VulkanQueue::release()
-{
-	m_impl->release();
-}
+VulkanQueue::~VulkanQueue() noexcept = default;
 
 const VkCommandPool& VulkanQueue::commandPool() const noexcept
 {
@@ -116,6 +103,16 @@ const QueueType& VulkanQueue::type() const noexcept
 const QueuePriority& VulkanQueue::priority() const noexcept
 {
 	return m_impl->m_priority;
+}
+
+void VulkanQueue::bind()
+{
+	m_impl->bind();
+}
+
+void VulkanQueue::release()
+{
+	m_impl->release();
 }
 
 UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const

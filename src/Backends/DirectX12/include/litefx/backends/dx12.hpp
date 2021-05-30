@@ -1176,6 +1176,47 @@ namespace LiteFX::Rendering::Backends {
 		[[nodiscard]] virtual UInt32 swapBackBuffer() const override;
 	};
 
+	/// <summary>
+	/// Implements a DirectX12 command queue.
+	/// </summary>
+	/// <seealso cref="DirectX12CommandBuffer" />
+	class LITEFX_DIRECTX12_API DirectX12Queue : public virtual DirectX12RuntimeObject<DirectX12Device>, public ICommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
+		LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
+
+	public:
+		/// <summary>
+		/// Initializes the DirectX12 command queue.
+		/// </summary>
+		/// <param name="device">The device, commands get send to.</param>
+		/// <param name="type">The type of the command queue.</param>
+		/// <param name="priority">The priority, of which commands are issued on the device.</param>
+		explicit DirectX12Queue(const DirectX12Device& device, const QueueType& type, const QueuePriority& priority);
+		DirectX12Queue(const DirectX12Queue&) = delete;
+		DirectX12Queue(DirectX12Queue&&) = delete;
+		virtual ~DirectX12Queue() noexcept;
+
+		// ICommandQueue interface.
+	public:
+		/// <inheritdoc />
+		virtual bool isBound() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const QueuePriority& priority() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const QueueType& type() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		virtual void bind() override;
+
+		/// <inheritdoc />
+		virtual void release() override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
+	};
+
 
 
 
@@ -1223,28 +1264,6 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		DirectX12RenderPassBuilder buildRenderPass() const;
 		//DirectX12ComputePassBuilder buildComputePass() const;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Queue : public ICommandQueue, public ComResource<ID3D12CommandQueue> {
-		LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
-
-	public:
-		explicit DirectX12Queue(const IGraphicsDevice* device, const QueueType& type, const QueuePriority& priority);
-		virtual ~DirectX12Queue() noexcept;
-
-	public:
-		virtual bool isBound() const noexcept override;
-		virtual QueuePriority getPriority() const noexcept override;
-		virtual QueueType getType() const noexcept override;
-		virtual const IGraphicsDevice* getDevice() const noexcept override;
-
-	public:
-		virtual void bind() override;
-		virtual void release() override;
-		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
 	};
 	
 	/// <summary>
