@@ -1217,6 +1217,48 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
 	};
 
+	/// <summary>
+	/// A graphics factory that produces objects for a <see cref="DirectX12Device" />.
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public IGraphicsFactory<DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler> {
+		LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
+
+	public:
+		/// <summary>
+		/// Creates a new graphics factory.
+		/// </summary>
+		/// <param name="device">The device the factory should produce objects for.</param>
+		explicit DirectX12GraphicsFactory(const DirectX12Device& device);
+		DirectX12GraphicsFactory(const DirectX12GraphicsFactory&) = delete;
+		DirectX12GraphicsFactory(DirectX12GraphicsFactory&&) = delete;
+		virtual ~DirectX12GraphicsFactory() noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12Image> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12Image> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12Buffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12ConstantBuffer> createConstantBuffer(const DirectX12DescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12Texture> createTexture(const DirectX12DescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<IDirectX12Sampler> createSampler(const DirectX12DescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+	};
+
 
 
 

@@ -24,6 +24,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/adapter.cpp"
     "src/surface.cpp"
     "src/device.cpp"
+    "src/factory.cpp"
     "src/queue.cpp"
     "src/swapchain.cpp"
     "src/frame_buffer.cpp"
