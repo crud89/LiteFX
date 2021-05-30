@@ -11,12 +11,18 @@ public:
 	friend class DirectX12SwapChain;
 
 private:
-	Format m_format{};
-	Size2d m_extent{};
+	Size2d m_renderArea{ };
+	Format m_format{ Format::None };
+	UInt32 m_buffers{ };
+	std::atomic_uint32_t m_currentImage{ };
+	//Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
 	bool m_supportsVariableRefreshRates{ false };
 
 public:
-	DirectX12SwapChainImpl(DirectX12SwapChain* parent) : base(parent) { }
+	DirectX12SwapChainImpl(DirectX12SwapChain* parent) : 
+		base(parent) 
+	{
+	}
 
 private:
 	bool supportsVariableRefreshRates(const DirectX12Backend* backend) const
@@ -31,30 +37,18 @@ private:
 
 public:
 	[[nodiscard]]
-	ComPtr<IDXGISwapChain4> initialize(const DirectX12Device* device, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	ComPtr<IDXGISwapChain4> initialize(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		if (device == nullptr)
-			throw ArgumentNotInitializedException("The device must be initialized.");
-
 		if (format == Format::Other || format == Format::None)
 			throw InvalidArgumentException("The provided surface format it not a valid value. It must not equal {0} or {1}.", Format::None, Format::Other);
 
-		auto backend = dynamic_cast<const DirectX12Backend*>(device->getBackend());
-		auto graphicsQueue = dynamic_cast<const DirectX12Queue*>(device->graphicsQueue());
-
-		if (backend == nullptr)
-			throw InvalidArgumentException("The device has not been initialized from a DirectX 12 backend.");
-
-		if (graphicsQueue == nullptr)
-			throw InvalidArgumentException("The device does not provide a graphics queue.");
-
-		auto surface = dynamic_cast<const DirectX12Surface*>(backend->getSurface());
-
-		if (surface == nullptr)
-			throw InvalidArgumentException("The backend has does not provide a valid surface.");
+		auto adapter = m_parent->getDevice()->adapter().handle();
+		auto surface = m_parent->getDevice()->surface().handle();
+		auto graphicsQueue = m_parent->getDevice()->graphicsQueue().handle();
+		auto backend = m_parent->getDevice()->backend();
 
 		// Create the swap chain.
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(device), frameBuffers, frameBufferSize.width(), frameBufferSize.height());
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_parent->getDevice()), frameBuffers, frameBufferSize.width(), frameBufferSize.height());
 		
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.Width = static_cast<UInt32>(frameBufferSize.width());
@@ -78,15 +72,15 @@ public:
 		backend->handle()->MakeWindowAssociation(surface->handle(), DXGI_MWA_NO_ALT_ENTER);
 
 		m_format = format;
-		m_extent = frameBufferSize;
+		m_renderArea = frameBufferSize;
+		m_buffers = frameBuffers;
 
 		return swapChain;
 	}
 
-	void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	void cleanup()
 	{
-		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(frameBuffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(m_format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize frame buffer on swap chain.");
-		m_extent = frameBufferSize;
+		throw;
 	}
 
 	UInt32 swapBackBuffer()
@@ -99,46 +93,50 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format) :
-	m_impl(makePimpl<DirectX12SwapChainImpl>(this)), DirectX12RuntimeObject(device), IResource(nullptr)
+DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
+	m_impl(makePimpl<DirectX12SwapChainImpl>(this)), DirectX12RuntimeObject(device, &device), ComResource<IDXGISwapChain4>(nullptr)
 {
-	this->handle() = m_impl->initialize(device, format, frameBufferSize, frameBuffers);
+	this->handle() = m_impl->initialize(format, frameBufferSize, frameBuffers);
 }
 
 DirectX12SwapChain::~DirectX12SwapChain() noexcept = default;
 
-const Size2d& DirectX12SwapChain::getBufferSize() const noexcept
-{
-	return m_impl->m_extent;
-}
-
-size_t DirectX12SwapChain::getWidth() const noexcept
-{
-	return m_impl->m_extent.width();
-}
-
-size_t DirectX12SwapChain::getHeight() const noexcept
-{
-	return m_impl->m_extent.height();
-}
-
-const Format& DirectX12SwapChain::getFormat() const noexcept
+const Format& DirectX12SwapChain::surfaceFormat() const noexcept
 {
 	return m_impl->m_format;
 }
 
-UInt32 DirectX12SwapChain::getBuffers() const noexcept
+const UInt32& DirectX12SwapChain::buffers() const noexcept
 {
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	return FAILED(this->handle()->GetDesc1(&swapChainDesc)) ? 0 : swapChainDesc.BufferCount;
+	return m_impl->m_buffers;
+}
+
+const Size2d& DirectX12SwapChain::renderArea() const noexcept
+{
+	return m_impl->m_renderArea;
+}
+
+Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
+{
+	//return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); }) | ranges::to<Array<const IDirectX12Image*>>();
+	throw;
+}
+
+Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
+{
+	// TODO: DX only supports a pre-defined set of surface formats and afaik has no way to query them.
+	//return m_impl->getSurfaceFormats(this->getDevice()->adapter().handle(), this->getDevice()->surface().handle());
+	throw;
+}
+
+void DirectX12SwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
+{
+	// Cleanup and re-initialize.
+	m_impl->cleanup();
+	this->handle() = m_impl->initialize(surfaceFormat, renderArea, buffers);
 }
 
 UInt32 DirectX12SwapChain::swapBackBuffer() const
 {
 	return m_impl->swapBackBuffer();
-}
-
-void DirectX12SwapChain::reset(const Size2d& frameBufferSize, const UInt32& frameBuffers)
-{
-	m_impl->reset(frameBufferSize, frameBuffers);
 }

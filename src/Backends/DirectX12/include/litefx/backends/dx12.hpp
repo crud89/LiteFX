@@ -1132,6 +1132,54 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& location() const noexcept override;
 	};
 
+	/// <summary>
+	/// Implements a DirectX12 swap chain.
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12SwapChain : public virtual DirectX12RuntimeObject<DirectX12Device>, public ISwapChain<IDirectX12Image>, public ComResource<IDXGISwapChain4> {
+		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX12 swap chain.
+		/// </summary>
+		/// <param name="device">The device that owns the swap chain.</param>
+		/// <param name="format">The initial surface format.</param>
+		/// <param name="renderArea">The initial size of the render area.</param>
+		/// <param name="buffers">The initial number of buffers.</param>
+		explicit DirectX12SwapChain(const DirectX12Device& device, const Format& surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, const UInt32& buffers = 3);
+		DirectX12SwapChain(const DirectX12SwapChain&) = delete;
+		DirectX12SwapChain(DirectX12SwapChain&&) = delete;
+		virtual ~DirectX12SwapChain() noexcept;
+
+		// ISwapChain interface.
+	public:
+		/// <inheritdoc />
+		virtual const Format& surfaceFormat() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& buffers() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Size2d& renderArea() const noexcept override;
+
+		/// <inheritdoc />
+		virtual Array<const IDirectX12Image*> images() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		virtual Array<Format> getSurfaceFormats() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual UInt32 swapBackBuffer() const override;
+	};
+
+
+
+
+
 
 
 
@@ -1197,26 +1245,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual void bind() override;
 		virtual void release() override;
 		virtual UniquePtr<ICommandBuffer> createCommandBuffer() const override;
-	};
-
-	/// <summary>
-	/// 
-	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12SwapChain : public virtual DirectX12RuntimeObject, public ISwapChain, public ComResource<IDXGISwapChain4> {
-		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
-
-	public:
-		explicit DirectX12SwapChain(const DirectX12Device* device, const Size2d& frameBufferSize, const UInt32& frameBuffers, const Format& format = Format::B8G8R8A8_SRGB);
-		virtual ~DirectX12SwapChain() noexcept;
-
-	public:
-		virtual const Size2d& getBufferSize() const noexcept override;
-		virtual size_t getWidth() const noexcept override;
-		virtual size_t getHeight() const noexcept override;
-		virtual const Format& getFormat() const noexcept override;
-		virtual UInt32 swapBackBuffer() const override;
-		virtual void reset(const Size2d& frameBufferSize, const UInt32& frameBuffers) override;
-		virtual UInt32 getBuffers() const noexcept override;
 	};
 	
 	/// <summary>
