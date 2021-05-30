@@ -1259,6 +1259,80 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IDirectX12Sampler> createSampler(const DirectX12DescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 	};
 
+	/// <summary>
+	/// Implements a DirectX12 graphics device.
+	/// </summary>
+	class LITEFX_DIRECTX12_API DirectX12Device : public IGraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass>, public ComResource<ID3D12Device5> {
+		LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
+
+	public:
+		/// <summary>
+		/// Creates a new device instance.
+		/// </summary>
+		/// <param name="adapter">The adapter the device uses for drawing.</param>
+		/// <param name="surface">The surface, the device should draw to.</param>
+		/// <param name="backend">The backend from which the device got created.</param>
+		explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend);
+
+		/// <summary>
+		/// Creates a new device instance.
+		/// </summary>
+		/// <param name="adapter">The adapter the device uses for drawing.</param>
+		/// <param name="surface">The surface, the device should draw to.</param>
+		/// <param name="backend">The backend from which the device got created.</param>
+		/// <param name="format">The initial surface format, device uses for drawing.</param>
+		/// <param name="frameBufferSize">The initial size of the frame buffers.</param>
+		/// <param name="frameBuffers">The initial number of frame buffers.</param>
+		explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers);
+
+		DirectX12Device(const DirectX12Device&) = delete;
+		DirectX12Device(DirectX12Device&&) = delete;
+		virtual ~DirectX12Device() noexcept;
+
+		// DirectX12 Device interface.
+	public:
+		/// <summary>
+		/// Returns the backend from which the device got created.
+		/// </summary>
+		/// <returns>The backend from which the device got created.</returns>
+		virtual const DirectX12Backend& backend() const noexcept;
+
+	public:
+		/// <summary>
+		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
+		/// </summary>
+		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		/// <seealso cref="IGraphicsDevice::build" />
+		DirectX12RenderPassBuilder buildRenderPass() const;
+
+		// IGraphicsDevice interface.
+	public:
+		/// <inheritdoc />
+		virtual const DirectX12SwapChain& swapChain() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12Surface& surface() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12GraphicsAdapter& adapter() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12GraphicsFactory& factory() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12Queue& graphicsQueue() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12Queue& transferQueue() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12Queue& bufferQueue() const noexcept override;
+
+	public:
+		/// <inheritdoc />
+		virtual void wait() const override;
+	};
+
 
 
 

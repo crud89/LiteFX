@@ -11,14 +11,17 @@ public:
 	friend class DirectX12Device;
 
 private:
-	UniquePtr<DirectX12Queue> m_graphicsQueue;
+	const DirectX12GraphicsAdapter& m_adapter;
+	const DirectX12Surface& m_surface;
+	const DirectX12Backend& m_backend;
+	UniquePtr<DirectX12Queue> m_graphicsQueue, m_transferQueue, m_bufferQueue;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
 	UniquePtr<DirectX12SwapChain> m_swapChain;
 	DWORD m_debugCallbackCookie = 0;
 
 public:
-	DirectX12DeviceImpl(DirectX12Device* parent) :
-		base(parent)
+	DirectX12DeviceImpl(DirectX12Device* parent, const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend) :
+		base(parent), m_adapter(adapter), m_surface(surface), m_backend(backend)
 	{
 	}
 
@@ -85,7 +88,7 @@ private:
 
 public:
 	[[nodiscard]]
-	ComPtr<ID3D12Device5> initialize(const Format& format)
+	ComPtr<ID3D12Device5> initialize()
 	{
 		ComPtr<ID3D12Device5> device;
 		HRESULT hr;
@@ -132,6 +135,24 @@ public:
 		return device;
 	}
 
+	void createFactory()
+	{
+		m_factory = makeUnique<DirectX12GraphicsFactory>(*m_parent);
+	}
+
+	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	{
+		m_swapChain = makeUnique<DirectX12SwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
+	}
+
+	void createQueues()
+	{
+		//m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::Realtime);
+		m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::High);
+		m_transferQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Transfer, QueuePriority::Normal);
+		m_bufferQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Transfer, QueuePriority::High);
+	}
+
 	void createCommandQueues()
 	{
 		//m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::Realtime);
@@ -169,123 +190,78 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Device::DirectX12Device(const IRenderBackend* backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
-	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this)), GraphicsDevice(backend)
+DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend) :
+	DirectX12Device(adapter, surface, backend, Format::B8G8R8A8_SRGB, { 800, 600 }, 3)
 {
-	LITEFX_DEBUG(DIRECTX12_LOG, "Creating device on backend {0} {{ Surface: {1}, Adapter: {2}, Format: {3} }}...", fmt::ptr(backend), fmt::ptr(backend->getSurface()), backend->getAdapter()->getDeviceId(), format);
+}
 
-	this->handle() = m_impl->initialize(format);
-	m_impl->createCommandQueues();
+DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
+	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, surface, backend)), GraphicsDevice(backend)
+{
+	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(&surface), adapter.getDeviceId(), Join(this->enabledExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
+	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
+	LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
+	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
+	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+
+	this->handle() = m_impl->initialize();
+	m_impl->createQueues();
+	m_impl->createFactory();
 	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
 }
 
-DirectX12Device::~DirectX12Device() noexcept
+DirectX12Device::~DirectX12Device() noexcept = default;
+
+const DirectX12Backend& DirectX12Device::backend() const noexcept
 {
-	//// Release the command queues first.
-	//this->graphicsQueue()->release();
-	//this->transferQueue()->release();
-
-	// Destroy the implementation.
-	m_impl.destroy();
-
-	//// Destroy the device.
-	//this->handle() = nullptr;
-}
-
-size_t DirectX12Device::getBufferWidth() const noexcept
-{
-	return m_impl->m_swapChain->getWidth();
-}
-
-size_t DirectX12Device::getBufferHeight() const noexcept
-{
-	return m_impl->m_swapChain->getHeight();
-}
-
-const ICommandQueue* DirectX12Device::graphicsQueue() const noexcept
-{
-	return m_impl->m_graphicsQueue.get();
-}
-
-const ICommandQueue* DirectX12Device::transferQueue() const noexcept
-{
-	//return m_impl->m_graphicsQueue.get();
-	throw;
-}
-
-const ICommandQueue* DirectX12Device::bufferQueue() const noexcept
-{
-	//return m_impl->m_graphicsQueue.get();
-	throw;
-}
-
-void DirectX12Device::wait()
-{
-	// TODO: If actually required, we should use a fence here and wait on it.
-	return;
-}
-
-void DirectX12Device::resize(int width, int height)
-{
-	m_impl->resize(width, height);
-}
-
-UniquePtr<IBuffer> DirectX12Device::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& size, const UInt32& elements) const
-{
-	throw;
-}
-
-UniquePtr<IVertexBuffer> DirectX12Device::createVertexBuffer(const IVertexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const
-{
-	throw;
-}
-
-UniquePtr<IIndexBuffer> DirectX12Device::createIndexBuffer(const IIndexBufferLayout* layout, const BufferUsage& usage, const UInt32& elements) const
-{
-	throw;
-}
-
-UniquePtr<IConstantBuffer> DirectX12Device::createConstantBuffer(const IDescriptorLayout* layout, const BufferUsage& usage, const UInt32& elements) const
-{
-	throw;
-}
-
-UniquePtr<IImage> DirectX12Device::createImage(const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
-{
-	throw;
-}
-
-UniquePtr<IImage> DirectX12Device::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
-{
-	throw;
-}
-
-UniquePtr<ITexture> DirectX12Device::createTexture(const IDescriptorLayout* layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
-{
-	throw;
-}
-
-UniquePtr<ISampler> DirectX12Device::createSampler(const IDescriptorLayout* layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
-{
-	throw;
-}
-
-UniquePtr<IShaderModule> DirectX12Device::loadShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint) const
-{
-	throw;
-}
-
-Array<Format> DirectX12Device::getSurfaceFormats() const 
-{
-	return m_impl->getSurfaceFormats();
-}
-
-const ISwapChain* DirectX12Device::getSwapChain() const noexcept 
-{ 
-	return m_impl->m_swapChain.get();
+	return m_impl->m_backend;
 }
 
 DirectX12RenderPassBuilder DirectX12Device::buildRenderPass() const
 {
-	return this->build<DirectX12RenderPass>();
+	return DirectX12RenderPassBuilder(*this);
+}
+
+const DirectX12SwapChain& DirectX12Device::swapChain() const noexcept
+{
+	return *m_impl->m_swapChain;
+}
+
+const DirectX12Surface& DirectX12Device::surface() const noexcept
+{
+	return m_impl->m_surface;
+}
+
+const DirectX12GraphicsAdapter& DirectX12Device::adapter() const noexcept
+{
+	return m_impl->m_adapter;
+}
+
+const DirectX12GraphicsFactory& DirectX12Device::factory() const noexcept
+{
+	return *m_impl->m_factory;
+}
+
+const DirectX12Queue& DirectX12Device::graphicsQueue() const noexcept
+{
+	return *m_impl->m_graphicsQueue;
+}
+
+const DirectX12Queue& DirectX12Device::transferQueue() const noexcept
+{
+	return *m_impl->m_transferQueue;
+}
+
+const DirectX12Queue& DirectX12Device::bufferQueue() const noexcept
+{
+	return *m_impl->m_bufferQueue;
+}
+
+void DirectX12Device::wait() const
+{
+	// TODO: Wait for all queues.
+	//raiseIfFailed<RuntimeException>(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
+	throw;
 }

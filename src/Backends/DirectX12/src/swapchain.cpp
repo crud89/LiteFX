@@ -124,9 +124,14 @@ Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 
 Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 {
-	// TODO: DX only supports a pre-defined set of surface formats and afaik has no way to query them.
-	//return m_impl->getSurfaceFormats(this->getDevice()->adapter().handle(), this->getDevice()->surface().handle());
-	throw;
+	// NOTE: Those formats are actually the only ones that are supported for flip-model swap chains, which is currently the only 
+	//       supported swap effect. If other swap effects are used, this function may require redesign. For more information see: 
+	//       https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1#remarks.
+	return Array<Format> {
+		::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
+		::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
+		::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM)
+	};
 }
 
 void DirectX12SwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
