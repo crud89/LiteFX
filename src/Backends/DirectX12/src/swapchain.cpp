@@ -25,11 +25,11 @@ public:
 	}
 
 private:
-	bool supportsVariableRefreshRates(const DirectX12Backend* backend) const
+	bool supportsVariableRefreshRates(const DirectX12Backend& backend) const
 	{
 		BOOL allowTearing = FALSE;
 		
-		if (FAILED(backend->handle()->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing))))
+		if (FAILED(backend.handle()->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing))))
 			return false;
 		
 		return static_cast<bool>(allowTearing);
@@ -45,7 +45,7 @@ public:
 		auto adapter = m_parent->getDevice()->adapter().handle();
 		auto surface = m_parent->getDevice()->surface().handle();
 		auto graphicsQueue = m_parent->getDevice()->graphicsQueue().handle();
-		auto backend = m_parent->getDevice()->backend();
+		const auto& backend = m_parent->getDevice()->backend();
 
 		// Create the swap chain.
 		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_parent->getDevice()), frameBuffers, frameBufferSize.width(), frameBufferSize.height());
@@ -65,11 +65,11 @@ public:
 
 		ComPtr<IDXGISwapChain1> swapChainBase;
 		ComPtr<IDXGISwapChain4> swapChain;
-		raiseIfFailed<RuntimeException>(backend->handle()->CreateSwapChainForHwnd(graphicsQueue->handle().Get(), surface->handle(), &swapChainDesc, nullptr, nullptr, &swapChainBase), "Unable to create swap chain for device.");
+		raiseIfFailed<RuntimeException>(backend.handle()->CreateSwapChainForHwnd(graphicsQueue.Get(), surface, &swapChainDesc, nullptr, nullptr, &swapChainBase), "Unable to create swap chain for device.");
 		raiseIfFailed<RuntimeException>(swapChainBase.As(&swapChain), "The swap chain does not implement the IDXGISwapChain4 interface.");
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
-		backend->handle()->MakeWindowAssociation(surface->handle(), DXGI_MWA_NO_ALT_ENTER);
+		backend.handle()->MakeWindowAssociation(surface, DXGI_MWA_NO_ALT_ENTER);
 
 		m_format = format;
 		m_renderArea = frameBufferSize;

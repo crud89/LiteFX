@@ -30,7 +30,7 @@ public:
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
 
-		switch (m_parent->parent().getType())
+		switch (m_parent->parent().type())
 		{
 		case QueueType::Compute: type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
 		case QueueType::Transfer: type = D3D12_COMMAND_LIST_TYPE_COPY; break;
@@ -69,7 +69,7 @@ public:
 	{
 		if (m_fence->GetCompletedValue() == m_currentSignal)
 		{
-			HANDLE eventHandle = ::CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
+			HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
 			HRESULT hr = m_fence->SetEventOnCompletion(m_currentSignal, eventHandle);
 
 			if (SUCCEEDED(hr))

@@ -11,9 +11,7 @@ public:
     friend class DirectX12Backend;
 
 private:
-    Array<UniquePtr<IGraphicsAdapter>> m_adapters{ };
-    const IGraphicsAdapter* m_adapter{ nullptr };
-    UniquePtr<ISurface> m_surface{ nullptr };
+    Array<UniquePtr<DirectX12GraphicsAdapter>> m_adapters{ };
     ComPtr<ID3D12Debug> m_debugInterface;
     const App& m_app;
 

@@ -25,11 +25,6 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout) :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject(pipelineLayout, pipelineLayout.getDevice())
-{
-}
-
 DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout) noexcept :
     m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject<DirectX12RenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {

@@ -138,6 +138,34 @@ void DirectX12RenderPass::end() const
     throw;
 }
 
+void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)
+{
+    // Check if we're currently running.
+    if (m_impl->m_activeFrameBuffer != nullptr)
+        throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
+
+    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
+}
+
+void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descriptorSet) const
+{
+    const auto backBuffer = m_impl->m_backBuffer;
+
+    std::ranges::for_each(m_impl->m_inputAttachments, [&descriptorSet, &backBuffer](const DirectX12InputAttachmentMapping& inputAttachment) {
+#ifndef NDEBUG
+        if (inputAttachment.inputAttachmentSource() == nullptr)
+            throw RuntimeException("No source render pass has been specified for the input attachment mapped to location {0}.", inputAttachment.location());
+#endif
+
+        descriptorSet.attach(inputAttachment.location(), inputAttachment.inputAttachmentSource()->frameBuffer(backBuffer).image(inputAttachment.renderTarget().location()));
+    });
+}
+
+DirectX12RenderPipelineBuilder DirectX12RenderPass::makePipeline(const UInt32& id, const String& name) const noexcept
+{
+    return DirectX12RenderPipelineBuilder(*this, id, name);
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------

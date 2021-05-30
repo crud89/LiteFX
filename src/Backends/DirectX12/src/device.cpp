@@ -15,6 +15,7 @@ private:
 	const DirectX12Surface& m_surface;
 	const DirectX12Backend& m_backend;
 	UniquePtr<DirectX12Queue> m_graphicsQueue, m_transferQueue, m_bufferQueue;
+	UniquePtr<DirectX12GraphicsFactory> m_factory;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
 	UniquePtr<DirectX12SwapChain> m_swapChain;
 	DWORD m_debugCallbackCookie = 0;
@@ -25,31 +26,15 @@ public:
 	{
 	}
 
-	virtual ~DirectX12DeviceImpl() noexcept
+	~DirectX12DeviceImpl() noexcept
 	{
 		if (m_eventQueue != nullptr & m_debugCallbackCookie != 0)
 			m_eventQueue->UnregisterMessageCallback(m_debugCallbackCookie);
 
 		m_swapChain = nullptr;
-	}
-
-private:
-	HWND getSurface() const noexcept
-	{
-		auto surface = dynamic_cast<const DirectX12Surface*>(m_parent->getBackend()->getSurface());
-		return surface ? surface->handle() : nullptr;
-	}
-
-	ComPtr<IDXGIAdapter4> getAdapter() const noexcept
-	{
-		auto adapter = dynamic_cast<const DirectX12GraphicsAdapter*>(m_parent->getBackend()->getAdapter());
-		return adapter ? adapter->handle() : nullptr;
-	}
-
-	ComPtr<IDXGIFactory7> getInstance() const noexcept
-	{
-		auto backend = dynamic_cast<const DirectX12Backend*>(m_parent->getBackend());
-		return backend ? backend->handle() : nullptr;
+		m_graphicsQueue = nullptr;
+		m_transferQueue = nullptr;
+		m_bufferQueue = nullptr;
 	}
 
 #ifndef NDEBUG
@@ -93,10 +78,7 @@ public:
 		ComPtr<ID3D12Device5> device;
 		HRESULT hr;
 
-		auto adapter = this->getAdapter();
-		auto a = adapter.Get();
-
-		raiseIfFailed<RuntimeException>(::D3D12CreateDevice(this->getAdapter().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");			
+		raiseIfFailed<RuntimeException>(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
 
 #ifndef NDEBUG
 		// Try to query an info queue to forward log messages.
@@ -147,27 +129,10 @@ public:
 
 	void createQueues()
 	{
-		//m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::Realtime);
-		m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::High);
-		m_transferQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Transfer, QueuePriority::Normal);
-		m_bufferQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Transfer, QueuePriority::High);
-	}
-
-	void createCommandQueues()
-	{
-		//m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::Realtime);
-		m_graphicsQueue = makeUnique<DirectX12Queue>(m_parent, QueueType::Graphics, QueuePriority::High);
-	}
-
-	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
-	{
-		m_swapChain = makeUnique<DirectX12SwapChain>(m_parent, frameBufferSize, frameBuffers, format);
-	}
-
-	void resize(int width, int height)
-	{
-		// Reset the swap chain.
-		m_swapChain->reset(Size2d(width, height), m_swapChain->getBuffers());
+		//m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::Realtime);
+		m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::High);
+		m_transferQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Transfer, QueuePriority::Normal);
+		m_bufferQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Transfer, QueuePriority::High);
 	}
 
 public:
@@ -196,15 +161,15 @@ DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const 
 }
 
 DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
-	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, surface, backend)), GraphicsDevice(backend)
+	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, surface, backend))
 {
-	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(&surface), adapter.getDeviceId(), Join(this->enabledExtensions(), ", "));
-	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
-	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
-	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
-	LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
-	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
-	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+	LITEFX_DEBUG(DIRECTX12_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.getDeviceId());
+	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
+	LITEFX_DEBUG(DIRECTX12_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
+	LITEFX_DEBUG(DIRECTX12_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
+	LITEFX_DEBUG(DIRECTX12_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
+	LITEFX_DEBUG(DIRECTX12_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
+	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
 
 	this->handle() = m_impl->initialize();
 	m_impl->createQueues();

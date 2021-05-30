@@ -134,8 +134,9 @@ UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate() const
         return makeUnique<DirectX12DescriptorSet>(*this, m_impl->tryAllocate());
 
     // Otherwise, pick and remove one from the list.
-    auto descriptorSet = makeUnique<DirectX12DescriptorSet>(*this, m_impl->m_freeDescriptorSets.front());
+    auto heap = m_impl->m_freeDescriptorSets.front();
     m_impl->m_freeDescriptorSets.pop();
+    auto descriptorSet = makeUnique<DirectX12DescriptorSet>(*this, std::move(heap));
 
     return descriptorSet;
 }

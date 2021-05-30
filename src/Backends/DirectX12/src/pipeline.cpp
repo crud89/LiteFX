@@ -48,7 +48,7 @@ public:
 			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias disabled.");
 		else
 		{
-			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer->getDepthBiasClamp(), rasterizer->getDepthBiasConstantFactor(), rasterizer->getDepthBiasSlopeFactor());
+			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthBiasClamp(), rasterizer.depthBiasConstantFactor(), rasterizer.depthBiasSlopeFactor());
 			rasterizerState.DepthBiasClamp = rasterizer.depthBiasClamp();
 			rasterizerState.DepthBias = static_cast<Int32>(rasterizer.depthBiasConstantFactor());
 			rasterizerState.SlopeScaledDepthBias = rasterizer.depthBiasSlopeFactor();

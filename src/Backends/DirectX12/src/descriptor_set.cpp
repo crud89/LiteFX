@@ -33,23 +33,23 @@ UniquePtr<IDirectX12Sampler> DirectX12DescriptorSet::makeSampler(const UInt32& b
     return this->getDevice()->factory().createSampler(this->parent().layout(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement) const
+void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement) const noexcept
 {
     // TODO: copy descriptor to global heap. It may be more efficient to cache all updates (rename `update` to `bind`) and flush them all together (new `update` method).
     throw;
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Texture& texture) const
+void DirectX12DescriptorSet::update(const IDirectX12Texture& texture) const noexcept
 {
     throw;
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler) const
+void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler) const noexcept
 {
     throw;
 }
 
-void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const
+void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const noexcept
 {
     throw;
 }

@@ -31,10 +31,6 @@ public:
 public:
     ComPtr<ID3D12RootSignature> initialize()
     {
-        // Get the device.
-        ComPtr<ID3D12Device> device;
-        raiseIfFailed<RuntimeException>(m_parent->parent().handle()->GetDevice(IID_PPV_ARGS(&device)), "Unable to query device for creating a pipeline layout.");
-
         // Define the descriptor range from descriptor set layouts.
         Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         Array<D3D12_ROOT_PARAMETER1> descriptorParameters;
@@ -110,7 +106,7 @@ public:
 
         // Create the root signature.
         ComPtr<ID3D12RootSignature> rootSignature;
-        raiseIfFailed<RuntimeException>(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
+        raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
 
         return rootSignature;
     }
@@ -126,7 +122,7 @@ DirectX12RenderPipelineLayout::DirectX12RenderPipelineLayout(const DirectX12Rend
     this->handle() = m_impl->initialize();
 }
 
-DirectX12RenderPipelineLayout::DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline) :
+DirectX12RenderPipelineLayout::DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline) noexcept :
     ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this))
 {
 }
