@@ -1,8 +1,7 @@
 #include <litefx/backends/dx12.hpp>
-//#include "buffer.h"
+#include "buffer.h"
 //#include "image.h"
-
-// TODO: Include D3D12 Memory Allocator.
+#include "D3D12MemAlloc.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -16,17 +15,29 @@ public:
 
 private:
 	const DirectX12Device& m_device;
+	UniquePtr<D3D12MA::Allocator> m_allocator;
 
 public:
 	DirectX12GraphicsFactoryImpl(DirectX12GraphicsFactory* parent, const DirectX12Device& device) :
 		base(parent), m_device(device)
 	{
-		// TODO: Create D3D12 Memory Allocator.
+		// Initialize memory allocator.
+		D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
+		//allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_SINGLETHREADED;
+		allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_NONE;
+		allocatorDesc.pAdapter = device.adapter().handle().Get();
+		allocatorDesc.pDevice = device.handle().Get();
+		allocatorDesc.PreferredBlockSize = 0;	// TODO: Make configurable.
+
+		D3D12MA::Allocator* allocator;
+		raiseIfFailed<RuntimeException>(D3D12MA::CreateAllocator(&allocatorDesc, &allocator), "Unable to create D3D12 memory allocator.");
+		m_allocator.reset(allocator);
 	}
 
 	~DirectX12GraphicsFactoryImpl()
 	{
-		// TODO: Destroy D3D12 Memory Allocator.
+		m_allocator->Release();
+		m_allocator = nullptr;
 	}
 };
 
@@ -43,6 +54,27 @@ DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
 
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createImage(const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
+	D3D12_RESOURCE_DESC resourceDesc = {};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDesc.Alignment = 0;	// NOTE: Can be overwritten for "small textures" (see: https://asawicki.info/news_1726_secrets_of_direct3d_12_resource_alignment)
+	resourceDesc.Width = size.width();
+	resourceDesc.Height = size.height();
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = levels;
+	resourceDesc.Format = ::getFormat(format);
+	resourceDesc.SampleDesc.Count = static_cast<UInt32>(samples);
+	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;		// TODO: Check me!
+
+	D3D12MA::ALLOCATION_DESC allocationDesc = {};
+	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+
+	ComPtr<ID3D12Resource> resource;
+	D3D12MA::Allocation* allocation;
+	raiseIfFailed<RuntimeException>(m_impl->m_allocator->CreateResource(&allocationDesc, &resourceDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
+
+	allocation->Release();
 	throw;
 }
 
@@ -53,7 +85,6 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 
 UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements) const
 {
-	throw;
 }
 
 UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
