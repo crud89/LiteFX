@@ -1,6 +1,6 @@
 [submodule "src/Modules/vcpkg"]
 	path = src/Modules/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
+	url = https://github.com/crud89/vcpkg.git
 [submodule "src/Modules/DirectX-Headers"]
 	path = src/Modules/DirectX-Headers
 	url = https://github.com/microsoft/DirectX-Headers.git

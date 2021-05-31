@@ -15,6 +15,7 @@
       "name": "dx12",
       "description": "Builds the DirectX 12 backend.",
       "dependencies": [
+        "d3d12-memory-allocator",
         "directx-headers",
         "glfw3"
       ]
