@@ -40,12 +40,12 @@ size_t DirectX12IndexBufferLayout::elementSize() const noexcept
 
 const UInt32& DirectX12IndexBufferLayout::binding() const noexcept
 {
-    return 0;
+    return m_impl->m_binding;
 }
 
 const BufferType& DirectX12IndexBufferLayout::type() const noexcept
 {
-    return BufferType::Index;
+    return m_impl->m_bufferType;
 }
 
 const IndexType& DirectX12IndexBufferLayout::indexType() const noexcept

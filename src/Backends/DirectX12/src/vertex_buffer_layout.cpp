@@ -47,7 +47,7 @@ const UInt32& DirectX12VertexBufferLayout::binding() const noexcept
 
 const BufferType& DirectX12VertexBufferLayout::type() const noexcept
 {
-    return BufferType::Vertex;
+    return m_impl->m_bufferType;
 }
 
 Array<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const noexcept
