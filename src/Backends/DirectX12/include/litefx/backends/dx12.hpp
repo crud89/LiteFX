@@ -1220,6 +1220,9 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// A graphics factory that produces objects for a <see cref="DirectX12Device" />.
 	/// </summary>
+	/// <remarks>
+	/// The DX12 graphics factory is implemented using <a href="https://gpuopen.com/d3d12-memory-allocator/" target="_blank">D3D12 Memory Allocator</a>.
+	/// </remarks>
 	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public IGraphicsFactory<DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler> {
 		LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
 
