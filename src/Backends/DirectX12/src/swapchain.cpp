@@ -39,8 +39,8 @@ public:
 	[[nodiscard]]
 	ComPtr<IDXGISwapChain4> initialize(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		if (format == Format::Other || format == Format::None)
-			throw InvalidArgumentException("The provided surface format it not a valid value. It must not equal {0} or {1}.", Format::None, Format::Other);
+		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](const Format& surfaceFormat) { return surfaceFormat == format; }))
+			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
 
 		auto adapter = m_parent->getDevice()->adapter().handle();
 		auto surface = m_parent->getDevice()->surface().handle();
@@ -87,6 +87,16 @@ public:
 	{
 		throw;
 	}
+
+private:
+	String joinSupportedSurfaceFormats() const noexcept 
+	{
+		auto formats = m_parent->getSurfaceFormats();
+
+		return Join(formats |
+			std::views::transform([](const Format& format) { return fmt::to_string(format); }) |
+			ranges::to<Array<String>>(), ", ");
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -130,7 +140,8 @@ Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 	return Array<Format> {
 		::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
 		::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
-		::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM)
+		::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM),
+		::getFormat(DXGI_FORMAT_R8G8B8A8_UNORM)
 	};
 }
 
