@@ -34,34 +34,83 @@ public:
 	AppVersion getVersion() const noexcept override { return version(); }
 
 private:
+	/// <summary>
+	/// Stores the GLFW window pointer.
+	/// </summary>
 	GlfwWindowPtr m_window;
-	SharedPtr<IViewport> m_viewport;
-	SharedPtr<IScissor> m_scissor;
+
+	/// <summary>
+	/// Stores the preferred adapter ID (<c>std::nullopt</c>, if the default adapter is used).
+	/// </summary>
+	Optional<UInt32> m_adapterId;
+
+	/// <summary>
+	/// Stores the main device instance.
+	/// </summary>
 	UniquePtr<DirectX12Device> m_device;
-	UniquePtr<DirectX12RenderPass> m_renderPass;
+
+	///// <summary>
+	///// Stores the only render pass used in this sample.
+	///// </summary>
+	//UniquePtr<DirectX12RenderPass> m_renderPass;
+
+	///// <summary>
+	///// Stores the only render pipeline used in this sample.
+	///// </summary>
+	//UniquePtr<DirectX12RenderPipeline> m_pipeline;
+
+	///// <summary>
+	///// Stores a reference of the input assembler state.
+	///// </summary>
+	//SharedPtr<DirectX12InputAssembler> m_inputAssembler;
+
+	/// <summary>
+	/// Stores the viewport.
+	/// </summary>
+	SharedPtr<IViewport> m_viewport;
+
+	/// <summary>
+	/// Stores the scissor.
+	/// </summary>
+	SharedPtr<IScissor> m_scissor;
+
 	//UniquePtr<IVertexBuffer> m_vertexBuffer;
 	//UniquePtr<IIndexBuffer> m_indexBuffer;
 	//UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;
 	//UniquePtr<IDescriptorSet> m_perFrameBindings, m_perObjectBindings;
 
 public:
-	SampleApp(GlfwWindowPtr&& window) : App(), m_window(std::move(window)) {
-		::glfwSetWindowUserPointer(m_window.get(), this);
-		
+	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
+		App(), m_window(std::move(window)), m_adapterId(adapterId)
+	{
 		this->initialize();
 	}
 
 private:
-	void createRenderPasses();
-	//void initBuffers();
+	/// <summary>
+	/// Initializes the render pass.
+	/// </summary>
+	void initRenderGraph();
+
+	/// <summary>
+	/// Initializes the render pipelines.
+	/// </summary>
+	void initPipelines();
+
+	/// <summary>
+	/// Initializes the buffers.
+	/// </summary>
+	void initBuffers();
+
+	/// <summary>
+	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
+	/// </summary>
+	void updateCamera(const DirectX12CommandBuffer& commandBuffer);
 
 public:
-	virtual const IRenderBackend* getRenderBackend() const noexcept {
-		return dynamic_cast<const IRenderBackend*>(this->findBackend(BackendType::Rendering));
-	}
 	virtual void run() override;
 	virtual void initialize() override;
 	virtual void resize(int width, int height) override;
 	void handleEvents();
-	//void drawFrame();
+	void drawFrame();
 };

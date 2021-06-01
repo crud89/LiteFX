@@ -33,18 +33,14 @@ int main(const int argc, const char** argv)
 	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 	auto window = GlfwWindowPtr(::glfwCreateWindow(800, 600, appName.c_str(), nullptr, nullptr));
-	const auto windowPtr = window.get();	// Store window handle since we are moving the pointer to the app later.
 	
 	// Create the app.
 	try 
 	{
-		App::build<SampleApp>(std::move(window))
+		App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
-			.make<DirectX12Backend>()
-				.withAdapterOrDefault(adapterId)
-				.withSurface(makeUnique<DirectX12Surface>(::glfwGetWin32Window(windowPtr)))
-				.go()
+			.useBackend<DirectX12Backend>()
 			.go();
 	}
 	catch (const LiteFX::Exception& ex)
