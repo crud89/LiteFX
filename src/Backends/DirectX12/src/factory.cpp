@@ -1,16 +1,6 @@
 #include <litefx/backends/dx12.hpp>
 #include "buffer.h"
-//#include "image.h"
-#include "D3D12MemAlloc.h"
-
-struct D3D12MADeleter {
-	void operator()(auto* ptr) noexcept {
-		ptr->Release();
-	}
-};
-
-typedef UniquePtr<D3D12MA::Allocator, D3D12MADeleter> AllocatorPtr;
-typedef UniquePtr<D3D12MA::Allocation, D3D12MADeleter> AllocationPtr;
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -40,7 +30,7 @@ public:
 
 		D3D12MA::Allocator* allocator;
 		raiseIfFailed<RuntimeException>(D3D12MA::CreateAllocator(&allocatorDesc, &allocator), "Unable to create D3D12 memory allocator.");
-		m_allocator.reset(allocator);
+		m_allocator.reset(allocator, D3D12MADeleter{});
 	}
 };
 
