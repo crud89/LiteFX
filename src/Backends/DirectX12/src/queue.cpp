@@ -72,7 +72,6 @@ public:
 			return;
 
 		// TODO: Create a command pool.
-
 		m_bound = true;
 	}
 };

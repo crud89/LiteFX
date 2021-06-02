@@ -226,7 +226,33 @@ const DirectX12Queue& DirectX12Device::bufferQueue() const noexcept
 
 void DirectX12Device::wait() const
 {
-	// TODO: Wait for all queues.
-	//raiseIfFailed<RuntimeException>(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
-	throw;
+	// NOTE: Currently we are only waiting for the graphics queue here - all other queues may continue their work.
+	// Create a fence.
+	ComPtr<ID3D12Fence> fence;
+	raiseIfFailed<RuntimeException>(this->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)), "Unable to create queue synchronization fence.");
+	
+	// Create a signal event.
+	HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
+	HRESULT hr = fence->SetEventOnCompletion(1, eventHandle);
+
+	if (FAILED(hr))
+	{
+		::CloseHandle(eventHandle);
+		raiseIfFailed<RuntimeException>(hr, "Unable to register fence completion event.");
+	}
+
+	// Signal the event value on the graphics queue.
+	hr = std::as_const(*m_impl->m_graphicsQueue).handle()->Signal(fence.Get(), 1);
+	
+	if (FAILED(hr))
+	{
+		::CloseHandle(eventHandle);
+		raiseIfFailed<RuntimeException>(hr, "Unable to wait for queue synchronization fence.");
+	}
+
+	// Wait for the fence signal.
+	if (fence->GetCompletedValue() < 1)
+		::WaitForSingleObject(eventHandle, INFINITE);
+
+	::CloseHandle(eventHandle);
 }
