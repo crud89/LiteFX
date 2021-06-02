@@ -85,7 +85,8 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
-		throw;
+		// NOTE: Swap is happening when presenting in a render pass.
+		return m_parent->handle()->GetCurrentBackBufferIndex();
 	}
 
 private:
@@ -110,6 +111,11 @@ DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, const Form
 }
 
 DirectX12SwapChain::~DirectX12SwapChain() noexcept = default;
+
+const bool& DirectX12SwapChain::supportsVariableRefreshRate() const noexcept
+{
+	return m_impl->m_supportsVariableRefreshRates;
+}
 
 const Format& DirectX12SwapChain::surfaceFormat() const noexcept
 {

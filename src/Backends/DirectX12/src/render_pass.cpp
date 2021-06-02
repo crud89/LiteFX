@@ -18,6 +18,8 @@ private:
     Array<UniquePtr<DirectX12FrameBuffer>> m_frameBuffers;
     const DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
     UInt32 m_backBuffer{ 0 };
+    const RenderTarget* m_presentTarget = nullptr;
+    const RenderTarget* m_depthStencilTarget = nullptr;
 
 public:
     DirectX12RenderPassImpl(DirectX12RenderPass* parent, Span<RenderTarget> renderTargets, Span<DirectX12InputAttachmentMapping> inputAttachments) :
@@ -38,6 +40,16 @@ public:
         m_renderTargets.assign(std::begin(renderTargets), std::end(renderTargets));
         //std::ranges::sort(m_renderTargets, [this](const RenderTarget& a, const RenderTarget& b) { return a.location() < b.location(); });
         std::sort(std::begin(m_renderTargets), std::end(m_renderTargets), [](const RenderTarget& a, const RenderTarget& b) { return a.location() < b.location(); });
+
+        if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }); match != m_renderTargets.end())
+            m_presentTarget = match._Ptr;
+        else
+            m_presentTarget = nullptr;
+
+        if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::DepthStencil; }); match != m_renderTargets.end())
+            m_depthStencilTarget = match._Ptr;
+        else
+            m_depthStencilTarget = nullptr;
     }
 
     void mapInputAttachments(Span<DirectX12InputAttachmentMapping> inputAttachments)
@@ -120,7 +132,7 @@ Span<const RenderTarget> DirectX12RenderPass::renderTargets() const noexcept
 
 bool DirectX12RenderPass::hasPresentTarget() const noexcept
 {
-    return std::ranges::any_of(m_impl->m_renderTargets, [](const auto& renderTarget) { return renderTarget.type() == RenderTargetType::Present; });
+    return m_impl->m_presentTarget != nullptr;
 }
 
 Span<const DirectX12InputAttachmentMapping> DirectX12RenderPass::inputAttachments() const noexcept
@@ -130,12 +142,126 @@ Span<const DirectX12InputAttachmentMapping> DirectX12RenderPass::inputAttachment
 
 void DirectX12RenderPass::begin(const UInt32& buffer)
 {
-    throw;
+    // Only begin, if we are currently not running.
+    if (m_impl->m_activeFrameBuffer != nullptr)
+        throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
+
+    // Select the active frame buffer.
+    if (buffer >= m_impl->m_frameBuffers.size())
+        throw ArgumentOutOfRangeException("The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
+
+    auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
+    m_impl->m_backBuffer = buffer;
+
+    // Begin the command recording on the frame buffers command buffer.
+    frameBuffer->commandBuffer().begin();
+
+    // Transition present and depth/stencil targets into proper states.
+    // TODO: This could possibly be pre-defined as a part of the frame buffer, but would it also safe much time?
+    Array<CD3DX12_RESOURCE_BARRIER> transitionBarriers;
+
+    if (m_impl->m_presentTarget != nullptr)
+    {
+        // Retrieve the present target image and transition it from present into render target state.
+        const auto& presentTargetImage = frameBuffer->image(m_impl->m_presentTarget->location());
+        transitionBarriers.push_back(std::move(CD3DX12_RESOURCE_BARRIER::Transition(presentTargetImage.handle().Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)));
+    }
+
+    if (m_impl->m_depthStencilTarget != nullptr && !m_impl->m_depthStencilTarget->isVolatile())
+    {
+        // Retrieve the depth/stencil target image and transition it from depth read to depth write.
+        const auto& presentTargetImage = frameBuffer->image(m_impl->m_presentTarget->location());
+        transitionBarriers.push_back(std::move(CD3DX12_RESOURCE_BARRIER::Transition(presentTargetImage.handle().Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE)));
+    }
+
+    frameBuffer->commandBuffer().handle()->ResourceBarrier(transitionBarriers.size(), transitionBarriers.data());
+
+    // Declare render pass input and output access.
+    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetView(frameBuffer->renderTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->renderTargetDescriptorSize());
+
+    Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC> renderTargets = m_impl->m_renderTargets |
+        std::views::filter([](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
+        std::views::transform([&frameBuffer, &renderTargetView](const RenderTarget& renderTarget) {
+        Float clearColor[4] = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() };
+        CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(renderTarget.format()), clearColor };
+
+        D3D12_RENDER_PASS_BEGINNING_ACCESS beginAccess = renderTarget.clearBuffer() ?
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD, { } };
+
+        D3D12_RENDER_PASS_ENDING_ACCESS endAccess = renderTarget.isVolatile() ?
+            D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
+            D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
+
+        D3D12_RENDER_PASS_RENDER_TARGET_DESC renderTargetDesc{ renderTargetView, beginAccess, endAccess };
+        renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
+
+        return renderTargetDesc;
+    }) | ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
+
+    // Declare the depth/stencil render target access (if there is such a target) and begin the render pass.
+    if (m_impl->m_depthStencilTarget == nullptr)
+        frameBuffer->commandBuffer().handle()->BeginRenderPass(renderTargets.size(), renderTargets.data(), nullptr, D3D12_RENDER_PASS_FLAG_NONE);
+    else
+    {
+        CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilView(frameBuffer->depthStencilTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->depthStencilTargetDescriptorSize());
+        CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(m_impl->m_depthStencilTarget->format()), m_impl->m_depthStencilTarget->clearValues().x(), static_cast<Byte>(m_impl->m_depthStencilTarget->clearValues().y()) };
+
+        D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess = m_impl->m_depthStencilTarget->clearBuffer() ?
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
+        D3D12_RENDER_PASS_BEGINNING_ACCESS stencilBeginAccess = m_impl->m_depthStencilTarget->clearStencil() ?
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
+        D3D12_RENDER_PASS_ENDING_ACCESS depthStencilEndAccess = m_impl->m_depthStencilTarget->isVolatile() ?
+            D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
+            D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
+        D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc{ depthStencilView, depthBeginAccess, stencilBeginAccess, depthStencilEndAccess, depthStencilEndAccess };
+        frameBuffer->commandBuffer().handle()->BeginRenderPass(renderTargets.size(), renderTargets.data(), &depthStencilDesc, D3D12_RENDER_PASS_FLAG_NONE);
+    }
+
+    // Reset the frame buffer.
+    m_impl->m_activeFrameBuffer = nullptr;
 }
 
 void DirectX12RenderPass::end() const
 {
-    throw;
+    // Check if we are running.
+    if (m_impl->m_activeFrameBuffer == nullptr)
+        throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
+
+    auto frameBuffer = m_impl->m_activeFrameBuffer;
+    const auto& swapChain = this->getDevice()->swapChain();
+
+    // End the render pass and the command buffer recording.
+    frameBuffer->commandBuffer().handle()->EndRenderPass();
+
+    // Transition the present and depth/stencil views.
+    Array<CD3DX12_RESOURCE_BARRIER> transitionBarriers;
+
+    if (m_impl->m_presentTarget != nullptr)
+    {
+        // Retrieve the present target image and transition it from present into render target state.
+        const auto& presentTargetImage = frameBuffer->image(m_impl->m_presentTarget->location());
+        transitionBarriers.push_back(std::move(CD3DX12_RESOURCE_BARRIER::Transition(presentTargetImage.handle().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT)));
+    }
+
+    if (m_impl->m_depthStencilTarget != nullptr && !m_impl->m_depthStencilTarget->isVolatile())
+    {
+        // Retrieve the depth/stencil target image and transition it from depth read to depth write.
+        // TODO: Check this (also take into account, if a target is volatile, that no transition is required).
+        const auto& presentTargetImage = frameBuffer->image(m_impl->m_presentTarget->location());
+        transitionBarriers.push_back(std::move(CD3DX12_RESOURCE_BARRIER::Transition(presentTargetImage.handle().Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ)));
+    }
+
+    frameBuffer->commandBuffer().handle()->ResourceBarrier(transitionBarriers.size(), transitionBarriers.data());
+
+    // End the command buffer recording and submit it.
+    frameBuffer->commandBuffer().end(true);
+    swapChain.handle()->Present(0, swapChain.supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0);
+
+    // Reset the frame buffer.
+    m_impl->m_activeFrameBuffer = nullptr;
 }
 
 void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)

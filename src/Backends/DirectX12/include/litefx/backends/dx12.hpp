@@ -951,6 +951,41 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = delete;
 		virtual ~DirectX12FrameBuffer() noexcept;
 
+		// DirectX 12 FrameBuffer
+	public:
+		/// <summary>
+		/// Returns a pointer to the descriptor heap that allocates the render targets for this frame buffer.
+		/// </summary>
+		/// <returns>A pointer to the descriptor heap that allocates the render targets for this frame buffer.</returns>
+		/// <seealso cref="depthStencilTargetHeap" />
+		/// <seealso cref="renderTargetDescriptorSize" />
+		virtual ID3D12DescriptorHeap* renderTargetHeap() const noexcept;
+
+		/// <summary>
+		/// Returns a pointer to the descriptor heap that allocates the depth/stencil views for this frame buffer.
+		/// </summary>
+		/// <remarks>
+		/// Note that it is typically not supported to have more than one depth/stencil output view bound to a <see cref="IRenderPass" />.
+		/// </remarks>
+		/// <returns>A pointer to the descriptor heap that allocates the depth/stencil views for this frame buffer.</returns>
+		/// <seealso cref="renderTargetHeap" />
+		/// <seealso cref="depthStencilDescriptorSize" />
+		virtual ID3D12DescriptorHeap* depthStencilTargetHeap() const noexcept;
+
+		/// <summary>
+		/// Returns the size of a descriptor for a render target within the frame buffer.
+		/// </summary>
+		/// <returns>The size of a descriptor for a render target within the frame buffer.</returns>
+		/// <seealso cref="renderTargetHeap" />
+		virtual const UInt32& renderTargetDescriptorSize() const noexcept;
+
+		/// <summary>
+		/// Returns the size of a descriptor for a depth/stencil view within the frame buffer.
+		/// </summary>
+		/// <returns>The size of a descriptor for a depth/stencil view within the frame buffer.</returns>
+		/// <seealso cref="depthStencilTargetHeap" />
+		virtual const UInt32& depthStencilTargetDescriptorSize() const noexcept;
+
 		// IFrameBuffer interface.
 	public:
 		/// <inheritdoc />
@@ -1150,6 +1185,14 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12SwapChain(const DirectX12SwapChain&) = delete;
 		DirectX12SwapChain(DirectX12SwapChain&&) = delete;
 		virtual ~DirectX12SwapChain() noexcept;
+
+		// DirectX 12 swap chain.
+	public:
+		/// <summary>
+		/// Returns <c>true</c>, if the adapter supports variable refresh rates (i.e. tearing is allowed).
+		/// </summary>
+		/// <returns><c>true</c>, if the adapter supports variable refresh rates (i.e. tearing is allowed).</returns>
+		virtual const bool& supportsVariableRefreshRate() const noexcept;
 
 		// ISwapChain interface.
 	public:

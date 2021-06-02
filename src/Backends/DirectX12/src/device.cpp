@@ -238,7 +238,7 @@ void DirectX12Device::wait() const
 	if (FAILED(hr))
 	{
 		::CloseHandle(eventHandle);
-		raiseIfFailed<RuntimeException>(hr, "Unable to register fence completion event.");
+		raiseIfFailed<RuntimeException>(hr, "Unable to register queue synchronization fence completion event.");
 	}
 
 	// Signal the event value on the graphics queue.
