@@ -38,9 +38,9 @@ static void onResize(GLFWwindow* window, int width, int height)
 
 void SampleApp::initRenderGraph()
 {
-    //m_renderPass = m_device->buildRenderPass()
-    //    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
-    //    .go();
+    m_renderPass = m_device->buildRenderPass()
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+        .go();
 }
 
 void SampleApp::initPipelines()
@@ -158,9 +158,7 @@ void SampleApp::run()
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = backend->createDevice(*adapter, *surface, *backend, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
-
-    m_device->factory().createImage(Format::R8G8B8A8_SRGB, Size2d{ 1024, 1024 });
+    m_device = backend->createDevice(*adapter, *surface, *backend, Format::B8G8R8A8_UNORM, Size2d(width, height), 3);
 
     // Initialize resources.
     this->initRenderGraph();

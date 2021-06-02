@@ -49,10 +49,10 @@ private:
 	/// </summary>
 	UniquePtr<DirectX12Device> m_device;
 
-	///// <summary>
-	///// Stores the only render pass used in this sample.
-	///// </summary>
-	//UniquePtr<DirectX12RenderPass> m_renderPass;
+	/// <summary>
+	/// Stores the only render pass used in this sample.
+	/// </summary>
+	UniquePtr<DirectX12RenderPass> m_renderPass;
 
 	///// <summary>
 	///// Stores the only render pipeline used in this sample.
