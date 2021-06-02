@@ -114,9 +114,19 @@ ID3D12DescriptorHeap* DirectX12FrameBuffer::renderTargetHeap() const noexcept
     return m_impl->m_renderTargetHeap.Get();
 }
 
+ID3D12DescriptorHeap* DirectX12FrameBuffer::depthStencilTargetHeap() const noexcept
+{
+    return m_impl->m_depthStencilHeap.Get();
+}
+
 const UInt32& DirectX12FrameBuffer::renderTargetDescriptorSize() const noexcept
 {
     return m_impl->m_renderTargetDescriptorSize;
+}
+
+const UInt32& DirectX12FrameBuffer::depthStencilTargetDescriptorSize() const noexcept
+{
+    return m_impl->m_depthStencilDescriptorSize;
 }
 
 const UInt32& DirectX12FrameBuffer::bufferIndex() const noexcept
