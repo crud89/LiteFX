@@ -21,6 +21,8 @@ SET(DIRECTX12_BACKEND_HEADERS
 SET(DIRECTX12_BACKEND_SOURCES
     "src/buffer.h"
     "src/buffer.cpp"
+    "src/image.h"
+    "src/image.cpp"
     "src/convert.cpp"
     "src/backend.cpp"
     "src/adapter.cpp"
