@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -70,10 +71,10 @@ public:
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(swapChainDesc.BufferCount);
-		std::ranges::generate(m_presentImages, [this, &swapChain, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, &swapChain, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource));
+			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format);
 		});
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
