@@ -219,9 +219,6 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
         D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc{ depthStencilView, depthBeginAccess, stencilBeginAccess, depthStencilEndAccess, depthStencilEndAccess };
         frameBuffer->commandBuffer().handle()->BeginRenderPass(renderTargets.size(), renderTargets.data(), &depthStencilDesc, D3D12_RENDER_PASS_FLAG_NONE);
     }
-
-    // Reset the frame buffer.
-    m_impl->m_activeFrameBuffer = nullptr;
 }
 
 void DirectX12RenderPass::end() const
@@ -258,8 +255,12 @@ void DirectX12RenderPass::end() const
 
     // End the command buffer recording and submit it.
     frameBuffer->commandBuffer().end(true);
-    swapChain.handle()->Present(0, swapChain.supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0);
-    //this->getDevice()->wait();
+
+    if (m_impl->m_presentTarget != nullptr)
+    {
+        raiseIfFailed<RuntimeException>(swapChain.handle()->Present(0, swapChain.supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
+        this->getDevice()->wait();  // TODO: We should be able to get rid of this to continue with setting up the next frame, while the current frame is still in flight.
+    }
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
