@@ -259,6 +259,7 @@ void DirectX12RenderPass::end() const
     // End the command buffer recording and submit it.
     frameBuffer->commandBuffer().end(true);
     swapChain.handle()->Present(0, swapChain.supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0);
+    //this->getDevice()->wait();
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;

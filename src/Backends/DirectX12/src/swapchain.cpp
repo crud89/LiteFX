@@ -15,7 +15,7 @@ private:
 	Format m_format{ Format::None };
 	UInt32 m_buffers{ };
 	std::atomic_uint32_t m_currentImage{ };
-	//Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
+	Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
 	bool m_supportsVariableRefreshRates{ false };
 
 public:
@@ -68,12 +68,20 @@ public:
 		raiseIfFailed<RuntimeException>(backend.handle()->CreateSwapChainForHwnd(graphicsQueue.Get(), surface, &swapChainDesc, nullptr, nullptr, &swapChainBase), "Unable to create swap chain for device.");
 		raiseIfFailed<RuntimeException>(swapChainBase.As(&swapChain), "The swap chain does not implement the IDXGISwapChain4 interface.");
 
+		// Acquire the swap chain images.
+		m_presentImages.resize(swapChainDesc.BufferCount);
+		std::ranges::generate(m_presentImages, [this, &swapChain, i = 0]() mutable {
+			ComPtr<ID3D12Resource> resource;
+			raiseIfFailed<RuntimeException>(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
+			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource));
+		});
+
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
 		backend.handle()->MakeWindowAssociation(surface, DXGI_MWA_NO_ALT_ENTER);
 
 		m_format = format;
 		m_renderArea = frameBufferSize;
-		m_buffers = frameBuffers;
+		m_buffers = swapChainDesc.BufferCount;
 
 		return swapChain;
 	}
@@ -134,8 +142,7 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 
 Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 {
-	//return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); }) | ranges::to<Array<const IDirectX12Image*>>();
-	throw;
+	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); }) | ranges::to<Array<const IDirectX12Image*>>();
 }
 
 Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
