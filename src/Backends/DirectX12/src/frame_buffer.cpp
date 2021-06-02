@@ -30,9 +30,9 @@ public:
 public:
     void initialize()
     {
-        // TODO: Clear existing RTVs.
-        // TODO: Create RTVs and receive RTVs from swap chain for present targets.
-
+        // Clear current render targets.
+        m_outputAttachments.clear();
+        m_renderTargetViews.clear();
 
         // Create descriptor heaps for RTVs and DSVs.
         UInt32 renderTargets = std::ranges::count_if(m_parent->parent().renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
@@ -92,8 +92,6 @@ public:
 
             m_renderTargetViews.push_back(renderTargetView);
         });
-
-        throw;
     }
 };
 
