@@ -189,6 +189,11 @@ DirectX12RenderPassBuilder DirectX12Device::buildRenderPass() const
 	return DirectX12RenderPassBuilder(*this);
 }
 
+DirectX12SwapChain& DirectX12Device::swapChain() noexcept
+{
+	return *m_impl->m_swapChain;
+}
+
 const DirectX12SwapChain& DirectX12Device::swapChain() const noexcept
 {
 	return *m_impl->m_swapChain;

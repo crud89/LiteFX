@@ -1351,6 +1351,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <seealso cref="IGraphicsDevice::build" />
 		DirectX12RenderPassBuilder buildRenderPass() const;
 
+		/// <summary>
+		/// Returns a reference of the swap chain.
+		/// </summary>
+		/// <returns>A reference of the swap chain.</returns>
+		virtual DirectX12SwapChain& swapChain() noexcept;
+
 		// IGraphicsDevice interface.
 	public:
 		/// <inheritdoc />

@@ -87,14 +87,39 @@ public:
 		return swapChain;
 	}
 
-	void cleanup()
+	void reset(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		throw;
+		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](const Format& surfaceFormat) { return surfaceFormat == format; }))
+			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
+
+		// Release all back buffers.
+		m_presentImages.clear();
+
+		// Store a backend reference.
+		const auto& backend = m_parent->getDevice()->backend();
+		
+		// Resize the buffers.
+		UInt32 buffers = std::max<UInt32>(2, frameBuffers);
+		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(format), (m_supportsVariableRefreshRates = supportsVariableRefreshRates(backend)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
+
+		// Acquire the swap chain images.
+		m_presentImages.resize(buffers);
+		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, i = 0]() mutable {
+			ComPtr<ID3D12Resource> resource;
+			raiseIfFailed<RuntimeException>(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
+			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format);
+		});
+
+		m_format = format;
+		m_renderArea = frameBufferSize;
+		m_buffers = buffers;
 	}
 
 	UInt32 swapBackBuffer()
 	{
-		// NOTE: Swap is happening when presenting in a render pass.
+		// NOTE: Swap is happening when presenting in a render pass. When acquiring a new back buffer, we need to wait for the swap to occur first, though.
+		// TODO: Check, if we can solve this with another fence, that is queued on present and waited for in here.
+		m_parent->getDevice()->wait();
 		return m_parent->handle()->GetCurrentBackBufferIndex();
 	}
 
@@ -161,9 +186,7 @@ Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 
 void DirectX12SwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
 {
-	// Cleanup and re-initialize.
-	m_impl->cleanup();
-	this->handle() = m_impl->initialize(surfaceFormat, renderArea, buffers);
+	m_impl->reset(surfaceFormat, renderArea, buffers);
 }
 
 UInt32 DirectX12SwapChain::swapBackBuffer() const

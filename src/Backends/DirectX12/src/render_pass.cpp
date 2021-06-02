@@ -257,10 +257,7 @@ void DirectX12RenderPass::end() const
     frameBuffer->commandBuffer().end(true);
 
     if (m_impl->m_presentTarget != nullptr)
-    {
         raiseIfFailed<RuntimeException>(swapChain.handle()->Present(0, swapChain.supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
-        this->getDevice()->wait();  // TODO: We should be able to get rid of this to continue with setting up the next frame, while the current frame is still in flight.
-    }
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
