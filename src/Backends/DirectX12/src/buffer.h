@@ -29,9 +29,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="elements"></param>
 		/// <param name="elementSize"></param>
 		/// <param name="alignment"></param>
+		/// <param name="initialState"></param>
 		/// <param name="allocator"></param>
 		/// <param name="allocation"></param>
-		explicit DirectX12Buffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
+		explicit DirectX12Buffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
 		DirectX12Buffer(DirectX12Buffer&&) = delete;
 		DirectX12Buffer(const DirectX12Buffer&) = delete;
 		virtual ~DirectX12Buffer() noexcept;
@@ -74,7 +75,18 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement = 0) override;
 
-		// DirectX12Buffer.
+		// IDirectX12Resource interface.
+	public:
+		virtual const D3D12_RESOURCE_STATES& state() const noexcept override;
+		virtual D3D12_RESOURCE_STATES& state() noexcept override;
+		virtual D3D12_RESOURCE_BARRIER transitionTo(const D3D12_RESOURCE_STATES& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const override;
+		virtual void transitionTo(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_STATES& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const override;
+
+		// DirectX 12 buffer.
+	protected:
+		virtual AllocatorPtr allocator() const noexcept;
+		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
+
 	public:
 		/// <summary>
 		/// 
@@ -96,7 +108,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12VertexBufferImpl);
 
 	public:
-		explicit DirectX12VertexBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, const UInt32& elements, AllocatorPtr allocator, AllocationPtr&& allocation);
+		explicit DirectX12VertexBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation);
 		DirectX12VertexBuffer(DirectX12VertexBuffer&&) = delete;
 		DirectX12VertexBuffer(const DirectX12VertexBuffer&) = delete;
 		virtual ~DirectX12VertexBuffer() noexcept;

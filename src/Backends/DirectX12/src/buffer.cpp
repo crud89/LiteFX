@@ -16,10 +16,11 @@ private:
 	BufferType m_type;
 	UInt32 m_elements;
 	size_t m_elementSize, m_alignment;
+	D3D12_RESOURCE_STATES m_state;
 
 public:
-	DirectX12BufferImpl(DirectX12Buffer* parent, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_allocator(allocator), m_allocation(std::move(allocation))
+	DirectX12BufferImpl(DirectX12Buffer* parent, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_allocator(allocator), m_allocation(std::move(allocation)), m_state(initialState)
 	{
 	}
 };
@@ -28,8 +29,8 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Buffer::DirectX12Buffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, AllocatorPtr allocator, AllocationPtr&& allocation) :
-	m_impl(makePimpl<DirectX12BufferImpl>(this, type, elements, elementSize, alignment, allocator, std::move(allocation))), DirectX12RuntimeObject<DirectX12Device>(device, &device), ComResource<ID3D12Resource>(nullptr)
+DirectX12Buffer::DirectX12Buffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	m_impl(makePimpl<DirectX12BufferImpl>(this, type, elements, elementSize, alignment, initialState, allocator, std::move(allocation))), DirectX12RuntimeObject<DirectX12Device>(device, &device), ComResource<ID3D12Resource>(nullptr)
 {
 	this->handle() = std::move(buffer);
 }
@@ -38,41 +39,13 @@ DirectX12Buffer::~DirectX12Buffer() noexcept = default;
 
 void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
-	//if (source.elements() < sourceElement + elements)
-	//	throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+	if (source.elements() < sourceElement + elements)
+		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
-	//if (this->elements() < targetElement + elements)
-	//	throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
+	if (this->elements() < targetElement + elements)
+		throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
 
-	//// Depending on the alignment, the transfer can be combined into a single copy command.
-	//Array<VkBufferCopy> copyInfos;
-
-	//if (this->elementAlignment() == 0 && source.elementAlignment() == 0)
-	//{
-	//	// Copy from unaligned to unaligned memory, so we can simply do one copy for the whole memory chunk.
-	//	VkBufferCopy copyInfo{};
-	//	copyInfo.size = source.elementSize() * elements;
-	//	copyInfo.srcOffset = sourceElement * source.elementSize();
-	//	copyInfo.dstOffset = targetElement * this->alignedElementSize();
-	//	copyInfos.push_back(copyInfo);
-	//}
-	//else
-	//{
-	//	// All other options require us to record one command per element. Since `alignedElementSize` returns `elementSize`, if there's no alignment, it does 
-	//	// not matter which buffer is aligned or unaligned.
-	//	copyInfos.resize(elements);
-	//	std::ranges::generate(copyInfos, [this, &source, &sourceElement, &targetElement, i = 0]() mutable {
-	//		VkBufferCopy copyInfo{};
-	//		copyInfo.size = source.alignedElementSize();
-	//		copyInfo.srcOffset = (sourceElement + i) * source.alignedElementSize();
-	//		copyInfo.dstOffset = (targetElement + i) * this->alignedElementSize();
-	//		i++;
-	//		return copyInfo;
-	//	});
-	//}
-
-	//::vkCmdCopyBuffer(commandBuffer.handle(), source.handle(), this->handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
-	throw;
+	commandBuffer.handle()->CopyBufferRegion(this->handle().Get(), targetElement * this->alignedElementSize(), source.handle().Get(), sourceElement * source.elementSize(), source.elementSize() * elements);
 }
 
 void DirectX12Buffer::transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
@@ -112,29 +85,62 @@ size_t DirectX12Buffer::alignedElementSize() const noexcept
 
 void DirectX12Buffer::map(const void* const data, const size_t& size, const UInt32& element)
 {
-	//if (element >= m_impl->m_elements)
-	//	throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+	if (element >= m_impl->m_elements)
+		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
-	//size_t alignedSize = size;
-	//size_t alignment = this->elementAlignment();
+	size_t alignedSize = size;
+	size_t alignment = this->elementAlignment();
 
-	//if (alignment > 0)
-	//	alignedSize = (size + alignment - 1) & ~(alignment - 1);
+	if (alignment > 0)
+		alignedSize = (size + alignment - 1) & ~(alignment - 1);
 
-	//char* buffer;		// A pointer to the whole (aligned) buffer memory.
-	//raiseIfFailed<RuntimeException>(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
-	//auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size);
+	D3D12_RANGE mappedRange = {};
+	char* buffer;
+	raiseIfFailed<RuntimeException>(this->handle()->Map(element, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size);
+	this->handle()->Unmap(element, &mappedRange);
 
-	//if (result != 0)
-	//	throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
-
-	//::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
-	throw;
+	if (result != 0)
+		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
 void DirectX12Buffer::map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement)
 {
 	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
+}
+
+const D3D12_RESOURCE_STATES& DirectX12Buffer::state() const noexcept
+{
+	return m_impl->m_state;
+}
+
+D3D12_RESOURCE_STATES& DirectX12Buffer::state() noexcept
+{
+	return m_impl->m_state;
+}
+
+D3D12_RESOURCE_BARRIER DirectX12Buffer::transitionTo(const D3D12_RESOURCE_STATES& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
+{
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), m_impl->m_state, state, element, flags);
+	m_impl->m_state = state;
+	return barrier;
+}
+
+void DirectX12Buffer::transitionTo(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_STATES& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
+{
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), m_impl->m_state, state, element, flags);
+	m_impl->m_state = state;
+	commandBuffer.handle()->ResourceBarrier(1, &barrier);
+}
+
+AllocatorPtr DirectX12Buffer::allocator() const noexcept
+{
+	return m_impl->m_allocator;
+}
+
+const D3D12MA::Allocation* DirectX12Buffer::allocationInfo() const noexcept
+{
+	return m_impl->m_allocation.get();
 }
 
 UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(const DirectX12Device& device, AllocatorPtr allocator, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
@@ -147,7 +153,7 @@ UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(const DirectX12Device& dev
 	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, initialState, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(resource.Get()), type, elements, elementSize, elements * elementSize);
 
-	return makeUnique<DirectX12Buffer>(device, std::move(resource), type, elements, elementSize, alignment, allocator, AllocationPtr(allocation));
+	return makeUnique<DirectX12Buffer>(device, std::move(resource), type, elements, elementSize, alignment, initialState, allocator, AllocationPtr(allocation));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -172,8 +178,8 @@ public:
 // Vertex buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12VertexBuffer::DirectX12VertexBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, const UInt32& elements, AllocatorPtr allocator, AllocationPtr&& allocation) :
-	m_impl(makePimpl<DirectX12VertexBufferImpl>(this, layout)), DirectX12Buffer(device, std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, allocator, std::move(allocation))
+DirectX12VertexBuffer::DirectX12VertexBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	m_impl(makePimpl<DirectX12VertexBufferImpl>(this, layout)), DirectX12Buffer(device, std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, initialState, allocator, std::move(allocation))
 {
 }
 
@@ -199,5 +205,5 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const DirectX1
 	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, initialState, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(resource.Get()), BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements);
 
-	return makeUnique<DirectX12VertexBuffer>(device, std::move(resource), layout, elements, allocator, AllocationPtr(allocation));
+	return makeUnique<DirectX12VertexBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));
 }

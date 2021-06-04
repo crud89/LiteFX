@@ -197,6 +197,26 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Represents a DirectX 12 memory resource.
+	/// </summary>
+	/// <seealso cref="IDirectX12ConstantBuffer" />
+	/// <seealso cref="IDirectX12ConstantTexture" />
+	/// <seealso cref="IDirectX12VertexBuffer" />
+	/// <seealso cref="IDirectX12IndexBuffer" />
+	/// <seealso cref="IDirectX12IndexImage" />
+	/// <seealso cref="IDirectX12IndexTexture" />
+	class LITEFX_DIRECTX12_API IDirectX12Resource {
+	public:
+		virtual ~IDirectX12Resource() noexcept = default;
+
+	public:
+		virtual const D3D12_RESOURCE_STATES& state() const noexcept = 0;
+		virtual D3D12_RESOURCE_STATES& state() noexcept = 0;
+		virtual D3D12_RESOURCE_BARRIER transitionTo(const D3D12_RESOURCE_STATES& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const = 0;
+		virtual void transitionTo(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_STATES& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const = 0;
+	};
+
+	/// <summary>
 	/// Represents the base interface for a DirectX12 buffer implementation.
 	/// </summary>
 	/// <seealso cref="IDirectX12DescriptorSet" />
@@ -204,7 +224,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IDirectX12ConstantTexture" />
 	/// <seealso cref="IDirectX12VertexBuffer" />
 	/// <seealso cref="IDirectX12IndexBuffer" />
-	class LITEFX_DIRECTX12_API IDirectX12Buffer : public virtual ITransferableBuffer<IDirectX12Buffer, DirectX12CommandBuffer>, public virtual IResource<ComPtr<ID3D12Resource>> {
+	class LITEFX_DIRECTX12_API IDirectX12Buffer : public virtual ITransferableBuffer<IDirectX12Buffer, DirectX12CommandBuffer>, public virtual IResource<ComPtr<ID3D12Resource>>, public virtual IDirectX12Resource {
 	public:
 		virtual ~IDirectX12Buffer() noexcept = default;
 	};
@@ -249,7 +269,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
 	/// <seealso cref="IDirectX12Texture" />
 	/// <seealso cref="IDirectX12Sampler" />
-	class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>> {
+	class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>>, public virtual IDirectX12Resource {
 	public:
 		virtual ~IDirectX12Image() noexcept = default;
 	};

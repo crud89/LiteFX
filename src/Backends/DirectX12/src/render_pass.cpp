@@ -158,17 +158,9 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
 
     // Declare render pass input and output access and transition barriers.
     // TODO: This could possibly be pre-defined as a part of the frame buffer, but would it also safe much time?
-    Array<CD3DX12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
-        std::views::transform([&frameBuffer](const RenderTarget& renderTarget) {
-        const auto& renderTargetImage = frameBuffer->image(renderTarget.location());
-
-        switch (renderTarget.type()) {
-        default:
-        case RenderTargetType::Color:           return CD3DX12_RESOURCE_BARRIER::Transition(renderTargetImage.handle().Get(), D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-        case RenderTargetType::Present:         return CD3DX12_RESOURCE_BARRIER::Transition(renderTargetImage.handle().Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-        case RenderTargetType::DepthStencil:    return CD3DX12_RESOURCE_BARRIER::Transition(renderTargetImage.handle().Get(), D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-        }
-    }) | ranges::to<Array<CD3DX12_RESOURCE_BARRIER>>();
+    Array<D3D12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
+        std::views::transform([&frameBuffer](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::DepthStencil ? frameBuffer->image(renderTarget.location()).transitionTo(D3D12_RESOURCE_STATE_RENDER_TARGET) : frameBuffer->image(renderTarget.location()).transitionTo(D3D12_RESOURCE_STATE_DEPTH_WRITE); }) | 
+        ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetView(frameBuffer->renderTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->renderTargetDescriptorSize());
     Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC> renderTargets = m_impl->m_renderTargets |
@@ -221,17 +213,18 @@ void DirectX12RenderPass::end() const
     frameBuffer->commandBuffer().handle()->EndRenderPass();
 
     // Transition the present and depth/stencil views.
-    Array<CD3DX12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
+    Array<D3D12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
         std::views::transform([&frameBuffer](const RenderTarget& renderTarget) {
         const auto& renderTargetImage = frameBuffer->image(renderTarget.location());
 
-        switch (renderTarget.type()) {
+        switch (renderTarget.type()) 
+        {
         default:
-        case RenderTargetType::Color:           return CD3DX12_RESOURCE_BARRIER::Transition(renderTargetImage.handle().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
-        case RenderTargetType::Present:         return CD3DX12_RESOURCE_BARRIER::Transition(renderTargetImage.handle().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-        case RenderTargetType::DepthStencil:    return CD3DX12_RESOURCE_BARRIER::Transition(renderTargetImage.handle().Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
+        case RenderTargetType::Color:           return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+        case RenderTargetType::Present:         return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_PRESENT);
+        case RenderTargetType::DepthStencil:    return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
         }
-    }) | ranges::to<Array<CD3DX12_RESOURCE_BARRIER>>();
+    }) | ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
 
     frameBuffer->commandBuffer().handle()->ResourceBarrier(transitionBarriers.size(), transitionBarriers.data());
 

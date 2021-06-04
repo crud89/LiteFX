@@ -127,10 +127,10 @@ void VulkanBuffer::map(const void* const data, const size_t& size, const UInt32&
 	raiseIfFailed<RuntimeException>(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
 	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size);
 
+	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
+
 	if (result != 0)
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
-
-	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 }
 
 void VulkanBuffer::map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement)

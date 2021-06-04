@@ -23,7 +23,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="format"></param>
 		/// <param name="allocator"></param>
 		/// <param name="allocation"></param>
-		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size2d& extent, const Format& format, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
+		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size2d& extent, const Format& format, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
 		DirectX12Image(DirectX12Image&&) = delete;
 		DirectX12Image(const DirectX12Image&) = delete;
 		virtual ~DirectX12Image() noexcept;
@@ -53,6 +53,14 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const Format& format() const noexcept override;
 
+		// IDirectX12Resource interface.
+	public:
+		virtual const D3D12_RESOURCE_STATES& state() const noexcept override;
+		virtual D3D12_RESOURCE_STATES& state() noexcept override;
+		virtual D3D12_RESOURCE_BARRIER transitionTo(const D3D12_RESOURCE_STATES& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const override;
+		virtual void transitionTo(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_STATES& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const override;
+
+		// DirectX 12 image.
 	protected:
 		virtual AllocatorPtr allocator() const noexcept;
 		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
