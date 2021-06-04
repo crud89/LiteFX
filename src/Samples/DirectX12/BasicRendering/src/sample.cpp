@@ -94,13 +94,13 @@ void SampleApp::initBuffers()
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
     m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
 
-    //// Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    //auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
-    //stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout().elementSize(), 0);
+    // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
+    auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout().elementSize(), 0);
 
-    //// Create the actual index buffer and transfer the staging buffer into it.
-    //m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    //m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+    // Create the actual index buffer and transfer the staging buffer into it.
+    m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+    m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
 
     //// Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     //// write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -121,9 +121,9 @@ void SampleApp::initBuffers()
     //m_perFrameBindings = transformBindingLayout.allocate(3);
     //m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
     //std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
-    //
-    //// End and submit the command buffer.
-    //commandBuffer->end(true, true);
+
+    // End and submit the command buffer.
+    commandBuffer->end(true, true);
 }
 
 void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
@@ -181,12 +181,12 @@ void SampleApp::run()
     //m_cameraBuffer = nullptr;
     //m_cameraStagingBuffer = nullptr;
     //m_transformBuffer = nullptr;
-    //m_vertexBuffer = nullptr;
-    //m_indexBuffer = nullptr;
+    m_vertexBuffer = nullptr;
+    m_indexBuffer = nullptr;
 
     // Destroy the pipeline, render pass and the device.
-    //m_pipeline = nullptr;
-    //m_renderPass = nullptr;
+    m_pipeline = nullptr;
+    m_renderPass = nullptr;
     m_device = nullptr;
 
     // Destroy the window.

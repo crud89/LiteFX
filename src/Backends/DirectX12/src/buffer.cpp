@@ -225,3 +225,68 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const DirectX1
 
 	return makeUnique<DirectX12VertexBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));
 }
+
+// ------------------------------------------------------------------------------------------------
+// Index buffer implementation.
+// ------------------------------------------------------------------------------------------------
+
+class DirectX12IndexBuffer::DirectX12IndexBufferImpl : public Implement<DirectX12IndexBuffer> {
+public:
+	friend class DirectX12IndexBuffer;
+
+private:
+	const DirectX12IndexBufferLayout& m_layout;
+	D3D12_INDEX_BUFFER_VIEW m_view;
+
+public:
+	DirectX12IndexBufferImpl(DirectX12IndexBuffer* parent, const DirectX12IndexBufferLayout& layout) :
+		base(parent), m_layout(layout)
+	{
+	}
+
+public:
+	void initialize()
+	{
+		m_view = D3D12_INDEX_BUFFER_VIEW
+		{
+			.BufferLocation = m_parent->handle()->GetGPUVirtualAddress(),
+			.SizeInBytes = static_cast<UInt32>(m_parent->size()),
+			.Format = m_parent->layout().indexType() == IndexType::UInt16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT
+		};
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
+// Index buffer shared interface.
+// ------------------------------------------------------------------------------------------------
+
+DirectX12IndexBuffer::DirectX12IndexBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	m_impl(makePimpl<DirectX12IndexBufferImpl>(this, layout)), DirectX12Buffer(device, std::move(buffer), BufferType::Index, elements, layout.elementSize(), 0, initialState, allocator, std::move(allocation))
+{
+	m_impl->initialize();
+}
+
+DirectX12IndexBuffer::~DirectX12IndexBuffer() noexcept = default;
+
+const DirectX12IndexBufferLayout& DirectX12IndexBuffer::layout() const noexcept
+{
+	return m_impl->m_layout;
+}
+
+const D3D12_INDEX_BUFFER_VIEW& DirectX12IndexBuffer::view() const noexcept
+{
+	return m_impl->m_view;
+}
+
+UniquePtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const DirectX12Device & device, const DirectX12IndexBufferLayout & layout, AllocatorPtr allocator, const UInt32 & elements, const D3D12_RESOURCE_STATES & initialState, const D3D12_RESOURCE_DESC & resourceDesc, const D3D12MA::ALLOCATION_DESC & allocationDesc)
+{
+	if (allocator == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The allocator must be initialized.");
+
+	ComPtr<ID3D12Resource> resource;
+	D3D12MA::Allocation* allocation;
+	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, initialState, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(resource.Get()), BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
+
+	return makeUnique<DirectX12IndexBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));
+}

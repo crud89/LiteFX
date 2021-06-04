@@ -136,7 +136,36 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 
 UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
-	throw;
+	D3D12_RESOURCE_DESC resourceDesc = {};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDesc.Alignment = 0;
+	resourceDesc.Width = layout.elementSize() * static_cast<size_t>(elements);
+	resourceDesc.Height = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	D3D12MA::ALLOCATION_DESC allocationDesc = {};
+
+	switch (usage)
+	{
+	case BufferUsage::Dynamic:
+	case BufferUsage::Staging:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_GENERIC_READ, resourceDesc, allocationDesc);
+	case BufferUsage::Resource:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+	case BufferUsage::Readback:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
+		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+	default:
+		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
+	}
 }
 
 UniquePtr<IDirectX12ConstantBuffer> DirectX12GraphicsFactory::createConstantBuffer(const DirectX12DescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const

@@ -250,6 +250,9 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IIndexBuffer<IDirectX12Buffer, DirectX12IndexBufferLayout, DirectX12CommandBuffer>, public IDirectX12Buffer {
 	public:
 		virtual ~IDirectX12IndexBuffer() noexcept = default;
+
+	public:
+		virtual const D3D12_INDEX_BUFFER_VIEW& view() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -1342,21 +1345,45 @@ namespace LiteFX::Rendering::Backends {
 		/// <list type="bullet">
 		///   <item>
 		///		<term><c>Staging</c> and <c>Dynamic</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_UPLOAD<c> heap in the initial state <c>D3D12_RESOURCE_STATE_GENERIC_READ</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> before accessing it.</description>
+		///		<description>Created on the <c>D3D12_HEAP_TYPE_UPLOAD<c> heap in the initial state <c>D3D12_RESOURCE_STATE_GENERIC_READ</c>. Implicitly transitions to <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> when first used by the GPU †.</description>
 		///   </item>
 		///   <item>
 		///		<term><c>Resource</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_DEFAULT<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> before accessing it.</description>
+		///		<description>Created on the <c>D3D12_HEAP_TYPE_DEFAULT<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Implicitly transitions to <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> when first used by the GPU †.</description>
 		///   </item>
 		///   <item>
 		///		<term><c>Readback</c>:</term>
 		///		<description>Created on the <c>D3D12_HEAP_TYPE_READBACK<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_COPY_SOURCE</c> before transferring data from it.</description>
 		///   </item>
 		/// </list>
+		/// 
+		/// † Note that this implicit transition does not reflect into the buffer <see cref="IDirectX12Resource::state" /> member, so be careful when
+		/// transitioning the buffer into another state.
 		/// </remarks>
 		virtual UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
+		/// <remarks>
+		/// The initial state and source heap of an index buffer depends on the <paramref name="usage" /> parameter:
+		/// 
+		/// <list type="bullet">
+		///   <item>
+		///		<term><c>Staging</c> and <c>Dynamic</c>:</term>
+		///		<description>Created on the <c>D3D12_HEAP_TYPE_UPLOAD<c> heap in the initial state <c>D3D12_RESOURCE_STATE_GENERIC_READ</c>. Implicitly transitions to <c>D3D12_RESOURCE_STATE_INDEX_BUFFER</c> when first used by the GPU †.</description>
+		///   </item>
+		///   <item>
+		///		<term><c>Resource</c>:</term>
+		///		<description>Created on the <c>D3D12_HEAP_TYPE_DEFAULT<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Implicitly transitions to <c>D3D12_RESOURCE_STATE_INDEX_BUFFER</c> when first used by the GPU †.</description>
+		///   </item>
+		///   <item>
+		///		<term><c>Readback</c>:</term>
+		///		<description>Created on the <c>D3D12_HEAP_TYPE_READBACK<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_COPY_SOURCE</c> before transferring data from it.</description>
+		///   </item>
+		/// </list>
+		/// 
+		/// † Note that this implicit transition does not reflect into the buffer <see cref="IDirectX12Resource::state" /> member, so be careful when
+		/// transitioning the buffer into another state.
+		/// </remarks>
 		virtual UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
 		/// <inheritdoc />

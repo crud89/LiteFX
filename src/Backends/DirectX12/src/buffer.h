@@ -132,24 +132,28 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<IDirectX12VertexBuffer> allocate(const DirectX12Device& device, const DirectX12VertexBufferLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
-	//class DirectX12IndexBuffer : public DirectX12Buffer, public IDirectX12IndexBuffer {
-	//	LITEFX_IMPLEMENTATION(DirectX12IndexBufferImpl);
+	class DirectX12IndexBuffer : public DirectX12Buffer, public IDirectX12IndexBuffer {
+		LITEFX_IMPLEMENTATION(DirectX12IndexBufferImpl);
 
-	//public:
-	//	explicit DirectX12IndexBuffer(const DirectX12Device& device, VkBuffer buffer, const DirectX12IndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation);
-	//	DirectX12IndexBuffer(DirectX12IndexBuffer&&) = delete;
-	//	DirectX12IndexBuffer(const DirectX12IndexBuffer&) = delete;
-	//	virtual ~DirectX12IndexBuffer() noexcept;
+	public:
+		explicit DirectX12IndexBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation);
+		DirectX12IndexBuffer(DirectX12IndexBuffer&&) = delete;
+		DirectX12IndexBuffer(const DirectX12IndexBuffer&) = delete;
+		virtual ~DirectX12IndexBuffer() noexcept;
 
-	//	// IIndexBuffer interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual const DirectX12IndexBufferLayout& layout() const noexcept override;
+		// IIndexBuffer interface.
+	public:
+		/// <inheritdoc />
+		const DirectX12IndexBufferLayout& layout() const noexcept override;
 
-	//	// DirectX12IndexBuffer.
-	//public:
-	//	static UniquePtr<IDirectX12IndexBuffer> allocate(const DirectX12IndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-	//};
+		// IDirectX12IndexBuffer interface.
+	public:
+		virtual const D3D12_INDEX_BUFFER_VIEW& view() const noexcept override;
+
+		// DirectX 12 Index Buffer.
+	public:
+		static UniquePtr<IDirectX12IndexBuffer> allocate(const DirectX12Device& device, const DirectX12IndexBufferLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+	};
 
 	//class DirectX12ConstantBuffer : public DirectX12Buffer, public IDirectX12ConstantBuffer {
 	//	LITEFX_IMPLEMENTATION(DirectX12ConstantBufferImpl);
