@@ -25,7 +25,7 @@ public:
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList4> initialize()
+	ComPtr<ID3D12GraphicsCommandList4> initialize(const bool& begin)
 	{
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
@@ -45,7 +45,9 @@ public:
 		ComPtr<ID3D12GraphicsCommandList4> commandList;
 		// TODO: Also pass the pipeline state, if possible. 
 		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
-		raiseIfFailed<RuntimeException>(commandList->Close(), "Unable to close command list.");
+
+		if (!begin)
+			raiseIfFailed<RuntimeException>(commandList->Close(), "Unable to close command list.");
 		
 		return commandList;
 	}
@@ -100,7 +102,7 @@ public:
 DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin) :
 	m_impl(makePimpl<DirectX12CommandBufferImpl>(this)), DirectX12RuntimeObject(queue, queue.getDevice()), ComResource<ID3D12GraphicsCommandList4>(nullptr)
 {
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(begin);
 }
 
 DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;

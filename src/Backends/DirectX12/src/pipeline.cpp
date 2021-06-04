@@ -248,12 +248,24 @@ Array<const IScissor*> DirectX12RenderPipeline::scissors() const noexcept
 
 void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
 {
-	throw;
+	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
+
+	// Transition the buffer to the appropriate state, if it isn't already.
+	if (buffer.state() != D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)
+		buffer.transitionTo(commandBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+	
+	commandBuffer.handle()->IASetVertexBuffers(buffer.binding(), 1, &buffer.view());
 }
 
 void DirectX12RenderPipeline::bind(const IDirectX12IndexBuffer& buffer) const
 {
-	throw;
+	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
+
+	// Transition the buffer to the appropriate state, if it isn't already.
+	if (buffer.state() != D3D12_RESOURCE_STATE_INDEX_BUFFER)
+		buffer.transitionTo(commandBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+	commandBuffer.handle()->IASetIndexBuffer(&buffer.view());
 }
 
 void DirectX12RenderPipeline::bind(const DirectX12DescriptorSet& descriptorSet) const

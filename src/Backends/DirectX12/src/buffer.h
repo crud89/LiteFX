@@ -123,7 +123,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const UInt32& binding() const noexcept override;
 
-		// DirectX12VertexBuffer.
+		// IDirectX12VertexBuffer interface.
+	public:
+		virtual const D3D12_VERTEX_BUFFER_VIEW& view() const noexcept override;
+
+		// DirectX 12 Vertex Buffer.
 	public:
 		static UniquePtr<IDirectX12VertexBuffer> allocate(const DirectX12Device& device, const DirectX12VertexBufferLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};

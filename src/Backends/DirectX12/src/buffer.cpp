@@ -166,11 +166,23 @@ public:
 
 private:
 	const DirectX12VertexBufferLayout& m_layout;
+	D3D12_VERTEX_BUFFER_VIEW m_view;
 
 public:
 	DirectX12VertexBufferImpl(DirectX12VertexBuffer* parent, const DirectX12VertexBufferLayout& layout) :
 		base(parent), m_layout(layout)
 	{
+	}
+
+public:
+	void initialize()
+	{
+		m_view = D3D12_VERTEX_BUFFER_VIEW
+		{
+			.BufferLocation = m_parent->handle()->GetGPUVirtualAddress(),
+			.SizeInBytes = static_cast<UInt32>(m_parent->size()),
+			.StrideInBytes = static_cast<UInt32>(m_parent->elementSize())
+		};
 	}
 };
 
@@ -181,6 +193,7 @@ public:
 DirectX12VertexBuffer::DirectX12VertexBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
 	m_impl(makePimpl<DirectX12VertexBufferImpl>(this, layout)), DirectX12Buffer(device, std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, initialState, allocator, std::move(allocation))
 {
+	m_impl->initialize();
 }
 
 DirectX12VertexBuffer::~DirectX12VertexBuffer() noexcept = default;
@@ -193,6 +206,11 @@ const DirectX12VertexBufferLayout& DirectX12VertexBuffer::layout() const noexcep
 const UInt32& DirectX12VertexBuffer::binding() const noexcept
 {
 	return m_impl->m_layout.binding();
+}
+
+const D3D12_VERTEX_BUFFER_VIEW& DirectX12VertexBuffer::view() const noexcept
+{
+	return m_impl->m_view;
 }
 
 UniquePtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const DirectX12Device& device, const DirectX12VertexBufferLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)

@@ -237,6 +237,9 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual IVertexBuffer<IDirectX12Buffer, DirectX12VertexBufferLayout, DirectX12CommandBuffer>, public IDirectX12Buffer {
 	public:
 		virtual ~IDirectX12VertexBuffer() noexcept = default;
+
+	public:
+		virtual const D3D12_VERTEX_BUFFER_VIEW& view() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -852,9 +855,19 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
+		/// <remarks>
+		/// If the <paramref name="buffer" /> is not yet in <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> state, the method will attempt to
+		/// transition it using the command buffer of the active parent frame buffer. It might be more efficient to do this beforehand manually using
+		/// multiple barriers at once, if there are multiple vertex buffers that need to be transitioned.
+		/// </remarks>
 		virtual void bind(const IDirectX12VertexBuffer& buffer) const override;
 
 		/// <inheritdoc />
+		/// <remarks>
+		/// If the <paramref name="buffer" /> is not yet in <c>D3D12_RESOURCE_STATE_INDEX_BUFFER</c> state, the method will attempt to transition it 
+		/// using the command buffer of the active parent frame buffer. It might be more efficient to do this beforehand manually using multiple 
+		/// barriers at once, if there are multiple vertex buffers that need to be transitioned.
+		/// </remarks>
 		virtual void bind(const IDirectX12IndexBuffer& buffer) const override;
 
 		/// <inheritdoc />

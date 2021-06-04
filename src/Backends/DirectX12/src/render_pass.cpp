@@ -159,7 +159,7 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     // Declare render pass input and output access and transition barriers.
     // TODO: This could possibly be pre-defined as a part of the frame buffer, but would it also safe much time?
     Array<D3D12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
-        std::views::transform([&frameBuffer](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::DepthStencil ? frameBuffer->image(renderTarget.location()).transitionTo(D3D12_RESOURCE_STATE_RENDER_TARGET) : frameBuffer->image(renderTarget.location()).transitionTo(D3D12_RESOURCE_STATE_DEPTH_WRITE); }) | 
+        std::views::transform([&frameBuffer](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil ? frameBuffer->image(renderTarget.location()).transitionTo(D3D12_RESOURCE_STATE_RENDER_TARGET) : frameBuffer->image(renderTarget.location()).transitionTo(D3D12_RESOURCE_STATE_DEPTH_WRITE); }) | 
         ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetView(frameBuffer->renderTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->renderTargetDescriptorSize());
