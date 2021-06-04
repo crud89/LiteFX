@@ -3,14 +3,37 @@
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
+class DirectX12DescriptorSet::DirectX12DescriptorSetImpl : public Implement<DirectX12DescriptorSet> {
+public:
+    friend class DirectX12DescriptorSet;
+
+private:
+    ComPtr<ID3D12DescriptorHeap> m_bufferHeap, m_samplerHeap;
+
+public:
+    DirectX12DescriptorSetImpl(DirectX12DescriptorSet* parent, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
+        base(parent), m_bufferHeap(std::move(bufferHeap)), m_samplerHeap(std::move(samplerHeap))
+    {
+        auto buffers = parent->parent().uniforms() + parent->parent().images() + parent->parent().storages();
+
+        if (buffers > 0 && m_bufferHeap == nullptr)
+            throw ArgumentNotInitializedException("The buffer descriptor heap handle must be initialized, if the descriptor set layout contains uniform buffers, storage buffers or images.");
+
+        if (parent->parent().samplers() > 0 && m_samplerHeap == nullptr)
+            throw ArgumentNotInitializedException("The sampler descriptor heap handle must be initialized, if the descriptor set layout contains samplers.");
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& descriptorHeap) :
-    ComResource<ID3D12DescriptorHeap>(std::move(descriptorHeap)), DirectX12RuntimeObject(layout, layout.getDevice())
+DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
+    m_impl(makePimpl<DirectX12DescriptorSetImpl>(this, std::move(bufferHeap), std::move(samplerHeap))), DirectX12RuntimeObject(layout, layout.getDevice())
 {
-    if (descriptorHeap == nullptr)
-        throw ArgumentNotInitializedException("The descriptor heap handle must be initialized.");
 }
 
 DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
@@ -52,4 +75,14 @@ void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler) const noex
 void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const noexcept
 {
     throw;
+}
+
+const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const noexcept 
+{
+    return m_impl->m_bufferHeap;
+}
+
+const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::samplerHeap() const noexcept
+{
+    return m_impl->m_samplerHeap;
 }

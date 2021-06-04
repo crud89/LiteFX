@@ -311,14 +311,17 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX12 <see cref="IDescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12ConstantBuffer, IDirectX12Texture, IDirectX12Sampler, IDirectX12Image, IDirectX12Buffer, DirectX12CommandBuffer>, public ComResource<ID3D12DescriptorHeap> {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12ConstantBuffer, IDirectX12Texture, IDirectX12Sampler, IDirectX12Image, IDirectX12Buffer, DirectX12CommandBuffer> {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
+
 	public:
 		/// <summary>
 		/// Initializes a new descriptor set.
 		/// </summary>
 		/// <param name="layout">The parent descriptor set layout.</param>
-		/// <param name="descriptorHeap">A CPU-visible descriptor heap that contains all descriptors of the descriptor set.</param>
-		explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& descriptorHeap);
+		/// <param name="bufferHeap">A CPU-visible descriptor heap that contains all buffer descriptors of the descriptor set.</param>
+		/// <param name="samplerHeap">A CPU-visible descriptor heap that contains all sampler descriptors of the descriptor set.</param>
+		explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap);
 		DirectX12DescriptorSet(DirectX12DescriptorSet&&) = delete;
 		DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
 		virtual ~DirectX12DescriptorSet() noexcept;
@@ -344,6 +347,19 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IDirectX12Image& image) const noexcept override;
+
+	public:
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		virtual const ComPtr<ID3D12DescriptorHeap>& bufferHeap() const noexcept;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		virtual const ComPtr<ID3D12DescriptorHeap>& samplerHeap() const noexcept;
 	};
 
 	/// <summary>

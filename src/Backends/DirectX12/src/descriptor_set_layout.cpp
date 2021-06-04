@@ -13,16 +13,15 @@ public:
 
 private:
     Array<UniquePtr<DirectX12DescriptorLayout>> m_layouts;
-    UInt32 m_space, m_samplers, m_descriptors;
+    UInt32 m_space, m_samplers{ 0 }, m_descriptors{ 0 };
     ShaderStage m_stages;
-    Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets;
+    Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets, m_freeSamplerSets;
     mutable std::mutex m_mutex;
 
 public:
     DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
         base(parent), m_layouts(std::move(descriptorLayouts)), m_space(space), m_stages(stages)
     {
-
     }
 
     DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent) :
@@ -46,16 +45,43 @@ public:
     }
 
 public:
-    ComPtr<ID3D12DescriptorHeap> tryAllocate()
+    void tryAllocate(ComPtr<ID3D12DescriptorHeap>& bufferHeap, ComPtr<ID3D12DescriptorHeap>& samplerHeap)
     {
-        // TODO: A descriptor set must actually store multiple heaps: One for CBV/SRV/UAV, one for samplers, one for RTV and one for DSV (the last two are depending on the input attachments format).
-        //ComPtr<ID3D12DescriptorHeap> constantBufferHeap;
-        //D3D12_DESCRIPTOR_HEAP_DESC constantBuffer = {};
-        //constantBuffer.NumDescriptors = m_descriptors;
-        //constantBuffer.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        //constantBuffer.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-        //raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateDescriptorHeap(&constantBuffer, IID_PPV_ARGS(&constantBufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
-        throw;
+        // Use descriptor heaps from the queues, if possible.
+        if (m_descriptors > 0)
+        {
+            if (!m_freeDescriptorSets.empty())
+            {
+                bufferHeap = m_freeDescriptorSets.front();
+                m_freeDescriptorSets.pop();
+            }
+            else
+            {
+                D3D12_DESCRIPTOR_HEAP_DESC bufferHeapDesc = {};
+                bufferHeapDesc.NumDescriptors = m_descriptors;
+                bufferHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+                bufferHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+                raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
+            }
+        }
+
+        // Repeat for sampler heaps.
+        if (m_samplers > 0)
+        {
+            if (!m_freeSamplerSets.empty())
+            {
+                bufferHeap = m_freeSamplerSets.front();
+                m_freeSamplerSets.pop();
+            }
+            else
+            {
+                D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {};
+                samplerHeapDesc.NumDescriptors = m_samplers;
+                samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+                samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+                raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
+            }
+        }
     }
 };
 
@@ -66,6 +92,7 @@ public:
 DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
     m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, std::move(descriptorLayouts), space, stages)), DirectX12RuntimeObject(pipelineLayout, pipelineLayout.getDevice())
 {
+    m_impl->initialize();
 }
 
 DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout) noexcept :
@@ -128,17 +155,10 @@ UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
 UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate() const noexcept
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+    ComPtr<ID3D12DescriptorHeap> bufferHeap, samplerHeap;
+    m_impl->tryAllocate(bufferHeap, samplerHeap);
 
-    // If no descriptor sets are free, allocate a new one.
-    if (m_impl->m_freeDescriptorSets.empty())
-        return makeUnique<DirectX12DescriptorSet>(*this, m_impl->tryAllocate());
-
-    // Otherwise, pick and remove one from the list.
-    auto heap = m_impl->m_freeDescriptorSets.front();
-    m_impl->m_freeDescriptorSets.pop();
-    auto descriptorSet = makeUnique<DirectX12DescriptorSet>(*this, std::move(heap));
-
-    return descriptorSet;
+    return makeUnique<DirectX12DescriptorSet>(*this, std::move(bufferHeap), std::move(samplerHeap));
 }
 
 Array<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocate(const UInt32& count) const noexcept
@@ -151,7 +171,8 @@ Array<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocate(
 void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptorSet) const noexcept
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
-    m_impl->m_freeDescriptorSets.push(descriptorSet.handle());
+    m_impl->m_freeDescriptorSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.bufferHeap()));
+    m_impl->m_freeSamplerSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.samplerHeap()));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -191,6 +212,7 @@ DirectX12RenderPipelineLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::go()
     instance->m_impl->m_layouts = std::move(m_impl->m_layouts);
     instance->m_impl->m_space = std::move(m_impl->m_space);
     instance->m_impl->m_stages = std::move(m_impl->m_stages);
+    instance->m_impl->initialize();
 
     return DescriptorSetLayoutBuilder::go();
 }
