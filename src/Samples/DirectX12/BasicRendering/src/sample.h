@@ -89,6 +89,21 @@ private:
 	/// </summary>
 	UniquePtr<IDirectX12ConstantBuffer> m_cameraBuffer, m_cameraStagingBuffer;
 
+	/// <summary>
+	/// Stores the buffer that holds the object transform. The buffer will contain three elements, since we have three frames in flight.
+	/// </summary>
+	UniquePtr<IDirectX12ConstantBuffer> m_transformBuffer;
+
+	/// <summary>
+	/// Stores the bindings to the transform buffer.
+	/// </summary>
+	Array<UniquePtr<DirectX12DescriptorSet>> m_perFrameBindings;
+
+	/// <summary>
+	/// Stores the binding for the camera buffer.
+	/// </summary>
+	UniquePtr<DirectX12DescriptorSet> m_cameraBindings;
+
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
 		App(), m_window(std::move(window)), m_adapterId(adapterId)

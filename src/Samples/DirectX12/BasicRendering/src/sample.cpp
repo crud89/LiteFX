@@ -1,5 +1,6 @@
 #include "sample.h"
-#include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
+
 enum DescriptorSets : UInt32
 {
     Constant = 0,                                       // All buffers that are immutable.
@@ -108,19 +109,19 @@ void SampleApp::initBuffers()
     m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Staging, 1);
     m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Resource, 1);
 
-    //// Allocate the descriptor set and bind the camera buffer to it.
-    //m_cameraBindings = cameraBindingLayout.allocate();
-    //m_cameraBindings->update(*m_cameraBuffer, 0);
+    // Allocate the descriptor set and bind the camera buffer to it.
+    m_cameraBindings = cameraBindingLayout.allocate();
+    m_cameraBindings->update(*m_cameraBuffer, 0);
 
-    //// Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    //this->updateCamera(*commandBuffer);
+    // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
+    this->updateCamera(*commandBuffer);
 
-    //// Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
-    //// create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
-    //auto& transformBindingLayout = m_pipeline->layout().layout(DescriptorSets::PerFrame);
-    //m_perFrameBindings = transformBindingLayout.allocate(3);
-    //m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
-    //std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
+    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
+    // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
+    auto& transformBindingLayout = m_pipeline->layout().layout(DescriptorSets::PerFrame);
+    m_perFrameBindings = transformBindingLayout.allocate(3);
+    m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
+    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
 
     // End and submit the command buffer.
     commandBuffer->end(true, true);
@@ -128,14 +129,14 @@ void SampleApp::initBuffers()
 
 void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
 {
-    //// Calculate the camera view/projection matrix.
-    //auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    //glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    //glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
-    //projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
-    //camera.ViewProjection = projection * view;
-    //m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    //m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
+    // Calculate the camera view/projection matrix.
+    auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
+    glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
+    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
+    camera.ViewProjection = projection * view;
+    m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
 }
 
 void SampleApp::run() 
@@ -176,11 +177,11 @@ void SampleApp::run()
     m_device->wait();
 
     // Destroy all resources.
-    //m_cameraBindings = nullptr;
-    //m_perFrameBindings.clear();
-    //m_cameraBuffer = nullptr;
-    //m_cameraStagingBuffer = nullptr;
-    //m_transformBuffer = nullptr;
+    m_cameraBindings = nullptr;
+    m_perFrameBindings.clear();
+    m_cameraBuffer = nullptr;
+    m_cameraStagingBuffer = nullptr;
+    m_transformBuffer = nullptr;
     m_vertexBuffer = nullptr;
     m_indexBuffer = nullptr;
 
@@ -223,10 +224,10 @@ void SampleApp::resize(int width, int height)
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
-    //// Also update the camera.
-    //auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
-    //this->updateCamera(*commandBuffer);
-    //commandBuffer->end(true, true);
+    // Also update the camera.
+    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    this->updateCamera(*commandBuffer);
+    commandBuffer->end(true, true);
 }
 
 void SampleApp::handleEvents()
@@ -244,11 +245,11 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     m_renderPass->begin(backBuffer);
-    //m_pipeline->use();
+    m_pipeline->use();
 
-    //// Get the amount of time that has passed since the first frame.
-    //auto now = std::chrono::high_resolution_clock::now();
-    //auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+    // Get the amount of time that has passed since the first frame.
+    auto now = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     //// Compute world transform and update the transform buffer.
     //transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
