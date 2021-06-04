@@ -82,6 +82,7 @@ namespace LiteFX::Rendering::Backends {
     /// <typeparam name="THandle">The type of the resource interface.</typeparam>
     template <class THandle>
     using ComResource = Resource<ComPtr<THandle>>;
+    // TODO: We could overwrite the handle() methods here and return `.AsWeak` from the ComPtr and create an overload to get a reference-counted handle, if required.
 
     // Conversion helpers.
     /// <summary>

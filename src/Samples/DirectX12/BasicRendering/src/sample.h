@@ -54,15 +54,15 @@ private:
 	/// </summary>
 	UniquePtr<DirectX12RenderPass> m_renderPass;
 
-	///// <summary>
-	///// Stores the only render pipeline used in this sample.
-	///// </summary>
-	//UniquePtr<DirectX12RenderPipeline> m_pipeline;
+	/// <summary>
+	/// Stores the only render pipeline used in this sample.
+	/// </summary>
+	UniquePtr<DirectX12RenderPipeline> m_pipeline;
 
-	///// <summary>
-	///// Stores a reference of the input assembler state.
-	///// </summary>
-	//SharedPtr<DirectX12InputAssembler> m_inputAssembler;
+	/// <summary>
+	/// Stores a reference of the input assembler state.
+	/// </summary>
+	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 
 	/// <summary>
 	/// Stores the viewport.

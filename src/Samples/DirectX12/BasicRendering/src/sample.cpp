@@ -1,10 +1,9 @@
 #include "sample.h"
-
+#include <iostream>
 enum DescriptorSets : UInt32
 {
-    PerFrame = 0,                                       // All buffers that are updated for each frame.
-    PerInstance = 1,                                    // All buffers that are updated for each rendered instance.
-    VertexData = std::numeric_limits<UInt32>::max()     // Unused, but required to correctly address buffer sets.
+    Constant = 0,                                       // All buffers that are immutable.
+    PerFrame = 1,                                       // All buffers that are updated each frame.
 };
 
 enum Pipelines : UInt32
@@ -45,38 +44,38 @@ void SampleApp::initRenderGraph()
 
 void SampleApp::initPipelines()
 {
-    //m_pipeline = m_renderPass->makePipeline(Pipelines::Basic, "Basic")
-    //    .withViewport(m_viewport)
-    //    .withScissor(m_scissor)
-    //    .layout()
-    //        .shaderProgram()
-    //            .addVertexShaderModule("shaders/basic.vert.spv")
-    //            .addFragmentShaderModule("shaders/basic.frag.spv")
-    //            .go()
-    //        .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment, 1)
-    //            .addUniform(0, sizeof(CameraBuffer))
-    //            .go()
-    //        .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex, 3)
-    //            .addUniform(0, sizeof(TransformBuffer))
-    //            .go()
-    //        .go()
-    //    .rasterizer()
-    //        .withPolygonMode(PolygonMode::Solid)
-    //        .withCullMode(CullMode::BackFaces)
-    //        .withCullOrder(CullOrder::ClockWise)
-    //        .withLineWidth(1.f)
-    //        .go()
-    //    .inputAssembler()
-    //        .withTopology(PrimitiveTopology::TriangleList)
-    //        .withIndexType(IndexType::UInt16)
-    //        .addVertexBuffer(sizeof(Vertex), 0)
-    //            .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-    //            .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-    //            .go()
-    //        .go()
-    //    .go();
+    m_pipeline = m_renderPass->makePipeline(Pipelines::Basic, "Basic")
+        .withViewport(m_viewport)
+        .withScissor(m_scissor)
+        .layout()
+            .shaderProgram()
+                .addVertexShaderModule("shaders/basic.vert.dxi")
+                .addFragmentShaderModule("shaders/basic.frag.dxi")
+                .go()
+            .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
+                .addUniform(0, sizeof(CameraBuffer))
+                .go()
+            .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
+                .addUniform(0, sizeof(TransformBuffer))
+                .go()
+            .go()
+        .rasterizer()
+            .withPolygonMode(PolygonMode::Solid)
+            .withCullMode(CullMode::BackFaces)
+            .withCullOrder(CullOrder::ClockWise)
+            .withLineWidth(1.f)
+            .go()
+        .inputAssembler()
+            .withTopology(PrimitiveTopology::TriangleList)
+            .withIndexType(IndexType::UInt16)
+            .addVertexBuffer(sizeof(Vertex), 0)
+                .addAttribute(BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+                .addAttribute(BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
+                .go()
+            .go()
+        .go();
 
-    //m_inputAssembler = m_pipeline->inputAssembler();
+    m_inputAssembler = m_pipeline->inputAssembler();
 }
 
 void SampleApp::initBuffers()
