@@ -69,7 +69,7 @@ public:
 
 	void waitForSignal()
 	{
-		if (m_fence->GetCompletedValue() == m_currentSignal)
+		if (m_fence->GetCompletedValue() != m_currentSignal)
 		{
 			HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
 			HRESULT hr = m_fence->SetEventOnCompletion(m_currentSignal, eventHandle);
@@ -123,9 +123,6 @@ void DirectX12CommandBuffer::begin() const
 
 void DirectX12CommandBuffer::end(const bool& submit, const bool& wait) const
 {
-	// Queue a signal that indicates the end of the current list.
-	raiseIfFailed<RuntimeException>(m_impl->queueSignal(), "Unable to add fence signal to command buffer.");
-
 	// Close the command list, so that it does not longer record any commands.
 	raiseIfFailed<RuntimeException>(this->handle()->Close(), "Unable to close command buffer for recording.");
 
@@ -137,6 +134,9 @@ void DirectX12CommandBuffer::submit(const bool& wait) const
 {
 	Array<ID3D12CommandList*> commandLists { this->handle().Get() };
 	this->parent().handle()->ExecuteCommandLists(static_cast<UInt32>(commandLists.size()), commandLists.data());
+
+	// Queue a signal that indicates the end of the current list.
+	raiseIfFailed<RuntimeException>(m_impl->queueSignal(), "Unable to add fence signal to command buffer.");
 
 	if (wait)
 		this->wait();
