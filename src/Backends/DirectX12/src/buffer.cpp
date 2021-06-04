@@ -290,3 +290,61 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const DirectX12D
 
 	return makeUnique<DirectX12IndexBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));
 }
+
+// ------------------------------------------------------------------------------------------------
+// Constant buffer implementation.
+// ------------------------------------------------------------------------------------------------
+
+class DirectX12ConstantBuffer::DirectX12ConstantBufferImpl : public Implement<DirectX12ConstantBuffer> {
+public:
+	friend class DirectX12ConstantBuffer;
+
+private:
+	const DirectX12DescriptorLayout& m_layout;
+
+public:
+	DirectX12ConstantBufferImpl(DirectX12ConstantBuffer* parent, const DirectX12DescriptorLayout& layout) :
+		base(parent), m_layout(layout)
+	{
+	}
+
+public:
+	void initialize()
+	{
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
+// Constant buffer shared interface.
+// ------------------------------------------------------------------------------------------------
+
+DirectX12ConstantBuffer::DirectX12ConstantBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12DescriptorLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	m_impl(makePimpl<DirectX12ConstantBufferImpl>(this, layout)), DirectX12Buffer(device, std::move(buffer), BufferType::Uniform, elements, layout.elementSize(), 0, initialState, allocator, std::move(allocation))
+{
+	m_impl->initialize();
+}
+
+DirectX12ConstantBuffer::~DirectX12ConstantBuffer() noexcept = default;
+
+const DirectX12DescriptorLayout& DirectX12ConstantBuffer::layout() const noexcept
+{
+	return m_impl->m_layout;
+}
+
+const UInt32& DirectX12ConstantBuffer::binding() const noexcept
+{
+	return m_impl->m_layout.binding();
+}
+
+UniquePtr<IDirectX12ConstantBuffer> DirectX12ConstantBuffer::allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+{
+	if (allocator == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The allocator must be initialized.");
+
+	ComPtr<ID3D12Resource> resource;
+	D3D12MA::Allocation* allocation;
+	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, initialState, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(resource.Get()), BufferType::Uniform, elements, layout.elementSize(), layout.elementSize() * elements);
+
+	return makeUnique<DirectX12ConstantBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));
+}

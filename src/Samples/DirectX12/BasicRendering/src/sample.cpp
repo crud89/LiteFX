@@ -102,11 +102,11 @@ void SampleApp::initBuffers()
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
     m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
 
-    //// Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
-    //// write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    //auto& cameraBindingLayout = m_pipeline->layout().layout(DescriptorSets::Constant);
-    //m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Staging, 1);
-    //m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Resource, 1);
+    // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
+    // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
+    auto& cameraBindingLayout = m_pipeline->layout().layout(DescriptorSets::Constant);
+    m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Staging, 1);
+    m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Resource, 1);
 
     //// Allocate the descriptor set and bind the camera buffer to it.
     //m_cameraBindings = cameraBindingLayout.allocate();

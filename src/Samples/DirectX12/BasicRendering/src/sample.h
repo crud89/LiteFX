@@ -84,8 +84,10 @@ private:
 	/// </summary>
 	UniquePtr<IDirectX12IndexBuffer> m_indexBuffer;
 
-	//UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;
-	//UniquePtr<IDescriptorSet> m_perFrameBindings, m_perObjectBindings;
+	/// <summary>
+	/// Stores the buffer that contains the camera information. Since the camera is static, we only need one (immutable) buffer for it, so the buffer will only contain one element.
+	/// </summary>
+	UniquePtr<IDirectX12ConstantBuffer> m_cameraBuffer, m_cameraStagingBuffer;
 
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :

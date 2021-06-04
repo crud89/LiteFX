@@ -155,27 +155,27 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<IDirectX12IndexBuffer> allocate(const DirectX12Device& device, const DirectX12IndexBufferLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
-	//class DirectX12ConstantBuffer : public DirectX12Buffer, public IDirectX12ConstantBuffer {
-	//	LITEFX_IMPLEMENTATION(DirectX12ConstantBufferImpl);
+	class DirectX12ConstantBuffer : public DirectX12Buffer, public IDirectX12ConstantBuffer {
+		LITEFX_IMPLEMENTATION(DirectX12ConstantBufferImpl);
 
-	//public:
-	//	explicit DirectX12ConstantBuffer(const DirectX12Device& device, VkBuffer buffer, const DirectX12DescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation);
-	//	DirectX12ConstantBuffer(DirectX12ConstantBuffer&&) = delete;
-	//	DirectX12ConstantBuffer(const DirectX12ConstantBuffer&) = delete;
-	//	virtual ~DirectX12ConstantBuffer() noexcept;
+	public:
+		explicit DirectX12ConstantBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12DescriptorLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation);
+		DirectX12ConstantBuffer(DirectX12ConstantBuffer&&) = delete;
+		DirectX12ConstantBuffer(const DirectX12ConstantBuffer&) = delete;
+		virtual ~DirectX12ConstantBuffer() noexcept;
 
-	//	// IDescriptor interface.
-	//public:
-	//	/// <inheritdoc />
-	//	const DirectX12DescriptorLayout& layout() const noexcept override;
+		// IConstantBuffer interface.
+	public:
+		/// <inheritdoc />
+		const DirectX12DescriptorLayout& layout() const noexcept override;
 
-	//	// IBindable interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual const UInt32& binding() const noexcept override;
+		// IBindable interface.
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
 
-	//	// DirectX12ConstantBuffer.
-	//public:
-	//	static UniquePtr<IDirectX12ConstantBuffer> allocate(const DirectX12DescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-	//};
+		// DirectX 12 Constant Buffer.
+	public:
+		static UniquePtr<IDirectX12ConstantBuffer> allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+	};
 }
