@@ -39,6 +39,7 @@ void SampleApp::initRenderGraph()
 {
     m_renderPass = m_device->buildRenderPass()
         .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+        .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
         .go();
 }
 

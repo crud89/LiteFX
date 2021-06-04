@@ -34,6 +34,8 @@ public:
 public:
 	ComPtr<ID3D12PipelineState> initialize()
 	{
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
+
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		D3D12_RASTERIZER_DESC rasterizerState = {};
@@ -92,38 +94,57 @@ public:
 		multisamplingState.Count = 1;
 		multisamplingState.Quality = 0;
 
-		// Setup color blend state.
+		// Setup render target states.
+		// NOTE: We assume, that the targets are returned sorted by location and the location range is contiguous.
 		// TODO: Add blend parameters to render target.
 		D3D12_BLEND_DESC blendState = {};
+		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 		auto targets = m_parent->parent().renderTargets();
+		pipelineStateDescription.NumRenderTargets = std::ranges::count_if(targets, [](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
+		UInt32 depthStencilTargets = pipelineStateDescription.NumRenderTargets - static_cast<UInt32>(targets.size());
+
+		// Only 8 RTVs are allowed.
+		if (pipelineStateDescription.NumRenderTargets > 8)
+			throw RuntimeException("You have specified too many render targets: only 8 render targets and 1 depth/stencil target are allowed, but {1} have been specified.", pipelineStateDescription.NumRenderTargets);
+
+		// Only one DSV is allowed.
+		if (depthStencilTargets > 1)
+			throw RuntimeException("You have specified too many render targets: only 1 depth/stencil target is allowed, but {1} have been specified.", depthStencilTargets);
 
 		std::ranges::for_each(targets, [&, i = 0](const RenderTarget& renderTarget) mutable {
 			if (renderTarget.type() == RenderTargetType::DepthStencil)
-				return;
+			{
+				// Setup depth/stencil format.
+				pipelineStateDescription.DSVFormat = ::getFormat(renderTarget.format());
 
-			// Only 8 RTVs are allowed.
-			if (i > 8)
-				throw RuntimeException("You have specified too many render targets: only 8 render targets are allowed.");
+				// Setup depth/stencil state.
+				// TODO: From depth/stencil state.
+				D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
+				depthStencilState.DepthEnable = ::hasDepth(renderTarget.format());
+				depthStencilState.StencilEnable = ::hasStencil(renderTarget.format());
+				depthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL;
+				depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
+			}
+			else
+			{
+				// Setup target formats.
+				UInt32 target = i++;
+				pipelineStateDescription.RTVFormats[target] = ::getFormat(renderTarget.format());
 
-			auto& targetBlendState = blendState.RenderTarget[i++];
-			targetBlendState.BlendEnable = FALSE;
-			targetBlendState.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
-			targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
-			targetBlendState.LogicOpEnable = FALSE;
+				// Setup the blend state.
+				auto& targetBlendState = blendState.RenderTarget[target];
+				targetBlendState.BlendEnable = FALSE;
+				targetBlendState.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
+				targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
+				targetBlendState.LogicOpEnable = FALSE;
+
+			}
 		});
 
 		blendState.AlphaToCoverageEnable = FALSE;
 		blendState.IndependentBlendEnable = TRUE;
 
-		// Setup depth/stencil state.
-		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
-		depthStencilState.DepthEnable = TRUE;				// TODO: From depth/stencil state.
-		depthStencilState.DepthWriteMask = std::ranges::any_of(targets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::DepthStencil; }) ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
-		depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
-		depthStencilState.StencilEnable = FALSE;			// TODO: From depth/stencil state.
-
 		// Setup shader stages.
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
 		auto modules = m_layout->program().modules();
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(&m_layout->program()), modules.size());
 
