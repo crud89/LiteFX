@@ -101,15 +101,15 @@ public:
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 		auto targets = m_parent->parent().renderTargets();
 		pipelineStateDescription.NumRenderTargets = std::ranges::count_if(targets, [](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
-		UInt32 depthStencilTargets = pipelineStateDescription.NumRenderTargets - static_cast<UInt32>(targets.size());
+		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - pipelineStateDescription.NumRenderTargets;
 
 		// Only 8 RTVs are allowed.
 		if (pipelineStateDescription.NumRenderTargets > 8)
-			throw RuntimeException("You have specified too many render targets: only 8 render targets and 1 depth/stencil target are allowed, but {1} have been specified.", pipelineStateDescription.NumRenderTargets);
+			throw RuntimeException("You have specified too many render targets: only 8 render targets and 1 depth/stencil target are allowed, but {0} have been specified.", pipelineStateDescription.NumRenderTargets);
 
 		// Only one DSV is allowed.
 		if (depthStencilTargets > 1)
-			throw RuntimeException("You have specified too many render targets: only 1 depth/stencil target is allowed, but {1} have been specified.", depthStencilTargets);
+			throw RuntimeException("You have specified too many render targets: only 1 depth/stencil target is allowed, but {0} have been specified.", depthStencilTargets);
 
 		std::ranges::for_each(targets, [&, i = 0](const RenderTarget& renderTarget) mutable {
 			if (renderTarget.type() == RenderTargetType::DepthStencil)
@@ -263,6 +263,8 @@ void DirectX12RenderPipeline::bind(const DirectX12DescriptorSet& descriptorSet) 
 
 void DirectX12RenderPipeline::use() const
 {
+	//commandList->RSSetViewports(1, &m_Viewport);
+	//commandList->RSSetScissorRects(1, &m_ScissorRect);
 	throw;
 }
 

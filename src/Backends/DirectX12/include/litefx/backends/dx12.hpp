@@ -1281,9 +1281,22 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
+		/// <remarks>
+		/// A image always is generated in the initial state <c>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_UNORDERED_ACCESS</c>.
+		/// </remarks>
 		virtual UniquePtr<IDirectX12Image> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
+		/// <remarks>
+		/// Render target attachments are always generated in the initial state <c>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE</c> and must be transitioned 
+		/// into <c>D3D12_RESOURCE_STATE_RENDER_TARGET</c> before drawing to them.
+		/// 
+		/// Depth/Stencil attachments are created with <c>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ</c> and must be 
+		/// transitioned to <c>D3D12_RESOURCE_STATE_DEPTH_WRITE</c> before writing to them.
+		/// 
+		/// The attachment type (render target or depth/stencil) is acquired from <paramref name="format" />. If the format has a depth and/or a stencil 
+		/// channel, it is assumed to be a depth/stencil attachment.
+		/// </remarks>
 		virtual UniquePtr<IDirectX12Image> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />

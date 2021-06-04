@@ -1673,9 +1673,6 @@ namespace LiteFX::Rendering {
 		/// <summary>
 		/// Creates a buffer of type <paramref name="type" />.
 		/// </summary>
-		/// <remarks>
-		/// Note that when allocating an array, the <paramref name="size" /> parameter must contain enough space for all elements to fit into the buffer.
-		/// </remarks>
 		/// <param name="type">The type of the buffer.</param>
 		/// <param name="usage">The buffer usage.</param>
 		/// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
@@ -1723,6 +1720,10 @@ namespace LiteFX::Rendering {
 		/// <summary>
 		/// Creates a texture, based on the <paramref name="layout" />.
 		/// </summary>
+		/// <remarks>
+		/// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
+		/// <see cref="createBuffer" /> first that holds the actual image bytes. You than can transfer/copy the contents into the texture.
+		/// </remarks>
 		/// <param name="layout">The layout of the texture.</param>
 		/// <param name="format">The format of the texture image.</param>
 		/// <param name="size">The dimensions of the texture.</param>

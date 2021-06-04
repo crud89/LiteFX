@@ -1348,6 +1348,10 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
+		/// <remarks>
+		/// Images are generic unordered resource views. You usually want to avoid creating images manually and instead create a texture <see cref="createTexture" />
+		/// or an attachment/render target using <see cref="createAttachment" /> instead.
+		/// </remarks>
 		virtual UniquePtr<IVulkanImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />

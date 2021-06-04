@@ -63,17 +63,36 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createImage(const Format& f
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
 	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
-	ComPtr<ID3D12Resource> resource;
-	D3D12MA::Allocation* allocationPtr;
-	raiseIfFailed<RuntimeException>(m_impl->m_allocator->CreateResource(&allocationDesc, &resourceDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, &allocationPtr, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
-	AllocationPtr allocation(allocationPtr);
-
-	throw;
+	return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_UNORDERED_ACCESS, resourceDesc, allocationDesc);
 }
 
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
 {
-	throw;
+	D3D12_RESOURCE_DESC resourceDesc = {};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Alignment = 0;	// NOTE: Can be overwritten for "small textures" (see: https://asawicki.info/news_1726_secrets_of_direct3d_12_resource_alignment)
+	resourceDesc.Width = size.width();
+	resourceDesc.Height = size.height();
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.Format = ::getFormat(format);
+	resourceDesc.SampleDesc.Count = static_cast<UInt32>(samples);
+	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
+	D3D12MA::ALLOCATION_DESC allocationDesc = {};
+	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+
+	if (::hasDepth(format) || ::hasStencil(format))
+	{
+		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ, resourceDesc, allocationDesc);
+	}
+	else
+	{
+		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, resourceDesc, allocationDesc);
+	}
 }
 
 UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements) const
