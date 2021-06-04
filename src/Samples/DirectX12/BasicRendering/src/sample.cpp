@@ -81,18 +81,18 @@ void SampleApp::initPipelines()
 
 void SampleApp::initBuffers()
 {
-    //// Get the pipeline instance.
-    //auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    // Get the pipeline instance.
+    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
 
-    //// Create the staging buffer.
-    //// NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
-    ////       whole buffer.
-    //auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
-    //stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
+    // Create the staging buffer.
+    // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
+    //       whole buffer.
+    auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 
-    //// Create the actual vertex buffer and transfer the staging buffer into it.
-    //m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    //m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+    // Create the actual vertex buffer and transfer the staging buffer into it.
+    m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+    m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
 
     //// Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     //auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());

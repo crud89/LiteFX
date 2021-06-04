@@ -74,8 +74,16 @@ private:
 	/// </summary>
 	SharedPtr<IScissor> m_scissor;
 
-	//UniquePtr<IVertexBuffer> m_vertexBuffer;
-	//UniquePtr<IIndexBuffer> m_indexBuffer;
+	/// <summary>
+	/// Stores the vertex buffer for the quad rendered in this sample.
+	/// </summary>
+	UniquePtr<IDirectX12VertexBuffer> m_vertexBuffer;
+
+	/// <summary>
+	/// Stores the index buffer for the quad rendered in this sample.
+	/// </summary>
+	UniquePtr<IDirectX12IndexBuffer> m_indexBuffer;
+
 	//UniquePtr<IConstantBuffer> m_cameraBuffer, m_transformBuffer;
 	//UniquePtr<IDescriptorSet> m_perFrameBindings, m_perObjectBindings;
 

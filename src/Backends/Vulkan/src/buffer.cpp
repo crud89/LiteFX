@@ -27,6 +27,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
+
 VulkanBuffer::VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation) :
 	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkBuffer>(buffer)
 {
