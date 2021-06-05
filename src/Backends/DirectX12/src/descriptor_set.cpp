@@ -58,9 +58,13 @@ UniquePtr<IDirectX12Sampler> DirectX12DescriptorSet::makeSampler(const UInt32& b
 
 void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement) const noexcept
 {
-    // TODO: Set the buffer to the root parameter.
-    // SetGraphicsRoot32BitConstants ?
-    throw;
+    D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferView = {
+        .BufferLocation = buffer.handle()->GetGPUVirtualAddress() + static_cast<size_t>(bufferElement) * buffer.alignedElementSize(),
+        .SizeInBytes = static_cast<UInt32>(buffer.alignedElementSize())
+    };
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), buffer.layout().binding(), this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+    this->getDevice()->handle()->CreateConstantBufferView(&constantBufferView, descriptorHandle);
 }
 
 void DirectX12DescriptorSet::update(const IDirectX12Texture& texture) const noexcept

@@ -45,7 +45,7 @@ void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, 
 	if (this->elements() < targetElement + elements)
 		throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
 
-	commandBuffer.handle()->CopyBufferRegion(this->handle().Get(), targetElement * this->alignedElementSize(), source.handle().Get(), sourceElement * source.elementSize(), source.elementSize() * elements);
+	commandBuffer.handle()->CopyBufferRegion(this->handle().Get(), targetElement * this->alignedElementSize(), source.handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
 }
 
 void DirectX12Buffer::transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
@@ -319,7 +319,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ConstantBuffer::DirectX12ConstantBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12DescriptorLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-	m_impl(makePimpl<DirectX12ConstantBufferImpl>(this, layout)), DirectX12Buffer(device, std::move(buffer), BufferType::Uniform, elements, layout.elementSize(), 0, initialState, allocator, std::move(allocation))
+	m_impl(makePimpl<DirectX12ConstantBufferImpl>(this, layout)), DirectX12Buffer(device, std::move(buffer), BufferType::Uniform, elements, layout.elementSize(), 256, initialState, allocator, std::move(allocation))
 {
 	m_impl->initialize();
 }
