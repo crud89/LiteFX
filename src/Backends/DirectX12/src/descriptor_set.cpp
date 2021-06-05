@@ -58,7 +58,8 @@ UniquePtr<IDirectX12Sampler> DirectX12DescriptorSet::makeSampler(const UInt32& b
 
 void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement) const noexcept
 {
-    // TODO: copy descriptor to global heap. It may be more efficient to cache all updates (rename `update` to `bind`) and flush them all together (new `update` method).
+    // TODO: Set the buffer to the root parameter.
+    // SetGraphicsRoot32BitConstants ?
     throw;
 }
 

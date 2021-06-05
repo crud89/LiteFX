@@ -255,6 +255,7 @@ void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
 		buffer.transitionTo(commandBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 	
 	commandBuffer.handle()->IASetVertexBuffers(buffer.binding(), 1, &buffer.view());
+	commandBuffer.handle()->IASetPrimitiveTopology(::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 }
 
 void DirectX12RenderPipeline::bind(const IDirectX12IndexBuffer& buffer) const
@@ -270,14 +271,25 @@ void DirectX12RenderPipeline::bind(const IDirectX12IndexBuffer& buffer) const
 
 void DirectX12RenderPipeline::bind(const DirectX12DescriptorSet& descriptorSet) const
 {
+	// TODO: Copy descriptors to global descriptor heap using CopyDescriptorsSimple (https://docs.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12device-copydescriptorssimple).
 	throw;
 }
 
 void DirectX12RenderPipeline::use() const
 {
-	//commandList->RSSetViewports(1, &m_Viewport);
-	//commandList->RSSetScissorRects(1, &m_ScissorRect);
-	throw;
+	// TODO: Check if the arguments are right, or if they are in absolute coordinates.
+	auto viewports = m_impl->m_viewports |
+		std::views::transform([](const SharedPtr<IViewport>& viewport) { return CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth()); }) |
+		ranges::to<Array<D3D12_VIEWPORT>>();
+
+	auto scissors= m_impl->m_scissors |
+		std::views::transform([](const SharedPtr<IScissor>& scissor) { return CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height()); }) |
+		ranges::to<Array<D3D12_RECT>>();
+
+	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
+	commandBuffer.handle()->SetPipelineState(this->handle().Get());
+	commandBuffer.handle()->RSSetViewports(viewports.size(), viewports.data());
+	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
 }
 
 void DirectX12RenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
@@ -356,12 +368,12 @@ void DirectX12RenderPipelineBuilder::use(SharedPtr<IRasterizer> rasterizer)
 		LITEFX_WARNING(DIRECTX12_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
 #endif
 
-	auto vulkanRasterizer = std::dynamic_pointer_cast<DirectX12Rasterizer>(rasterizer);
+	auto dx12Rasterizer = std::dynamic_pointer_cast<DirectX12Rasterizer>(rasterizer);
 
-	if (vulkanRasterizer == nullptr)
+	if (dx12Rasterizer == nullptr)
 		throw InvalidArgumentException("The provided rasterizer must be a DirectX12 rasterizer instance.");
 
-	m_impl->m_rasterizer = vulkanRasterizer;
+	m_impl->m_rasterizer = dx12Rasterizer;
 }
 
 void DirectX12RenderPipelineBuilder::use(SharedPtr<DirectX12InputAssembler> inputAssembler)
