@@ -19,11 +19,16 @@ private:
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
 	UniquePtr<DirectX12SwapChain> m_swapChain;
 	DWORD m_debugCallbackCookie = 0;
+	UInt32 m_globalBufferHeapSize, m_globalSamplerHeapSize, m_bufferDescriptorIncrement, m_samplerDescriptorIncrement, m_bufferOffset{ 0 }, m_samplerOffset{ 0 };
+	ComPtr<ID3D12DescriptorHeap> m_globalBufferHeap, m_globalSamplerHeap;
+	mutable std::mutex m_bufferBindMutex;
 
 public:
-	DirectX12DeviceImpl(DirectX12Device* parent, const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend) :
-		base(parent), m_adapter(adapter), m_surface(surface), m_backend(backend)
+	DirectX12DeviceImpl(DirectX12Device* parent, const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
+		base(parent), m_adapter(adapter), m_surface(surface), m_backend(backend), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
 	{
+		if (globalSamplerHeapSize > 2048)
+			throw ArgumentOutOfRangeException("Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
 	}
 
 	~DirectX12DeviceImpl() noexcept
@@ -114,6 +119,21 @@ public:
 		}
 #endif
 
+		// Create global buffer and sampler descriptor heaps.
+		D3D12_DESCRIPTOR_HEAP_DESC bufferHeapDesc = {};
+		bufferHeapDesc.NumDescriptors = m_globalBufferHeapSize;
+		bufferHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		bufferHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		raiseIfFailed<RuntimeException>(device->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&m_globalBufferHeap)), "Unable create global GPU descriptor heap for buffers.");
+		m_bufferDescriptorIncrement = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {};
+		samplerHeapDesc.NumDescriptors = m_globalSamplerHeapSize;
+		samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+		samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		raiseIfFailed<RuntimeException>(device->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&m_globalSamplerHeap)), "Unable create global GPU descriptor heap for samplers.");
+		m_samplerDescriptorIncrement = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+
 		return device;
 	}
 
@@ -160,8 +180,8 @@ DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const 
 {
 }
 
-DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
-	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, surface, backend))
+DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
+	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, surface, backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.getDeviceId());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
@@ -169,6 +189,9 @@ DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const 
 	LITEFX_DEBUG(DIRECTX12_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
 	LITEFX_DEBUG(DIRECTX12_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
 	LITEFX_DEBUG(DIRECTX12_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
+	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
+	LITEFX_DEBUG(DIRECTX12_LOG, "Descriptor Heap Size: {0}", globalBufferHeapSize);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Sampler Heap Size: {0}", globalSamplerHeapSize);
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
 
 	this->handle() = m_impl->initialize();
@@ -182,6 +205,67 @@ DirectX12Device::~DirectX12Device() noexcept = default;
 const DirectX12Backend& DirectX12Device::backend() const noexcept
 {
 	return m_impl->m_backend;
+}
+
+const ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
+{
+	return m_impl->m_globalBufferHeap.Get();
+}
+
+const ID3D12DescriptorHeap* DirectX12Device::globalSamplerHeap() const noexcept
+{
+	return m_impl->m_globalSamplerHeap.Get();
+}
+
+void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet) const noexcept
+{
+	// TODO: Ring-buffer may not work here - we need to track which descriptor sets are bound to which descriptor offset, since otherwise we might overwrite static descriptors. 
+	//       We could for example use a map for this and discard descriptor sets when they are `free`d.
+	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
+	
+	// Get the current descriptor sizes and compute the offsets.
+	UInt32 buffers{ 0 }, samplers{ 0 }, bufferOffset{ m_impl->m_bufferOffset }, samplerOffset{ m_impl->m_samplerOffset };
+
+	if (descriptorSet.bufferHeap() != nullptr)
+		buffers = descriptorSet.bufferHeap()->GetDesc().NumDescriptors;
+
+	if (descriptorSet.samplerHeap() != nullptr)
+		samplers = descriptorSet.samplerHeap()->GetDesc().NumDescriptors;
+
+	if (bufferOffset + buffers > m_impl->m_globalBufferHeapSize) [[unlikely]]
+		bufferOffset = 0;
+
+	if (samplerOffset + samplers > m_impl->m_globalSamplerHeapSize) [[unlikely]]
+		samplerOffset = 0;
+	
+	// Get the descriptor handles.
+	CD3DX12_CPU_DESCRIPTOR_HANDLE targetBufferHandle(m_impl->m_globalBufferHeap->GetCPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE targetSamplerHandle(m_impl->m_globalSamplerHeap->GetCPUDescriptorHandleForHeapStart(), samplerOffset, m_impl->m_samplerDescriptorIncrement);
+
+	// Copy the descriptors to the global heaps and set the root table parameters.
+	if (buffers > 0)
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.bufferHeap()->GetCPUDescriptorHandleForHeapStart(), 0, m_impl->m_bufferDescriptorIncrement);
+		this->handle()->CopyDescriptorsSimple(buffers, targetBufferHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		// The parameter index equals the target descriptor set space.
+		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
+		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().space(), targetGpuHandle);
+	}
+
+	if (samplers > 0)
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.samplerHeap()->GetCPUDescriptorHandleForHeapStart(), 0, m_impl->m_samplerDescriptorIncrement);
+		this->handle()->CopyDescriptorsSimple(samplers, targetSamplerHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+
+		// The parameter index equals the target descriptor set space.
+		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), samplerOffset, m_impl->m_samplerDescriptorIncrement);
+		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().space(), targetGpuHandle);
+	}
+
+	// Store the offsets.
+	m_impl->m_bufferOffset = bufferOffset;
+	m_impl->m_samplerOffset = samplerOffset;
 }
 
 DirectX12RenderPassBuilder DirectX12Device::buildRenderPass() const

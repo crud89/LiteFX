@@ -271,8 +271,7 @@ void DirectX12RenderPipeline::bind(const IDirectX12IndexBuffer& buffer) const
 
 void DirectX12RenderPipeline::bind(const DirectX12DescriptorSet& descriptorSet) const
 {
-	// TODO: Copy descriptors to global descriptor heap using CopyDescriptorsSimple (https://docs.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12device-copydescriptorssimple).
-	throw;
+	this->getDevice()->updateGlobalDescriptors(this->parent().activeFrameBuffer().commandBuffer(), descriptorSet);
 }
 
 void DirectX12RenderPipeline::use() const

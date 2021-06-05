@@ -1454,7 +1454,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="format">The initial surface format, device uses for drawing.</param>
 		/// <param name="frameBufferSize">The initial size of the frame buffers.</param>
 		/// <param name="frameBuffers">The initial number of frame buffers.</param>
-		explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers);
+		/// <param name="globalBufferHeapSize">The size of the global heap for constant buffers, shader resources and images.</param>
+		/// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
+		explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize = 524287, const UInt32& globalSamplerHeapSize = 2048);
 
 		DirectX12Device(const DirectX12Device&) = delete;
 		DirectX12Device(DirectX12Device&&) = delete;
@@ -1467,6 +1469,26 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <returns>The backend from which the device got created.</returns>
 		virtual const DirectX12Backend& backend() const noexcept;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		virtual const ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		virtual const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="commandBuffer"></param>
+		/// <param name="descriptorSet"></param>
+		/// <returns></returns>
+		virtual void updateGlobalDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet) const noexcept;
 
 	public:
 		/// <summary>
