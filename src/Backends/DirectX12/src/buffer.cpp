@@ -98,7 +98,7 @@ void DirectX12Buffer::map(const void* const data, const size_t& size, const UInt
 	char* buffer;
 	raiseIfFailed<RuntimeException>(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
 	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size);
-	this->handle()->Unmap(0, &mappedRange);
+	this->handle()->Unmap(0, nullptr);
 
 	if (result != 0)
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
