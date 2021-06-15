@@ -173,7 +173,8 @@ UniquePtr<IDirectX12ConstantBuffer> DirectX12GraphicsFactory::createConstantBuff
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	resourceDesc.Alignment = 0;
-	resourceDesc.Width = layout.elementSize();
+	//resourceDesc.Width = layout.elementSize();
+	resourceDesc.Width = (layout.elementSize() + 255) & ~(255);	// Align elements to 255 bytes.
 	resourceDesc.Height = 1;
 	resourceDesc.DepthOrArraySize = elements;
 	resourceDesc.MipLevels = 1;
