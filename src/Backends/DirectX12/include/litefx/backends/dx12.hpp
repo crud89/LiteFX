@@ -1490,6 +1490,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns></returns>
 		virtual void updateGlobalDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet) const noexcept;
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		virtual void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
+
 	public:
 		/// <summary>
 		/// Returns a builder for a <see cref="DirectX12RenderPass" />.

@@ -251,13 +251,13 @@ void SampleApp::drawFrame()
     auto now = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    //// Compute world transform and update the transform buffer.
-    //transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    //m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+    // Compute world transform and update the transform buffer.
+    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
-    //// Bind both descriptor sets to the pipeline.
-    //m_pipeline->bind(*m_cameraBindings);
-    //m_pipeline->bind(*m_perFrameBindings[backBuffer]);
+    // Bind both descriptor sets to the pipeline.
+    m_pipeline->bind(*m_cameraBindings);
+    m_pipeline->bind(*m_perFrameBindings[backBuffer]);
 
     //// Bind the vertex and index buffers.
     //m_pipeline->bind(*m_vertexBuffer);

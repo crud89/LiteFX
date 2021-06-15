@@ -198,6 +198,8 @@ UniquePtr<IDirectX12ConstantBuffer> DirectX12GraphicsFactory::createConstantBuff
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		return DirectX12ConstantBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+	default:
+		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}
 }
 

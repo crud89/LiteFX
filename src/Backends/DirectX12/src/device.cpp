@@ -267,6 +267,12 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 	m_impl->m_samplerOffset = samplerOffset;
 }
 
+void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept
+{
+	const std::array<ID3D12DescriptorHeap*, 2> globalHeaps{ m_impl->m_globalBufferHeap.Get(), m_impl->m_globalSamplerHeap.Get() };
+	commandBuffer.handle()->SetDescriptorHeaps(globalHeaps.size(), globalHeaps.data());
+}
+
 DirectX12RenderPassBuilder DirectX12Device::buildRenderPass() const
 {
 	return DirectX12RenderPassBuilder(*this);
