@@ -264,7 +264,7 @@ void DirectX12RenderPipeline::bind(const IDirectX12IndexBuffer& buffer) const
 
 	// Transition the buffer to the appropriate state, if it isn't already.
 	if (buffer.state() != D3D12_RESOURCE_STATE_INDEX_BUFFER)
-		buffer.transitionTo(commandBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		buffer.transitionTo(commandBuffer, D3D12_RESOURCE_STATE_INDEX_BUFFER);
 
 	commandBuffer.handle()->IASetIndexBuffer(&buffer.view());
 }
@@ -294,12 +294,14 @@ void DirectX12RenderPipeline::use() const
 
 void DirectX12RenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
 {
-	throw;
+	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
+	commandBuffer.handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);
 }
 
 void DirectX12RenderPipeline::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const
 {
-	throw;
+	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
+	commandBuffer.handle()->DrawIndexedInstanced(indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
 // ------------------------------------------------------------------------------------------------

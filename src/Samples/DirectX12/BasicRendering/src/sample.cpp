@@ -259,11 +259,11 @@ void SampleApp::drawFrame()
     m_pipeline->bind(*m_cameraBindings);
     m_pipeline->bind(*m_perFrameBindings[backBuffer]);
 
-    //// Bind the vertex and index buffers.
-    //m_pipeline->bind(*m_vertexBuffer);
-    //m_pipeline->bind(*m_indexBuffer);
+    // Bind the vertex and index buffers.
+    m_pipeline->bind(*m_vertexBuffer);
+    m_pipeline->bind(*m_indexBuffer);
 
-    //// Draw the object and present the frame by ending the render pass.
-    //m_pipeline->drawIndexed(m_indexBuffer->elements());
+    // Draw the object and present the frame by ending the render pass.
+    m_pipeline->drawIndexed(m_indexBuffer->elements());
     m_renderPass->end();
 }
