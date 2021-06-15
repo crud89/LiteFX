@@ -287,6 +287,7 @@ void DirectX12RenderPipeline::use() const
 
 	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
+	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 	commandBuffer.handle()->RSSetViewports(viewports.size(), viewports.data());
 	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
 }
