@@ -121,6 +121,9 @@ D3D12_RESOURCE_STATES& DirectX12Buffer::state() noexcept
 
 D3D12_RESOURCE_BARRIER DirectX12Buffer::transitionTo(const D3D12_RESOURCE_STATES& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
+	if (m_impl->m_state == state)
+		throw InvalidArgumentException("The specified buffer state must be different from the current resource state.");
+
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), m_impl->m_state, state, element, flags);
 	m_impl->m_state = state;
 	return barrier;
@@ -128,6 +131,9 @@ D3D12_RESOURCE_BARRIER DirectX12Buffer::transitionTo(const D3D12_RESOURCE_STATES
 
 void DirectX12Buffer::transitionTo(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_STATES& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
+	if (m_impl->m_state == state)
+		return;
+
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), m_impl->m_state, state, element, flags);
 	m_impl->m_state = state;
 	commandBuffer.handle()->ResourceBarrier(1, &barrier);
