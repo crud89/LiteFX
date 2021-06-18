@@ -25,13 +25,13 @@ const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
 const Array<Vertex> viewPlaneVertices =
 {
-    { { -1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { -1.0f, 1.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } },
-    { { 1.0f, -1.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
-    { { 1.0f, 1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } }
+    { { -1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } },
+    { { -1.0f, 1.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 1.0f, -1.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } },
+    { { 1.0f, 1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } }
 };
 
-const Array<UInt16> viewPlaneIndices = { 0, 2, 1, 1, 2, 3 };
+const Array<UInt16> viewPlaneIndices = { 0, 1, 2, 1, 3, 2 };
 
 struct CameraBuffer {
     glm::mat4 ViewProjection;
@@ -113,7 +113,7 @@ void SampleApp::initPipelines()
         .rasterizer()
             .withPolygonMode(PolygonMode::Solid)
             .withCullMode(CullMode::BackFaces)
-            .withCullOrder(CullOrder::CounterClockWise)
+            .withCullOrder(CullOrder::ClockWise)
             .withLineWidth(1.f)
             .go()
         .withInputAssembler(m_inputAssembler)
