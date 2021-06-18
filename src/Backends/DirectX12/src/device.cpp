@@ -99,7 +99,7 @@ public:
 			//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, TRUE);
 			
 			// Suppress individual messages by their ID
-			D3D12_MESSAGE_ID suppressIds[] = { D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE };
+			D3D12_MESSAGE_ID suppressIds[] = { D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE };
 			D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
 
 			D3D12_INFO_QUEUE_FILTER infoQueueFilter = {};
@@ -132,6 +132,11 @@ public:
 		samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		raiseIfFailed<RuntimeException>(device->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&m_globalSamplerHeap)), "Unable create global GPU descriptor heap for samplers.");
 		m_samplerDescriptorIncrement = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+
+#ifndef NDEBUG
+		m_globalBufferHeap->SetName(L"Global Descriptor Heap");
+		m_globalSamplerHeap->SetName(L"Global Sampler Heap");
+#endif
 
 		return device;
 	}
@@ -182,9 +187,9 @@ DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const 
 DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
 	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, surface, backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
-	LITEFX_DEBUG(DIRECTX12_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.getDeviceId());
+	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.getDeviceId());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
+	LITEFX_DEBUG(DIRECTX12_LOG, "Vendor: {0:#0x} (\"{1}\")", adapter.getVendorId(), ::getVendorName(adapter.getVendorId()).c_str());
 	LITEFX_DEBUG(DIRECTX12_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
 	LITEFX_DEBUG(DIRECTX12_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
 	LITEFX_DEBUG(DIRECTX12_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
@@ -250,6 +255,9 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 		// The parameter index equals the target descriptor set space.
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
 		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().space(), targetGpuHandle);
+
+		// Store the updated offset.
+		m_impl->m_bufferOffset = bufferOffset + buffers;
 	}
 
 	if (samplers > 0)
@@ -260,11 +268,10 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 		// The parameter index equals the target descriptor set space.
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), samplerOffset, m_impl->m_samplerDescriptorIncrement);
 		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().space(), targetGpuHandle);
-	}
 
-	// Store the offsets.
-	m_impl->m_bufferOffset = bufferOffset;
-	m_impl->m_samplerOffset = samplerOffset;
+		// Store the updated offset.
+		m_impl->m_samplerOffset = samplerOffset + samplers;
+	}
 }
 
 void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept
