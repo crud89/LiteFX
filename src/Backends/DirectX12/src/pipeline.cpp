@@ -39,10 +39,14 @@ public:
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		D3D12_RASTERIZER_DESC rasterizerState = {};
-		rasterizerState.DepthClipEnable = FALSE;
+		rasterizerState.DepthClipEnable = TRUE;
 		rasterizerState.FillMode = ::getPolygonMode(rasterizer.polygonMode());
 		rasterizerState.CullMode = ::getCullMode(rasterizer.cullMode());
 		rasterizerState.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise;
+		rasterizerState.MultisampleEnable = FALSE;
+		rasterizerState.AntialiasedLineEnable = FALSE;
+		rasterizerState.ForcedSampleCount = 0;
+		rasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
 		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
 
@@ -119,11 +123,21 @@ public:
 
 				// Setup depth/stencil state.
 				// TODO: From depth/stencil state.
-				D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 				depthStencilState.DepthEnable = ::hasDepth(renderTarget.format());
-				depthStencilState.StencilEnable = ::hasStencil(renderTarget.format());
 				depthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL;
-				depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
+				depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+				depthStencilState.StencilEnable = ::hasStencil(renderTarget.format());
+				depthStencilState.StencilReadMask = 0xFF;
+				depthStencilState.StencilWriteMask = 0xFF;
+				depthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+				depthStencilState.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+				depthStencilState.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+				depthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+				depthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+				depthStencilState.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+				depthStencilState.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+				depthStencilState.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
 			}
 			else
 			{
@@ -137,7 +151,6 @@ public:
 				targetBlendState.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
 				targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
 				targetBlendState.LogicOpEnable = FALSE;
-
 			}
 		});
 
@@ -154,19 +167,24 @@ public:
 			switch (shaderModule->type())
 			{
 			case ShaderStage::Vertex:
-				pipelineStateDescription.VS = shaderModule->bytecode();
+				pipelineStateDescription.VS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
+				pipelineStateDescription.VS.BytecodeLength = shaderModule->handle()->GetBufferSize();
 				break;
 			case ShaderStage::TessellationControl:		// aka. Hull Shader
-				pipelineStateDescription.HS = shaderModule->bytecode();
+				pipelineStateDescription.HS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
+				pipelineStateDescription.HS.BytecodeLength = shaderModule->handle()->GetBufferSize();
 				break;
 			case ShaderStage::TessellationEvaluation:	// aka. Domain Shader
-				pipelineStateDescription.DS = shaderModule->bytecode();
+				pipelineStateDescription.DS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
+				pipelineStateDescription.DS.BytecodeLength = shaderModule->handle()->GetBufferSize();
 				break;
 			case ShaderStage::Geometry:
-				pipelineStateDescription.GS = shaderModule->bytecode();
+				pipelineStateDescription.GS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
+				pipelineStateDescription.GS.BytecodeLength = shaderModule->handle()->GetBufferSize();
 				break;
 			case ShaderStage::Fragment:
-				pipelineStateDescription.PS = shaderModule->bytecode();
+				pipelineStateDescription.PS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
+				pipelineStateDescription.PS.BytecodeLength = shaderModule->handle()->GetBufferSize();
 				break;
 			default:
 				throw InvalidArgumentException("Trying to bind shader to unsupported shader stage '{0}'.", shaderModule->type());
