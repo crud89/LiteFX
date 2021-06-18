@@ -27,7 +27,7 @@ typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
 class SampleApp : public LiteFX::App {
 public:
-	static String name() noexcept { return "LiteFX Sample: Basic Rendering"; }
+	static String name() noexcept { return "LiteFX Sample: Vulkan Basic Rendering"; }
 	String getName() const noexcept override { return name(); }
 
 	static AppVersion version() noexcept { return AppVersion(1, 0, 0, 0); }
