@@ -29,6 +29,8 @@ SET(BUILD_GLSLC_COMPILER ${BUILD_GLSLC_DIR}/glslc)
 SET(BUILD_DXC_DIR $ENV{VULKAN_SDK}/bin CACHE STRING "A directory that contains the `dxc.exe` file.")
 SET(BUILD_DXC_COMPILER ${BUILD_DXC_DIR}/dxc)
 
+SET(BUILD_HLSL_SHADER_MODEL "6_3" CACHE STRING "Shader model version used to compile HLSL shaders.")
+
 OPTION(BUILD_PRECOMPILED_HEADERS "Use pre-compiled headers during build." OFF)
 
 SET(BUILD_ENGINE_IDENTIFIER "LiteFX" CACHE STRING "Defines the engine identifier string.")
