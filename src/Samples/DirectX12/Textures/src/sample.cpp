@@ -7,7 +7,8 @@
 enum DescriptorSets : UInt32
 {
     Constant = 0,                                       // All buffers that are immutable.
-    PerFrame = 1,                                       // All buffers that are updated each frame.
+    Samplers = 1,                                       // All samplers that are immutable.
+    PerFrame = 2,                                       // All buffers that are updated each frame.
 };
 
 enum Pipelines : UInt32
@@ -42,7 +43,7 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::initRenderGraph()
 {
     m_renderPass = m_device->buildRenderPass()
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, true)
         .go();
 }
 
@@ -53,15 +54,17 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/textures.vert.spv")
-                .addFragmentShaderModule("shaders/textures.frag.spv")
+                .addVertexShaderModule("shaders/textures.vert.dxi")
+                .addFragmentShaderModule("shaders/textures.frag.dxi")
                 .go()
-            .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment, 1)
+            .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
                 .addUniform(0, sizeof(CameraBuffer))
                 .addImage(1)
-                .addSampler(2)
                 .go()
-            .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex, 3)
+            .addDescriptorSet(DescriptorSets::Samplers, ShaderStage::Vertex | ShaderStage::Fragment)
+                .addSampler(0)
+                .go()
+            .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
                 .addUniform(0, sizeof(TransformBuffer))
                 .go()
             .go()
@@ -75,9 +78,9 @@ void SampleApp::initPipelines()
             .withTopology(PrimitiveTopology::TriangleList)
             .withIndexType(IndexType::UInt16)
             .addVertexBuffer(sizeof(Vertex), 0)
-                .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-                .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0))
+                .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+                .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
+                .addAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0), AttributeSemantic::TextureCoordinate)
                 .go()
             .go()
         .go();
@@ -111,10 +114,12 @@ void SampleApp::initBuffers()
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& constantBindingLayout = m_pipeline->layout().layout(DescriptorSets::Constant);
+    auto& samplerBindingLayout = m_pipeline->layout().layout(DescriptorSets::Samplers);
     m_cameraStagingBuffer = m_device->factory().createConstantBuffer(constantBindingLayout.layout(0), BufferUsage::Staging, 1);
     m_cameraBuffer = m_device->factory().createConstantBuffer(constantBindingLayout.layout(0), BufferUsage::Resource, 1);
 
     // Allocate the descriptor set and bind the camera buffer to it.
+    m_samplerBindings = samplerBindingLayout.allocate();
     m_constantBindings = constantBindingLayout.allocate();
     m_constantBindings->update(*m_cameraBuffer, 0);
 
@@ -129,7 +134,7 @@ void SampleApp::initBuffers()
     auto& transformBindingLayout = m_pipeline->layout().layout(DescriptorSets::PerFrame);
     m_perFrameBindings = transformBindingLayout.allocate(3);
     m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
-    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
+    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
 
     // End and submit the command buffer.
     commandBuffer->end(true, true);
@@ -165,54 +170,45 @@ void SampleApp::loadTexture()
     commandBuffer->end(true, true);
 
     // Create a sampler state for the texture.
-    m_sampler = m_constantBindings->makeSampler(2);
+    m_sampler = m_samplerBindings->makeSampler(0);
 
     // Update the descriptor set.
     m_constantBindings->update(*m_texture);
-    m_constantBindings->update(*m_sampler);
+    m_samplerBindings->update(*m_sampler);
 }
 
-void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
+void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
     glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
-    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer.get());
 }
 
-void SampleApp::run() 
+void SampleApp::run()
 {
-    // Store the window handle.
-    auto window = m_window.get();
-
     // Start by creating the surface and selecting the adapter.
-    auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
+    auto backend = this->findBackend<DirectX12Backend>(BackendType::Rendering);
     auto adapter = backend->findAdapter(m_adapterId);
 
     if (adapter == nullptr)
         adapter = backend->findAdapter(std::nullopt);
 
-    auto surface = backend->createSurface([&window](const VkInstance& instance) {
-        VkSurfaceKHR surface;
-        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
-
-        return surface;
-    });
+    auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(m_window.get()));
 
     // Get the proper frame buffer size.
     int width, height;
-    ::glfwGetFramebufferSize(window, &width, &height);
+    ::glfwGetFramebufferSize(m_window.get(), &width, &height);
 
     // Create viewport and scissors.
     m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+    m_device = backend->createDevice(*adapter, *surface, *backend, Format::B8G8R8A8_UNORM, Size2d(width, height), 3);
 
     // Initialize resources.
     this->initRenderGraph();
@@ -253,7 +249,7 @@ void SampleApp::run()
 void SampleApp::initialize()
 {
     ::glfwSetWindowUserPointer(m_window.get(), this);
-    ::glfwSetFramebufferSizeCallback(m_window.get(), ::onResize); 
+    ::glfwSetFramebufferSizeCallback(m_window.get(), ::onResize);
 }
 
 void SampleApp::resize(int width, int height)
