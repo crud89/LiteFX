@@ -196,6 +196,7 @@ public:
 		pipelineStateDescription.PrimitiveTopologyType = topologyType;
 		pipelineStateDescription.InputLayout = inputLayout;
 		pipelineStateDescription.SampleDesc = multisamplingState;
+		pipelineStateDescription.SampleMask = std::numeric_limits<UInt32>::max();
 		pipelineStateDescription.BlendState = blendState;
 		pipelineStateDescription.DepthStencilState = depthStencilState;
 		pipelineStateDescription.pRootSignature = std::as_const(*m_layout).handle().Get();
