@@ -141,6 +141,13 @@ namespace LiteFX::Rendering::Backends {
     LPCTSTR LITEFX_DIRECTX12_API getSemanticName(const AttributeSemantic& semantic);
 
     /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="vendorId"></param>
+    /// <returns></returns>
+    String LITEFX_DIRECTX12_API getVendorName(const UInt32& vendorId);
+
+    /// <summary>
     /// Implements a DirectX12 <see cref="IGraphicsAdapter" />.
     /// </summary>
     class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter : public IGraphicsAdapter, public ComResource<IDXGIAdapter4> {

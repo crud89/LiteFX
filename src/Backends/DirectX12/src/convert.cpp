@@ -484,3 +484,23 @@ LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getSemanticName(const 
 		throw InvalidArgumentException("Unsupported semantic {0}.", static_cast<UInt32>(semantic));
 	}
 }
+
+String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getVendorName(const UInt32& vendorId)
+{
+	switch (vendorId)
+	{
+	case 0x10001: return "VIV";
+	case 0x10002: return "VSI";
+	case 0x10003: return "KAZAN";
+	case 0x10004: return "CODEPLAY";
+	case 0x10005: return "MESA";
+	case 0x10006: return "POCL";
+	case 0x1002: return "AMD";
+	case 0x10DE: return "NVidia";
+	case 0x8086: return "Intel";
+	case 0x1010: return "ImgTec";
+	case 0x13B5: return "ARM";
+	case 0x5143: return "Qualcomm";
+	default: return "Unknown";
+	}
+}
