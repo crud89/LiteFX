@@ -477,7 +477,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX12 <see cref="IShaderModule" />.
 	/// </summary>
 	/// <seealso cref="DirectX12ShaderProgram" />
-	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public virtual DirectX12RuntimeObject<DirectX12Device>, public IShaderModule {
+	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public virtual DirectX12RuntimeObject<DirectX12Device>, public IShaderModule, public ComResource<ID3DBlob> {
 		LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
 
 	public:
@@ -503,10 +503,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const ShaderStage& type() const noexcept override;
-
-		// DirectX12 Shader module.
-	public:
-		virtual const D3D12_SHADER_BYTECODE& bytecode() const noexcept;
 	};
 
 	/// <summary>
@@ -768,7 +764,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="depthBiasClamp">The clamp value of the depth bias state.</param>
 		/// <param name="depthBiasConstantFactor">The constant factor of the depth bias state.</param>
 		/// <param name="depthBiasSlopeFactor">The slope factor of the depth bias state.</param>
-		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept;
+		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP, const Float& depthBiasConstantFactor = D3D12_DEFAULT_DEPTH_BIAS, const Float& depthBiasSlopeFactor = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS) noexcept;
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
