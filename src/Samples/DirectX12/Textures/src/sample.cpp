@@ -152,7 +152,7 @@ void SampleApp::loadTexture()
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
     // Create the texture from the constant buffer descriptor set, since we only load the texture once and use it for all frames.
-    m_texture = m_constantBindings->makeTexture(1, Format::R8G8B8A8_SRGB, Size2d(width, height));
+    m_texture = m_constantBindings->makeTexture(1, Format::R8G8B8A8_UNORM, Size2d(width, height));
 
     // Create a staging buffer for the texture.
     auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->size());
@@ -309,6 +309,7 @@ void SampleApp::drawFrame()
 
     // Bind both descriptor sets to the pipeline.
     m_pipeline->bind(*m_constantBindings);
+    m_pipeline->bind(*m_samplerBindings);
     m_pipeline->bind(*m_perFrameBindings[backBuffer]);
 
     // Bind the vertex and index buffers.
