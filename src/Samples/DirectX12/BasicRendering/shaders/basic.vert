@@ -8,10 +8,7 @@ struct VertexData
 
 struct VertexInput
 {
-    //[[vk::location(0)]] 
     float3 Position : POSITION;
-    
-    //[[vk::location(1)]]
     float4 Color : COLOR;
 };
 
