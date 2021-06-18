@@ -182,7 +182,7 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
             D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
 
         D3D12_RENDER_PASS_RENDER_TARGET_DESC renderTargetDesc{ renderTargetView, beginAccess, endAccess };
-        renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
+        renderTargetView = renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
 
         return renderTargetDesc;
     }) | ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
@@ -194,11 +194,33 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
         frameBuffer->commandBuffer().handle()->BeginRenderPass(renderTargets.size(), renderTargets.data(), nullptr, D3D12_RENDER_PASS_FLAG_NONE);
     else
     {
-        // Depth/Stencil requires NO_ACCESS.
+        CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(m_impl->m_depthStencilTarget->format()), m_impl->m_depthStencilTarget->clearValues().x(), static_cast<Byte>(m_impl->m_depthStencilTarget->clearValues().y()) };
+
+        D3D12_RENDER_PASS_ENDING_ACCESS depthEndAccess, stencilEndAccess;
+        D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess = m_impl->m_depthStencilTarget->clearBuffer() && ::hasDepth(m_impl->m_depthStencilTarget->format()) ?
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
+
+        D3D12_RENDER_PASS_BEGINNING_ACCESS stencilBeginAccess = m_impl->m_depthStencilTarget->clearStencil() && ::hasStencil(m_impl->m_depthStencilTarget->format()) ?
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
+
+        if (depthBeginAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS)
+            depthEndAccess = D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS, { } };
+        else
+            depthEndAccess = m_impl->m_depthStencilTarget->isVolatile() ?
+                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
+                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
+
+        if (stencilBeginAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS)
+            stencilEndAccess = D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS, { } };
+        else
+            stencilEndAccess = m_impl->m_depthStencilTarget->isVolatile() ?
+                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
+                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
+
         CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilView(frameBuffer->depthStencilTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->depthStencilTargetDescriptorSize());
-        D3D12_RENDER_PASS_BEGINNING_ACCESS depthStencilBeginAccess { D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
-        D3D12_RENDER_PASS_ENDING_ACCESS depthStencilEndAccess { D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS, {} };
-        D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc{ depthStencilView, depthStencilBeginAccess, depthStencilBeginAccess, depthStencilEndAccess, depthStencilEndAccess };
+        D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc{ depthStencilView, depthBeginAccess, stencilBeginAccess, depthEndAccess, stencilEndAccess };
 
         frameBuffer->commandBuffer().handle()->BeginRenderPass(renderTargets.size(), renderTargets.data(), &depthStencilDesc, D3D12_RENDER_PASS_FLAG_NONE);
     }
