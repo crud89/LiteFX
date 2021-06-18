@@ -1,12 +1,12 @@
 #pragma once
 
 #include <litefx/litefx.h>
-#include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/dx12.hpp>
 
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32
 #else 
-#  pragma message ("Deferred Shading Sample: No supported surface platform detected.")
+#  pragma message ("Basic Rendering Sample: No supported surface platform detected.")
 #endif
 
 #include <GLFW/glfw3.h>
@@ -27,7 +27,7 @@ typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
 class SampleApp : public LiteFX::App {
 public:
-	static String name() noexcept { return "LiteFX Sample: Vulkan Deferred Rendering"; }
+	static String name() noexcept { return "LiteFX Sample: DirectX 12 Deferred Rendering"; }
 	String getName() const noexcept override { return name(); }
 
 	static AppVersion version() noexcept { return AppVersion(1, 0, 0, 0); }
@@ -47,32 +47,32 @@ private:
 	/// <summary>
 	/// Stores the main device instance.
 	/// </summary>
-	UniquePtr<VulkanDevice> m_device;
+	UniquePtr<DirectX12Device> m_device;
 
 	/// <summary>
 	/// Stores the only geometry pass.
 	/// </summary>
-	UniquePtr<VulkanRenderPass> m_geometryPass;
+	UniquePtr<DirectX12RenderPass> m_geometryPass;
 
 	/// <summary>
 	/// Stores the only render pipeline of the geometry pass.
 	/// </summary>
-	UniquePtr<VulkanRenderPipeline> m_geometryPipeline;
+	UniquePtr<DirectX12RenderPipeline> m_geometryPipeline;
 
 	/// <summary>
 	/// Stores the deferred lighting pass.
 	/// </summary>
-	UniquePtr<VulkanRenderPass> m_lightingPass;
+	UniquePtr<DirectX12RenderPass> m_lightingPass;
 
 	/// <summary>
 	/// Stores the only render pipeline of the lighting pass.
 	/// </summary>
-	UniquePtr<VulkanRenderPipeline> m_lightingPipeline;
+	UniquePtr<DirectX12RenderPipeline> m_lightingPipeline;
 
 	/// <summary>
 	/// Stores a reference of the input assembler state.
 	/// </summary>
-	SharedPtr<VulkanInputAssembler> m_inputAssembler;
+	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 
 	/// <summary>
 	/// Stores the viewport.
@@ -87,47 +87,47 @@ private:
 	/// <summary>
 	/// Stores the vertex buffer for the quad rendered in this sample.
 	/// </summary>
-	UniquePtr<IVulkanVertexBuffer> m_vertexBuffer;
+	UniquePtr<IDirectX12VertexBuffer> m_vertexBuffer;
 
 	/// <summary>
 	/// Stores the index buffer for the quad rendered in this sample.
 	/// </summary>
-	UniquePtr<IVulkanIndexBuffer> m_indexBuffer;
+	UniquePtr<IDirectX12IndexBuffer> m_indexBuffer;
 
 	/// <summary>
 	/// Stores the vertex buffer for the view plane.
 	/// </summary>
-	UniquePtr<IVulkanVertexBuffer> m_viewPlaneVertexBuffer;
+	UniquePtr<IDirectX12VertexBuffer> m_viewPlaneVertexBuffer;
 
 	/// <summary>
 	/// Stores the index buffer for the view plane.
 	/// </summary>
-	UniquePtr<IVulkanIndexBuffer> m_viewPlaneIndexBuffer;
+	UniquePtr<IDirectX12IndexBuffer> m_viewPlaneIndexBuffer;
 
 	/// <summary>
 	/// Stores the buffer that contains the camera information. Since the camera is static, we only need one (immutable) buffer for it, so the buffer will only contain one element.
 	/// </summary>
-	UniquePtr<IVulkanConstantBuffer> m_cameraBuffer, m_cameraStagingBuffer;
+	UniquePtr<IDirectX12ConstantBuffer> m_cameraBuffer, m_cameraStagingBuffer;
 
 	/// <summary>
 	/// Stores the buffer that holds the object transform. The buffer will contain three elements, since we have three frames in flight.
 	/// </summary>
-	UniquePtr<IVulkanConstantBuffer> m_transformBuffer;
+	UniquePtr<IDirectX12ConstantBuffer> m_transformBuffer;
 
 	/// <summary>
 	/// Stores the bindings to the transform buffer.
 	/// </summary>
-	Array<UniquePtr<VulkanDescriptorSet>> m_perFrameBindings;
+	Array<UniquePtr<DirectX12DescriptorSet>> m_perFrameBindings;
 
 	/// <summary>
 	/// Stores the binding for the camera buffer.
 	/// </summary>
-	UniquePtr<VulkanDescriptorSet> m_cameraBindings;
-	
+	UniquePtr<DirectX12DescriptorSet> m_cameraBindings;
+
 	/// <summary>
 	/// Stores the G-Buffer bindings.
 	/// </summary>
-	Array<UniquePtr<VulkanDescriptorSet>> m_gBufferBindings;
+	Array<UniquePtr<DirectX12DescriptorSet>> m_gBufferBindings;
 
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
@@ -155,7 +155,7 @@ private:
 	/// <summary>
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>
-	void updateCamera(const VulkanCommandBuffer& commandBuffer);
+	void updateCamera(const DirectX12CommandBuffer& commandBuffer);
 
 public:
 	virtual void run() override;
