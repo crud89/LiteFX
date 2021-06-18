@@ -11,6 +11,10 @@ IF(BUILD_WITH_GLM)
     FIND_PACKAGE(glm CONFIG REQUIRED)
 ENDIF(BUILD_WITH_GLM)
 
+IF(BUILD_WITH_DIRECTX_MATH)
+    FIND_PACKAGE(directxmath CONFIG REQUIRED)
+ENDIF(BUILD_WITH_DIRECTX_MATH)
+
 # Collect header & source files.
 SET(VULKAN_MATH_HEADERS
     "include/litefx/vector.hpp"
@@ -51,7 +55,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core $<$<BOOL:BUILD_WITH_GLM>:glm::glm>
+    PUBLIC LiteFX.Core $<$<BOOL:BUILD_WITH_GLM>:glm::glm> $<$<BOOL:BUILD_WITH_DIRECTX_MATH>:Microsoft::DirectXMath> 
 )
 
 # Re-use pre-compiled core header.

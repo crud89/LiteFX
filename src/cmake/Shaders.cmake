@@ -29,33 +29,33 @@ FUNCTION(DXC_COMPILE_DXIL shader_file file_out)
   SET(shader_profile "")
 
   IF(${shader_type} STREQUAL ".comp")
-    SET(shader_profile "cs_6_3")
+    SET(shader_profile "cs_${BUILD_HLSL_SHADER_MODEL}")
   
   ELSEIF(${shader_type} STREQUAL ".vert")
-    SET(shader_profile "vs_6_3")
+    SET(shader_profile "vs_${BUILD_HLSL_SHADER_MODEL}")
 
   #ELSEIF(${shader_type} STREQUAL ".geom")
-  #  SET(shader_profile "gs_6_3")
+  #  SET(shader_profile "gs_${BUILD_HLSL_SHADER_MODEL}")
   
   #ELSEIF(${shader_type} STREQUAL ".tesc")
-  #  SET(shader_profile "hs_6_3")
+  #  SET(shader_profile "hs_${BUILD_HLSL_SHADER_MODEL}")
 
   #ELSEIF(${shader_type} STREQUAL ".tese")
-  #  SET(shader_profile "ds_6_3")
+  #  SET(shader_profile "ds_${BUILD_HLSL_SHADER_MODEL}")
   
   ELSEIF(${shader_type} STREQUAL ".frag")
-    SET(shader_profile "ps_6_3")
+    SET(shader_profile "ps_${BUILD_HLSL_SHADER_MODEL}")
 
   #ELSEIF(${shader_type} STREQUAL ".slib")
-  #  SET(shader_profile "lib_6_3")
+  #  SET(shader_profile "lib_${BUILD_HLSL_SHADER_MODEL}")
   ENDIF(${shader_type} STREQUAL ".comp")
   
   SET(compiler_options "")
 
   IF (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    LIST(APPEND compiler_options -Fd ${file_out}.pdb -Zi)
+    LIST(APPEND compiler_options -Zi -Qembed_debug)
   ELSE()
-    LIST(APPEND compiler_options -Vd)
+    LIST(APPEND compiler_options -Vd -Qstrip_debug)
   ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 
   LIST(APPEND compiler_options -D DXIL)
@@ -72,25 +72,25 @@ FUNCTION(DXC_COMPILE_SPIRV shader_file file_out)
   GET_FILENAME_COMPONENT(shader_type ${file_in} LAST_EXT)
 
   IF(${shader_type} STREQUAL ".comp")
-    SET(shader_profile "cs_6_3")
+    SET(shader_profile "cs_${BUILD_HLSL_SHADER_MODEL}")
   
   ELSEIF(${shader_type} STREQUAL ".vert")
-    SET(shader_profile "vs_6_3")
+    SET(shader_profile "vs_${BUILD_HLSL_SHADER_MODEL}")
 
   #ELSEIF(${shader_type} STREQUAL ".geom")
-  #  SET(shader_profile "gs_6_3")
+  #  SET(shader_profile "gs_${BUILD_HLSL_SHADER_MODEL}")
   
   #ELSEIF(${shader_type} STREQUAL ".tesc")
-  #  SET(shader_profile "hs_6_3")
+  #  SET(shader_profile "hs_${BUILD_HLSL_SHADER_MODEL}")
 
   #ELSEIF(${shader_type} STREQUAL ".tese")
-  #  SET(shader_profile "ds_6_3")
+  #  SET(shader_profile "ds_${BUILD_HLSL_SHADER_MODEL}")
   
   ELSEIF(${shader_type} STREQUAL ".frag")
-    SET(shader_profile "ps_6_3")
+    SET(shader_profile "ps_${BUILD_HLSL_SHADER_MODEL}")
 
   #ELSEIF(${shader_type} STREQUAL ".slib")
-  #  SET(shader_profile "lib_6_3")
+  #  SET(shader_profile "lib_${BUILD_HLSL_SHADER_MODEL}")
   ENDIF(${shader_type} STREQUAL ".comp")
 
   SET(compiler_options "")

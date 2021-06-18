@@ -4,6 +4,10 @@
 
 using namespace LiteFX::Logging;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class RollingFileSink::RollingFileSinkImpl : public Implement<RollingFileSink> {
 public:
     friend class RollingFileSink;
@@ -24,6 +28,10 @@ public:
         m_sink->set_pattern(pattern);
     }
 };
+
+// ------------------------------------------------------------------------------------------------
+// Shared interface.
+// ------------------------------------------------------------------------------------------------
 
 RollingFileSink::RollingFileSink(const String& fileName, const LogLevel& level, const String& pattern, const bool& truncate, const int& maxFiles) :
     m_impl(makePimpl<RollingFileSinkImpl>(this, level, fileName, pattern, truncate, maxFiles))

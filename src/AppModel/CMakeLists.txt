@@ -16,7 +16,6 @@ SET(APP_MODEL_HEADERS
 SET(APP_MODEL_SOURCES
     "src/app.cpp"
     "src/appversion.cpp"
-    "src/app_builder.cpp"
  )
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED

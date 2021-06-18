@@ -7,34 +7,20 @@
 PROJECT(LiteFX.Rendering VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
-IF(BUILD_WITH_GLM)
-    FIND_PACKAGE(glm CONFIG REQUIRED)
-ENDIF(BUILD_WITH_GLM)
-
 # Collect header & source files.
 SET(RENDERING_HEADERS
     "include/litefx/rendering_api.hpp"
     "include/litefx/rendering_formatters.hpp"
-    "include/litefx/rendering_pipelines.hpp"
     "include/litefx/rendering.hpp"
 )
 
 SET(RENDERING_SOURCES
-    "src/backend.cpp"
-    "src/device.cpp"
+    "src/convert.cpp"
     "src/buffer_attribute.cpp"
-    "src/pipeline_layout.cpp"
-    "src/input_assembler.cpp"
     "src/rasterizer.cpp"
     "src/viewport.cpp"
+    "src/scissor.cpp"
     "src/render_target.cpp"
-    "src/buffer.cpp"
-    "src/vertex_buffer.cpp"
-    "src/index_buffer.cpp"
-    "src/constant_buffer.cpp"
-    "src/image.cpp"
-    "src/texture.cpp"
-    "src/sampler.cpp"
 )
 
 # Add shared library project.
@@ -64,7 +50,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Graphics LiteFX.AppModel LiteFX.Logging $<$<BOOL:BUILD_WITH_GLM>:glm::glm>
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Graphics LiteFX.AppModel LiteFX.Logging
 )
 
 # Re-use pre-compiled core header.

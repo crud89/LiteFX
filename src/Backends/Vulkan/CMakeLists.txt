@@ -8,16 +8,12 @@ PROJECT(LiteFX.Backends.Vulkan VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 # Resolve package dependencies.
-FIND_PACKAGE(glm CONFIG REQUIRED)
-FIND_PACKAGE(glad CONFIG REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
 FIND_PACKAGE(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 
 # Collect header & source files.
 SET(VULKAN_BACKEND_HEADERS
     "include/litefx/backends/vulkan_api.hpp"
-    "include/litefx/backends/vulkan_platform.hpp"
-    "include/litefx/backends/vulkan_builders.hpp"
     "include/litefx/backends/vulkan_formatters.hpp"
     "include/litefx/backends/vulkan.hpp"
 )
@@ -26,31 +22,32 @@ SET(VULKAN_BACKEND_SOURCES
     "src/buffer.h"
     "src/image.h"
 
-    "src/runtime_object.cpp"
     "src/convert.cpp"
     "src/backend.cpp"
     "src/adaper.cpp"
     "src/device.cpp"
+    "src/factory.cpp"
     "src/queue.cpp"
     "src/surface.cpp"
     "src/swapchain.cpp"
+    "src/frame_buffer.cpp"
+    "src/input_attachment_mapping.cpp"
+    "src/render_pass.cpp"
+    "src/pipeline.cpp"
+
     "src/shader_module.cpp"
     "src/shader_program.cpp"
-    "src/pipeline.cpp"
     "src/pipeline_layout.cpp"
     "src/rasterizer.cpp"
-    "src/viewport.cpp"
     "src/input_assembler.cpp"
-    "src/render_pass.cpp"
     "src/command_buffer.cpp"
-    "src/vertex_buffer.cpp"
-    "src/index_buffer.cpp"
-    "src/constant_buffer.cpp"
-    "src/descriptor_set.cpp"
+    "src/vertex_buffer_layout.cpp"
+    "src/index_buffer_layout.cpp"
     "src/descriptor_layout.cpp"
+    "src/descriptor_set.cpp"
+    "src/descriptor_set_layout.cpp"
     "src/buffer.cpp"
     "src/image.cpp"
-    "src/sampler.cpp"
 )
 
 # Add shared library project.
@@ -80,9 +77,9 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel
-    PRIVATE glm::glm glad::glad Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
 )
+
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)

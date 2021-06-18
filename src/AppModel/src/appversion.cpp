@@ -2,6 +2,10 @@
 
 using namespace LiteFX;
 
+// ------------------------------------------------------------------------------------------------
+// Implementation.
+// ------------------------------------------------------------------------------------------------
+
 class AppVersion::AppVersionImpl : public Implement<AppVersion> {
 public:
 	friend class AppVersion;
@@ -10,9 +14,15 @@ private:
 	int m_major, m_minor, m_patch, m_revision;
 
 public:
-	AppVersionImpl::AppVersionImpl(AppVersion* parent, int major, int minor, int patch, int revision) : 
-		base(parent), m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) { }
+	AppVersionImpl(AppVersion* parent, int major, int minor, int patch, int revision) : 
+		base(parent), m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) 
+	{
+	}
 };
+
+// ------------------------------------------------------------------------------------------------
+// Shared interface.
+// ------------------------------------------------------------------------------------------------
 
 AppVersion::AppVersion(int major, int minor, int patch, int revision) noexcept :
 	m_impl(makePimpl<AppVersionImpl>(this, major, minor, patch, revision))

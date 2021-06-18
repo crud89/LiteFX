@@ -11,37 +11,46 @@ public:
 	friend class VulkanQueue;
 
 private:
-	const VulkanDevice* m_device{ nullptr };
 	VkCommandPool m_commandPool{};
 	QueueType m_type;
-	uint32_t m_id;
+	QueuePriority m_priority;
+	UInt32 m_familyId, m_queueId;
+	bool m_bound;
 
 public:
-	VulkanQueueImpl(VulkanQueue* parent, const QueueType& type, const uint32_t id) :
-		base(parent), m_type(type), m_id(id) { }
+	VulkanQueueImpl(VulkanQueue* parent, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_bound(false)
+	{
+	}
 
 	~VulkanQueueImpl()
 	{
 		this->release();
 	}
 
-private:
+public:
 	void release()
 	{
-		if (m_device != nullptr)
-			::vkDestroyCommandPool(m_device->handle(), m_commandPool, nullptr);
+		if (m_bound)
+			::vkDestroyCommandPool(m_parent->getDevice()->handle(), m_commandPool, nullptr);
 
-		m_device = nullptr;
+		m_bound = false;
 		m_commandPool = {};
 	}
 
-public:
-	void bindDevice(const VulkanDevice* device)
+	void bind()
 	{
+		if (m_bound)
+			return;
+
+		// Store the queue handle, if not done in previous binds.
+		if (m_parent->handle() == nullptr)
+			::vkGetDeviceQueue(m_parent->getDevice()->handle(), m_familyId, m_queueId, &m_parent->handle());
+
 		// Create command pool.
 		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.queueFamilyIndex = m_id;
+		poolInfo.queueFamilyIndex = m_familyId;
 
 		// Transfer pools can be transient.
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -49,12 +58,9 @@ public:
 		if (m_type == QueueType::Transfer)
 			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-		if (::vkCreateCommandPool(device->handle(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
-			throw std::runtime_error("Unable to create command pool.");
+		raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
 
-		::vkGetDeviceQueue(device->handle(), m_id, 0, &m_parent->handle());
-
-		m_device = device;
+		m_bound = true;
 	}
 };
 
@@ -62,25 +68,46 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanQueue::VulkanQueue(const QueueType& type, const uint32_t id) :
-	IResource(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, type, id))
+VulkanQueue::VulkanQueue(const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+	Resource<VkQueue>(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanQueueImpl>(this, type, priority, familyId, queueId))
 {
 }
 
 VulkanQueue::~VulkanQueue() noexcept = default;
 
-void VulkanQueue::bindDevice(const IGraphicsDevice* d)
+const VkCommandPool& VulkanQueue::commandPool() const noexcept
 {
-	auto device = dynamic_cast<const VulkanDevice*>(d);
+	return m_impl->m_commandPool;
+}
 
-	if (device == nullptr)
-		throw std::invalid_argument("The argument `device` is not initialized.");
-	
-	if (this->handle() != nullptr)
-		throw std::runtime_error("The queue is already bound to a device.");
+const UInt32& VulkanQueue::familyId() const noexcept
+{
+	return m_impl->m_familyId;
+}
 
-	LITEFX_TRACE(VULKAN_LOG, "Initializing device queue for device {0} {{ Id: {1}, Type: {2} }}...", fmt::ptr(device), this->getId(), this->getType());
-	m_impl->bindDevice(device);
+const UInt32& VulkanQueue::queueId() const noexcept
+{
+	return m_impl->m_queueId;
+}
+
+bool VulkanQueue::isBound() const noexcept
+{
+	return m_impl->m_bound;
+}
+
+const QueueType& VulkanQueue::type() const noexcept
+{
+	return m_impl->m_type;
+}
+
+const QueuePriority& VulkanQueue::priority() const noexcept
+{
+	return m_impl->m_priority;
+}
+
+void VulkanQueue::bind()
+{
+	m_impl->bind();
 }
 
 void VulkanQueue::release()
@@ -88,27 +115,7 @@ void VulkanQueue::release()
 	m_impl->release();
 }
 
-uint32_t VulkanQueue::getId() const noexcept
+UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
 {
-	return m_impl->m_id;
-}
-
-VkCommandPool VulkanQueue::getCommandPool() const noexcept
-{
-	return m_impl->m_commandPool;
-}
-
-QueueType VulkanQueue::getType() const noexcept
-{
-	return m_impl->m_type;
-}
-
-const IGraphicsDevice* VulkanQueue::getDevice() const noexcept
-{
-	return m_impl->m_device;
-}
-
-UniquePtr<ICommandBuffer> VulkanQueue::createCommandBuffer() const
-{
-	return makeUnique<VulkanCommandBuffer>(this);
+	return makeUnique<VulkanCommandBuffer>(*this, beginRecording);
 }

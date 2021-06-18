@@ -27,13 +27,11 @@ namespace LiteFX {
 	enum class LITEFX_APPMODEL_API Platform {
 		None = 0x00000000,
 		Win32 = 0x00000001,
-		// TODO: ...
 		Other = 0x7FFFFFFF
 	};
 
 	enum class LITEFX_APPMODEL_API BackendType {
 		Rendering = 0x01,
-		//Physics = 0x02,
 		Other = 0xFF
 	};
 }

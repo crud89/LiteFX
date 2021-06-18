@@ -11,77 +11,13 @@ public:
     friend class VulkanGraphicsAdapter;
 
 private:
-    Array<UniquePtr<VulkanQueue>> m_queues;
+    VkPhysicalDeviceLimits m_limits;
 
 public:
-    VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : base(parent) 
+    VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : 
+        base(parent) 
     {
-        this->initialize();
-    }
-
-public:
-    void initialize()
-    {
-        // Find an available graphics queue.
-        uint32_t queueFamilies = 0;
-        ::vkGetPhysicalDeviceQueueFamilyProperties(m_parent->handle(), &queueFamilies, nullptr);
-
-        Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
-        Array<UniquePtr<VulkanQueue>> queues(queueFamilies);
-
-        ::vkGetPhysicalDeviceQueueFamilyProperties(m_parent->handle(), &queueFamilies, familyProperties.data());
-        std::generate(queues.begin(), queues.end(), [&familyProperties, i = 0]() mutable {
-            QueueType type = QueueType::None;
-            auto& familyProperty = familyProperties[i];
-
-            if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
-                type |= QueueType::Compute;
-            if (familyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                type |= QueueType::Graphics;
-            if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
-                type |= QueueType::Transfer;
-
-            return makeUnique<VulkanQueue>(type, i++);
-        });
-
-        m_queues = std::move(queues);
-    }
-
-public:
-    VulkanQueue* findQueue(const QueueType& type) const noexcept
-    {
-        decltype(m_queues)::const_iterator match;
-
-        // If a transfer queue is requested, look up for a queue that is explicitly *NOT* a graphics queue (since each queue implicitly supports transfer).
-        match = type == QueueType::Transfer ?
-            std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return queue->getDevice() == nullptr && (queue->getType() & QueueType::Graphics) == QueueType::None && (queue->getType() & type) == type; }) :
-            std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable { return queue->getDevice() == nullptr && (queue->getType() & type) == type; });
-
-        return match == m_queues.end() ? nullptr : match->get();
-    }
-
-    VulkanQueue* findQueue(const QueueType& type, const VulkanSurface* surface) const
-    {
-        if (surface == nullptr)
-            throw std::invalid_argument("The argument `surface` is not initialized.");
-
-        auto match = std::find_if(m_queues.begin(), m_queues.end(), [&](const UniquePtr<VulkanQueue>& queue) mutable {
-            if (queue->getDevice() != nullptr && (queue->getType() & type) != type)
-                return false;
-
-            VkBool32 canPresent = VK_FALSE;
-            ::vkGetPhysicalDeviceSurfaceSupportKHR(m_parent->handle(), queue->getId(), surface->handle(), &canPresent);
-
-            if (!canPresent)
-                return false;
-
-            return true;
-        });
-
-        if (match == m_queues.end())
-            return nullptr;
-
-        return match->get();
+        m_limits = this->getProperties().limits;
     }
 
 public:
@@ -107,7 +43,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
-	IResource(adapter), m_impl(makePimpl<VulkanGraphicsAdapterImpl>(this))
+	Resource<VkPhysicalDevice>(adapter), m_impl(makePimpl<VulkanGraphicsAdapterImpl>(this))
 {
 }
 
@@ -119,13 +55,13 @@ String VulkanGraphicsAdapter::getName() const noexcept
     return String(properties.deviceName);
 }
 
-uint32_t VulkanGraphicsAdapter::getVendorId() const noexcept
+UInt32 VulkanGraphicsAdapter::getVendorId() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.vendorID;
 }
 
-uint32_t VulkanGraphicsAdapter::getDeviceId() const noexcept
+UInt32 VulkanGraphicsAdapter::getDeviceId() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.deviceID;
@@ -148,44 +84,98 @@ GraphicsAdapterType VulkanGraphicsAdapter::getType() const noexcept
     }
 }
 
-uint32_t VulkanGraphicsAdapter::getDriverVersion() const noexcept
+UInt32 VulkanGraphicsAdapter::getDriverVersion() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.driverVersion;
 }
 
-uint32_t VulkanGraphicsAdapter::getApiVersion() const noexcept
+UInt32 VulkanGraphicsAdapter::getApiVersion() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.apiVersion;
 }
 
-uint32_t VulkanGraphicsAdapter::getDedicatedMemory() const noexcept
+VkPhysicalDeviceLimits VulkanGraphicsAdapter::getLimits() const noexcept
+{
+    return m_impl->m_limits;
+}
+
+UInt64 VulkanGraphicsAdapter::getDedicatedMemory() const noexcept
 {
     VkPhysicalDeviceMemoryProperties memoryProperties{};
     ::vkGetPhysicalDeviceMemoryProperties(this->handle(), &memoryProperties);
 
     auto memoryHeaps = memoryProperties.memoryHeaps;
-    auto heaps = std::vector<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
+    auto heaps = Array<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
 
-    for each (const auto& heap in heaps)
+    size_t heapSize = 0;
+
+    for (const auto& heap : heaps)
         if (LITEFX_FLAG_IS_SET(heap.flags, VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT))
-            return heap.size;
+            heapSize += heap.size;
 
-    return 0;
+    return heapSize;
 }
 
-ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType) const
+bool VulkanGraphicsAdapter::validateDeviceExtensions(Span<const String> extensions) const noexcept
 {
-    return m_impl->findQueue(queueType);
+    auto availableExtensions = this->getAvailableDeviceExtensions();
+
+    return std::ranges::all_of(extensions, [&availableExtensions](const auto& extension) {
+        auto match = std::ranges::find_if(availableExtensions, [&extension](const auto& str) {
+            return std::equal(str.begin(), str.end(), extension.begin(), extension.end(), [](char a, char b) {
+                return std::tolower(a) == std::tolower(b);
+            });
+        });
+
+        if (match == availableExtensions.end())
+            LITEFX_ERROR(VULKAN_LOG, "Extension {0} is not supported by this adapter.", extension);
+
+        return match != availableExtensions.end();
+    });
 }
 
-ICommandQueue* VulkanGraphicsAdapter::findQueue(const QueueType& queueType, const ISurface* surface) const
+Array<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const noexcept
 {
-    auto forSurface = dynamic_cast<const VulkanSurface*>(surface);
+    UInt32 extensions = 0;
+    ::vkEnumerateDeviceExtensionProperties(this->handle(), nullptr, &extensions, nullptr);
 
-    if (forSurface == nullptr)
-        throw std::invalid_argument("The provided surface is not a valid Vulkan surface.");
+    Array<VkExtensionProperties> availableExtensions(extensions);
+    ::vkEnumerateDeviceExtensionProperties(this->handle(), nullptr, &extensions, availableExtensions.data());
 
-    return m_impl->findQueue(queueType, forSurface);
+    return availableExtensions |
+        std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) |
+        ranges::to<Array<String>>();
+}
+
+bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const noexcept
+{
+    auto availableLayers = this->getDeviceValidationLayers();
+
+    return std::ranges::all_of(layers, [&availableLayers](const auto& layer) {
+        auto match = std::ranges::find_if(availableLayers, [&layer](const auto& str) {
+            return std::equal(str.begin(), str.end(), layer.begin(), layer.end(), [](char a, char b) {
+                return std::tolower(a) == std::tolower(b);
+            });
+        });
+
+        if (match == availableLayers.end())
+            LITEFX_ERROR(VULKAN_LOG, "Validation layer {0} is not supported by this adapter.", layer);
+
+        return match != availableLayers.end();
+    });
+}
+
+Array<String> VulkanGraphicsAdapter::getDeviceValidationLayers() const noexcept
+{
+    UInt32 layers = 0;
+    ::vkEnumerateDeviceLayerProperties(this->handle(), &layers, nullptr);
+
+    Array<VkLayerProperties> availableLayers(layers);
+    ::vkEnumerateDeviceLayerProperties(this->handle(), &layers, availableLayers.data());
+
+    return availableLayers |
+        std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) |
+        ranges::to<Array<String>>();
 }
