@@ -97,7 +97,15 @@ void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, cons
 
 void DirectX12DescriptorSet::update(const IDirectX12Texture& texture) const noexcept
 {
-    throw;
+    D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
+        .Format = ::getFormat(texture.format()),
+        .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+        .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+        .Texture2D = { .MostDetailedMip = 0, .MipLevels = texture.levels(), .PlaneSlice = 0, .ResourceMinLODClamp = 0 }
+    };
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), texture.layout().binding(), this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+    this->getDevice()->handle()->CreateShaderResourceView(texture.handle().Get(), &textureView, descriptorHandle);
 }
 
 void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler) const noexcept
@@ -116,7 +124,7 @@ void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler) const noex
     };
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), sampler.layout().binding(), this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
-    return this->getDevice()->handle()->CreateSampler(&samplerInfo, descriptorHandle);
+    this->getDevice()->handle()->CreateSampler(&samplerInfo, descriptorHandle);
 }
 
 void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const noexcept
