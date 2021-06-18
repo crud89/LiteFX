@@ -13,6 +13,9 @@ struct VertexInput
     
     //[[vk::location(1)]]
     float4 Color : COLOR;
+
+    //[[vk::location(2)]]
+    float2 TextureCoordinate : TEXCOORD0;
 };
 
 struct CameraData
