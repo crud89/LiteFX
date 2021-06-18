@@ -82,12 +82,12 @@ public:
             if (renderTarget.type() == RenderTargetType::DepthStencil)
             {
                 m_parent->getDevice()->handle()->CreateDepthStencilView(renderTargetView->handle().Get(), nullptr, depthStencilViewDescriptor);
-                depthStencilViewDescriptor.Offset(m_depthStencilDescriptorSize);
+                depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(m_depthStencilDescriptorSize);
             }
             else
             {
                 m_parent->getDevice()->handle()->CreateRenderTargetView(renderTargetView->handle().Get(), nullptr, renderTargetViewDescriptor);
-                renderTargetViewDescriptor.Offset(m_renderTargetDescriptorSize);
+                renderTargetViewDescriptor = renderTargetViewDescriptor.Offset(m_renderTargetDescriptorSize);
             }
 
             m_renderTargetViews.push_back(renderTargetView);
