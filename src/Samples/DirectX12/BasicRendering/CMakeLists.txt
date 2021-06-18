@@ -1,6 +1,6 @@
 ###################################################################################################
 #####                                                                                         #####
-#####       LiteFX.Samples.DX12.DXBasicRendering - Contains the basic rendering sample.       #####
+#####        LiteFX.Samples.DX12.BasicRendering - Contains the basic rendering sample.        #####
 #####                                                                                         #####
 ###################################################################################################
 
@@ -11,9 +11,9 @@ IF(NOT BUILD_DIRECTX_12_BACKEND)
     MESSAGE(FATAL_ERROR "This sample requires the DirectX 12 backend. Set the BUILD_DIRECTX_12_BACKEND option to ON and retry.")
 ENDIF(NOT BUILD_DIRECTX_12_BACKEND)
 
-IF(NOT BUILD_WITH_DIRECTX_MATH)
-    MESSAGE(FATAL_ERROR "This sample requires the DirectX Math converters for the math module. Set the BUILD_WITH_DIRECTX_MATH option to ON and retry.")
-ENDIF(NOT BUILD_WITH_DIRECTX_MATH)
+IF(NOT BUILD_WITH_GLM)
+    MESSAGE(FATAL_ERROR "This sample requires the glm converters for the math module. Set the BUILD_WITH_GLM option to ON and retry.")
+ENDIF(NOT BUILD_WITH_GLM)
 
 # Resolve package dependencies.
 FIND_PACKAGE(glfw3 CONFIG REQUIRED)
