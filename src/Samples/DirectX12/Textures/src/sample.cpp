@@ -227,6 +227,7 @@ void SampleApp::run()
 
     // Destroy all resources.
     m_constantBindings = nullptr;
+    m_samplerBindings = nullptr;
     m_perFrameBindings.clear();
     m_cameraBuffer = nullptr;
     m_cameraStagingBuffer = nullptr;
