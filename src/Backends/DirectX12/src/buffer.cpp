@@ -39,10 +39,10 @@ DirectX12Buffer::~DirectX12Buffer() noexcept = default;
 
 void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
-	if (source.elements() < sourceElement + elements)
+	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
-	if (this->elements() < targetElement + elements)
+	if (this->elements() < targetElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
 
 	commandBuffer.handle()->CopyBufferRegion(this->handle().Get(), targetElement * this->alignedElementSize(), source.handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
@@ -85,7 +85,7 @@ size_t DirectX12Buffer::alignedElementSize() const noexcept
 
 void DirectX12Buffer::map(const void* const data, const size_t& size, const UInt32& element)
 {
-	if (element >= m_impl->m_elements)
+	if (element >= m_impl->m_elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	size_t alignedSize = size;
@@ -121,7 +121,7 @@ D3D12_RESOURCE_STATES& DirectX12Buffer::state() noexcept
 
 D3D12_RESOURCE_BARRIER DirectX12Buffer::transitionTo(const D3D12_RESOURCE_STATES& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
-	if (m_impl->m_state == state)
+	if (m_impl->m_state == state) [[unlikely]]
 		throw InvalidArgumentException("The specified buffer state must be different from the current resource state.");
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), m_impl->m_state, state, element, flags);
