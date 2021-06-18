@@ -15,6 +15,8 @@ struct FragmentData
 [[vk::input_attachment_index(0)]] SubpassInput<float4> gDiffuse;
 [[vk::input_attachment_index(1)]] SubpassInput<float>  gDepth;
 #elif DXIL
+Texture2D gDiffuse : register(t0, space0);
+Texture2D gDepth : register(t1, space0);
 #endif
 
 FragmentData main(VertexData input)
@@ -24,7 +26,7 @@ FragmentData main(VertexData input)
 #ifdef SPIRV
     fragment.Color = gDiffuse.SubpassLoad();
 #elif DXIL
-    fragment.Color = float4(1.0, 1.0, 1.0, 1.0);
+    fragment.Color = gDiffuse[input.Position.xy].rgba;
 #endif  
     
     return fragment;
