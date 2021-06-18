@@ -153,4 +153,73 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns></returns>
 		static UniquePtr<DirectX12Texture> allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
+
+	/// <summary>
+	/// Implements a DirectX 12 <see cref="ISampler" />.
+	/// </summary>
+	class DirectX12Sampler : public DirectX12RuntimeObject<DirectX12Device>, public IDirectX12Sampler {
+		LITEFX_IMPLEMENTATION(DirectX12SamplerImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new sampler instance.
+		/// </summary>
+		/// <param name="device"></param>
+		/// <param name="layout"></param>
+		/// <param name="magFilter"></param>
+		/// <param name="minFilter"></param>
+		/// <param name="borderU"></param>
+		/// <param name="borderV"></param>
+		/// <param name="borderW"></param>
+		/// <param name="mipMapMode"></param>
+		/// <param name="mipMapBias"></param>
+		/// <param name="maxLod"></param>
+		/// <param name="minLod"></param>
+		/// <param name="anisotropy"></param>
+		explicit DirectX12Sampler(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f);
+		DirectX12Sampler(DirectX12Sampler&&) = delete;
+		DirectX12Sampler(const DirectX12Sampler&) = delete;
+		virtual ~DirectX12Sampler() noexcept;
+
+		// ISampler interface.
+	public:
+		/// <inheritdoc />
+		virtual const FilterMode& getMinifyingFilter() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const FilterMode& getMagnifyingFilter() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BorderMode& getBorderModeU() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BorderMode& getBorderModeV() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BorderMode& getBorderModeW() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Float& getAnisotropy() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const MipMapMode& getMipMapMode() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Float& getMipMapBias() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Float& getMaxLOD() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const Float& getMinLOD() const noexcept override;
+
+		// IBindable interface.
+	public:
+		virtual const UInt32& binding() const noexcept override;
+
+		// IDescriptor interface.
+	public:
+		/// <inheritdoc />
+		virtual const DirectX12DescriptorLayout& layout() const noexcept override;
+	};
 }

@@ -227,3 +227,98 @@ UniquePtr<DirectX12Texture> DirectX12Texture::allocate(const DirectX12Device& de
 
 	return makeUnique<DirectX12Texture>(device, layout, std::move(resource), extent, format, levels, samples, initialState, allocator, AllocationPtr(allocation));
 }
+
+// ------------------------------------------------------------------------------------------------
+// Sampler implementation.
+// ------------------------------------------------------------------------------------------------
+
+class DirectX12Sampler::DirectX12SamplerImpl : public Implement<DirectX12Sampler> {
+public:
+	friend class DirectX12Sampler;
+
+private:
+	const DirectX12DescriptorLayout& m_layout;
+	FilterMode m_magFilter, m_minFilter;
+	BorderMode m_borderU, m_borderV, m_borderW;
+	MipMapMode m_mipMapMode;
+	Float m_mipMapBias;
+	Float m_minLod, m_maxLod;
+	Float m_anisotropy;
+
+public:
+	DirectX12SamplerImpl(DirectX12Sampler* parent, const DirectX12DescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+		base(parent), m_layout(layout), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
+	{
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
+// Sampler shared interface.
+// ------------------------------------------------------------------------------------------------
+
+DirectX12Sampler::DirectX12Sampler(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+	DirectX12RuntimeObject<DirectX12Device>(device, &device), m_impl(makePimpl<DirectX12SamplerImpl>(this, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
+{
+}
+
+DirectX12Sampler::~DirectX12Sampler() noexcept = default;
+
+const FilterMode& DirectX12Sampler::getMinifyingFilter() const noexcept
+{
+	return m_impl->m_minFilter;
+}
+
+const FilterMode& DirectX12Sampler::getMagnifyingFilter() const noexcept
+{
+	return m_impl->m_magFilter;
+}
+
+const BorderMode& DirectX12Sampler::getBorderModeU() const noexcept
+{
+	return m_impl->m_borderU;
+}
+
+const BorderMode& DirectX12Sampler::getBorderModeV() const noexcept
+{
+	return m_impl->m_borderV;
+}
+
+const BorderMode& DirectX12Sampler::getBorderModeW() const noexcept
+{
+	return m_impl->m_borderW;
+}
+
+const Float& DirectX12Sampler::getAnisotropy() const noexcept
+{
+	return m_impl->m_anisotropy;
+}
+
+const MipMapMode& DirectX12Sampler::getMipMapMode() const noexcept
+{
+	return m_impl->m_mipMapMode;
+}
+
+const Float& DirectX12Sampler::getMipMapBias() const noexcept
+{
+	return m_impl->m_mipMapBias;
+}
+
+const Float& DirectX12Sampler::getMaxLOD() const noexcept
+{
+	return m_impl->m_maxLod;
+}
+
+const Float& DirectX12Sampler::getMinLOD() const noexcept
+{
+	return m_impl->m_minLod;
+}
+
+const UInt32& DirectX12Sampler::binding() const noexcept
+{
+	return m_impl->m_layout.binding();
+}
+
+const DirectX12DescriptorLayout& DirectX12Sampler::layout() const noexcept
+{
+	return m_impl->m_layout;
+}

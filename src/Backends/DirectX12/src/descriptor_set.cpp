@@ -25,6 +25,34 @@ public:
         if (parent->parent().samplers() > 0 && m_samplerHeap == nullptr)
             throw ArgumentNotInitializedException("The sampler descriptor heap handle must be initialized, if the descriptor set layout contains samplers.");
     }
+
+public:
+    D3D12_FILTER getFilterMode(const FilterMode& minFilter, const FilterMode& magFilter, const MipMapMode& mipFilter, const Float& anisotropy = 0.f)
+    {
+        if (anisotropy > 0.f)
+            return D3D12_ENCODE_ANISOTROPIC_FILTER(D3D12_FILTER_REDUCTION_TYPE_STANDARD);
+        else
+        {
+            D3D12_FILTER_TYPE minType = minFilter == FilterMode::Nearest ? D3D12_FILTER_TYPE_POINT : D3D12_FILTER_TYPE_LINEAR;
+            D3D12_FILTER_TYPE magType = magFilter == FilterMode::Nearest ? D3D12_FILTER_TYPE_POINT : D3D12_FILTER_TYPE_LINEAR;
+            D3D12_FILTER_TYPE mipType = mipFilter == MipMapMode::Nearest ? D3D12_FILTER_TYPE_POINT : D3D12_FILTER_TYPE_LINEAR;
+
+            return D3D12_ENCODE_BASIC_FILTER(minType, magType, mipType, D3D12_FILTER_REDUCTION_TYPE_STANDARD);
+        }
+    }
+
+      D3D12_TEXTURE_ADDRESS_MODE getBorderMode(const BorderMode& mode)
+      {
+          switch (mode)
+          {
+          case BorderMode::Repeat: return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+          case BorderMode::ClampToEdge: return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+          case BorderMode::ClampToBorder: return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+          case BorderMode::RepeatMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+          case BorderMode::ClampToEdgeMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+          default: throw std::invalid_argument("Invalid border mode.");
+          }
+      }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -74,7 +102,21 @@ void DirectX12DescriptorSet::update(const IDirectX12Texture& texture) const noex
 
 void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler) const noexcept
 {
-    throw;
+    D3D12_SAMPLER_DESC samplerInfo = {
+        .Filter = m_impl->getFilterMode(sampler.getMinifyingFilter(), sampler.getMagnifyingFilter(), sampler.getMipMapMode(), sampler.getAnisotropy()),
+        .AddressU = m_impl->getBorderMode(sampler.getBorderModeU()),
+        .AddressV = m_impl->getBorderMode(sampler.getBorderModeV()),
+        .AddressW = m_impl->getBorderMode(sampler.getBorderModeW()),
+        .MipLODBias = sampler.getMipMapBias(),
+        .MaxAnisotropy = static_cast<UInt32>(sampler.getAnisotropy()),
+        .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,		// TODO: Check me.
+        .BorderColor = { 0.f, 0.f, 0.f, 0.f },
+        .MinLOD = sampler.getMinLOD(),
+        .MaxLOD = sampler.getMaxLOD()
+    };
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), sampler.layout().binding(), this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
+    return this->getDevice()->handle()->CreateSampler(&samplerInfo, descriptorHandle);
 }
 
 void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const noexcept
