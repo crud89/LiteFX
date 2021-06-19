@@ -71,10 +71,14 @@ SET(SHADER_DEFAULT_SUBDIR "shaders" CACHE STRING "Default subdirectory for shade
 SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL shaders.")
 SET(SPIRV_DEFAULT_SUFFIX ".spv" CACHE STRING "Default file extension for SPIR-V shaders.")
 
-FUNCTION(TARGET_HLSL_SHADERS target_name source_file shader_model compile_as compile_with shader_type includes)
-  GET_FILENAME_COMPONENT(source_file ${shader_source} NAME)
+FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type)
   GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
-  GET_FILENAME_COMPONENT(file_in ${shader_file} ABSOLUTE)
+
+  SET(SHADER_SOURCES ${shader_source})
+  
+  FOREACH(SHADER_INCLUDE ${ARGN})
+    LIST(APPEND SHADER_SOURCES ${SHADER_INCLUDE})
+  ENDFOREACH(SHADER_INCLUDE ${ARGN})
     
   SET (SHADER_STAGE "")
   SET (OUTPUT_DIR "")
@@ -109,14 +113,13 @@ FUNCTION(TARGET_HLSL_SHADERS target_name source_file shader_model compile_as com
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -fshader_stage=${SHADER_STAGE} -c ${file_in} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -fshader_stage=${SHADER_STAGE} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       COMMENT "glslc: compiling hlsl shader '${shader_file}'..."
-      DEPENDS ${source_file} ${includes}
+      DEPENDS ${SHADER_SOURCES}
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
-      SOURCES ${source_file} ${includes}
-      NAME ${target_name}
+      SOURCES ${SHADER_SOURCES}
       OUTPUT_NAME ${out_name}
       SUFFIX ${SPIRV_DEFAULT_SUFFIX}
       BINARY_DIR ${OUTPUT_DIR}
@@ -160,14 +163,13 @@ FUNCTION(TARGET_HLSL_SHADERS target_name source_file shader_model compile_as com
       LIST(APPEND compiler_options -D SPIRV)
       ADD_CUSTOM_TARGET(${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${file_in}
+        COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${shader_source}
         COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to SPIR-V..."
-        DEPENDS ${source_file} ${includes}
+        DEPENDS ${SHADER_SOURCES}
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
-        SOURCES ${source_file} ${includes}
-        NAME ${target_name}
+        SOURCES ${SHADER_SOURCES}
         OUTPUT_NAME ${out_name}
         SUFFIX ${SPIRV_DEFAULT_SUFFIX}
         BINARY_DIR ${OUTPUT_DIR}
@@ -183,14 +185,13 @@ FUNCTION(TARGET_HLSL_SHADERS target_name source_file shader_model compile_as com
 
       ADD_CUSTOM_TARGET(${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${BUILD_DXC_COMPILER} -dxil -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${file_in}
+        COMMAND ${BUILD_DXC_COMPILER} -dxil -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${shader_source}
         COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to DXIL..."
-        DEPENDS ${source_file} ${includes}
+        DEPENDS ${SHADER_SOURCES}
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
-        SOURCES ${source_file} ${includes}
-        NAME ${target_name}
+        SOURCES ${SHADER_SOURCES}
         OUTPUT_NAME ${out_name}
         SUFFIX ${DXIL_DEFAULT_SUFFIX}
         BINARY_DIR ${OUTPUT_DIR}
@@ -201,12 +202,16 @@ FUNCTION(TARGET_HLSL_SHADERS target_name source_file shader_model compile_as com
   ELSE()
     MESSAGE(SEND_ERROR "Unrecognized compiler: ${compile_with}. Only DXC and GLSLC are allowed.")
   ENDIF(${compile_with} STREQUAL "GLSLC")
-ENDFUNCTION(TARGET_HLSL_SHADERS target_name)
+ENDFUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type)
 
-FUNCTION(TARGET_GLSL_SHADERS target_name source_file compile_as compile_with shader_type includes)
-  GET_FILENAME_COMPONENT(source_file ${shader_source} NAME)
+FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type)
   GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
-  GET_FILENAME_COMPONENT(file_in ${shader_file} ABSOLUTE)
+
+  SET(SHADER_SOURCES ${shader_source})
+  
+  FOREACH(SHADER_INCLUDE ${ARGN})
+    LIST(APPEND SHADER_SOURCES ${SHADER_INCLUDE})
+  ENDFOREACH(SHADER_INCLUDE ${ARGN})
     
   SET (SHADER_STAGE "")
   SET (OUTPUT_DIR "")
@@ -241,20 +246,19 @@ FUNCTION(TARGET_GLSL_SHADERS target_name source_file compile_as compile_with sha
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} -c ${file_in} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       COMMENT "glslc: compiling glsl shader '${shader_file}'..."
-      DEPENDS ${source_file} ${includes}
+      DEPENDS ${SHADER_SOURCES}
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
-      SOURCES ${source_file} ${includes}
-      NAME ${target_name}
+      SOURCES ${SHADER_SOURCES}
       OUTPUT_NAME ${out_name}
       SUFFIX ${SPIRV_DEFAULT_SUFFIX}
       BINARY_DIR ${OUTPUT_DIR}
     )
   ENDIF(NOT ${compile_with} STREQUAL "GLSLC")
-ENDFUNCTION(TARGET_GLSL_SHADERS target_name source_file compile_to shader_type includes)
+ENDFUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_to shader_type)
 
 FUNCTION(ADD_SHADER_MODULE module_name)
   CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER" "INCLUDES" ${ARGN})
@@ -263,9 +267,9 @@ FUNCTION(ADD_SHADER_MODULE module_name)
   #       see: https://microsoft.github.io/DirectX-Specs/d3d/HLSL_ShaderModel6_5.html
 
   IF(${SHADER_LANGUAGE} STREQUAL "GLSL")
-    TARGET_GLSL_SHADER(${module_name} ${SOURCE} ${COMPILE_AS} ${COMPILER} ${TYPE} ${INCLUDES})
+    TARGET_GLSL_SHADER(${module_name} ${SHADER_SOURCE} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_INCLUDES})
   ELSEIF(${SHADER_LANGUAGE} STREQUAL "HLSL")
-    TARGET_HLSL_SHADERS(${module_name} ${SOURCE} ${SHADER_MODEL} ${COMPILE_AS} ${COMPILER} ${TYPE} ${INCLUDES})
+    TARGET_HLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_SHADER_MODEL} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_INCLUDES})
   ELSE()
     MESSAGE(SEND_ERROR "Unsupported shader language: ${SHADER_LANGUAGE}.")
   ENDIF(${SHADER_LANGUAGE} STREQUAL "GLSL")
@@ -274,12 +278,12 @@ ENDFUNCTION(ADD_SHADER_MODULE module_name)
 FUNCTION(TARGET_LINK_SHADERS target_name)
   CMAKE_PARSE_ARGUMENTS(SHADER "" "INSTALL_DESTINATION" "SHADERS" ${ARGN})
   
-  ADD_DEPENDENCIES(${target_name} ${SHADERS})
+  ADD_DEPENDENCIES(${target_name} ${SHADER_SHADERS})
 
-  FOREACH(shader_module ${SHADERS})
+  FOREACH(shader_module ${SHADER_SHADERS})
     GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${shader_module} OUTPUT_NAME)
     GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${shader_module} SUFFIX)
     GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${shader_module} BINARY_DIR)
-    INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" ${CMAKE_INSTALL_PREFIX}/${INSTALL_DESTINATION})
-  ENDFOREACH(shader_module ${SHADERS})
+    INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" DESTINATION ${CMAKE_INSTALL_PREFIX}/${SHADER_INSTALL_DESTINATION})
+  ENDFOREACH(shader_module ${SHADER_SHADERS})
 ENDFUNCTION(TARGET_LINK_SHADERS target_name)
