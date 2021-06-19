@@ -34,3 +34,7 @@ SET (CMAKE_INSTALL_INCLUDE_DIR "include")
 IF (WIN32)
     SET (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 ENDIF()
+
+# Make sure the target export configuration proxy and helper scripts get installed.
+CONFIGURE_FILE("cmake/LiteFXConfig-version.cmake" "${CMAKE_CURRENT_BINARY_DIR}/LiteFXConfig-version.cmake" @ONLY)
+INSTALL(FILES "cmake/LiteFXConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/LiteFXConfig-version.cmake" "cmake/Assets.cmake" "cmake/Shaders.cmake" DESTINATION "${CMAKE_INSTALL_EXPORT_DIR}")
