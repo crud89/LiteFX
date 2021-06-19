@@ -4,211 +4,241 @@
 #####                                                                                         #####
 ###################################################################################################
 
+# The script exports two main functions:
+#
+# - ADD_SHADER_MODULE: Creates a shader module target.
+# - TARGET_LINK_SHADERS: Links a set of shader module targets to another target.
+#
+# TODO: Document interface for ADD_SHADER_MODULE
+#
+# If CMAKE_RUNTIME_OUTPUT_DIRECTORY is set, the shader modules will be built into a subdirectory within the directory pointed by this variable. If it is not set,
+# the subdirectory will be created in CMAKE_CURRENT_BINARY_DIR. The subdirectory name can be set using SHADER_DEFAULT_SUBDIR. The build target location will be 
+# stored in the BINARY_DIR property of the shader module target. Furthermore, there are two more properties that are set for a shader module target:
+#
+# - OUTPUT_NAME: Stores the shader module name (without the target file extension). By default it is set to equal the input file name without the extension.
+# - SUFFIX: Stores the file extension (including the dot) for a shader module binary file.
+#
+# The suffix is configured by the DXIL_DEFAULT_SUFFIX and SPIRV_DEFAULT_SUFFIX variables, which can be overwritten before calling ADD_SHADER_MODULE.
+#
+# TODO: Document interface for TARGET_LINK_SHADERS
+# 
+# Linking shader modules automatically creates an install command for the shader module binary. The source file is build from the BINARY_DIR, OUTPUT_NAME and 
+# SUFFIX properties of each shader module target. The install destination can be provided by the INSTALL_DESTINATION parameter. Note that it is always prepended
+# with the CMAKE_INSTALL_PREFIX.
+
+SET(SHADER_DEFAULT_SUBDIR "shaders" CACHE STRING "Default subdirectory for shader module binaries within the current binary directory (CMAKE_CURRENT_BINARY_DIR).")
 SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL shaders.")
 SET(SPIRV_DEFAULT_SUFFIX ".spv" CACHE STRING "Default file extension for SPIR-V shaders.")
 
-FUNCTION(DXC_COMPILE_DXIL shader_file file_out)
+FUNCTION(TARGET_HLSL_SHADERS target_name source_file shader_model compile_as compile_with shader_type includes)
+  GET_FILENAME_COMPONENT(source_file ${shader_source} NAME)
+  GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
   GET_FILENAME_COMPONENT(file_in ${shader_file} ABSOLUTE)
-  GET_FILENAME_COMPONENT(shader_type ${file_in} LAST_EXT)
-  
-  SET(shader_profile "")
+    
+  SET (SHADER_STAGE "")
+  SET (OUTPUT_DIR "")
 
-  IF(${shader_type} STREQUAL ".comp")
-    SET(shader_profile "cs_${BUILD_HLSL_SHADER_MODEL}")
-  
-  ELSEIF(${shader_type} STREQUAL ".vert")
-    SET(shader_profile "vs_${BUILD_HLSL_SHADER_MODEL}")
-
-  #ELSEIF(${shader_type} STREQUAL ".geom")
-  #  SET(shader_profile "gs_${BUILD_HLSL_SHADER_MODEL}")
-  
-  #ELSEIF(${shader_type} STREQUAL ".tesc")
-  #  SET(shader_profile "hs_${BUILD_HLSL_SHADER_MODEL}")
-
-  #ELSEIF(${shader_type} STREQUAL ".tese")
-  #  SET(shader_profile "ds_${BUILD_HLSL_SHADER_MODEL}")
-  
-  ELSEIF(${shader_type} STREQUAL ".frag")
-    SET(shader_profile "ps_${BUILD_HLSL_SHADER_MODEL}")
-
-  #ELSEIF(${shader_type} STREQUAL ".slib")
-  #  SET(shader_profile "lib_${BUILD_HLSL_SHADER_MODEL}")
-  ENDIF(${shader_type} STREQUAL ".comp")
-  
-  SET(compiler_options "")
-
-  IF (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    LIST(APPEND compiler_options -Zi -Qembed_debug)
-  ELSE()
-    LIST(APPEND compiler_options -Vd -Qstrip_debug)
-  ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-
-  LIST(APPEND compiler_options -D DXIL)
-
-  ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to DXIL..."
-    DEPENDS ${shader_file} 
-    COMMAND ${BUILD_DXC_COMPILER} -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${file_in}
-  )
-ENDFUNCTION(DXC_COMPILE_DXIL)
-
-FUNCTION(DXC_COMPILE_SPIRV shader_file file_out)
-  GET_FILENAME_COMPONENT(file_in ${shader_file} ABSOLUTE)
-  GET_FILENAME_COMPONENT(shader_type ${file_in} LAST_EXT)
-
-  IF(${shader_type} STREQUAL ".comp")
-    SET(shader_profile "cs_${BUILD_HLSL_SHADER_MODEL}")
-  
-  ELSEIF(${shader_type} STREQUAL ".vert")
-    SET(shader_profile "vs_${BUILD_HLSL_SHADER_MODEL}")
-
-  #ELSEIF(${shader_type} STREQUAL ".geom")
-  #  SET(shader_profile "gs_${BUILD_HLSL_SHADER_MODEL}")
-  
-  #ELSEIF(${shader_type} STREQUAL ".tesc")
-  #  SET(shader_profile "hs_${BUILD_HLSL_SHADER_MODEL}")
-
-  #ELSEIF(${shader_type} STREQUAL ".tese")
-  #  SET(shader_profile "ds_${BUILD_HLSL_SHADER_MODEL}")
-  
-  ELSEIF(${shader_type} STREQUAL ".frag")
-    SET(shader_profile "ps_${BUILD_HLSL_SHADER_MODEL}")
-
-  #ELSEIF(${shader_type} STREQUAL ".slib")
-  #  SET(shader_profile "lib_${BUILD_HLSL_SHADER_MODEL}")
-  ENDIF(${shader_type} STREQUAL ".comp")
-
-  SET(compiler_options "")
-
-  IF (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    #LIST(APPEND compiler_options -Fd ${file_out}.pdb -Zi)
-    LIST(APPEND compiler_options -Zi)
-  ELSE()
-    LIST(APPEND compiler_options -Vd)
-  ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-
-  LIST(APPEND compiler_options -D SPIRV)
-
-  ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to SPIR-V..."
-    DEPENDS ${shader_file} 
-    COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${file_in}
-  )
-ENDFUNCTION(DXC_COMPILE_SPIRV)
-
-FUNCTION(TARGET_HLSL_SHADERS target_name)
-  SET(compiled_shaders "")
-
-  IF(BUILD_USE_GLSLC)
-    FOREACH(shader_source ${SHADER_SOURCES})
-      GET_FILENAME_COMPONENT(shader_name ${shader_source} NAME)
-	  SET(output_file ${CMAKE_CURRENT_BINARY_DIR}/shaders/${shader_name}.spv)
-      GLSLC_COMPILE_HLSL(${shader_source} ${output_file})
-      LIST(APPEND compiled_shaders ${output_file})
-    ENDFOREACH(shader_source ${SHADER_SOURCES})
-  ELSEIF(BUILD_USE_DXC)
-    FOREACH(shader_source ${SHADER_SOURCES})
-      GET_FILENAME_COMPONENT(shader_name ${shader_source} NAME)
-
-      IF(BUILD_DXC_DXIL)
-	    SET(output_file ${CMAKE_CURRENT_BINARY_DIR}/shaders/${shader_name}.dxi)
-        DXC_COMPILE_DXIL(${shader_source} ${output_file})
-        LIST(APPEND compiled_shaders ${output_file})
-      ENDIF(BUILD_DXC_DXIL)
-
-      IF(BUILD_DXC_SPIRV)
-	    SET(output_file ${CMAKE_CURRENT_BINARY_DIR}/shaders/${shader_name}.spv)
-        DXC_COMPILE_SPIRV(${shader_source} ${output_file})
-        LIST(APPEND compiled_shaders ${output_file})
-      ENDIF(BUILD_DXC_SPIRV)
-    ENDFOREACH(shader_source ${SHADER_SOURCES})
-  ENDIF(BUILD_USE_GLSLC)
-  
-  ADD_CUSTOM_TARGET(${target_name}.Shaders ALL DEPENDS ${compiled_shaders} SOURCES ${SHADER_SOURCES})
-  ADD_DEPENDENCIES(${target_name} ${target_name}.Shaders)
-  SET_TARGET_PROPERTIES(${target_name}.Shaders PROPERTIES FOLDER "Shaders" VERSION ${LITEFX_VERSION} SOVERSION ${LITEFX_YEAR})
-
-  INSTALL(FILES ${compiled_shaders} DESTINATION ${CMAKE_INSTALL_BINARY_DIR}/shaders)
-ENDFUNCTION(TARGET_HLSL_SHADERS target_name)
-
-FUNCTION(GLSLC_COMPILE_GLSL shader_file file_out)
-  GET_FILENAME_COMPONENT(file_in ${shader_file} ABSOLUTE)
-  ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "glslc: compiling glsl shader '${shader_file}'..."
-    DEPENDS ${shader_file} 
-    COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -c ${file_in} -o ${file_out} -MD
-  )
-ENDFUNCTION(GLSLC_COMPILE_GLSL)
-
-FUNCTION(GLSLC_COMPILE_HLSL shader_file file_out)
-  GET_FILENAME_COMPONENT(file_in ${shader_file} ABSOLUTE)
-  ADD_CUSTOM_COMMAND(OUTPUT ${file_out} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "glslc: compiling hlsl shader '${shader_file}'..."
-    DEPENDS ${shader_file} 
-    COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -c ${file_in} -o ${file_out} -MD
-  )
-ENDFUNCTION(GLSLC_COMPILE_HLSL)
-
-FUNCTION(TARGET_GLSL_SHADERS target_name source_file compile_to shader_type includes)
-  IF(BUILD_USE_DXC)
-    MESSAGE(SEND_ERROR "Glsl shader can not be build using DXC.")
-  ELSEIF(NOT ${compile_to} STREQUAL "SPIR-V")
-    MESSAGE(SEND_ERROR "Glsl shaders can only be compiled to SPIR-V.")
-  ELSE()
-    GET_FILENAME_COMPONENT(source_file ${shader_source} NAME)
-    GET_FILENAME_COMPONENT(file_in ${shader_file} ABSOLUTE)
+  IF(${compile_with} STREQUAL "GLSLC")
+    IF(NOT ${compile_as} STREQUAL "SPIR-V")
+      MESSAGE(SEND_ERROR "Glsl shaders can only be compiled to SPIR-V.")
+    ENDIF(NOT ${compile_as} STREQUAL "SPIR-V")
 
     IF(${shader_type} STREQUAL "VERTEX")
       SET(SHADER_STAGE "vert")
-    IF(${shader_type} STREQUAL "GEOMETRY")
+    ELSEIF(${shader_type} STREQUAL "GEOMETRY")
       SET(SHADER_STAGE "geom")
-    IF(${shader_type} STREQUAL "FRAGMENT" OR ${shader_type} STREQUAL "PIXEL")
+    ELSEIF(${shader_type} STREQUAL "FRAGMENT" OR ${shader_type} STREQUAL "PIXEL")
       SET(SHADER_STAGE "frag")
-    IF(${shader_type} STREQUAL "HULL" OR ${shader_type} STREQUAL "TESSELATION_CONTROL")
+    ELSEIF(${shader_type} STREQUAL "HULL" OR ${shader_type} STREQUAL "TESSELATION_CONTROL")
       SET(SHADER_STAGE "tesc")
-    IF(${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
+    ELSEIF(${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
       SET(SHADER_STAGE "tese")
-    IF(${shader_type} STREQUAL "COMPUTE" OR ${shader_type} STREQUAL "RAYTRACING")
+    ELSEIF(${shader_type} STREQUAL "COMPUTE" OR ${shader_type} STREQUAL "RAYTRACING")
       SET(SHADER_STAGE "comp")
     ELSE()
       MESSAGE(SEND_ERROR "Unsupported shader type: ${shader_type}. Valid shader types are: VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE and RAYTRACING.")
     ENDIF(${shader_type} STREQUAL "VERTEX")
+    
+    IF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+      SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
+    ELSE()
+      SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
+    ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
 
+    # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
-      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} -c ${file_in} -o "${CMAKE_CURRENT_BINARY_DIR}/shaders/$<TARGET_FILE:${target_name}>" -MD
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -fshader_stage=${SHADER_STAGE} -c ${file_in} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMENT "glslc: compiling hlsl shader '${shader_file}'..."
+      DEPENDS ${source_file} ${includes}
+    )
+
+    SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
+      SOURCES ${source_file} ${includes}
+      NAME ${target_name}
+      OUTPUT_NAME ${out_name}
+      SUFFIX ${SPIRV_DEFAULT_SUFFIX}
+      BINARY_DIR ${OUTPUT_DIR}
+    )
+  ELSEIF(${compile_with} STREQUAL "DXC")
+    IF(${shader_type} STREQUAL "VERTEX")
+      SET(SHADER_STAGE "vs")
+    ELSEIF(${shader_type} STREQUAL "GEOMETRY")
+      SET(SHADER_STAGE "gs")
+    ELSEIF(${shader_type} STREQUAL "FRAGMENT" OR ${shader_type} STREQUAL "PIXEL")
+      SET(SHADER_STAGE "ps")
+    ELSEIF(${shader_type} STREQUAL "HULL" OR ${shader_type} STREQUAL "TESSELATION_CONTROL")
+      SET(SHADER_STAGE "hs")
+    ELSEIF(${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
+      SET(SHADER_STAGE "ds")
+    ELSEIF(${shader_type} STREQUAL "COMPUTE")
+      SET(SHADER_STAGE "cs")
+    ELSEIF(${shader_type} STREQUAL "RAYTRACING")
+      SET(SHADER_STAGE "lib")
+    ELSE()
+      MESSAGE(SEND_ERROR "Unsupported shader type: ${shader_type}. Valid shader types are: VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE and RAYTRACING.")
+    ENDIF(${shader_type} STREQUAL "VERTEX")
+
+    SET(SHADER_PROFILE "${SHADER_STAGE}_${shader_model}")
+    
+    IF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+      SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
+    ELSE()
+      SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
+    ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+
+    SET(compiler_options "")
+
+    IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+      LIST(APPEND compiler_options -Zi)
+    ELSE()
+      LIST(APPEND compiler_options -Vd)
+    ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    
+    IF(${compile_as} STREQUAL "SPIR-V")
+      LIST(APPEND compiler_options -D SPIRV)
+      ADD_CUSTOM_TARGET(${target_name} 
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${file_in}
+        COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to SPIR-V..."
+        DEPENDS ${source_file} ${includes}
+      )
+    
+      SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
+        SOURCES ${source_file} ${includes}
+        NAME ${target_name}
+        OUTPUT_NAME ${out_name}
+        SUFFIX ${SPIRV_DEFAULT_SUFFIX}
+        BINARY_DIR ${OUTPUT_DIR}
+      )
+    ELSEIF(${compile_as} STREQUAL "DXIL")
+      LIST(APPEND compiler_options -D DXIL)
+      
+      IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+        LIST(APPEND compiler_options -Qembed_debug)
+      ELSE()
+        LIST(APPEND compiler_options -Qstrip_debug)
+      ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+
+      ADD_CUSTOM_TARGET(${target_name} 
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${BUILD_DXC_COMPILER} -dxil -T ${shader_profile} -E main -Fo ${file_out} ${compiler_options} ${file_in}
+        COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${shader_profile}) to DXIL..."
+        DEPENDS ${source_file} ${includes}
+      )
+    
+      SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
+        SOURCES ${source_file} ${includes}
+        NAME ${target_name}
+        OUTPUT_NAME ${out_name}
+        SUFFIX ${DXIL_DEFAULT_SUFFIX}
+        BINARY_DIR ${OUTPUT_DIR}
+      )
+    ELSE()
+      MESSAGE(SEND_ERROR "Unrecognized intermediate language ${compile_as}. Only SPIR-V and DXIL are supported.")
+    ENDIF(${compile_as} STREQUAL "SPIR-V")
+  ELSE()
+    MESSAGE(SEND_ERROR "Unrecognized compiler: ${compile_with}. Only DXC and GLSLC are allowed.")
+  ENDIF(${compile_with} STREQUAL "GLSLC")
+ENDFUNCTION(TARGET_HLSL_SHADERS target_name)
+
+FUNCTION(TARGET_GLSL_SHADERS target_name source_file compile_as compile_with shader_type includes)
+  GET_FILENAME_COMPONENT(source_file ${shader_source} NAME)
+  GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
+  GET_FILENAME_COMPONENT(file_in ${shader_file} ABSOLUTE)
+    
+  SET (SHADER_STAGE "")
+  SET (OUTPUT_DIR "")
+
+  IF(NOT ${compile_with} STREQUAL "GLSLC")
+    MESSAGE(SEND_ERROR "Glsl shaders can only be built with glslc.")
+  ELSEIF(NOT ${compile_as} STREQUAL "SPIR-V")
+    MESSAGE(SEND_ERROR "Glsl shaders can only be compiled to SPIR-V.")
+  ELSE()
+    IF(${shader_type} STREQUAL "VERTEX")
+      SET(SHADER_STAGE "vert")
+    ELSEIF(${shader_type} STREQUAL "GEOMETRY")
+      SET(SHADER_STAGE "geom")
+    ELSEIF(${shader_type} STREQUAL "FRAGMENT" OR ${shader_type} STREQUAL "PIXEL")
+      SET(SHADER_STAGE "frag")
+    ELSEIF(${shader_type} STREQUAL "HULL" OR ${shader_type} STREQUAL "TESSELATION_CONTROL")
+      SET(SHADER_STAGE "tesc")
+    ELSEIF(${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
+      SET(SHADER_STAGE "tese")
+    ELSEIF(${shader_type} STREQUAL "COMPUTE" OR ${shader_type} STREQUAL "RAYTRACING")
+      SET(SHADER_STAGE "comp")
+    ELSE()
+      MESSAGE(SEND_ERROR "Unsupported shader type: ${shader_type}. Valid shader types are: VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE and RAYTRACING.")
+    ENDIF(${shader_type} STREQUAL "VERTEX")
+    
+    IF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+      SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
+    ELSE()
+      SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
+    ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+
+    # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
+    ADD_CUSTOM_TARGET(${target_name} 
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} -c ${file_in} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       COMMENT "glslc: compiling glsl shader '${shader_file}'..."
       DEPENDS ${source_file} ${includes}
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
       SOURCES ${source_file} ${includes}
-      OUTPUT_NAME ${target_name}
       NAME ${target_name}
+      OUTPUT_NAME ${out_name}
       SUFFIX ${SPIRV_DEFAULT_SUFFIX}
+      BINARY_DIR ${OUTPUT_DIR}
     )
-  
-    #INSTALL(FILES ${compiled_shaders} DESTINATION ${CMAKE_INSTALL_BINARY_DIR}/shaders)
-  ENDIF(BUILD_USE_DXC)
-ENDFUNCTION(TARGET_GLSL_SHADERS target_name)
+  ENDIF(NOT ${compile_with} STREQUAL "GLSLC")
+ENDFUNCTION(TARGET_GLSL_SHADERS target_name source_file compile_to shader_type includes)
 
-FUNCTION(ADD_SHADER_PROGRAM program_target)
-  # TODO: We can add a property for the compiler here, too.
-  CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_TO;SHADER_MODEL;TYPE" "INCLUDES" ${ARGN})
+FUNCTION(ADD_SHADER_MODULE module_name)
+  CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER" "INCLUDES" ${ARGN})
   
+  # TODO: There's also the shader type ms (mesh shader) and as (amplification shader; used as a second ms stage) since shader model 6.5.
+  #       see: https://microsoft.github.io/DirectX-Specs/d3d/HLSL_ShaderModel6_5.html
+
   IF(${SHADER_LANGUAGE} STREQUAL "GLSL")
-    TARGET_GLSL_SHADER(${target_name} ${SOURCE} ${COMPILE_TO} ${TYPE} ${INCLUDES})
+    TARGET_GLSL_SHADER(${module_name} ${SOURCE} ${COMPILE_AS} ${COMPILER} ${TYPE} ${INCLUDES})
   ELSEIF(${SHADER_LANGUAGE} STREQUAL "HLSL")
-    TARGET_HLSL_SHADERS(${target_name} ${SOURCE} ${SHADER_MODEL} ${COMPILE_TO} ${TYPE} ${INCLUDES})
+    TARGET_HLSL_SHADERS(${module_name} ${SOURCE} ${SHADER_MODEL} ${COMPILE_AS} ${COMPILER} ${TYPE} ${INCLUDES})
   ELSE()
     MESSAGE(SEND_ERROR "Unsupported shader language: ${SHADER_LANGUAGE}.")
   ENDIF(${SHADER_LANGUAGE} STREQUAL "GLSL")
-ENDFUNCTION(TARGET_SHADER_SOURCES program_target)
+ENDFUNCTION(ADD_SHADER_MODULE module_name)
 
-FUNCTION(TARGET_SHADER_PROGRAMS target_name)
-  CMAKE_PARSE_ARGUMENTS(SHADER "" "INSTALL_DESTINATION" "SHADER_PROGRAMS" ${ARGN})
+FUNCTION(TARGET_LINK_SHADERS target_name)
+  CMAKE_PARSE_ARGUMENTS(SHADER "" "INSTALL_DESTINATION" "SHADERS" ${ARGN})
   
-  ADD_DEPENDENCIES(${target_name} ${SHADER_PROGRAMS})
-  GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${target_name} OUTPUT_NAME)
-  GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${target_name} SUFFIX)
-  INSTALL(FILES "${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" ${INSTALL_DESTINATION})
-ENDFUNCTION(TARGET_SHADER_PROGRAMS target_name)
+  ADD_DEPENDENCIES(${target_name} ${SHADERS})
+
+  FOREACH(shader_module ${SHADERS})
+    GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${shader_module} OUTPUT_NAME)
+    GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${shader_module} SUFFIX)
+    GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${shader_module} BINARY_DIR)
+    INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" ${CMAKE_INSTALL_PREFIX}/${INSTALL_DESTINATION})
+  ENDFOREACH(shader_module ${SHADERS})
+ENDFUNCTION(TARGET_LINK_SHADERS target_name)
