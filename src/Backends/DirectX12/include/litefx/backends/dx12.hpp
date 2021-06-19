@@ -302,7 +302,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
 	/// <seealso cref="IDirectX12Image" />
 	/// <seealso cref="IDirectX12Texture" />
-	class LITEFX_DIRECTX12_API IDirectX12Sampler : public ISampler<DirectX12DescriptorLayout>, public virtual IResource<ComPtr<ID3D12Resource>> {
+	class LITEFX_DIRECTX12_API IDirectX12Sampler : public ISampler<DirectX12DescriptorLayout> {
 	public:
 		virtual ~IDirectX12Sampler() noexcept = default;
 	};

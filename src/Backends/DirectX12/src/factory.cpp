@@ -97,7 +97,36 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 
 UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements) const
 {
-	throw;
+	D3D12_RESOURCE_DESC resourceDesc = {};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDesc.Alignment = 0;
+	resourceDesc.Width = elementSize * static_cast<size_t>(elements);
+	resourceDesc.Height = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	D3D12MA::ALLOCATION_DESC allocationDesc = {};
+
+	switch (usage)
+	{
+	case BufferUsage::Dynamic:
+	case BufferUsage::Staging:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, 0, D3D12_RESOURCE_STATE_GENERIC_READ, resourceDesc, allocationDesc);
+	case BufferUsage::Resource:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, 0, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+	case BufferUsage::Readback:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
+		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, 0, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+	default:
+		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
+	}
 }
 
 UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
@@ -205,10 +234,26 @@ UniquePtr<IDirectX12ConstantBuffer> DirectX12GraphicsFactory::createConstantBuff
 
 UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const DirectX12DescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
-	throw;
+	D3D12_RESOURCE_DESC resourceDesc = {};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Alignment = 0;
+	resourceDesc.Width = size.width();
+	resourceDesc.Height = size.height();
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = levels;
+	resourceDesc.Format = ::getFormat(format);
+	resourceDesc.SampleDesc.Count = static_cast<UInt32>(samples);
+	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	D3D12MA::ALLOCATION_DESC allocationDesc = {};
+	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+	
+	return DirectX12Texture::allocate(m_impl->m_device, layout, m_impl->m_allocator, size, format, levels, samples, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
 }
 
 UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const DirectX12DescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
-	throw;
+	return makeUnique<DirectX12Sampler>(m_impl->m_device, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }

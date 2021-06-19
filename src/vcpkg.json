@@ -10,58 +10,17 @@
   "documentation": "https://github.com/Aschratt/LiteFX/wiki",
   "license": "MIT",
   "supports": "windows & !arm",
-  "features": [
-    {
-      "name": "dx12",
-      "description": "Builds the DirectX 12 backend.",
-      "dependencies": [
-        "d3d12-memory-allocator",
-        "directx-headers",
-        "glfw3"
-      ]
-    },
-    {
-      "name": "vulkan",
-      "description": "Builds the Vulkan backend.",
-      "dependencies": [
-        "glfw3",
-        "glad",
-        "vulkan",
-        "vulkan-memory-allocator"
-      ]
-    },
-    {
-      "name": "glm",
-      "description": "Builds glm converters for math types.",
-      "dependencies": [
-        "glm"
-      ]
-    },
-    {
-      "name": "dx-math",
-      "description": "Builds DirectX Math converters for math types.",
-      "dependencies": [
-        "directxmath"
-      ]
-    },
-    {
-      "name": "samples",
-      "description": "Builds the sample applications.",
-      "dependencies": [
-        "stb"
-      ]
-    }
-  ],
-  "default-features": [
-    "dx12",
-    "vulkan",
-    "glm",
-    "dx-math",
-    "samples"
-  ],
   "dependencies": [
     "cli11",
+    "directxmath",
+    "directx-headers",
+    "glad",
+    "glfw3",
+    "glm",
     "spdlog",
-    "fmt"
+    "stb",
+    "vulkan",
+    "vulkan-memory-allocator",
+    "d3d12-memory-allocator"
   ]
 }

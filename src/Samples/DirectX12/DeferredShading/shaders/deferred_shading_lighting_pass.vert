@@ -8,13 +8,8 @@ struct VertexData
 
 struct VertexInput
 {
-    //[[vk::location(0)]] 
     float3 Position : POSITION;
-    
-    //[[vk::location(1)]]
     float4 Color : COLOR;
-    
-    //[[vk::location(2)]]
     float2 TextureCoordinate : TEXCOORD0;
 };
 

@@ -14,18 +14,15 @@ struct FragmentData
 #ifdef SPIRV
 [[vk::input_attachment_index(0)]] SubpassInput<float4> gDiffuse;
 [[vk::input_attachment_index(1)]] SubpassInput<float>  gDepth;
-#elif DXIL
 #endif
 
 FragmentData main(VertexData input)
 {
     FragmentData fragment;
-  
-#ifdef SPIRV
+
+#ifdef SPIRV  
     fragment.Color = gDiffuse.SubpassLoad();
-#elif DXIL
-    fragment.Color = float4(1.0, 1.0, 1.0, 1.0);
-#endif  
+#endif
     
     return fragment;
 }

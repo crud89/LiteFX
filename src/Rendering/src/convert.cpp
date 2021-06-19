@@ -177,8 +177,7 @@ bool LiteFX::Rendering::hasDepth(const Format& format)
 		Format::X8_D24_UNORM,
 		Format::D16_UNORM_S8_UINT,
 		Format::D24_UNORM_S8_UINT,
-		Format::D32_SFLOAT_S8_UINT,
-		Format::S8_UINT
+		Format::D32_SFLOAT_S8_UINT
 	};
 
 	return std::any_of(std::begin(depthFormats), std::end(depthFormats), [&](const Format& f) { return f == format; });
