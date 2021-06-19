@@ -9,7 +9,43 @@
 # - ADD_SHADER_MODULE: Creates a shader module target.
 # - TARGET_LINK_SHADERS: Links a set of shader module targets to another target.
 #
-# TODO: Document interface for ADD_SHADER_MODULE
+# Shader modules are build from one source file and (optionally) multiple includes. Those includes may be used by multiple shader module targets simultaneously.
+# The output of a shader module target is a single binary file. You have to call ADD_SHADER_MODULE for each shader you want to compile and then link all shaders
+# to your project by calling TARGET_LINK_SHADERS. The following example shows how to define a shader module target:
+#
+# ADD_SHADER_MODULE(${PROJECT_NAME}.VertexShader
+#   SOURCE "vs.hlsl" 
+#   LANGUAGE HLSL 
+#   TYPE VERTEX 
+#   COMPILE_AS DXIL 
+#   SHADER_MODEL 6_3 
+#   COMPILER DXC
+#   INCLUDES "a.hlsli" "b.hlsli"
+# )
+#
+# The first parameter is the unique name of the shader module target. The SOURCE parameter provides a file name relative to CMAKE_CURRENT_SOURCE_DIR, that 
+# contains the main shader source. 
+#
+# The LANGUAGE parameter specifies the shader language. Possible values are GLSL and HLSL. Note that the language influences which compiler you can choose and 
+# which intermediate language (COMPILE_AS) can be selected. See below for more details.
+#
+# The TYPE parameter dictates the shader module type. Valid values are VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, 
+# FRAGMENT/PIXEL, COMPUTE and RAYTRACING. Values separated by '/' are synonymous. Note that for the GLSLC compiler, RAYTRACING and COMPUTE are treated as 
+# synonymous, too.
+#
+# The COMPILE_AS parameter specifies the intermediate language. Valid values are DXIL (for DirectX 12) and SPIRV (for Vulkan). DXIL can only be built using DXC.
+#
+# The SHADER_MODEL parameter is optional for the GLSLC compiler, but mandatory for the DXC compiler. It specifies the shader profile used to build HLSL shaders.
+# Not all combinations are valid. For example, it is not valid to use legacy shader model (5_x) for RAYTRACING shaders. Please consult the DXC help 
+# (`dxc --help`) for more information.
+#
+# The COMPILER parameter specifies which compiler to use. GLSL shaders can only be compiled with GLSLC, while HLSL shaders can be also compiled with DXC. On the
+# other hand, DXC can target both, DXIL and SPIRV, whilst GLSLC can only target SPIRV.
+#
+# Finally the INCLUDES parameter lists additional include sources. Those are not required and only used to be added to the target, so that they are accessible 
+# from the IDE. Note that their names are also relative to the CMAKE_CURRENT_SOURCE_DIR.
+#
+# Finally, note that it is currently not supported to change the name of the entry point. It is always set to `main`.
 #
 # If CMAKE_RUNTIME_OUTPUT_DIRECTORY is set, the shader modules will be built into a subdirectory within the directory pointed by this variable. If it is not set,
 # the subdirectory will be created in CMAKE_CURRENT_BINARY_DIR. The subdirectory name can be set using SHADER_DEFAULT_SUBDIR. The build target location will be 
@@ -20,11 +56,16 @@
 #
 # The suffix is configured by the DXIL_DEFAULT_SUFFIX and SPIRV_DEFAULT_SUFFIX variables, which can be overwritten before calling ADD_SHADER_MODULE.
 #
-# TODO: Document interface for TARGET_LINK_SHADERS
-# 
-# Linking shader modules automatically creates an install command for the shader module binary. The source file is build from the BINARY_DIR, OUTPUT_NAME and 
-# SUFFIX properties of each shader module target. The install destination can be provided by the INSTALL_DESTINATION parameter. Note that it is always prepended
-# with the CMAKE_INSTALL_PREFIX.
+# A shader module target can defined as a dependency by using TARGET_LINK_SHADERS:
+#
+# TARGET_LINK_SHADERS(${PROJECT_NAME}
+#   SHADERS ${PROJECT_NAME}.VertexShader ${PROJECT_NAME}.PixelShader
+#   INSTALL_DESTINATION "${INSTALL_BINARY_DIR}/shaders/"
+# )
+#
+# This will define a dependency for the specified target for all shader module targets. Furthermore, it automatically creates an install command for the shader module 
+# binaries. The source file is build from the BINARY_DIR, OUTPUT_NAME and SUFFIX properties of each shader module target. The install destination can be provided by 
+# the INSTALL_DESTINATION parameter. Note that it is always prepended with the CMAKE_INSTALL_PREFIX.
 
 SET(SHADER_DEFAULT_SUBDIR "shaders" CACHE STRING "Default subdirectory for shader module binaries within the current binary directory (CMAKE_CURRENT_BINARY_DIR).")
 SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL shaders.")
