@@ -105,12 +105,14 @@ You can customize the engine build, according to your specific needs. From Visua
 - `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan backend 🌋 (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later to be installed on your system).
 - `BUILD_DX12_BACKEND` (default: `OFF`): builds the DirectX 12 backend ❎
 - `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
+- `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
 - `BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
 - `BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
 - `BUILD_USE_GLSLC` (default: `OFF`): compiles shaders using *glslc* (requires LunarG Vulkan SDK to be installed on your system). **Can not be used together with `BUILD_USE_DXC`!** ‡
 - `BUILD_USE_DXC` (default: `ON`): compiles shaders using *DXC* (requires LunarG Vulkan SDK when targeting only Vulkan, a pre-build of [DXC](https://github.com/microsoft/DirectXShaderCompiler/releases) when targeting only DirectX 12, or a custom DXC build when targeting both). **Can not be used together with `BUILD_USE_GLSLC`!** ‡
 - `BUILD_DXC_DXIL` (default: `ON`): compiles HLSL shaders to DXIL when `BUILD_USE_DXC` is set to `ON`.
 - `BUILD_DXC_SPIRV` (default: `ON`): compiles HLSL shaders to SPIR-V when `BUILD_USE_DXC` is set to `ON`.
+- `BUILD_HLSL_SHADER_MODEL` (default: `6_3`): specifies the default HLSL shader model.
 
 † Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported.
 
