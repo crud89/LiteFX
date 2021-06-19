@@ -37,11 +37,11 @@ public:
         Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         bool hasInputAttachments = false;
 
-        std::ranges::for_each(m_descriptorSetLayouts, [&, i = 0](const UniquePtr<DirectX12DescriptorSetLayout>& layout) mutable {
+        std::ranges::for_each(m_descriptorSetLayouts, [&](const UniquePtr<DirectX12DescriptorSetLayout>& layout) {
             // Parse the shader stage descriptor.
             D3D12_SHADER_VISIBILITY shaderStages = D3D12_SHADER_VISIBILITY_ALL;
             auto stages = layout->shaderStages();
-            UInt32 space = i++;
+            UInt32 space = layout->space();
 
             if (stages == ShaderStage::Vertex)
                 shaderStages = D3D12_SHADER_VISIBILITY_VERTEX;
@@ -84,7 +84,6 @@ public:
 
             // Store the range set.
             descriptorParameters.push_back(rootParameter);
-            space++;
         });
 
         // Define a static sampler to sample the G-Buffer, if there are any input attachments.
@@ -211,5 +210,5 @@ DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgra
 
 DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages)
 {
-    return DirectX12DescriptorSetLayoutBuilder(*this, space, stages);
+    return DirectX12DescriptorSetLayoutBuilder(*this, static_cast<UInt32>(m_impl->m_descriptorSetLayouts.size()), space, stages);
 }
