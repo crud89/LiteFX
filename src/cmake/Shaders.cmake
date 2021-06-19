@@ -167,7 +167,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       LIST(APPEND compiler_options -D SPIRV)
       ADD_CUSTOM_TARGET(${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" ${compiler_options} ${shader_source}
+        COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" ${compiler_options} ${shader_source}
         COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${SHADER_PROFILE}) to SPIR-V..."
         DEPENDS ${SHADER_SOURCES} ${target_name}-make-dir
       )
