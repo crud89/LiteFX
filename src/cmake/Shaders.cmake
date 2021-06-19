@@ -49,7 +49,7 @@
 #
 # If CMAKE_RUNTIME_OUTPUT_DIRECTORY is set, the shader modules will be built into a subdirectory within the directory pointed by this variable. If it is not set,
 # the subdirectory will be created in CMAKE_CURRENT_BINARY_DIR. The subdirectory name can be set using SHADER_DEFAULT_SUBDIR. The build target location will be 
-# stored in the BINARY_DIR property of the shader module target. Furthermore, there are two more properties that are set for a shader module target:
+# stored in the RUNTIME_OUTPUT_DIRECTORY property of the shader module target. Furthermore, there are two more properties that are set for a shader module target:
 #
 # - OUTPUT_NAME: Stores the shader module name (without the target file extension). By default it is set to equal the input file name without the extension.
 # - SUFFIX: Stores the file extension (including the dot) for a shader module binary file.
@@ -64,8 +64,8 @@
 # )
 #
 # This will define a dependency for the specified target for all shader module targets. Furthermore, it automatically creates an install command for the shader module 
-# binaries. The source file is build from the BINARY_DIR, OUTPUT_NAME and SUFFIX properties of each shader module target. The install destination can be provided by 
-# the INSTALL_DESTINATION parameter. Note that it is always prepended with the CMAKE_INSTALL_PREFIX.
+# binaries. The source file is build from the RUNTIME_OUTPUT_DIRECTORY, OUTPUT_NAME and SUFFIX properties of each shader module target. The install destination can be 
+# provided by the INSTALL_DESTINATION parameter. Note that it is always prepended with the CMAKE_INSTALL_PREFIX.
 
 SET(SHADER_DEFAULT_SUBDIR "shaders" CACHE STRING "Default subdirectory for shader module binaries within the current binary directory (CMAKE_CURRENT_BINARY_DIR).")
 SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL shaders.")
@@ -124,7 +124,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       SOURCES ${SHADER_SOURCES}
       OUTPUT_NAME ${out_name}
       SUFFIX ${SPIRV_DEFAULT_SUFFIX}
-      BINARY_DIR ${OUTPUT_DIR}
+      RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
     )
   ELSEIF(${compile_with} STREQUAL "DXC")
     IF(${shader_type} STREQUAL "VERTEX")
@@ -176,7 +176,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
         SOURCES ${SHADER_SOURCES}
         OUTPUT_NAME ${out_name}
         SUFFIX ${SPIRV_DEFAULT_SUFFIX}
-        BINARY_DIR ${OUTPUT_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
       )
     ELSEIF(${compile_as} STREQUAL "DXIL")
       LIST(APPEND compiler_options -D DXIL)
@@ -198,7 +198,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
         SOURCES ${SHADER_SOURCES}
         OUTPUT_NAME ${out_name}
         SUFFIX ${DXIL_DEFAULT_SUFFIX}
-        BINARY_DIR ${OUTPUT_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
       )
     ELSE()
       MESSAGE(SEND_ERROR "Unrecognized intermediate language ${compile_as}. Only SPIR-V and DXIL are supported.")
@@ -261,7 +261,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
       SOURCES ${SHADER_SOURCES}
       OUTPUT_NAME ${out_name}
       SUFFIX ${SPIRV_DEFAULT_SUFFIX}
-      BINARY_DIR ${OUTPUT_DIR}
+      RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
     )
   ENDIF(NOT ${compile_with} STREQUAL "GLSLC")
 ENDFUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_to shader_type)
@@ -289,7 +289,8 @@ FUNCTION(TARGET_LINK_SHADERS target_name)
   FOREACH(shader_module ${SHADER_SHADERS})
     GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${shader_module} OUTPUT_NAME)
     GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${shader_module} SUFFIX)
-    GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${shader_module} BINARY_DIR)
+    GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${shader_module} RUNTIME_OUTPUT_DIRECTORY)
+
     INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" DESTINATION ${CMAKE_INSTALL_PREFIX}/${SHADER_INSTALL_DESTINATION})
   ENDFOREACH(shader_module ${SHADER_SHADERS})
 ENDFUNCTION(TARGET_LINK_SHADERS target_name)
