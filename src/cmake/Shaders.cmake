@@ -84,9 +84,9 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
   SET (OUTPUT_DIR "")
 
   IF(${compile_with} STREQUAL "GLSLC")
-    IF(NOT ${compile_as} STREQUAL "SPIR-V")
+    IF(NOT ${compile_as} STREQUAL "SPIRV")
       MESSAGE(SEND_ERROR "Glsl shaders can only be compiled to SPIR-V.")
-    ENDIF(NOT ${compile_as} STREQUAL "SPIR-V")
+    ENDIF(NOT ${compile_as} STREQUAL "SPIRV")
 
     IF(${shader_type} STREQUAL "VERTEX")
       SET(SHADER_STAGE "vert")
@@ -163,7 +163,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       LIST(APPEND compiler_options -Vd)
     ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     
-    IF(${compile_as} STREQUAL "SPIR-V")
+    IF(${compile_as} STREQUAL "SPIRV")
       LIST(APPEND compiler_options -D SPIRV)
       ADD_CUSTOM_TARGET(${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -202,7 +202,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       )
     ELSE()
       MESSAGE(SEND_ERROR "Unrecognized intermediate language ${compile_as}. Only SPIR-V and DXIL are supported.")
-    ENDIF(${compile_as} STREQUAL "SPIR-V")
+    ENDIF(${compile_as} STREQUAL "SPIRV")
   ELSE()
     MESSAGE(SEND_ERROR "Unrecognized compiler: ${compile_with}. Only DXC and GLSLC are allowed.")
   ENDIF(${compile_with} STREQUAL "GLSLC")
@@ -222,7 +222,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
 
   IF(NOT ${compile_with} STREQUAL "GLSLC")
     MESSAGE(SEND_ERROR "Glsl shaders can only be built with glslc.")
-  ELSEIF(NOT ${compile_as} STREQUAL "SPIR-V")
+  ELSEIF(NOT ${compile_as} STREQUAL "SPIRV")
     MESSAGE(SEND_ERROR "Glsl shaders can only be compiled to SPIR-V.")
   ELSE()
     IF(${shader_type} STREQUAL "VERTEX")
