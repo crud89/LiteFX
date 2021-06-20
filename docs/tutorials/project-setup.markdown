@@ -71,7 +71,7 @@ ADD_EXECUTABLE(MyLiteFXApp
   "main.cpp"
 )
 
-TARGET_LINK_LIBRARIES(MyLiteFXApp PRIVATE LiteFX.Backends.Vulkan)   # For DirectX 12 use: LiteFX.Backends.DirectX12
+TARGET_LINK_LIBRARIES(MyLiteFXApp PRIVATE LiteFX.Backends.Vulkan)   # For the DirectX 12 target use: LiteFX.Backends.DirectX12. You can also add both targets here.
 ```
 
 Again, replace the `...` in line 4 with the path to the *vcpkg* installation and set the `LiteFX_DIR` in line 9 to the release location. Unfortunately, LiteFX does not currently have its dedicated *vcpkg*-port, that's why this directory needs to be specified. Before we continue, create another file in the project directory and call it *vcpkg.json*. This file is called *manifest file* and is used by *vcpkg* to find the dependencies and install them when the project is configured later. Copy the following code to the manifest file:
