@@ -110,15 +110,15 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
     ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
 
-    ADD_CUSTOM_COMMAND(OUTPUT ${target_name}-make-dir COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR})
-
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -fshader_stage=${SHADER_STAGE} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
-      COMMENT "glslc: compiling hlsl shader '${shader_file}'..."
-      DEPENDS ${SHADER_SOURCES} ${target_name}-make-dir
+      COMMENT "glslc: compiling hlsl shader '${shader_source}'..."
+      DEPENDS ${SHADER_SOURCES}
     )
+
+    ADD_CUSTOM_COMMAND(TARGET ${target_name} COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR})
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
       SOURCES ${SHADER_SOURCES}
@@ -153,8 +153,6 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
     ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
 
-    ADD_CUSTOM_COMMAND(OUTPUT ${target_name}-make-dir COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR})
-
     SET(compiler_options "")
 
     IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -168,9 +166,11 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       ADD_CUSTOM_TARGET(${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" ${compiler_options} ${shader_source}
-        COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${SHADER_PROFILE}) to SPIR-V..."
-        DEPENDS ${SHADER_SOURCES} ${target_name}-make-dir
+        COMMENT "dxc: compiling hlsl shader '${shader_source}' (profile: ${SHADER_PROFILE}) to SPIR-V..."
+        DEPENDS ${SHADER_SOURCES}
       )
+
+      ADD_CUSTOM_COMMAND(TARGET ${target_name} COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR})
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
         SOURCES ${SHADER_SOURCES}
@@ -190,9 +190,11 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       ADD_CUSTOM_TARGET(${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ${BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" ${compiler_options} ${shader_source}
-        COMMENT "dxc: compiling hlsl shader '${shader_file}' (profile: ${SHADER_PROFILE}) to DXIL..."
-        DEPENDS ${SHADER_SOURCES} ${target_name}-make-dir
+        COMMENT "dxc: compiling hlsl shader '${shader_source}' (profile: ${SHADER_PROFILE}) to DXIL..."
+        DEPENDS ${SHADER_SOURCES}
       )
+
+      ADD_CUSTOM_COMMAND(TARGET ${target_name} COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR})
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
         SOURCES ${SHADER_SOURCES}
@@ -247,16 +249,16 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
     ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
 
-    ADD_CUSTOM_COMMAND(OUTPUT ${target_name}-make-dir COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR})
-
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
-      COMMENT "glslc: compiling glsl shader '${shader_file}'..."
-      DEPENDS ${SHADER_SOURCES} ${target_name}-make-dir
+      COMMENT "glslc: compiling glsl shader '${shader_source}'..."
+      DEPENDS ${SHADER_SOURCES}
     )
 
+    ADD_CUSTOM_COMMAND(TARGET ${target_name} COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR})
+    
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
       SOURCES ${SHADER_SOURCES}
       OUTPUT_NAME ${out_name}
