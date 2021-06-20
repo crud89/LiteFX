@@ -14,7 +14,6 @@
     "cli11",
     "directxmath",
     "directx-headers",
-    "glad",
     "glfw3",
     "glm",
     "spdlog",
