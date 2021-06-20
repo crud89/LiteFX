@@ -1,20 +1,46 @@
 # Quick Start
 
-This guide walks you through the steps required to quickly setup a simple application that renders a simple primitive. It demonstrates the most important features and use-cases of the LiteFX engine.
-
-## Setup Project using CMake
-
-...
+This guide walks you through the steps required to write an application that renders a simple primitive. It demonstrates the most important features and use-cases of the LiteFX engine. Before you start, make sure you've successfully setup a project by following the [project setup guide](md_docs_tutorials_project_setup.html).
 
 ## Running an Application
 
-At the core of each LiteFX application lies the `Backend`. In theory, an application can provide different back-ends, however currently only one type of back-ends is implemented: the `RenderingBackend`. This back-end comes in two flavors: `VulkanBackend` and `DirectX12Backend`. For now, let's create a simple app, that uses the Vulkan backend and uses [GLFW](https://www.glfw.org/) as a cross-platform window manager:
+At the core of each LiteFX application lies the `Backend`. In theory, an application can provide different back-ends, however currently only one type of back-ends is implemented: the `RenderingBackend`. This back-end comes in two flavors: `VulkanBackend` and `DirectX12Backend`. For now, let's create a simple app, that uses the Vulkan backend and uses [GLFW](https://www.glfw.org/) as a cross-platform window manager. In order to do this, we first need to extent the *CMakeLists.txt* file, created in the [project setup guide](md_docs_tutorials_project_setup.html). Add a `FIND_PACKAGE` command below the line where you are searching for LiteFX:
+
+```cmake
+FIND_PACKAGE(LiteFX 1.0 CONFIG REQUIRED)
+FIND_PACKAGE(glfw3 CONFIG REQUIRED)
+```
+
+In order to make GLFW available to your project, you have to also define the dependency using `TARGET_LINK_LIBRARIES`:
+
+```cmake
+TARGET_LINK_LIBRARIES(MyLiteFXApp PRIVATE LiteFX.Backends.Vulkan glfw)
+```
+
+Also - if you are not using *vcpkg* - you need to make sure, that the *glfw* shared library gets copied over to the build directory. To do this, extent the `FOREACH` loop at the bottom of your file:
+
+```cmake
+FOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES} glfw)
+  # ...
+ENDFOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES} glfw)
+```
+
+Re-configure your project and edit the *main.h* and *main.cpp* files and copy the following code to it:
 
 ```cxx
+#pragma once
+
 #include <litefx/litefx.h>
 #include <litefx/backends/vulkan.hpp>   // Alternatively you can include dx12.hpp here.
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+#include <iostream>
+```
+
+And to the *main.cpp* file:
+
+```cxx
+#include "main.h"
 
 using namespace LiteFX;
 using namespace LiteFX::Rendering;
@@ -27,7 +53,7 @@ public:
 	AppVersion getVersion() const noexcept override { return AppVersion(1, 0, 0, 0); }
 
 private:
-    const GLFWwindow* m_window;
+    GLFWwindow* m_window;
 
 public:
 	SimpleApp(GLFWwindow* window) : 
@@ -76,11 +102,17 @@ int main(const int argc, const char** argv)
 
 	GLFWwindow* window = ::glfwCreateWindow(800, 600, "Simple App", nullptr, nullptr);
 
+	// The next lines are Vulkan-specific:
+    UInt32 extensions = 0;
+    const char** extensionNames = ::glfwGetRequiredInstanceExtensions(&extensions);
+    Array<String> requiredExtensions(extensions);
+    std::ranges::generate(requiredExtensions, [&extensionNames, i = 0]() mutable { return String(extensionNames[i++]); });
+
     try
     {
         App::build<SimpleApp>(window)
             .logTo<ConsoleSink>(LogLevel::Trace)
-            .make<VulkanBackend>()                   // Alternatively, you can use the DirectX12Backend here.
+            .useBackend<VulkanBackend>(requiredExtensions)                   // Alternatively, you can use the DirectX12Backend here (and remove the required extensions).
             .go();
     }
     catch (const LiteFX::Exception& ex)
@@ -96,7 +128,9 @@ int main(const int argc, const char** argv)
 
 Let's take a look at the code together. First, we create a window to paint on using *GLFW*. This is straightforward, but any other window manager can also be used. LiteFX does not make any restrictions on how the rendering surface is created. The only restriction is, that it needs to be compatible with the rendering back-end. However, since it is possible to also request a `HWND` handle from *GLFW* using `glfwGetWin32Window`, we can use *GLFW* it for both backends. The window pointer is passed to the `App::build<SimpleApp>()` call, which forwards the pointer to the `SimpleApp` constructor, where we store it.
 
-Furthermore, we specify the log target (which is completely optional) to be a console window. and tell the app to initialize a `VulkanBackend` for rendering. The `.go()` calls cause the builder to perform the actual object initialization and you will see it frequently when using the fluent API. However, using the fluent builder syntax is also optional - you could in fact create all the instances on your own. All classes follow an [RAII](https://en.cppreference.com/w/cpp/language/raii) idiom, so it is clear from the constructors parameter, which objects are required to be initialized in which order.
+**Note on Vulkan**: for the Vulkan backend, it is important to specify the mandatory extensions that are required to create a valid surface. We do this by calling `glfwGetRequiredInstanceExtensions` and passing the result to the `VulkanBackend`. It is, however, possible to manually specify those extensions, if GLFW is not used. For Windows, those extensions are: `VK_KHR_surface` and `VK_KHR_win32_surface`.
+
+We then specify a log target (which is completely optional) to be a console window. and tell the app to initialize a `VulkanBackend` for rendering. The `.go()` calls cause the builder to perform the actual object initialization and you will see it frequently when using the fluent API. However, using the fluent builder syntax is also optional - you could in fact create all the instances on your own. All classes follow an [RAII](https://en.cppreference.com/w/cpp/language/raii) idiom, so it is clear from the constructors parameter, which objects are required to be initialized in which order.
 
 Let's go on and take a look at the `SimpleApp` class. It implements the `LiteFX::App` base class, which is an abstract class, that requires us to provide some overrides, that implement the basic application control flow. Most notably, those are:
 
@@ -114,7 +148,7 @@ The app model automatically calls `SampleApp::run` as soon as the app is ready. 
 // TODO: initialize.
 
 // Run application loop until the window is closed.
-while (!::glfwWindowShouldClose(window))
+while (!::glfwWindowShouldClose(m_window))
 {
     ::glfwPollEvents();
 	// TODO: draw frame.
@@ -123,7 +157,7 @@ while (!::glfwWindowShouldClose(window))
 // TODO: cleanup.
 
 // Destroy the window.
-::glfwDestroyWindow(window);
+::glfwDestroyWindow(m_window);
 ::glfwTerminate();
 ```
 
@@ -164,7 +198,7 @@ With the adapter, surface and frame buffer extent, we can go ahead to create our
 ```cxx
 int width, height;
 ::glfwGetFramebufferSize(m_window, &width, &height);
-m_device = backend->createDevice(*adapter, *m_surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
 ```
 
 We store the device in a variable `m_device`, which we define as a member variable of `SampleApp`, since we are going to make heavy use of it throughout the whole application.
@@ -246,13 +280,13 @@ Next, we tell the pipeline about how those primitives (i.e. triangles in our exa
 
 ##### Render Pipeline Layout
 
-Each pipeline is defined using a *Pipeline Layout*. The layout stores meta-data about the pipeline state. This includes the shader program to use and the how the buffers are addressed by this shader. We start by defining the shader program, which in our simple example should contain two stages: *Vertex* and *Fragment* shaders (those are also called *Pixel* shaders in DirectX). A program is built from multiple modules, where each module type may only exist once within a program. The modules are loaded from files and must be in a compatible binary format. For Vulkan this format is *SPIR-V*, for DirectX it's *DXIL*. The shaders used in this example are taken from the *BasicRendering* sample of the engine sources.
+Each pipeline is defined using a *Pipeline Layout*. The layout stores meta-data about the pipeline state. This includes the shader program to use and the how the buffers are addressed by this shader. We start by defining the shader program, which in our simple example should contain two stages: *Vertex* and *Fragment* shaders (those are also called *Pixel* shaders in DirectX). A program is built from multiple modules, where each module type may only exist once within a program. The modules are loaded from files and must be in a compatible binary format. For Vulkan this format is *SPIR-V*, for DirectX it's *DXIL*. We define those shaders later, for now it is only important that they are written to the *shaders* directory and called *vs.spv* (vertex shader) and *fs.spv* (fragment shader).
 
 ```cxx
 	.layout()
 		.shaderProgram()
-			.addVertexShaderModule("shaders/basic.vert.spv")		// .dxi for DXIL
-			.addFragmentShaderModule("shaders/basic.frag.spv")
+			.addVertexShaderModule("shaders/vs.spv")		// .dxi for DXIL
+			.addFragmentShaderModule("shaders/fs.spv")
 			.go()
 ```
 
@@ -274,11 +308,13 @@ Finally we need to tell the pipeline layout about the buffers that are used by t
 
 For more details about buffers and descriptor sets, kindly refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Resource-Bindings) or read the API documentation about descriptor sets.
 
+##### Defining and Building Shader Modules
+
+<!-- CMake and HLSL -->
+
 #### Creating and Managing Buffers
 
-```
-auto inputAssembler = m_pipeline->inputAssembler();
-```
+<!-- TODO: Define and manage camera and transform buffers -->
 
 ### Handling Resize-Events
 
