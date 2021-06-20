@@ -50,6 +50,24 @@ SET(LiteFX_DIR "...")
 
 Again, replace the `...` with the directory, you've placed the LiteFX release to.
 
+Next, we have to ensure, that the dynamic library files (i.e. the DLL-files) for all dependencies are copied to the build directory. Otherwise your app will not run properly. LiteFX provides a list of all dependencies in the `LITEFX_DEPENDENCIES` variable. Add the following code to the bottom of your *CMakeLists.txt* file to add a copy command for the build:
+
+```cmake
+FOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES})
+  GET_TARGET_PROPERTY(DEPENDENCY_LOCATION ${DEPENDENCY} IMPORTED_LOCATION)
+
+  IF(NOT DEPENDENCY_LOCATION)
+    GET_TARGET_PROPERTY(DEPENDENCY_LOCATION_DEBUG ${DEPENDENCY} IMPORTED_LOCATION_DEBUG)
+    GET_TARGET_PROPERTY(DEPENDENCY_LOCATION_RELEASE ${DEPENDENCY} IMPORTED_LOCATION_RELEASE)
+    SET(DEPENDENCY_LOCATION "$<$<CONFIG:DEBUG>:${DEPENDENCY_LOCATION_DEBUG}>$<$<CONFIG:RELEASE>:${DEPENDENCY_LOCATION_RELEASE}>")
+  ENDIF(NOT DEPENDENCY_LOCATION)
+
+  ADD_CUSTOM_COMMAND(TARGET MyLiteFXApp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DEPENDENCY_LOCATION} $<TARGET_FILE_DIR:MyLiteFXApp>)
+ENDFOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES})
+```
+
+This loop looks complicated at first, but all it does is to look for the right library file, depending on the build configuration (`Debug` or `Release`) and copy the proper file into the build directory in a post-build event.
+
 ### Setup Project using vcpkg
 
 If you choose to use *vcpkg*, then the *CMakeLists.txt* file will look slightly different. If you want to go ahead with the manual installation, you can skip this section.
@@ -66,12 +84,21 @@ SET(CMAKE_CXX_STANDARD 20)
 SET(LiteFX_DIR "...")
 FIND_PACKAGE(LiteFX 1.0 CONFIG REQUIRED)
 
-ADD_EXECUTABLE(MyLiteFXApp
-  "main.h"
-  "main.cpp"
-)
+ADD_EXECUTABLE(MyLiteFXApp "main.h" "main.cpp")
 
 TARGET_LINK_LIBRARIES(MyLiteFXApp PRIVATE LiteFX.Backends.Vulkan)   # For the DirectX 12 target use: LiteFX.Backends.DirectX12. You can also add both targets here.
+
+FOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES})
+  GET_TARGET_PROPERTY(DEPENDENCY_LOCATION ${DEPENDENCY} IMPORTED_LOCATION)
+
+  IF(NOT DEPENDENCY_LOCATION)
+    GET_TARGET_PROPERTY(DEPENDENCY_LOCATION_DEBUG ${DEPENDENCY} IMPORTED_LOCATION_DEBUG)
+    GET_TARGET_PROPERTY(DEPENDENCY_LOCATION_RELEASE ${DEPENDENCY} IMPORTED_LOCATION_RELEASE)
+    SET(DEPENDENCY_LOCATION "$<$<CONFIG:DEBUG>:${DEPENDENCY_LOCATION_DEBUG}>$<$<CONFIG:RELEASE>:${DEPENDENCY_LOCATION_RELEASE}>")
+  ENDIF(NOT DEPENDENCY_LOCATION)
+
+  ADD_CUSTOM_COMMAND(TARGET MyLiteFXApp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DEPENDENCY_LOCATION} $<TARGET_FILE_DIR:MyLiteFXApp>)
+ENDFOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES})
 ```
 
 Again, replace the `...` in line 4 with the path to the *vcpkg* installation and set the `LiteFX_DIR` in line 9 to the release location. Unfortunately, LiteFX does not currently have its dedicated *vcpkg*-port, that's why this directory needs to be specified. Before we continue, create another file in the project directory and call it *vcpkg.json*. This file is called *manifest file* and is used by *vcpkg* to find the dependencies and install them when the project is configured later. Copy the following code to the manifest file:

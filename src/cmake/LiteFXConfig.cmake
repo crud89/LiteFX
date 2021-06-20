@@ -13,15 +13,22 @@ SET(LITEFX_HAS_VULKAN_BACKEND @BUILD_VULKAN_BACKEND@)
 SET(LITEFX_HAS_DIRECTX_MATH @BUILD_WITH_DIRECTX_MATH@)
 SET(LITEFX_HAS_GLM @BUILD_WITH_GLM@)
 
+# Keep track of the imported libraries for convenience.
+SET(LITEFX_DEPENDENCIES fmt::fmt spdlog::spdlog LiteFX.Core LiteFX.Logging LiteFX.AppModel LiteFX.Math LiteFX.Graphics LiteFX.Rendering)
+
 # Lookup package dependencies.
 INCLUDE(CMakeFindDependencyMacro)
 
 IF(LITEFX_HAS_DIRECTX12_BACKEND)
+  LIST(APPEND LITEFX_DEPENDENCIES LiteFX.Backends.DirectX12)
+
   FIND_DEPENDENCY(directx-headers CONFIG)
   FIND_PACKAGE(d3d12-memory-allocator CONFIG)
 ENDIF(LITEFX_HAS_DIRECTX12_BACKEND)
 
 IF(LITEFX_HAS_VULKAN_BACKEND)
+  LIST(APPEND LITEFX_DEPENDENCIES LiteFX.Backends.Vulkan)
+
   FIND_DEPENDENCY(Vulkan)
   FIND_PACKAGE(unofficial-vulkan-memory-allocator CONFIG)
 ENDIF(LITEFX_HAS_VULKAN_BACKEND)
