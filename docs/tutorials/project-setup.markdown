@@ -30,6 +30,7 @@ Go ahead and open the *CMakeLists.txt* file with any text editor. Copy the follo
 CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
 PROJECT(MyLiteFXApp LANGUAGES CXX)
 
+SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_PREFIX_PATH "...")
 FIND_PACKAGE(LiteFX 1.0 CONFIG REQUIRED)
 
@@ -41,7 +42,7 @@ ADD_EXECUTABLE(MyLiteFXApp
 TARGET_LINK_LIBRARIES(MyLiteFXApp PRIVATE LiteFX.Backends.Vulkan)   # For DirectX 12 use: LiteFX.Backends.DirectX12
 ```
 
-Replace the `...` in line 4 with the directory, you've installed all your dependencies and the engine to. If you have installed LiteFX to another directory, add the following line below `SET(CMAKE_PREFIX_PATH "...")`:
+Replace the `...` in line 5 with the directory, you've installed all your dependencies and the engine to. If you have installed LiteFX to another directory, add the following line below `SET(CMAKE_PREFIX_PATH "...")`:
 
 ```cmake
 SET(LiteFX_DIR "...")
@@ -61,6 +62,7 @@ SET(CMAKE_TOOLCHAIN_FILE "${VCPKG_MODULE_DIRECTORY}/scripts/buildsystems/vcpkg.c
 
 PROJECT(MyLiteFXApp LANGUAGES CXX)
 
+SET(CMAKE_CXX_STANDARD 20)
 SET(LiteFX_DIR "...")
 FIND_PACKAGE(LiteFX 1.0 CONFIG REQUIRED)
 
@@ -72,7 +74,7 @@ ADD_EXECUTABLE(MyLiteFXApp
 TARGET_LINK_LIBRARIES(MyLiteFXApp PRIVATE LiteFX.Backends.Vulkan)   # For DirectX 12 use: LiteFX.Backends.DirectX12
 ```
 
-Again, replace the `...` in line 3 with the path to the *vcpkg* installation and set the `LiteFX_DIR` in line 8 to the release location. Unfortunately, LiteFX does not currently have its dedicated *vcpkg*-port, that's why this directory needs to be specified. Before we continue, create another file in the project directory and call it *vcpkg.json*. This file is called *manifest file* and is used by *vcpkg* to find the dependencies and install them when the project is configured later. Copy the following code to the manifest file:
+Again, replace the `...` in line 4 with the path to the *vcpkg* installation and set the `LiteFX_DIR` in line 9 to the release location. Unfortunately, LiteFX does not currently have its dedicated *vcpkg*-port, that's why this directory needs to be specified. Before we continue, create another file in the project directory and call it *vcpkg.json*. This file is called *manifest file* and is used by *vcpkg* to find the dependencies and install them when the project is configured later. Copy the following code to the manifest file:
 
 ```json
 {
