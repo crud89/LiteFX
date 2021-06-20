@@ -11,6 +11,7 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 SET(APP_MODEL_HEADERS
     "include/litefx/app.hpp"
     "include/litefx/app_api.hpp"
+    "include/litefx/app_formatters.hpp"
 )
 
 SET(APP_MODEL_SOURCES
