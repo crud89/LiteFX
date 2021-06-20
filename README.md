@@ -10,7 +10,7 @@ An extensible, descriptive, modern computer graphics and rendering engine.
 
 ## About
 
-LiteFX is a computer graphics engine, that can be used to quick-start developing applications using Vulkan 🌋 and/or DirectX 12 ❎ rendering APIs. It provides a flexible abstraction layer over modern graphics pipelines. Furthermore, it can easily be build and integrated using CMake. It naturally extents build scripts with functions that can be used to handle assets and compile shaders and model dependencies to both.
+LiteFX is a computer graphics engine, that can be used to quick-start developing applications using Vulkan 🌋 and/or DirectX 12 ❎ rendering APIs. It provides a flexible abstraction layer over modern graphics pipelines. Furthermore, it can easily be build and integrated using CMake. It naturally extents build scripts with functions that can be used to handle assets and compile shaders † and model dependencies to both.
 
 The engine design follows an descriptive approach, which means that an application focuses on configuring what it needs and the engine then takes care of handling those requirements. To support this, the API also provides a fluent interface. Here is an example of how to easily setup a render pass graphics pipeline with a few lines of code:
 
@@ -53,6 +53,8 @@ auto pipeline = renderPass->makePipeline(0, "Basic Pipeline")
 ```
 
 LiteFX is written in modern C++20, following established design patterns to make it easy to learn and adapt. It's focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
+
+† Shader can be built using *glslc* or *DXC*. *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
 
 ## Installation
 
@@ -102,21 +104,15 @@ From Visual Studio open the folder where you just checked out the contents of th
 
 You can customize the engine build, according to your specific needs. From Visual Studio, you can simply edit the `src/CMakeSettings.json` file to do this. The usual CMake process is similar. All customizable options have the `BUILD_` prefix and are described in detail below:
 
-- `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan backend 🌋 (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later to be installed on your system).
-- `BUILD_DX12_BACKEND` (default: `OFF`): builds the DirectX 12 backend ❎
+- `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later to be installed on your system).
+- `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
 - `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
 - `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
 - `BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
 - `BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
-- `BUILD_USE_GLSLC` (default: `OFF`): compiles shaders using *glslc* (requires LunarG Vulkan SDK to be installed on your system). **Can not be used together with `BUILD_USE_DXC`!** ‡
-- `BUILD_USE_DXC` (default: `ON`): compiles shaders using *DXC* (requires LunarG Vulkan SDK when targeting only Vulkan, a pre-build of [DXC](https://github.com/microsoft/DirectXShaderCompiler/releases) when targeting only DirectX 12, or a custom DXC build when targeting both). **Can not be used together with `BUILD_USE_GLSLC`!** ‡
-- `BUILD_DXC_DXIL` (default: `ON`): compiles HLSL shaders to DXIL when `BUILD_USE_DXC` is set to `ON`.
-- `BUILD_DXC_SPIRV` (default: `ON`): compiles HLSL shaders to SPIR-V when `BUILD_USE_DXC` is set to `ON`.
 - `BUILD_HLSL_SHADER_MODEL` (default: `6_3`): specifies the default HLSL shader model.
 
 † Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported.
-
-‡ *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
 
 ## Getting Started
 
