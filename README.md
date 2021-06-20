@@ -135,9 +135,9 @@ The math module can optionally be built with converters for the following math a
 
 Furthermore, the samples also use some libraries for convenience. Those dependencies are not exported and are not required by your application. You can use whatever replacement suits you best instead.
 
-- [CLI11](https://cliutils.github.io/CLI11/book/): Command line parser. †
-- [glfw3](https://www.glfw.org/): Cross-platform window manager. †
-- [stb](https://github.com/nothings/stb): Lightweight image loading and processing library. †
+- [CLI11](https://cliutils.github.io/CLI11/book/): Command line parser.
+- [glfw3](https://www.glfw.org/): Cross-platform window manager.
+- [stb](https://github.com/nothings/stb): Lightweight image loading and processing library.
 
 ## Getting Started
 
