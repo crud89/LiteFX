@@ -73,11 +73,13 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
         "src/"
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan unofficial::vulkan-memory-allocator::vulkan-memory-allocator
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan 
+    PRIVATE unofficial::vulkan-memory-allocator::vulkan-memory-allocator
 )
 
 # Re-use pre-compiled core header.

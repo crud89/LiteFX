@@ -71,6 +71,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
         "src/"
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
 
 # Link project dependencies.
