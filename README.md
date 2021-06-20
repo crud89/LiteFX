@@ -62,7 +62,7 @@ If you just want to start using LiteFX, you can acquire binaries of the latest v
 
 ### Manual Builds
 
-You can also build the sources on your own. Currently only MSVC builds under Windows are supported. However, the engine does use CMake with the Ninja generator, so porting non platform-specific parts should be absolutely possible (pull requests are much appreciated!).
+You can also build the sources on your own. Currently only MSVC builds under Windows are supported. However, the engine does use CMake and (besides the DirectX12 backend) no Windows-specific features, so porting the Vulkan backend and engine architecture should be absolutely possible (pull requests are much appreciated!).
 
 #### Prerequisites
 
@@ -112,7 +112,32 @@ You can customize the engine build, according to your specific needs. From Visua
 - `BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
 - `BUILD_HLSL_SHADER_MODEL` (default: `6_3`): specifies the default HLSL shader model.
 
-† Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported.
+† Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported. Note that both can be used for DirectX 12 and Vulkan.
+
+### Dependencies
+
+All dependencies are automatically installed using *vcpkg*, when performing a manual build. There are only two dependencies that the engine itself enforces:
+
+- [spdlog](https://github.com/gabime/spdlog): Lightweight logging library.
+- [{fmt}](https://github.com/fmtlib/fmt): String formatting library and implicit dependency by *spdlog*.
+
+Depending on which rendering backends are build, the following dependencies are required:
+
+- [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend
+- [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/): Required by the Vulkan backend. Handles memory allocations.
+- [DirectX Headers](https://github.com/microsoft/DirectX-Headers): Required by the DirectX 12 backend.
+- [D3D12 Memory Allocator](https://gpuopen.com/d3d12-memory-allocator/): Required by the DirectX 12 backend. Handles memory allocations.
+
+The math module can optionally be built with converters for the following math and linear algebra libraries:
+
+- [glm](https://github.com/g-truc/glm): Cross-platform math library.
+- [DirectX Math](https://github.com/microsoft/DirectXMath): Windows-specific math library.
+
+Furthermore, the samples also use some libraries for convenience. Those dependencies are not exported and are not required by your application. You can use whatever replacement suits you best instead.
+
+- [CLI11](https://cliutils.github.io/CLI11/book/): Command line parser. †
+- [glfw3](https://www.glfw.org/): Cross-platform window manager. †
+- [stb](https://github.com/nothings/stb): Lightweight image loading and processing library. †
 
 ## Getting Started
 
