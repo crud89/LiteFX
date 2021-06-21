@@ -104,11 +104,11 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       MESSAGE(SEND_ERROR "Unsupported shader type: ${shader_type}. Valid shader types are: VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE and RAYTRACING.")
     ENDIF(${shader_type} STREQUAL "VERTEX")
     
-    IF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+    IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
       SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
     ELSE()
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
-    ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+    ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
@@ -149,11 +149,11 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     SET(SHADER_PROFILE "${SHADER_STAGE}_${shader_model}")
     
-    IF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+    IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
       SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
     ELSE()
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
-    ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+    ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 
     SET(compiler_options "")
 
@@ -250,11 +250,11 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
       MESSAGE(SEND_ERROR "Unsupported shader type: ${shader_type}. Valid shader types are: VERTEX, GEOMETRY, HULL/TESSELATION_CONTROL, DOMAIN/TESSELLATION_EVALUATION, FRAGMENT/PIXEL, COMPUTE and RAYTRACING.")
     ENDIF(${shader_type} STREQUAL "VERTEX")
     
-    IF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+    IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
       SET(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR})
     ELSE()
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
-    ENDIF(${CMAKE_RUNTIME_OUTPUT_DIRECTORY} STREQUAL "")
+    ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
