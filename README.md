@@ -141,7 +141,7 @@ Furthermore, the samples also use some libraries for convenience. Those dependen
 
 ## Getting Started
 
-For a collection of tutorials and more in-depth information on how to use the engine and work with the code base, take a look at the [project wiki](https://github.com/crud89/LiteFX/wiki).
+For a [quick-start guide](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html), a collection of tutorials and more in-depth information on how to use the engine and work with the code base, take a look at the [documentation](https://litefx.crudolph.io/docs/) and the [project wiki](https://github.com/crud89/LiteFX/wiki).
 
 ## Contribute
 
