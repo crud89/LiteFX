@@ -1,24 +1,23 @@
 # Copyright (c) 2021 Carsten Rudolph
-name: Verify Build
+name: Weekly
 
 on:
   workflow_dispatch:
     inputs:
-      uploadArtifacts:
-        description: 'Upload Artifacts'
+      uploadBuildArtifacts:
+        description: 'Upload Build Artifacts'
         required: true
         default: 'false'
         
-  pull_request:
-    branches:
-      - main
-
+  schedule: 
+    - cron: '1 0 * * 1'         # Run every monday night at 00:01 AM (UTC).
+    
 env:
   vulkanSdkVersion: '1.2.148.0' # Lowest version that ships with DXC is 1.2.148.0
 
 jobs:
   job:
-    name: ${{ matrix.os }}-ci
+    name: ${{ matrix.os }}-weekly
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -28,7 +27,6 @@ jobs:
           - os: windows-latest
             triplet: x64-windows
             configuration: x64-Release
-            vcpkgCommitId: 'b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6'
 
     steps:
       - name: Checking out sources
@@ -84,14 +82,20 @@ jobs:
           configurationRegexFilter: '${{ matrix.configuration }}'
           useVcpkgToolchainFile: true
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
-      
+          
+      - name: Upload build artifacts
+        if: ${{ github.events.inputs.uploadBuildArtifacts == 'true' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: LiteFX-${{ matrix.triplet }}-build
+          path: '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
+          
       - name: Install with CMake
         run: |
           Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
           cmake --install .
 
       - name: Upload install artifacts
-        if: ${{ github.events.inputs.uploadArtifacts == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
