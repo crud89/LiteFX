@@ -4,5 +4,5 @@
 #####                                                                                         #####
 ###################################################################################################
 
-INCLUDE("cmake/VERSION")
+INCLUDE("cmake/VersionVariables.cmake")
 SET(LITEFX_VERSION "${LITEFX_RELEASE}.${LITEFX_PATCH}.${LITEFX_YEAR}.${LITEFX_BUILD}")

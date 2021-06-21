@@ -12,4 +12,4 @@ SET(LITEFX_PATCH {2})
 SET(LITEFX_BUILD {3})
 '@ -f $year, $major, $minor, $build
 
-$output | Out-File -FilePath .\VERSION
+$output | Out-File -Encoding "UTF8" -FilePath .\VersionVariables.cmake
