@@ -14,7 +14,7 @@ env:
 
 jobs:
   job:
-    name: ${{ matrix.os }}-Weekly
+    name: ${{ matrix.os }}-ci
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
