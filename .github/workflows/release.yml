@@ -42,6 +42,11 @@ jobs:
         with:
           submodules: true
 
+      - name: Update version
+        working-directory: "${{ github.workspace }}/src/cmake/"
+        shell: powershell
+        run: "write-version.ps1 -major ${{ github.events.input.major }} -minor ${{ github.events.input.minor }} -build ${{ github.events.input.build }}"
+
       - name: Setup build environment
         id: setup-environment
         run: |
@@ -115,24 +120,61 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.buildPath }}/install'
+          path: '${{ steps.setup-environment.outputs.buildPath }}/install/${{ matrix.architecture }}'
           
   publish:
     name: 'Publish'
     needs: build
     runs-on: windows-latest
-    strategy:
-      fail-fast: true
       
     steps:
       - name: 'Download windows-x64 artifacts...'
         uses: actions/download-artifact@master
         with:
           name: LiteFX-windows-x64-install
-          path: release/x64/
+          path: artifacts/
           
       - name: 'Download windows-x86 artifacts...'
         uses: actions/download-artifact@master
         with:
           name: LiteFX-windows-x86-install
-          path: release/x86/
+          path: artifacts/
+
+      - name: Checking out sources
+        uses: actions/checkout@master
+        with:
+          submodules: true
+
+      - name: Update version
+        working-directory: "${{ github.workspace }}/src/cmake/"
+        shell: powershell
+        run: "write-version.ps1 -major ${{ github.events.input.major }} -minor ${{ github.events.input.minor }} -build ${{ github.events.input.build }}"
+
+      - name: Build documentation
+        uses: mattnotmitt/doxygen-action@v1
+        with:
+          working-directory: '${{ github.workspace }}'
+          doxyfile-path: '.doxyfile'
+
+      - name: Commit updates
+        shell: powershell
+        run: |
+          git config --local user.email "18394207+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "Release ${{ github.events.input.major }}.${{ github.events.input.minor }}.${{ github.events.input.build }}" -a
+          $commit_id = git rev-parse HEAD
+          echo "HEAD_COMMIT_ID=$($commit_id)" >> $env:GITHUB_ENV
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+            artifacts: "artifacts/"
+            token: ${{ secrets.GITHUB_TOKEN }}
+            body: "${{ github.events.input.Changelog }}"
+            name: "v${{ github.events.input.major }}.${{ github.events.input.minor }}.${{ github.events.input.build }}"
+            commit: "${{ env.HEAD_COMMIT_ID }}"
