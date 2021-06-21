@@ -2,10 +2,10 @@
 name: Verify PR Build
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
 
 env:
   vulkanSdkVersion: '1.2.148.0' # Lowest version that ships with DXC is 1.2.148.0
