@@ -1,10 +1,7 @@
-# Copyright (c) 2020 Carsten Rudolph
+# Copyright (c) 2021 Carsten Rudolph
 name: Verify Build
 
 on:
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
   schedule: 
     - cron: '1 0 * * 1'         # Run every monday night at 00:01 AM (UTC).
