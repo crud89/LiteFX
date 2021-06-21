@@ -146,7 +146,7 @@ jobs:
           submodules: true
 
       - name: Update version
-        working-directory: "${{ github.workspace }}/src/cmake/"
+        working-directory: "${{ github.workspace }}"
         shell: powershell
         run: "write-version.ps1 -major ${{ github.events.input.major }} -minor ${{ github.events.input.minor }} -build ${{ github.events.input.build }}"
 
