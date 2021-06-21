@@ -2,7 +2,7 @@
 
 This guide walks you through the steps required to write an application that renders a simple primitive. It demonstrates the most important features and use-cases of the LiteFX engine. Before you start, make sure you've successfully setup a project by following the [project setup guide](md_docs_tutorials_project_setup.html).
 
-## Running an Application
+## Defining an Application
 
 At the core of each LiteFX application lies the `Backend`. In theory, an application can provide different back-ends, however currently only one type of back-ends is implemented: the `RenderingBackend`. This back-end comes in two flavors: `VulkanBackend` and `DirectX12Backend`. For now, let's create a simple app, that uses the Vulkan backend and uses [GLFW](https://www.glfw.org/) as a cross-platform window manager. In order to do this, we first need to extent the *CMakeLists.txt* file, created in the [project setup guide](md_docs_tutorials_project_setup.html). Add a `FIND_PACKAGE` command below the line where you are searching for LiteFX:
 
@@ -266,7 +266,7 @@ Finally, we define out vertex buffer layout. This means, that we tell the input 
 		.go()
 ```
 
-#### Rasterizer State
+##### Rasterizer State
 
 Next, we tell the pipeline about how those primitives (i.e. triangles in our example) should be drawn. We want to draw solid faces, so we set the `PolygonMode` to `Solid`. Another property of the rasterizer state is the face culling state. First, we set the order of vertices, which dictates which side of the primitive is interpreted as *front* and which one is the *back*. We set the `CullOrder` to `ClockWise` to tell the pipeline to treat this ordering as *front face*. Finally, we tell the pipeline not to draw back faces by setting the `CullMode` to `BackFaces`.
 
@@ -295,6 +295,8 @@ Finally we need to tell the pipeline layout about the buffers that are used by t
 - The `CameraBuffer`, which is only updated when the viewport changes (our example camera is static). The camera buffer will be bound to location `0` of set `0` and will be visible to the vertex and fragment shader stages.
 - The `TransformBuffer`, which is updated every frame (we want to draw a rotating rectangle). The transform buffer will be bound to location `0` of set `1` and will only be visible to the vertex shader.
 
+For now, we will only define the descriptor sets and take a look at the `CameraBuffer` and `TransformBuffer` objects later.
+
 ```cxx
 		.addDescriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
 			.addUniform(0, sizeof(CameraBuffer))
@@ -308,14 +310,117 @@ Finally we need to tell the pipeline layout about the buffers that are used by t
 
 For more details about buffers and descriptor sets, kindly refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Resource-Bindings) or read the API documentation about descriptor sets.
 
-##### Defining and Building Shader Modules
+###### Defining and Building Shader Modules
 
-<!-- CMake and HLSL -->
+We already told the pipeline to load the vertex and fragment shaders, however, we do not yet have defined them. Create two new files in the project directory: *vs.hlsl* for the vertex shader and *fs.hlsl* for the fragment shader. First, let's take a look at the vertex shader:
 
-#### Creating and Managing Buffers
+```hlsl
+#pragma pack_matrix(row_major)
+
+struct VertexInput
+{
+    float3 Position : POSITION;
+    float4 Color : COLOR;
+};
+
+struct VertexData 
+{
+    float4 Position : SV_POSITION;
+    float4 Color : COLOR;
+};
+
+struct CameraData
+{
+    float4x4 ViewProjection;
+};
+
+struct TransformData
+{
+    float4x4 Model;
+};
+
+ConstantBuffer<CameraData>    camera    : register(b0, space0);
+ConstantBuffer<TransformData> transform : register(b0, space1);
+
+VertexData main(in VertexInput input)
+{
+    VertexData vertex;
+    
+    float4 position = mul(float4(input.Position, 1.0), transform.Model);
+    vertex.Position = mul(position, camera.ViewProjection);
+    
+    vertex.Color = input.Color;
+ 
+    return vertex;
+}
+```
+
+`VertexInput` corresponds to the definition we earlier passed to the input assembler. `VertexData` describes the output vertex of the vertex shader. The two constant buffers correspond to the descriptors we passed to the descriptor sets in the pipeline definition. Note how the descriptor set ID maps to the `space` in the shader. The main function is pretty straightforward, as it only performs the view/projection transform for the vertex and copies its color. Also note the `#pragma pack_matrix(row_major)`: since we are going to use GLM in this tutorial and GLM produces row-major matrices, this is important. If you are using another math library, you can simply change this line accordingly.
+
+The fragment shader is also pretty rudimentary for the moment:
+
+```hlsl
+#pragma pack_matrix(row_major)
+
+struct VertexData 
+{
+    float4 Position : SV_POSITION;
+    float4 Color : COLOR;
+}; 
+
+struct FragmentData
+{
+    float4 Color : SV_TARGET0;
+    float Depth : SV_DEPTH;
+};
+
+FragmentData main(VertexData input)
+{
+    FragmentData fragment;
+    
+    fragment.Depth = input.Position.z;
+    fragment.Color = input.Color;
+
+    return fragment;
+}
+```
+
+Again, the `VertexData` contains the data we are passing from the vertex to the fragment shader stage. `FragmentData` holds the information about the fragment, where the `Color` property maps to the first render target and the `Depth` property maps to the depth/stencil target we defined earlier in the rasterizer state. The does not do any further computations, but copies the values from the vertex input.
+
+Usually you have to manually compile the shaders before you can use them. LiteFX is capable to do this for you automatically and provides two helpers for CMake projects: `ADD_SHADER_MODULE` and `TARGET_LINK_SHADERS`. Let's head over to our *CMakeLists.txt* file and add the following lines below the `TARGET_LINK_LIBRARIES`:
+
+```cmake
+ADD_SHADER_MODULE(MyVertexShader SOURCE "vs.hlsl" LANGUAGE HLSL TYPE VERTEX COMPILE_AS SPIRV SHADER_MODEL 6_3 COMPILER DXC)
+ADD_SHADER_MODULE(MyFragmentShader SOURCE "fs.hlsl" LANGUAGE HLSL TYPE FRAGMENT COMPILE_AS SPIRV SHADER_MODEL 6_3 COMPILER DXC)
+TARGET_LINK_SHADERS(MyLiteFXApp SHADERS MyVertexShader MyFragmentShader)
+```
+
+First, we define two targets `MyVertexShader` and `MyFragmentShader`, one for each shader module. The options behind specify the language, shader type, intermediate language (`SPIRV` for Vulkan, change it to `DXIL` for DirectX 12), the shader model and the compiler to use. `DXC` is recommended, unless you want to compile *GLSL* shaders, which can only be compiled using `GLSLC`. Note, however, that you cannot use GLSL shaders to target DirectX 12.
+
+The shader helper attempts to find the *GLSLC* and *DXC* compilers automatically. If you have the Vulkan SDK installed, it looks for the compilers there. It prefers the Vulkan SDK, since this DXC distribution supports SPIR-V code generation and GLSLC is present too. If you only plan on using the DirectX 12 backend and don't have the Vulkan SDK installed, the helper falls back to the DXC distribution, installed with the Windows 10 SDK. Note, however, that this distribution does not support SPIR-V code generation. It is possible, however, to specify a custom location for each compiler, by setting the `BUILD_DXC_COMPILER` and/or `BUILD_GLSLC_COMPILER` variables.
+
+Using `TARGET_LINK_SHADERS` we setup a dependency for between the shaders and our application, so that the shaders are copied to the build directory properly. Note that by default, the shaders are copied into a `shaders/` subdirectory. You can change this subdirectory by changing the `SHADER_DEFAULT_SUBDIR` variable. Keep in mind to also update the pipeline state definition, if you do change the directory.
+
+For more information on how to use the helpers, refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Shader-Module-Targets).
+
+### Creating and Managing Buffers
 
 <!-- TODO: Define and manage camera and transform buffers -->
+...
+
+### Drawing Frames
+
+...
 
 ### Handling Resize-Events
 
 ...
+
+### Cleanup
+
+...
+
+## Full Example
+
+<!-- TODO: Create the repo. -->
+[This repository]() contains the fully working example for reference.
