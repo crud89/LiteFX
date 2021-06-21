@@ -3,10 +3,12 @@ name: Verify Build
 
 on:
   workflow_dispatch:
-  
-  schedule: 
-    - cron: '1 0 * * 1'         # Run every monday night at 00:01 AM (UTC).
-    
+    inputs:
+      uploadArtifacts:
+        description: 'Upload Artifacts'
+        required: true
+        default: 'false'
+        
   pull_request:
     branches:
       - main
@@ -83,18 +85,13 @@ jobs:
           useVcpkgToolchainFile: true
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
       
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: LiteFX-${{ matrix.triplet }}-build
-          path: '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
-
       - name: Install with CMake
         run: |
           Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
           cmake --install .
 
       - name: Upload install artifacts
+        if: ${{ github.events.inputs.uploadArtifacts == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
