@@ -120,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.buildPath }}/install/${{ matrix.architecture }}'
+          path: '${{ steps.setup-environment.outputs.buildPath }}/install'
           
   publish:
     name: 'Publish'
