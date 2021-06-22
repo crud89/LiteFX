@@ -1,0 +1,5 @@
+var class_direct_x12_descriptor_set_layout_builder_1_1_direct_x12_descriptor_set_layout_builder_impl =
+[
+    [ "DirectX12DescriptorSetLayoutBuilderImpl", "class_direct_x12_descriptor_set_layout_builder_1_1_direct_x12_descriptor_set_layout_builder_impl.html#a414fe33668656cfa4abc5b74888704cc", null ],
+    [ "DirectX12DescriptorSetLayoutBuilder", "class_direct_x12_descriptor_set_layout_builder_1_1_direct_x12_descriptor_set_layout_builder_impl.html#a5d46464889ca5ef7300a5546977c8fc9", null ]
+];
