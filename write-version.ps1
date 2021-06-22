@@ -28,4 +28,5 @@ Get-Content .\.doxyfile | ForEach-Object {
 
 $output | Out-File -Encoding "UTF8" -FilePath .\.doxyfile
 
-Write-Host -ForegroundColor Green "Updated Version to {0}.{1}.{2}.{3}" -f $major, $minor, $build, $year
+$output = "Updated Version to {0}.{1}.{2}.{3}" -f $major, $minor, $build, $year
+Write-Host -ForegroundColor Green $output
