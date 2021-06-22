@@ -98,7 +98,7 @@ jobs:
 
       - name: Install with CMake (Debug)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}'
+          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Debug'
           cmake --install .
           
       - name: Build with CMake and Ninja (Release)
@@ -113,7 +113,7 @@ jobs:
 
       - name: Install with CMake (Release)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}'
+          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Release'
           cmake --install .
 
       - name: Upload install artifacts
