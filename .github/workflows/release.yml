@@ -184,8 +184,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add --all
           git commit -m "Release ${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }} 🚀"
-          $commit_id = git rev-parse HEAD
-          echo "HEAD_COMMIT_ID=$($commit_id)" >> $GITHUB_ENV
+          echo "HEAD_COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Push changes
         uses: ad-m/github-push-action@master
