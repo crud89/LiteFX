@@ -1,4 +1,4 @@
-# Quick Start
+﻿# Quick Start
 
 This guide walks you through the steps required to write an application that renders a simple primitive. It demonstrates the most important features and use-cases of the LiteFX engine. Before you start, make sure you've successfully setup a project by following the [project setup guide](md_docs_tutorials_project_setup.html).
 
@@ -268,13 +268,13 @@ Finally, we define out vertex buffer layout. This means, that we tell the input 
 
 ##### Rasterizer State
 
-Next, we tell the pipeline about how those primitives (i.e. triangles in our example) should be drawn. We want to draw solid faces, so we set the `PolygonMode` to `Solid`. Another property of the rasterizer state is the face culling state. First, we set the order of vertices, which dictates which side of the primitive is interpreted as *front* and which one is the *back*. We set the `CullOrder` to `ClockWise` to tell the pipeline to treat this ordering as *front face*. Finally, we tell the pipeline not to draw back faces by setting the `CullMode` to `BackFaces`.
+Next, we tell the pipeline about how those primitives (i.e. triangles in our example) should be drawn. We want to draw solid faces, so we set the `PolygonMode` to `Solid`. Another property of the rasterizer state is the face culling state. First, we set the order of vertices, which dictates which side of the primitive is interpreted as *front* and which one is the *back*. We set the `CullOrder` to `ClockWise` to tell the pipeline to treat this ordering as *front face*. Finally, we tell the pipeline  to draw both sides of a polygon, by setting the `CullMode` to `Disabled`.
 
 ```cxx
 	.rasterizer()
 		.withPolygonMode(PolygonMode::Solid)
 		.withCullOrder(CullOrder::ClockWise)
-		.withCullMode(CullMode::BackFaces)
+		.withCullMode(CullMode::Disabled)
 		.go()
 ```
 
@@ -405,22 +405,284 @@ For more information on how to use the helpers, refer to the [project wiki](http
 
 ### Creating and Managing Buffers
 
-<!-- TODO: Define and manage camera and transform buffers -->
-...
+Next, we need to pass data to the GPU for it to process. LiteFX supports different data management strategies, that you can choose from:
+
+- Write once/Read once: This strategy is most common for buffers that are changing with each frame.
+- Write once/Read multiple: This strategy requires you to create two buffers: one on the CPU and one on the GPU and issue a transfer between both. This is most efficient for static buffers and textures.
+
+Other scenarios are also possible, however, they are all implemented using the techniques demonstrated by those two (and most common) scenarios.
+
+#### Vertex- and Index Buffers
+
+Vertex and index buffers are two examples of data, that is typically written once and read multiple times. We thus create a CPU-visible staging buffer for both, write the required data to it and transfer it to a GPU-visible resource. But first, let's define a vertex and index buffer structure:
+
+```cxx
+const Array<Vertex> vertices =
+{
+    { { 0.0f, 0.0f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, 0.0f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, 0.0f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+};
+
+const Array<UInt16> indices = { 0, 1, 2 };
+```
+
+We define a vertex buffer with three vertices, each with a different color. The last two values represent the texture coordinate, which we do not want to use yet. It is totally possible to use a custom `Vertex` object. Just keep in mind to change the input assembler state accordingly. We specify the index buffer to form a triangle from all three vertices. The order of the indices is specified by the `CullOrder` we defined in the rasterizer state. 
+
+Next, let's transfer the buffers to the GPU. We start of by storing the input assembler reference (for easier access) and creating a command buffer to record all transfer commands. We do this right below the pipeline creation code:
+
+```cxx
+auto inputAssembler = m_pipeline->inputAssembler();
+auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+```
+
+We then create a CPU visible vertex buffer and copy the vertex data into it:
+
+```cxx
+auto stagedVertices = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
+```
+
+The `BufferUsage` defines where the buffer should be visible from. `Staging` corresponds to a CPU-only visible buffer, whilst `Resource` is used for GPU-only visible buffers. We will use another buffer type (`Dynamic`) later to represent *Write once/Read once* scenarios. Finally, we copy the data to the vertex buffer by calling `map`. After this, we can create the GPU-visible vertex buffer and issue a transfer command:
+
+```cxx
+m_vertexBuffer = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+```
+
+We store the vertex buffer in a member variable. We then go ahead and repeat the same process for the index buffer:
+
+```cxx
+auto stagedIndices = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout().elementSize(), 0);
+
+m_indexBuffer = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+```
+
+#### Constant/Uniform Buffers
+
+The same memory management concepts as for vertex and index buffers apply to shader resources (i.e. constant buffers, samplers or textures). However, they have one more aspect to them: *descriptors*. Descriptors are basically GPU-pointers in a sense, that they point to a GPU-visible resource before a draw call is issued. They must, however, not change until the draw call has finished (i.e. the end of the frame). Managing descriptors manually can be quite challenging. Luckily, LiteFX already implements flexible descriptor management strategies and the way you interact with descriptors is always the same when using LiteFX.
+
+Descriptors are grouped into *Descriptor Sets*. We already defined two descriptor sets when setting up our pipeline. For now, both are only contain one descriptor, a uniform buffer each. You can add as many descriptors to a set as you like, there are some things to keep in mind, though. Firstly, you must not mix samplers and images in one descriptor set. This rule is not directly enforced by the Vulkan backend, however it's a strong requirement for the DirectX 12 backend, so you should follow it anyway to keep your pipeline definitions consistent. Secondly, you should define descriptor sets based on the frequency they are updated. This is a good practice and generally helps to organize GPU workload.
+
+Descriptor sets directly map to a GPU `space`. Within this space, a descriptor has a `binding`, which defines from which register the descriptor gets accessed by the shader. We defined both in the pipeline layout, as well as the shader code. Feel free to go back to those sections to ensure that you understood how descriptors are mapped to the shader. If you think you understood the relationship, go ahead with the next sections.
+
+##### Static Buffers
+
+We will first map a static `CameraBuffer` to the shader. This buffer contains the camera View/Projection matrix. In our example, the camera cannot move, making it a perfect fit for static buffers. As mentioned earlier, static buffers correspond to the *Write once/Read multiple* strategy and should be transferred to a GPU-visible resource. We will thus create two buffers, as we did for the vertices and indices again and issue a transfer command to copy the data to the GPU. We will then allocate a descriptor set and update it accordingly, so that the descriptor points to the GPU camera buffer. 
+
+Let's start off by defining our camera buffer structure:
+
+```cxx
+struct CameraBuffer {
+    glm::mat4 ViewProjection;
+} camera;
+```
+
+Note that we are using *glm* to store the matrix here, but you can use any other representation that suits you. Keep in mind to specify the matrix order (`#pragma pack_matrix`) in the shader sources, if it is different to our example. If you want to follow this guide, you need to add an include for glm matrix transformations:
+
+```cxx
+#include <glm/gtc/matrix_transform.hpp>
+```
+
+Next, we create the two buffers that should store the camera data:
+
+```cxx
+auto& cameraBindingLayout = m_pipeline->layout().layout(0);
+m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Staging, 1);
+m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Resource, 1);
+```
+
+First, we request a reference of the descriptor set layout (at space *0*), that contains the camera buffer descriptor. We then create two constant buffers for the descriptor bound to register *0* of the descriptor set. We store both buffers in a member variable, since we want to be able to update the camera buffer later (for example, if a resize-event occurs). The camera buffer is still static, since such events occur infrequently.
+
+Let's move on and compute the view and projection matrix and pre-multiply them together:
+
+```cxx
+auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
+glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
+projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
+camera.ViewProjection = projection * view;
+```
+
+It is important to fix the GLM clip coordinate scaling in the projection matrix. Since GLM has originally been developed for OpenGL, the y-coordinate of the camera space is inverted. The easiest way to fix this, is to pre-apply a flip transform by inverting the Y-coordinate. If you leave out this line, you image might end up beeing rendered upside-down in Vulkan. 
+
+In the last line, we pre-multiply the view/projection matrix and store it in the camera buffer, which we can now transfer to the GPU:
+
+```cxx
+m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+m_cameraBuffer->transferFrom(*commandBuffer, *m_cameraStagingBuffer);
+```
+
+The last thing we need to do is making the descriptor point to the GPU-visible camera buffer. We only need to do this once, since we do not change the buffer location on the GPU:
+
+```cxx
+m_cameraBindings = cameraBindingLayout.allocate();
+m_cameraBindings->update(*m_cameraBuffer, 0);
+```
+
+Here we first allocate a descriptor set that holds our descriptor for the camera buffer. We then update the descriptor bound to register *0* to point to the GPU-visible camera buffer. Finally, with all the transfer commands being recorded to the command buffer, we can submit the buffer and wait for it to be executed:
+
+```cxx
+commandBuffer->end(true, true);
+commandBuffer = nullptr;
+stagedVertices = nullptr;
+stagedIndices = nullptr;
+```
+
+We also explicitly release the temporary staging buffers and the transfer command buffer here, since we do not need them anymore and we need to ensure that they are released before we close the application.
+
+##### Dynamic Buffers
+
+We now want to look at a different memory management strategy: *Write once/Read once*. For resources that change frequently (i.e. every frame), this strategy is more efficient than record transfer commands and waiting for the transfer to happen. Instead we rely on the graphics queue to ensure that our buffer is transferred automatically, when it is needed.
+
+Let's begin with defining our transform buffer structure:
+
+```cxx
+struct TransformBuffer {
+    glm::mat4 World;
+} transform;
+```
+
+Next, we create three `Dynamic` buffers and map them to the descriptor set at space *1* that holds the per-frame transform buffer descriptors. There are three buffers, since we have three *frames in flight*, i.e. three frames that are computed concurrently. This equals the number of back-buffers in the swap chain, we created earlier. Since we have three buffers, we also need three descriptor sets, each containing a descriptor that points to the buffer for the current frame. The three buffers are stored in one *buffer array* with three elements, so each descriptor points to an individual element in the transform buffer array.
+
+```cxx
+auto& transformBindingLayout = m_pipeline->layout().layout(1);
+m_perFrameBindings = transformBindingLayout.allocate(3);
+m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
+std::ranges::for_each(m_perFrameBindings, [this, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
+```
 
 ### Drawing Frames
 
-...
+With everything setup so far, we can now start the actual drawing. Navigate to the main application loop (look for the `// TODO: draw frame.` comment) and start by swapping out the current back buffer:
 
-### Handling Resize-Events
+```cxx
+auto backBuffer = m_device->swapChain().swapBackBuffer();
+```
 
-...
+The back buffer describes the resources that are used for the frame that is currently computed. This is done concurrently, so while a frame is still waiting to be drawn, future frames can already be recorded by the CPU. This ensures, the GPU is always busy with rendering.
+
+Each frame is drawn in one or multiple sequential *render passes*. We already a single defined the render pass earlier, so all we need to do is tell the GPU to start on the current back buffer:
+
+```cxx
+m_renderPass->begin(backBuffer);
+```
+
+Next up, we want to handle drawing geometry. Each geometry draw call requires a certain *state* to let the GPU know, how to handle the data we pass to it. This state is contained the *pipeline* we defined earlier. In a real-world application, there may be many pipelines with different shaders, rasterizer and input assembler states. You should, however, always aim minimize the amount of pipeline switches. You can do this by pre-ordering the objects in your scene, so that you draw all objects that require the same pipeline state at the same time. In this example, however, we only have one pipeline state and we now tell the GPU to use it for the subsequent workload:
+
+```cxx
+m_pipeline->use();
+```
+
+Now it's time to update the transform buffer for our object. We want to animate a rotating triangle, so we can use a clock to dictate the amount of rotation. We use the duration since the beginning to compute a rotation matrix, that we use to update the transform buffer:
+
+```cxx
+static auto start = std::chrono::high_resolution_clock::now();
+
+auto now = std::chrono::high_resolution_clock::now();
+auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+
+transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+```
+
+Before we can record the draw call, we need to make sure, the shader sees the right resources by binding all descriptor sets:
+
+```cxx
+m_pipeline->bind(*m_vertexBuffer);
+m_pipeline->bind(*m_indexBuffer);
+m_pipeline->bind(*m_cameraBindings);
+m_pipeline->bind(*m_perFrameBindings[backBuffer]);
+```
+
+Finally, we can record the actual draw call and end the render pass:
+
+```cxx
+m_pipeline->drawIndexed(m_indexBuffer->elements());
+m_renderPass->end();
+```
+
+When you launch the app now, you should see a rotating triangle in all its beauty.
 
 ### Cleanup
 
-...
+Before we can close our application, we need to ensure that all resources are properly released. Whilst not absolutely mandatory in release builds, this will satisfy the validation or debug layer (depending on your back-end):
 
-## Full Example
+```cxx
+// Shut down the device.
+m_device->wait();
 
-<!-- TODO: Create the repo. -->
-[This repository]() contains the fully working example for reference.
+// Destroy all resources.
+m_cameraBindings = nullptr;
+m_perFrameBindings.clear();
+m_cameraBuffer = nullptr;
+m_cameraStagingBuffer = nullptr;
+m_transformBuffer = nullptr;
+m_vertexBuffer = nullptr;
+m_indexBuffer = nullptr;
+
+// Destroy the pipeline, render pass and the device.
+m_pipeline = nullptr;
+m_renderPass = nullptr;
+m_device = nullptr;
+```
+
+First we wait for the device to finish drawing the remaining frames. This ensures, that we do not destroy resources, that are still accessed by the GPU in any submitted command buffers. We then first destroy all descriptors and buffers, before finally releasing the pipeline, render pass and device instances.
+
+### Handling Resize-Events
+
+If you resize the window, you might notice that the backend will return an error. This is caused by the swap chain rendering to an outdated back-buffer. In order to support window resize events, let's implement the `SimpleApp::resize` method:
+
+```cxx
+App::resize(width, height);
+
+if (m_device == nullptr)
+    return;
+```
+
+Since this method is inherited from the `App` base class, we first invoke the base class method. We then check, if the device has already been initialize, since resize-events may occur before any initialization has been done. If it is not initialized, there's no need for us to do anything else here. However, this during rendering it will be initialized, so let's continue with the implementation:
+
+```cxx
+m_device->wait();
+auto surfaceFormat = m_device->swapChain().surfaceFormat();
+auto renderArea = Size2d(width, height);
+```
+
+Again, we first wait for the device to finish all submitted work. This ensures that we do not destroy any back buffers, that might be still used by command buffers that are yet to be executed. Next we request the surface format from the current swap chain and initialize the new render area extent. We then can go ahead and re-create the swap chain, which causes the back buffers to be re-allocated with the new size and format. Furthermore, we can resize the frame buffers of our render pass. Note that you have to decide whether or not you want to do this, because you might have a render pass, that renders into a target that is deliberately at a different size than the swap chain back buffer. However, you almost certainly want to at least resize the frame buffer of the render pass that writes your present target.
+
+```cxx
+m_device->swapChain().reset(surfaceFormat, renderArea, 3);
+m_renderPass->resizeFrameBuffers(renderArea);
+```
+
+We then also resize the viewport and scissor rectangles, so that the image is drawn over the whole area of our resized window:
+
+```cxx
+m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+```
+
+If you launch the application now and resize the window, it already should work. You might, however, notice that the image appears stretched. This is caused, because we also need to adjust the aspect ratio in our view/projection matrix. To do this, we can use the code we've written earlier to compute the camera buffer and update the buffer once again:
+
+```cxx
+auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
+glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
+projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
+camera.ViewProjection = projection * view;
+
+auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+m_cameraBuffer->transferFrom(*commandBuffer, *m_cameraStagingBuffer);
+commandBuffer->end(true, true);
+```
+
+Note that we do not have to release the command buffer explicitly here, since it will go out of scope anyway and will be released automatically.
+
+## Final Thoughts
+
+This quick start covered the basics on how to interact with the engine to write a modern graphics application. For more in-depth information about the inner workings of the engine, head over to the [project wiki](https://github.com/crud89/LiteFX/wiki). If you have any problems or want to contribute to the development, feel free to open an [issue](https://github.com/crud89/LiteFX/issues) or create a [pull request](https://github.com/crud89/LiteFX/pulls).
+
+Nevertheless, I hope you enjoy with the project. Happy coding! 👩‍💻👨‍💻
