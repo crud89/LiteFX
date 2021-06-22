@@ -191,6 +191,6 @@ jobs:
         with:
             artifacts: "artifacts/x64/,artifacts/x86/"
             token: ${{ secrets.GITHUB_TOKEN }}
-            bodyFile: "${{ github.event.inputs.releaseLog }}"
+            bodyFile: "${{ github.workspace }}/${{ github.event.inputs.releaseLog }}"
             name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
             commit: "${{ env.HEAD_COMMIT_ID }}"
