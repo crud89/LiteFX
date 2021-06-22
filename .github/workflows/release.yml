@@ -146,13 +146,13 @@ jobs:
       - name: 'Download windows-x64 artifacts...'
         uses: actions/download-artifact@master
         with:
-          name: LiteFX-windows-x64-install
+          name: LiteFX-x64-windows-install
           path: artifacts/x64/
           
       - name: 'Download windows-x86 artifacts...'
         uses: actions/download-artifact@master
         with:
-          name: LiteFX-windows-x86-install
+          name: LiteFX-x86-windows-install
           path: artifacts/x86/
 
       - name: Checking out sources
