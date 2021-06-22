@@ -196,7 +196,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
             artifacts: "artifacts/x64/,artifacts/x86/"
-            token: ${{ secrets.GITHUB_TOKEN }}
+            token: ${{ secrets.RELEASE_BOT_PAT }}
             bodyFile: "${{ github.workspace }}/${{ github.event.inputs.releaseLog }}"
             name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
             tag: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
