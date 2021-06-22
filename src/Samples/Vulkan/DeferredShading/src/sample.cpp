@@ -15,9 +15,9 @@ enum Pipelines : UInt32
 
 const Array<Vertex> vertices =
 {
-    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, 0.5f, 0.5f },   { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
     { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } }
 };
 
@@ -50,14 +50,14 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::initRenderGraph()
 {
     m_geometryPass = m_device->buildRenderPass()
-        .renderTarget(0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false)
-        .renderTarget(1, RenderTargetType::DepthStencil, Format::D24_UNORM_S8_UINT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, true)
+        .renderTarget(0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
+        .renderTarget(1, RenderTargetType::DepthStencil, Format::D24_UNORM_S8_UINT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, true, false)
         .go();
 
     m_lightingPass = m_device->buildRenderPass()
         .inputAttachment(0, *m_geometryPass, 0)  // Color attachment.
         .inputAttachment(1, *m_geometryPass, 1)  // Depth/Stencil attachment.
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
         .go();
 }
 
@@ -69,8 +69,8 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/deferred_shading_geometry_pass.vert.spv")
-                .addFragmentShaderModule("shaders/deferred_shading_geometry_pass.frag.spv")
+                .addVertexShaderModule("shaders/deferred_shading_geometry_pass_vs.spv")
+                .addFragmentShaderModule("shaders/deferred_shading_geometry_pass_fs.spv")
                 .go()
             .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
                 .addUniform(0, sizeof(CameraBuffer))
@@ -103,8 +103,8 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/deferred_shading_lighting_pass.vert.spv")
-                .addFragmentShaderModule("shaders/deferred_shading_lighting_pass.frag.spv")
+                .addVertexShaderModule("shaders/deferred_shading_lighting_pass_vs.spv")
+                .addFragmentShaderModule("shaders/deferred_shading_lighting_pass_fs.spv")
                 .go()
             .addDescriptorSet(0, ShaderStage::Fragment, 3)
                 .addInputAttachment(0)  // Color attachment

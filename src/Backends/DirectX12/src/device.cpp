@@ -254,7 +254,7 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 		// The parameter index equals the target descriptor set space.
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
-		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().space(), targetGpuHandle);
+		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
 
 		// Store the updated offset.
 		m_impl->m_bufferOffset = bufferOffset + buffers;
@@ -267,7 +267,7 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 		// The parameter index equals the target descriptor set space.
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), samplerOffset, m_impl->m_samplerDescriptorIncrement);
-		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().space(), targetGpuHandle);
+		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
 
 		// Store the updated offset.
 		m_impl->m_samplerOffset = samplerOffset + samplers;

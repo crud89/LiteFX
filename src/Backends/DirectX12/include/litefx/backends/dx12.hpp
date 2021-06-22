@@ -379,13 +379,21 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
 		/// <param name="space">The space or set id of the descriptor set.</param>
 		/// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
-		explicit DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages);
+		/// <param name="rootParameterIndex">The index of the associated root parameter in the descriptor table.</param>
+		explicit DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& rootParameterIndex);
 		DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) = delete;
 		DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout&) = delete;
 		virtual ~DirectX12DescriptorSetLayout() noexcept;
 
 	private:
-		explicit DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout) noexcept;
+		explicit DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, const UInt32& rootParameterIndex) noexcept;
+
+	public:
+		/// <summary>
+		/// Returns the index of the descriptor set root parameter.
+		/// </summary>
+		/// <returns>The index of the descriptor set root parameter.</returns>
+		virtual const UInt32& rootParameterIndex() const noexcept;
 
 	public:
 		/// <inheritdoc />
@@ -438,9 +446,10 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a DirectX12 descriptor set layout builder.
 		/// </summary>
 		/// <param name="parent">The parent pipeline layout builder.</param>
+		/// <param name="rootParameterIndex">The index of the associated root parameter in the descriptor table.</param>
 		/// <param name="space">The space the descriptor set is bound to.</param>
 		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-		explicit DirectX12DescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
+		explicit DirectX12DescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
 		DirectX12DescriptorSetLayoutBuilder(const DirectX12DescriptorSetLayoutBuilder&) = delete;
 		DirectX12DescriptorSetLayoutBuilder(DirectX12DescriptorSetLayoutBuilder&&) = delete;
 		virtual ~DirectX12DescriptorSetLayoutBuilder() noexcept;

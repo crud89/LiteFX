@@ -51,8 +51,8 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/basic.vert.dxi")
-                .addFragmentShaderModule("shaders/basic.frag.dxi")
+                .addVertexShaderModule("shaders/basic_vs.dxi")
+                .addFragmentShaderModule("shaders/basic_ps.dxi")
                 .go()
             .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
                 .addUniform(0, sizeof(CameraBuffer))
@@ -134,6 +134,7 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
     glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
+    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
 }

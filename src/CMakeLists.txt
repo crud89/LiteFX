@@ -23,6 +23,7 @@ INCLUDE("${CMAKE_SOURCE_DIR}/cmake/options.cmake")
 INCLUDE("${CMAKE_SOURCE_DIR}/cmake/config.cmake") 
 INCLUDE("${CMAKE_SOURCE_DIR}/cmake/modules.cmake")
 INCLUDE("${CMAKE_SOURCE_DIR}/cmake/shaders.cmake")
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/assets.cmake")
 
 # Include sub-projects.
 ADD_SUBDIRECTORY(Core)

@@ -39,7 +39,7 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::initRenderGraph()
 {
     m_renderPass = m_device->buildRenderPass()
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
         .go();
 }
 
@@ -50,8 +50,8 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/basic.vert.spv")
-                .addFragmentShaderModule("shaders/basic.frag.spv")
+                .addVertexShaderModule("shaders/basic_vs.spv")
+                .addFragmentShaderModule("shaders/basic_fs.spv")
                 .go()
             .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment, 1)
                 .addUniform(0, sizeof(CameraBuffer))

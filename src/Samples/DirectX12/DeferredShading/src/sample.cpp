@@ -50,8 +50,8 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::initRenderGraph()
 {
     m_geometryPass = m_device->buildRenderPass()
-        .renderTarget(0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, true)
-        .renderTarget(1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false, true)
+        .renderTarget(0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
+        .renderTarget(1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false, false)
         .go();
 
     m_lightingPass = m_device->buildRenderPass()
@@ -68,8 +68,8 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/deferred_shading_geometry_pass.vert.dxi")
-                .addFragmentShaderModule("shaders/deferred_shading_geometry_pass.frag.dxi")
+                .addVertexShaderModule("shaders/deferred_shading_geometry_pass_vs.dxi")
+                .addFragmentShaderModule("shaders/deferred_shading_geometry_pass_ps.dxi")
                 .go()
             .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
                 .addUniform(0, sizeof(CameraBuffer))
@@ -102,8 +102,8 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/deferred_shading_lighting_pass.vert.dxi")
-                .addFragmentShaderModule("shaders/deferred_shading_lighting_pass.frag.dxi")
+                .addVertexShaderModule("shaders/deferred_shading_lighting_pass_vs.dxi")
+                .addFragmentShaderModule("shaders/deferred_shading_lighting_pass_ps.dxi")
                 .go()
             .addDescriptorSet(0, ShaderStage::Fragment)
                 .addInputAttachment(0)  // Color attachment
@@ -188,6 +188,7 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
     glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
+    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
 }
