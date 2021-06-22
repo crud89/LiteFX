@@ -156,11 +156,11 @@ jobs:
           dest: windows-x64.zip
           recursive: true
           
-      - name: Upload x64 artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: windows-x64
-          path: ${{ github.workspace }}/windows-x64.zip
+      #- name: Upload x64 artifacts
+      #  uses: actions/upload-artifact@v1
+      #  with:
+      #    name: windows-x64
+      #    path: ${{ github.workspace }}/windows-x64.zip
 
       - name: Download windows-x86 artifacts...
         uses: actions/download-artifact@master
@@ -175,11 +175,11 @@ jobs:
           dest: windows-x86.zip
           recursive: true
 
-      - name: Upload x86 artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: windows-x86
-          path: ${{ github.workspace }}/windows-x86.zip
+      #- name: Upload x86 artifacts
+      #  uses: actions/upload-artifact@v1
+      #  with:
+      #    name: windows-x86
+      #    path: ${{ github.workspace }}/windows-x86.zip
 
       - name: Checking out sources
         uses: actions/checkout@master
