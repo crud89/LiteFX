@@ -190,12 +190,8 @@ jobs:
           skip_dirty_check: true
           skip_fetch: true
           disable_globbing: true
-
-      - name: Store commit id
-        working-directory: "${{ github.workspace }}"
-        run: |
-          echo "HEAD_COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
-
+          tagging_message: 'v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}'
+          
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
@@ -203,4 +199,4 @@ jobs:
             token: ${{ secrets.GITHUB_TOKEN }}
             bodyFile: "${{ github.workspace }}/${{ github.event.inputs.releaseLog }}"
             name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
-            commit: "${{ env.HEAD_COMMIT_ID }}"
+            tag: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
