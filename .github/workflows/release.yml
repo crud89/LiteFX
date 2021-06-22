@@ -143,17 +143,31 @@ jobs:
     runs-on: ubuntu-latest
       
     steps:
-      - name: 'Download windows-x64 artifacts...'
+      - name: Download windows-x64 artifacts...
         uses: actions/download-artifact@master
         with:
           name: LiteFX-x64-windows-install
           path: artifacts/x64/
           
-      - name: 'Download windows-x86 artifacts...'
+      - name: Zip x64 artifacts
+        uses: papeloto/action-zip@v1
+        with:
+          files: artifacts/x64/
+          dest: windows-x64.zip
+          recursive: true
+          
+      - name: Download windows-x86 artifacts...
         uses: actions/download-artifact@master
         with:
           name: LiteFX-x86-windows-install
           path: artifacts/x86/
+          
+      - name: Zip x86 artifacts
+        uses: papeloto/action-zip@v1
+        with:
+          files: artifacts/x86/
+          dest: windows-x86.zip
+          recursive: true
 
       - name: Checking out sources
         uses: actions/checkout@master
@@ -195,7 +209,7 @@ jobs:
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-            artifacts: "${{ github.workspace }}/artifacts/x64/**,${{ github.workspace }}/artifacts/x86/**"
+            artifacts: "windows-x64.zip,windows-x86.zip"
             token: ${{ secrets.RELEASE_BOT_PAT }}
             bodyFile: "${{ github.workspace }}/${{ github.event.inputs.releaseLog }}"
             name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
