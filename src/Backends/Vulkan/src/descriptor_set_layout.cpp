@@ -164,13 +164,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, std::move(descriptorLayouts), space, stages, poolSize)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice()), Resource<VkDescriptorSetLayout>(nullptr)
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, std::move(descriptorLayouts), space, stages, poolSize)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice()), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 }
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanRenderPipelineLayout& pipelineLayout) noexcept :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice()), Resource<VkDescriptorSetLayout>(nullptr)
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice()), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
 }
 

@@ -104,7 +104,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex, renderArea)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkFramebuffer>(nullptr)
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex, renderArea)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkFramebuffer>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 }

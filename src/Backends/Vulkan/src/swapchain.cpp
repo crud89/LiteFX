@@ -187,7 +187,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
-	m_impl(makePimpl<VulkanSwapChainImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkSwapchainKHR>(nullptr)
+	m_impl(makePimpl<VulkanSwapChainImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkSwapchainKHR>(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize(surfaceFormat, renderArea, buffers);
 }

@@ -36,7 +36,7 @@ VulkanBuffer::VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const Bu
 VulkanBuffer::~VulkanBuffer() noexcept
 {
 	::vmaDestroyBuffer(m_impl->m_allocator, this->handle(), m_impl->m_allocation);
-	LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", fmt::ptr(this->handle()));
+	LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", fmt::ptr(reinterpret_cast<void*>(this->handle())));
 }
 
 void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
@@ -144,7 +144,7 @@ UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const VulkanDevice& device, cons
 	VmaAllocation allocation;
 
 	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), type, elements, elementSize, elements * elementSize);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(reinterpret_cast<void*>(buffer)), type, elements, elementSize, elements * elementSize);
 
 	return makeUnique<VulkanBuffer>(device, buffer, type, elements, elementSize, alignment, allocator, allocation);
 }
@@ -194,7 +194,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBu
 	VmaAllocation allocation;
 
 	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate vertex buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(reinterpret_cast<void*>(buffer)), BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<VulkanVertexBuffer>(*layout.getDevice(), buffer, layout, elements, allocator, allocation);
 }
@@ -239,7 +239,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBuffe
 	VmaAllocation allocation;
 
 	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate index buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(reinterpret_cast<void*>(buffer)), BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<VulkanIndexBuffer>(*layout.getDevice(), buffer, layout, elements, allocator, allocation);
 }
@@ -289,7 +289,7 @@ UniquePtr<IVulkanConstantBuffer> VulkanConstantBuffer::allocate(const VulkanDesc
 	VmaAllocation allocation;
 
 	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate constant buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(buffer), layout.type(), elements, layout.elementSize(), layout.elementSize() * elements);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(reinterpret_cast<void*>(buffer)), layout.type(), elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<VulkanConstantBuffer>(*layout.getDevice(), buffer, layout, elements, alignment, allocator, allocation);
 }

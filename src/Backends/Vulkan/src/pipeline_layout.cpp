@@ -54,13 +54,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts) :
-    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts))), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(nullptr)
+    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts))), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 }
 
 VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept :
-    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(nullptr)
+    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
 {
 }
 

@@ -212,7 +212,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(nullptr)
+    m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 
@@ -222,7 +222,7 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget
 }
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device) noexcept :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(nullptr)
+    m_impl(makePimpl<VulkanRenderPassImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
 }
 

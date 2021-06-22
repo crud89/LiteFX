@@ -34,7 +34,7 @@ public:
 public:
 	VkPipeline initialize()
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline {1} (\"{2}\") for layout {0}...", fmt::ptr(m_layout.get()), m_id, m_name);
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline {1} (\"{2}\") for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_id, m_name);
 		
 		// Get the device.
 		auto device = m_parent->getDevice();
@@ -175,7 +175,7 @@ public:
 
 		// Setup shader stages.
 		auto modules = m_layout->program().modules();
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(&m_layout->program()), modules.size());
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(&m_layout->program())), modules.size());
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
@@ -213,13 +213,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
 }
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept : 
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(nullptr)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(VK_NULL_HANDLE)
 {
 }
 

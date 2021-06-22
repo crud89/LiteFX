@@ -26,7 +26,7 @@ public:
 
 #ifndef NDEBUG
 private:
-    VkDebugUtilsMessengerEXT m_debugMessenger{ nullptr };
+    VkDebugUtilsMessengerEXT m_debugMessenger{ VK_NULL_HANDLE };
     VkInstance m_instance{ nullptr };
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger{ nullptr };
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger{ nullptr };
@@ -59,7 +59,7 @@ private:
 public:
     ~VulkanBackendImpl() 
     {
-        if (m_debugMessenger != nullptr && vkDestroyDebugUtilsMessenger != nullptr)
+        if (m_debugMessenger != VK_NULL_HANDLE && vkDestroyDebugUtilsMessenger != nullptr)
             vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, nullptr);
     }
 #endif
