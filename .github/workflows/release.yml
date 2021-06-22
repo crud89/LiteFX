@@ -13,8 +13,8 @@ on:
       build:
         description: 'Build Number'
         required: true
-      Changelog:
-        description: 'Change Log and Release Notes'
+      releaseLog:
+        description: 'Location of the Release Log file.'
         required: true
 
 env:
@@ -175,6 +175,6 @@ jobs:
         with:
             artifacts: "artifacts/"
             token: ${{ secrets.GITHUB_TOKEN }}
-            body: "${{ github.event.inputs.Changelog }}"
+            bodyFile: "${{ github.event.inputs.releaseLog }}"
             name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
             commit: "${{ env.HEAD_COMMIT_ID }}"
