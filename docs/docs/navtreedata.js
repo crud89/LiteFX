@@ -25,23 +25,23 @@
 var NAVTREE =
 [
   [ "LiteFX", "index.html", [
-    [ "About", "index.html#autotoc_md9", null ],
-    [ "Installation", "index.html#autotoc_md10", [
-      [ "Manual Builds", "index.html#autotoc_md11", [
-        [ "Prerequisites", "index.html#autotoc_md12", null ],
-        [ "Cloning the Repository", "index.html#autotoc_md13", null ],
-        [ "Performing a Build", "index.html#autotoc_md14", [
-          [ "From Command Line", "index.html#autotoc_md15", null ],
-          [ "Using Visual Studio", "index.html#autotoc_md16", null ]
+    [ "About", "index.html#autotoc_md10", null ],
+    [ "Installation", "index.html#autotoc_md11", [
+      [ "Manual Builds", "index.html#autotoc_md12", [
+        [ "Prerequisites", "index.html#autotoc_md13", null ],
+        [ "Cloning the Repository", "index.html#autotoc_md14", null ],
+        [ "Performing a Build", "index.html#autotoc_md15", [
+          [ "From Command Line", "index.html#autotoc_md16", null ],
+          [ "Using Visual Studio", "index.html#autotoc_md17", null ]
         ] ],
-        [ "Build Customization", "index.html#autotoc_md17", null ]
+        [ "Build Customization", "index.html#autotoc_md18", null ]
       ] ],
-      [ "Dependencies", "index.html#autotoc_md18", null ]
+      [ "Dependencies", "index.html#autotoc_md20", null ]
     ] ],
-    [ "Getting Started", "index.html#autotoc_md19", null ],
-    [ "Contribute", "index.html#autotoc_md20", null ],
-    [ "Projects using LiteFX", "index.html#autotoc_md21", null ],
-    [ "License", "index.html#autotoc_md22", null ],
+    [ "Getting Started", "index.html#autotoc_md21", null ],
+    [ "Contribute", "index.html#autotoc_md22", null ],
+    [ "Projects using LiteFX", "index.html#autotoc_md23", null ],
+    [ "License", "index.html#autotoc_md24", null ],
     [ "Project Setup", "md_docs_tutorials_project_setup.html", [
       [ "Runtime and Dependency Installation", "md_docs_tutorials_project_setup.html#autotoc_md1", null ],
       [ "Setup Project using CMake", "md_docs_tutorials_project_setup.html#autotoc_md2", [
@@ -53,7 +53,7 @@ var NAVTREE =
       ] ]
     ] ],
     [ "Quick Start", "md_docs_tutorials_quick_start.html", [
-      [ "Defining an Application", "md_docs_tutorials_quick_start.html#autotoc_md24", [
+      [ "Defining an Application", "md_docs_tutorials_quick_start.html#autotoc_md19", [
         [ "Running the Application", "md_docs_tutorials_quick_start.html#autotoc_md25", [
           [ "Creating a Device", "md_docs_tutorials_quick_start.html#autotoc_md26", null ],
           [ "Creating a Render Pass", "md_docs_tutorials_quick_start.html#autotoc_md27", null ],

@@ -91,7 +91,7 @@ $(document).ready(function(){initNavTree('md_docs_tutorials_quick_start.html',''
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>This guide walks you through the steps required to write an application that renders a simple primitive. It demonstrates the most important features and use-cases of the <a class="el" href="namespace_lite_f_x.html">LiteFX</a> engine. Before you start, make sure you've successfully setup a project by following the <a href="md_docs_tutorials_project_setup.html">project setup guide</a>.</p>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md19"></a>
 Defining an Application</h1>
 <p>At the core of each <a class="el" href="namespace_lite_f_x.html">LiteFX</a> application lies the <code>Backend</code>. In theory, an application can provide different back-ends, however currently only one type of back-ends is implemented: the <code>RenderingBackend</code>. This back-end comes in two flavors: <code>VulkanBackend</code> and <code>DirectX12Backend</code>. For now, let's create a simple app, that uses the Vulkan backend and uses <a href="https://www.glfw.org/">GLFW</a> as a cross-platform window manager. In order to do this, we first need to extent the <em>CMakeLists.txt</em> file, created in the <a href="md_docs_tutorials_project_setup.html">project setup guide</a>. Add a <code>FIND_PACKAGE</code> command below the line where you are searching for <a class="el" href="namespace_lite_f_x.html">LiteFX</a>:</p>
 <div class="fragment"><div class="line">FIND_PACKAGE(LiteFX 1.0 CONFIG REQUIRED)</div>
