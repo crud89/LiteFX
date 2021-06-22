@@ -25,16 +25,16 @@
 var NAVTREE =
 [
   [ "LiteFX", "index.html", [
-    [ "About", "index.html#autotoc_md9", null ],
-    [ "Installation", "index.html#autotoc_md10", [
-      [ "Manual Builds", "index.html#autotoc_md11", [
-        [ "Prerequisites", "index.html#autotoc_md12", null ],
-        [ "Cloning the Repository", "index.html#autotoc_md13", null ],
-        [ "Performing a Build", "index.html#autotoc_md14", [
-          [ "From Command Line", "index.html#autotoc_md15", null ],
-          [ "Using Visual Studio", "index.html#autotoc_md16", null ]
+    [ "About", "index.html#autotoc_md10", null ],
+    [ "Installation", "index.html#autotoc_md11", [
+      [ "Manual Builds", "index.html#autotoc_md12", [
+        [ "Prerequisites", "index.html#autotoc_md13", null ],
+        [ "Cloning the Repository", "index.html#autotoc_md14", null ],
+        [ "Performing a Build", "index.html#autotoc_md15", [
+          [ "From Command Line", "index.html#autotoc_md16", null ],
+          [ "Using Visual Studio", "index.html#autotoc_md17", null ]
         ] ],
-        [ "Build Customization", "index.html#autotoc_md17", null ]
+        [ "Build Customization", "index.html#autotoc_md18", null ]
       ] ],
       [ "Dependencies", "index.html#autotoc_md19", null ]
     ] ],
