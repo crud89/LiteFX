@@ -94,11 +94,11 @@ jobs:
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
           configurationRegexFilter: '${{ matrix.architecture }}-Debug'
           useVcpkgToolchainFile: true
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Debug'
+          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
 
       - name: Install with CMake (Debug)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Debug'
+          Set-Location '${{ steps.setup-environment.outputs.buildPath }}'
           cmake --install .
           
       - name: Build with CMake and Ninja (Release)
@@ -109,11 +109,11 @@ jobs:
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
           configurationRegexFilter: '${{ matrix.architecture }}-Release'
           useVcpkgToolchainFile: true
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Release'
+          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
 
       - name: Install with CMake (Release)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Release'
+          Set-Location '${{ steps.setup-environment.outputs.buildPath }}'
           cmake --install .
 
       - name: Upload install artifacts
