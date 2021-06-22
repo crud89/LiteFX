@@ -161,9 +161,10 @@ jobs:
           submodules: false
 
       - name: Update version
-        working-directory: "${{ github.workspace }}"
-        shell: powershell
-        run: ".\\write-version.ps1 -major ${{ github.event.inputs.major }} -minor ${{ github.event.inputs.minor }} -build ${{ github.event.inputs.build }}"
+        uses: Amadevus/pwsh-script@v2
+        with:
+          script: |
+            "invoke-expression -Command ${{ github.workspace }}/write-version.ps1 -major ${{ github.event.inputs.major }} -minor ${{ github.event.inputs.minor }} -build ${{ github.event.inputs.build }}"
 
       - name: Build documentation
         uses: mattnotmitt/doxygen-action@v1
@@ -172,7 +173,6 @@ jobs:
           doxyfile-path: '.doxyfile'
 
       - name: Commit updates
-        shell: powershell
         working-directory: "${{ github.workspace }}"
         run: |
           git config --local user.email "18394207+github-actions[bot]@users.noreply.github.com"
