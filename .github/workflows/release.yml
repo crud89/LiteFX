@@ -22,7 +22,7 @@ env:
 
 jobs:
   build:
-    name: ${{ matrix.profile }}
+    name: Build ${{ matrix.profile }}
     runs-on: windows-latest
     strategy:
       fail-fast: true
@@ -140,7 +140,7 @@ jobs:
   publish:
     name: 'Publish'
     needs: build
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
       
     steps:
       - name: 'Download windows-x64 artifacts...'
@@ -158,7 +158,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@master
         with:
-          submodules: true
+          submodules: false
 
       - name: Update version
         working-directory: "${{ github.workspace }}"
@@ -173,6 +173,7 @@ jobs:
 
       - name: Commit updates
         shell: powershell
+        working-directory: "${{ github.workspace }}"
         run: |
           git config --local user.email "18394207+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
