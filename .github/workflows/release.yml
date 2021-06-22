@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Carsten Rudolph
+﻿# Copyright (c) 2021 Carsten Rudolph
 name: Publish Release
 
 on:
@@ -183,9 +183,9 @@ jobs:
           git config --local user.email "18394207+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add --all
-          git commit -m "Release ${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
+          git commit -m "Release ${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }} 🚀"
           $commit_id = git rev-parse HEAD
-          echo "HEAD_COMMIT_ID=$($commit_id)" >> $env:GITHUB_ENV
+          echo "HEAD_COMMIT_ID=$($commit_id)" >> $GITHUB_ENV
 
       - name: Push changes
         uses: ad-m/github-push-action@master
