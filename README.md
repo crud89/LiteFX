@@ -6,7 +6,7 @@ An extensible, descriptive, modern computer graphics and rendering engine.
   <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU">
 </p>
 
-![GitHub](https://img.shields.io/github/license/crud89/litefx.svg) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/crud89/litefx/release?label=Build) ![Latest release](https://img.shields.io/github/release/crud89/litefx.svg) ![Released at](https://img.shields.io/github/release-date/crud89/litefx.svg) [![Documentation](https://img.shields.io/badge/docs-gh--pages-70dcf4.svg)](https://litefx.github.io/docs/#/)
+![GitHub](https://img.shields.io/github/license/crud89/litefx.svg) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/crud89/litefx/release?label=Build) ![Latest release](https://img.shields.io/github/release/crud89/litefx.svg) ![Released at](https://img.shields.io/github/release-date/crud89/litefx.svg) [![Documentation](https://img.shields.io/badge/docs-gh--pages-70dcf4.svg)](https://litefx.crudolph.io/docs/)
 
 ## About
 
