@@ -84,7 +84,7 @@ jobs:
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
           
       - name: Upload build artifacts
-        if: ${{ github.events.inputs.uploadBuildArtifacts == 'true' }}
+        if: ${{ github.event.inputs.uploadBuildArtifacts == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-build

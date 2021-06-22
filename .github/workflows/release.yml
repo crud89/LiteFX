@@ -45,7 +45,7 @@ jobs:
       - name: Update version
         working-directory: "${{ github.workspace }}/src/cmake/"
         shell: powershell
-        run: ".\\write-version.ps1 -major ${{ github.events.input.major }} -minor ${{ github.events.input.minor }} -build ${{ github.events.input.build }}"
+        run: ".\\write-version.ps1 -major ${{ github.event.inputs.major }} -minor ${{ github.event.inputs.minor }} -build ${{ github.event.inputs.build }}"
 
       - name: Setup build environment
         id: setup-environment
@@ -148,7 +148,7 @@ jobs:
       - name: Update version
         working-directory: "${{ github.workspace }}"
         shell: powershell
-        run: ".\\write-version.ps1 -major ${{ github.events.input.major }} -minor ${{ github.events.input.minor }} -build ${{ github.events.input.build }}"
+        run: ".\\write-version.ps1 -major ${{ github.event.inputs.major }} -minor ${{ github.event.inputs.minor }} -build ${{ github.event.inputs.build }}"
 
       - name: Build documentation
         uses: mattnotmitt/doxygen-action@v1
@@ -161,7 +161,7 @@ jobs:
         run: |
           git config --local user.email "18394207+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -m "Release ${{ github.events.input.major }}.${{ github.events.input.minor }}.${{ github.events.input.build }}" -a
+          git commit -m "Release ${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}" -a
           $commit_id = git rev-parse HEAD
           echo "HEAD_COMMIT_ID=$($commit_id)" >> $env:GITHUB_ENV
 
@@ -175,6 +175,6 @@ jobs:
         with:
             artifacts: "artifacts/"
             token: ${{ secrets.GITHUB_TOKEN }}
-            body: "${{ github.events.input.Changelog }}"
-            name: "v${{ github.events.input.major }}.${{ github.events.input.minor }}.${{ github.events.input.build }}"
+            body: "${{ github.event.inputs.Changelog }}"
+            name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
             commit: "${{ env.HEAD_COMMIT_ID }}"

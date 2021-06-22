@@ -91,7 +91,7 @@ jobs:
           cmake --install .
 
       - name: Upload install artifacts
-        if: ${{ github.events.inputs.uploadArtifacts == 'true' }}
+        if: ${{ github.event.inputs.uploadArtifacts == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
