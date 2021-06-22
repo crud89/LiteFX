@@ -169,8 +169,8 @@ jobs:
       - name: Build documentation
         uses: mattnotmitt/doxygen-action@v1
         with:
-          working-directory: '${{ github.workspace }}'
-          doxyfile-path: '.doxyfile'
+          working-directory: .
+          doxyfile-path: ./.doxyfile
 
       - name: Commit updates
         working-directory: "${{ github.workspace }}"
