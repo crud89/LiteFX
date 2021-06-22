@@ -147,13 +147,13 @@ jobs:
         uses: actions/download-artifact@master
         with:
           name: LiteFX-windows-x64-install
-          path: artifacts/
+          path: artifacts/x64/
           
       - name: 'Download windows-x86 artifacts...'
         uses: actions/download-artifact@master
         with:
           name: LiteFX-windows-x86-install
-          path: artifacts/
+          path: artifacts/x86/
 
       - name: Checking out sources
         uses: actions/checkout@master
@@ -188,7 +188,7 @@ jobs:
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-            artifacts: "artifacts/"
+            artifacts: "artifacts/x64/,artifacts/x86/"
             token: ${{ secrets.GITHUB_TOKEN }}
             bodyFile: "${{ github.event.inputs.releaseLog }}"
             name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
