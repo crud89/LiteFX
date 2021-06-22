@@ -45,7 +45,7 @@ jobs:
       - name: Update version
         working-directory: "${{ github.workspace }}"
         shell: powershell
-        run: "$.\\write-version.ps1 -major ${{ github.event.inputs.major }} -minor ${{ github.event.inputs.minor }} -build ${{ github.event.inputs.build }}"
+        run: ".\\write-version.ps1 -major ${{ github.event.inputs.major }} -minor ${{ github.event.inputs.minor }} -build ${{ github.event.inputs.build }}"
 
       - name: Setup build environment
         id: setup-environment
