@@ -177,19 +177,22 @@ jobs:
           working-directory: .
           doxyfile-path: ./.doxyfile
 
-      - name: Commit updates
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:    
+          commit_user_name: Release Bot 🤖
+          commit_user_email: 18394207+github-actions[bot]@users.noreply.github.com
+          commit_message: Release ${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }} 🚀
+          status_options: --untracked-files=all
+          add_options: --ignore-removal
+          push_options: --force
+          skip_dirty_check: true
+          skip_fetch: true
+          disable_globbing: true
+
+      - name: Store commit id
         working-directory: "${{ github.workspace }}"
         run: |
-          git config --local user.email "18394207+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add --all
-          git commit -m "Release ${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }} 🚀"
           echo "HEAD_COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release
         uses: ncipollo/release-action@v1
