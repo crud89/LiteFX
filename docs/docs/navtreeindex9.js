@@ -1,6 +1,6 @@
 var NAVTREEINDEX9 =
 {
-"md_docs_tutorials_quick_start.html#autotoc_md9":[7,0],
+"md_docs_tutorials_quick_start.html#autotoc_md40":[7,1],
 "namespace_lite_f_x.html":[8,0,0],
 "namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602":[8,0,0,25],
 "namespace_lite_f_x.html#a0dde517531e4377f2f9e79477114c3f5":[8,0,0,19],
@@ -142,11 +142,11 @@ var NAVTREEINDEX9 =
 "struct_camera_buffer.html":[9,0,1],
 "struct_camera_buffer.html#a1b25393a92e2ce03ec2b51f5b5b18cdf":[9,0,1,0],
 "struct_glfw_window_deleter.html":[9,0,3],
-"struct_glfw_window_deleter.html#a796e60a4eb3af4516f6b3e7595a58b11":[9,0,3,2],
 "struct_glfw_window_deleter.html#a796e60a4eb3af4516f6b3e7595a58b11":[9,0,3,3],
+"struct_glfw_window_deleter.html#a796e60a4eb3af4516f6b3e7595a58b11":[9,0,3,1],
 "struct_glfw_window_deleter.html#a796e60a4eb3af4516f6b3e7595a58b11":[9,0,3,5],
 "struct_glfw_window_deleter.html#a796e60a4eb3af4516f6b3e7595a58b11":[9,0,3,0],
-"struct_glfw_window_deleter.html#a796e60a4eb3af4516f6b3e7595a58b11":[9,0,3,1],
+"struct_glfw_window_deleter.html#a796e60a4eb3af4516f6b3e7595a58b11":[9,0,3,2],
 "struct_glfw_window_deleter.html#a796e60a4eb3af4516f6b3e7595a58b11":[9,0,3,4],
 "struct_lite_f_x_1_1_graphics_1_1_vertex.html":[9,0,0,0,0],
 "struct_lite_f_x_1_1_graphics_1_1_vertex.html#a1a3eaf4d5d4ebeab9abd9681ab9ba169":[9,0,0,0,0,1],
