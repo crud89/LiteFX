@@ -18,6 +18,11 @@ VulkanRasterizer::VulkanRasterizer(const VulkanRenderPipeline& pipeline) noexcep
 
 VulkanRasterizer::~VulkanRasterizer() noexcept = default;
 
+void VulkanRasterizer::updateLineWidth(const Float& lineWidth) noexcept
+{
+    this->lineWidth() = lineWidth;
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------

@@ -796,6 +796,21 @@ namespace LiteFX::Rendering::Backends {
 
 	private:
 		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline) noexcept;
+
+	public:
+		/// <summary>
+		/// Sets the line width on the rasterizer.
+		/// </summary>
+		/// <remarks>
+		/// Note that updating the line width requires the "wide lines" feature to be available. If it is not, the line width **must** be `1.0`. This
+		/// constraint is not enforced by the engine and you are responsible of making sure that it is fulfilled.
+		/// 
+		/// Furthermore, note that the DirectX 12 back-end does have any representation for the line width concept. Thus you should only use the line 
+		/// width, if you plan to only support Vulkan.
+		/// </remarks>
+		/// <returns>A reference to the line width.</returns>
+		/// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#features-wideLines" />
+		virtual void updateLineWidth(const Float& lineWidth) noexcept;
 	};
 
 	/// <summary>

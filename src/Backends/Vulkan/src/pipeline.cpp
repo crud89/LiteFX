@@ -121,7 +121,7 @@ public:
 		viewportState.scissorCount = static_cast<UInt32>(m_scissors.size());
 
 		// Setup dynamic state.
-		Array<VkDynamicState> dynamicStates { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR };
+		Array<VkDynamicState> dynamicStates { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR, VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH };
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		dynamicState.pDynamicStates = dynamicStates.data();
@@ -310,6 +310,7 @@ void VulkanRenderPipeline::use() const
 	::vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
 	::vkCmdSetViewport(commandBuffer, 0, static_cast<UInt32>(viewports.size()), viewports.data());
 	::vkCmdSetScissor(commandBuffer, 0, static_cast<UInt32>(scissors.size()), scissors.data());
+	::vkCmdSetLineWidth(commandBuffer, std::as_const(*m_impl->m_rasterizer).lineWidth());
 }
 
 void VulkanRenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
