@@ -25,23 +25,23 @@
 var NAVTREE =
 [
   [ "LiteFX", "index.html", [
-    [ "About", "index.html#autotoc_md10", null ],
-    [ "Installation", "index.html#autotoc_md11", [
-      [ "Manual Builds", "index.html#autotoc_md12", [
-        [ "Prerequisites", "index.html#autotoc_md13", null ],
-        [ "Cloning the Repository", "index.html#autotoc_md14", null ],
-        [ "Performing a Build", "index.html#autotoc_md15", [
-          [ "From Command Line", "index.html#autotoc_md16", null ],
-          [ "Using Visual Studio", "index.html#autotoc_md17", null ]
+    [ "About", "index.html#autotoc_md19", null ],
+    [ "Installation", "index.html#autotoc_md21", [
+      [ "Manual Builds", "index.html#autotoc_md22", [
+        [ "Prerequisites", "index.html#autotoc_md23", null ],
+        [ "Cloning the Repository", "index.html#autotoc_md24", null ],
+        [ "Performing a Build", "index.html#autotoc_md26", [
+          [ "From Command Line", "index.html#autotoc_md27", null ],
+          [ "Using Visual Studio", "index.html#autotoc_md28", null ]
         ] ],
-        [ "Build Customization", "index.html#autotoc_md18", null ]
+        [ "Build Customization", "index.html#autotoc_md29", null ]
       ] ],
-      [ "Dependencies", "index.html#autotoc_md20", null ]
+      [ "Dependencies", "index.html#autotoc_md31", null ]
     ] ],
-    [ "Getting Started", "index.html#autotoc_md21", null ],
-    [ "Contribute", "index.html#autotoc_md22", null ],
-    [ "Projects using LiteFX", "index.html#autotoc_md23", null ],
-    [ "License", "index.html#autotoc_md24", null ],
+    [ "Getting Started", "index.html#autotoc_md32", null ],
+    [ "Contribute", "index.html#autotoc_md33", null ],
+    [ "Projects using LiteFX", "index.html#autotoc_md34", null ],
+    [ "License", "index.html#autotoc_md35", null ],
     [ "Project Setup", "md_docs_tutorials_project_setup.html", [
       [ "Runtime and Dependency Installation", "md_docs_tutorials_project_setup.html#autotoc_md1", null ],
       [ "Setup Project using CMake", "md_docs_tutorials_project_setup.html#autotoc_md2", [
@@ -53,20 +53,20 @@ var NAVTREE =
       ] ]
     ] ],
     [ "Quick Start", "md_docs_tutorials_quick_start.html", [
-      [ "Defining an Application", "md_docs_tutorials_quick_start.html#autotoc_md19", [
-        [ "Running the Application", "md_docs_tutorials_quick_start.html#autotoc_md25", [
-          [ "Creating a Device", "md_docs_tutorials_quick_start.html#autotoc_md26", null ],
-          [ "Creating a Render Pass", "md_docs_tutorials_quick_start.html#autotoc_md27", null ],
-          [ "Creating a Render Pipeline", "md_docs_tutorials_quick_start.html#autotoc_md28", [
-            [ "Input Assembler State", "md_docs_tutorials_quick_start.html#autotoc_md29", null ],
-            [ "Rasterizer State", "md_docs_tutorials_quick_start.html#autotoc_md30", null ],
-            [ "Render Pipeline Layout", "md_docs_tutorials_quick_start.html#autotoc_md31", null ]
+      [ "Defining an Application", "md_docs_tutorials_quick_start.html#autotoc_md9", [
+        [ "Running the Application", "md_docs_tutorials_quick_start.html#autotoc_md10", [
+          [ "Creating a Device", "md_docs_tutorials_quick_start.html#autotoc_md11", null ],
+          [ "Creating a Render Pass", "md_docs_tutorials_quick_start.html#autotoc_md12", null ],
+          [ "Creating a Render Pipeline", "md_docs_tutorials_quick_start.html#autotoc_md14", [
+            [ "Input Assembler State", "md_docs_tutorials_quick_start.html#autotoc_md15", null ],
+            [ "Rasterizer State", "md_docs_tutorials_quick_start.html#autotoc_md16", null ],
+            [ "Render Pipeline Layout", "md_docs_tutorials_quick_start.html#autotoc_md17", null ]
           ] ]
         ] ],
-        [ "Creating and Managing Buffers", "md_docs_tutorials_quick_start.html#autotoc_md32", [
-          [ "Vertex- and Index Buffers", "md_docs_tutorials_quick_start.html#autotoc_md33", null ],
-          [ "Constant/Uniform Buffers", "md_docs_tutorials_quick_start.html#autotoc_md34", [
-            [ "Static Buffers", "md_docs_tutorials_quick_start.html#autotoc_md35", null ],
+        [ "Creating and Managing Buffers", "md_docs_tutorials_quick_start.html#autotoc_md18", [
+          [ "Vertex- and Index Buffers", "md_docs_tutorials_quick_start.html#autotoc_md20", null ],
+          [ "Constant/Uniform Buffers", "md_docs_tutorials_quick_start.html#autotoc_md25", [
+            [ "Static Buffers", "md_docs_tutorials_quick_start.html#autotoc_md30", null ],
             [ "Dynamic Buffers", "md_docs_tutorials_quick_start.html#autotoc_md36", null ]
           ] ]
         ] ],
@@ -111,7 +111,7 @@ var NAVTREEINDEX =
 "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer_layout.html#aaf209783aef9b07e420b5ed80e9c191c",
 "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline_layout.html#aba64a3b45e79379c2a8fe564c576d03c",
 "class_vulkan_backend_1_1_vulkan_backend_impl.html#a4e945b2d63222fc2dbe607074d686e5f",
-"md_docs_tutorials_quick_start.html#autotoc_md40"
+"md_docs_tutorials_quick_start.html#autotoc_md9"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
