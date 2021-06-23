@@ -2,14 +2,14 @@
 <html><meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
-<title>LiteFX - An extensible, descriptive, modern computer graphics and rendering engine, written in C&#43;&#43;20.</title>
+<title>LiteFX - Open-source, modern and flexible computer graphics and rendering engine, written in C&#43;&#43;20 with support for Vulkan 🌋 and DirectX 12 ❎.</title>
 
 
   <link rel="shortcut icon" href="https://litefx.crudolph.io/favicon.ico" type="image/png"
 />
 
 
-  <meta name="description" content="An extensible, descriptive, modern computer graphics and rendering engine, written in C&#43;&#43;20."
+  <meta name="description" content="Open-source, modern and flexible computer graphics and rendering engine, written in C&#43;&#43;20 with support for Vulkan 🌋 and DirectX 12 ❎."
 />
 
   <meta name="keywords" content="LiteFX, Vulkan, DirectX 12, C&#43;&#43;20, Engine, Rendering, Real-Time, Computer Graphics, Open Source, C&#43;&#43;, Software, 3D, Game Engine, Git, GitHub"
@@ -38,19 +38,19 @@
 />
 
 <meta property="og:title" content="" />
-<meta property="og:description" content="An extensible, descriptive, modern computer graphics and rendering engine, written in C&#43;&#43;20." />
+<meta property="og:description" content="Open-source, modern and flexible computer graphics and rendering engine, written in C&#43;&#43;20 with support for Vulkan 🌋 and DirectX 12 ❎." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://litefx.crudolph.io/" /><meta property="og:image" content="https://litefx.crudolph.io/img/banner_m.jpg"/><meta property="og:site_name" content="LiteFX - An extensible, descriptive, modern computer graphics and rendering engine, written in C&#43;&#43;20." />
+<meta property="og:url" content="https://litefx.crudolph.io/" /><meta property="og:image" content="https://litefx.crudolph.io/img/banner_m.jpg"/><meta property="og:site_name" content="LiteFX - Open-source, modern and flexible computer graphics and rendering engine, written in C&#43;&#43;20 with support for Vulkan 🌋 and DirectX 12 ❎." />
 
 
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://litefx.crudolph.io/img/banner_m.jpg"/>
 
 <meta name="twitter:title" content=""/>
-<meta name="twitter:description" content="An extensible, descriptive, modern computer graphics and rendering engine, written in C&#43;&#43;20."/>
+<meta name="twitter:description" content="Open-source, modern and flexible computer graphics and rendering engine, written in C&#43;&#43;20 with support for Vulkan 🌋 and DirectX 12 ❎."/>
 
 <meta itemprop="name" content="">
-<meta itemprop="description" content="An extensible, descriptive, modern computer graphics and rendering engine, written in C&#43;&#43;20.">
+<meta itemprop="description" content="Open-source, modern and flexible computer graphics and rendering engine, written in C&#43;&#43;20 with support for Vulkan 🌋 and DirectX 12 ❎.">
 
 <style>
       
@@ -77,7 +77,7 @@
 
       
      .post-holder.odd {
-          background: #6b566b;
+          background: #97a4a8;
           color: white;
      }
      .post-holder {
@@ -92,6 +92,10 @@
      .site-footer {
           color: #BBC7CC;
           background-color: #22343A;
+     }
+
+     .highlight pre {
+          background-color: white !important;
      }
 </style>
 
@@ -120,7 +124,7 @@
         <div id="site-head-content" class="inner">
 
             <h1 class="blog-title">LiteFX ✨</h1>
-            <h2 class="blog-description">An extensible, descriptive, modern computer graphics and rendering engine, written in C&#43;&#43;20.</h2>
+            <h2 class="blog-description">Open-source, modern and flexible computer graphics and rendering engine, written in C&#43;&#43;20 with support for Vulkan 🌋 and DirectX 12 ❎.</h2>
 
             
             <i id='header-arrow' class="fa fa-angle-down"></i>
@@ -138,9 +142,102 @@
                     <h2 class="post-title">Project Info</h2>
                 </header>
                 <section class="post-content">
-                    <p>Welcome to LiteFX ✨ - An extensible, descriptive, modern computer graphics and rendering engine, written in C++20.</p>
-<p>This engine is an educational project, I&rsquo;ve written to teach myself about modern computer graphics APIs, including Vulkan 🌋 and DirectX 12 ❎. It contains an abstraction layer over both back-ends that can be configured through a fluent interface, making it possible to easily and quickly express render pipeline configurations. It uses <a href="https://cmake.org/">CMake</a> and <a href="https://vcpkg.io/">vcpkg</a> to resolve dependencies and supports custom shader targets (written in HLSL or GLSL), allowing you to setup a basic, fully featured rendering application within seconds.</p>
-<p>More updates and public release will be announced soon. Stay tuned! 🚀</p>
+                    <p>Welcome to LiteFX ✨ - A modern, flexible computer graphics and rendering engine, written in C++20 with support for Vulkan 🌋 and DirectX 12 ❎. It contains an abstraction layer over both back-ends that can be configured through a fluent interface, making it possible to easily and quickly express render pipeline configurations. It uses <a href="https://cmake.org/">CMake</a> and <a href="https://vcpkg.io/">vcpkg</a> to resolve dependencies and supports custom shader targets (written in HLSL or GLSL), allowing you to setup a basic, fully featured rendering application within seconds.</p>
+<p>Interested? You can start right now by heading over to the documentation and read the <a href="https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html">project setup</a> 🔨 and <a href="https://litefx.crudolph.io/docs/md_docs_tutorials_quick_start.html">quick start</a> 🚀 guides. The source code is available on <a href="https://github.com/crud89/LiteFX">GitHub</a> 🐱‍🚀.</p>
+
+                </section>
+            </article>
+            <div class='post-after'></div>
+        </div>
+    
+        <div class='post-holder'>
+            <article id='fluent-interface' class='post '>
+                <header class="post-header">
+                    <h2 class="post-title">Fluent Interface</h2>
+                </header>
+                <section class="post-content">
+                    <p>The explicit nature of modern graphics APIs can be pretty obstrusive. LiteFX offers a fluent interface that helps you to quickly configure commonly used objects, such as render passes, pipeline state and devices.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cxx" data-lang="cxx"><span style="color:#66d9ef">auto</span> pipeline <span style="color:#f92672">=</span> renderPass<span style="color:#f92672">-&gt;</span>makePipeline(<span style="color:#ae81ff">0</span>, <span style="color:#e6db74">&#34;Basic Pipeline&#34;</span>)
+    .layout()
+        .shaderProgram()
+            .addVertexShaderModule(<span style="color:#e6db74">&#34;shaders/vs.dxi&#34;</span>)
+            .addFragmentShaderModule(<span style="color:#e6db74">&#34;shaders/ps.dxi&#34;</span>)
+            .go()
+        .addDescriptorSet(<span style="color:#ae81ff">0</span>, ShaderStage<span style="color:#f92672">::</span>Vertex <span style="color:#f92672">|</span> ShaderStage<span style="color:#f92672">::</span>Fragment)
+            .addUniform(<span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(CameraBuffer))
+            .addImage(<span style="color:#ae81ff">1</span>)
+            .go()
+<span style="color:#75715e">// ...
+</span></code></pre></div>
+                </section>
+            </article>
+            <div class='post-after'></div>
+        </div>
+    
+        <div class='post-holder'>
+            <article id='render-backends' class='post '>
+                <header class="post-header">
+                    <h2 class="post-title">Render Backends</h2>
+                </header>
+                <section class="post-content">
+                    <p>The core of LiteFX is a flexible abstraction layer over modern graphics APIs. It is implemented for two backends: DirectX 12 ❎ and Vulkan 🌋. Though currently not officially implemented, it is also possible to write custom backends for older graphics APIs and still benefit from a possible performance improvements, since the abstraction layer follows principles that are also used by <a href="https://www.gdcvault.com/play/1020791"><em>Approaching Zero Driver Overhead (AZDO)</em></a>.</p>
+
+                </section>
+            </article>
+            <div class='post-after'></div>
+        </div>
+    
+        <div class='post-holder'>
+            <article id='cmake-integration' class='post '>
+                <header class="post-header">
+                    <h2 class="post-title">CMake Integration</h2>
+                </header>
+                <section class="post-content">
+                    <p>LiteFX already uses CMake for building. On top of that, it also exports the helpers it internally already uses to build its samples, so you can also use them in your application to automate building shaders or integrate assets into your build process. The CMake library allows you to define <em>shader module targets</em> and link them to your application just as you would with normal library targets. Shader modules can be written in HLSL and GLSL and can be compiled using <a href="https://github.com/microsoft/DirectXShaderCompiler">DXC</a> and <a href="https://github.com/google/shaderc/tree/main/glslc">GLSLC</a>. Furthermore, it allows you to define a directory hierarchy for static assets.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmake" data-lang="cmake">ADD_SHADER_MODULE(<span style="color:#e6db74">MyVertexShader</span> <span style="color:#e6db74">SOURCE</span> <span style="color:#e6db74">&#34;vs.hlsl&#34;</span> 
+  <span style="color:#e6db74">LANGUAGE</span> <span style="color:#e6db74">HLSL</span> <span style="color:#e6db74">TYPE</span> <span style="color:#e6db74">VERTEX</span> <span style="color:#e6db74">SHADER_MODEL</span> <span style="color:#e6db74">6_3</span> 
+  <span style="color:#e6db74">COMPILE_AS</span> <span style="color:#e6db74">SPIRV</span> <span style="color:#e6db74">COMPILER</span> <span style="color:#e6db74">DXC</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>TARGET_LINK_SHADERS(<span style="color:#e6db74">MyLiteFXApp</span> <span style="color:#e6db74">SHADERS</span> <span style="color:#e6db74">MyVertexShader</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>TARGET_ADD_ASSET_DIRECTORY(<span style="color:#e6db74">MyLiteFXApp</span>
+    <span style="color:#e6db74">NAME</span> <span style="color:#e6db74">&#34;textures&#34;</span>
+    <span style="color:#e6db74">INSTALL_DESTINATION</span> <span style="color:#e6db74">&#34;${CMAKE_INSTALL_BINARY_DIR}&#34;</span>
+    <span style="color:#e6db74">ASSETS</span> <span style="color:#e6db74">&#34;assets/texture.tga&#34;</span>
+)<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div>
+                </section>
+            </article>
+            <div class='post-after'></div>
+        </div>
+    
+        <div class='post-holder'>
+            <article id='open-source' class='post '>
+                <header class="post-header">
+                    <h2 class="post-title">Open Source</h2>
+                </header>
+                <section class="post-content">
+                    <p>The engine only depends on open source software and is open source itself. Feel free to create your own fork, open a pull request or report an issue. Get started by heading over to <a href="https://github.com/crud89/LiteFX">GitHub</a> 🐱‍🚀.</p>
+
+                </section>
+            </article>
+            <div class='post-after'></div>
+        </div>
+    
+        <div class='post-holder'>
+            <article id='resources' class='post last'>
+                <header class="post-header">
+                    <h2 class="post-title">Resources</h2>
+                </header>
+                <section class="post-content">
+                    <p>Additional resources can be found here:</p>
+<ul>
+<li>🚀 <a href="https://github.com/crud89/LiteFX/releases">Releases</a></li>
+<li>🐱‍🚀 <a href="https://github.com/crud89/LiteFX">GitHub</a></li>
+<li>📖 <a href="https://litefx.crudolph.io/docs/">Documentation</a></li>
+<li>🌍 <a href="https://github.com/crud89/LiteFX/wiki">Wiki</a></li>
+<li>💬 <a href="https://github.com/crud89/LiteFX/discussions">Discussions</a></li>
+<li>📧 <a href="https://github.com/crud89/LiteFX/issues">Issues</a></li>
+</ul>
 
                 </section>
             </article>

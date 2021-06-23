@@ -2,15 +2,15 @@ baseURL = "https://litefx.crudolph.io/"
 disableKinds = ["section", "taxonomy", "term", "RSS", "robotsTXT"]
 defaultContentLanguage = "en"
 theme = "hugo-scroll"
-title = "LiteFX - An extensible, descriptive, modern computer graphics and rendering engine, written in C++20."
+title = "LiteFX - Open-source, modern and flexible computer graphics and rendering engine, written in C++20 with support for Vulkan 🌋 and DirectX 12 ❎."
 publishDir = "../"
 
 [params]
     copyright = "© 2021 Carsten Rudolph"
-    description = "An extensible, descriptive, modern computer graphics and rendering engine, written in C++20."
+    description = "Open-source, modern and flexible computer graphics and rendering engine, written in C++20 with support for Vulkan 🌋 and DirectX 12 ❎."
     favicon = "favicon.ico"
     images = ["img/banner_m.jpg"]
-    title = "LiteFX - An extensible, descriptive, modern computer graphics and rendering engine, written in C++20."
+    title = "LiteFX - Open-source, modern and flexible computer graphics and rendering engine, written in C++20 with support for Vulkan 🌋 and DirectX 12 ❎."
     # hidedesignbyline = true
 
     [params.meta]
