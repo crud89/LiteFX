@@ -159,8 +159,6 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
       LIST(APPEND compiler_options -Zi)
-    ELSE()
-      LIST(APPEND compiler_options -Vd)
     ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     
     IF(${compile_as} STREQUAL "SPIRV")
