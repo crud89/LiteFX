@@ -6,8 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRasterizer::VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const bool& useDepthBias, const Float& depthBiasClamp, const Float& depthBiasConstantFactor, const Float& depthBiasSlopeFactor) noexcept :
-    Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, useDepthBias, depthBiasClamp, depthBiasConstantFactor, depthBiasSlopeFactor), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice())
+VulkanRasterizer::VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
+    Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice())
 {
 }
 
@@ -31,8 +31,9 @@ private:
     CullMode m_cullMode = CullMode::BackFaces;
     CullOrder m_cullOrder = CullOrder::CounterClockWise;
     Float m_lineWidth = 1.f;
-    Float m_depthBiasClamp = 0.f, m_depthBiasConstantFactor = 0.f, m_depthBiasSlopeFactor = 0.f;
-    bool m_depthBias = false;
+    DepthStencilState::DepthBias m_depthBias;
+    DepthStencilState::DepthState m_depthState;
+    DepthStencilState::StencilState m_stencilState;
 
 public:
     VulkanRasterizerBuilderImpl(VulkanRasterizerBuilder* parent) :
@@ -58,10 +59,9 @@ VulkanRenderPipelineBuilder& VulkanRasterizerBuilder::go()
     this->instance()->cullMode() = m_impl->m_cullMode;
     this->instance()->cullOrder() = m_impl->m_cullOrder;
     this->instance()->lineWidth() = m_impl->m_lineWidth;
-    this->instance()->useDepthBias() = m_impl->m_depthBias;
-    this->instance()->depthBiasClamp() = m_impl->m_depthBiasClamp;
-    this->instance()->depthBiasConstantFactor() = m_impl->m_depthBiasConstantFactor;
-    this->instance()->depthBiasSlopeFactor() = m_impl->m_depthBiasSlopeFactor;
+    this->instance()->depthStencilState().depthBias() = m_impl->m_depthBias;
+    this->instance()->depthStencilState().depthState() = m_impl->m_depthState;
+    this->instance()->depthStencilState().stencilState() = m_impl->m_stencilState;
 
     return RasterizerBuilder::go();
 }
@@ -90,26 +90,20 @@ VulkanRasterizerBuilder& VulkanRasterizerBuilder::withLineWidth(const Float& lin
     return *this;
 }
 
-VulkanRasterizerBuilder& VulkanRasterizerBuilder::enableDepthBias(const bool& enable) noexcept
+VulkanRasterizerBuilder& VulkanRasterizerBuilder::withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept
 {
-    m_impl->m_depthBias = enable;
+    m_impl->m_depthBias = depthBias;
     return *this;
 }
 
-VulkanRasterizerBuilder& VulkanRasterizerBuilder::withDepthBiasClamp(const Float& clamp) noexcept
+VulkanRasterizerBuilder& VulkanRasterizerBuilder::withDepthState(const DepthStencilState::DepthState& depthState) noexcept
 {
-    m_impl->m_depthBiasClamp = clamp;
+    m_impl->m_depthState = depthState;
     return *this;
 }
 
-VulkanRasterizerBuilder& VulkanRasterizerBuilder::withDepthBiasConstantFactor(const Float& factor) noexcept
+VulkanRasterizerBuilder& VulkanRasterizerBuilder::withStencilState(const DepthStencilState::StencilState& stencilState) noexcept
 {
-    m_impl->m_depthBiasConstantFactor = factor;
-    return *this;
-}
-
-VulkanRasterizerBuilder& VulkanRasterizerBuilder::withDepthBiasSlopeFactor(const Float& factor) noexcept
-{
-    m_impl->m_depthBiasSlopeFactor = factor;
+    m_impl->m_stencilState = stencilState;
     return *this;
 }

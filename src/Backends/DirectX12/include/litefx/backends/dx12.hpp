@@ -3,7 +3,6 @@
 #include <litefx/rendering.hpp>
 
 #include "dx12_api.hpp"
-#include "dx12_builders.hpp"
 #include "dx12_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
@@ -769,11 +768,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="cullMode">The cull mode used by the pipeline.</param>
 		/// <param name="cullOrder">The cull order used by the pipeline.</param>
 		/// <param name="lineWidth">The line width used by the pipeline.</param>
-		/// <param name="useDepthBias"><c>true</c>, if the depth bias should be enabled.</param>
-		/// <param name="depthBiasClamp">The clamp value of the depth bias state.</param>
-		/// <param name="depthBiasConstantFactor">The constant factor of the depth bias state.</param>
-		/// <param name="depthBiasSlopeFactor">The slope factor of the depth bias state.</param>
-		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP, const Float& depthBiasConstantFactor = D3D12_DEFAULT_DEPTH_BIAS, const Float& depthBiasSlopeFactor = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS) noexcept;
+		/// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
@@ -819,16 +815,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) noexcept override;
 
 		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& enableDepthBias(const bool& enable = false) noexcept override;
+		virtual DirectX12RasterizerBuilder& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept override;
 
 		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) noexcept override;
+		virtual DirectX12RasterizerBuilder& withDepthState(const DepthStencilState::DepthState& depthState) noexcept override;
 
 		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) noexcept override;
-
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) noexcept override;
+		virtual DirectX12RasterizerBuilder& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept override;
 	};
 
 	/// <summary>

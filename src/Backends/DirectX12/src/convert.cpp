@@ -504,3 +504,33 @@ String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getVendorName(const UIn
 	default: return "Unknown";
 	}
 }
+
+D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getCompareOp(const CompareOperation& compareOp)
+{
+	switch (compareOp) {
+	case CompareOperation::Never: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
+	case CompareOperation::Less: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
+	case CompareOperation::Greater: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER;
+	case CompareOperation::Equal: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_EQUAL;
+	case CompareOperation::LessEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	case CompareOperation::GreaterEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+	case CompareOperation::NotEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NOT_EQUAL;
+	case CompareOperation::Always: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_ALWAYS;
+	default: throw InvalidArgumentException("Unsupported compare operation.");
+	}
+}
+
+D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getStencilOp(const StencilOperation& stencilOp)
+{
+	switch (stencilOp) {
+	case StencilOperation::Keep: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_KEEP;
+	case StencilOperation::Zero: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_ZERO;
+	case StencilOperation::Invert: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_INVERT;
+	case StencilOperation::Replace: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_REPLACE;
+	case StencilOperation::IncrementClamp: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_INCR_SAT;
+	case StencilOperation::IncrementWrap: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_INCR;
+	case StencilOperation::DecrementClamp: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR_SAT;
+	case StencilOperation::DecrementWrap: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR;
+	default: throw InvalidArgumentException("Unsupported stencil operation.");
+	}
+}

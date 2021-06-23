@@ -39,7 +39,7 @@ public:
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		D3D12_RASTERIZER_DESC rasterizerState = {};
-		rasterizerState.DepthClipEnable = TRUE;
+		rasterizerState.DepthClipEnable = FALSE;
 		rasterizerState.FillMode = ::getPolygonMode(rasterizer.polygonMode());
 		rasterizerState.CullMode = ::getCullMode(rasterizer.cullMode());
 		rasterizerState.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise;
@@ -50,14 +50,14 @@ public:
 
 		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
 
-		if (!rasterizer.useDepthBias())
+		if (!rasterizer.depthStencilState().depthState().Enable)
 			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias disabled.");
 		else
 		{
-			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthBiasClamp(), rasterizer.depthBiasConstantFactor(), rasterizer.depthBiasSlopeFactor());
-			rasterizerState.DepthBiasClamp = rasterizer.depthBiasClamp();
-			rasterizerState.DepthBias = static_cast<Int32>(rasterizer.depthBiasConstantFactor());
-			rasterizerState.SlopeScaledDepthBias = rasterizer.depthBiasSlopeFactor();
+			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
+			rasterizerState.DepthBiasClamp = rasterizer.depthStencilState().depthBias().Clamp;
+			rasterizerState.DepthBias = static_cast<Int32>(rasterizer.depthStencilState().depthBias().ConstantFactor);
+			rasterizerState.SlopeScaledDepthBias = rasterizer.depthStencilState().depthBias().SlopeFactor;
 		}
 
 		// Setup input assembler state.
@@ -123,21 +123,21 @@ public:
 
 				// Setup depth/stencil state.
 				// TODO: From depth/stencil state.
-				depthStencilState.DepthEnable = ::hasDepth(renderTarget.format());
-				depthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL;
-				depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS_EQUAL;
+				depthStencilState.DepthEnable = rasterizer.depthStencilState().depthState().Enable;
+				depthStencilState.DepthWriteMask = rasterizer.depthStencilState().depthState().Write ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
+				depthStencilState.DepthFunc = ::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
 
-				depthStencilState.StencilEnable = ::hasStencil(renderTarget.format());
-				depthStencilState.StencilReadMask = 0xFF;
-				depthStencilState.StencilWriteMask = 0xFF;
-				depthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-				depthStencilState.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-				depthStencilState.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+				depthStencilState.StencilEnable = rasterizer.depthStencilState().stencilState().Enable;
+				depthStencilState.StencilReadMask = rasterizer.depthStencilState().stencilState().ReadMask;
+				depthStencilState.StencilWriteMask = rasterizer.depthStencilState().stencilState().WriteMask;
+				depthStencilState.FrontFace.StencilFunc = ::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
+				depthStencilState.FrontFace.StencilDepthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
+				depthStencilState.FrontFace.StencilFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
+				depthStencilState.FrontFace.StencilPassOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
+				depthStencilState.BackFace.StencilFunc = ::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
+				depthStencilState.BackFace.StencilDepthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
+				depthStencilState.BackFace.StencilFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
+				depthStencilState.BackFace.StencilPassOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
 			}
 			else
 			{

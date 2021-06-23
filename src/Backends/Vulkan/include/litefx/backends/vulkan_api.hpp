@@ -143,6 +143,16 @@ namespace LiteFX::Rendering::Backends {
     VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
 
     /// <summary>
+    /// 
+    /// </summary>
+    VkCompareOp LITEFX_VULKAN_API getCompareOp(const CompareOperation& compareOp);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkStencilOp LITEFX_VULKAN_API getStencilOp(const StencilOperation& stencilOp);
+
+    /// <summary>
     /// Represents a Vulkan <see cref="IGraphicsAdapter" />.
     /// </summary>
     class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {

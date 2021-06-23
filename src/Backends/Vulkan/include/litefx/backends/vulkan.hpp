@@ -788,11 +788,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="cullMode">The cull mode used by the pipeline.</param>
 		/// <param name="cullOrder">The cull order used by the pipeline.</param>
 		/// <param name="lineWidth">The line width used by the pipeline.</param>
-		/// <param name="useDepthBias"><c>true</c>, if the depth bias should be enabled.</param>
-		/// <param name="depthBiasClamp">The clamp value of the depth bias state.</param>
-		/// <param name="depthBiasConstantFactor">The constant factor of the depth bias state.</param>
-		/// <param name="depthBiasSlopeFactor">The slope factor of the depth bias state.</param>
-		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept;
+		/// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
 		VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
 		VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
 		virtual ~VulkanRasterizer() noexcept;
@@ -838,16 +835,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) noexcept override;
 
 		/// <inheritdoc />
-		virtual VulkanRasterizerBuilder& enableDepthBias(const bool& enable = false) noexcept override;
+		virtual VulkanRasterizerBuilder& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept override;
 
 		/// <inheritdoc />
-		virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) noexcept override;
+		virtual VulkanRasterizerBuilder& withDepthState(const DepthStencilState::DepthState& depthState) noexcept override;
 
 		/// <inheritdoc />
-		virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) noexcept override;
-
-		/// <inheritdoc />
-		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) noexcept override;
+		virtual VulkanRasterizerBuilder& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept override;
 	};
 
 	/// <summary>

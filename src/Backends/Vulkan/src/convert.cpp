@@ -851,3 +851,33 @@ VkSampleCountFlagBits LiteFX::Rendering::Backends::getSamples(const MultiSamplin
 		throw std::invalid_argument("Unsupported number of samples.");
 	}
 }
+
+VkCompareOp LiteFX::Rendering::Backends::getCompareOp(const CompareOperation& compareOp)
+{
+	switch (compareOp) {
+	case CompareOperation::Never: return VkCompareOp::VK_COMPARE_OP_NEVER;
+	case CompareOperation::Less: return VkCompareOp::VK_COMPARE_OP_LESS;
+	case CompareOperation::Greater: return VkCompareOp::VK_COMPARE_OP_GREATER;
+	case CompareOperation::Equal: return VkCompareOp::VK_COMPARE_OP_EQUAL;
+	case CompareOperation::LessEqual: return VkCompareOp::VK_COMPARE_OP_LESS_OR_EQUAL;
+	case CompareOperation::GreaterEqual: return VkCompareOp::VK_COMPARE_OP_GREATER_OR_EQUAL;
+	case CompareOperation::NotEqual: return VkCompareOp::VK_COMPARE_OP_NOT_EQUAL;
+	case CompareOperation::Always: return VkCompareOp::VK_COMPARE_OP_ALWAYS;
+	default: throw InvalidArgumentException("Unsupported compare operation.");
+	}
+}
+
+VkStencilOp LiteFX::Rendering::Backends::getStencilOp(const StencilOperation& stencilOp)
+{
+	switch (stencilOp) {
+	case StencilOperation::Keep: return VkStencilOp::VK_STENCIL_OP_KEEP;
+	case StencilOperation::Zero: return VkStencilOp::VK_STENCIL_OP_ZERO;
+	case StencilOperation::Invert: return VkStencilOp::VK_STENCIL_OP_INVERT;
+	case StencilOperation::Replace: return VkStencilOp::VK_STENCIL_OP_REPLACE;
+	case StencilOperation::IncrementClamp: return VkStencilOp::VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+	case StencilOperation::IncrementWrap: return VkStencilOp::VK_STENCIL_OP_INCREMENT_AND_WRAP;
+	case StencilOperation::DecrementClamp: return VkStencilOp::VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+	case StencilOperation::DecrementWrap: return VkStencilOp::VK_STENCIL_OP_DECREMENT_AND_WRAP;
+	default: throw InvalidArgumentException("Unsupported stencil operation.");
+	}
+}

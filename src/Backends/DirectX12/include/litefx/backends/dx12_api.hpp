@@ -148,6 +148,16 @@ namespace LiteFX::Rendering::Backends {
     String LITEFX_DIRECTX12_API getVendorName(const UInt32& vendorId);
 
     /// <summary>
+    /// 
+    /// </summary>
+    D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API getCompareOp(const CompareOperation& compareOp);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    D3D12_STENCIL_OP LITEFX_DIRECTX12_API getStencilOp(const StencilOperation& stencilOp);
+
+    /// <summary>
     /// Implements a DirectX12 <see cref="IGraphicsAdapter" />.
     /// </summary>
     class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter : public IGraphicsAdapter, public ComResource<IDXGIAdapter4> {

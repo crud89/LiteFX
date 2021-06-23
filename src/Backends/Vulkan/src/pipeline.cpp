@@ -49,15 +49,15 @@ public:
 		rasterizerState.lineWidth = rasterizer.lineWidth();
 		rasterizerState.cullMode = ::getCullMode(rasterizer.cullMode());
 		rasterizerState.frontFace = rasterizer.cullOrder() == CullOrder::ClockWise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		rasterizerState.depthBiasEnable = rasterizer.useDepthBias();
-		rasterizerState.depthBiasClamp = rasterizer.depthBiasClamp();
-		rasterizerState.depthBiasConstantFactor = rasterizer.depthBiasConstantFactor();
-		rasterizerState.depthBiasSlopeFactor = rasterizer.depthBiasSlopeFactor();
+		rasterizerState.depthBiasEnable = rasterizer.depthStencilState().depthBias().Enable;
+		rasterizerState.depthBiasClamp = rasterizer.depthStencilState().depthBias().Clamp;
+		rasterizerState.depthBiasConstantFactor = rasterizer.depthStencilState().depthBias().ConstantFactor;
+		rasterizerState.depthBiasSlopeFactor = rasterizer.depthStencilState().depthBias().SlopeFactor;
 
 		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
 		
-		if (rasterizerState.depthBiasEnable)
-			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthBiasClamp(), rasterizer.depthBiasConstantFactor(), rasterizer.depthBiasSlopeFactor());
+		if (rasterizer.depthStencilState().depthBias().Enable)
+			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
 		else
 			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias disabled.");
 
@@ -167,11 +167,23 @@ public:
 		// Setup depth/stencil state.
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencilState.depthTestEnable = VK_TRUE;		// TODO: From depth/stencil state.
 		depthStencilState.depthBoundsTestEnable = VK_FALSE;
-		depthStencilState.stencilTestEnable = VK_FALSE;		// TODO: From depth/stencil state.
-		depthStencilState.depthWriteEnable = std::ranges::any_of(targets, [](const RenderTarget& target) { return target.type() == RenderTargetType::DepthStencil; });
-		depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
+		depthStencilState.depthTestEnable = rasterizer.depthStencilState().depthState().Enable;
+		depthStencilState.depthWriteEnable = rasterizer.depthStencilState().depthState().Write;
+		depthStencilState.depthCompareOp = ::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
+		depthStencilState.stencilTestEnable = rasterizer.depthStencilState().stencilState().Enable;
+		depthStencilState.front.compareMask = rasterizer.depthStencilState().stencilState().ReadMask;
+		depthStencilState.front.writeMask = rasterizer.depthStencilState().stencilState().WriteMask;
+		depthStencilState.front.compareOp = ::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
+		depthStencilState.front.failOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
+		depthStencilState.front.passOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
+		depthStencilState.front.depthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
+		depthStencilState.back.compareMask = rasterizer.depthStencilState().stencilState().ReadMask;
+		depthStencilState.back.writeMask = rasterizer.depthStencilState().stencilState().WriteMask;
+		depthStencilState.back.compareOp = ::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
+		depthStencilState.back.failOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
+		depthStencilState.back.passOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
+		depthStencilState.back.depthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
 
 		// Setup shader stages.
 		auto modules = m_layout->program().modules();
