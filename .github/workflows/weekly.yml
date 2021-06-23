@@ -63,6 +63,11 @@ jobs:
 
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
+        
+      - name: Setup MSVC CLI
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v6

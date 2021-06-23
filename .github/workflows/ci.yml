@@ -28,7 +28,6 @@ jobs:
           - os: windows-latest
             triplet: x64-windows
             configuration: x64-Release
-            vcpkgCommitId: 'b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6'
 
     steps:
       - name: Checking out sources
@@ -65,6 +64,11 @@ jobs:
 
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
+
+      - name: Setup MSVC CLI
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v6
