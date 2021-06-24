@@ -158,6 +158,16 @@ namespace LiteFX::Rendering::Backends {
     D3D12_STENCIL_OP LITEFX_DIRECTX12_API getStencilOp(const StencilOperation& stencilOp);
 
     /// <summary>
+    /// 
+    /// </summary>
+    D3D12_BLEND LITEFX_DIRECTX12_API getBlendFactor(const BlendFactor& blendFactor);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    D3D12_BLEND_OP LITEFX_DIRECTX12_API getBlendOperation(const BlendOperation& blendOperation);
+
+    /// <summary>
     /// Implements a DirectX12 <see cref="IGraphicsAdapter" />.
     /// </summary>
     class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter : public IGraphicsAdapter, public ComResource<IDXGIAdapter4> {

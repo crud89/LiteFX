@@ -147,8 +147,16 @@ public:
 
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
-				targetBlendState.BlendEnable = FALSE;
-				targetBlendState.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
+				targetBlendState.BlendEnable = renderTarget.blendState().Enable;
+				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().WriteMask);
+				targetBlendState.SrcBlend = ::getBlendFactor(renderTarget.blendState().SourceColor);
+				targetBlendState.SrcBlendAlpha = ::getBlendFactor(renderTarget.blendState().SourceAlpha);
+				targetBlendState.DestBlend = ::getBlendFactor(renderTarget.blendState().DestinationColor);
+				targetBlendState.DestBlendAlpha = ::getBlendFactor(renderTarget.blendState().DestinationAlpha);
+				targetBlendState.BlendOp = ::getBlendOperation(renderTarget.blendState().ColorOperation);
+				targetBlendState.BlendOpAlpha = ::getBlendOperation(renderTarget.blendState().AlphaOperation);
+
+				// TODO: We should also implement this, but this restricts all blend states to be equal and IndependentBlendEnable set to false.
 				targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
 				targetBlendState.LogicOpEnable = FALSE;
 			}
