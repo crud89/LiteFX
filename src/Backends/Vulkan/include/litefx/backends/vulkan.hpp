@@ -871,10 +871,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new Vulkan render pipeline.
 		/// </summary>
-		/// <param name="renderPass"></param>
-		/// <param name="id"></param>
-		/// <param name="name"></param>
-		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name = "");
+		/// <param name="renderPass">The parent render pass.</param>
+		/// <param name="id">The unique ID of the pipeline within the render pass.</param>
+		/// <param name="name">The optional debug name of the render pipeline.</param>
+		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool& enableAlphaToCoverage = false, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -910,6 +911,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Vector4f& blendFactors() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const bool& alphaToCoverage() const noexcept override;
 
 	public:
 		/// <inheritdoc />
@@ -971,6 +975,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void use(SharedPtr<IScissor> scissor) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
 
 		// VulkanRenderPipelineBuilder.
 	public:

@@ -836,10 +836,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new DirectX12 render pipeline.
 		/// </summary>
-		/// <param name="renderPass"></param>
-		/// <param name="id"></param>
-		/// <param name="name"></param>
-		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name = "");
+		/// <param name="renderPass">The parent render pass.</param>
+		/// <param name="id">The unique ID of the pipeline within the render pass.</param>
+		/// <param name="name">The optional debug name of the render pipeline.</param>
+		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
+		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage = false, const String& name = "");
 		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
 		DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
 		virtual ~DirectX12RenderPipeline() noexcept;
@@ -875,6 +876,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Vector4f& blendFactors() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const bool& alphaToCoverage() const noexcept override;
 
 	public:
 		/// <inheritdoc />
@@ -946,6 +950,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void use(SharedPtr<IScissor> scissor) override;
+
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
 
 		// DirectX12RenderPipelineBuilder.
 	public:

@@ -21,10 +21,11 @@ private:
 	String m_name;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
+	bool m_alphaToCoverage{ false };
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
-		base(parent), m_id(id), m_name(name), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+		base(parent), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
 
@@ -144,7 +145,7 @@ public:
 		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 		multisampling.minSampleShading = 1.0f;
 		multisampling.pSampleMask = nullptr;
-		multisampling.alphaToCoverageEnable = VK_FALSE;
+		multisampling.alphaToCoverageEnable = m_alphaToCoverage;
 		multisampling.alphaToOneEnable = VK_FALSE;
 
 		// Setup color blend state.
@@ -236,8 +237,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(VK_NULL_HANDLE)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool& enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
 }
@@ -299,6 +300,11 @@ UInt32& VulkanRenderPipeline::stencilRef() const noexcept
 Vector4f& VulkanRenderPipeline::blendFactors() const noexcept
 {
 	return m_impl->m_blendFactors;
+}
+
+const bool& VulkanRenderPipeline::alphaToCoverage() const noexcept
+{
+	return m_impl->m_alphaToCoverage;
 }
 
 void VulkanRenderPipeline::bind(const IVulkanVertexBuffer& buffer) const 
@@ -364,6 +370,7 @@ private:
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
+	bool m_alphaToCoverage{ false };
 
 public:
 	VulkanRenderPipelineBuilderImpl(VulkanRenderPipelineBuilder* parent) :
@@ -393,6 +400,7 @@ UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
 	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
 	instance->m_impl->m_viewports = std::move(m_impl->m_viewports);
 	instance->m_impl->m_scissors = std::move(m_impl->m_scissors);
+	instance->m_impl->m_alphaToCoverage = std::move(m_impl->m_alphaToCoverage);
 	instance->handle() = instance->m_impl->initialize();
 
 	return RenderPipelineBuilder::go();
@@ -441,6 +449,12 @@ void VulkanRenderPipelineBuilder::use(SharedPtr<IViewport> viewport)
 void VulkanRenderPipelineBuilder::use(SharedPtr<IScissor> scissor)
 {
 	m_impl->m_scissors.push_back(scissor);
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::enableAlphaToCoverage(const bool& enable)
+{
+	m_impl->m_alphaToCoverage = enable;
+	return *this;
 }
 
 VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::layout()

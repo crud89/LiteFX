@@ -1066,6 +1066,21 @@ namespace LiteFX::Rendering {
 		/// <returns>A reference of the constant blend factors for the pipeline.</returns>
 		virtual Vector4f& blendFactors() const noexcept = 0;
 
+		/// <summary>
+		/// Returns <c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.
+		/// </summary>
+		/// <remarks>
+		/// Alpha-to-Coverage is a multi-sampling technique used for partially transparent sprites or textures (such as foliage) to prevent visible flickering 
+		/// along edges. If enabled, the alpha-channel of the first (non-depth/stencil) render target is used to generate a temporary coverage mask that is combined
+		/// with the fragment coverage mask using a logical <b>AND</b>.
+		/// </remarks>
+		/// <returns><c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.</returns>
+		/// <seealso href="https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f" />
+		/// <seealso href="https://en.wikipedia.org/wiki/Alpha_to_coverage" />
+		/// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg" />
+		/// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage" />
+		virtual const bool& alphaToCoverage() const noexcept = 0;
+
 	public:
 		/// <summary>
 		/// Binds a vertex buffer to the pipeline.
@@ -1211,6 +1226,15 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <param name="scissor">A scissor to initialize the render pipeline with.</param>
 		virtual void use(SharedPtr<IScissor> scissor) = 0;
+
+		/// <summary>
+		/// Enables <i>Alpha-to-Coverage</i> multi-sampling on the pipeline.
+		/// </summary>
+		/// <remarks>
+		/// For more information on <i>Alpha-to-Coverage</i> multi-sampling see the remarks of <see cref="IRenderPipeline::alphaToCoverage" />.
+		/// </remarks>
+		/// <param name="enable">Whether or not to use <i>Alpha-to-Coverage</i> multi-sampling.</param>
+		virtual TDerived& enableAlphaToCoverage(const bool& enable = true) = 0;
 	};
 
 	/// <summary>

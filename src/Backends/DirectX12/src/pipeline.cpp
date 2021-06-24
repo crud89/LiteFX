@@ -21,10 +21,11 @@ private:
 	String m_name;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
+	bool m_alphaToCoverage{ false };
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
-		base(parent), m_id(id), m_name(name), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+		base(parent), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
 
@@ -164,7 +165,7 @@ public:
 			}
 		});
 
-		blendState.AlphaToCoverageEnable = FALSE;
+		blendState.AlphaToCoverageEnable = m_alphaToCoverage;
 		blendState.IndependentBlendEnable = TRUE;
 
 		// Setup shader stages.
@@ -223,8 +224,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, id, name, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), ComResource<ID3D12PipelineState>(nullptr)
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), ComResource<ID3D12PipelineState>(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }
@@ -283,6 +284,11 @@ UInt32& DirectX12RenderPipeline::stencilRef() const noexcept
 Vector4f& DirectX12RenderPipeline::blendFactors() const noexcept
 {
 	return m_impl->m_blendFactors;
+}
+
+const bool& DirectX12RenderPipeline::alphaToCoverage() const noexcept
+{
+	return m_impl->m_alphaToCoverage;
 }
 
 void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
@@ -362,6 +368,7 @@ private:
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
+	bool m_alphaToCoverage{ false };
 
 public:
 	DirectX12RenderPipelineBuilderImpl(DirectX12RenderPipelineBuilder* parent) :
@@ -391,6 +398,7 @@ UniquePtr<DirectX12RenderPipeline> DirectX12RenderPipelineBuilder::go()
 	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
 	instance->m_impl->m_viewports = std::move(m_impl->m_viewports);
 	instance->m_impl->m_scissors = std::move(m_impl->m_scissors);
+	instance->m_impl->m_alphaToCoverage = std::move(m_impl->m_alphaToCoverage);
 	instance->handle() = instance->m_impl->initialize();
 
 	return RenderPipelineBuilder::go();
@@ -439,6 +447,12 @@ void DirectX12RenderPipelineBuilder::use(SharedPtr<IViewport> viewport)
 void DirectX12RenderPipelineBuilder::use(SharedPtr<IScissor> scissor)
 {
 	m_impl->m_scissors.push_back(scissor);
+}
+
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::enableAlphaToCoverage(const bool& enable)
+{
+	m_impl->m_alphaToCoverage = enable;
+	return *this;
 }
 
 DirectX12RenderPipelineLayoutBuilder DirectX12RenderPipelineBuilder::layout()
