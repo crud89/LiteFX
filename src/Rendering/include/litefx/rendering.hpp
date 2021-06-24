@@ -1570,6 +1570,17 @@ namespace LiteFX::Rendering {
 		/// <returns>Returns an array of the swap chain present images.</returns>
 		virtual Array<const TImageInterface*> images() const noexcept = 0;
 
+		/// <summary>
+		/// Returns the current back buffer multi sampling level.
+		/// </summary>
+		/// <remarks>
+		/// Note that before a swap chain is created or reset, it is checked, if the multi-sampling level is supported by the device for the target back buffer format. If it is not
+		/// supported, the number of samples will be lowered, until a fitting sample count is found. Thus, the result of this property may not equal the levels you've used to create
+		/// the swap chain.
+		/// </remarks>
+		/// <returns>The current back buffer multi sampling level.</returns>
+		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept = 0;
+
 	public:
 		/// <summary>
 		/// Returns an array of supported formats, that can be drawn to the surface.
@@ -1591,8 +1602,10 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <param name="surfaceFormat">The swap chain image format.</param>
 		/// <param name="renderArea">The dimensions of the frame buffers.</param>
+		/// <param name="multiSampleLevel">The number of back-buffer samples.</param>
 		/// <param name="buffers">The number of buffers in the swap chain.</param>
-		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
+		/// <seealso cref="multiSamplingLevel" />
+		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const MultiSamplingLevel& multiSampleLevel, const UInt32& buffers) = 0;
 
 		/// <summary>
 		/// Swaps the front buffer with the next back buffer in order.
