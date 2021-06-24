@@ -906,6 +906,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<const IScissor*> scissors() const noexcept override;
 
 		/// <inheritdoc />
+		virtual UInt32& stencilRef() const noexcept override;
+
+		/// <inheritdoc />
 		virtual Vector4f& blendFactors() const noexcept override;
 
 	public:

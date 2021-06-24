@@ -19,7 +19,8 @@ private:
 	Array<SharedPtr<IScissor>> m_scissors;
 	UInt32 m_id;
 	String m_name;
-	Vector4f m_blendFactors;
+	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
+	UInt32 m_stencilRef{ 0 };
 
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
@@ -122,7 +123,14 @@ public:
 		viewportState.scissorCount = static_cast<UInt32>(m_scissors.size());
 
 		// Setup dynamic state.
-		Array<VkDynamicState> dynamicStates { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR, VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH, VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS };
+		Array<VkDynamicState> dynamicStates { 
+			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, 
+			VkDynamicState::VK_DYNAMIC_STATE_SCISSOR, 
+			VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH, 
+			VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+			VkDynamicState::VK_DYNAMIC_STATE_STENCIL_REFERENCE
+		};
+		
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		dynamicState.pDynamicStates = dynamicStates.data();
@@ -283,6 +291,11 @@ Array<const IScissor*> VulkanRenderPipeline::scissors() const noexcept
 		ranges::to<Array<const IScissor*>>();
 }
 
+UInt32& VulkanRenderPipeline::stencilRef() const noexcept
+{
+	return m_impl->m_stencilRef;
+}
+
 Vector4f& VulkanRenderPipeline::blendFactors() const noexcept
 {
 	return m_impl->m_blendFactors;
@@ -323,6 +336,7 @@ void VulkanRenderPipeline::use() const
 	::vkCmdSetScissor(commandBuffer, 0, static_cast<UInt32>(scissors.size()), scissors.data());
 	::vkCmdSetLineWidth(commandBuffer, std::as_const(*m_impl->m_rasterizer).lineWidth());
 	::vkCmdSetBlendConstants(commandBuffer, blendFactor);
+	::vkCmdSetStencilReference(commandBuffer, VK_STENCIL_FACE_FRONT_AND_BACK, m_impl->m_stencilRef);
 }
 
 void VulkanRenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const

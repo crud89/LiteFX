@@ -19,7 +19,8 @@ private:
 	Array<SharedPtr<IScissor>> m_scissors;
 	UInt32 m_id;
 	String m_name;
-	Vector4f m_blendFactors;
+	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
+	UInt32 m_stencilRef{ 0 };
 
 public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
@@ -274,6 +275,11 @@ Array<const IScissor*> DirectX12RenderPipeline::scissors() const noexcept
 		ranges::to<Array<const IScissor*>>();
 }
 
+UInt32& DirectX12RenderPipeline::stencilRef() const noexcept
+{
+	return m_impl->m_stencilRef;
+}
+
 Vector4f& DirectX12RenderPipeline::blendFactors() const noexcept
 {
 	return m_impl->m_blendFactors;
@@ -325,6 +331,7 @@ void DirectX12RenderPipeline::use() const
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 	commandBuffer.handle()->RSSetViewports(viewports.size(), viewports.data());
 	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
+	commandBuffer.handle()->OMSetStencilRef(m_impl->m_stencilRef);
 	commandBuffer.handle()->OMSetBlendFactor(blendFactor);
 }
 

@@ -1047,6 +1047,15 @@ namespace LiteFX::Rendering {
 		virtual Array<const IScissor*> scissors() const noexcept = 0;
 
 		/// <summary>
+		/// Returns a reference to the stencil reference value.
+		/// </summary>
+		/// <remarks>
+		/// The stencil reference value is used by the stencil test and is set with each call to <see cref="IRenderPipeline::use" />.
+		/// </remarks>
+		/// <returns>A reference to the stencil reference value.</returns>
+		virtual UInt32& stencilRef() const noexcept = 0;
+
+		/// <summary>
 		/// Returns a reference of the constant blend factors for the pipeline.
 		/// </summary>
 		/// <remarks>
