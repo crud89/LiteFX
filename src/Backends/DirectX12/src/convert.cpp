@@ -557,6 +557,7 @@ D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getBlendFactor(con
 	case BlendFactor::OneMinusSource1Color: return D3D12_BLEND_INV_SRC1_COLOR;
 	case BlendFactor::Source1Alpha: return D3D12_BLEND_SRC1_ALPHA;
 	case BlendFactor::OneMinusSource1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
+	default: throw InvalidArgumentException("Unsupported blend factor.");
 	}
 }
 
@@ -568,5 +569,6 @@ D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getBlendOperati
 	case BlendOperation::ReverseSubtract: return D3D12_BLEND_OP_REV_SUBTRACT;
 	case BlendOperation::Minimum: return D3D12_BLEND_OP_MIN;
 	case BlendOperation::Maximum: return D3D12_BLEND_OP_MAX;
+	default: throw InvalidArgumentException("Unsupported blend operation.");
 	}
 }

@@ -904,6 +904,7 @@ VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::getBlendFactor(cons
 	case BlendFactor::OneMinusSource1Color: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
 	case BlendFactor::Source1Alpha: return VK_BLEND_FACTOR_SRC1_ALPHA;
 	case BlendFactor::OneMinusSource1Alpha: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+	default: throw InvalidArgumentException("Unsupported blend factor.");
 	}
 }
 
@@ -915,5 +916,6 @@ VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::getBlendOperation(const
 	case BlendOperation::ReverseSubtract: return VkBlendOp::VK_BLEND_OP_REVERSE_SUBTRACT;
 	case BlendOperation::Minimum: return VkBlendOp::VK_BLEND_OP_MIN;
 	case BlendOperation::Maximum: return VkBlendOp::VK_BLEND_OP_MAX;
+	default: throw InvalidArgumentException("Unsupported blend operation.");
 	}
 }
