@@ -1089,10 +1089,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Creates and initializes a new DirectX12 render pass instance.
 		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="renderTargets"></param>
-		/// <param name="inputAttachments"></param>
-		explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+		/// <param name="device">The parent device instance.</param>
+		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
+		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
+		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+		explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
 		DirectX12RenderPass(const DirectX12RenderPass&) = delete;
 		DirectX12RenderPass(DirectX12RenderPass&&) = delete;
 		virtual ~DirectX12RenderPass() noexcept;
@@ -1139,6 +1140,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual Span<const DirectX12InputAttachmentMapping> inputAttachments() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept override;
+
 	public:
 		/// <inheritdoc />
 		virtual void begin(const UInt32& buffer) override;
@@ -1172,7 +1176,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPassBuilderImpl)
 
 	public:
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device) noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1) noexcept;
 		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
 		virtual ~DirectX12RenderPassBuilder() noexcept;
@@ -1181,10 +1185,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(DirectX12InputAttachmentMapping&& inputAttachment) override;
 
 	public:
-		virtual DirectX12RenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) override;
 		virtual DirectX12RenderPassBuilder& inputAttachment(const DirectX12InputAttachmentMapping& inputAttachment) override;
 		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const UInt32& outputLocation) override;
 		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
@@ -1280,11 +1285,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<Format> getSurfaceFormats() const noexcept override;
 
 		/// <inheritdoc />
-		/// <remarks>
-		/// Note that changing the number of samples requires the swap chain to be completely re-created. Make sure, you have no references to the swap chain 
-		/// before attempting this operation.
-		/// </remarks>
-		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const MultiSamplingLevel& multiSampleLevel, const UInt32& buffers) override;
+		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) override;
 
 		/// <inheritdoc />
 		[[nodiscard]] virtual UInt32 swapBackBuffer() const override;
@@ -1520,9 +1521,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
 		/// </summary>
+		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
 		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
 		/// <seealso cref="IGraphicsDevice::build" />
-		DirectX12RenderPassBuilder buildRenderPass() const;
+		DirectX12RenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const;
 
 		/// <summary>
 		/// Returns a reference of the swap chain.

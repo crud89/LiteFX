@@ -13,15 +13,14 @@ public:
 private:
     RenderTargetType m_type = RenderTargetType::Color;
     Format m_format = Format::B8G8R8A8_SRGB;
-    MultiSamplingLevel m_samples = MultiSamplingLevel::x1;
     bool m_clearBuffer = false, m_clearStencil = false, m_volatile = false;
     Vector4f m_clearValues;
     UInt32 m_location;
     BlendState m_blendState;
 
 public:
-    RenderTargetImpl(RenderTarget* parent, const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const MultiSamplingLevel& samples, const bool& isVolatile, const BlendState& blendState) :
-        base(parent), m_location(location), m_type(type), m_format(format), m_clearBuffer(clearBuffer), m_clearValues(clearValues), m_clearStencil(clearStencil), m_samples(samples), m_volatile(isVolatile), m_blendState(blendState)
+    RenderTargetImpl(RenderTarget* parent, const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const bool& isVolatile, const BlendState& blendState) :
+        base(parent), m_location(location), m_type(type), m_format(format), m_clearBuffer(clearBuffer), m_clearValues(clearValues), m_clearStencil(clearStencil), m_volatile(isVolatile), m_blendState(blendState)
     {
     }
 };
@@ -31,22 +30,22 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 RenderTarget::RenderTarget() noexcept :
-    m_impl(makePimpl<RenderTargetImpl>(this, 0, RenderTargetType::Color, Format::None, false, Vector4f { 0.f, 0.f, 0.f, 0.f }, false, MultiSamplingLevel::x1, false, BlendState{}))
+    m_impl(makePimpl<RenderTargetImpl>(this, 0, RenderTargetType::Color, Format::None, false, Vector4f { 0.f, 0.f, 0.f, 0.f }, false, false, BlendState{}))
 {
 }
 
-RenderTarget::RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const MultiSamplingLevel& samples, const bool& isVolatile, const BlendState& blendState) :
-    m_impl(makePimpl<RenderTargetImpl>(this, location, type, format, clearBuffer, clearValues, clearStencil, samples, isVolatile, blendState))
+RenderTarget::RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const bool& isVolatile, const BlendState& blendState) :
+    m_impl(makePimpl<RenderTargetImpl>(this, location, type, format, clearBuffer, clearValues, clearStencil, isVolatile, blendState))
 {
 }
 
 RenderTarget::RenderTarget(const RenderTarget& _other) noexcept :
-    m_impl(makePimpl<RenderTargetImpl>(this, _other.location(), _other.type(), _other.format(), _other.clearBuffer(), _other.clearValues(), _other.clearStencil(), _other.samples(), _other.isVolatile(), _other.blendState()))
+    m_impl(makePimpl<RenderTargetImpl>(this, _other.location(), _other.type(), _other.format(), _other.clearBuffer(), _other.clearValues(), _other.clearStencil(), _other.isVolatile(), _other.blendState()))
 {
 }
 
 RenderTarget::RenderTarget(RenderTarget&& _other) noexcept :
-    m_impl(makePimpl<RenderTargetImpl>(this, std::move(_other.m_impl->m_location), std::move(_other.m_impl->m_type), std::move(_other.m_impl->m_format), std::move(_other.m_impl->m_clearBuffer), std::move(_other.m_impl->m_clearValues), std::move(_other.m_impl->m_clearStencil), std::move(_other.m_impl->m_samples), std::move(_other.m_impl->m_volatile), std::move(_other.m_impl->m_blendState)))
+    m_impl(makePimpl<RenderTargetImpl>(this, std::move(_other.m_impl->m_location), std::move(_other.m_impl->m_type), std::move(_other.m_impl->m_format), std::move(_other.m_impl->m_clearBuffer), std::move(_other.m_impl->m_clearValues), std::move(_other.m_impl->m_clearStencil), std::move(_other.m_impl->m_volatile), std::move(_other.m_impl->m_blendState)))
 {
 }
 
@@ -60,7 +59,6 @@ RenderTarget& RenderTarget::operator=(const RenderTarget& _other) noexcept
     m_impl->m_clearBuffer = _other.m_impl->m_clearBuffer;
     m_impl->m_clearValues = _other.m_impl->m_clearValues;
     m_impl->m_clearStencil = _other.m_impl->m_clearStencil;
-    m_impl->m_samples = _other.m_impl->m_samples;
     m_impl->m_volatile = _other.m_impl->m_volatile;
     m_impl->m_blendState = _other.m_impl->m_blendState;
 
@@ -75,7 +73,6 @@ RenderTarget& RenderTarget::operator=(RenderTarget&& _other) noexcept
     m_impl->m_clearBuffer = std::move(_other.m_impl->m_clearBuffer);
     m_impl->m_clearValues = std::move(_other.m_impl->m_clearValues);
     m_impl->m_clearStencil = std::move(_other.m_impl->m_clearStencil);
-    m_impl->m_samples = std::move(_other.m_impl->m_samples);
     m_impl->m_volatile = std::move(_other.m_impl->m_volatile);
     m_impl->m_blendState = std::move(_other.m_impl->m_blendState);
     
@@ -90,11 +87,6 @@ const UInt32& RenderTarget::location() const noexcept
 const RenderTargetType& RenderTarget::type() const noexcept
 {
     return m_impl->m_type;
-}
-
-const MultiSamplingLevel& RenderTarget::samples() const noexcept
-{
-    return m_impl->m_samples;
 }
 
 const Format& RenderTarget::format() const noexcept

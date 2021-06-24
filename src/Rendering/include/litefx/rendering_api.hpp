@@ -731,12 +731,6 @@ namespace LiteFX::Rendering {
 		virtual const RenderTargetType& type() const noexcept = 0;
 
 		/// <summary>
-		/// Returns the number of samples of the render target when used for multi-sampling.
-		/// </summary>
-		/// <returns>The number of samples of the render target.</returns>
-		virtual const MultiSamplingLevel& samples() const noexcept = 0;
-
-		/// <summary>
 		/// Returns the internal format of the render target.
 		/// </summary>
 		/// <returns>The internal format of the render target.</returns>
@@ -809,10 +803,9 @@ namespace LiteFX::Rendering {
 		/// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
 		/// <param name="clearValues">The values with which the render target gets cleared.</param>
 		/// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
-		/// <param name="samples">The number of samples of the render target when used with multi-sampling.</param>
 		/// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
 		/// <param name="blendState">The render target blend state.</param>
-		explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false, const BlendState& blendState = {});
+		explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
 		RenderTarget(const RenderTarget&) noexcept;
 		RenderTarget(RenderTarget&&) noexcept;
 		virtual ~RenderTarget() noexcept;
@@ -827,9 +820,6 @@ namespace LiteFX::Rendering {
 
 		/// <inheritdoc />
 		virtual const RenderTargetType& type() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const MultiSamplingLevel& samples() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const Format& format() const noexcept override;

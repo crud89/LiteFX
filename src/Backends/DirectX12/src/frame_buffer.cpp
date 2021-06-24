@@ -74,7 +74,7 @@ public:
             {
                 // Create an image view for the render target.
                 // TODO: Pass the optimized clear value from the render target to the attachment. (May need to refactor `CreateAttachment` to accept the render target and a size).
-                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, renderTarget.samples());
+                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, m_parent->parent().multiSamplingLevel());
                 renderTargetView = image.get();
                 m_outputAttachments.push_back(std::move(image));
             }

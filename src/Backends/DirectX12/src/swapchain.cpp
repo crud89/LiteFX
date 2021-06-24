@@ -54,7 +54,7 @@ public:
 		auto surface = m_parent->getDevice()->surface().handle();
 		auto graphicsQueue = m_parent->getDevice()->graphicsQueue().handle();
 		const auto& backend = m_parent->getDevice()->backend();
-		MultiSamplingLevel samples = this->findSupportedMultiSamplingLevel(format);
+		auto samples = this->findSupportedMultiSamplingLevel(multiSampleLevel, format);
 
 		// Create the swap chain.
 		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_parent->getDevice()), frameBuffers, frameBufferSize.width(), frameBufferSize.height());
@@ -96,42 +96,32 @@ public:
 		return swapChain;
 	}
 
-	void reset(const Format& format, const Size2d& frameBufferSize, const MultiSamplingLevel& multiSampleLevel, const UInt32& frameBuffers)
+	void reset(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
 		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](const Format& surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
 
-		auto samples = this->findSupportedMultiSamplingLevel(multiSampleLevel, format);
-
 		// Release all back buffers.
 		m_presentImages.clear();
 
-		if (samples == m_multiSampleLevel)
-		{
-			// Store a backend reference.
-			const auto& backend = m_parent->getDevice()->backend();
+		// Store a backend reference.
+		const auto& backend = m_parent->getDevice()->backend();
 
-			// Resize the buffers.
-			UInt32 buffers = std::max<UInt32>(2, frameBuffers);
-			raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(format), (m_supportsVariableRefreshRates = supportsVariableRefreshRates(backend)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
+		// Resize the buffers.
+		UInt32 buffers = std::max<UInt32>(2, frameBuffers);
+		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(format), (m_supportsVariableRefreshRates = supportsVariableRefreshRates(backend)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
 
-			// Acquire the swap chain images.
-			m_presentImages.resize(buffers);
-			std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, i = 0]() mutable {
-				ComPtr<ID3D12Resource> resource;
-				raiseIfFailed<RuntimeException>(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-				return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format, D3D12_RESOURCE_STATE_PRESENT);
-			});
+		// Acquire the swap chain images.
+		m_presentImages.resize(buffers);
+		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, i = 0]() mutable {
+			ComPtr<ID3D12Resource> resource;
+			raiseIfFailed<RuntimeException>(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
+			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format, D3D12_RESOURCE_STATE_PRESENT);
+		});
 
-			m_format = format;
-			m_renderArea = frameBufferSize;
-			m_buffers = buffers;
-		}
-		else
-		{
-			// We need to re-create the swap chain to support more or less samples.
-			m_parent->handle() = this->initialize(format, frameBufferSize, samples, frameBuffers);
-		}
+		m_format = format;
+		m_renderArea = frameBufferSize;
+		m_buffers = buffers;
 	}
 
 	UInt32 swapBackBuffer()
@@ -208,9 +198,9 @@ Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 	};
 }
 
-void DirectX12SwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const MultiSamplingLevel& multiSampleLevel, const UInt32& buffers)
+void DirectX12SwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
 {
-	m_impl->reset(surfaceFormat, renderArea, multiSampleLevel, buffers);
+	m_impl->reset(surfaceFormat, renderArea, buffers);
 }
 
 UInt32 DirectX12SwapChain::swapBackBuffer() const

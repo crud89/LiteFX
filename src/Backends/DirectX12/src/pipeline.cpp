@@ -95,9 +95,8 @@ public:
 		inputLayout.NumElements = static_cast<UInt32>(inputLayoutElements.size());
 
 		// Setup multi-sampling state.
-		DXGI_SAMPLE_DESC multisamplingState = {};
-		multisamplingState.Count = 1;
-		multisamplingState.Quality = DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN;	// TODO: Or 0, if sample count = 1.
+		auto samples = m_parent->parent().multiSamplingLevel();
+		DXGI_SAMPLE_DESC multisamplingState = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 
 		// Setup render target states.
 		// NOTE: We assume, that the targets are returned sorted by location and the location range is contiguous.

@@ -1480,6 +1480,12 @@ namespace LiteFX::Rendering {
 		/// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
 		virtual Span<const TInputAttachmentMapping> inputAttachments() const noexcept = 0;
 
+		/// <summary>
+		/// Returns the number of samples, the render targets are sampled with.
+		/// </summary>
+		/// <returns>The number of samples, the render targets are sampled with.</returns>
+		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept = 0;
+
 	public:
 		/// <summary>
 		/// Begins the render pass.
@@ -1523,10 +1529,11 @@ namespace LiteFX::Rendering {
 		virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
 
 	public:
-		virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) = 0;
 		virtual TDerived& inputAttachment(const TInputAttachmentMapping& inputAttachment) = 0;
 		virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const UInt32& outputLocation) = 0;
 		virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const RenderTarget& renderTarget) = 0;
@@ -1602,10 +1609,9 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <param name="surfaceFormat">The swap chain image format.</param>
 		/// <param name="renderArea">The dimensions of the frame buffers.</param>
-		/// <param name="multiSampleLevel">The number of back-buffer samples.</param>
 		/// <param name="buffers">The number of buffers in the swap chain.</param>
 		/// <seealso cref="multiSamplingLevel" />
-		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const MultiSamplingLevel& multiSampleLevel, const UInt32& buffers) = 0;
+		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
 
 		/// <summary>
 		/// Swaps the front buffer with the next back buffer in order.
