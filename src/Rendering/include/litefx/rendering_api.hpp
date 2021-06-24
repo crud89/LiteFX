@@ -483,10 +483,48 @@ namespace LiteFX::Rendering {
 		DecrementWrap = 0x00000007
 	};
 
+	enum class LITEFX_RENDERING_API BlendFactor {
+		Zero = 0,
+		One = 1,
+		SourceColor = 2,
+		OneMinusSourceColor = 3,
+		DestinationColor = 4,
+		OneMinusDestinationColor = 5,
+		SourceAlpha = 6,
+		OneMinusSourceAlpha = 7,
+		DestinationAlpha = 8,
+		OneMinusDestinationAlpha = 9,
+		ConstantColor = 10,
+		OneMinusConstantColor = 11,
+		ConstantAlpha = 12,
+		OneMinusConstantAlpha = 13,
+		SourceAlphaSaturate = 14,
+		Source1Color = 15,
+		OneMinusSource1Color = 16,
+		Source1Alpha = 17,
+		OneMinusSource1Alpha = 18
+	};
+
+	enum class LITEFX_RENDERING_API WriteMask {
+		R = 0x01,
+		G = 0x02,
+		B = 0x04,
+		A = 0x08
+	};
+
+	enum class LITEFX_RENDERING_API BlendOperation {
+		Add = 0x01,
+		Subtract = 0x02,
+		ReverseSubtract = 0x03,
+		Minimum = 0x04,
+		Maximum = 0x05
+	};
+
 	// Define flags.
 	LITEFX_DEFINE_FLAGS(QueueType);
 	LITEFX_DEFINE_FLAGS(ShaderStage);
 	LITEFX_DEFINE_FLAGS(BufferFormat);
+	LITEFX_DEFINE_FLAGS(WriteMask)
 
 	// Helper functions.
 	inline UInt32 getBufferFormatChannels(const BufferFormat& format) {
@@ -626,6 +664,53 @@ namespace LiteFX::Rendering {
 	/// <seealso cref="IImage" />
 	class LITEFX_RENDERING_API IRenderTarget {
 	public:
+		/// <summary>
+		/// Describes the blend state of the render target.
+		/// </summary>
+		struct BlendState {
+		public:
+			/// <summary>
+			/// Specifies, if the target should be blended (default: <c>false</c>).
+			/// </summary>
+			bool Enable{ false };
+
+			/// <summary>
+			/// The blend factor for the source color channels (default: <c>BlendFactor::One</c>).
+			/// </summary>
+			BlendFactor SourceColor{ BlendFactor::One };
+
+			/// <summary>
+			/// The blend factor for the destination color channels (default: <c>BlendFactor::Zero</c>).
+			/// </summary>
+			BlendFactor DestinationColor{ BlendFactor::Zero };
+
+			/// <summary>
+			/// The blend factor for the source alpha channel (default: <c>BlendFactor::One</c>).
+			/// </summary>
+			BlendFactor SourceAlpha{ BlendFactor::One };
+
+			/// <summary>
+			/// The blend factor for the destination alpha channels (default: <c>BlendFactor::Zero</c>).
+			/// </summary>
+			BlendFactor DestinationAlpha{ BlendFactor::Zero };
+
+			/// <summary>
+			/// The blend operation for the color channels (default: <c>BlendOperation::Add</c>).
+			/// </summary>
+			BlendOperation ColorOperation{ BlendOperation::Add };
+
+			/// <summary>
+			/// The blend operation for the alpha channel (default: <c>BlendOperation::Add</c>).
+			/// </summary>
+			BlendOperation AlphaOperation{ BlendOperation::Add };
+
+			/// <summary>
+			/// The channel write mask, determining which channels are written to (default: <c>WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A</c>).
+			/// </summary>
+			WriteMask WriteMask{ WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A };
+		};
+
+	public:
 		virtual ~IRenderTarget() noexcept = default;
 
 	public:
@@ -697,6 +782,12 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
 		virtual const bool& isVolatile() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the render targets blend state.
+		/// </summary>
+		/// <returns>The render targets blend state.</returns>
+		virtual const BlendState& blendState() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -720,7 +811,8 @@ namespace LiteFX::Rendering {
 		/// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
 		/// <param name="samples">The number of samples of the render target when used with multi-sampling.</param>
 		/// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
-		explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false);
+		/// <param name="blendState">The render target blend state.</param>
+		explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false, const BlendState& blendState = {});
 		RenderTarget(const RenderTarget&) noexcept;
 		RenderTarget(RenderTarget&&) noexcept;
 		virtual ~RenderTarget() noexcept;
@@ -753,6 +845,9 @@ namespace LiteFX::Rendering {
 
 		/// <inheritdoc />
 		virtual const bool& isVolatile() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BlendState& blendState() const noexcept override;
 	};
 
 	/// <summary>
