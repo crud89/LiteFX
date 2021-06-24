@@ -19,6 +19,7 @@ private:
 	Array<SharedPtr<IScissor>> m_scissors;
 	UInt32 m_id;
 	String m_name;
+	Vector4f m_blendFactors;
 
 public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
@@ -273,6 +274,11 @@ Array<const IScissor*> DirectX12RenderPipeline::scissors() const noexcept
 		ranges::to<Array<const IScissor*>>();
 }
 
+Vector4f& DirectX12RenderPipeline::blendFactors() const noexcept
+{
+	return m_impl->m_blendFactors;
+}
+
 void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
 {
 	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
@@ -312,11 +318,14 @@ void DirectX12RenderPipeline::use() const
 		std::views::transform([](const SharedPtr<IScissor>& scissor) { return CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height()); }) |
 		ranges::to<Array<D3D12_RECT>>();
 
+	Float blendFactor[4] = { m_impl->m_blendFactors.x(), m_impl->m_blendFactors.y(), m_impl->m_blendFactors.z(), m_impl->m_blendFactors.w() };
+
 	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 	commandBuffer.handle()->RSSetViewports(viewports.size(), viewports.data());
 	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
+	commandBuffer.handle()->OMSetBlendFactor(blendFactor);
 }
 
 void DirectX12RenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const

@@ -19,6 +19,7 @@ private:
 	Array<SharedPtr<IScissor>> m_scissors;
 	UInt32 m_id;
 	String m_name;
+	Vector4f m_blendFactors;
 
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
@@ -162,10 +163,10 @@ public:
 		colorBlending.logicOp = VK_LOGIC_OP_COPY;
 		colorBlending.attachmentCount = static_cast<UInt32>(colorBlendAttachments.size());
 		colorBlending.pAttachments = colorBlendAttachments.data();
-		colorBlending.blendConstants[0] = 0.0f;
-		colorBlending.blendConstants[1] = 0.0f;
-		colorBlending.blendConstants[2] = 0.0f;
-		colorBlending.blendConstants[3] = 0.0f;
+		colorBlending.blendConstants[0] = m_blendFactors.x();
+		colorBlending.blendConstants[1] = m_blendFactors.y();
+		colorBlending.blendConstants[2] = m_blendFactors.z();
+		colorBlending.blendConstants[3] = m_blendFactors.w();
 
 		// Setup depth/stencil state.
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
@@ -282,6 +283,11 @@ Array<const IScissor*> VulkanRenderPipeline::scissors() const noexcept
 		ranges::to<Array<const IScissor*>>();
 }
 
+Vector4f& VulkanRenderPipeline::blendFactors() const noexcept
+{
+	return m_impl->m_blendFactors;
+}
+
 void VulkanRenderPipeline::bind(const IVulkanVertexBuffer& buffer) const 
 {
 	constexpr VkDeviceSize offsets[] = { 0 };
@@ -308,12 +314,15 @@ void VulkanRenderPipeline::use() const
 		std::views::transform([](const auto& scissor) { return VkRect2D{VkOffset2D{.x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, VkExtent2D{.width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };}) |
 		ranges::to<Array<VkRect2D>>();
 
+	Float blendFactor[4] = { m_impl->m_blendFactors.x(), m_impl->m_blendFactors.y(), m_impl->m_blendFactors.z(), m_impl->m_blendFactors.w() };
+
 	// Bind the pipeline and setup the dynamic state.
 	auto commandBuffer = this->parent().activeFrameBuffer().commandBuffer().handle();
 	::vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
 	::vkCmdSetViewport(commandBuffer, 0, static_cast<UInt32>(viewports.size()), viewports.data());
 	::vkCmdSetScissor(commandBuffer, 0, static_cast<UInt32>(scissors.size()), scissors.data());
 	::vkCmdSetLineWidth(commandBuffer, std::as_const(*m_impl->m_rasterizer).lineWidth());
+	::vkCmdSetBlendConstants(commandBuffer, blendFactor);
 }
 
 void VulkanRenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
