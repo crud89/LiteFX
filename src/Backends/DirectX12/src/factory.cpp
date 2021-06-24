@@ -55,8 +55,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createImage(const Format& f
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = levels;
 	resourceDesc.Format = ::getFormat(format);
-	resourceDesc.SampleDesc.Count = static_cast<UInt32>(samples);
-	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;		// TODO: Check me!
 
@@ -76,8 +75,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = 1;
 	resourceDesc.Format = ::getFormat(format);
-	resourceDesc.SampleDesc.Count = static_cast<UInt32>(samples);
-	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
@@ -242,8 +240,7 @@ UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const Direc
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = levels;
 	resourceDesc.Format = ::getFormat(format);
-	resourceDesc.SampleDesc.Count = static_cast<UInt32>(samples);
-	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
