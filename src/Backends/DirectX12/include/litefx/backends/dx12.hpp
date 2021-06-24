@@ -1248,9 +1248,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="device">The device that owns the swap chain.</param>
 		/// <param name="format">The initial surface format.</param>
 		/// <param name="renderArea">The initial size of the render area.</param>
-		/// <param name="multiSampleLevel">The target multi sampling level. If it is not supported by the parent device, it will be reduced until a supported level is found.</param>
 		/// <param name="buffers">The initial number of buffers.</param>
-		explicit DirectX12SwapChain(const DirectX12Device& device, const Format& surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, const MultiSamplingLevel& multiSampleLevel = MultiSamplingLevel::x1, const UInt32& buffers = 3);
+		explicit DirectX12SwapChain(const DirectX12Device& device, const Format& surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, const UInt32& buffers = 3);
 		DirectX12SwapChain(const DirectX12SwapChain&) = delete;
 		DirectX12SwapChain(DirectX12SwapChain&&) = delete;
 		virtual ~DirectX12SwapChain() noexcept;
@@ -1276,9 +1275,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const IDirectX12Image*> images() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept override;
 
 	public:
 		/// <inheritdoc />
@@ -1473,11 +1469,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="backend">The backend from which the device got created.</param>
 		/// <param name="format">The initial surface format, device uses for drawing.</param>
 		/// <param name="frameBufferSize">The initial size of the frame buffers.</param>
-		/// <param name="multiSamplingLevel">The target multi-sampling level to initialize the swap-chain with.</param>
 		/// <param name="frameBuffers">The initial number of frame buffers.</param>
 		/// <param name="globalBufferHeapSize">The size of the global heap for constant buffers, shader resources and images.</param>
 		/// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
-		explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const MultiSamplingLevel& multiSamplingLevel, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize = 524287, const UInt32& globalSamplerHeapSize = 2048);
+		explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize = 524287, const UInt32& globalSamplerHeapSize = 2048);
 
 		DirectX12Device(const DirectX12Device&) = delete;
 		DirectX12Device(DirectX12Device&&) = delete;

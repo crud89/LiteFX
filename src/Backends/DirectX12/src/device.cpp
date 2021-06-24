@@ -146,9 +146,9 @@ public:
 		m_factory = makeUnique<DirectX12GraphicsFactory>(*m_parent);
 	}
 
-	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const MultiSamplingLevel& multiSampleLevel, const UInt32& frameBuffers)
+	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		m_swapChain = makeUnique<DirectX12SwapChain>(*m_parent, format, frameBufferSize, multiSampleLevel, frameBuffers);
+		m_swapChain = makeUnique<DirectX12SwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
 	}
 
 	void createQueues()
@@ -180,11 +180,11 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend) :
-	DirectX12Device(adapter, surface, backend, Format::B8G8R8A8_SRGB, { 800, 600 }, MultiSamplingLevel::x1, 3)
+	DirectX12Device(adapter, surface, backend, Format::B8G8R8A8_SRGB, { 800, 600 }, 3)
 {
 }
 
-DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const MultiSamplingLevel& multiSamplingLevel, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
+DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const DirectX12Surface& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
 	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, surface, backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.getDeviceId());
@@ -201,7 +201,7 @@ DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const 
 	this->handle() = m_impl->initialize();
 	m_impl->createQueues();
 	m_impl->createFactory();
-	m_impl->createSwapChain(format, frameBufferSize, multiSamplingLevel, frameBuffers);
+	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
 }
 
 DirectX12Device::~DirectX12Device() noexcept = default;

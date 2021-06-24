@@ -18,7 +18,6 @@ private:
 	std::atomic_uint32_t m_currentImage{ };
 	Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
 	bool m_supportsVariableRefreshRates{ false };
-	MultiSamplingLevel m_multiSampleLevel;
 
 public:
 	DirectX12SwapChainImpl(DirectX12SwapChain* parent) : 
@@ -37,15 +36,9 @@ private:
 		return static_cast<bool>(allowTearing);
 	}
 
-	MultiSamplingLevel findSupportedMultiSamplingLevel(const MultiSamplingLevel& inputLevel, const Format& format) const
-	{
-		auto maxLevel = this->m_parent->getDevice()->maximumMultisamplingLevel(format);
-		return std::min(maxLevel, inputLevel);
-	}
-
 public:
 	[[nodiscard]]
-	ComPtr<IDXGISwapChain4> initialize(const Format& format, const Size2d& frameBufferSize, const MultiSamplingLevel& multiSampleLevel, const UInt32& frameBuffers)
+	ComPtr<IDXGISwapChain4> initialize(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
 		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](const Format& surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
@@ -54,7 +47,6 @@ public:
 		auto surface = m_parent->getDevice()->surface().handle();
 		auto graphicsQueue = m_parent->getDevice()->graphicsQueue().handle();
 		const auto& backend = m_parent->getDevice()->backend();
-		auto samples = this->findSupportedMultiSamplingLevel(multiSampleLevel, format);
 
 		// Create the swap chain.
 		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_parent->getDevice()), frameBuffers, frameBufferSize.width(), frameBufferSize.height());
@@ -70,7 +62,7 @@ public:
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 		swapChainDesc.Flags = (m_supportsVariableRefreshRates = supportsVariableRefreshRates(backend)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
-		swapChainDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
+		swapChainDesc.SampleDesc = { 1, 0 };
 
 		ComPtr<IDXGISwapChain1> swapChainBase;
 		ComPtr<IDXGISwapChain4> swapChain;
@@ -91,7 +83,6 @@ public:
 		m_format = format;
 		m_renderArea = frameBufferSize;
 		m_buffers = swapChainDesc.BufferCount;
-		m_multiSampleLevel = samples;
 
 		return swapChain;
 	}
@@ -109,7 +100,7 @@ public:
 
 		// Resize the buffers.
 		UInt32 buffers = std::max<UInt32>(2, frameBuffers);
-		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(format), (m_supportsVariableRefreshRates = supportsVariableRefreshRates(backend)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
+		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
@@ -147,10 +138,10 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, const Format& format, const Size2d& frameBufferSize, const MultiSamplingLevel& multiSampleLevel, const UInt32& frameBuffers) :
+DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
 	m_impl(makePimpl<DirectX12SwapChainImpl>(this)), DirectX12RuntimeObject(device, &device), ComResource<IDXGISwapChain4>(nullptr)
 {
-	this->handle() = m_impl->initialize(format, frameBufferSize, multiSampleLevel, frameBuffers);
+	this->handle() = m_impl->initialize(format, frameBufferSize, frameBuffers);
 }
 
 DirectX12SwapChain::~DirectX12SwapChain() noexcept = default;
@@ -178,11 +169,6 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 {
 	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); }) | ranges::to<Array<const IDirectX12Image*>>();
-}
-
-const MultiSamplingLevel& DirectX12SwapChain::multiSamplingLevel() const noexcept
-{
-	return m_impl->m_multiSampleLevel;
 }
 
 Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
