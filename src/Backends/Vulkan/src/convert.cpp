@@ -881,3 +881,39 @@ VkStencilOp LiteFX::Rendering::Backends::getStencilOp(const StencilOperation& st
 	default: throw InvalidArgumentException("Unsupported stencil operation.");
 	}
 }
+
+VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::getBlendFactor(const BlendFactor& blendFactor)
+{
+	switch (blendFactor) {
+	case BlendFactor::Zero: return VkBlendFactor::VK_BLEND_FACTOR_ZERO;
+	case BlendFactor::One: return VkBlendFactor::VK_BLEND_FACTOR_ONE;
+	case BlendFactor::SourceColor: return VkBlendFactor::VK_BLEND_FACTOR_SRC_COLOR;
+	case BlendFactor::OneMinusSourceColor: return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+	case BlendFactor::DestinationColor: return VK_BLEND_FACTOR_DST_COLOR;
+	case BlendFactor::OneMinusDestinationColor: return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+	case BlendFactor::SourceAlpha: return VK_BLEND_FACTOR_SRC_ALPHA;
+	case BlendFactor::OneMinusSourceAlpha: return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	case BlendFactor::DestinationAlpha: return VK_BLEND_FACTOR_DST_ALPHA;
+	case BlendFactor::OneMinusDestinationAlpha: return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+	case BlendFactor::ConstantColor: return VK_BLEND_FACTOR_CONSTANT_COLOR;
+	case BlendFactor::OneMinusConstantColor: return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+	case BlendFactor::ConstantAlpha: return VK_BLEND_FACTOR_CONSTANT_ALPHA;
+	case BlendFactor::OneMinusConstantAlpha: return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+	case BlendFactor::SourceAlphaSaturate: return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+	case BlendFactor::Source1Color: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+	case BlendFactor::OneMinusSource1Color: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+	case BlendFactor::Source1Alpha: return VK_BLEND_FACTOR_SRC1_ALPHA;
+	case BlendFactor::OneMinusSource1Alpha: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+	}
+}
+
+VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::getBlendOperation(const BlendOperation& blendOperation)
+{
+	switch (blendOperation) {
+	case BlendOperation::Add: return VkBlendOp::VK_BLEND_OP_ADD;
+	case BlendOperation::Subtract: return VkBlendOp::VK_BLEND_OP_SUBTRACT;
+	case BlendOperation::ReverseSubtract: return VkBlendOp::VK_BLEND_OP_REVERSE_SUBTRACT;
+	case BlendOperation::Minimum: return VkBlendOp::VK_BLEND_OP_MIN;
+	case BlendOperation::Maximum: return VkBlendOp::VK_BLEND_OP_MAX;
+	}
+}

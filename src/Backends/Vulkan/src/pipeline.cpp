@@ -121,7 +121,7 @@ public:
 		viewportState.scissorCount = static_cast<UInt32>(m_scissors.size());
 
 		// Setup dynamic state.
-		Array<VkDynamicState> dynamicStates { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR, VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH };
+		Array<VkDynamicState> dynamicStates { VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, VkDynamicState::VK_DYNAMIC_STATE_SCISSOR, VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH, VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS };
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		dynamicState.pDynamicStates = dynamicStates.data();
@@ -139,18 +139,21 @@ public:
 		multisampling.alphaToOneEnable = VK_FALSE;
 
 		// Setup color blend state.
-		// TODO: Add blend parameters to render target.
-		auto targets = m_parent->parent().renderTargets();
-		auto colorAttachments = std::ranges::count_if(targets, [](const RenderTarget& target) { return target.type() != RenderTargetType::DepthStencil; });
-		
-		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments(colorAttachments);
-		std::ranges::generate(colorBlendAttachments, []() {
-			VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
+		std::ranges::for_each(m_parent->parent().renderTargets(), [&colorBlendAttachments](const RenderTarget& renderTarget) {
+			if (renderTarget.type() == RenderTargetType::DepthStencil)
+				return;
 
-			colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-			colorBlendAttachment.blendEnable = VK_FALSE;
-
-			return colorBlendAttachment;
+			colorBlendAttachments.push_back(VkPipelineColorBlendAttachmentState {
+				.blendEnable = renderTarget.blendState().Enable,
+				.srcColorBlendFactor = ::getBlendFactor(renderTarget.blendState().SourceColor),
+				.dstColorBlendFactor = ::getBlendFactor(renderTarget.blendState().DestinationColor),
+				.colorBlendOp = ::getBlendOperation(renderTarget.blendState().ColorOperation),
+				.srcAlphaBlendFactor = ::getBlendFactor(renderTarget.blendState().SourceAlpha),
+				.dstAlphaBlendFactor = ::getBlendFactor(renderTarget.blendState().DestinationAlpha),
+				.alphaBlendOp = ::getBlendOperation(renderTarget.blendState().AlphaOperation),
+				.colorWriteMask = static_cast<VkColorComponentFlags>(renderTarget.blendState().WriteMask)
+			});
 		});
 
 		VkPipelineColorBlendStateCreateInfo colorBlending = {};

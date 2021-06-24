@@ -153,6 +153,16 @@ namespace LiteFX::Rendering::Backends {
     VkStencilOp LITEFX_VULKAN_API getStencilOp(const StencilOperation& stencilOp);
 
     /// <summary>
+    /// 
+    /// </summary>
+    VkBlendFactor LITEFX_VULKAN_API getBlendFactor(const BlendFactor& blendFactor);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkBlendOp LITEFX_VULKAN_API getBlendOperation(const BlendOperation& blendOperation);
+
+    /// <summary>
     /// Represents a Vulkan <see cref="IGraphicsAdapter" />.
     /// </summary>
     class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
