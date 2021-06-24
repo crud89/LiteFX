@@ -1154,6 +1154,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
 
 		/// <inheritdoc />
+		virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) override;
+
+		/// <inheritdoc />
 		virtual void updateAttachments(const DirectX12DescriptorSet& descriptorSet) const override;
 
 		// DirectX12RenderPass.
@@ -1552,7 +1555,7 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		/// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />
-		virtual MultiSamplingLevel maximumMultisamplingLevel(const Format& format) const noexcept override;
+		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
 
 	public:
 		/// <inheritdoc />

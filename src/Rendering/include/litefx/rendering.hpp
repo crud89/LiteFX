@@ -1509,6 +1509,18 @@ namespace LiteFX::Rendering {
 		virtual void resizeFrameBuffers(const Size2d& renderArea) = 0;
 
 		/// <summary>
+		/// Changes the multi sampling level of the render pass.
+		/// </summary>
+		/// <remarks>
+		/// The method causes the frame buffers to be re-created. It checks, if the <paramref name="samples" /> are supported by the device for each render target 
+		/// format. If not, an exception will be thrown. To prevent this, call <see cref=IGraphicsDevice::maximumMultiSamplingLevel" /> for each render target format on 
+		/// your own, in order to request the maximum number of samples supported.
+		/// </remarks>
+		/// <param name="samples">The number of samples per edge pixel.</param>
+		/// <exception cref="InvalidArgumentException">Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</exception>
+		virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) = 0;
+
+		/// <summary>
 		/// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
 		/// </summary>
 		/// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
@@ -1902,7 +1914,7 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <param name="format">The target (i.e. back-buffer) format.</param>
 		/// <returns>The maximum multi-sampling level.</returns>
-		virtual MultiSamplingLevel maximumMultisamplingLevel(const Format& format) const noexcept = 0;
+		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept = 0;
 
 	public:
 		/// <summary>

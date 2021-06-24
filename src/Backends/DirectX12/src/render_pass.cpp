@@ -279,6 +279,15 @@ void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
+void DirectX12RenderPass::changeMultiSamplingLevel(const const MultiSamplingLevel& samples)
+{
+    // Check if we're currently running.
+    if (m_impl->m_activeFrameBuffer != nullptr)
+        throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
+
+    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
+}
+
 void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descriptorSet) const
 {
     const auto backBuffer = m_impl->m_backBuffer;

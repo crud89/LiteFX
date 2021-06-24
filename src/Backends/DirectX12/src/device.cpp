@@ -325,7 +325,7 @@ const DirectX12Queue& DirectX12Device::bufferQueue() const noexcept
 	return *m_impl->m_bufferQueue;
 }
 
-MultiSamplingLevel DirectX12Device::maximumMultisamplingLevel(const Format& format) const noexcept
+MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& format) const noexcept
 {
 	constexpr std::array<MultiSamplingLevel, 7> allLevels = { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels{ .Format = ::getFormat(format) };
