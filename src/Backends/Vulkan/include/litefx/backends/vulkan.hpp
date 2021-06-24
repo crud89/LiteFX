@@ -1473,6 +1473,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const VulkanQueue& bufferQueue() const noexcept override;
 
+		/// <inheritdoc />
+		virtual MultiSamplingLevel maximumMultisamplingLevel(const Format& format) const noexcept override;
+
 	public:
 		/// <inheritdoc />
 		virtual void wait() const override;

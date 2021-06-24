@@ -325,6 +325,26 @@ const DirectX12Queue& DirectX12Device::bufferQueue() const noexcept
 	return *m_impl->m_bufferQueue;
 }
 
+MultiSamplingLevel DirectX12Device::maximumMultisamplingLevel(const Format& format) const noexcept
+{
+	constexpr std::array<MultiSamplingLevel, 7> allLevels = { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
+	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels{ .Format = ::getFormat(format) };
+
+	for (int level(0); level < allLevels.size(); ++level)
+	{
+		levels.SampleCount = static_cast<UInt32>(allLevels[level]);
+		
+		if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &levels, sizeof(levels))))
+			continue;
+
+		if (levels.NumQualityLevels > 0)
+			return allLevels[level];
+	}
+
+	LITEFX_WARNING(DIRECTX12_LOG, "No supported multi-sampling levels could be queried. Assuming that multi-sampling is disabled.");
+	return MultiSamplingLevel::x1;
+}
+
 void DirectX12Device::wait() const
 {
 	// NOTE: Currently we are only waiting for the graphics queue here - all other queues may continue their work.

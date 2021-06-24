@@ -1544,6 +1544,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const DirectX12Queue& bufferQueue() const noexcept override;
 
+		/// <inheritdoc />
+		/// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />
+		virtual MultiSamplingLevel maximumMultisamplingLevel(const Format& format) const noexcept override;
+
 	public:
 		/// <inheritdoc />
 		virtual void wait() const override;

@@ -1885,6 +1885,17 @@ namespace LiteFX::Rendering {
 		/// <returns>The instance of the queue used for host-device transfers.</returns>
 		virtual const TCommandQueue& bufferQueue() const noexcept = 0;
 
+		/// <summary>
+		/// Queries the device for the maximum supported number of multi-sampling levels.
+		/// </summary>
+		/// <remarks>
+		/// This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower 
+		/// multi-sampling levels are implicitly supported for this format.
+		/// </remarks>
+		/// <param name="format">The target (i.e. back-buffer) format.</param>
+		/// <returns>The maximum multi-sampling level.</returns>
+		virtual MultiSamplingLevel maximumMultisamplingLevel(const Format& format) const noexcept = 0;
+
 	public:
 		/// <summary>
 		/// Waits until the device is idle.

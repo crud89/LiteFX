@@ -94,16 +94,13 @@ public:
 		inputLayout.pInputElementDescs = inputLayoutElements.data();
 		inputLayout.NumElements = static_cast<UInt32>(inputLayoutElements.size());
 
-		// Setup multisampling state.
-		// TODO: Abstract me!
-		//device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS);
+		// Setup multi-sampling state.
 		DXGI_SAMPLE_DESC multisamplingState = {};
 		multisamplingState.Count = 1;
-		multisamplingState.Quality = 0;
+		multisamplingState.Quality = DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN;	// TODO: Or 0, if sample count = 1.
 
 		// Setup render target states.
 		// NOTE: We assume, that the targets are returned sorted by location and the location range is contiguous.
-		// TODO: Add blend parameters to render target.
 		D3D12_BLEND_DESC blendState = {};
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 		auto targets = m_parent->parent().renderTargets();
