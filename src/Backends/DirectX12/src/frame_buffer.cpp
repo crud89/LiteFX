@@ -93,7 +93,7 @@ public:
                 depthStencilViewDesc.Format = ::getFormat(renderTarget.format());
                 depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
                 depthStencilViewDesc.Texture2D = { .MipSlice = 0 };
-                depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+                depthStencilViewDesc.ViewDimension = samples == MultiSamplingLevel::x1 ? D3D12_DSV_DIMENSION_TEXTURE2D : D3D12_DSV_DIMENSION_TEXTURE2DMS;
 
                 m_parent->getDevice()->handle()->CreateDepthStencilView(renderTargetView->handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
                 depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(m_depthStencilDescriptorSize);
@@ -102,7 +102,7 @@ public:
             {
                 D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
                 renderTargetViewDesc.Format = ::getFormat(renderTarget.format());
-                renderTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+                renderTargetViewDesc.ViewDimension = samples == MultiSamplingLevel::x1 ? D3D12_RTV_DIMENSION_TEXTURE2D : D3D12_RTV_DIMENSION_TEXTURE2DMS;
                 renderTargetViewDesc.Texture2D = { .MipSlice = 0, .PlaneSlice = 0 };
                 renderTargetViewDesc.Buffer = { .FirstElement = 0, .NumElements = 1 };
 
