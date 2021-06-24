@@ -193,12 +193,12 @@ auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(m_window));
 
 With the surface and adapter, we can now proceed to creating our device. Creating a device automatically initializes the *Swap Chain*, which we will talk about in detail later. We can simply create it with a default extent, but it is more efficient to directly tell the swap chain how large the surface is from the beginning. This way, we prevent it from beeing re-created after the window first gets drawn to. In order to do this, we can request the frame buffer size from *GLFW*. Note that the frame buffer size is not always equal to the window size, depending on the monitor. High DPI monitors use a more coarse window coordinate system. You can read about it in more detail [here](https://www.glfw.org/docs/3.3/group__window.html#ga0e2637a4161afb283f5300c7f94785c9).
 
-With the adapter, surface and frame buffer extent, we can go ahead to create our device. We also specify the output format (`Format::B8G8R8A8_SRGB`) and the number of frames, which we concurrently want to draw. This is commonly referred to as *frames in flight*, or *back buffers* throughout the engine, though there is a slight difference. Back buffers refer to the number of frame buffers in the swap chain, whilst frames in flight is a broader concept, that for example influences how many buffers or descriptor sets you want to allocate later.
+With the adapter, surface and frame buffer extent, we can go ahead to create our device. We also specify the output format (`Format::B8G8R8A8_SRGB`) and the number of frames, which we concurrently want to draw. This is commonly referred to as *frames in flight*, or *back buffers* throughout the engine, though there is a slight difference. Back buffers refer to the number of frame buffers in the swap chain, whilst frames in flight is a broader concept, that for example influences how many buffers or descriptor sets you want to allocate later. Furthermore, we specify the multi-sampling level for the back-buffer, however we only specify `MultiSamplingLevel::x1`, since we do not want to use multi-sampling yet.
 
 ```cxx
 int width, height;
 ::glfwGetFramebufferSize(m_window, &width, &height);
-m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), MultiSamplingLevel::x1, 3);
 ```
 
 We store the device in a variable `m_device`, which we define as a member variable of `SampleApp`, since we are going to make heavy use of it throughout the whole application.
@@ -220,7 +220,6 @@ In our example, however, we do not use multiple render passes and instead only c
 The other values that are provided to a render target are:
 
 - The render target format, which in our example is dictated by the swap chain format we've chosen earlier.
-- The multisampling level, which we set to `x1`, since we do not yet want to use multi sampling.
 - A clear value vector, which contains the values that the render target will be cleared with when starting the render pass. For our *BGRA* image, we want to clear it with black and an alpha value of `0.0`.
 - A boolean switch to enable or disable clearing the values, which we set to true, since we want to clear our image with the clear values specified earlier.
 - A boolean switch to enable clearing for stencil buffers. This switch is only used, if the render target is a `DepthStencil` target and the format supports stencil values. It can be used to disable clearing stencil values and only clear depth values for depth/stencil targets.
@@ -228,7 +227,7 @@ The other values that are provided to a render target are:
 
 ```cxx
 m_renderPass = m_device->buildRenderPass()
-	.renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+	.renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
 	.go();
 ```
 
