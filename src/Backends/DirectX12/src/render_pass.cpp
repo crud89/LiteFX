@@ -163,7 +163,7 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     frameBuffer->commandBuffer().begin();
 
     // Bind the global descriptor heaps.
-    // TODO: This is done once per render pass, since a frame buffer owns a command list. This may be ineffective and we may want to re-use command lists over multiple render passes.
+    // TODO: This is done once per render pass, since a frame buffer owns a command list. This may be ineffective and we may want to re-use command lists over multiple render passes (See issue #33).
     this->getDevice()->bindGlobalDescriptorHeaps(frameBuffer->commandBuffer());
 
     // Declare render pass input and output access and transition barriers.
@@ -244,21 +244,40 @@ void DirectX12RenderPass::end() const
     // End the render pass and the command buffer recording.
     frameBuffer->commandBuffer().handle()->EndRenderPass();
 
+    // If the present target is multi-sampled, we need to resolve it to the back buffer.
+    bool requiresResolve = this->hasPresentTarget() && m_impl->m_multiSamplingLevel > MultiSamplingLevel::x1;
+
     // Transition the present and depth/stencil views.
     Array<D3D12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
-        std::views::transform([&frameBuffer](const RenderTarget& renderTarget) {
-        const auto& renderTargetImage = frameBuffer->image(renderTarget.location());
+        std::views::transform([&frameBuffer, &requiresResolve](const RenderTarget& renderTarget) {
+            const auto& renderTargetImage = frameBuffer->image(renderTarget.location());
 
-        switch (renderTarget.type()) 
-        {
-        default:
-        case RenderTargetType::Color:           return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
-        case RenderTargetType::Present:         return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_PRESENT);
-        case RenderTargetType::DepthStencil:    return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
-        }
-    }) | ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
+            switch (renderTarget.type()) 
+            {
+            default:
+            case RenderTargetType::Color:           return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+            case RenderTargetType::DepthStencil:    return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
+            case RenderTargetType::Present:         return renderTargetImage.transitionTo(requiresResolve ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_PRESENT);
+            }
+        }) | ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
+
+    // Add another barrier for the back buffer image, if required.
+    const IDirectX12Image* backBufferImage = this->getDevice()->swapChain().images()[m_impl->m_backBuffer];
+
+    if (requiresResolve)
+        transitionBarriers.push_back(backBufferImage->transitionTo(D3D12_RESOURCE_STATE_RESOLVE_DEST));
 
     frameBuffer->commandBuffer().handle()->ResourceBarrier(transitionBarriers.size(), transitionBarriers.data());
+
+    // If required, we need to resolve the present target.
+    if (requiresResolve)
+    {
+        const IDirectX12Image* multiSampledImage = &frameBuffer->image(m_impl->m_presentTarget->location());
+        frameBuffer->commandBuffer().handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, ::getFormat(m_impl->m_presentTarget->format()));
+
+        // Transition the present target back to the present state.
+        backBufferImage->transitionTo(frameBuffer->commandBuffer(), D3D12_RESOURCE_STATE_PRESENT);
+    }
 
     // End the command buffer recording and submit it.
     frameBuffer->commandBuffer().end(true);
