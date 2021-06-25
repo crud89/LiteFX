@@ -50,14 +50,14 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::initRenderGraph()
 {
     m_geometryPass = m_device->buildRenderPass()
-        .renderTarget(0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
-        .renderTarget(1, RenderTargetType::DepthStencil, Format::D24_UNORM_S8_UINT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, true, false)
+        .renderTarget(0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
+        .renderTarget(1, RenderTargetType::DepthStencil, Format::D24_UNORM_S8_UINT, { 1.f, 0.f, 0.f, 0.f }, true, true, false)
         .go();
 
     m_lightingPass = m_device->buildRenderPass()
         .inputAttachment(0, *m_geometryPass, 0)  // Color attachment.
         .inputAttachment(1, *m_geometryPass, 1)  // Depth/Stencil attachment.
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
         .go();
 }
 

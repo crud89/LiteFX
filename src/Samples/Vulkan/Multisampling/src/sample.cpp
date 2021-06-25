@@ -121,13 +121,13 @@ void SampleApp::initBuffers()
     auto& transformBindingLayout = m_pipeline->layout().layout(DescriptorSets::PerFrame);
     m_perFrameBindings = transformBindingLayout.allocate(3);
     m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
-    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
+    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
 
     // End and submit the command buffer.
     commandBuffer->end(true, true);
 }
 
-void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
+void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
@@ -141,14 +141,22 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
 
 void SampleApp::run() 
 {
+    // Store the window handle.
+    auto window = m_window.get();
+
     // Start by creating the surface and selecting the adapter.
-    auto backend = this->findBackend<DirectX12Backend>(BackendType::Rendering);
+    auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
     auto adapter = backend->findAdapter(m_adapterId);
 
     if (adapter == nullptr)
         adapter = backend->findAdapter(std::nullopt);
 
-    auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(m_window.get()));
+    auto surface = backend->createSurface([&window](const VkInstance& instance) {
+        VkSurfaceKHR surface;
+        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
+
+        return surface;
+    });
 
     // Get the proper frame buffer size.
     int width, height;
@@ -159,7 +167,7 @@ void SampleApp::run()
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = backend->createDevice(*adapter, *surface, *backend, Format::B8G8R8A8_UNORM, Size2d(width, height), 3);
+    m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_UNORM, Size2d(width, height), 3);
 
     // Initialize resources.
     this->initRenderGraph();
