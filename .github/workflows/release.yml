@@ -134,6 +134,16 @@ jobs:
         run: |
           Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Release'
           cmake --install .
+          
+      - name: Sign binaries
+        uses: DanaBear/code-sign-action@v4
+        with:
+          certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
+          password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
+          certificatesha1: '${{ secrets.SIGN_CERTIFICATE_SHA1 }}'
+          certificatename: '${{ secrets.SIGN_CERTIFICATE_NAME }}'
+          folder: '${{ steps.setup-environment.outputs.buildPath }}/install'
+          recursive: true
 
       - name: Upload install artifacts
         uses: actions/upload-artifact@v2
