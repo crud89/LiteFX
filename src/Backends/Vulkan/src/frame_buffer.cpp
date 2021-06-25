@@ -64,7 +64,9 @@ public:
             if (renderTarget.location() != i++) [[unlikely]]
                 LITEFX_WARNING(VULKAN_LOG, "Remapped render target from location {0} to location {1}. Please make sure that the render targets are sorted within the render pass and do not have any gaps in their location mappings.", renderTarget.location(), i - 1);
 
-            if (renderTarget.type() == RenderTargetType::Present)
+            auto samples = m_parent->parent().multiSamplingLevel();
+
+            if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
             {
                 // If the render target is a present target, acquire an image view from the swap chain.
                 auto swapChainImages = m_parent->getDevice()->swapChain().images();
@@ -75,7 +77,7 @@ public:
             else
             {
                 // Create an image view for the render target.
-                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, renderTarget.samples());
+                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, samples);
                 attachmentViews.push_back(image->imageView());
                 m_renderTargetViews.push_back(image.get());
                 m_outputAttachments.push_back(std::move(image));

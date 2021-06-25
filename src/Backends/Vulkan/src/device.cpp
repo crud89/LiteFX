@@ -278,9 +278,9 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 	return *m_impl->m_swapChain;
 }
 
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples) const
 {
-	return VulkanRenderPassBuilder(*this);
+	return VulkanRenderPassBuilder(*this, samples);
 }
 
 const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
@@ -318,7 +318,7 @@ const VulkanQueue& VulkanDevice::bufferQueue() const noexcept
 	return *m_impl->m_bufferQueue;
 }
 
-MultiSamplingLevel VulkanDevice::maximumMultisamplingLevel(const Format& format) const noexcept
+MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept
 {
 	auto limits = m_impl->m_adapter.getLimits();
 	VkSampleCountFlags sampleCounts = limits.framebufferColorSampleCounts;

@@ -19,10 +19,11 @@ private:
     const VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
     Array<VkClearValue> m_clearValues;
     UInt32 m_backBuffer{ 0 };
+    MultiSamplingLevel m_samples;
 
 public:
-    VulkanRenderPassImpl(VulkanRenderPass* parent, Span<RenderTarget> renderTargets, Span<VulkanInputAttachmentMapping> inputAttachments) :
-        base(parent)
+    VulkanRenderPassImpl(VulkanRenderPass* parent, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+        base(parent), m_samples(samples)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -66,7 +67,7 @@ public:
 
             VkAttachmentDescription attachment{};
             attachment.format = getFormat(inputAttachment.renderTarget().format());
-            attachment.samples = getSamples(inputAttachment.renderTarget().samples());
+            attachment.samples = getSamples(inputAttachment.inputAttachmentSource()->multiSamplingLevel());
             attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -118,7 +119,7 @@ public:
             {
                 VkAttachmentDescription attachment{};
                 attachment.format = getFormat(renderTarget.format());
-                attachment.samples = getSamples(renderTarget.samples());
+                attachment.samples = getSamples(m_samples);
                 attachment.loadOp = renderTarget.clearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 attachment.stencilLoadOp = renderTarget.clearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 attachment.storeOp = renderTarget.isVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
@@ -211,8 +212,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(VK_NULL_HANDLE)
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+    m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, samples, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 
@@ -290,6 +291,11 @@ bool VulkanRenderPass::hasPresentTarget() const noexcept
 Span<const VulkanInputAttachmentMapping> VulkanRenderPass::inputAttachments() const noexcept
 {
     return m_impl->m_inputAttachments;
+}
+
+const MultiSamplingLevel& VulkanRenderPass::multiSamplingLevel() const noexcept
+{
+    return m_impl->m_samples;
 }
 
 void VulkanRenderPass::begin(const UInt32& buffer)
@@ -372,6 +378,16 @@ void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
+void VulkanRenderPass::changeMultiSamplingLevel(const MultiSamplingLevel& samples)
+{
+    // Check if we're currently running.
+    if (m_impl->m_activeFrameBuffer != nullptr)
+        throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
+
+    m_impl->m_samples = samples;
+    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
+}
+
 void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSet) const
 {
     const auto backBuffer = m_impl->m_backBuffer;
@@ -404,10 +420,11 @@ private:
     Array<UniquePtr<VulkanRenderPipeline>> m_pipelines;
     Array<VulkanInputAttachmentMapping> m_inputAttachments;
     Array<RenderTarget> m_renderTargets;
+    MultiSamplingLevel m_samples;
 
 public:
-    VulkanRenderPassBuilderImpl(VulkanRenderPassBuilder* parent) :
-        base(parent)
+    VulkanRenderPassBuilderImpl(VulkanRenderPassBuilder* parent, const MultiSamplingLevel& samples) :
+        base(parent), m_samples(samples)
     {
     }
 };
@@ -416,8 +433,8 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device) noexcept :
-    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this)), RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass>(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device)))
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples) noexcept :
+    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this, samples)), RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass>(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device)))
 {
 }
 
@@ -428,6 +445,7 @@ UniquePtr<VulkanRenderPass> VulkanRenderPassBuilder::go()
     auto instance = this->instance();
     instance->m_impl->mapRenderTargets(m_impl->m_renderTargets);
     instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
+    instance->m_impl->m_samples = std::move(m_impl->m_samples);
     instance->handle() = instance->m_impl->initialize();
 
     // Initialize the frame buffers.
@@ -447,31 +465,37 @@ void VulkanRenderPassBuilder::use(VulkanInputAttachmentMapping&& attachment)
     m_impl->m_inputAttachments.push_back(std::move(attachment));
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
     //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, samples, clearValues, clear, clearStencil, isVolatile);
+    return this->renderTarget(static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format,  clearValues, clear, clearStencil, isVolatile);
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile));
+    m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil,  isVolatile));
     return *this;
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
     //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, samples, clearValues, clear, clearStencil, isVolatile);
+    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile);
+    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile);
     output = std::move(VulkanInputAttachmentMapping(*this->instance(), renderTarget, location));
     m_impl->m_renderTargets.push_back(renderTarget);
+    return *this;
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::setMultiSamplingLevel(const MultiSamplingLevel& samples)
+{
+    m_impl->m_samples = samples;
     return *this;
 }
 

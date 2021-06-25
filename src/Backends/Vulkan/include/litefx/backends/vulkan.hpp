@@ -1087,10 +1087,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Creates and initializes a new Vulkan render pass instance.
 		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="renderTargets"></param>
-		/// <param name="inputAttachments"></param>
-		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+		/// <param name="device">The parent device instance.</param>
+		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
+		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
+		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;
 		virtual ~VulkanRenderPass() noexcept;
@@ -1137,6 +1138,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual Span<const VulkanInputAttachmentMapping> inputAttachments() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept override;
+
 	public:
 		/// <inheritdoc />
 		virtual void begin(const UInt32& buffer) override;
@@ -1146,6 +1150,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
+
+		/// <inheritdoc />
+		virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) override;
 
 		/// <inheritdoc />
 		virtual void updateAttachments(const VulkanDescriptorSet& descriptorSet) const override;
@@ -1170,7 +1177,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassBuilderImpl)
 
 	public:
-		explicit VulkanRenderPassBuilder(const VulkanDevice& device) noexcept;
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) noexcept;
 		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
 		virtual ~VulkanRenderPassBuilder() noexcept;
@@ -1179,10 +1186,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(VulkanInputAttachmentMapping&& inputAttachment) override;
 
 	public:
-		virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) override;
 		virtual VulkanRenderPassBuilder& inputAttachment(const VulkanInputAttachmentMapping& inputAttachment) override;
 		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const UInt32& outputLocation) override;
 		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
@@ -1446,9 +1454,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Returns a builder for a <see cref="VulkanRenderPass" />.
 		/// </summary>
+		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
 		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
 		/// <seealso cref="IGraphicsDevice::build" />
-		VulkanRenderPassBuilder buildRenderPass() const;
+		VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const;
 
 		// IGraphicsDevice interface.
 	public:
@@ -1474,7 +1483,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanQueue& bufferQueue() const noexcept override;
 
 		/// <inheritdoc />
-		virtual MultiSamplingLevel maximumMultisamplingLevel(const Format& format) const noexcept override;
+		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
 
 	public:
 		/// <inheritdoc />
