@@ -304,6 +304,7 @@ void DirectX12RenderPass::changeMultiSamplingLevel(const const MultiSamplingLeve
     if (m_impl->m_activeFrameBuffer != nullptr)
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
+    m_impl->m_multiSamplingLevel = samples;
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
 }
 
