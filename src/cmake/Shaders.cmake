@@ -109,6 +109,12 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     ELSE()
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
     ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    
+    SET(compiler_options "")
+
+    IF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
+      LIST(APPEND compiler_options -finvert-y)
+    ENDIF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
 
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
@@ -119,7 +125,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -fshader_stage=${SHADER_STAGE} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -fshader_stage=${SHADER_STAGE} ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -258,6 +264,13 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
     ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 
+    SET(compiler_options "")
+
+    IF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
+      LIST(APPEND compiler_options -finvert-y)
+    ENDIF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
+
+
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
       COMMENT "glslc: compiling glsl shader '${shader_source}'..."
@@ -267,7 +280,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
     )
     
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
