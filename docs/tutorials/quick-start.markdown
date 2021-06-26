@@ -501,11 +501,8 @@ Let's move on and compute the view and projection matrix and pre-multiply them t
 auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
 glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
-projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
 camera.ViewProjection = projection * view;
 ```
-
-It is important to fix the GLM clip coordinate scaling in the projection matrix. Since GLM has originally been developed for OpenGL, the y-coordinate of the camera space is inverted. The easiest way to fix this, is to pre-apply a flip transform by inverting the Y-coordinate. If you leave out this line, you image might end up beeing rendered upside-down in Vulkan. 
 
 In the last line, we pre-multiply the view/projection matrix and store it in the camera buffer, which we can now transfer to the GPU:
 
