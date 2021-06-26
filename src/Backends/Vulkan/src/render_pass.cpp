@@ -57,6 +57,7 @@ public:
         Array<VkAttachmentReference> inputAttachments;
         Array<VkAttachmentReference> outputAttachments; // Contains all output attachments, except the depth/stencil target.
         Optional<VkAttachmentReference> depthTarget, presentTarget;
+        Optional<VkAttachmentDescription> presentResolveAttachment;
 
         // Map input attachments.
         std::ranges::for_each(m_inputAttachments, [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
@@ -139,7 +140,7 @@ public:
                     outputAttachments.push_back({ static_cast<UInt32>(currentIndex + inputAttachments.size()), attachment.finalLayout });
                     break;
                 case RenderTargetType::DepthStencil:
-                    if (::hasDepth(renderTarget.format()) && ::hasStencil(renderTarget.format())) [[likely]]
+                    if (::hasDepth(renderTarget.format()) || ::hasStencil(renderTarget.format())) [[likely]]
                         attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                     else if (::hasDepth(renderTarget.format()))
                         attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
@@ -152,11 +153,29 @@ public:
                     }
 
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                    depthTarget = VkAttachmentReference{ static_cast<UInt32>(currentIndex + inputAttachments.size()), attachment.finalLayout };
+                    depthTarget = VkAttachmentReference{ static_cast<UInt32>(currentIndex + inputAttachments.size()), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
                     break;
                 case RenderTargetType::Present:
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                    attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                    // If we have a multi-sampled present attachment, we also need to attach a resolve attachment for it.
+                    if (m_samples == MultiSamplingLevel::x1)
+                        attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+                    else
+                    {
+                        attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+                        presentResolveAttachment = VkAttachmentDescription{};
+                        presentResolveAttachment->format = attachment.format;
+                        presentResolveAttachment->samples = VK_SAMPLE_COUNT_1_BIT;
+                        presentResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                        presentResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                        presentResolveAttachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                        presentResolveAttachment->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                        presentResolveAttachment->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                        presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+                    }
+
                     presentTarget = VkAttachmentReference { static_cast<UInt32>(currentIndex + inputAttachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
                     outputAttachments.push_back(presentTarget.value());
                     break;
@@ -174,6 +193,16 @@ public:
         subPass.pDepthStencilAttachment = depthTarget.has_value() ? &depthTarget.value() : nullptr;
         subPass.inputAttachmentCount = static_cast<UInt32>(inputAttachments.size());
         subPass.pInputAttachments = inputAttachments.data();
+        subPass.pResolveAttachments = nullptr;
+
+        // Add the resolve attachment.
+        VkAttachmentReference presentResolveReference = { static_cast<UInt32>(attachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+
+        if (presentResolveAttachment.has_value())
+        {
+            subPass.pResolveAttachments = &presentResolveReference;
+            attachments.push_back(presentResolveAttachment.value());
+        }
 
         // Define an external sub-pass dependency, if there are input attachments to synchronize with.
         Array<VkSubpassDependency> dependencies;

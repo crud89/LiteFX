@@ -138,11 +138,10 @@ public:
 		dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
 
 		// Setup multisampling state.
-		// TODO: Abstract me!
 		VkPipelineMultisampleStateCreateInfo multisampling = {};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+		multisampling.rasterizationSamples = ::getSamples(m_parent->parent().multiSamplingLevel());
 		multisampling.minSampleShading = 1.0f;
 		multisampling.pSampleMask = nullptr;
 		multisampling.alphaToCoverageEnable = m_alphaToCoverage;
