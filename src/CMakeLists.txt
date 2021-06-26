@@ -47,12 +47,14 @@ IF(BUILD_EXAMPLES AND BUILD_VULKAN_BACKEND)
     ADD_SUBDIRECTORY(Samples/Vulkan/BasicRendering)
     ADD_SUBDIRECTORY(Samples/Vulkan/Textures)
     ADD_SUBDIRECTORY(Samples/Vulkan/DeferredShading)
+    ADD_SUBDIRECTORY(Samples/Vulkan/Multisampling)
 ENDIF(BUILD_EXAMPLES AND BUILD_VULKAN_BACKEND)
 
 IF(BUILD_EXAMPLES AND BUILD_DIRECTX_12_BACKEND)
     ADD_SUBDIRECTORY(Samples/DirectX12/BasicRendering)
     ADD_SUBDIRECTORY(Samples/DirectX12/Textures)
     ADD_SUBDIRECTORY(Samples/DirectX12/DeferredShading)
+    ADD_SUBDIRECTORY(Samples/DirectX12/Multisampling)
 ENDIF(BUILD_EXAMPLES AND BUILD_DIRECTX_12_BACKEND)
 
 # Install license notice.

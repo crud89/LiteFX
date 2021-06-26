@@ -19,10 +19,13 @@ private:
 	Array<SharedPtr<IScissor>> m_scissors;
 	UInt32 m_id;
 	String m_name;
+	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
+	UInt32 m_stencilRef{ 0 };
+	bool m_alphaToCoverage{ false };
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
-		base(parent), m_id(id), m_name(name), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+		base(parent), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
 
@@ -39,7 +42,7 @@ public:
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		D3D12_RASTERIZER_DESC rasterizerState = {};
-		rasterizerState.DepthClipEnable = TRUE;
+		rasterizerState.DepthClipEnable = FALSE;
 		rasterizerState.FillMode = ::getPolygonMode(rasterizer.polygonMode());
 		rasterizerState.CullMode = ::getCullMode(rasterizer.cullMode());
 		rasterizerState.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise;
@@ -50,14 +53,14 @@ public:
 
 		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
 
-		if (!rasterizer.useDepthBias())
+		if (!rasterizer.depthStencilState().depthState().Enable)
 			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias disabled.");
 		else
 		{
-			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthBiasClamp(), rasterizer.depthBiasConstantFactor(), rasterizer.depthBiasSlopeFactor());
-			rasterizerState.DepthBiasClamp = rasterizer.depthBiasClamp();
-			rasterizerState.DepthBias = static_cast<Int32>(rasterizer.depthBiasConstantFactor());
-			rasterizerState.SlopeScaledDepthBias = rasterizer.depthBiasSlopeFactor();
+			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
+			rasterizerState.DepthBiasClamp = rasterizer.depthStencilState().depthBias().Clamp;
+			rasterizerState.DepthBias = static_cast<Int32>(rasterizer.depthStencilState().depthBias().ConstantFactor);
+			rasterizerState.SlopeScaledDepthBias = rasterizer.depthStencilState().depthBias().SlopeFactor;
 		}
 
 		// Setup input assembler state.
@@ -91,16 +94,12 @@ public:
 		inputLayout.pInputElementDescs = inputLayoutElements.data();
 		inputLayout.NumElements = static_cast<UInt32>(inputLayoutElements.size());
 
-		// Setup multisampling state.
-		// TODO: Abstract me!
-		//device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS);
-		DXGI_SAMPLE_DESC multisamplingState = {};
-		multisamplingState.Count = 1;
-		multisamplingState.Quality = 0;
+		// Setup multi-sampling state.
+		auto samples = m_parent->parent().multiSamplingLevel();
+		DXGI_SAMPLE_DESC multisamplingState = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 
 		// Setup render target states.
 		// NOTE: We assume, that the targets are returned sorted by location and the location range is contiguous.
-		// TODO: Add blend parameters to render target.
 		D3D12_BLEND_DESC blendState = {};
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 		auto targets = m_parent->parent().renderTargets();
@@ -123,21 +122,21 @@ public:
 
 				// Setup depth/stencil state.
 				// TODO: From depth/stencil state.
-				depthStencilState.DepthEnable = ::hasDepth(renderTarget.format());
-				depthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL;
-				depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS_EQUAL;
+				depthStencilState.DepthEnable = rasterizer.depthStencilState().depthState().Enable;
+				depthStencilState.DepthWriteMask = rasterizer.depthStencilState().depthState().Write ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
+				depthStencilState.DepthFunc = ::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
 
-				depthStencilState.StencilEnable = ::hasStencil(renderTarget.format());
-				depthStencilState.StencilReadMask = 0xFF;
-				depthStencilState.StencilWriteMask = 0xFF;
-				depthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-				depthStencilState.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-				depthStencilState.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
-				depthStencilState.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+				depthStencilState.StencilEnable = rasterizer.depthStencilState().stencilState().Enable;
+				depthStencilState.StencilReadMask = rasterizer.depthStencilState().stencilState().ReadMask;
+				depthStencilState.StencilWriteMask = rasterizer.depthStencilState().stencilState().WriteMask;
+				depthStencilState.FrontFace.StencilFunc = ::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
+				depthStencilState.FrontFace.StencilDepthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
+				depthStencilState.FrontFace.StencilFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
+				depthStencilState.FrontFace.StencilPassOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
+				depthStencilState.BackFace.StencilFunc = ::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
+				depthStencilState.BackFace.StencilDepthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
+				depthStencilState.BackFace.StencilFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
+				depthStencilState.BackFace.StencilPassOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
 			}
 			else
 			{
@@ -147,14 +146,22 @@ public:
 
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
-				targetBlendState.BlendEnable = FALSE;
-				targetBlendState.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
+				targetBlendState.BlendEnable = renderTarget.blendState().Enable;
+				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().WriteMask);
+				targetBlendState.SrcBlend = ::getBlendFactor(renderTarget.blendState().SourceColor);
+				targetBlendState.SrcBlendAlpha = ::getBlendFactor(renderTarget.blendState().SourceAlpha);
+				targetBlendState.DestBlend = ::getBlendFactor(renderTarget.blendState().DestinationColor);
+				targetBlendState.DestBlendAlpha = ::getBlendFactor(renderTarget.blendState().DestinationAlpha);
+				targetBlendState.BlendOp = ::getBlendOperation(renderTarget.blendState().ColorOperation);
+				targetBlendState.BlendOpAlpha = ::getBlendOperation(renderTarget.blendState().AlphaOperation);
+
+				// TODO: We should also implement this, but this restricts all blend states to be equal and IndependentBlendEnable set to false.
 				targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
 				targetBlendState.LogicOpEnable = FALSE;
 			}
 		});
 
-		blendState.AlphaToCoverageEnable = FALSE;
+		blendState.AlphaToCoverageEnable = m_alphaToCoverage;
 		blendState.IndependentBlendEnable = TRUE;
 
 		// Setup shader stages.
@@ -213,8 +220,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, id, name, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), ComResource<ID3D12PipelineState>(nullptr)
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), ComResource<ID3D12PipelineState>(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }
@@ -265,6 +272,21 @@ Array<const IScissor*> DirectX12RenderPipeline::scissors() const noexcept
 		ranges::to<Array<const IScissor*>>();
 }
 
+UInt32& DirectX12RenderPipeline::stencilRef() const noexcept
+{
+	return m_impl->m_stencilRef;
+}
+
+Vector4f& DirectX12RenderPipeline::blendFactors() const noexcept
+{
+	return m_impl->m_blendFactors;
+}
+
+const bool& DirectX12RenderPipeline::alphaToCoverage() const noexcept
+{
+	return m_impl->m_alphaToCoverage;
+}
+
 void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
 {
 	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
@@ -304,11 +326,15 @@ void DirectX12RenderPipeline::use() const
 		std::views::transform([](const SharedPtr<IScissor>& scissor) { return CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height()); }) |
 		ranges::to<Array<D3D12_RECT>>();
 
+	Float blendFactor[4] = { m_impl->m_blendFactors.x(), m_impl->m_blendFactors.y(), m_impl->m_blendFactors.z(), m_impl->m_blendFactors.w() };
+
 	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 	commandBuffer.handle()->RSSetViewports(viewports.size(), viewports.data());
 	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
+	commandBuffer.handle()->OMSetStencilRef(m_impl->m_stencilRef);
+	commandBuffer.handle()->OMSetBlendFactor(blendFactor);
 }
 
 void DirectX12RenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
@@ -338,6 +364,7 @@ private:
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
+	bool m_alphaToCoverage{ false };
 
 public:
 	DirectX12RenderPipelineBuilderImpl(DirectX12RenderPipelineBuilder* parent) :
@@ -367,6 +394,7 @@ UniquePtr<DirectX12RenderPipeline> DirectX12RenderPipelineBuilder::go()
 	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
 	instance->m_impl->m_viewports = std::move(m_impl->m_viewports);
 	instance->m_impl->m_scissors = std::move(m_impl->m_scissors);
+	instance->m_impl->m_alphaToCoverage = std::move(m_impl->m_alphaToCoverage);
 	instance->handle() = instance->m_impl->initialize();
 
 	return RenderPipelineBuilder::go();
@@ -415,6 +443,12 @@ void DirectX12RenderPipelineBuilder::use(SharedPtr<IViewport> viewport)
 void DirectX12RenderPipelineBuilder::use(SharedPtr<IScissor> scissor)
 {
 	m_impl->m_scissors.push_back(scissor);
+}
+
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::enableAlphaToCoverage(const bool& enable)
+{
+	m_impl->m_alphaToCoverage = enable;
+	return *this;
 }
 
 DirectX12RenderPipelineLayoutBuilder DirectX12RenderPipelineBuilder::layout()

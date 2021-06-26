@@ -52,9 +52,9 @@ auto pipeline = renderPass->makePipeline(0, "Basic Pipeline")
     .go();
 ```
 
-LiteFX is written in modern C++20, following established design patterns to make it easy to learn and adapt. It's focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
+LiteFX is written in modern C++20, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
 
-† Shader can be built using *glslc* or *DXC*. *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
+† Shaders can be built using *glslc* or *DXC*. *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
 
 ## Installation
 

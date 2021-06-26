@@ -20,10 +20,11 @@ private:
     UInt32 m_backBuffer{ 0 };
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
+    MultiSamplingLevel m_multiSamplingLevel{ MultiSamplingLevel::x1 };
 
 public:
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent, Span<RenderTarget> renderTargets, Span<DirectX12InputAttachmentMapping> inputAttachments) :
-        base(parent)
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+        base(parent), m_multiSamplingLevel(samples)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -64,8 +65,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<DirectX12InputAttachmentMapping> inputAttachments) :
-    m_impl(makePimpl<DirectX12RenderPassImpl>(this, renderTargets, inputAttachments)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+    m_impl(makePimpl<DirectX12RenderPassImpl>(this, renderTargets, samples, inputAttachments)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
 {
     // Initialize the frame buffers.
     m_impl->m_frameBuffers.resize(this->getDevice()->swapChain().buffers());
@@ -140,6 +141,11 @@ Span<const DirectX12InputAttachmentMapping> DirectX12RenderPass::inputAttachment
     return m_impl->m_inputAttachments;
 }
 
+const MultiSamplingLevel& DirectX12RenderPass::multiSamplingLevel() const noexcept
+{
+    return m_impl->m_multiSamplingLevel;
+}
+
 void DirectX12RenderPass::begin(const UInt32& buffer)
 {
     // Only begin, if we are currently not running.
@@ -157,7 +163,7 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     frameBuffer->commandBuffer().begin();
 
     // Bind the global descriptor heaps.
-    // TODO: This is done once per render pass, since a frame buffer owns a command list. This may be ineffective and we may want to re-use command lists over multiple render passes.
+    // TODO: This is done once per render pass, since a frame buffer owns a command list. This may be ineffective and we may want to re-use command lists over multiple render passes (See issue #33).
     this->getDevice()->bindGlobalDescriptorHeaps(frameBuffer->commandBuffer());
 
     // Declare render pass input and output access and transition barriers.
@@ -238,21 +244,40 @@ void DirectX12RenderPass::end() const
     // End the render pass and the command buffer recording.
     frameBuffer->commandBuffer().handle()->EndRenderPass();
 
+    // If the present target is multi-sampled, we need to resolve it to the back buffer.
+    bool requiresResolve = this->hasPresentTarget() && m_impl->m_multiSamplingLevel > MultiSamplingLevel::x1;
+
     // Transition the present and depth/stencil views.
     Array<D3D12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
-        std::views::transform([&frameBuffer](const RenderTarget& renderTarget) {
-        const auto& renderTargetImage = frameBuffer->image(renderTarget.location());
+        std::views::transform([&frameBuffer, &requiresResolve](const RenderTarget& renderTarget) {
+            const auto& renderTargetImage = frameBuffer->image(renderTarget.location());
 
-        switch (renderTarget.type()) 
-        {
-        default:
-        case RenderTargetType::Color:           return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
-        case RenderTargetType::Present:         return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_PRESENT);
-        case RenderTargetType::DepthStencil:    return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
-        }
-    }) | ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
+            switch (renderTarget.type()) 
+            {
+            default:
+            case RenderTargetType::Color:           return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+            case RenderTargetType::DepthStencil:    return renderTargetImage.transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
+            case RenderTargetType::Present:         return renderTargetImage.transitionTo(requiresResolve ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_PRESENT);
+            }
+        }) | ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
+
+    // Add another barrier for the back buffer image, if required.
+    const IDirectX12Image* backBufferImage = this->getDevice()->swapChain().images()[m_impl->m_backBuffer];
+
+    if (requiresResolve)
+        transitionBarriers.push_back(backBufferImage->transitionTo(D3D12_RESOURCE_STATE_RESOLVE_DEST));
 
     frameBuffer->commandBuffer().handle()->ResourceBarrier(transitionBarriers.size(), transitionBarriers.data());
+
+    // If required, we need to resolve the present target.
+    if (requiresResolve)
+    {
+        const IDirectX12Image* multiSampledImage = &frameBuffer->image(m_impl->m_presentTarget->location());
+        frameBuffer->commandBuffer().handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, ::getFormat(m_impl->m_presentTarget->format()));
+
+        // Transition the present target back to the present state.
+        backBufferImage->transitionTo(frameBuffer->commandBuffer(), D3D12_RESOURCE_STATE_PRESENT);
+    }
 
     // End the command buffer recording and submit it.
     frameBuffer->commandBuffer().end(true);
@@ -271,6 +296,16 @@ void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
+}
+
+void DirectX12RenderPass::changeMultiSamplingLevel(const const MultiSamplingLevel& samples)
+{
+    // Check if we're currently running.
+    if (m_impl->m_activeFrameBuffer != nullptr)
+        throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
+
+    m_impl->m_multiSamplingLevel = samples;
+    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
 }
 
 void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descriptorSet) const
@@ -305,10 +340,11 @@ private:
     Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
     Array<DirectX12InputAttachmentMapping> m_inputAttachments;
     Array<RenderTarget> m_renderTargets;
+    MultiSamplingLevel m_multiSamplingLevel;
 
 public:
-    DirectX12RenderPassBuilderImpl(DirectX12RenderPassBuilder* parent) :
-        base(parent)
+    DirectX12RenderPassBuilderImpl(DirectX12RenderPassBuilder* parent, const MultiSamplingLevel& samples) :
+        base(parent), m_multiSamplingLevel(samples)
     {
     }
 };
@@ -317,8 +353,8 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device) noexcept :
-    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device)))
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& samples) noexcept :
+    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this, samples)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device)))
 {
 }
 
@@ -329,6 +365,7 @@ UniquePtr<DirectX12RenderPass> DirectX12RenderPassBuilder::go()
     auto instance = this->instance();
     instance->m_impl->mapRenderTargets(m_impl->m_renderTargets);
     instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
+    instance->m_impl->m_multiSamplingLevel = std::move(m_impl->m_multiSamplingLevel);
 
     // Initialize the frame buffers.
     instance->m_impl->m_frameBuffers.resize(instance->getDevice()->swapChain().buffers());
@@ -347,31 +384,37 @@ void DirectX12RenderPassBuilder::use(DirectX12InputAttachmentMapping&& attachmen
     m_impl->m_inputAttachments.push_back(std::move(attachment));
 }
 
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
     //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, samples, clearValues, clear, clearStencil, isVolatile);
+    return this->renderTarget(static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
 }
 
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile));
+    m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile));
     return *this;
 }
 
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
     // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
     //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, samples, clearValues, clear, clearStencil, isVolatile);
+    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
 }
 
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, samples, isVolatile);
+    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile);
     output = std::move(DirectX12InputAttachmentMapping(*this->instance(), renderTarget, location));
     m_impl->m_renderTargets.push_back(renderTarget);
+    return *this;
+}
+
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::setMultiSamplingLevel(const MultiSamplingLevel& samples)
+{
+    m_impl->m_multiSamplingLevel = samples;
     return *this;
 }
 

@@ -1046,6 +1046,41 @@ namespace LiteFX::Rendering {
 		/// <returns>The scissors of the render pipeline.</returns>
 		virtual Array<const IScissor*> scissors() const noexcept = 0;
 
+		/// <summary>
+		/// Returns a reference to the stencil reference value.
+		/// </summary>
+		/// <remarks>
+		/// The stencil reference value is used by the stencil test and is set with each call to <see cref="IRenderPipeline::use" />.
+		/// </remarks>
+		/// <returns>A reference to the stencil reference value.</returns>
+		virtual UInt32& stencilRef() const noexcept = 0;
+
+		/// <summary>
+		/// Returns a reference of the constant blend factors for the pipeline.
+		/// </summary>
+		/// <remarks>
+		/// You can change the values inside this vector reference to influence the constant blend factors. Blend factors are set for all render targets that use the
+		/// blend factors <c>BlendFactor::ConstantColor</c>, <c>BlendFactor::OneMinusConstantColor</c>, <c>BlendFactor::ConstantAlpha</c> or 
+		/// <c>BlendFactor::OneMinusConstantAlpha</c>. They are set on each call to <see cref="IRenderPipeline::use" />.
+		/// </remarks>
+		/// <returns>A reference of the constant blend factors for the pipeline.</returns>
+		virtual Vector4f& blendFactors() const noexcept = 0;
+
+		/// <summary>
+		/// Returns <c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.
+		/// </summary>
+		/// <remarks>
+		/// Alpha-to-Coverage is a multi-sampling technique used for partially transparent sprites or textures (such as foliage) to prevent visible flickering 
+		/// along edges. If enabled, the alpha-channel of the first (non-depth/stencil) render target is used to generate a temporary coverage mask that is combined
+		/// with the fragment coverage mask using a logical <b>AND</b>.
+		/// </remarks>
+		/// <returns><c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.</returns>
+		/// <seealso href="https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f" />
+		/// <seealso href="https://en.wikipedia.org/wiki/Alpha_to_coverage" />
+		/// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg" />
+		/// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage" />
+		virtual const bool& alphaToCoverage() const noexcept = 0;
+
 	public:
 		/// <summary>
 		/// Binds a vertex buffer to the pipeline.
@@ -1191,6 +1226,15 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <param name="scissor">A scissor to initialize the render pipeline with.</param>
 		virtual void use(SharedPtr<IScissor> scissor) = 0;
+
+		/// <summary>
+		/// Enables <i>Alpha-to-Coverage</i> multi-sampling on the pipeline.
+		/// </summary>
+		/// <remarks>
+		/// For more information on <i>Alpha-to-Coverage</i> multi-sampling see the remarks of <see cref="IRenderPipeline::alphaToCoverage" />.
+		/// </remarks>
+		/// <param name="enable">Whether or not to use <i>Alpha-to-Coverage</i> multi-sampling.</param>
+		virtual TDerived& enableAlphaToCoverage(const bool& enable = true) = 0;
 	};
 
 	/// <summary>
@@ -1436,6 +1480,12 @@ namespace LiteFX::Rendering {
 		/// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
 		virtual Span<const TInputAttachmentMapping> inputAttachments() const noexcept = 0;
 
+		/// <summary>
+		/// Returns the number of samples, the render targets are sampled with.
+		/// </summary>
+		/// <returns>The number of samples, the render targets are sampled with.</returns>
+		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept = 0;
+
 	public:
 		/// <summary>
 		/// Begins the render pass.
@@ -1459,6 +1509,18 @@ namespace LiteFX::Rendering {
 		virtual void resizeFrameBuffers(const Size2d& renderArea) = 0;
 
 		/// <summary>
+		/// Changes the multi sampling level of the render pass.
+		/// </summary>
+		/// <remarks>
+		/// The method causes the frame buffers to be re-created. It checks, if the <paramref name="samples" /> are supported by the device for each render target 
+		/// format. If not, an exception will be thrown. To prevent this, call <see cref=IGraphicsDevice::maximumMultiSamplingLevel" /> for each render target format on 
+		/// your own, in order to request the maximum number of samples supported.
+		/// </remarks>
+		/// <param name="samples">The number of samples per edge pixel.</param>
+		/// <exception cref="InvalidArgumentException">Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</exception>
+		virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) = 0;
+
+		/// <summary>
 		/// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
 		/// </summary>
 		/// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
@@ -1479,10 +1541,11 @@ namespace LiteFX::Rendering {
 		virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
 
 	public:
-		virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+		virtual TDerived& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) = 0;
 		virtual TDerived& inputAttachment(const TInputAttachmentMapping& inputAttachment) = 0;
 		virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const UInt32& outputLocation) = 0;
 		virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const RenderTarget& renderTarget) = 0;
@@ -1548,6 +1611,7 @@ namespace LiteFX::Rendering {
 		/// <param name="surfaceFormat">The swap chain image format.</param>
 		/// <param name="renderArea">The dimensions of the frame buffers.</param>
 		/// <param name="buffers">The number of buffers in the swap chain.</param>
+		/// <seealso cref="multiSamplingLevel" />
 		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
 
 		/// <summary>
@@ -1840,6 +1904,17 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <returns>The instance of the queue used for host-device transfers.</returns>
 		virtual const TCommandQueue& bufferQueue() const noexcept = 0;
+
+		/// <summary>
+		/// Queries the device for the maximum supported number of multi-sampling levels.
+		/// </summary>
+		/// <remarks>
+		/// This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower 
+		/// multi-sampling levels are implicitly supported for this format.
+		/// </remarks>
+		/// <param name="format">The target (i.e. back-buffer) format.</param>
+		/// <returns>The maximum multi-sampling level.</returns>
+		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept = 0;
 
 	public:
 		/// <summary>

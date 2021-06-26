@@ -220,7 +220,6 @@ In our example, however, we do not use multiple render passes and instead only c
 The other values that are provided to a render target are:
 
 - The render target format, which in our example is dictated by the swap chain format we've chosen earlier.
-- The multisampling level, which we set to `x1`, since we do not yet want to use multi sampling.
 - A clear value vector, which contains the values that the render target will be cleared with when starting the render pass. For our *BGRA* image, we want to clear it with black and an alpha value of `0.0`.
 - A boolean switch to enable or disable clearing the values, which we set to true, since we want to clear our image with the clear values specified earlier.
 - A boolean switch to enable clearing for stencil buffers. This switch is only used, if the render target is a `DepthStencil` target and the format supports stencil values. It can be used to disable clearing stencil values and only clear depth values for depth/stencil targets.
@@ -228,7 +227,7 @@ The other values that are provided to a render target are:
 
 ```cxx
 m_renderPass = m_device->buildRenderPass()
-	.renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+	.renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
 	.go();
 ```
 
@@ -502,11 +501,8 @@ Let's move on and compute the view and projection matrix and pre-multiply them t
 auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
 glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
-projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
 camera.ViewProjection = projection * view;
 ```
-
-It is important to fix the GLM clip coordinate scaling in the projection matrix. Since GLM has originally been developed for OpenGL, the y-coordinate of the camera space is inverted. The easiest way to fix this, is to pre-apply a flip transform by inverting the Y-coordinate. If you leave out this line, you image might end up beeing rendered upside-down in Vulkan. 
 
 In the last line, we pre-multiply the view/projection matrix and store it in the camera buffer, which we can now transfer to the GPU:
 

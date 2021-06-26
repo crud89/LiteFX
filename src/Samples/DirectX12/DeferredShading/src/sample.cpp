@@ -50,14 +50,14 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::initRenderGraph()
 {
     m_geometryPass = m_device->buildRenderPass()
-        .renderTarget(0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
-        .renderTarget(1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false, false)
+        .renderTarget(0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
+        .renderTarget(1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false)
         .go();
 
     m_lightingPass = m_device->buildRenderPass()
         .inputAttachment(0, *m_geometryPass, 0)  // Color attachment.
         .inputAttachment(1, *m_geometryPass, 1)  // Depth/Stencil attachment.
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
         .go();
 }
 
@@ -188,7 +188,6 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
     glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
-    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
 }

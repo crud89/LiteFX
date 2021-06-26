@@ -788,17 +788,29 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="cullMode">The cull mode used by the pipeline.</param>
 		/// <param name="cullOrder">The cull order used by the pipeline.</param>
 		/// <param name="lineWidth">The line width used by the pipeline.</param>
-		/// <param name="useDepthBias"><c>true</c>, if the depth bias should be enabled.</param>
-		/// <param name="depthBiasClamp">The clamp value of the depth bias state.</param>
-		/// <param name="depthBiasConstantFactor">The constant factor of the depth bias state.</param>
-		/// <param name="depthBiasSlopeFactor">The slope factor of the depth bias state.</param>
-		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept;
+		/// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
 		VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
 		VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
 		virtual ~VulkanRasterizer() noexcept;
 
 	private:
 		explicit VulkanRasterizer(const VulkanRenderPipeline& pipeline) noexcept;
+
+	public:
+		/// <summary>
+		/// Sets the line width on the rasterizer.
+		/// </summary>
+		/// <remarks>
+		/// Note that updating the line width requires the "wide lines" feature to be available. If it is not, the line width **must** be `1.0`. This
+		/// constraint is not enforced by the engine and you are responsible of making sure that it is fulfilled.
+		/// 
+		/// Furthermore, note that the DirectX 12 back-end does have any representation for the line width concept. Thus you should only use the line 
+		/// width, if you plan to only support Vulkan.
+		/// </remarks>
+		/// <returns>A reference to the line width.</returns>
+		/// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#features-wideLines" />
+		virtual void updateLineWidth(const Float& lineWidth) noexcept;
 	};
 
 	/// <summary>
@@ -838,16 +850,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) noexcept override;
 
 		/// <inheritdoc />
-		virtual VulkanRasterizerBuilder& enableDepthBias(const bool& enable = false) noexcept override;
+		virtual VulkanRasterizerBuilder& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept override;
 
 		/// <inheritdoc />
-		virtual VulkanRasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) noexcept override;
+		virtual VulkanRasterizerBuilder& withDepthState(const DepthStencilState::DepthState& depthState) noexcept override;
 
 		/// <inheritdoc />
-		virtual VulkanRasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) noexcept override;
-
-		/// <inheritdoc />
-		virtual VulkanRasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) noexcept override;
+		virtual VulkanRasterizerBuilder& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept override;
 	};
 
 	/// <summary>
@@ -862,10 +871,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new Vulkan render pipeline.
 		/// </summary>
-		/// <param name="renderPass"></param>
-		/// <param name="id"></param>
-		/// <param name="name"></param>
-		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name = "");
+		/// <param name="renderPass">The parent render pass.</param>
+		/// <param name="id">The unique ID of the pipeline within the render pass.</param>
+		/// <param name="name">The optional debug name of the render pipeline.</param>
+		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool& enableAlphaToCoverage = false, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -895,6 +905,15 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const IScissor*> scissors() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32& stencilRef() const noexcept override;
+
+		/// <inheritdoc />
+		virtual Vector4f& blendFactors() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const bool& alphaToCoverage() const noexcept override;
 
 	public:
 		/// <inheritdoc />
@@ -956,6 +975,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void use(SharedPtr<IScissor> scissor) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
 
 		// VulkanRenderPipelineBuilder.
 	public:
@@ -1065,10 +1087,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Creates and initializes a new Vulkan render pass instance.
 		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="renderTargets"></param>
-		/// <param name="inputAttachments"></param>
-		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+		/// <param name="device">The parent device instance.</param>
+		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
+		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
+		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;
 		virtual ~VulkanRenderPass() noexcept;
@@ -1115,6 +1138,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual Span<const VulkanInputAttachmentMapping> inputAttachments() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept override;
+
 	public:
 		/// <inheritdoc />
 		virtual void begin(const UInt32& buffer) override;
@@ -1124,6 +1150,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
+
+		/// <inheritdoc />
+		virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) override;
 
 		/// <inheritdoc />
 		virtual void updateAttachments(const VulkanDescriptorSet& descriptorSet) const override;
@@ -1148,7 +1177,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassBuilderImpl)
 
 	public:
-		explicit VulkanRenderPassBuilder(const VulkanDevice& device) noexcept;
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) noexcept;
 		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
 		virtual ~VulkanRenderPassBuilder() noexcept;
@@ -1157,10 +1186,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(VulkanInputAttachmentMapping&& inputAttachment) override;
 
 	public:
-		virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual VulkanRenderPassBuilder& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) override;
 		virtual VulkanRenderPassBuilder& inputAttachment(const VulkanInputAttachmentMapping& inputAttachment) override;
 		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const UInt32& outputLocation) override;
 		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
@@ -1424,9 +1454,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Returns a builder for a <see cref="VulkanRenderPass" />.
 		/// </summary>
+		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
 		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
 		/// <seealso cref="IGraphicsDevice::build" />
-		VulkanRenderPassBuilder buildRenderPass() const;
+		VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const;
 
 		// IGraphicsDevice interface.
 	public:
@@ -1450,6 +1481,9 @@ namespace LiteFX::Rendering::Backends {
 		
 		/// <inheritdoc />
 		virtual const VulkanQueue& bufferQueue() const noexcept override;
+
+		/// <inheritdoc />
+		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
 
 	public:
 		/// <inheritdoc />

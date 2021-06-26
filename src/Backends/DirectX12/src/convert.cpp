@@ -504,3 +504,71 @@ String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getVendorName(const UIn
 	default: return "Unknown";
 	}
 }
+
+D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getCompareOp(const CompareOperation& compareOp)
+{
+	switch (compareOp) {
+	case CompareOperation::Never: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
+	case CompareOperation::Less: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
+	case CompareOperation::Greater: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER;
+	case CompareOperation::Equal: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_EQUAL;
+	case CompareOperation::LessEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	case CompareOperation::GreaterEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+	case CompareOperation::NotEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NOT_EQUAL;
+	case CompareOperation::Always: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_ALWAYS;
+	default: throw InvalidArgumentException("Unsupported compare operation.");
+	}
+}
+
+D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getStencilOp(const StencilOperation& stencilOp)
+{
+	switch (stencilOp) {
+	case StencilOperation::Keep: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_KEEP;
+	case StencilOperation::Zero: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_ZERO;
+	case StencilOperation::Invert: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_INVERT;
+	case StencilOperation::Replace: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_REPLACE;
+	case StencilOperation::IncrementClamp: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_INCR_SAT;
+	case StencilOperation::IncrementWrap: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_INCR;
+	case StencilOperation::DecrementClamp: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR_SAT;
+	case StencilOperation::DecrementWrap: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR;
+	default: throw InvalidArgumentException("Unsupported stencil operation.");
+	}
+}
+
+D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getBlendFactor(const BlendFactor& blendFactor)
+{
+	switch (blendFactor) {
+	case BlendFactor::Zero: return D3D12_BLEND_ZERO;
+	case BlendFactor::One: return D3D12_BLEND_ONE;
+	case BlendFactor::SourceColor: return D3D12_BLEND_SRC_COLOR;
+	case BlendFactor::OneMinusSourceColor: return D3D12_BLEND_INV_SRC_COLOR;
+	case BlendFactor::DestinationColor: return D3D12_BLEND_DEST_COLOR;
+	case BlendFactor::OneMinusDestinationColor: return D3D12_BLEND_INV_DEST_COLOR;
+	case BlendFactor::SourceAlpha: return D3D12_BLEND_SRC_ALPHA;
+	case BlendFactor::OneMinusSourceAlpha: return D3D12_BLEND_INV_SRC_ALPHA;
+	case BlendFactor::DestinationAlpha: return D3D12_BLEND_DEST_ALPHA;
+	case BlendFactor::OneMinusDestinationAlpha: return D3D12_BLEND_INV_DEST_ALPHA;
+	case BlendFactor::ConstantColor: return D3D12_BLEND_BLEND_FACTOR;
+	case BlendFactor::OneMinusConstantColor: return D3D12_BLEND_INV_BLEND_FACTOR;
+	case BlendFactor::ConstantAlpha: return D3D12_BLEND_BLEND_FACTOR;
+	case BlendFactor::OneMinusConstantAlpha: return D3D12_BLEND_INV_BLEND_FACTOR;
+	case BlendFactor::SourceAlphaSaturate: return D3D12_BLEND_SRC_ALPHA_SAT;
+	case BlendFactor::Source1Color: return D3D12_BLEND_SRC1_COLOR;
+	case BlendFactor::OneMinusSource1Color: return D3D12_BLEND_INV_SRC1_COLOR;
+	case BlendFactor::Source1Alpha: return D3D12_BLEND_SRC1_ALPHA;
+	case BlendFactor::OneMinusSource1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
+	default: throw InvalidArgumentException("Unsupported blend factor.");
+	}
+}
+
+D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getBlendOperation(const BlendOperation& blendOperation)
+{
+	switch (blendOperation) {
+	case BlendOperation::Add: return D3D12_BLEND_OP_ADD;
+	case BlendOperation::Subtract: return D3D12_BLEND_OP_SUBTRACT;
+	case BlendOperation::ReverseSubtract: return D3D12_BLEND_OP_REV_SUBTRACT;
+	case BlendOperation::Minimum: return D3D12_BLEND_OP_MIN;
+	case BlendOperation::Maximum: return D3D12_BLEND_OP_MAX;
+	default: throw InvalidArgumentException("Unsupported blend operation.");
+	}
+}

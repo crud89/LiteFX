@@ -56,13 +56,13 @@ public:
 		swapChainDesc.Height = static_cast<UInt32>(frameBufferSize.height());
 		swapChainDesc.Format = ::getFormat(format);
 		swapChainDesc.Stereo = FALSE;
-		swapChainDesc.SampleDesc = { 1, 0 };
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.BufferCount = std::max<UInt32>(2, frameBuffers);
 		swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 		swapChainDesc.Flags = (m_supportsVariableRefreshRates = supportsVariableRefreshRates(backend)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+		swapChainDesc.SampleDesc = { 1, 0 };
 
 		ComPtr<IDXGISwapChain1> swapChainBase;
 		ComPtr<IDXGISwapChain4> swapChain;
@@ -97,10 +97,10 @@ public:
 
 		// Store a backend reference.
 		const auto& backend = m_parent->getDevice()->backend();
-		
+
 		// Resize the buffers.
 		UInt32 buffers = std::max<UInt32>(2, frameBuffers);
-		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(format), (m_supportsVariableRefreshRates = supportsVariableRefreshRates(backend)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
+		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);

@@ -42,7 +42,7 @@ static void onResize(GLFWwindow* window, int width, int height)
 void SampleApp::initRenderGraph()
 {
     m_renderPass = m_device->buildRenderPass()
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
         .go();
 }
 
@@ -178,7 +178,6 @@ void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
     glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
-    projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer.get());

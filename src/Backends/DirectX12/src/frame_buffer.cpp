@@ -61,20 +61,28 @@ public:
         std::ranges::for_each(m_parent->parent().renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
             if (renderTarget.location() != i++) [[unlikely]]
                 LITEFX_WARNING(DIRECTX12_LOG, "Remapped render target from location {0} to location {1}. Please make sure that the render targets are sorted within the render pass and do not have any gaps in their location mappings.", renderTarget.location(), i - 1);
-            
+
+            // Check if the device supports the multi sampling level for the render target.
+            auto samples = m_parent->parent().multiSamplingLevel();
+
+            if (m_parent->getDevice()->maximumMultiSamplingLevel(renderTarget.format()) < samples)
+                throw InvalidArgumentException("Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), static_cast<UInt32>(samples));
+
             const IDirectX12Image* renderTargetView;
 
-            if (renderTarget.type() == RenderTargetType::Present)
+            if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
             {
-                // If the render target is a present target, acquire an image view from the swap chain.
+                // If the render target is a present target and should not be multi-sampled, acquire an image view directly from the swap chain.
+                // NOTE: Multi-sampling back-buffers directly is not supported (see https://docs.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#remarks).
                 auto swapChainImages = m_parent->getDevice()->swapChain().images();
                 renderTargetView = swapChainImages[m_bufferIndex];
             }
             else
             {
                 // Create an image view for the render target.
-                // TODO: Pass the optimized clear value from the render target to the attachment. (May need to refactor `CreateAttachment` to accept the render target and a size).
-                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, renderTarget.samples());
+                // TODO: Pass the optimized clear value from the render target to the attachment. (May need to refactor `CreateAttachment` to accept the render target and a size). Then
+                //       remove the warning from the info queue.
+                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, m_parent->parent().multiSamplingLevel());
                 renderTargetView = image.get();
                 m_outputAttachments.push_back(std::move(image));
             }
@@ -85,7 +93,7 @@ public:
                 depthStencilViewDesc.Format = ::getFormat(renderTarget.format());
                 depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
                 depthStencilViewDesc.Texture2D = { .MipSlice = 0 };
-                depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+                depthStencilViewDesc.ViewDimension = samples == MultiSamplingLevel::x1 ? D3D12_DSV_DIMENSION_TEXTURE2D : D3D12_DSV_DIMENSION_TEXTURE2DMS;
 
                 m_parent->getDevice()->handle()->CreateDepthStencilView(renderTargetView->handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
                 depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(m_depthStencilDescriptorSize);
@@ -94,7 +102,7 @@ public:
             {
                 D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
                 renderTargetViewDesc.Format = ::getFormat(renderTarget.format());
-                renderTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+                renderTargetViewDesc.ViewDimension = samples == MultiSamplingLevel::x1 ? D3D12_RTV_DIMENSION_TEXTURE2D : D3D12_RTV_DIMENSION_TEXTURE2DMS;
                 renderTargetViewDesc.Texture2D = { .MipSlice = 0, .PlaneSlice = 0 };
                 renderTargetViewDesc.Buffer = { .FirstElement = 0, .NumElements = 1 };
 

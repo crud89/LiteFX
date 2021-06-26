@@ -278,9 +278,9 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 	return *m_impl->m_swapChain;
 }
 
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass() const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples) const
 {
-	return VulkanRenderPassBuilder(*this);
+	return VulkanRenderPassBuilder(*this, samples);
 }
 
 const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
@@ -316,6 +316,34 @@ const VulkanQueue& VulkanDevice::transferQueue() const noexcept
 const VulkanQueue& VulkanDevice::bufferQueue() const noexcept
 {
 	return *m_impl->m_bufferQueue;
+}
+
+MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept
+{
+	auto limits = m_impl->m_adapter.getLimits();
+	VkSampleCountFlags sampleCounts = limits.framebufferColorSampleCounts;
+
+	if (::hasDepth(format) && ::hasStencil(format))
+		sampleCounts = limits.framebufferDepthSampleCounts & limits.framebufferStencilSampleCounts;
+	else if (::hasDepth(format))
+		sampleCounts = limits.framebufferDepthSampleCounts;
+	else if (::hasStencil(format))
+		sampleCounts = limits.framebufferStencilSampleCounts;
+
+	if (sampleCounts & VK_SAMPLE_COUNT_64_BIT)
+		return MultiSamplingLevel::x64;
+	else if (sampleCounts & VK_SAMPLE_COUNT_32_BIT)
+		return MultiSamplingLevel::x32;
+	else if (sampleCounts & VK_SAMPLE_COUNT_16_BIT)
+		return MultiSamplingLevel::x16;
+	else if (sampleCounts & VK_SAMPLE_COUNT_8_BIT)
+		return MultiSamplingLevel::x8;
+	else if (sampleCounts & VK_SAMPLE_COUNT_4_BIT)
+		return MultiSamplingLevel::x4;
+	else if (sampleCounts & VK_SAMPLE_COUNT_2_BIT)
+		return MultiSamplingLevel::x2;
+	else
+		return MultiSamplingLevel::x1;
 }
 
 void VulkanDevice::wait() const

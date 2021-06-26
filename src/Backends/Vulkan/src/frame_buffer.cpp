@@ -60,11 +60,13 @@ public:
 
         // Initialize the output attachments from render targets of the parent render pass.
         // NOTE: Again, we assume, that the parent render pass provides the render targets in an sorted manner.
+        auto samples = m_parent->parent().multiSamplingLevel();
+
         std::ranges::for_each(m_parent->parent().renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
             if (renderTarget.location() != i++) [[unlikely]]
                 LITEFX_WARNING(VULKAN_LOG, "Remapped render target from location {0} to location {1}. Please make sure that the render targets are sorted within the render pass and do not have any gaps in their location mappings.", renderTarget.location(), i - 1);
 
-            if (renderTarget.type() == RenderTargetType::Present)
+            if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
             {
                 // If the render target is a present target, acquire an image view from the swap chain.
                 auto swapChainImages = m_parent->getDevice()->swapChain().images();
@@ -75,12 +77,21 @@ public:
             else
             {
                 // Create an image view for the render target.
-                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, renderTarget.samples());
+                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, samples);
                 attachmentViews.push_back(image->imageView());
                 m_renderTargetViews.push_back(image.get());
                 m_outputAttachments.push_back(std::move(image));
             }
         });
+
+        // If we have a present target and multi sampling is enabled, make sure to add a view for the resolve attachment.
+        if (samples > MultiSamplingLevel::x1 && std::ranges::any_of(m_parent->parent().renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }))
+        {
+            auto swapChainImages = m_parent->getDevice()->swapChain().images();
+            auto image = swapChainImages[m_bufferIndex];
+            m_renderTargetViews.push_back(image);
+            attachmentViews.push_back(image->imageView());
+        }
 
         // Allocate the frame buffer.
         VkFramebufferCreateInfo frameBufferInfo{};

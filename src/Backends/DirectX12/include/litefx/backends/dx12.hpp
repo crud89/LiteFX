@@ -3,7 +3,6 @@
 #include <litefx/rendering.hpp>
 
 #include "dx12_api.hpp"
-#include "dx12_builders.hpp"
 #include "dx12_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
@@ -769,11 +768,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="cullMode">The cull mode used by the pipeline.</param>
 		/// <param name="cullOrder">The cull order used by the pipeline.</param>
 		/// <param name="lineWidth">The line width used by the pipeline.</param>
-		/// <param name="useDepthBias"><c>true</c>, if the depth bias should be enabled.</param>
-		/// <param name="depthBiasClamp">The clamp value of the depth bias state.</param>
-		/// <param name="depthBiasConstantFactor">The constant factor of the depth bias state.</param>
-		/// <param name="depthBiasSlopeFactor">The slope factor of the depth bias state.</param>
-		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP, const Float& depthBiasConstantFactor = D3D12_DEFAULT_DEPTH_BIAS, const Float& depthBiasSlopeFactor = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS) noexcept;
+		/// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
@@ -819,16 +815,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) noexcept override;
 
 		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& enableDepthBias(const bool& enable = false) noexcept override;
+		virtual DirectX12RasterizerBuilder& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept override;
 
 		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withDepthBiasClamp(const Float& clamp = 0.f) noexcept override;
+		virtual DirectX12RasterizerBuilder& withDepthState(const DepthStencilState::DepthState& depthState) noexcept override;
 
 		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withDepthBiasConstantFactor(const Float& factor = 0.f) noexcept override;
-
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withDepthBiasSlopeFactor(const Float& factor = 0.f) noexcept override;
+		virtual DirectX12RasterizerBuilder& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept override;
 	};
 
 	/// <summary>
@@ -843,10 +836,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new DirectX12 render pipeline.
 		/// </summary>
-		/// <param name="renderPass"></param>
-		/// <param name="id"></param>
-		/// <param name="name"></param>
-		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const String& name = "");
+		/// <param name="renderPass">The parent render pass.</param>
+		/// <param name="id">The unique ID of the pipeline within the render pass.</param>
+		/// <param name="name">The optional debug name of the render pipeline.</param>
+		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
+		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage = false, const String& name = "");
 		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
 		DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
 		virtual ~DirectX12RenderPipeline() noexcept;
@@ -876,6 +870,15 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const IScissor*> scissors() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32& stencilRef() const noexcept override;
+
+		/// <inheritdoc />
+		virtual Vector4f& blendFactors() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const bool& alphaToCoverage() const noexcept override;
 
 	public:
 		/// <inheritdoc />
@@ -947,6 +950,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void use(SharedPtr<IScissor> scissor) override;
+
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
 
 		// DirectX12RenderPipelineBuilder.
 	public:
@@ -1083,10 +1089,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Creates and initializes a new DirectX12 render pass instance.
 		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="renderTargets"></param>
-		/// <param name="inputAttachments"></param>
-		explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+		/// <param name="device">The parent device instance.</param>
+		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
+		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
+		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+		explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
 		DirectX12RenderPass(const DirectX12RenderPass&) = delete;
 		DirectX12RenderPass(DirectX12RenderPass&&) = delete;
 		virtual ~DirectX12RenderPass() noexcept;
@@ -1133,6 +1140,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual Span<const DirectX12InputAttachmentMapping> inputAttachments() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept override;
+
 	public:
 		/// <inheritdoc />
 		virtual void begin(const UInt32& buffer) override;
@@ -1142,6 +1152,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
+
+		/// <inheritdoc />
+		virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) override;
 
 		/// <inheritdoc />
 		virtual void updateAttachments(const DirectX12DescriptorSet& descriptorSet) const override;
@@ -1166,7 +1179,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPassBuilderImpl)
 
 	public:
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device) noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1) noexcept;
 		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
 		virtual ~DirectX12RenderPassBuilder() noexcept;
@@ -1175,10 +1188,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(DirectX12InputAttachmentMapping&& inputAttachment) override;
 
 	public:
-		virtual DirectX12RenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const MultiSamplingLevel& samples, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+		virtual DirectX12RenderPassBuilder& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) override;
 		virtual DirectX12RenderPassBuilder& inputAttachment(const DirectX12InputAttachmentMapping& inputAttachment) override;
 		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const UInt32& outputLocation) override;
 		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
@@ -1505,9 +1519,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
 		/// </summary>
+		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
 		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
 		/// <seealso cref="IGraphicsDevice::build" />
-		DirectX12RenderPassBuilder buildRenderPass() const;
+		DirectX12RenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const;
 
 		/// <summary>
 		/// Returns a reference of the swap chain.
@@ -1537,6 +1552,10 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const DirectX12Queue& bufferQueue() const noexcept override;
+
+		/// <inheritdoc />
+		/// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />
+		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
 
 	public:
 		/// <inheritdoc />

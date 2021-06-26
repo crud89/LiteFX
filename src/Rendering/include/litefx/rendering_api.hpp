@@ -461,10 +461,70 @@ namespace LiteFX::Rendering {
 		ClampToBorder = 0x00000003,
 	};
 
+	enum class LITEFX_RENDERING_API CompareOperation {
+		Never = 0x00000000,
+		Less = 0x00000001,
+		Greater = 0x0000002,
+		Equal = 0x00000003,
+		LessEqual = 0x00000004,
+		GreaterEqual = 0x00000005,
+		NotEqual = 0x00000006,
+		Always = 0x00000007
+	};
+
+	enum class LITEFX_RENDERING_API StencilOperation {
+		Keep = 0x00000000,
+		Zero = 0x00000001,
+		Replace = 0x00000002,
+		IncrementClamp = 0x00000003,
+		DecrementClamp = 0x00000004,
+		Invert = 0x00000005,
+		IncrementWrap = 0x00000006,
+		DecrementWrap = 0x00000007
+	};
+
+	enum class LITEFX_RENDERING_API BlendFactor {
+		Zero = 0,
+		One = 1,
+		SourceColor = 2,
+		OneMinusSourceColor = 3,
+		DestinationColor = 4,
+		OneMinusDestinationColor = 5,
+		SourceAlpha = 6,
+		OneMinusSourceAlpha = 7,
+		DestinationAlpha = 8,
+		OneMinusDestinationAlpha = 9,
+		ConstantColor = 10,
+		OneMinusConstantColor = 11,
+		ConstantAlpha = 12,
+		OneMinusConstantAlpha = 13,
+		SourceAlphaSaturate = 14,
+		Source1Color = 15,
+		OneMinusSource1Color = 16,
+		Source1Alpha = 17,
+		OneMinusSource1Alpha = 18
+	};
+
+	enum class LITEFX_RENDERING_API WriteMask {
+		R = 0x01,
+		G = 0x02,
+		B = 0x04,
+		A = 0x08
+	};
+
+	enum class LITEFX_RENDERING_API BlendOperation {
+		Add = 0x01,
+		Subtract = 0x02,
+		ReverseSubtract = 0x03,
+		Minimum = 0x04,
+		Maximum = 0x05
+	};
+
 	// Define flags.
 	LITEFX_DEFINE_FLAGS(QueueType);
 	LITEFX_DEFINE_FLAGS(ShaderStage);
 	LITEFX_DEFINE_FLAGS(BufferFormat);
+	LITEFX_DEFINE_FLAGS(WriteMask)
 
 	// Helper functions.
 	inline UInt32 getBufferFormatChannels(const BufferFormat& format) {
@@ -604,6 +664,53 @@ namespace LiteFX::Rendering {
 	/// <seealso cref="IImage" />
 	class LITEFX_RENDERING_API IRenderTarget {
 	public:
+		/// <summary>
+		/// Describes the blend state of the render target.
+		/// </summary>
+		struct BlendState {
+		public:
+			/// <summary>
+			/// Specifies, if the target should be blended (default: <c>false</c>).
+			/// </summary>
+			bool Enable{ false };
+
+			/// <summary>
+			/// The blend factor for the source color channels (default: <c>BlendFactor::One</c>).
+			/// </summary>
+			BlendFactor SourceColor{ BlendFactor::One };
+
+			/// <summary>
+			/// The blend factor for the destination color channels (default: <c>BlendFactor::Zero</c>).
+			/// </summary>
+			BlendFactor DestinationColor{ BlendFactor::Zero };
+
+			/// <summary>
+			/// The blend factor for the source alpha channel (default: <c>BlendFactor::One</c>).
+			/// </summary>
+			BlendFactor SourceAlpha{ BlendFactor::One };
+
+			/// <summary>
+			/// The blend factor for the destination alpha channels (default: <c>BlendFactor::Zero</c>).
+			/// </summary>
+			BlendFactor DestinationAlpha{ BlendFactor::Zero };
+
+			/// <summary>
+			/// The blend operation for the color channels (default: <c>BlendOperation::Add</c>).
+			/// </summary>
+			BlendOperation ColorOperation{ BlendOperation::Add };
+
+			/// <summary>
+			/// The blend operation for the alpha channel (default: <c>BlendOperation::Add</c>).
+			/// </summary>
+			BlendOperation AlphaOperation{ BlendOperation::Add };
+
+			/// <summary>
+			/// The channel write mask, determining which channels are written to (default: <c>WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A</c>).
+			/// </summary>
+			WriteMask WriteMask{ WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A };
+		};
+
+	public:
 		virtual ~IRenderTarget() noexcept = default;
 
 	public:
@@ -622,12 +729,6 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <returns>The type of the render target.</returns>
 		virtual const RenderTargetType& type() const noexcept = 0;
-
-		/// <summary>
-		/// Returns the number of samples of the render target when used for multi-sampling.
-		/// </summary>
-		/// <returns>The number of samples of the render target.</returns>
-		virtual const MultiSamplingLevel& samples() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the internal format of the render target.
@@ -675,6 +776,12 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
 		virtual const bool& isVolatile() const noexcept = 0;
+
+		/// <summary>
+		/// Returns the render targets blend state.
+		/// </summary>
+		/// <returns>The render targets blend state.</returns>
+		virtual const BlendState& blendState() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -696,9 +803,9 @@ namespace LiteFX::Rendering {
 		/// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
 		/// <param name="clearValues">The values with which the render target gets cleared.</param>
 		/// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
-		/// <param name="samples">The number of samples of the render target when used with multi-sampling.</param>
 		/// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
-		explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& isVolatile = false);
+		/// <param name="blendState">The render target blend state.</param>
+		explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
 		RenderTarget(const RenderTarget&) noexcept;
 		RenderTarget(RenderTarget&&) noexcept;
 		virtual ~RenderTarget() noexcept;
@@ -715,9 +822,6 @@ namespace LiteFX::Rendering {
 		virtual const RenderTargetType& type() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const MultiSamplingLevel& samples() const noexcept override;
-
-		/// <inheritdoc />
 		virtual const Format& format() const noexcept override;
 
 		/// <inheritdoc />
@@ -731,6 +835,9 @@ namespace LiteFX::Rendering {
 
 		/// <inheritdoc />
 		virtual const bool& isVolatile() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BlendState& blendState() const noexcept override;
 	};
 
 	/// <summary>
@@ -776,6 +883,184 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
+	/// Stores the depth/stencil state of a see <cref="IRasterizer" />.
+	/// </summary>
+	class LITEFX_RENDERING_API DepthStencilState {
+		LITEFX_IMPLEMENTATION(DepthStencilStateImpl);
+
+	public:
+		/// <summary>
+		/// Describes the rasterizer depth state.
+		/// </summary>
+		struct DepthState {
+		public:
+			/// <summary>
+			/// Specifies, if depth testing should be enabled (default: <c>true</c>).
+			/// </summary>
+			bool Enable{ true };
+
+			/// <summary>
+			/// Specifies, if depth should be written (default: <c>true</c>).
+			/// </summary>
+			bool Write{ true };
+
+			/// <summary>
+			/// The compare operation used to pass the depth test (default: <c>CompareOperation::Always</c>).
+			/// </summary>
+			CompareOperation Operation{ CompareOperation::Always };
+		};
+
+		/// <summary>
+		/// Describes the rasterizer depth bias.
+		/// </summary>
+		/// <remarks>
+		/// The depth bias can be used to alter the depth value function, i.e. how the values within the depth buffer are distributed. By default, the depth buffer
+		/// uses an exponential function scale to increase precision for closer objects. The values provided with <see cref="depthBiasClamp" />, 
+		/// <see cref="depthBiasConstantFactor" /> and <see cref="depthBiasSlopeFactor" /> are used to change the domain clamping, offset and steepness of the depth
+		/// value distribution.
+		/// </remarks>
+		struct DepthBias {
+		public:
+			/// <summary>
+			/// Specifies, if depth bias should be used (default: <c>false</c>).
+			/// </summary>
+			bool Enable{ false };
+
+			/// <summary>
+			/// Specifies the depth bias clamp (default: <c>0.0</c>).
+			/// </summary>
+			Float Clamp{ 0.f };
+
+			/// <summary>
+			/// Specifies the depth bias slope factor (default: <c>0.0</c>).
+			/// </summary>
+			Float SlopeFactor{ 0.f };
+
+			/// <summary>
+			/// Specifies the depth bias constant factor (default: <c>0.0</c>).
+			/// </summary>
+			Float ConstantFactor{ 0.f };
+		};
+
+		/// <summary>
+		/// Describes a stencil test for either front or back faces.
+		/// </summary>
+		struct StencilTest {
+		public:
+			/// <summary>
+			/// The operation to apply to the stencil buffer, if the stencil test fails (default: <c>StencilOperation::Keep</c>).
+			/// </summary>
+			StencilOperation StencilFailOp{ StencilOperation::Keep };
+
+			/// <summary>
+			/// The operation to apply to the stencil buffer, if the stencil test passes (default: <c>StencilOperation::Keep</c>).
+			/// </summary>
+			StencilOperation StencilPassOp{ StencilOperation::Replace };
+
+			/// <summary>
+			/// The operation to apply to the stencil buffer, if the depth test fails (default: <c>StencilOperation::Keep</c>).
+			/// </summary>
+			StencilOperation DepthFailOp{ StencilOperation::Keep };
+
+			/// <summary>
+			/// The operation use for stencil testing (default: <c>CompareOperation::Never</c>).
+			/// </summary>
+			CompareOperation Operation{ CompareOperation::Never };
+		};
+
+		/// <summary>
+		/// Describes the rasterizer stencil state.
+		/// </summary>
+		struct StencilState {
+		public:
+			/// <summary>
+			/// Specifies, if stencil state should be used (default: <c>false</c>).
+			/// </summary>
+			bool Enable{ false };
+
+			/// <summary>
+			/// Specifies the bits to write to the stencil state (default: <c>0xFF</c>).
+			/// </summary>
+			Byte WriteMask{ 0xFF };
+
+			/// <summary>
+			/// Specifies the bits to read from the stencil state (default: <c>0xFF</c>).
+			/// </summary>
+			Byte ReadMask{ 0xFF };
+
+			/// <summary>
+			/// Describes the stencil test for faces that point towards the camera.
+			/// </summary>
+			StencilTest FrontFace{};
+
+			/// <summary>
+			/// Describes the stencil test for faces that point away from the camera.
+			/// </summary>
+			StencilTest BackFace{};
+		};
+
+	public:
+		/// <summary>
+		/// Initializes a new rasterizer depth/stencil state.
+		/// </summary>
+		/// <param name="depthState">The depth state of the rasterizer.</param>
+		/// <param name="depthBias">The depth bias configuration of the rasterizer.</param>
+		/// <param name="stencilState">The stencil state of the rasterizer.</param>
+		explicit DepthStencilState(const DepthState& depthState, const DepthBias& depthBias, const StencilState& stencilState) noexcept;
+
+		/// <summary>
+		/// Initializes a new rasterizer depth/stencil state.
+		/// </summary>
+		DepthStencilState() noexcept;
+
+		/// <summary>
+		/// Creates a copy of a depth/stencil state.
+		/// </summary>
+		DepthStencilState(const DepthStencilState&) noexcept;
+
+		/// <summary>
+		/// Moves a depth/stencil state.
+		/// </summary>
+		DepthStencilState(DepthStencilState&&) noexcept;
+
+		/// <summary>
+		/// Destroys a depth/stencil state.
+		/// </summary>
+		virtual ~DepthStencilState() noexcept;
+
+		/// <summary>
+		/// Copies a depth/stencil state.
+		/// </summary>
+		/// <returns>A reference to the current depth/stencil state instance.</returns>
+		DepthStencilState& operator=(const DepthStencilState&) noexcept;
+
+		/// <summary>
+		/// Moves a depth/stencil state.
+		/// </summary>
+		/// <returns>A reference to the current depth/stencil state instance.</returns>
+		DepthStencilState& operator=(DepthStencilState&&) noexcept;
+
+	public:
+		/// <summary>
+		/// Returns the depth state.
+		/// </summary>
+		/// <returns>The depth state.</returns>
+		virtual DepthState& depthState() const noexcept;
+
+		/// <summary>
+		/// Returns the depth bias.
+		/// </summary>
+		/// <returns>The depth bias.</returns>
+		virtual DepthBias& depthBias() const noexcept;
+
+		/// <summary>
+		/// Returns the stencil state.
+		/// </summary>
+		/// <returns>The stencil state.</returns>
+		virtual StencilState& stencilState() const noexcept;
+	};
+
+	/// <summary>
 	/// Represents the rasterizer state of a <see cref="IRenderPipeline" />.
 	/// </summary>
 	class LITEFX_RENDERING_API IRasterizer {
@@ -812,37 +1097,10 @@ namespace LiteFX::Rendering {
 		virtual const Float& lineWidth() const noexcept = 0;
 
 		/// <summary>
-		/// Returns <c>true</c>, if the depth bias is used.
+		/// Returns the depth/stencil state of the rasterizer.
 		/// </summary>
-		/// <remarks>
-		/// The depth bias can be used to alter the depth value function, i.e. how the values within the depth buffer are distributed. By default, the depth buffer
-		/// uses an exponential function scale to increase precision for closer objects. The values provided with <see cref="depthBiasClamp" />, 
-		/// <see cref="depthBiasConstantFactor" /> and <see cref="depthBiasSlopeFactor" /> are used to change the domain clamping, offset and steepness of the depth
-		/// value distribution.
-		/// </remarks>
-		/// <returns><c>true</c>, if the depth bias is used.</returns>
-		virtual bool useDepthBias() const noexcept = 0;
-
-		/// <summary>
-		/// Returns the depth bias clamp.
-		/// </summary>
-		/// <returns>The depth bias clamp.</returns>
-		/// <seealso cref="useDepthBias" />
-		virtual const Float& depthBiasClamp() const noexcept = 0;
-
-		/// <summary>
-		/// Returns the constant depth bias factor.
-		/// </summary>
-		/// <returns>The constant depth bias factor.</returns>
-		/// <seealso cref="useDepthBias" />
-		virtual const Float& depthBiasConstantFactor() const noexcept = 0;
-
-		/// <summary>
-		/// Returns the depth bias slope factor.
-		/// </summary>
-		/// <returns>The depth bias slope factor.</returns>
-		/// <seealso cref="useDepthBias" />
-		virtual const Float& depthBiasSlopeFactor() const noexcept = 0;
+		/// <returns>The depth/stencil state of the rasterizer.</returns>
+		virtual const DepthStencilState& depthStencilState() const noexcept = 0;
 	};
 
 	/// <summary>
@@ -859,11 +1117,8 @@ namespace LiteFX::Rendering {
 		/// <param name="cullMode">The cull mode of the rasterizer state.</param>
 		/// <param name="cullOrder">The cull order of the rasterizer state.</param>
 		/// <param name="lineWidth">The line width of the rasterizer state.</param>
-		/// <param name="useDepthBias"><c>true</c>, if the rasterizer state uses the depth bias.</param>
-		/// <param name="depthBiasClamp">The depth bias clamp value of the rasterizer state.</param>
-		/// <param name="depthBiasConstantFactor">The depth bias constant factor of the rasterizer state.</param>
-		/// <param name="depthBiasSlopeFactor">The depth bias slope factor of the rasterizer state.</param>
-		explicit Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const bool& useDepthBias = false, const Float& depthBiasClamp = 1.f, const Float& depthBiasConstantFactor = 0.f, const Float& depthBiasSlopeFactor = 0.f) noexcept;
+		/// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+		explicit Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
 		Rasterizer(Rasterizer&&) noexcept;
 		Rasterizer(const Rasterizer&) noexcept;
 		virtual ~Rasterizer() noexcept;
@@ -882,26 +1137,14 @@ namespace LiteFX::Rendering {
 		virtual const Float& lineWidth() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool useDepthBias() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const Float& depthBiasClamp() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const Float& depthBiasConstantFactor() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const Float& depthBiasSlopeFactor() const noexcept override;
+		virtual const DepthStencilState& depthStencilState() const noexcept override;
 
 	protected:
 		virtual PolygonMode& polygonMode() noexcept;
 		virtual CullMode& cullMode() noexcept;
 		virtual CullOrder& cullOrder() noexcept;
 		virtual Float& lineWidth() noexcept;
-		virtual bool& useDepthBias() noexcept;
-		virtual Float& depthBiasClamp() noexcept;
-		virtual Float& depthBiasConstantFactor() noexcept;
-		virtual Float& depthBiasSlopeFactor() noexcept;
+		virtual DepthStencilState& depthStencilState() noexcept;
 	};
 
 	/// <summary>
@@ -939,28 +1182,22 @@ namespace LiteFX::Rendering {
 		virtual TDerived& withLineWidth(const Float& width) noexcept = 0;
 
 		/// <summary>
-		/// Initializes the rasterizer state to use depth bias.
+		/// Initializes the rasterizer depth bias.
 		/// </summary>
-		/// <param name="enable"><c>true</c>, if the rasterizer should use depth bias.</param>
-		virtual TDerived& enableDepthBias(const bool& enable) noexcept = 0;
+		/// <param name="depthBias">The depth bias the rasterizer should use.</param>
+		virtual TDerived& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept = 0;
 
 		/// <summary>
-		/// Initializes the rasterizer state with the provided depth bias clamp.
+		/// Initializes the rasterizer depth state.
 		/// </summary>
-		/// <param name="clamp">The depth bias clamp to initialize the rasterizer state with.</param>
-		virtual TDerived& withDepthBiasClamp(const Float& clamp) noexcept = 0;
+		/// <param name="depthState">The depth state of the rasterizer.</param>
+		virtual TDerived& withDepthState(const DepthStencilState::DepthState& depthState) noexcept = 0;
 
 		/// <summary>
-		/// Initializes the rasterizer state with the provided depth bias constant factor.
+		/// Initializes the rasterizer stencil state.
 		/// </summary>
-		/// <param name="factor">The depth bias constant factor to initialize the rasterizer state with.</param>
-		virtual TDerived& withDepthBiasConstantFactor(const Float& factor) noexcept = 0;
-
-		/// <summary>
-		/// Initializes the rasterizer state with the provided depth bias slope factor.
-		/// </summary>
-		/// <param name="factor">The depth bias slope factor to initialize the rasterizer state with.</param>
-		virtual TDerived& withDepthBiasSlopeFactor(const Float& factor) noexcept = 0;
+		/// <param name="stencilState">The stencil state of the rasterizer.</param>
+		virtual TDerived& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept = 0;
 	};
 
 	/// <summary>

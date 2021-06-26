@@ -1,10 +1,10 @@
 ###################################################################################################
 #####                                                                                         #####
-#####      LiteFX.Samples.DX12.DeferredShading - Contains the deferred renderer sample.       #####
+#####         LiteFX.Samples.DX12.Multisampling - Contains the multi-sampling sample.         #####
 #####                                                                                         #####
 ###################################################################################################
 
-PROJECT(LiteFX.Samples.DX12.DeferredShading VERSION ${LITEFX_VERSION} LANGUAGES CXX)
+PROJECT(LiteFX.Samples.DX12.Multisampling VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 IF(NOT BUILD_DIRECTX_12_BACKEND)
@@ -22,24 +22,24 @@ FIND_PACKAGE(cli11 CONFIG REQUIRED)
 CONFIGURE_FILE("../config.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/src/config.h")
 
 # Collect header & source files.
-SET(SAMPLE_DIRECTX_12_DEFERRED_SHADING_HEADERS
+SET(SAMPLE_DIRECTX_12_MULTISAMPLING_HEADERS
     "src/sample.h"
 )
 
-SET(SAMPLE_DIRECTX_12_DEFERRED_SHADING_SOURCES
+SET(SAMPLE_DIRECTX_12_MULTISAMPLING_SOURCES
     "src/main.cpp"
     "src/sample.cpp"
 )
 
 # Add shared library project.
 ADD_EXECUTABLE(${PROJECT_NAME} 
-    ${SAMPLE_DIRECTX_12_DEFERRED_SHADING_HEADERS}
-    ${SAMPLE_DIRECTX_12_DEFERRED_SHADING_SOURCES}
+    ${SAMPLE_DIRECTX_12_MULTISAMPLING_HEADERS}
+    ${SAMPLE_DIRECTX_12_MULTISAMPLING_SOURCES}
     "${CMAKE_CURRENT_BINARY_DIR}/src/config.h"
 )
 
 # Create source groups for better code organization.
-SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SAMPLE_DIRECTX_12_DEFERRED_SHADING_HEADERS} ${SAMPLE_DIRECTX_12_DEFERRED_SHADING_SOURCES})
+SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SAMPLE_DIRECTX_12_MULTISAMPLING_HEADERS} ${SAMPLE_DIRECTX_12_MULTISAMPLING_SOURCES})
 
 # Setup project properties.
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
@@ -55,18 +55,14 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE "src/" "${CMAKE_CURRENT_BINAR
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE LiteFX.Core LiteFX.Math LiteFX.AppModel LiteFX.Rendering LiteFX.Backends.DirectX12 glfw CLI11::CLI11)
 
 # Add shader sources.
-ADD_SHADER_MODULE(${PROJECT_NAME}.Shaders.GeomPass.VS  SOURCE "shaders/deferred_shading_geometry_pass_vs.hlsl" LANGUAGE HLSL TYPE VERTEX COMPILE_AS DXIL SHADER_MODEL ${BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
-ADD_SHADER_MODULE(${PROJECT_NAME}.Shaders.GeomPass.PS  SOURCE "shaders/deferred_shading_geometry_pass_ps.hlsl" LANGUAGE HLSL TYPE PIXEL  COMPILE_AS DXIL SHADER_MODEL ${BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
-ADD_SHADER_MODULE(${PROJECT_NAME}.Shaders.LightPass.VS SOURCE "shaders/deferred_shading_lighting_pass_vs.hlsl" LANGUAGE HLSL TYPE VERTEX COMPILE_AS DXIL SHADER_MODEL ${BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
-ADD_SHADER_MODULE(${PROJECT_NAME}.Shaders.LightPass.PS SOURCE "shaders/deferred_shading_lighting_pass_ps.hlsl" LANGUAGE HLSL TYPE PIXEL  COMPILE_AS DXIL SHADER_MODEL ${BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
-SET_TARGET_PROPERTIES(${PROJECT_NAME}.Shaders.GeomPass.VS  PROPERTIES FOLDER "Samples/DirectX 12/Shaders")
-SET_TARGET_PROPERTIES(${PROJECT_NAME}.Shaders.GeomPass.PS  PROPERTIES FOLDER "Samples/DirectX 12/Shaders")
-SET_TARGET_PROPERTIES(${PROJECT_NAME}.Shaders.LightPass.VS PROPERTIES FOLDER "Samples/DirectX 12/Shaders")
-SET_TARGET_PROPERTIES(${PROJECT_NAME}.Shaders.LightPass.PS PROPERTIES FOLDER "Samples/DirectX 12/Shaders")
+ADD_SHADER_MODULE(${PROJECT_NAME}.Shaders.VS SOURCE "shaders/multisampling_vs.hlsl" LANGUAGE HLSL TYPE VERTEX COMPILE_AS DXIL SHADER_MODEL ${BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+ADD_SHADER_MODULE(${PROJECT_NAME}.Shaders.PS SOURCE "shaders/multisampling_ps.hlsl" LANGUAGE HLSL TYPE PIXEL  COMPILE_AS DXIL SHADER_MODEL ${BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+SET_TARGET_PROPERTIES(${PROJECT_NAME}.Shaders.VS PROPERTIES FOLDER "Samples/DirectX 12/Shaders")
+SET_TARGET_PROPERTIES(${PROJECT_NAME}.Shaders.PS PROPERTIES FOLDER "Samples/DirectX 12/Shaders")
 
 TARGET_LINK_SHADERS(${PROJECT_NAME} 
     INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
-    SHADERS ${PROJECT_NAME}.Shaders.GeomPass.VS ${PROJECT_NAME}.Shaders.GeomPass.PS ${PROJECT_NAME}.Shaders.LightPass.VS ${PROJECT_NAME}.Shaders.LightPass.PS
+    SHADERS ${PROJECT_NAME}.Shaders.VS ${PROJECT_NAME}.Shaders.PS
 )
 
 # Re-use pre-compiled core header.
@@ -84,4 +80,4 @@ INSTALL(TARGETS ${PROJECT_NAME} EXPORT LiteFXSamples
 
 # Export config.
 INSTALL(EXPORT LiteFXSamples DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
-EXPORT(TARGETS ${PROJECT_NAME} FILE LiteFXSamplesDXDeferredShadingConfig.cmake)
+EXPORT(TARGETS ${PROJECT_NAME} FILE LiteFXSamplesDXMultiSamplingConfig.cmake)
