@@ -163,6 +163,10 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     
     IF(${compile_as} STREQUAL "SPIRV")
       LIST(APPEND compiler_options -D SPIRV)
+      
+      IF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
+        LIST(APPEND compiler_options -fvk-invert-y)
+      ENDIF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
 
       ADD_CUSTOM_TARGET(${target_name} 
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
