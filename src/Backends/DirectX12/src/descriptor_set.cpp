@@ -84,19 +84,31 @@ UniquePtr<IDirectX12Sampler> DirectX12DescriptorSet::makeSampler(const UInt32& b
     return this->getDevice()->factory().createSampler(this->parent().layout(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement) const noexcept
+void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const noexcept
 {
-    D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferView = {
-        .BufferLocation = buffer.handle()->GetGPUVirtualAddress() + static_cast<size_t>(bufferElement) * buffer.alignedElementSize(),
-        .SizeInBytes = static_cast<UInt32>(buffer.alignedElementSize())
-    };
+    if (bufferElement + elements > buffer.elements()) [[unlikely]]
+        LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elements, bufferElement);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), buffer.layout().binding(), this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-    this->getDevice()->handle()->CreateConstantBufferView(&constantBufferView, descriptorHandle);
+    auto offset = this->parent().descriptorOffsetForBinding(buffer.layout().binding()) + firstDescriptor;
+    auto descriptorSize = this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
+
+    for (UInt32 i(0); i < elements; ++i)
+    {
+        D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferView = {
+            .BufferLocation = buffer.handle()->GetGPUVirtualAddress() + static_cast<size_t>(bufferElement + i) * buffer.alignedElementSize(),
+            .SizeInBytes = static_cast<UInt32>(buffer.alignedElementSize())
+        };
+
+        this->getDevice()->handle()->CreateConstantBufferView(&constantBufferView, descriptorHandle);
+        descriptorHandle = descriptorHandle.Offset(descriptorSize);
+    }
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Texture& texture) const noexcept
+void DirectX12DescriptorSet::update(const IDirectX12Texture& texture, const UInt32& descriptor) const noexcept
 {
+    auto offset = this->parent().descriptorOffsetForBinding(texture.layout().binding());
+
     D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
         .Format = ::getFormat(texture.format()),
         .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
@@ -104,12 +116,14 @@ void DirectX12DescriptorSet::update(const IDirectX12Texture& texture) const noex
         .Texture2D = { .MostDetailedMip = 0, .MipLevels = texture.levels(), .PlaneSlice = 0, .ResourceMinLODClamp = 0 }
     };
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), texture.layout().binding(), this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
     this->getDevice()->handle()->CreateShaderResourceView(texture.handle().Get(), &textureView, descriptorHandle);
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler) const noexcept
+void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler, const UInt32& descriptor) const noexcept
 {
+    auto offset = this->parent().descriptorOffsetForBinding(sampler.layout().binding());
+
     D3D12_SAMPLER_DESC samplerInfo = {
         .Filter = m_impl->getFilterMode(sampler.getMinifyingFilter(), sampler.getMagnifyingFilter(), sampler.getMipMapMode(), sampler.getAnisotropy()),
         .AddressU = m_impl->getBorderMode(sampler.getBorderModeU()),
@@ -117,18 +131,20 @@ void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler) const noex
         .AddressW = m_impl->getBorderMode(sampler.getBorderModeW()),
         .MipLODBias = sampler.getMipMapBias(),
         .MaxAnisotropy = static_cast<UInt32>(sampler.getAnisotropy()),
-        .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,		// TODO: Check me.
+        .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
         .BorderColor = { 0.f, 0.f, 0.f, 0.f },
         .MinLOD = sampler.getMinLOD(),
         .MaxLOD = sampler.getMaxLOD()
     };
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), sampler.layout().binding(), this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
     this->getDevice()->handle()->CreateSampler(&samplerInfo, descriptorHandle);
 }
 
 void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const noexcept
 {
+    auto offset = this->parent().descriptorOffsetForBinding(binding);
+
     D3D12_SHADER_RESOURCE_VIEW_DESC inputAttachmentView = {
         .Format = ::getFormat(image.format()),
         .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
@@ -151,7 +167,7 @@ void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image
         }
     }
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), binding, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
     this->getDevice()->handle()->CreateShaderResourceView(image.handle().Get(), &inputAttachmentView, descriptorHandle);
 }
 

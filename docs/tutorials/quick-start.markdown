@@ -418,15 +418,15 @@ Vertex and index buffers are two examples of data, that is typically written onc
 ```cxx
 const Array<Vertex> vertices =
 {
-    { { 0.0f, 0.0f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, 0.0f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, 0.0f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, 0.0f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, 0.0f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
 };
 
 const Array<UInt16> indices = { 0, 1, 2 };
 ```
 
-We define a vertex buffer with three vertices, each with a different color. The last two values represent the texture coordinate, which we do not want to use yet. It is totally possible to use a custom `Vertex` object. Just keep in mind to change the input assembler state accordingly. We specify the index buffer to form a triangle from all three vertices. The order of the indices is specified by the `CullOrder` we defined in the rasterizer state. 
+We define a vertex buffer with three vertices, each with a different color. The last two vectors represent the normal and texture coordinate, which we do not want to use yet. It is totally possible to use a custom `Vertex` object. Just keep in mind to change the input assembler state accordingly. We specify the index buffer to form a triangle from all three vertices. The order of the indices is specified by the `CullOrder` we defined in the rasterizer state. 
 
 Next, let's transfer the buffers to the GPU. We start of by storing the input assembler reference (for easier access) and creating a command buffer to record all transfer commands. We do this right below the pipeline creation code:
 
