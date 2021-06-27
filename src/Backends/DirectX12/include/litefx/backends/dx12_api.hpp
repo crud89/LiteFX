@@ -103,6 +103,11 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
+    D3D12_RESOURCE_DIMENSION LITEFX_DIRECTX12_API getImageType(const ImageDimensions& dimensions);
+
+    /// <summary>
+    /// 
+    /// </summary>
     PolygonMode LITEFX_DIRECTX12_API getPolygonMode(const D3D12_FILL_MODE& mode);
 
     /// <summary>

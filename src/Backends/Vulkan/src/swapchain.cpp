@@ -113,7 +113,7 @@ public:
 		::vkGetSwapchainImagesKHR(m_parent->getDevice()->handle(), swapChain, &images, imageChain.data());
 
 		m_presentImages = imageChain |
-			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(*m_parent->getDevice(), image, actualRenderArea, selectedFormat); }) |
+			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(*m_parent->getDevice(), image, actualRenderArea, selectedFormat, ImageDimensions::DIM_2); }) |
 			ranges::to<Array<UniquePtr<IVulkanImage>>>();
 
 		// Store state variables.

@@ -335,6 +335,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The internal format of the image.</returns>
         virtual const Format& format() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the images dimensionality.
+        /// </summary>
+        /// <returns>The images dimensionality.</returns>
+        virtual const ImageDimensions& dimensions() const noexcept = 0;
     };
 
     /// <summary>
@@ -555,11 +561,12 @@ namespace LiteFX::Rendering {
             /// <param name="binding">The binding to create the texture for.</param>
             /// <param name="format">The format of the texture.</param>
             /// <param name="size">Size of the texture.</param>
+            /// <param name="dimensions">The dimensions of the texture.</param>
             /// <param name="levels">The number of mip map levels of the texture.</param>
             /// <param name="samples">The number of samples of the texture.</param>
             /// <returns>The texture for the provided binding.</returns>
             /// <seealso cref="update" />
-            virtual UniquePtr<TTexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+            virtual UniquePtr<TTexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const ImageDimensions& dimensions = ImageDimensions::DIM_2, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
             /// <summary>
             /// A helper method to create a sampler for the binding provided with <paramref name="binding" />.
@@ -1730,10 +1737,11 @@ namespace LiteFX::Rendering {
             /// </summary>
             /// <param name="format">The format of the image.</param>
             /// <param name="size">The extent of the image.</param>
+            /// <param name="dimension">The dimensionality of the image.</param>
             /// <param name="levels">The number of mip map levels of the image.</param>
             /// <param name="samples">The number of samples, the image should be sampled with.</param>
             /// <returns>An instance of the image.</returns>
-            virtual UniquePtr<TImageInterface> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+            virtual UniquePtr<TImageInterface> createImage(const Format& format, const Size2d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
             /// <summary>
             /// Creates an image that is used as render target attachment.
@@ -1801,11 +1809,12 @@ namespace LiteFX::Rendering {
             /// <param name="layout">The layout of the texture.</param>
             /// <param name="format">The format of the texture image.</param>
             /// <param name="size">The dimensions of the texture.</param>
+            /// <param name="dimension">The dimensionality of the texture.</param>
             /// <param name="levels">The number of mip map levels of the texture.</param>
             /// <param name="samples">The number of samples, the texture should be sampled with.</param>
             /// <returns>The instance of the texture.</returns>
             /// <seealso cref="createTextures" />
-            virtual UniquePtr<TTextureInterface> createTexture(const TDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+            virtual UniquePtr<TTextureInterface> createTexture(const TDescriptorLayout& layout, const Format& format, const Size2d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
             /// <summary>
             /// Creates an array of textures, based on the <paramref name="layout" />.
@@ -1818,7 +1827,7 @@ namespace LiteFX::Rendering {
             /// <param name="samples">The number of samples, the textures should be sampled with.</param>
             /// <returns>An array of texture instances.</returns>
             /// <seealso cref="createTexture" />
-            virtual Array<UniquePtr<TTextureInterface>> createTextures(const TDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+            virtual Array<UniquePtr<TTextureInterface>> createTextures(const TDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
             /// <summary>
             /// Creates a texture sampler, based on the <paramref name="layout" />.

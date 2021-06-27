@@ -17,16 +17,17 @@ private:
 	Format m_format;
 	Size2d m_extent;
 	UInt32 m_elements{ 1 };
+	ImageDimensions m_dimensions;
 
 public:
-	VulkanImageImpl(VulkanImage* parent, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
-		base(parent), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format)
+	VulkanImageImpl(VulkanImage* parent, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, VmaAllocator allocator, VmaAllocation allocation) :
+		base(parent), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format), m_dimensions(dimensions)
 	{
 		VkImageViewCreateInfo createInfo = {};
 
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.image = m_parent->handle();
-		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.viewType = ::getImageViewType(dimensions);
 		createInfo.format = ::getFormat(m_format);
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -54,8 +55,8 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size2d& extent, const Format& format, VmaAllocator allocator, VmaAllocation allocation) :
-	m_impl(makePimpl<VulkanImageImpl>(this, extent, format, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkImage>(image)
+VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, VmaAllocator allocator, VmaAllocation allocation) :
+	m_impl(makePimpl<VulkanImageImpl>(this, extent, format, dimensions, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkImage>(image)
 {
 }
 
@@ -106,6 +107,11 @@ const Format& VulkanImage::format() const noexcept
 	return m_impl->m_format;
 }
 
+const ImageDimensions& VulkanImage::dimensions() const noexcept
+{
+	return m_impl->m_dimensions;
+}
+
 const VkImageView& VulkanImage::imageView() const noexcept
 {
 	return m_impl->m_view;
@@ -126,7 +132,7 @@ VkImageView& VulkanImage::imageView() noexcept
 	return m_impl->m_view;
 }
 
-UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkImage image;
 	VmaAllocation allocation;
@@ -134,7 +140,7 @@ UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const S
 	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4} }}", fmt::ptr(reinterpret_cast<void*>(image)), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format);
 
-	return makeUnique<VulkanImage>(device, image, extent, format, allocator, allocation);
+	return makeUnique<VulkanImage>(device, image, extent, format, dimensions, allocator, allocation);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -162,8 +168,8 @@ public:
 // Texture shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
-	VulkanImage(device, image, extent, format, allocator, allocation), m_impl(makePimpl<VulkanTextureImpl>(this, imageLayout, layout, levels, samples))
+VulkanTexture::VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
+	VulkanImage(device, image, extent, format, dimensions, allocator, allocation), m_impl(makePimpl<VulkanTextureImpl>(this, imageLayout, layout, levels, samples))
 {
 }
 
@@ -356,7 +362,7 @@ void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const I
 	::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &endTransitionBarrier);
 }
 
-UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	// Allocate the buffer.
 	VkImage image;
@@ -365,7 +371,7 @@ UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, con
 	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Samples: {6} }}", fmt::ptr(reinterpret_cast<void*>(image)), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, samples);
 
-	return makeUnique<VulkanTexture>(device, layout, image, createInfo.initialLayout, extent, format, levels, samples, allocator, allocation);
+	return makeUnique<VulkanTexture>(device, layout, image, createInfo.initialLayout, extent, format, dimensions, levels, samples, allocator, allocation);
 }
 
 // ------------------------------------------------------------------------------------------------

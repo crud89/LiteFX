@@ -21,9 +21,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="image"></param>
 		/// <param name="extent"></param>
 		/// <param name="format"></param>
+		/// <param name="dimension"></param>
+		/// <param name="initialState"></param>
 		/// <param name="allocator"></param>
 		/// <param name="allocation"></param>
-		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size2d& extent, const Format& format, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
+		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size2d& extent, const Format& format, const ImageDimensions& dimension, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
 		DirectX12Image(DirectX12Image&&) = delete;
 		DirectX12Image(const DirectX12Image&) = delete;
 		virtual ~DirectX12Image() noexcept;
@@ -53,6 +55,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const Format& format() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const ImageDimensions& dimensions() const noexcept override;
+
 		// IDirectX12Resource interface.
 	public:
 		virtual const D3D12_RESOURCE_STATES& state() const noexcept override;
@@ -70,15 +75,15 @@ namespace LiteFX::Rendering::Backends {
 		/// 
 		/// </summary>
 		/// <param name="device"></param>
-		/// <param name="elements"></param>
+		/// <param name="allocator"></param>
 		/// <param name="extent"></param>
 		/// <param name="format"></param>
-		/// <param name="allocator"></param>
-		/// <param name="createInfo"></param>
-		/// <param name="allocationInfo"></param>
-		/// <param name="allocationResult"></param>
+		/// <param name="dimension"></param>
+		/// <param name="initialState"></param>
+		/// <param name="resourceDesc"></param>
+		/// <param name="allocationDesc"></param>
 		/// <returns></returns>
-		static UniquePtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size2d& extent, const Format& format, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size2d& extent, const Format& format, const ImageDimensions& dimension, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
 	/// <summary>
@@ -101,7 +106,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="initialState"></param>
 		/// <param name="allocator"></param>
 		/// <param name="allocation"></param>
-		explicit DirectX12Texture(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, ComPtr<ID3D12Resource>&& image, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
+		explicit DirectX12Texture(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, ComPtr<ID3D12Resource>&& image, const Size2d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
 		DirectX12Texture(DirectX12Texture&&) = delete;
 		DirectX12Texture(const DirectX12Texture&) = delete;
 		virtual ~DirectX12Texture() noexcept;
@@ -151,7 +156,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="resourceDesc"></param>
 		/// <param name="allocationDesc"></param>
 		/// <returns></returns>
-		static UniquePtr<DirectX12Texture> allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<DirectX12Texture> allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const Size2d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
 	/// <summary>

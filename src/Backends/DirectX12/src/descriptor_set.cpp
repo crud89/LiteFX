@@ -74,9 +74,9 @@ UniquePtr<IDirectX12ConstantBuffer> DirectX12DescriptorSet::makeBuffer(const UIn
     return this->getDevice()->factory().createConstantBuffer(this->parent().layout(binding), usage, elements);
 }
 
-UniquePtr<IDirectX12Texture> DirectX12DescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<IDirectX12Texture> DirectX12DescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const ImageDimensions& dimension, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
-    return this->getDevice()->factory().createTexture(this->parent().layout(binding), format, size, levels, samples);
+    return this->getDevice()->factory().createTexture(this->parent().layout(binding), format, size, dimension, levels, samples);
 }
 
 UniquePtr<IDirectX12Sampler> DirectX12DescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) const

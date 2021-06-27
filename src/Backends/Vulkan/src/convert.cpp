@@ -829,6 +829,36 @@ MultiSamplingLevel LiteFX::Rendering::Backends::getSamples(const VkSampleCountFl
 	}
 }
 
+VkImageType LiteFX::Rendering::Backends::getImageType(const ImageDimensions& dimension)
+{
+	switch (dimension)
+	{
+	case ImageDimensions::DIM_1:
+		return VkImageType::VK_IMAGE_TYPE_1D;
+	case ImageDimensions::DIM_2:
+		return VkImageType::VK_IMAGE_TYPE_2D;
+	case ImageDimensions::DIM_3:
+		return VkImageType::VK_IMAGE_TYPE_3D;
+	default:
+		throw std::invalid_argument("Unsupported image dimension.");
+	}
+}
+
+VkImageViewType LiteFX::Rendering::Backends::getImageViewType(const ImageDimensions& dimension)
+{
+	switch (dimension)
+	{
+	case ImageDimensions::DIM_1:
+		return VkImageViewType::VK_IMAGE_VIEW_TYPE_1D;
+	case ImageDimensions::DIM_2:
+		return VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
+	case ImageDimensions::DIM_3:
+		return VkImageViewType::VK_IMAGE_VIEW_TYPE_3D;
+	default:
+		throw std::invalid_argument("Unsupported image dimension.");
+	}
+}
+
 VkSampleCountFlagBits LiteFX::Rendering::Backends::getSamples(const MultiSamplingLevel& samples)
 {
 	switch (samples)

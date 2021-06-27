@@ -20,9 +20,12 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="device"></param>
 		/// <param name="image"></param>
+		/// <param name="extent"></param>
+		/// <param name="format"></param>
+		/// <param name="dimensions"></param>
 		/// <param name="allocator"></param>
 		/// <param name="allocation"></param>
-		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size2d& extent, const Format& format, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
+		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
 		VulkanImage(VulkanImage&&) = delete;
 		VulkanImage(const VulkanImage&) = delete;
 		virtual ~VulkanImage() noexcept;
@@ -52,6 +55,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const Format& format() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const ImageDimensions& dimensions() const noexcept override;
+
 		// IVulkanImage interface.
 	public:
 		/// <inheritdoc />
@@ -67,15 +73,15 @@ namespace LiteFX::Rendering::Backends {
 		/// 
 		/// </summary>
 		/// <param name="device"></param>
-		/// <param name="elements"></param>
 		/// <param name="extent"></param>
 		/// <param name="format"></param>
+		/// <param name="dimensions"></param>
 		/// <param name="allocator"></param>
 		/// <param name="createInfo"></param>
 		/// <param name="allocationInfo"></param>
 		/// <param name="allocationResult"></param>
 		/// <returns></returns>
-		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
@@ -94,11 +100,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="imageLayout"></param>
 		/// <param name="extent"></param>
 		/// <param name="format"></param>
+		/// <param name="dimensions"></param>
 		/// <param name="levels"></param>
 		/// <param name="samples"></param>
 		/// <param name="allocator"></param>
 		/// <param name="allocation"></param>
-		explicit VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
+		explicit VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
 		VulkanTexture(VulkanTexture&&) = delete;
 		VulkanTexture(const VulkanTexture&) = delete;
 		virtual ~VulkanTexture() noexcept;
@@ -151,6 +158,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="layout"></param>
 		/// <param name="extent"></param>
 		/// <param name="format"></param>
+		/// <param name="dimensions"></param>
 		/// <param name="levels"></param>
 		/// <param name="samples"></param>
 		/// <param name="allocator"></param>
@@ -158,7 +166,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="allocationInfo"></param>
 		/// <param name="allocationResult"></param>
 		/// <returns></returns>
-		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size2d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>

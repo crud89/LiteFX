@@ -433,6 +433,12 @@ namespace LiteFX::Rendering {
         Present = 0x00000004
     };
 
+    enum class LITEFX_RENDERING_API ImageDimensions {
+        DIM_1 = 0x01,
+        DIM_2 = 0x02,
+        DIM_3 = 0x03
+    };
+
     enum class LITEFX_RENDERING_API MultiSamplingLevel {
         x1 = 0x00000001,
         x2 = 0x00000002,
