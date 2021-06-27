@@ -298,7 +298,7 @@ void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
-void DirectX12RenderPass::changeMultiSamplingLevel(const const MultiSamplingLevel& samples)
+void DirectX12RenderPass::changeMultiSamplingLevel(const MultiSamplingLevel& samples)
 {
     // Check if we're currently running.
     if (m_impl->m_activeFrameBuffer != nullptr)

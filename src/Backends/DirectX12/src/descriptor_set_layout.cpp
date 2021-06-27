@@ -16,6 +16,7 @@ private:
     UInt32 m_space, m_samplers{ 0 }, m_descriptors{ 0 }, m_rootParameterIndex{ 0 };
     ShaderStage m_stages;
     Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets, m_freeSamplerSets;
+    Dictionary<UInt32, UInt32> m_bindingToDescriptor;
     mutable std::mutex m_mutex;
 
 public:
@@ -34,13 +35,23 @@ public:
     {
         LITEFX_TRACE(DIRECTX12_LOG, "Defining layout for descriptor set {0} {{ Stages: {1} }}...", m_space, m_stages);
 
+        // Sort the layouts by binding.
+        std::sort(std::begin(m_layouts), std::end(m_layouts), [](const UniquePtr<DirectX12DescriptorLayout>& a, const UniquePtr<DirectX12DescriptorLayout>& b) { return a->binding() < b->binding(); });
+
+        // Count the samplers and descriptors.
         std::ranges::for_each(m_layouts, [&, i = 0](const UniquePtr<DirectX12DescriptorLayout>& layout) mutable {
             LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout->descriptorType(), layout->elementSize(), 0, layout->binding());
             
             if (layout->descriptorType() == DescriptorType::Sampler)
-                m_samplers++;
+            {
+                m_bindingToDescriptor[layout->binding(), m_samplers];
+                m_samplers += layout->descriptors();
+            }
             else
-                m_descriptors++;
+            {
+                m_bindingToDescriptor[layout->binding(), m_descriptors];
+                m_descriptors += layout->descriptors();
+            }
         });
     }
 
@@ -105,6 +116,14 @@ DirectX12DescriptorSetLayout::~DirectX12DescriptorSetLayout() noexcept = default
 const UInt32& DirectX12DescriptorSetLayout::rootParameterIndex() const noexcept
 {
     return m_impl->m_rootParameterIndex;
+}
+
+UInt32 DirectX12DescriptorSetLayout::descriptorOffsetForBinding(const UInt32& binding) const
+{
+    if (!m_impl->m_bindingToDescriptor.contains(binding)) [[unlikely]]
+        throw ArgumentOutOfRangeException("The descriptor set does not contain a descriptor at binding {0}.", binding);
+
+    return m_impl->m_bindingToDescriptor[binding];
 }
 
 Array<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::layouts() const noexcept
@@ -228,9 +247,9 @@ DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::addDes
     return *this;
 }
 
-DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize)
+DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
 {
-    return this->addDescriptor(makeUnique<DirectX12DescriptorLayout>(*(this->instance()), type, binding, descriptorSize));
+    return this->addDescriptor(makeUnique<DirectX12DescriptorLayout>(*(this->instance()), type, binding, descriptorSize, descriptors));
 }
 
 DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
