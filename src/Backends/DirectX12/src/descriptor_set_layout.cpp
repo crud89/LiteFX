@@ -44,12 +44,12 @@ public:
             
             if (layout->descriptorType() == DescriptorType::Sampler)
             {
-                m_bindingToDescriptor[layout->binding(), m_samplers];
+                m_bindingToDescriptor[layout->binding()] = m_samplers;
                 m_samplers += layout->descriptors();
             }
             else
             {
-                m_bindingToDescriptor[layout->binding(), m_descriptors];
+                m_bindingToDescriptor[layout->binding()] = m_descriptors;
                 m_descriptors += layout->descriptors();
             }
         });
