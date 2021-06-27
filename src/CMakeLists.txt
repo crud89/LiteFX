@@ -56,6 +56,7 @@ IF(BUILD_EXAMPLES AND BUILD_DIRECTX_12_BACKEND)
     ADD_SUBDIRECTORY(Samples/DirectX12/Textures)
     ADD_SUBDIRECTORY(Samples/DirectX12/DeferredShading)
     ADD_SUBDIRECTORY(Samples/DirectX12/Multisampling)
+    ADD_SUBDIRECTORY(Samples/DirectX12/UniformArrays)
 ENDIF(BUILD_EXAMPLES AND BUILD_DIRECTX_12_BACKEND)
 
 # Install license notice.
