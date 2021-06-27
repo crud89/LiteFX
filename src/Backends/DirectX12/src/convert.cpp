@@ -352,6 +352,7 @@ D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::getImageType(const ImageDi
 	case ImageDimensions::DIM_1:
 		return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 	case ImageDimensions::DIM_2:
+	case ImageDimensions::CUBE:
 		return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	case ImageDimensions::DIM_3:
 		return D3D12_RESOURCE_DIMENSION_TEXTURE3D;

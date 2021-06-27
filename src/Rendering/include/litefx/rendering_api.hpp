@@ -436,7 +436,8 @@ namespace LiteFX::Rendering {
     enum class LITEFX_RENDERING_API ImageDimensions {
         DIM_1 = 0x01,
         DIM_2 = 0x02,
-        DIM_3 = 0x03
+        DIM_3 = 0x03,
+        CUBE = 0x04
     };
 
     enum class LITEFX_RENDERING_API MultiSamplingLevel {

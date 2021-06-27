@@ -836,6 +836,7 @@ VkImageType LiteFX::Rendering::Backends::getImageType(const ImageDimensions& dim
 	case ImageDimensions::DIM_1:
 		return VkImageType::VK_IMAGE_TYPE_1D;
 	case ImageDimensions::DIM_2:
+	case ImageDimensions::CUBE:
 		return VkImageType::VK_IMAGE_TYPE_2D;
 	case ImageDimensions::DIM_3:
 		return VkImageType::VK_IMAGE_TYPE_3D;
@@ -854,6 +855,8 @@ VkImageViewType LiteFX::Rendering::Backends::getImageViewType(const ImageDimensi
 		return VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
 	case ImageDimensions::DIM_3:
 		return VkImageViewType::VK_IMAGE_VIEW_TYPE_3D;
+	case ImageDimensions::CUBE:
+		return VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE;
 	default:
 		throw std::invalid_argument("Unsupported image dimension.");
 	}
