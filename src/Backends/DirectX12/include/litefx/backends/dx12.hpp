@@ -81,7 +81,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a see <cref="DirectX12VertexBufferLayout" />.
+	/// Builds a see <see cref="DirectX12VertexBufferLayout" />.
 	/// </summary>
 	/// <seealso cref="DirectX12VertexBuffer" />
 	/// <seealso cref="DirectX12VertexBufferLayout" />
