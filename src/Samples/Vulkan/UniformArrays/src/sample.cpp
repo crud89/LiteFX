@@ -109,6 +109,7 @@ void SampleApp::initPipelines()
             .addVertexBuffer(sizeof(Vertex), 0)
                 .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
                 .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                .addAttribute(2, BufferFormat::XYZ32F, offsetof(Vertex, Normal))
                 .go()
             .go()
         .go();
@@ -175,21 +176,21 @@ void SampleApp::initBuffers()
 
 void SampleApp::initLights()
 {
-    lights[0] = LightBuffer{ .Position = { -1.f, -1.f, -1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 4.f, 1.f, 0.f, 1.f } };
-    lights[1] = LightBuffer{ .Position = {  1.f, -1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 0.f, 1.f }, .Properties = { 4.f, 1.f, 0.f, 1.f } };
-    lights[2] = LightBuffer{ .Position = { -1.f,  1.f, -1.f, 1.f }, .Color = { 0.f, 1.f, 1.f, 1.f }, .Properties = { 4.f, 1.f, 0.f, 1.f } };
-    lights[3] = LightBuffer{ .Position = {  1.f,  1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 1.f, 1.f }, .Properties = { 4.f, 1.f, 0.f, 1.f } };
-    lights[4] = LightBuffer{ .Position = { -1.f, -1.f,  1.f, 1.f }, .Color = { 0.f, 1.f, 0.f, 1.f }, .Properties = { 4.f, 1.f, 0.f, 1.f } };
-    lights[5] = LightBuffer{ .Position = {  1.f, -1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 1.f, 1.f }, .Properties = { 4.f, 1.f, 0.f, 1.f } };
-    lights[6] = LightBuffer{ .Position = { -1.f,  1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 0.f, 1.f }, .Properties = { 4.f, 1.f, 0.f, 1.f } };
-    lights[7] = LightBuffer{ .Position = {  1.f,  1.f,  1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 4.f, 1.f, 0.f, 1.f } };
+    lights[0] = LightBuffer{ .Position = { -1.f, -1.f, -1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[1] = LightBuffer{ .Position = {  1.f, -1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[2] = LightBuffer{ .Position = { -1.f,  1.f, -1.f, 1.f }, .Color = { 0.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[3] = LightBuffer{ .Position = {  1.f,  1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[4] = LightBuffer{ .Position = { -1.f, -1.f,  1.f, 1.f }, .Color = { 0.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[5] = LightBuffer{ .Position = {  1.f, -1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[6] = LightBuffer{ .Position = { -1.f,  1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[7] = LightBuffer{ .Position = {  1.f,  1.f,  1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
 }
 
 void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    camera.Position = glm::vec4(1.5f, 1.5f, 1.5f, 1.f);
+    camera.Position = glm::vec4(3.0f, 0.0f, 1.5f, 1.f);
     glm::mat4 view = glm::lookAt(glm::vec3(camera.Position), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;

@@ -3,7 +3,9 @@
 struct VertexData 
 {
     float4 Position : SV_POSITION;
+    float4 PositionWS : POSITION;
     float4 Color : COLOR;
+    float3 Normal : NORMAL;
 }; 
 
 struct VertexInput
@@ -13,11 +15,15 @@ struct VertexInput
     
     //[[vk::location(1)]]
     float4 Color : COLOR;
+    
+    //[[vk::location(2)]]
+    float3 Normal : NORMAL;
 };
 
 struct CameraData
 {
     float4x4 ViewProjection;
+    float4 Position;
 };
 
 struct TransformData
@@ -32,9 +38,9 @@ VertexData main(in VertexInput input)
 {
     VertexData vertex;
     
-    float4 position = mul(float4(input.Position, 1.0), transform.Model);
-    vertex.Position = mul(position, camera.ViewProjection);
-    
+    vertex.PositionWS = mul(float4(input.Position, 1.0), transform.Model);
+    vertex.Position = mul(vertex.PositionWS, camera.ViewProjection);
+    vertex.Normal = mul(input.Normal, (float3x3)transform.Model);
     vertex.Color = input.Color;
  
     return vertex;
