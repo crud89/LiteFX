@@ -883,7 +883,7 @@ namespace LiteFX::Rendering {
 	};
 
 	/// <summary>
-	/// Stores the depth/stencil state of a see <cref="IRasterizer" />.
+	/// Stores the depth/stencil state of a see <see cref="IRasterizer" />.
 	/// </summary>
 	class LITEFX_RENDERING_API DepthStencilState {
 		LITEFX_IMPLEMENTATION(DepthStencilStateImpl);
