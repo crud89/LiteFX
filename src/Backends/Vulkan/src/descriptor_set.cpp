@@ -33,48 +33,46 @@ UniquePtr<IVulkanSampler> VulkanDescriptorSet::makeSampler(const UInt32& binding
     return this->getDevice()->factory().createSampler(this->parent().layout(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
-void VulkanDescriptorSet::update(const IVulkanConstantBuffer& buffer, const UInt32& bufferElement) const noexcept
+void VulkanDescriptorSet::update(const IVulkanConstantBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const noexcept
 {
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = this->handle();
     descriptorWrite.dstBinding = buffer.binding();
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorCount = 1;    // = elements;
-
-    size_t alignedSize = static_cast<size_t>(buffer.elementSize());
-    size_t alignment = 0;
+    descriptorWrite.dstArrayElement = firstDescriptor;
+    descriptorWrite.descriptorCount = elements;
 
     switch (buffer.layout().descriptorType())
     {
     default:
         LITEFX_WARNING(VULKAN_LOG, "The constant buffer is bound to a descriptor with an unsupported buffer type: {0}. Descriptor will be treated as uniform buffer.", buffer.layout().descriptorType());
         [[fallthrough]];
-    case DescriptorType::Uniform: 
+    case DescriptorType::Uniform:
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        alignment = this->getDevice()->adapter().getLimits().minUniformBufferOffsetAlignment;
         break;
-    case DescriptorType::Storage: 
+    case DescriptorType::Storage:
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        alignment = this->getDevice()->adapter().getLimits().minStorageBufferOffsetAlignment;
         break;
     }
 
-    if (alignment > 0)
-        alignedSize = (alignedSize + alignment - 1) & ~(alignment - 1);
-
     // Create buffer info.
-    VkDescriptorBufferInfo bufferInfo{ };
-    bufferInfo.buffer = buffer.handle();
-    bufferInfo.range = alignedSize;    // * elements;
-    bufferInfo.offset = static_cast<size_t>(bufferElement) * alignedSize;
+    Array<VkDescriptorBufferInfo> bufferInfos(elements);
+    std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
+        VkDescriptorBufferInfo bufferInfo{ };
+
+        bufferInfo.buffer = buffer.handle();
+        bufferInfo.range = buffer.elementSize();
+        bufferInfo.offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++);
+
+        return bufferInfo;
+    });
 
     // Set the buffer info and update the descriptor set.
-    descriptorWrite.pBufferInfo = &bufferInfo;
+    descriptorWrite.pBufferInfo = bufferInfos.data();
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(const IVulkanTexture& texture) const noexcept
+void VulkanDescriptorSet::update(const IVulkanTexture& texture, const UInt32& bufferElement) const noexcept
 {
     VkDescriptorImageInfo imageInfo{ };
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -85,14 +83,14 @@ void VulkanDescriptorSet::update(const IVulkanTexture& texture) const noexcept
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     descriptorWrite.dstSet = this->handle();
     descriptorWrite.dstBinding = texture.binding();
-    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.dstArrayElement = bufferElement;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(const IVulkanSampler& sampler) const noexcept
+void VulkanDescriptorSet::update(const IVulkanSampler& sampler, const UInt32& bufferElement) const noexcept
 {
     VkDescriptorImageInfo imageInfo{ };
     imageInfo.sampler = sampler.handle();
@@ -102,7 +100,7 @@ void VulkanDescriptorSet::update(const IVulkanSampler& sampler) const noexcept
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
     descriptorWrite.dstSet = this->handle();
     descriptorWrite.dstBinding = sampler.binding();
-    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.dstArrayElement = bufferElement;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
