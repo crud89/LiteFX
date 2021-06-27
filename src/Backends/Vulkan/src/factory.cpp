@@ -378,7 +378,21 @@ UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const VulkanDescr
 	return VulkanTexture::allocate(m_impl->m_device, layout, size, format, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
+Array<UniquePtr<IVulkanTexture>> VulkanGraphicsFactory::createTextures(const VulkanDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+{
+	Array<UniquePtr<IVulkanTexture>> textures(elements);
+	std::ranges::generate(textures, [&, this]() { return this->createTexture(layout, format, size, levels, samples); });
+	return textures;
+}
+
 UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
 	return makeUnique<VulkanSampler>(m_impl->m_device, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+}
+
+Array<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(const VulkanDescriptorLayout& layout, const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+{
+	Array<UniquePtr<IVulkanSampler>> samplers(elements);
+	std::ranges::generate(samplers, [&, this]() { return this->createSampler(layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy); });
+	return samplers;
 }

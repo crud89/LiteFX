@@ -72,7 +72,7 @@ void VulkanDescriptorSet::update(const IVulkanConstantBuffer& buffer, const UInt
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(const IVulkanTexture& texture, const UInt32& bufferElement) const noexcept
+void VulkanDescriptorSet::update(const IVulkanTexture& texture, const UInt32& descriptor) const noexcept
 {
     VkDescriptorImageInfo imageInfo{ };
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -83,14 +83,14 @@ void VulkanDescriptorSet::update(const IVulkanTexture& texture, const UInt32& bu
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     descriptorWrite.dstSet = this->handle();
     descriptorWrite.dstBinding = texture.binding();
-    descriptorWrite.dstArrayElement = bufferElement;
+    descriptorWrite.dstArrayElement = descriptor;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(const IVulkanSampler& sampler, const UInt32& bufferElement) const noexcept
+void VulkanDescriptorSet::update(const IVulkanSampler& sampler, const UInt32& descriptor) const noexcept
 {
     VkDescriptorImageInfo imageInfo{ };
     imageInfo.sampler = sampler.handle();
@@ -100,7 +100,7 @@ void VulkanDescriptorSet::update(const IVulkanSampler& sampler, const UInt32& bu
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
     descriptorWrite.dstSet = this->handle();
     descriptorWrite.dstBinding = sampler.binding();
-    descriptorWrite.dstArrayElement = bufferElement;
+    descriptorWrite.dstArrayElement = descriptor;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 

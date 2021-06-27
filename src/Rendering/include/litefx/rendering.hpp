@@ -562,7 +562,7 @@ namespace LiteFX::Rendering {
             virtual UniquePtr<TTexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
             /// <summary>
-            ///  A helper method to create a sampler for the binding provided with <paramref name="binding" />.
+            /// A helper method to create a sampler for the binding provided with <paramref name="binding" />.
             /// </summary>
             /// <remarks>
             /// The sampler may be re-used to update other descriptor sets with. Note, however, that changing the sampler after updating it on one descriptor set can have unintended 
@@ -598,15 +598,15 @@ namespace LiteFX::Rendering {
             /// Updates a texture within the current descriptor set.
             /// </summary>
             /// <param name="texture">The texture to write to the descriptor set.</param>
-            /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
-            virtual void update(const TTexture& texture, const UInt32& bufferElement = 0) const noexcept = 0;
+            /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the texture to.</param>
+            virtual void update(const TTexture& texture, const UInt32& descriptor = 0) const noexcept = 0;
 
             /// <summary>
             /// Updates a sampler within the current descriptor set.
             /// </summary>
             /// <param name="sampler">The sampler to write to the descriptor set.</param>
-            /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
-            virtual void update(const TSampler& sampler, const UInt32& bufferElement = 0) const noexcept = 0;
+            /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the sampler to.</param>
+            virtual void update(const TSampler& sampler, const UInt32& descriptor = 0) const noexcept = 0;
 
             /// <summary>
             /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
@@ -1804,7 +1804,21 @@ namespace LiteFX::Rendering {
             /// <param name="levels">The number of mip map levels of the texture.</param>
             /// <param name="samples">The number of samples, the texture should be sampled with.</param>
             /// <returns>The instance of the texture.</returns>
+            /// <seealso cref="createTextures" />
             virtual UniquePtr<TTextureInterface> createTexture(const TDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+
+            /// <summary>
+            /// Creates an array of textures, based on the <paramref name="layout" />.
+            /// </summary>
+            /// <param name="layout">The layout of the textures.</param>
+            /// <param name="elements">The number of textures to create.</param>
+            /// <param name="format">The format of the texture images.</param>
+            /// <param name="size">The dimensions of the textures.</param>
+            /// <param name="levels">The number of mip map levels of the textures.</param>
+            /// <param name="samples">The number of samples, the textures should be sampled with.</param>
+            /// <returns>An array of texture instances.</returns>
+            /// <seealso cref="createTexture" />
+            virtual Array<UniquePtr<TTextureInterface>> createTextures(const TDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
             /// <summary>
             /// Creates a texture sampler, based on the <paramref name="layout" />.
@@ -1821,7 +1835,27 @@ namespace LiteFX::Rendering {
             /// <param name="minLod">The minimum level of detail value.</param>
             /// <param name="anisotropy">The level of anisotropic filtering.</param>
             /// <returns>The instance of the sampler.</returns>
+            /// <seealso cref="createSamplers" />
             virtual UniquePtr<TSamplerInterface> createSampler(const TDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+
+            /// <summary>
+            /// Creates an array of texture samplers, based on the <paramref name="layout" />.
+            /// </summary>
+            /// <param name="layout">The layout of the samplers.</param>
+            /// <param name="elements">The number of samplers to create.</param>
+            /// <param name="magFilter">The filter operation used for magnifying.</param>
+            /// <param name="minFilter">The filter operation used for minifying.</param>
+            /// <param name="borderU">The border mode along the U-axis.</param>
+            /// <param name="borderV">The border mode along the V-axis.</param>
+            /// <param name="borderW">The border mode along the W-axis.</param>
+            /// <param name="mipMapMode">The mip map mode.</param>
+            /// <param name="mipMapBias">The mip map bias.</param>
+            /// <param name="maxLod">The maximum level of detail value.</param>
+            /// <param name="minLod">The minimum level of detail value.</param>
+            /// <param name="anisotropy">The level of anisotropic filtering.</param>
+            /// <returns>An array of sampler instances.</returns>
+            /// <seealso cref="createSampler" />
+            virtual Array<UniquePtr<TSamplerInterface>> createSamplers(const TDescriptorLayout& layout, const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
     };
 
     /// <summary>

@@ -339,10 +339,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual void update(const IVulkanConstantBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void update(const IVulkanTexture& texture, const UInt32& bufferElement = 0) const noexcept override;
+		virtual void update(const IVulkanTexture& texture, const UInt32& descriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void update(const IVulkanSampler& sampler, const UInt32& bufferElement = 0) const noexcept override;
+		virtual void update(const IVulkanSampler& sampler, const UInt32& descriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IVulkanImage& image) const noexcept override;
@@ -1407,7 +1407,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IVulkanTexture> createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
+		virtual Array<UniquePtr<IVulkanTexture>> createTextures(const VulkanDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
 		virtual UniquePtr<IVulkanSampler> createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<IVulkanSampler>> createSamplers(const VulkanDescriptorLayout& layout, const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 	};
 
 	/// <summary>

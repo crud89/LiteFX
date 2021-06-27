@@ -105,7 +105,7 @@ void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, cons
     }
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Texture& texture, const UInt32& bufferElement) const noexcept
+void DirectX12DescriptorSet::update(const IDirectX12Texture& texture, const UInt32& descriptor) const noexcept
 {
     auto offset = this->parent().descriptorOffsetForBinding(texture.layout().binding());
 
@@ -116,11 +116,11 @@ void DirectX12DescriptorSet::update(const IDirectX12Texture& texture, const UInt
         .Texture2D = { .MostDetailedMip = 0, .MipLevels = texture.levels(), .PlaneSlice = 0, .ResourceMinLODClamp = 0 }
     };
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
     this->getDevice()->handle()->CreateShaderResourceView(texture.handle().Get(), &textureView, descriptorHandle);
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler, const UInt32& bufferElement) const noexcept
+void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler, const UInt32& descriptor) const noexcept
 {
     auto offset = this->parent().descriptorOffsetForBinding(sampler.layout().binding());
 
@@ -137,7 +137,7 @@ void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler, const UInt
         .MaxLOD = sampler.getMaxLOD()
     };
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), offset, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
     this->getDevice()->handle()->CreateSampler(&samplerInfo, descriptorHandle);
 }
 

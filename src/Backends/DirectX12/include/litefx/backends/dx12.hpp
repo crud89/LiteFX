@@ -343,10 +343,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual void update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void update(const IDirectX12Texture& texture, const UInt32& bufferElement = 0) const noexcept override;
+		virtual void update(const IDirectX12Texture& texture, const UInt32& descriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void update(const IDirectX12Sampler& sampler, const UInt32& bufferElement = 0) const noexcept override;
+		virtual void update(const IDirectX12Sampler& sampler, const UInt32& descriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IDirectX12Image& image) const noexcept override;
@@ -1459,7 +1459,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IDirectX12Texture> createTexture(const DirectX12DescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
+		virtual Array<UniquePtr<IDirectX12Texture>> createTextures(const DirectX12DescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
 		virtual UniquePtr<IDirectX12Sampler> createSampler(const DirectX12DescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<IDirectX12Sampler>> createSamplers(const DirectX12DescriptorLayout& layout, const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 	};
 
 	/// <summary>
