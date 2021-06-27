@@ -4,7 +4,7 @@
 #####                                                                                         #####
 ###################################################################################################
 
-PROJECT(LiteFX.Samples.DirectX12.UniformArrays VERSION ${LITEFX_VERSION} LANGUAGES CXX)
+PROJECT(LiteFX.Samples.DX12.UniformArrays VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 IF(NOT BUILD_DIRECTX_12_BACKEND)
