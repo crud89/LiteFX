@@ -213,7 +213,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents the base interface for a Vulkan buffer implementation.
 	/// </summary>
-	/// <seealso cref="IVulkanDescriptorSet" />
+	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="IVulkanConstantBuffer" />
 	/// <seealso cref="IVulkanConstantTexture" />
 	/// <seealso cref="IVulkanVertexBuffer" />
@@ -271,8 +271,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Returns the view for the image.
 		/// </summary>
+		/// <param name="plane">The plane for which to return the view.</param>
 		/// <returns>The image view handle.</returns>
-		virtual const VkImageView& imageView() const noexcept = 0;
+		virtual const VkImageView& imageView(const UInt32& plane = 0) const = 0;
 	};
 
 	/// <summary>
@@ -330,7 +331,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IVulkanConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanTexture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IVulkanTexture> makeTexture(const UInt32& binding, const Format& format, const Size3d& size, const ImageDimensions& dimensions = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IVulkanSampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f) const override;
@@ -1382,11 +1383,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		/// <remarks>
-		/// Images are generic unordered resource views. You usually want to avoid creating images manually and instead create a texture <see cref="createTexture" />
-		/// or an attachment/render target using <see cref="createAttachment" /> instead.
-		/// </remarks>
-		virtual UniquePtr<IVulkanImage> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IVulkanImage> createImage(const Format& format, const Size3d& size, const ImageDimensions& dimensions = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IVulkanImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
@@ -1404,10 +1401,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IVulkanConstantBuffer> createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanTexture> createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IVulkanTexture> createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<IVulkanTexture>> createTextures(const VulkanDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual Array<UniquePtr<IVulkanTexture>> createTextures(const VulkanDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IVulkanSampler> createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;

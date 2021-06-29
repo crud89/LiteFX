@@ -37,7 +37,47 @@ DirectX12Buffer::DirectX12Buffer(const DirectX12Device& device, ComPtr<ID3D12Res
 
 DirectX12Buffer::~DirectX12Buffer() noexcept = default;
 
-void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void DirectX12Buffer::receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept
+{
+	if ((receive && this->state() & D3D12_RESOURCE_STATE_COPY_DEST) || (!receive && !(this->state() & D3D12_RESOURCE_STATE_COPY_DEST)))
+		return;
+
+	D3D12_RESOURCE_STATES targetState = receive ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_COMMON;
+
+	if (receive) switch (this->type())
+	{
+	case BufferType::Index:     targetState |= D3D12_RESOURCE_STATE_INDEX_BUFFER; break;
+	case BufferType::Uniform:
+	case BufferType::Vertex:    targetState |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER; break;
+	case BufferType::Storage:   targetState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS; break;
+	case BufferType::Other:
+	default:                    break;
+	}
+
+	this->transitionTo(commandBuffer, targetState);
+}
+
+void DirectX12Buffer::sendData(const DirectX12CommandBuffer& commandBuffer, const bool& emit) const noexcept
+{
+	if ((emit && this->state() & D3D12_RESOURCE_STATE_COPY_SOURCE) || (!emit && !(this->state() & D3D12_RESOURCE_STATE_COPY_SOURCE)))
+		return;
+
+	D3D12_RESOURCE_STATES targetState = emit ? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_GENERIC_READ;
+
+	if (emit) switch (this->type())
+	{
+	case BufferType::Index:     targetState |= D3D12_RESOURCE_STATE_INDEX_BUFFER; break;
+	case BufferType::Uniform:
+	case BufferType::Vertex:    targetState |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER; break;
+	case BufferType::Storage:   targetState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS; break;
+	case BufferType::Other: 
+	default:                    break;
+	}
+
+	this->transitionTo(commandBuffer, targetState);
+}
+
+void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -45,12 +85,29 @@ void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, 
 	if (this->elements() < targetElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
 
+#ifndef NDEBUG
+	if (layer > 0) [[unlikely]]
+		LITEFX_WARNING(DIRECTX12_LOG, "You've specified a buffer copy operation for layer {0}, however layers are ignored for buffer-buffer transfers.", layer);
+
+	if (plane > 0) [[unlikely]]
+		LITEFX_WARNING(DIRECTX12_LOG, "You've specified a buffer copy operation for plane {0}, however planes are ignored for buffer-buffer transfers.", plane);
+#endif
+
+	source.sendData(commandBuffer, true);	
+	this->receiveData(commandBuffer, true);
+
 	commandBuffer.handle()->CopyBufferRegion(this->handle().Get(), targetElement * this->alignedElementSize(), source.handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
+
+	if (!leaveSourceState)
+		source.sendData(commandBuffer, false);
+
+	if (!leaveTargetState)
+		this->receiveData(commandBuffer, false);
 }
 
-void DirectX12Buffer::transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void DirectX12Buffer::transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
 {
-	target.transferFrom(commandBuffer, *this, sourceElement, targetElement, elements);
+	target.transferFrom(commandBuffer, *this, sourceElement, targetElement, elements, leaveSourceState, leaveTargetState, layer, plane);
 }
 
 const BufferType& DirectX12Buffer::type() const noexcept

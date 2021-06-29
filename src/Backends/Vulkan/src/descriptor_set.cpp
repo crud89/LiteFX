@@ -23,9 +23,9 @@ UniquePtr<IVulkanConstantBuffer> VulkanDescriptorSet::makeBuffer(const UInt32& b
     return this->getDevice()->factory().createConstantBuffer(this->parent().layout(binding), usage, elements);
 }
 
-UniquePtr<IVulkanTexture> VulkanDescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<IVulkanTexture> VulkanDescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size3d& size, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
 {
-    return this->getDevice()->factory().createTexture(this->parent().layout(binding), format, size, levels, samples);
+    return this->getDevice()->factory().createTexture(this->parent().layout(binding), format, size, dimensions, levels, layers, samples);
 }
 
 UniquePtr<IVulkanSampler> VulkanDescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) const

@@ -45,14 +45,20 @@ DirectX12GraphicsFactory::DirectX12GraphicsFactory(const DirectX12Device& device
 
 DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
 
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createImage(const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createImage(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
 {
+	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
+		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
+
+	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
+		throw ArgumentOutOfRangeException("A 3D image can only have one layer, but {0} are provided.", layers);
+	
 	D3D12_RESOURCE_DESC resourceDesc = {};
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Dimension = ::getImageType(dimension);
 	resourceDesc.Alignment = 0;	// NOTE: Can be overwritten for "small textures" (see: https://asawicki.info/news_1726_secrets_of_direct3d_12_resource_alignment)
 	resourceDesc.Width = size.width();
 	resourceDesc.Height = size.height();
-	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.DepthOrArraySize = dimension == ImageDimensions::DIM_3 ? size.depth() : layers;
 	resourceDesc.MipLevels = levels;
 	resourceDesc.Format = ::getFormat(format);
 	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
@@ -62,7 +68,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createImage(const Format& f
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
 	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
-	return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_UNORDERED_ACCESS, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, dimension, levels, layers, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_UNORDERED_ACCESS, resourceDesc, allocationDesc);
 }
 
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
@@ -84,12 +90,12 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 	if (::hasDepth(format) || ::hasStencil(format))
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ, resourceDesc, allocationDesc);
 	}
 	else
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, resourceDesc, allocationDesc);
 	}
 }
 
@@ -230,14 +236,20 @@ UniquePtr<IDirectX12ConstantBuffer> DirectX12GraphicsFactory::createConstantBuff
 	}
 }
 
-UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const DirectX12DescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const DirectX12DescriptorLayout& layout, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
 {
+	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
+		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
+
+	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
+		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
+
 	D3D12_RESOURCE_DESC resourceDesc = {};
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Dimension = ::getImageType(dimension);
 	resourceDesc.Alignment = 0;
 	resourceDesc.Width = size.width();
 	resourceDesc.Height = size.height();
-	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.DepthOrArraySize = dimension == ImageDimensions::DIM_3 ? size.depth() : layers;
 	resourceDesc.MipLevels = levels;
 	resourceDesc.Format = ::getFormat(format);
 	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
@@ -247,13 +259,13 @@ UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const Direc
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
 	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 	
-	return DirectX12Texture::allocate(m_impl->m_device, layout, m_impl->m_allocator, size, format, levels, samples, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+	return DirectX12Texture::allocate(m_impl->m_device, layout, m_impl->m_allocator, size, format, dimension, levels, layers, samples, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
 }
 
-Array<UniquePtr<IDirectX12Texture>> DirectX12GraphicsFactory::createTextures(const DirectX12DescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
+Array<UniquePtr<IDirectX12Texture>> DirectX12GraphicsFactory::createTextures(const DirectX12DescriptorLayout& layout, const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
 {
 	Array<UniquePtr<IDirectX12Texture>> textures(elements);
-	std::ranges::generate(textures, [&, this]() { return this->createTexture(layout, format, size, levels, samples); });
+	std::ranges::generate(textures, [&, this]() { return this->createTexture(layout, format, size, dimension, levels, layers, samples); });
 	return textures;
 }
 

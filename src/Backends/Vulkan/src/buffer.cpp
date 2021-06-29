@@ -39,13 +39,34 @@ VulkanBuffer::~VulkanBuffer() noexcept
 	LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", fmt::ptr(reinterpret_cast<void*>(this->handle())));
 }
 
-void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void VulkanBuffer::receiveData(const VulkanCommandBuffer& commandBuffer, const bool& receive) const noexcept
 {
-	if (source.elements() < sourceElement + elements)
+	// Buffers don't require memory transition in Vulkan.
+}
+
+void VulkanBuffer::sendData(const VulkanCommandBuffer& commandBuffer, const bool& emit) const noexcept
+{
+	// Buffers don't require memory transition in Vulkan.
+}
+
+void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
+{
+	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
-	if (this->elements() < targetElement + elements)
+	if (this->elements() < targetElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
+
+#ifndef NDEBUG
+	if (layer > 0) [[unlikely]]
+		LITEFX_WARNING(VULKAN_LOG, "You've specified a buffer copy operation for layer {0}, however layers are ignored for buffer-buffer transfers.", layer);
+
+	if (plane > 0) [[unlikely]]
+		LITEFX_WARNING(VULKAN_LOG, "You've specified a buffer copy operation for plane {0}, however planes are ignored for buffer-buffer transfers.", plane);
+#endif
+
+	source.sendData(commandBuffer, true);
+	this->receiveData(commandBuffer, true);
 
 	// Depending on the alignment, the transfer can be combined into a single copy command.
 	Array<VkBufferCopy> copyInfos;
@@ -75,9 +96,15 @@ void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const 
 	}
 
 	::vkCmdCopyBuffer(commandBuffer.handle(), source.handle(), this->handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+
+	if (!leaveSourceState)
+		source.sendData(commandBuffer, false);
+
+	if (!leaveTargetState)
+		this->receiveData(commandBuffer, false);
 }
 
-void VulkanBuffer::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void VulkanBuffer::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
 {
 	target.transferFrom(commandBuffer, *this, sourceElement, targetElement, elements);
 }

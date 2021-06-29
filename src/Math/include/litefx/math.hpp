@@ -505,48 +505,6 @@ namespace LiteFX::Math {
 #pragma endregion
 
 #pragma region Size
-	class LITEFX_MATH_API Size2d : public Vector<size_t, 2> {
-	public:
-		Size2d() noexcept;
-		Size2d(const size_t& v) noexcept;
-		Size2d(const size_t& w, const size_t& h) noexcept;
-		Size2d(const Size2d&) noexcept;
-		Size2d(Size2d&&) noexcept;
-		//virtual ~Size2d() noexcept = default;
-
-	public:
-		inline Size2d& operator=(const Size2d& _other) noexcept;
-		inline Size2d& operator=(Size2d&& _other) noexcept;
-
-	public:
-		inline const size_t& width() const noexcept;
-		inline size_t& width() noexcept;
-		inline const size_t& height() const noexcept;
-		inline size_t& height() noexcept;
-	};
-
-	class LITEFX_MATH_API Size3d : public Vector<size_t, 3> {
-	public:
-		Size3d() noexcept;
-		Size3d(const size_t& v) noexcept;
-		Size3d(const size_t& w, const size_t& h, const size_t& d) noexcept;
-		Size3d(const Size3d&) noexcept;
-		Size3d(Size3d&&) noexcept;
-		//virtual ~Size3d() noexcept = default;
-
-	public:
-		inline Size3d& operator=(const Size3d& _other) noexcept;
-		inline Size3d& operator=(Size3d&& _other) noexcept;
-
-	public:
-		inline const size_t& width() const noexcept;
-		inline size_t& width() noexcept;
-		inline const size_t& height() const noexcept;
-		inline size_t& height() noexcept;
-		inline const size_t& depth() const noexcept;
-		inline size_t& depth() noexcept;
-	};
-
 	class LITEFX_MATH_API Size4d : public Vector<size_t, 4> {
 	public:
 		Size4d() noexcept;
@@ -569,6 +527,51 @@ namespace LiteFX::Math {
 		inline size_t& depth() noexcept;
 		inline const size_t& alpha() const noexcept;
 		inline size_t& alpha() noexcept;
+	};
+
+	class LITEFX_MATH_API Size3d : public Vector<size_t, 3> {
+	public:
+		Size3d() noexcept;
+		Size3d(const size_t& v) noexcept;
+		Size3d(const size_t& w, const size_t& h, const size_t& d) noexcept;
+		Size3d(const Size3d&) noexcept;
+		Size3d(Size3d&&) noexcept;
+		//virtual ~Size3d() noexcept = default;
+		inline operator Size4d() const { return Size4d{ this->width(), this->height(), this->depth(), 1 }; };
+
+	public:
+		inline Size3d& operator=(const Size3d& _other) noexcept;
+		inline Size3d& operator=(Size3d&& _other) noexcept;
+
+	public:
+		inline const size_t& width() const noexcept;
+		inline size_t& width() noexcept;
+		inline const size_t& height() const noexcept;
+		inline size_t& height() noexcept;
+		inline const size_t& depth() const noexcept;
+		inline size_t& depth() noexcept;
+	};
+
+	class LITEFX_MATH_API Size2d : public Vector<size_t, 2> {
+	public:
+		Size2d() noexcept;
+		Size2d(const size_t& v) noexcept;
+		Size2d(const size_t& w, const size_t& h) noexcept;
+		Size2d(const Size2d&) noexcept;
+		Size2d(Size2d&&) noexcept;
+		//virtual ~Size2d() noexcept = default;
+
+	public:
+		inline Size2d& operator=(const Size2d& _other) noexcept;
+		inline Size2d& operator=(Size2d&& _other) noexcept;
+		inline operator Size3d() const { return Size3d{ this->width(), this->height(), 1 }; };
+		inline operator Size4d() const { return Size4d{ this->width(), this->height(), 1, 1 }; };
+
+	public:
+		inline const size_t& width() const noexcept;
+		inline size_t& width() noexcept;
+		inline const size_t& height() const noexcept;
+		inline size_t& height() noexcept;
 	};
 #pragma endregion
 
