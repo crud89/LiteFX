@@ -517,6 +517,14 @@ namespace LiteFX::Math {
 	public:
 		inline Size4d& operator=(const Size4d& _other) noexcept;
 		inline Size4d& operator=(Size4d&& _other) noexcept;
+		inline Size4d operator/(const size_t& s) noexcept;
+		inline Size4d& operator/=(const size_t& s) noexcept;
+		inline Size4d operator*(const size_t& s) noexcept;
+		inline Size4d& operator*=(const size_t& s) noexcept;
+		inline Size4d operator+(const Size4d& s) noexcept;
+		inline Size4d& operator+=(const Size4d& s) noexcept;
+		inline Size4d operator-(const Size4d& s) noexcept;
+		inline Size4d& operator-=(const Size4d& s) noexcept;
 
 	public:
 		inline const size_t& width() const noexcept;
@@ -537,11 +545,19 @@ namespace LiteFX::Math {
 		Size3d(const Size3d&) noexcept;
 		Size3d(Size3d&&) noexcept;
 		//virtual ~Size3d() noexcept = default;
-		inline operator Size4d() const { return Size4d{ this->width(), this->height(), this->depth(), 1 }; };
 
 	public:
 		inline Size3d& operator=(const Size3d& _other) noexcept;
 		inline Size3d& operator=(Size3d&& _other) noexcept;
+		inline operator Size4d() const noexcept;
+		inline Size3d operator/(const size_t& s) noexcept;
+		inline Size3d& operator/=(const size_t& s) noexcept;
+		inline Size3d operator*(const size_t& s) noexcept;
+		inline Size3d& operator*=(const size_t& s) noexcept;
+		inline Size3d operator+(const Size3d& s) noexcept;
+		inline Size3d& operator+=(const Size3d& s) noexcept;
+		inline Size3d operator-(const Size3d& s) noexcept;
+		inline Size3d& operator-=(const Size3d& s) noexcept;
 
 	public:
 		inline const size_t& width() const noexcept;
@@ -564,8 +580,16 @@ namespace LiteFX::Math {
 	public:
 		inline Size2d& operator=(const Size2d& _other) noexcept;
 		inline Size2d& operator=(Size2d&& _other) noexcept;
-		inline operator Size3d() const { return Size3d{ this->width(), this->height(), 1 }; };
-		inline operator Size4d() const { return Size4d{ this->width(), this->height(), 1, 1 }; };
+		inline operator Size3d() const noexcept;
+		inline operator Size4d() const noexcept;
+		inline Size2d operator/(const size_t& s) noexcept;
+		inline Size2d& operator/=(const size_t& s) noexcept;
+		inline Size2d operator*(const size_t& s) noexcept;
+		inline Size2d& operator*=(const size_t& s) noexcept;
+		inline Size2d operator+(const Size2d& s) noexcept;
+		inline Size2d& operator+=(const Size2d& s) noexcept;
+		inline Size2d operator-(const Size2d& s) noexcept;
+		inline Size2d& operator-=(const Size2d& s) noexcept;
 
 	public:
 		inline const size_t& width() const noexcept;

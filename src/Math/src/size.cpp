@@ -26,6 +26,17 @@ Size2d& Size2d::operator=(Size2d&& _other) noexcept {
     return *this;
 }
 
+Size2d::operator Size3d() const noexcept { return Size3d{ this->width(), this->height(), 1 }; }
+Size2d::operator Size4d() const noexcept { return Size4d{ this->width(), this->height(), 1, 1 }; }
+Size2d Size2d::operator/(const size_t& s) noexcept { return Size2d{ this->width() / s, this->height() / s }; }
+Size2d& Size2d::operator/=(const size_t& s) noexcept { this->width() /= s; this->height() /= s; return *this; }
+Size2d Size2d::operator*(const size_t& s) noexcept { return Size2d{ this->width() * s, this->height() * s }; }
+Size2d& Size2d::operator*=(const size_t& s) noexcept { this->width() *= s; this->height() *= s; return *this; }
+Size2d Size2d::operator+(const Size2d& s) noexcept { return Size2d{ this->width() + s.width(), this->height() + s.height() }; }
+Size2d& Size2d::operator+=(const Size2d& s) noexcept { this->width() += s.width(); this->height() += s.height(); return *this; }
+Size2d Size2d::operator-(const Size2d& s) noexcept { return Size2d{ this->width() - s.width(), this->height() - s.height() }; }
+Size2d& Size2d::operator-=(const Size2d& s) noexcept { this->width() -= s.width(); this->height() -= s.height(); return *this; }
+
 const size_t& Size2d::width() const noexcept{ return this->x(); }
 size_t& Size2d::width() noexcept { return this->x(); }
 const size_t& Size2d::height() const noexcept { return this->y(); }
@@ -56,6 +67,15 @@ Size3d& Size3d::operator=(Size3d&& _other) noexcept {
     return *this;
 }
 
+Size3d::operator Size4d() const noexcept { return Size4d{ this->width(), this->height(), this->depth(), 1 }; }
+Size3d Size3d::operator/(const size_t& s) noexcept { return Size3d{ this->width() / s, this->height() / s, this->depth() / s }; }
+Size3d& Size3d::operator/=(const size_t& s) noexcept { this->width() /= s; this->height() /= s; this->depth() /= s; return *this; }
+Size3d Size3d::operator*(const size_t& s) noexcept { return Size3d{ this->width() * s, this->height() * s, this->depth() * s }; }
+Size3d& Size3d::operator*=(const size_t& s) noexcept { this->width() *= s; this->height() *= s; this->depth() *= s; return *this; }
+Size3d Size3d::operator+(const Size3d& s) noexcept { return Size3d{ this->width() + s.width(), this->height() + s.height(), this->depth() + s.depth() }; }
+Size3d& Size3d::operator+=(const Size3d& s) noexcept { this->width() += s.width(); this->height() += s.height(); this->depth() += s.depth() ; return *this; }
+Size3d Size3d::operator-(const Size3d& s) noexcept { return Size3d{ this->width() - s.width(), this->height() - s.height(), this->depth() - s.depth() }; }
+Size3d& Size3d::operator-=(const Size3d& s) noexcept { this->width() -= s.width(); this->height() -= s.height(); this->depth() -= s.depth(); return *this; }
 const size_t& Size3d::width() const noexcept { return this->x(); }
 size_t& Size3d::width() noexcept { return this->x(); }
 const size_t& Size3d::height() const noexcept { return this->y(); }
@@ -88,6 +108,15 @@ Size4d& Size4d::operator=(Size4d&& _other) noexcept {
     Vector<scalar_type, vec_size>::operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
     return *this;
 }
+
+Size4d Size4d::operator/(const size_t& s) noexcept { return Size4d{ this->width() / s, this->height() / s, this->depth() / s, this->alpha() / s }; }
+Size4d& Size4d::operator/=(const size_t& s) noexcept { this->width() /= s; this->height() /= s; this->depth() /= s; this->alpha() /= s; return *this; }
+Size4d Size4d::operator*(const size_t& s) noexcept { return Size4d{ this->width() * s, this->height() * s, this->depth() * s, this->alpha() * s }; }
+Size4d& Size4d::operator*=(const size_t& s) noexcept { this->width() *= s; this->height() *= s; this->depth() *= s; this->alpha() *= s; return *this; }
+Size4d Size4d::operator+(const Size4d& s) noexcept { return Size4d{ this->width() + s.width(), this->height() + s.height(), this->depth() + s.depth(), this->alpha() + s.alpha() }; }
+Size4d& Size4d::operator+=(const Size4d& s) noexcept { this->width() += s.width(); this->height() += s.height(); this->depth() += s.depth(); this->alpha() += s.alpha(); return *this; }
+Size4d Size4d::operator-(const Size4d& s) noexcept { return Size4d{ this->width() - s.width(), this->height() - s.height(), this->depth() - s.depth(), this->alpha() - s.alpha() }; }
+Size4d& Size4d::operator-=(const Size4d& s) noexcept { this->width() -= s.width(); this->height() -= s.height(); this->depth() -= s.depth(); this->alpha() -= s.alpha(); return *this; }
 
 const size_t& Size4d::width() const noexcept { return this->x(); }
 size_t& Size4d::width() noexcept { return this->x(); }
