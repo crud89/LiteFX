@@ -441,14 +441,26 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Gets the extent of the image.
+        /// Returns the size (in bytes) of an image at a specified mip map level. If the image does not contain the provided mip map level, the method returns <c>0</c>.
         /// </summary>
         /// <remarks>
-        /// Not all components of the extent are actually used. Check the <see cref="dimensions" /> to see, which components are required.
+        /// Note that the size will only be returned for one layer. You have to multiply this value by the number of layers, if you want to receive the size of all layers
+        /// of a certain mip-map level. This is especially important, if you use cube mapping, because this method will only return the size of one face.
         /// </remarks>
-        /// <returns>The extent of the image.</returns>
+        /// <param name="level">The mip map level to return the size for.</param>
+        /// <returns>The size (in bytes) of an image at a specified mip map level.</returns>
+        virtual size_t size(const UInt32& level) const noexcept = 0;
+
+        /// <summary>
+        /// Gets the extent of the image at a certain mip-map level.
+        /// </summary>
+        /// <remarks>
+        /// Not all components of the extent are actually used. Check the <see cref="dimensions" /> to see, which components are required. The extent will be 0 for invalid 
+        /// mip-map levels and 1 or more for valid mip map levels.
+        /// </remarks>
+        /// <returns>The extent of the image at a certain mip-map level.</returns>
         /// <seealso cref="dimensions" />
-        virtual const Size3d& extent() const noexcept = 0;
+        virtual Size3d extent(const UInt32& level = 0) const noexcept = 0;
 
         /// <summary>
         /// Gets the internal format of the image.

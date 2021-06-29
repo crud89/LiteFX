@@ -147,15 +147,18 @@ void SampleApp::loadTexture()
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
     // Create the texture from the constant buffer descriptor set, since we only load the texture once and use it for all frames.
-    m_texture = m_constantBindings->makeTexture(1, Format::R8G8B8A8_UNORM, Size2d(width, height));
+    m_texture = m_constantBindings->makeTexture(1, Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6);
 
-    // Create a staging buffer for the texture.
-    auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->size());
-    stagedTexture->map(imageData.get(), m_texture->size(), 0);
+    // Create a staging buffer for the first mip-map of the texture.
+    auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->size(0));
+    stagedTexture->map(imageData.get(), m_texture->size(0), 0);
 
     // Transfer the texture using the graphics queue to ensure that the image transition is supported for the descriptor set shader stages.
     auto commandBuffer = m_device->graphicsQueue().createCommandBuffer(true);
     m_texture->transferFrom(*commandBuffer, *stagedTexture);
+
+    // Generate the rest of the mip maps.
+    m_texture->generateMipMaps(*commandBuffer);
 
     // Submit the command buffer and wait for it to execute.
     // NOTE: If the command buffer goes out of scope, it will get destroyed and its fence released. This causes validation errors, since the command buffer must
@@ -165,7 +168,7 @@ void SampleApp::loadTexture()
     commandBuffer->end(true, true);
 
     // Create a sampler state for the texture.
-    m_sampler = m_constantBindings->makeSampler(2);
+    m_sampler = m_constantBindings->makeSampler(2, FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, 0.f, std::numeric_limits<Float>::max(), 16.f);
 
     // Update the descriptor set.
     m_constantBindings->update(*m_texture);
