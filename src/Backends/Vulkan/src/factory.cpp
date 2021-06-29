@@ -2,10 +2,6 @@
 #include "buffer.h"
 #include "image.h"
 
-// Include Vulkan Memory Allocator.
-#define VMA_IMPLEMENTATION
-#include "vk_mem_alloc.h"
-
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
@@ -51,16 +47,22 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createImage(const Format& format, const Size2d& size, const ImageDimensions& dimensions, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createImage(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
 {
+	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
+		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
+
+	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
+		throw ArgumentOutOfRangeException("A 3D image can only have one layer, but {0} are provided.", layers);
+	
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = ::getImageType(dimensions);
+	imageInfo.imageType = ::getImageType(dimension);
 	imageInfo.extent.width = size.width();
 	imageInfo.extent.height = size.height();
-	imageInfo.extent.depth = 1;
+	imageInfo.extent.depth = size.depth();
 	imageInfo.mipLevels = levels;
-	imageInfo.arrayLayers = 1;
+	imageInfo.arrayLayers = layers;
 	imageInfo.format = ::getFormat(format);
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -79,7 +81,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createImage(const Format& format,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanImage::allocate(m_impl->m_device, size, format, dimensions, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanImage::allocate(m_impl->m_device, size, format, dimension, levels, layers, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
@@ -106,7 +108,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanImage::allocate(m_impl->m_device, size, format, ImageDimensions::DIM_2, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements) const
@@ -347,16 +349,22 @@ UniquePtr<IVulkanConstantBuffer> VulkanGraphicsFactory::createConstantBuffer(con
 	}
 }
 
-UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size2d& size, const ImageDimensions& dimension, const UInt32& levels, const MultiSamplingLevel& samples) const
+UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
 {
+	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
+		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
+
+	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
+		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
+
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = ::getImageType(dimension);
 	imageInfo.extent.width = size.width();
 	imageInfo.extent.height = size.height();
-	imageInfo.extent.depth = 1;
+	imageInfo.extent.depth = size.depth();
 	imageInfo.mipLevels = levels;
-	imageInfo.arrayLayers = 1;
+	imageInfo.arrayLayers = layers;
 	imageInfo.format = ::getFormat(format);
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -375,13 +383,13 @@ UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const VulkanDescr
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanTexture::allocate(m_impl->m_device, layout, size, format, dimension, levels, samples, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanTexture::allocate(m_impl->m_device, layout, size, format, dimension, levels, layers, samples, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
-Array<UniquePtr<IVulkanTexture>> VulkanGraphicsFactory::createTextures(const VulkanDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size2d& size, const ImageDimensions& dimension, const UInt32& levels, const MultiSamplingLevel& samples) const
+Array<UniquePtr<IVulkanTexture>> VulkanGraphicsFactory::createTextures(const VulkanDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
 {
 	Array<UniquePtr<IVulkanTexture>> textures(elements);
-	std::ranges::generate(textures, [&, this]() { return this->createTexture(layout, format, size, dimension, levels, samples); });
+	std::ranges::generate(textures, [&, this]() { return this->createTexture(layout, format, size, dimension, levels, layers, samples); });
 	return textures;
 }
 
