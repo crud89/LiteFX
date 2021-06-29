@@ -273,6 +273,105 @@ const VkImageLayout& VulkanTexture::imageLayout() const noexcept
 	return m_impl->m_imageLayout;
 }
 
+void VulkanTexture::generateMipMaps(const VulkanCommandBuffer& commandBuffer) const noexcept
+{
+	VkImageMemoryBarrier barrier {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		.pNext = nullptr,
+		.srcAccessMask = 0,
+		.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = this->handle(),
+		.subresourceRange = VkImageSubresourceRange { .aspectMask = m_impl->getAspectMask() }
+	};
+
+	auto layout = m_impl->m_imageLayout;
+
+	for (UInt32 layer(0); layer < this->layers(); ++layer)
+	{
+		Int32 mipWidth = static_cast<Int32>(this->extent().width());
+		Int32 mipHeight = static_cast<Int32>(this->extent().height());
+		Int32 mipDepth = static_cast<Int32>(this->extent().depth());
+
+		for (UInt32 level(1); level < this->levels(); ++level)
+		{
+			// Transition the previous level to transfer source.
+			barrier.subresourceRange.aspectMask = m_impl->getAspectMask();
+			barrier.subresourceRange.baseArrayLayer = layer;
+			barrier.subresourceRange.layerCount = 1;
+			barrier.subresourceRange.baseMipLevel = level - 1;
+			barrier.subresourceRange.levelCount = 1;
+			barrier.oldLayout = m_impl->m_imageLayout;
+			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+			::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+			// Blit the image of the previous level into the current level.
+			VkImageBlit blit {
+				.srcSubresource = VkImageSubresourceLayers {
+					.aspectMask = m_impl->getAspectMask(),
+					.mipLevel = level - 1,
+					.baseArrayLayer = layer,
+					.layerCount = 1
+				},
+				.dstSubresource = VkImageSubresourceLayers {
+					.aspectMask = m_impl->getAspectMask(),
+					.mipLevel = level,
+					.baseArrayLayer = layer,
+					.layerCount = 1
+				}
+			};
+
+			blit.srcOffsets[0] = { 0, 0, 0 };
+			blit.srcOffsets[1] = { mipWidth, mipHeight, mipDepth };
+			blit.dstOffsets[0] = { 0, 0, 0 };
+			blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, mipDepth > 1 ? mipDepth / 2 : 1 };
+
+			::vkCmdBlitImage(commandBuffer.handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+
+			// Compute the new size.
+			mipWidth  = std::max(mipWidth  / 2, 1);
+			mipHeight = std::max(mipHeight / 2, 1);
+			mipDepth  = std::max(mipDepth  / 2, 1);
+		}
+	}
+
+	// Finally, transition all the levels back to the original layout.
+	if (layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		barrier.subresourceRange.aspectMask = m_impl->getAspectMask();
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = this->layers();
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = this->levels();
+		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		VkPipelineStageFlags targetStages = {};
+		auto shaderStages = m_impl->m_descriptorLayout.parent().shaderStages();
+
+		if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
+			targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+		if ((shaderStages & ShaderStage::Geometry) == ShaderStage::Geometry)
+			targetStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+		if ((shaderStages & ShaderStage::Fragment) == ShaderStage::Fragment)
+			targetStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if ((shaderStages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
+			targetStages |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		if ((shaderStages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
+			targetStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+		if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
+			targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+	}
+}
+
 void VulkanTexture::receiveData(const VulkanCommandBuffer& commandBuffer, const bool& receive) const noexcept
 {
 	if ((receive && m_impl->m_imageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) || (!receive && m_impl->m_imageLayout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL))

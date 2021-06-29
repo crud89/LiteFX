@@ -501,6 +501,13 @@ namespace LiteFX::Rendering {
         virtual const MultiSamplingLevel& samples() const noexcept = 0;
 
         // TODO: getSampler() for combined samplers?
+
+    public:
+        /// <summary>
+        /// Uses the image at level *0* to generate mip-maps for the other levels.
+        /// </summary>
+        /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
+        virtual void generateMipMaps(const TCommandBuffer& commandBuffer) const noexcept = 0;
     };
 
     /// <summary>

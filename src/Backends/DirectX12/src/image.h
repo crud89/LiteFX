@@ -96,6 +96,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const MultiSamplingLevel& samples() const noexcept override;
 
+		/// <inheritdoc />
+		virtual void generateMipMaps(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
+
 		// ITransferable interface.
 	public:
 		/// <inheritdoc />

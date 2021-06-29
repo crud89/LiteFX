@@ -94,6 +94,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const MultiSamplingLevel& samples() const noexcept override;
 
+	public:
+		/// <inheritdoc />
+		virtual void generateMipMaps(const VulkanCommandBuffer& commandBuffer) const noexcept override;
+
 		// ITransferable interface.
 	public:
 		/// <inheritdoc />

@@ -201,6 +201,11 @@ const MultiSamplingLevel& DirectX12Texture::samples() const noexcept
 	return m_impl->m_samples;
 }
 
+void DirectX12Texture::generateMipMaps(const DirectX12CommandBuffer& commandBuffer) const noexcept
+{
+	throw;
+}
+
 void DirectX12Texture::receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept
 {
 	if ((receive && this->state() != D3D12_RESOURCE_STATE_COPY_DEST) || (!receive && this->state() == D3D12_RESOURCE_STATE_COPY_DEST))
