@@ -129,7 +129,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
-      SOURCES ${SHADER_SOURCES}
+      SOURCES "${SHADER_SOURCES}"
       OUTPUT_NAME ${out_name}
       SUFFIX ${SPIRV_DEFAULT_SUFFIX}
       RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
@@ -186,7 +186,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
-        SOURCES ${SHADER_SOURCES}
+        SOURCES "${SHADER_SOURCES}"
         OUTPUT_NAME ${out_name}
         SUFFIX ${SPIRV_DEFAULT_SUFFIX}
         RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
@@ -212,7 +212,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
-        SOURCES ${SHADER_SOURCES}
+        SOURCES "${SHADER_SOURCES}"
         OUTPUT_NAME ${out_name}
         SUFFIX ${DXIL_DEFAULT_SUFFIX}
         RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
@@ -284,7 +284,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
     )
     
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
-      SOURCES ${SHADER_SOURCES}
+      SOURCES "${SHADER_SOURCES}"
       OUTPUT_NAME ${out_name}
       SUFFIX ${SPIRV_DEFAULT_SUFFIX}
       RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
