@@ -39,7 +39,10 @@ namespace LiteFX::Rendering::Backends {
 		// IImage interface.
 	public:
 		/// <inheritdoc />
-		virtual const Size3d& extent() const noexcept override;
+		virtual size_t size(const UInt32& level) const noexcept override;
+
+		/// <inheritdoc />
+		virtual Size3d extent(const UInt32& level = 0) const noexcept override;
 
 		/// <inheritdoc />
 		virtual const Format& format() const noexcept override;

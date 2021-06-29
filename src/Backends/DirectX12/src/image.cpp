@@ -78,10 +78,40 @@ size_t DirectX12Image::alignedElementSize() const noexcept
 	return this->elementSize();
 }
 
-const Size3d& DirectX12Image::extent() const noexcept
+size_t DirectX12Image::size(const UInt32& level) const noexcept
 {
-	return m_impl->m_extent;
+	if (level >= m_impl->m_levels)
+		return 0;
+
+	auto size = this->extent(level);
+
+	switch (this->dimensions())
+	{
+	case ImageDimensions::DIM_1: return ::getSize(this->format()) * size.width();
+	case ImageDimensions::CUBE:
+	case ImageDimensions::DIM_2: return ::getSize(this->format()) * size.width() * size.height();
+	default:
+	case ImageDimensions::DIM_3: return ::getSize(this->format()) * size.width() * size.height() * size.depth();
+	}
 }
+
+Size3d DirectX12Image::extent(const UInt32& level) const noexcept
+{
+	if (level >= m_impl->m_levels)
+		return Size3d{ 0, 0, 0 };
+
+	Size3d size = m_impl->m_extent;
+
+	for (size_t l(0); l < level; ++l)
+		size /= 2;
+
+	size.width() = std::max<size_t>(size.width(), 1);
+	size.height() = std::max<size_t>(size.height(), 1);
+	size.depth() = std::max<size_t>(size.depth(), 1);
+
+	return size;
+}
+
 
 const Format& DirectX12Image::format() const noexcept
 {
