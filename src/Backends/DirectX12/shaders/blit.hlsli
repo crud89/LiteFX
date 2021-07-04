@@ -1,7 +1,6 @@
 struct BlitParameters
 {
 	float2 TexelSize;	// Size of a single texel in UV coordinates ([0..1]).
-	float  IsSRGB;		// True assumed for > 0.0.
 };
 
 float3 applySRGB(float3 x)
