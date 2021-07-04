@@ -1016,6 +1016,7 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// Represents a graphics <see cref="IPipeline" />.
 	/// </summary>
+	/// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
 	/// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="IInputAssembler"/>.</typeparam>
 	/// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="IVertexBuffer"/>.</typeparam>
 	/// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IIndexBuffer"/>.</typeparam>
@@ -1212,9 +1213,9 @@ namespace LiteFX::Rendering {
 
 	public:
 		/// <summary>
-		/// Uses the provided render pipeline layout to initialize the render pipeline. Can be invoked only once.
+		/// Uses the provided pipeline layout to initialize the render pipeline. Can be invoked only once.
 		/// </summary>
-		/// <param name="layout">The render pipeline layout to initialize the render pipeline with.</param>
+		/// <param name="layout">The pipeline layout to initialize the render pipeline with.</param>
 		virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
 
 		/// <summary>
@@ -1249,6 +1250,48 @@ namespace LiteFX::Rendering {
 		/// </remarks>
 		/// <param name="enable">Whether or not to use <i>Alpha-to-Coverage</i> multi-sampling.</param>
 		virtual TDerived& enableAlphaToCoverage(const bool& enable = true) = 0;
+	};
+
+	/// <summary>
+	/// Represents a compute <see cref="IPipeline" />.
+	/// </summary>
+	/// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
+	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
+	/// <seealso cref="IComputePipelineBuilder" />
+	template <typename TPipelineLayout, typename TCommandBuffer> requires
+		rtti::implements<TCommandBuffer, ICommandBuffer>
+	class IComputePipeline : public IPipeline<TPipelineLayout> {
+	public:
+		using command_buffer_type = TCommandBuffer;
+
+	public:
+		virtual ~IComputePipeline() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Executes a compute shader.
+		/// </summary>
+		/// <param name="commandBuffer">The command buffer to record the execute command on.</param>
+		/// <param name="threadCount">The number of thread groups per axis.</param>
+		virtual void dispatch(const TCommandBuffer& commandBuffer, const Vector3u& threadCount) const noexcept;
+	};
+
+	/// <summary>
+	/// Describes the interface of a render pipeline builder.
+	/// </summary>
+	/// <seealso cref="IComputePipeline" />
+	template <typename TDerived, typename TComputePipeline, typename TPipelineLayout = TComputePipeline::pipeline_layout_type, typename TCommandBuffer = TComputePipeline::command_buffer_type> requires
+		rtti::implements<TComputePipeline, IComputePipeline<TPipelineLayout, TCommandBuffer>>
+	class ComputePipelineBuilder : public Builder<TDerived, TComputePipeline> {
+	public:
+		using Builder<TDerived, TComputePipeline>::Builder;
+
+	public:
+		/// <summary>
+		/// Uses the provided pipeline layout to initialize the compute pipeline. Can be invoked only once.
+		/// </summary>
+		/// <param name="layout">The pipeline layout to initialize the compute pipeline with.</param>
+		virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
 	};
 
 	/// <summary>
