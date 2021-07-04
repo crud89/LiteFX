@@ -55,7 +55,7 @@ public:
                 shaderStages = D3D12_SHADER_VISIBILITY_HULL;
 
             // Define the root parameter ranges.
-            Array<const DirectX12DescriptorLayout*> layouts = layout->layouts();
+            Array<const DirectX12DescriptorLayout*> layouts = layout->descriptors();
             Array<D3D12_DESCRIPTOR_RANGE1> rangeSet = layouts |
                 std::views::transform([&](const DirectX12DescriptorLayout* range) {
                 CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
@@ -132,7 +132,7 @@ const DirectX12ShaderProgram& DirectX12RenderPipelineLayout::program() const noe
     return *m_impl->m_shaderProgram;
 }
 
-const DirectX12DescriptorSetLayout& DirectX12RenderPipelineLayout::layout(const UInt32& space) const
+const DirectX12DescriptorSetLayout& DirectX12RenderPipelineLayout::descriptorSet(const UInt32& space) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
@@ -140,7 +140,7 @@ const DirectX12DescriptorSetLayout& DirectX12RenderPipelineLayout::layout(const 
     throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
 }
 
-Array<const DirectX12DescriptorSetLayout*> DirectX12RenderPipelineLayout::layouts() const noexcept
+Array<const DirectX12DescriptorSetLayout*> DirectX12RenderPipelineLayout::descriptorSets() const noexcept
 {
     return m_impl->m_descriptorSetLayouts |
         std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); }) |

@@ -372,10 +372,10 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Array<const VulkanDescriptorLayout*> layouts() const noexcept override;
+		virtual Array<const VulkanDescriptorLayout*> descriptors() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanDescriptorLayout& layout(const UInt32& binding) const override;
+		virtual const VulkanDescriptorLayout& descriptor(const UInt32& binding) const override;
 
 		/// <inheritdoc />
 		virtual const UInt32& space() const noexcept override;
@@ -606,10 +606,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a Vulkan <see cref="IRenderPipelineLayout" />.
+	/// Implements a Vulkan <see cref="IPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject<VulkanRenderPipeline>, public IRenderPipelineLayout<VulkanDescriptorSetLayout, VulkanShaderProgram>, public Resource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayout : public virtual VulkanRuntimeObject<VulkanRenderPipeline>, public IPipelineLayout<VulkanDescriptorSetLayout, VulkanShaderProgram>, public Resource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 
@@ -628,20 +628,20 @@ namespace LiteFX::Rendering::Backends {
 	private:
 		explicit VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept;
 
-		// IRenderPipelineLayout interface.
+		// IPipelineLayout interface.
 	public:
 		/// <inheritdoc />
 		virtual const VulkanShaderProgram& program() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanDescriptorSetLayout& layout(const UInt32& space) const override;
+		virtual const VulkanDescriptorSetLayout& descriptorSet(const UInt32& space) const override;
 
 		/// <inheritdoc />
-		virtual Array<const VulkanDescriptorSetLayout*> layouts() const noexcept override;
+		virtual Array<const VulkanDescriptorSetLayout*> descriptorSets() const noexcept override;
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="IRenderPipelineLayout" />.
+	/// Builds a Vulkan <see cref="IPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineLayout" />
 	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {

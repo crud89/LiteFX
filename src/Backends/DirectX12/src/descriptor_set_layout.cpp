@@ -107,14 +107,14 @@ const UInt32& DirectX12DescriptorSetLayout::rootParameterIndex() const noexcept
     return m_impl->m_rootParameterIndex;
 }
 
-Array<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::layouts() const noexcept
+Array<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descriptors() const noexcept
 {
     return m_impl->m_layouts |
         std::views::transform([](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout.get(); }) |
         ranges::to<Array<const DirectX12DescriptorLayout*>>();
 }
 
-const DirectX12DescriptorLayout& DirectX12DescriptorSetLayout::layout(const UInt32& binding) const
+const DirectX12DescriptorLayout& DirectX12DescriptorSetLayout::descriptor(const UInt32& binding) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_layouts, [&binding](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_layouts.end())
         return *match->get();

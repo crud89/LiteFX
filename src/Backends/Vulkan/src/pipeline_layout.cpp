@@ -74,7 +74,7 @@ const VulkanShaderProgram& VulkanRenderPipelineLayout::program() const noexcept
     return *m_impl->m_shaderProgram.get();
 }
 
-const VulkanDescriptorSetLayout& VulkanRenderPipelineLayout::layout(const UInt32& space) const
+const VulkanDescriptorSetLayout& VulkanRenderPipelineLayout::descriptorSet(const UInt32& space) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
@@ -82,7 +82,7 @@ const VulkanDescriptorSetLayout& VulkanRenderPipelineLayout::layout(const UInt32
     throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
 }
 
-Array<const VulkanDescriptorSetLayout*> VulkanRenderPipelineLayout::layouts() const noexcept
+Array<const VulkanDescriptorSetLayout*> VulkanRenderPipelineLayout::descriptorSets() const noexcept
 {
     return m_impl->m_descriptorSetLayouts |
         std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); }) |

@@ -634,14 +634,14 @@ namespace LiteFX::Rendering {
 		/// Returns the layouts of the descriptors within the descriptor set.
 		/// </summary>
 		/// <returns>The layouts of the descriptors within the descriptor set.</returns>
-		virtual Array<const TDescriptorLayout*> layouts() const noexcept = 0;
+		virtual Array<const TDescriptorLayout*> descriptors() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.
 		/// </summary>
 		/// <param name="binding">The binding point of the requested descriptor layout.</param>
 		/// <returns>The descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.</returns>
-		virtual const TDescriptorLayout& layout(const UInt32& binding) const = 0;
+		virtual const TDescriptorLayout& descriptor(const UInt32& binding) const = 0;
 
 		/// <summary>
 		/// Returns the space index of the descriptor set.
@@ -805,14 +805,14 @@ namespace LiteFX::Rendering {
 	template <typename TDescriptorSetLayout, typename TShaderProgram, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TShaderModule = TShaderProgram::shader_module_type> requires
 		rtti::implements<TDescriptorSetLayout, IDescriptorSetLayout<TDescriptorLayout, TDescriptorSet>> &&
 		rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
-	class IRenderPipelineLayout {
+	class IPipelineLayout {
 	public:
 		using descriptor_set_layout_type = TDescriptorSetLayout;
 		using shader_program_type = TShaderProgram;
 		using descriptor_set_type = TDescriptorSet;
 
 	public:
-		virtual ~IRenderPipelineLayout() noexcept = default;
+		virtual ~IPipelineLayout() noexcept = default;
 
 	public:
 		/// <summary>
@@ -826,20 +826,20 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <param name="space">The space to request the descriptor set layout for.</param>
 		/// <returns>The descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.</returns>
-		virtual const TDescriptorSetLayout& layout(const UInt32& space) const = 0;
+		virtual const TDescriptorSetLayout& descriptorSet(const UInt32& space) const = 0;
 
 		/// <summary>
 		/// Returns all descriptor set layouts, the pipeline has been initialized with.
 		/// </summary>
 		/// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
-		virtual Array<const TDescriptorSetLayout*> layouts() const noexcept = 0;
+		virtual Array<const TDescriptorSetLayout*> descriptorSets() const noexcept = 0;
 	};
 
 	/// <summary>
 	/// 
 	/// </summary>
 	template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
-		rtti::implements<TPipelineLayout, IRenderPipelineLayout<TDescriptorSetLayout, TShaderProgram>>
+		rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TShaderProgram>>
 	class RenderPipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
 	public:
 		using Builder<TDerived, TPipelineLayout, TParent>::Builder;
@@ -973,7 +973,7 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// Represents a render pipeline state.
 	/// </summary>
-	/// <typeparam name="TRenderPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IRenderPipelineLayout"/>.</typeparam>
+	/// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
 	/// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="IInputAssembler"/>.</typeparam>
 	/// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="IVertexBuffer"/>.</typeparam>
 	/// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IIndexBuffer"/>.</typeparam>
@@ -984,14 +984,14 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
 	/// <typeparam name="TBufferInterface">The type of the buffer interface. Must inherit from <see cref="IBuffer"/>.</typeparam>
 	/// <seealso cref="IRenderPipelineBuilder" />
-	template <typename TRenderPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TBufferInterface, typename TCommandBuffer = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
-		rtti::implements<TRenderPipelineLayout, IRenderPipelineLayout<TDescriptorSetLayout, TShaderProgram>> &&
+	template <typename TPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TBufferInterface, typename TCommandBuffer = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
+		rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TShaderProgram>> &&
 		rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
 		std::derived_from<TVertexBufferInterface, IVertexBuffer<TBufferInterface, TVertexBufferLayout, TCommandBuffer>> &&
 		std::derived_from<TIndexBufferInterface, IIndexBuffer<TBufferInterface, TIndexBufferLayout, TCommandBuffer>>
 	class IRenderPipeline {
 	public:
-		using render_pipeline_layout_type = TRenderPipelineLayout;
+		using render_pipeline_layout_type = TPipelineLayout;
 		using vertex_buffer_interface_type = TVertexBufferInterface;
 		using index_buffer_interface_type = TIndexBufferInterface;
 		using input_assembler_type = TInputAssembler;
@@ -1020,7 +1020,7 @@ namespace LiteFX::Rendering {
 		/// Returns the layout of the render pipeline.
 		/// </summary>
 		/// <returns>The layout of the render pipeline.</returns>
-		virtual const TRenderPipelineLayout& layout() const noexcept = 0;
+		virtual const TPipelineLayout& layout() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the input assembler state used by the render pipeline.
@@ -1190,8 +1190,8 @@ namespace LiteFX::Rendering {
 	/// Describes the interface of a render pipeline builder.
 	/// </summary>
 	/// <seealso cref="IRenderPipeline" />
-	template <typename TDerived, typename TRenderPipeline, typename TBufferInterface = TRenderPipeline::buffer_interface_type, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TRenderPipelineLayout = TRenderPipeline::render_pipeline_layout_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type> requires
-		rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface>>
+	template <typename TDerived, typename TRenderPipeline, typename TBufferInterface = TRenderPipeline::buffer_interface_type, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TPipelineLayout = TRenderPipeline::render_pipeline_layout_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type> requires
+		rtti::implements<TRenderPipeline, IRenderPipeline<TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface>>
 	class RenderPipelineBuilder : public Builder<TDerived, TRenderPipeline> {
 	public:
 		using Builder<TDerived, TRenderPipeline>::Builder;
@@ -1201,7 +1201,7 @@ namespace LiteFX::Rendering {
 		/// Uses the provided render pipeline layout to initialize the render pipeline. Can be invoked only once.
 		/// </summary>
 		/// <param name="layout">The render pipeline layout to initialize the render pipeline with.</param>
-		virtual void use(UniquePtr<TRenderPipelineLayout>&& layout) = 0;
+		virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
 
 		/// <summary>
 		/// Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.
@@ -1397,15 +1397,15 @@ namespace LiteFX::Rendering {
 	/// GPU, that processes data using different <see cref="IRenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="IFrameBuffer" />.
 	/// </remarks>
 	/// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
-	/// <typeparam name="TRenderPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IRenderPipelineLayout" />.</typeparam>
+	/// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout" />.</typeparam>
 	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
 	/// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
 	// TODO: Add concepts to constrain render pipeline and input attachments properly.
-	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TRenderPipelineLayout = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImageInterface = TFrameBuffer::image_interface_type> requires
+	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImageInterface = TFrameBuffer::image_interface_type> requires
 		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImageInterface>> /*&&
-		rtti::implements<TRenderPipeline, IRenderPipeline<TRenderPipelineLayout>> &&
+		rtti::implements<TRenderPipeline, IRenderPipeline<TPipelineLayout>> &&
 		rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
 	class IRenderPass : public IInputAttachmentMappingSource<TFrameBuffer> {
 	public:

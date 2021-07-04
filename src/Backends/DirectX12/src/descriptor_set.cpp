@@ -71,17 +71,17 @@ DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
 
 UniquePtr<IDirectX12ConstantBuffer> DirectX12DescriptorSet::makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements) const
 {
-    return this->getDevice()->factory().createConstantBuffer(this->parent().layout(binding), usage, elements);
+    return this->getDevice()->factory().createConstantBuffer(this->parent().descriptor(binding), usage, elements);
 }
 
 UniquePtr<IDirectX12Texture> DirectX12DescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels, const MultiSamplingLevel& samples) const
 {
-    return this->getDevice()->factory().createTexture(this->parent().layout(binding), format, size, levels, samples);
+    return this->getDevice()->factory().createTexture(this->parent().descriptor(binding), format, size, levels, samples);
 }
 
 UniquePtr<IDirectX12Sampler> DirectX12DescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) const
 {
-    return this->getDevice()->factory().createSampler(this->parent().layout(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+    return this->getDevice()->factory().createSampler(this->parent().descriptor(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
 void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement) const noexcept

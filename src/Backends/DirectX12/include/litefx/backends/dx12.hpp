@@ -396,10 +396,10 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Array<const DirectX12DescriptorLayout*> layouts() const noexcept override;
+		virtual Array<const DirectX12DescriptorLayout*> descriptors() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12DescriptorLayout& layout(const UInt32& binding) const override;
+		virtual const DirectX12DescriptorLayout& descriptor(const UInt32& binding) const override;
 
 		/// <inheritdoc />
 		virtual const UInt32& space() const noexcept override;
@@ -587,10 +587,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a DirectX12 <see cref="IRenderPipelineLayout" />.
+	/// Implements a DirectX12 <see cref="IPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPipelineLayoutBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public virtual DirectX12RuntimeObject<DirectX12RenderPipeline>, public IRenderPipelineLayout<DirectX12DescriptorSetLayout, DirectX12ShaderProgram>, public ComResource<ID3D12RootSignature> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayout : public virtual DirectX12RuntimeObject<DirectX12RenderPipeline>, public IPipelineLayout<DirectX12DescriptorSetLayout, DirectX12ShaderProgram>, public ComResource<ID3D12RootSignature> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineLayoutBuilder);
 
@@ -609,20 +609,20 @@ namespace LiteFX::Rendering::Backends {
 	private:
 		explicit DirectX12RenderPipelineLayout(const DirectX12RenderPipeline& pipeline) noexcept;
 
-		// IRenderPipelineLayout interface.
+		// IPipelineLayout interface.
 	public:
 		/// <inheritdoc />
 		virtual const DirectX12ShaderProgram& program() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12DescriptorSetLayout& layout(const UInt32& space) const override;
+		virtual const DirectX12DescriptorSetLayout& descriptorSet(const UInt32& space) const override;
 
 		/// <inheritdoc />
-		virtual Array<const DirectX12DescriptorSetLayout*> layouts() const noexcept override;
+		virtual Array<const DirectX12DescriptorSetLayout*> descriptorSets() const noexcept override;
 	};
 
 	/// <summary>
-	/// Builds a DirectX12 <see cref="IRenderPipelineLayout" />.
+	/// Builds a DirectX12 <see cref="IPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPipelineLayout" />
 	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12RenderPipelineLayout, DirectX12RenderPipelineBuilder> {

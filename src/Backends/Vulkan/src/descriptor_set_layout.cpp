@@ -181,14 +181,14 @@ VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept
     ::vkDestroyDescriptorSetLayout(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-Array<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::layouts() const noexcept
+Array<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::descriptors() const noexcept
 {
     return m_impl->m_descriptorLayouts |
         std::views::transform([](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout.get(); }) |
         ranges::to<Array<const VulkanDescriptorLayout*>>();
 }
 
-const VulkanDescriptorLayout& VulkanDescriptorSetLayout::layout(const UInt32& binding) const
+const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(const UInt32& binding) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_descriptorLayouts.end())
         return *match->get();
