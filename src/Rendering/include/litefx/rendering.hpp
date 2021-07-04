@@ -1963,6 +1963,15 @@ namespace LiteFX::Rendering {
 		virtual const TCommandQueue& bufferQueue() const noexcept = 0;
 
 		/// <summary>
+		/// Returns the instance of the queue used for compute calls.
+		/// </summary>
+		/// <remarks>
+		/// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated compute queues are supported on the device.
+		/// </remarks>
+		/// <returns>The instance of the queue used for compute calls.</returns>
+		virtual const TCommandQueue& computeQueue() const noexcept = 0;
+
+		/// <summary>
 		/// Queries the device for the maximum supported number of multi-sampling levels.
 		/// </summary>
 		/// <remarks>
