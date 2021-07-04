@@ -1256,14 +1256,9 @@ namespace LiteFX::Rendering {
 	/// Represents a compute <see cref="IPipeline" />.
 	/// </summary>
 	/// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
-	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
 	/// <seealso cref="IComputePipelineBuilder" />
-	template <typename TPipelineLayout, typename TCommandBuffer> requires
-		rtti::implements<TCommandBuffer, ICommandBuffer>
+	template <typename TPipelineLayout>
 	class IComputePipeline : public IPipeline<TPipelineLayout> {
-	public:
-		using command_buffer_type = TCommandBuffer;
-
 	public:
 		virtual ~IComputePipeline() noexcept = default;
 
@@ -1271,17 +1266,26 @@ namespace LiteFX::Rendering {
 		/// <summary>
 		/// Executes a compute shader.
 		/// </summary>
-		/// <param name="commandBuffer">The command buffer to record the execute command on.</param>
+		/// <remarks>
+		/// The method records a dispatch command in a command buffer. This means, that the dispatch is not synchronously executed. In order to start the execution of one or 
+		/// multiple recorded dispatches, call <see cref="submit" />.
+		/// </remarks>
 		/// <param name="threadCount">The number of thread groups per axis.</param>
-		virtual void dispatch(const TCommandBuffer& commandBuffer, const Vector3u& threadCount) const noexcept;
+		virtual void dispatch(const Vector3u& threadCount) const noexcept = 0;
+
+		/// <summary>
+		/// Submits the commands that are recorded by calling <see cref="dispatch" />.
+		/// </summary>
+		/// <param name="wait">Waits for the underlying command buffer to finish before returning.</param>
+		virtual void submit(const bool& wait = false) const noexcept = 0;
 	};
 
 	/// <summary>
 	/// Describes the interface of a render pipeline builder.
 	/// </summary>
 	/// <seealso cref="IComputePipeline" />
-	template <typename TDerived, typename TComputePipeline, typename TPipelineLayout = TComputePipeline::pipeline_layout_type, typename TCommandBuffer = TComputePipeline::command_buffer_type> requires
-		rtti::implements<TComputePipeline, IComputePipeline<TPipelineLayout, TCommandBuffer>>
+	template <typename TDerived, typename TComputePipeline, typename TPipelineLayout = TComputePipeline::pipeline_layout_type> requires
+		rtti::implements<TComputePipeline, IComputePipeline<TPipelineLayout>>
 	class ComputePipelineBuilder : public Builder<TDerived, TComputePipeline> {
 	public:
 		using Builder<TDerived, TComputePipeline>::Builder;
