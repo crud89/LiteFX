@@ -14,7 +14,7 @@ private:
 	const DirectX12GraphicsAdapter& m_adapter;
 	const DirectX12Surface& m_surface;
 	const DirectX12Backend& m_backend;
-	UniquePtr<DirectX12Queue> m_graphicsQueue, m_transferQueue, m_bufferQueue;
+	UniquePtr<DirectX12Queue> m_graphicsQueue, m_transferQueue, m_bufferQueue, m_computeQueue;
 	UniquePtr<DirectX12GraphicsFactory> m_factory;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
 	UniquePtr<DirectX12SwapChain> m_swapChain;
@@ -40,6 +40,7 @@ public:
 		m_graphicsQueue = nullptr;
 		m_transferQueue = nullptr;
 		m_bufferQueue = nullptr;
+		m_computeQueue = nullptr;
 	}
 
 #ifndef NDEBUG
@@ -157,6 +158,7 @@ public:
 		m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::High);
 		m_transferQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Transfer, QueuePriority::Normal);
 		m_bufferQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Transfer, QueuePriority::High);
+		m_computeQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Compute, QueuePriority::High);
 	}
 
 public:
@@ -285,6 +287,11 @@ DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const MultiSamplingL
 	return DirectX12RenderPassBuilder(*this, samples);
 }
 
+DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline() const
+{
+	return DirectX12ComputePipelineBuilder(*this);
+}
+
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept
 {
 	return *m_impl->m_swapChain;
@@ -323,6 +330,11 @@ const DirectX12Queue& DirectX12Device::transferQueue() const noexcept
 const DirectX12Queue& DirectX12Device::bufferQueue() const noexcept
 {
 	return *m_impl->m_bufferQueue;
+}
+
+const DirectX12Queue& DirectX12Device::computeQueue() const noexcept
+{
+	return *m_impl->m_computeQueue;
 }
 
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& format) const noexcept

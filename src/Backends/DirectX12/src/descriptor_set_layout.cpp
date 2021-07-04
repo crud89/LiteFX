@@ -89,14 +89,14 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& rootParameterIndex) :
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& rootParameterIndex) :
     m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, std::move(descriptorLayouts), space, stages, rootParameterIndex)), DirectX12RuntimeObject(pipelineLayout, pipelineLayout.getDevice())
 {
     m_impl->initialize();
 }
 
-DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12RenderPipelineLayout& pipelineLayout, const UInt32& rootParameterIndex) noexcept :
-    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, rootParameterIndex)), DirectX12RuntimeObject<DirectX12RenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, const UInt32& rootParameterIndex) noexcept :
+    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, rootParameterIndex)), DirectX12RuntimeObject<DirectX12PipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
@@ -204,14 +204,14 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space, const ShaderStage& stages) :
+DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space, const ShaderStage& stages) :
     m_impl(makePimpl<DirectX12DescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*std::as_const(parent).instance(), rootParameterIndex)))
 {
 }
 
 DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
 
-DirectX12RenderPipelineLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::go()
+DirectX12PipelineLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::go()
 {
     auto instance = this->instance();
     instance->m_impl->m_layouts = std::move(m_impl->m_layouts);

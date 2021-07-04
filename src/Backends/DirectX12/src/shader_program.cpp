@@ -25,8 +25,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12RenderPipelineLayout& pipelineLayout) noexcept :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject<DirectX12RenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12PipelineLayout& pipelineLayout) noexcept :
+    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject<DirectX12PipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
@@ -61,14 +61,14 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(DirectX12RenderPipelineLayoutBuilder& parent) :
+DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(DirectX12PipelineLayoutBuilder& parent) :
     m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this)), ShaderProgramBuilder(parent, UniquePtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(*std::as_const(parent).instance())))
 {
 }
 
 DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = default;
 
-DirectX12RenderPipelineLayoutBuilder& DirectX12ShaderProgramBuilder::go()
+DirectX12PipelineLayoutBuilder& DirectX12ShaderProgramBuilder::go()
 {
     auto instance = this->instance();
     instance->m_impl->m_modules = std::move(m_impl->m_modules);
