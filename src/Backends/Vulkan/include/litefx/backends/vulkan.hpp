@@ -883,16 +883,24 @@ namespace LiteFX::Rendering::Backends {
 	private:
 		VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept;
 
-		// IRenderPipeline interface.
+		// IPipeline interface.
 	public:
 		/// <inheritdoc />
 		virtual const String& name() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& id() const noexcept override;
+		virtual const VulkanRenderPipelineLayout& layout() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanRenderPipelineLayout& layout() const noexcept override;
+		virtual void bind(const VulkanDescriptorSet& descriptorSet) const override;
+
+		/// <inheritdoc />
+		virtual void use() const override;
+
+		// IRenderPipeline interface.
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& id() const noexcept override;
 
 		/// <inheritdoc />
 		virtual SharedPtr<VulkanInputAssembler> inputAssembler() const noexcept override;
@@ -921,12 +929,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void bind(const IVulkanIndexBuffer& buffer) const override;
-
-		/// <inheritdoc />
-		virtual void bind(const VulkanDescriptorSet& descriptorSet) const override;
-
-		/// <inheritdoc />
-		virtual void use() const override;
 
 		/// <inheritdoc />
 		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;

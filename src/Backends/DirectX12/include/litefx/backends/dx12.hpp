@@ -848,16 +848,25 @@ namespace LiteFX::Rendering::Backends {
 	private:
 		DirectX12RenderPipeline(const DirectX12RenderPass& renderPass) noexcept;
 
-		// IRenderPipeline interface.
+		// IPipeline interface.
 	public:
 		/// <inheritdoc />
 		virtual const String& name() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& id() const noexcept override;
+		virtual const DirectX12RenderPipelineLayout& layout() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12RenderPipelineLayout& layout() const noexcept override;
+		virtual void bind(const DirectX12DescriptorSet& descriptorSet) const override;
+
+		/// <inheritdoc />
+		virtual void use() const override;
+
+
+		// IRenderPipeline interface.
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& id() const noexcept override;
 
 		/// <inheritdoc />
 		virtual SharedPtr<DirectX12InputAssembler> inputAssembler() const noexcept override;
@@ -896,12 +905,6 @@ namespace LiteFX::Rendering::Backends {
 		/// barriers at once, if there are multiple vertex buffers that need to be transitioned.
 		/// </remarks>
 		virtual void bind(const IDirectX12IndexBuffer& buffer) const override;
-
-		/// <inheritdoc />
-		virtual void bind(const DirectX12DescriptorSet& descriptorSet) const override;
-
-		/// <inheritdoc />
-		virtual void use() const override;
 
 		/// <inheritdoc />
 		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
