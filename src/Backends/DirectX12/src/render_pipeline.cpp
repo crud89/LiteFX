@@ -451,9 +451,9 @@ DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::enableAlphaToCov
 	return *this;
 }
 
-DirectX12PipelineLayoutBuilder DirectX12RenderPipelineBuilder::layout()
+DirectX12RenderPipelineLayoutBuilder DirectX12RenderPipelineBuilder::layout()
 {
-	return DirectX12PipelineLayoutBuilder(*this);
+	return DirectX12RenderPipelineLayoutBuilder(*this);
 }
 
 DirectX12RasterizerBuilder DirectX12RenderPipelineBuilder::rasterizer()

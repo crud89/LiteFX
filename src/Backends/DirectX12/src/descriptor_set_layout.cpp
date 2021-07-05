@@ -204,14 +204,14 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space, const ShaderStage& stages) :
+DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space, const ShaderStage& stages) :
     m_impl(makePimpl<DirectX12DescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*std::as_const(parent).instance(), rootParameterIndex)))
 {
 }
 
 DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
 
-DirectX12PipelineLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::go()
+DirectX12RenderPipelineLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::go()
 {
     auto instance = this->instance();
     instance->m_impl->m_layouts = std::move(m_impl->m_layouts);

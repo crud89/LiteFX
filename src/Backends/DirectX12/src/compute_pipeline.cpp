@@ -165,9 +165,7 @@ void DirectX12ComputePipelineBuilder::use(UniquePtr<DirectX12PipelineLayout>&& l
 }
 
 
-DirectX12PipelineLayoutBuilder DirectX12ComputePipelineBuilder::layout()
+DirectX12ComputePipelineLayoutBuilder DirectX12ComputePipelineBuilder::layout()
 {
-	// TODO: Implement me for compute pipelines (probably need to do a separate specialization).
-	//return DirectX12PipelineLayoutBuilder(*this);
-	throw;
+	return DirectX12ComputePipelineLayoutBuilder(*this);
 }
