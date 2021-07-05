@@ -114,7 +114,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipelineLayoutBuilder::VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineBuilder& parent) :
-    m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this)), RenderPipelineLayoutBuilder(parent, UniquePtr<VulkanRenderPipelineLayout>(new VulkanRenderPipelineLayout(*std::as_const(parent).instance())))
+    m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(parent, UniquePtr<VulkanRenderPipelineLayout>(new VulkanRenderPipelineLayout(*std::as_const(parent).instance())))
 {
 }
 
@@ -127,7 +127,7 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineLayoutBuilder::go()
     instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
     instance->handle() = instance->m_impl->initialize();
     
-    return RenderPipelineLayoutBuilder::go();
+    return PipelineLayoutBuilder::go();
 }
 
 void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<VulkanShaderProgram>&& program)

@@ -840,7 +840,7 @@ namespace LiteFX::Rendering {
 	/// </summary>
 	template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
 		rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TShaderProgram>>
-	class RenderPipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
+	class PipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
 	public:
 		using Builder<TDerived, TPipelineLayout, TParent>::Builder;
 

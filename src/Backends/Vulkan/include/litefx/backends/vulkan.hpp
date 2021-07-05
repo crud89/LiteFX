@@ -644,7 +644,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Builds a Vulkan <see cref="IPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineLayout" />
-	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public RenderPipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {
+	class LITEFX_VULKAN_API VulkanRenderPipelineLayoutBuilder : public PipelineLayoutBuilder<VulkanRenderPipelineLayoutBuilder, VulkanRenderPipelineLayout, VulkanRenderPipelineBuilder> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineLayoutBuilderImpl);
 
 	public:

@@ -172,7 +172,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent) :
-    m_impl(makePimpl<DirectX12PipelineLayoutBuilderImpl>(this)), RenderPipelineLayoutBuilder(parent, UniquePtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(*std::as_const(parent).instance())))
+    m_impl(makePimpl<DirectX12PipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(parent, UniquePtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(*std::as_const(parent).instance())))
 {
 }
 
@@ -185,7 +185,7 @@ DirectX12RenderPipelineBuilder& DirectX12PipelineLayoutBuilder::go()
     instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
     instance->handle() = instance->m_impl->initialize();
 
-    return RenderPipelineLayoutBuilder::go();
+    return PipelineLayoutBuilder::go();
 }
 
 void DirectX12PipelineLayoutBuilder::use(UniquePtr<DirectX12ShaderProgram>&& program)

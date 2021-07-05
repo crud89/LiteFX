@@ -625,7 +625,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Builds a DirectX12 <see cref="IPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="DirectX12PipelineLayout" />
-	class LITEFX_DIRECTX12_API DirectX12PipelineLayoutBuilder : public RenderPipelineLayoutBuilder<DirectX12PipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12RenderPipelineBuilder> {
+	class LITEFX_DIRECTX12_API DirectX12PipelineLayoutBuilder : public PipelineLayoutBuilder<DirectX12PipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12RenderPipelineBuilder> {
 		LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutBuilderImpl);
 
 	public:
