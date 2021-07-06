@@ -74,7 +74,7 @@ public:
 		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, &swapChain, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format, D3D12_RESOURCE_STATE_PRESENT);
+			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format, ImageDimensions::DIM_2, 1, 1, D3D12_RESOURCE_STATE_PRESENT);
 		});
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
@@ -107,7 +107,7 @@ public:
 		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format, D3D12_RESOURCE_STATE_PRESENT);
+			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format, ImageDimensions::DIM_2, 1, 1, D3D12_RESOURCE_STATE_PRESENT);
 		});
 
 		m_format = format;

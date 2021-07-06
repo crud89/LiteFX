@@ -345,6 +345,22 @@ DXGI_FORMAT LiteFX::Rendering::Backends::getFormat(const BufferFormat& format)
 	}
 }
 
+D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::getImageType(const ImageDimensions& dimensions)
+{
+	switch (dimensions)
+	{
+	case ImageDimensions::DIM_1:
+		return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
+	case ImageDimensions::DIM_2:
+	case ImageDimensions::CUBE:
+		return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	case ImageDimensions::DIM_3:
+		return D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+	default:
+		throw std::invalid_argument("Unsupported image dimensionality.");
+	}
+}
+
 PolygonMode LiteFX::Rendering::Backends::getPolygonMode(const D3D12_FILL_MODE& mode)
 {
 	switch (mode)

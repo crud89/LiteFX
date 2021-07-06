@@ -140,6 +140,16 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
+    VkImageType LITEFX_VULKAN_API getImageType(const ImageDimensions& dimension);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkImageViewType LITEFX_VULKAN_API getImageViewType(const ImageDimensions& dimension);
+
+    /// <summary>
+    /// 
+    /// </summary>
     VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
 
     /// <summary>

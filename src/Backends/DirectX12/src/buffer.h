@@ -40,10 +40,16 @@ namespace LiteFX::Rendering::Backends {
 		// ITransferable interface.
 	public:
 		/// <inheritdoc />
-		virtual void transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void sendData(const DirectX12CommandBuffer& commandBuffer, const bool& emit) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
+
+		/// <inheritdoc />
+		virtual void transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
 
 		// IBuffer interface.
 	public:

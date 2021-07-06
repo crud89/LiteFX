@@ -2,8 +2,7 @@
 
 #include <litefx/rendering.hpp>
 #include <litefx/backends/vulkan.hpp>
-
-#include "vk_mem_alloc.h"
+#include "buffer.h"
 
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
@@ -15,14 +14,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 
 	public:
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="image"></param>
-		/// <param name="allocator"></param>
-		/// <param name="allocation"></param>
-		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size2d& extent, const Format& format, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
+		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
 		VulkanImage(VulkanImage&&) = delete;
 		VulkanImage(const VulkanImage&) = delete;
 		virtual ~VulkanImage() noexcept;
@@ -47,35 +39,32 @@ namespace LiteFX::Rendering::Backends {
 		// IImage interface.
 	public:
 		/// <inheritdoc />
-		virtual const Size2d& extent() const noexcept override;
+		virtual const Size3d& extent() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const Format& format() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const ImageDimensions& dimensions() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& levels() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& layers() const noexcept override;
+
 		// IVulkanImage interface.
 	public:
 		/// <inheritdoc />
-		virtual const VkImageView& imageView() const noexcept override;
+		virtual const VkImageView& imageView(const UInt32& plane = 0) const override;
 
 	protected:
 		virtual VmaAllocator& allocator() const noexcept;
 		virtual VmaAllocation& allocationInfo() const noexcept;
-		virtual VkImageView& imageView() noexcept;
+		virtual VkImageView& imageView(const UInt32& plane = 0);
 
 	public:
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="elements"></param>
-		/// <param name="extent"></param>
-		/// <param name="format"></param>
-		/// <param name="allocator"></param>
-		/// <param name="createInfo"></param>
-		/// <param name="allocationInfo"></param>
-		/// <param name="allocationResult"></param>
-		/// <returns></returns>
-		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size2d& extent, const Format& format, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
@@ -85,20 +74,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="layout"></param>
-		/// <param name="image"></param>
-		/// <param name="imageLayout"></param>
-		/// <param name="extent"></param>
-		/// <param name="format"></param>
-		/// <param name="levels"></param>
-		/// <param name="samples"></param>
-		/// <param name="allocator"></param>
-		/// <param name="allocation"></param>
-		explicit VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
+		explicit VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
 		VulkanTexture(VulkanTexture&&) = delete;
 		VulkanTexture(const VulkanTexture&) = delete;
 		virtual ~VulkanTexture() noexcept;
@@ -118,25 +94,24 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const MultiSamplingLevel& samples() const noexcept override;
 
-		/// <inheritdoc />
-		virtual const UInt32& levels() const noexcept override;
-
 		// ITransferable interface.
 	public:
 		/// <inheritdoc />
-		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void receiveData(const VulkanCommandBuffer& commandBuffer, const bool& receive) const noexcept override;
 
 		/// <inheritdoc />
-		/// <remarks>
-		/// Note that images are always transferred as a whole. Transferring only regions is currently unsupported. Hence the <paramref name="size" /> and <paramref name="sourceOffset" />
-		/// parameters are ignored and can be simply set to <c>0</c>.
-		/// </remarks>
-		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void sendData(const VulkanCommandBuffer& commandBuffer, const bool& emit) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement = 0, const UInt32& targetMipMapLevel = 0, const UInt32& mipMapLevels = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
+
+		/// <inheritdoc />
+		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceMipMapLevel = 0, const UInt32& targetElement = 0, const UInt32& mipMapLevels = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
 
 		// IVulkanImage interface.
 	public:
-		virtual const VkImageView& imageView() const noexcept override {
-			return VulkanImage::imageView();
+		virtual const VkImageView& imageView(const UInt32& plane = 0) const override {
+			return VulkanImage::imageView(plane);
 		}
 
 		// IVulkanTexture interface.
@@ -144,21 +119,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VkImageLayout& imageLayout() const noexcept override;
 
 	public:
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="layout"></param>
-		/// <param name="extent"></param>
-		/// <param name="format"></param>
-		/// <param name="levels"></param>
-		/// <param name="samples"></param>
-		/// <param name="allocator"></param>
-		/// <param name="createInfo"></param>
-		/// <param name="allocationInfo"></param>
-		/// <param name="allocationResult"></param>
-		/// <returns></returns>
-		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>

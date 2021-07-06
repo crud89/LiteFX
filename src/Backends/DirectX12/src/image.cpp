@@ -14,13 +14,14 @@ private:
 	AllocatorPtr m_allocator;
 	AllocationPtr m_allocation;
 	Format m_format;
-	Size2d m_extent;
-	UInt32 m_elements{ 1 }; 
+	Size3d m_extent;
+	UInt32 m_elements{ 1 }, m_levels, m_layers; 
 	D3D12_RESOURCE_STATES m_state;
+	ImageDimensions m_dimensions;
 
 public:
-	DirectX12ImageImpl(DirectX12Image* parent, const Size2d& extent, const Format& format, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_state(initialState)
+	DirectX12ImageImpl(DirectX12Image* parent, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_state(initialState), m_dimensions(dimension), m_levels(levels), m_layers(layers)
 	{
 	}
 };
@@ -29,8 +30,8 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size2d& extent, const Format& format, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-	m_impl(makePimpl<DirectX12ImageImpl>(this, extent, format, initialState, allocator, std::move(allocation))), DirectX12RuntimeObject<DirectX12Device>(device, &device), ComResource<ID3D12Resource>(nullptr)
+DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	m_impl(makePimpl<DirectX12ImageImpl>(this, extent, format, dimension, levels, layers, initialState, allocator, std::move(allocation))), DirectX12RuntimeObject<DirectX12Device>(device, &device), ComResource<ID3D12Resource>(nullptr)
 {
 	this->handle() = std::move(image);
 }
@@ -44,18 +45,32 @@ const UInt32& DirectX12Image::elements() const noexcept
 
 size_t DirectX12Image::size() const noexcept
 {
-	return this->elementSize() * m_impl->m_elements;
+	if (m_impl->m_allocation) [[likely]]
+		return m_impl->m_allocation->GetSize();
+	else
+	{
+		auto elementSize = ::getSize(m_impl->m_format) * m_impl->m_extent.width() * m_impl->m_extent.height() * m_impl->m_extent.depth() * m_impl->m_layers;
+		auto totalSize = elementSize;
+
+		for (int l(1); l < m_impl->m_levels; ++l)
+		{
+			elementSize /= 2;
+			totalSize += elementSize;
+		}
+
+		return totalSize * m_impl->m_elements;
+	}
 }
 
 size_t DirectX12Image::elementSize() const noexcept
 {
-	// Rough estimation, that does not include alignment.
-	return ::getSize(m_impl->m_format) * m_impl->m_extent.width() * m_impl->m_extent.height();
+	return this->size() / m_impl->m_elements;
 }
 
 size_t DirectX12Image::elementAlignment() const noexcept
 {
-	return 0;
+	// TODO: Support for 64 byte packed "small" resources.
+	return 256;
 }
 
 size_t DirectX12Image::alignedElementSize() const noexcept
@@ -63,7 +78,7 @@ size_t DirectX12Image::alignedElementSize() const noexcept
 	return this->elementSize();
 }
 
-const Size2d& DirectX12Image::extent() const noexcept
+const Size3d& DirectX12Image::extent() const noexcept
 {
 	return m_impl->m_extent;
 }
@@ -71,6 +86,21 @@ const Size2d& DirectX12Image::extent() const noexcept
 const Format& DirectX12Image::format() const noexcept
 {
 	return m_impl->m_format;
+}
+
+const ImageDimensions& DirectX12Image::dimensions() const noexcept 
+{
+	return m_impl->m_dimensions;
+}
+
+const UInt32& DirectX12Image::levels() const noexcept
+{
+	return m_impl->m_levels;
+}
+
+const UInt32& DirectX12Image::layers() const noexcept
+{
+	return m_impl->m_layers;
 }
 
 const D3D12_RESOURCE_STATES& DirectX12Image::state() const noexcept
@@ -107,7 +137,7 @@ const D3D12MA::Allocation* DirectX12Image::allocationInfo() const noexcept
 	return m_impl->m_allocation.get();
 }
 
-UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size2d& extent, const Format& format, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("The allocator must be initialized.");
@@ -115,9 +145,9 @@ UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
 	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, initialState, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4} }}", fmt::ptr(resource.Get()), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6} }}", fmt::ptr(resource.Get()), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers);
 	
-	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, initialState, allocator, AllocationPtr(allocation));
+	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, initialState, allocator, AllocationPtr(allocation));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -131,12 +161,17 @@ public:
 private:
 	const DirectX12DescriptorLayout& m_descriptorLayout;
 	MultiSamplingLevel m_samples;
-	UInt32 m_levels;
 
 public:
-	DirectX12TextureImpl(DirectX12Texture* parent, const DirectX12DescriptorLayout& descriptorLayout, const UInt32& levels, const MultiSamplingLevel& samples) :
-		base(parent), m_descriptorLayout(descriptorLayout), m_samples(samples), m_levels(levels)
+	DirectX12TextureImpl(DirectX12Texture* parent, const DirectX12DescriptorLayout& descriptorLayout, const MultiSamplingLevel& samples) :
+		base(parent), m_descriptorLayout(descriptorLayout), m_samples(samples)
 	{
+	}
+
+private:
+	UInt32 getSubresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane)
+	{
+		return level + (layer * m_parent->levels()) + (plane * m_parent->levels() * m_parent->layers());
 	}
 };
 
@@ -144,8 +179,8 @@ public:
 // Texture shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Texture::DirectX12Texture(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, ComPtr<ID3D12Resource>&& image, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-	DirectX12Image(device, std::move(image), extent, format, initialState, allocator, std::move(allocation)), m_impl(makePimpl<DirectX12TextureImpl>(this, layout, levels, samples))
+DirectX12Texture::DirectX12Texture(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	DirectX12Image(device, std::move(image), extent, format, dimension, levels, layers, initialState, allocator, std::move(allocation)), m_impl(makePimpl<DirectX12TextureImpl>(this, layout, samples))
 {
 }
 
@@ -166,56 +201,75 @@ const MultiSamplingLevel& DirectX12Texture::samples() const noexcept
 	return m_impl->m_samples;
 }
 
-const UInt32& DirectX12Texture::levels() const noexcept
+void DirectX12Texture::receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept
 {
-	return m_impl->m_levels;
+	if ((receive && this->state() != D3D12_RESOURCE_STATE_COPY_DEST) || (!receive && this->state() == D3D12_RESOURCE_STATE_COPY_DEST))
+		this->transitionTo(commandBuffer, receive ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 }
 
-void DirectX12Texture::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void DirectX12Texture::sendData(const DirectX12CommandBuffer& commandBuffer, const bool& emit) const noexcept
 {
-	if (elements != 1 || targetElement != 0) [[unlikely]]
-		throw ArgumentOutOfRangeException("Textures currently do not support transforms for more than one element. The target element is required to be 0 (is {0}) and the number of elements is required to be 1 (is {1}).", targetElement, elements);
+	if ((emit && this->state() != D3D12_RESOURCE_STATE_COPY_SOURCE) || (!emit && this->state() == D3D12_RESOURCE_STATE_COPY_SOURCE))
+		this->transitionTo(commandBuffer, emit ? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+}
 
+void DirectX12Texture::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
+{
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
-	if (this->state() != D3D12_RESOURCE_STATE_COPY_DEST)
-		this->transitionTo(commandBuffer, D3D12_RESOURCE_STATE_COPY_DEST, targetElement);
+	if (this->levels() < targetElement + elements) [[unlikely]]
+		throw ArgumentOutOfRangeException("The image has only {0} mip-map levels, but a transfer for {1} levels starting from level {2} has been requested. For transfers of multiple layers or planes, use multiple transfer commands instead.", this->levels(), elements, targetElement);
+
+	source.sendData(commandBuffer, true);	
+	this->receiveData(commandBuffer, true);
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& bufferDesc = this->handle()->GetDesc();
-	this->getDevice()->handle()->GetCopyableFootprints(&bufferDesc, 0, 1, 0, &footprint, nullptr, nullptr, nullptr);
 
-	CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint);
-	CD3DX12_TEXTURE_COPY_LOCATION targetLocation(this->handle().Get(), 0);
-	commandBuffer.handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+	for (int resource(0); resource < elements; ++resource)
+	{
+		this->getDevice()->handle()->GetCopyableFootprints(&bufferDesc, sourceElement + resource, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(this->handle().Get(), m_impl->getSubresourceId(targetElement + resource, layer, plane));
+		commandBuffer.handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+	}
 
-	this->transitionTo(commandBuffer, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, targetElement);
+	if (!leaveSourceState)
+		source.sendData(commandBuffer, false);
+
+	if (!leaveTargetState)
+		this->receiveData(commandBuffer, false);
 }
 
-void DirectX12Texture::transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void DirectX12Texture::transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
 {
-	if (elements != 1 || sourceElement != 0) [[unlikely]]
-		throw ArgumentOutOfRangeException("Textures currently do not support transforms for more than one element. The source element is required to be 0 (is {0}) and the number of elements is required to be 1 (is {1}).", targetElement, elements);
-
 	if (target.elements() <= targetElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
 
-	if (this->state() != D3D12_RESOURCE_STATE_COPY_SOURCE)
-		this->transitionTo(commandBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE, sourceElement);
+	if (this->levels() < sourceElement + elements) [[unlikely]]
+		throw ArgumentOutOfRangeException("The image has only {0} mip-map levels, but a transfer for {1} levels starting from level {2} has been requested. For transfers of multiple layers or planes, use multiple transfer commands instead.", this->levels(), elements, sourceElement);
+
+	this->sendData(commandBuffer, true);
+	target.receiveData(commandBuffer, true);
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& bufferDesc = this->handle()->GetDesc();
-	this->getDevice()->handle()->GetCopyableFootprints(&bufferDesc, 0, 1, 0, &footprint, nullptr, nullptr, nullptr);
 
-	CD3DX12_TEXTURE_COPY_LOCATION targetLocation(target.handle().Get(), footprint);
-	CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(this->handle().Get(), 0);
-	commandBuffer.handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+	for (int resource(0); resource < elements; ++resource)
+	{
+		this->getDevice()->handle()->GetCopyableFootprints(&bufferDesc, m_impl->getSubresourceId(sourceElement + resource, layer, plane), 1, 0, &footprint, nullptr, nullptr, nullptr);
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(this->handle().Get(), footprint), targetLocation(target.handle().Get(), targetElement + resource);
+		commandBuffer.handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+	}
 
-	this->transitionTo(commandBuffer, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, sourceElement);
+	if (!leaveSourceState)
+		this->sendData(commandBuffer, false);
+
+	if (!leaveTargetState)
+		target.receiveData(commandBuffer, false);
 }
 
-UniquePtr<DirectX12Texture> DirectX12Texture::allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const Size2d& extent, const Format& format, const UInt32& levels, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<DirectX12Texture> DirectX12Texture::allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("The allocator must be initialized.");
@@ -223,9 +277,9 @@ UniquePtr<DirectX12Texture> DirectX12Texture::allocate(const DirectX12Device& de
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
 	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, initialState, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create texture resource.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Samples: {5}, Levels: {6} }}", fmt::ptr(resource.Get()), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, samples, levels);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Samples: {5}, Levels: {6}, Layers: {7} }}", fmt::ptr(resource.Get()), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, samples, levels, layers);
 
-	return makeUnique<DirectX12Texture>(device, layout, std::move(resource), extent, format, levels, samples, initialState, allocator, AllocationPtr(allocation));
+	return makeUnique<DirectX12Texture>(device, layout, std::move(resource), extent, format, dimension, levels, layers, samples, initialState, allocator, AllocationPtr(allocation));
 }
 
 // ------------------------------------------------------------------------------------------------

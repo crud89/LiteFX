@@ -81,7 +81,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a see <cref="DirectX12VertexBufferLayout" />.
+	/// Builds a see <see cref="DirectX12VertexBufferLayout" />.
 	/// </summary>
 	/// <seealso cref="DirectX12VertexBuffer" />
 	/// <seealso cref="DirectX12VertexBufferLayout" />
@@ -173,7 +173,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="type">The type of the descriptor.</param>
 		/// <param name="binding">The binding point for the descriptor.</param>
 		/// <param name="elementSize">The size of the descriptor.</param>
-		explicit DirectX12DescriptorLayout(const DirectX12DescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize);
+		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
+		explicit DirectX12DescriptorLayout(const DirectX12DescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
 		DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
 		DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
 		virtual ~DirectX12DescriptorLayout() noexcept;
@@ -182,6 +183,9 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		/// <inheritdoc />
 		virtual const DescriptorType& descriptorType() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& descriptors() const noexcept override;
 
 		// IBufferLayout interface.
 	public:
@@ -218,7 +222,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Represents the base interface for a DirectX 12 buffer implementation.
 	/// </summary>
-	/// <seealso cref="IDirectX12DescriptorSet" />
+	/// <seealso cref="DirectX12DescriptorSet" />
 	/// <seealso cref="IDirectX12ConstantBuffer" />
 	/// <seealso cref="IDirectX12ConstantTexture" />
 	/// <seealso cref="IDirectX12VertexBuffer" />
@@ -330,19 +334,19 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IDirectX12ConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Texture> makeTexture(const UInt32& binding, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IDirectX12Texture> makeTexture(const UInt32& binding, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IDirectX12Sampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f) const override;
 
 		/// <inheritdoc />
-		virtual void update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement) const noexcept override;
+		virtual void update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void update(const IDirectX12Texture& texture) const noexcept override;
+		virtual void update(const IDirectX12Texture& texture, const UInt32& descriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void update(const IDirectX12Sampler& sampler) const noexcept override;
+		virtual void update(const IDirectX12Sampler& sampler, const UInt32& descriptor = 0) const noexcept override;
 
 		/// <inheritdoc />
 		virtual void attach(const UInt32& binding, const IDirectX12Image& image) const noexcept override;
@@ -395,6 +399,15 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <returns>The index of the descriptor set root parameter.</returns>
 		virtual const UInt32& rootParameterIndex() const noexcept;
+
+		/// <summary>
+		/// Returns the index of the first descriptor for a certain binding. The offset is relative to the heap for the descriptor (i.e. sampler for sampler descriptors and
+		/// CBV/SRV/UAV for other descriptors).
+		/// </summary>
+		/// <param name="binding">The binding of the descriptor.</param>
+		/// <returns>The index of the first descriptor for the binding.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown, if the descriptor set does not contain a descriptor bound to the binding point specified by <paramref name="binding"/>.</exception>
+		virtual UInt32 descriptorOffsetForBinding(const UInt32& binding) const;
 
 	public:
 		/// <inheritdoc />
@@ -467,7 +480,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout) override;
 
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
+		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) override;
 
 		// DirectX12RenderPipelineDescriptorSetLayoutBuilder.
 	public:
@@ -515,7 +528,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12ComputePipelineDescriptorSetLayoutBuilder& addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout) override;
 
 		/// <inheritdoc />
-		virtual DirectX12ComputePipelineDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize) override;
+		virtual DirectX12ComputePipelineDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) override;
 
 		// DirectX12ComputePipelineDescriptorSetLayoutBuilder.
 	public:
@@ -1577,101 +1590,34 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		/// <remarks>
-		/// A image always is generated in the initial state <c>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_UNORDERED_ACCESS</c>.
-		/// </remarks>
-		virtual UniquePtr<IDirectX12Image> createImage(const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IDirectX12Image> createImage(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		/// <remarks>
-		/// Render target attachments are always generated in the initial state <c>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE</c> and must be transitioned 
-		/// into <c>D3D12_RESOURCE_STATE_RENDER_TARGET</c> before drawing to them.
-		/// 
-		/// Depth/Stencil attachments are created with <c>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ</c> and must be 
-		/// transitioned to <c>D3D12_RESOURCE_STATE_DEPTH_WRITE</c> before writing to them.
-		/// 
-		/// The attachment type (render target or depth/stencil) is acquired from <paramref name="format" />. If the format has a depth and/or a stencil 
-		/// channel, it is assumed to be a depth/stencil attachment.
-		/// </remarks>
 		virtual UniquePtr<IDirectX12Image> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IDirectX12Buffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		/// <remarks>
-		/// The initial state and source heap of a vertex buffer depends on the <paramref name="usage" /> parameter:
-		/// 
-		/// <list type="bullet">
-		///   <item>
-		///		<term><c>Staging</c> and <c>Dynamic</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_UPLOAD<c> heap in the initial state <c>D3D12_RESOURCE_STATE_GENERIC_READ</c>. Implicitly transitions to <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> when first used by the GPU †.</description>
-		///   </item>
-		///   <item>
-		///		<term><c>Resource</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_DEFAULT<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Implicitly transitions to <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> when first used by the GPU †.</description>
-		///   </item>
-		///   <item>
-		///		<term><c>Readback</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_READBACK<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_COPY_SOURCE</c> before transferring data from it.</description>
-		///   </item>
-		/// </list>
-		/// 
-		/// † Note that this implicit transition does not reflect into the buffer <see cref="IDirectX12Resource::state" /> member, so be careful when
-		/// transitioning the buffer into another state.
-		/// </remarks>
 		virtual UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		/// <remarks>
-		/// The initial state and source heap of an index buffer depends on the <paramref name="usage" /> parameter:
-		/// 
-		/// <list type="bullet">
-		///   <item>
-		///		<term><c>Staging</c> and <c>Dynamic</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_UPLOAD<c> heap in the initial state <c>D3D12_RESOURCE_STATE_GENERIC_READ</c>. Implicitly transitions to <c>D3D12_RESOURCE_STATE_INDEX_BUFFER</c> when first used by the GPU †.</description>
-		///   </item>
-		///   <item>
-		///		<term><c>Resource</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_DEFAULT<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Implicitly transitions to <c>D3D12_RESOURCE_STATE_INDEX_BUFFER</c> when first used by the GPU †.</description>
-		///   </item>
-		///   <item>
-		///		<term><c>Readback</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_READBACK<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_COPY_SOURCE</c> before transferring data from it.</description>
-		///   </item>
-		/// </list>
-		/// 
-		/// † Note that this implicit transition does not reflect into the buffer <see cref="IDirectX12Resource::state" /> member, so be careful when
-		/// transitioning the buffer into another state.
-		/// </remarks>
 		virtual UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
 		/// <inheritdoc />
-		/// <remarks>
-		/// The initial state and source heap of a constant buffer depends on the <paramref name="usage" /> parameter:
-		/// 
-		/// <list type="bullet">
-		///   <item>
-		///		<term><c>Staging</c> and <c>Dynamic</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_UPLOAD<c> heap in the initial state <c>D3D12_RESOURCE_STATE_GENERIC_READ</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> before accessing it.</description>
-		///   </item>
-		///   <item>
-		///		<term><c>Resource</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_DEFAULT<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> before accessing it.</description>
-		///   </item>
-		///   <item>
-		///		<term><c>Readback</c>:</term>
-		///		<description>Created on the <c>D3D12_HEAP_TYPE_READBACK<c> heap in the initial state <c>D3D12_RESOURCE_STATE_COPY_DEST</c>. Should be transitioned to <c>D3D12_RESOURCE_STATE_COPY_SOURCE</c> before transferring data from it.</description>
-		///   </item>
-		/// </list>
-		/// </remarks>
 		virtual UniquePtr<IDirectX12ConstantBuffer> createConstantBuffer(const DirectX12DescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Texture> createTexture(const DirectX12DescriptorLayout& layout, const Format& format, const Size2d& size, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IDirectX12Texture> createTexture(const DirectX12DescriptorLayout& layout, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<IDirectX12Texture>> createTextures(const DirectX12DescriptorLayout& layout, const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IDirectX12Sampler> createSampler(const DirectX12DescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<IDirectX12Sampler>> createSamplers(const DirectX12DescriptorLayout& layout, const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 	};
 
 	/// <summary>

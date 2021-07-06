@@ -1,6 +1,8 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+#define LIGHT_SOURCES 8
+
 enum DescriptorSets : UInt32
 {
     Constant = 0,                                       // All buffers that are immutable.
@@ -14,21 +16,55 @@ enum Pipelines : UInt32
 
 const Array<Vertex> vertices =
 {
-    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } }
+    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } }
 };
 
-const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
+const Array<UInt16> indices = { 
+    0, 1, 2, 1, 3, 2,       // Front
+    4, 6, 5, 5, 6, 7,       // Back
+    8, 9, 10, 9, 11, 10,    // Right
+    12, 14, 13, 13, 14, 15, // Left
+    16, 17, 18, 17, 19, 18, // Bottom
+    20, 22, 21, 21, 22, 23  // Top
+};
 
 struct CameraBuffer {
     glm::mat4 ViewProjection;
+    glm::vec4 Position;
 } camera;
 
 struct TransformBuffer {
     glm::mat4 World;
 } transform;
+
+struct LightBuffer {
+    glm::vec4 Position;
+    glm::vec4 Color;
+    glm::vec4 Properties;   // x: radius, y: intensity, w: enabled (if > 0.f)
+} lights[LIGHT_SOURCES];
 
 static void onResize(GLFWwindow* window, int width, int height)
 {
@@ -40,6 +76,7 @@ void SampleApp::initRenderGraph()
 {
     m_renderPass = m_device->buildRenderPass()
         .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
+        .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false)
         .go();
 }
 
@@ -50,13 +87,14 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/basic_vs.spv")
-                .addFragmentShaderModule("shaders/basic_fs.spv")
+                .addVertexShaderModule("shaders/ubo_array_vs.dxi")
+                .addFragmentShaderModule("shaders/ubo_array_ps.dxi")
                 .go()
-            .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment, 1)
+            .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
                 .addUniform(0, sizeof(CameraBuffer))
+                .addUniform(1, sizeof(LightBuffer), LIGHT_SOURCES)
                 .go()
-            .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex, 3)
+            .addDescriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
                 .addUniform(0, sizeof(TransformBuffer))
                 .go()
             .go()
@@ -70,8 +108,9 @@ void SampleApp::initPipelines()
             .withTopology(PrimitiveTopology::TriangleList)
             .withIndexType(IndexType::UInt16)
             .addVertexBuffer(sizeof(Vertex), 0)
-                .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-                .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+                .addAttribute(BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+                .addAttribute(BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
+                .addAttribute(BufferFormat::XYZ32F, offsetof(Vertex, Normal), AttributeSemantic::Normal)
                 .go()
             .go()
         .go();
@@ -102,35 +141,58 @@ void SampleApp::initBuffers()
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
     m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
 
-    // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
-    // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    auto& cameraBindingLayout = m_pipeline->layout().descriptorSet(DescriptorSets::Constant);
-    m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.descriptor(0), BufferUsage::Staging, 1);
-    m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.descriptor(0), BufferUsage::Resource, 1);
+    // Initialize the static buffers. The camera and lights buffers are constant, so we only need to create one buffer (for each), that can be read 
+    // from all frames. Since this is a write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
+    auto& staticBindingLayout = m_pipeline->layout().descriptorSet(DescriptorSets::Constant);
+    m_cameraStagingBuffer = m_device->factory().createConstantBuffer(staticBindingLayout.descriptor(0), BufferUsage::Staging, 1);
+    m_cameraBuffer = m_device->factory().createConstantBuffer(staticBindingLayout.descriptor(0), BufferUsage::Resource, 1);
 
     // Allocate the descriptor set and bind the camera buffer to it.
-    m_cameraBindings = cameraBindingLayout.allocate();
-    m_cameraBindings->update(*m_cameraBuffer, 0);
+    m_staticBindings = staticBindingLayout.allocate();
+    m_staticBindings->update(*m_cameraBuffer, 0);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer);
+
+    // Allocate the lights buffer and the lights staging buffer.
+    this->initLights();
+    auto lightsStagingBuffer = m_device->factory().createConstantBuffer(staticBindingLayout.descriptor(1), BufferUsage::Staging, LIGHT_SOURCES);
+    m_lightsBuffer = m_device->factory().createConstantBuffer(staticBindingLayout.descriptor(1), BufferUsage::Resource, LIGHT_SOURCES);
+    m_staticBindings->update(*m_lightsBuffer, 0, LIGHT_SOURCES);
+
+    auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | ranges::to<Array<const void*>>();
+    lightsStagingBuffer->map(lightsData, sizeof(LightBuffer));
+    m_lightsBuffer->transferFrom(*commandBuffer, *lightsStagingBuffer, 0, 0, LIGHT_SOURCES);
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = m_pipeline->layout().descriptorSet(DescriptorSets::PerFrame);
     m_perFrameBindings = transformBindingLayout.allocate(3);
     m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.descriptor(0), BufferUsage::Dynamic, 3);
-    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
+    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
     
     // End and submit the command buffer.
     commandBuffer->end(true, true);
 }
 
-void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
+void SampleApp::initLights()
+{
+    lights[0] = LightBuffer{ .Position = { -1.f, -1.f, -1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[1] = LightBuffer{ .Position = {  1.f, -1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[2] = LightBuffer{ .Position = { -1.f,  1.f, -1.f, 1.f }, .Color = { 0.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[3] = LightBuffer{ .Position = {  1.f,  1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[4] = LightBuffer{ .Position = { -1.f, -1.f,  1.f, 1.f }, .Color = { 0.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[5] = LightBuffer{ .Position = {  1.f, -1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[6] = LightBuffer{ .Position = { -1.f,  1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+    lights[7] = LightBuffer{ .Position = {  1.f,  1.f,  1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
+}
+
+void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    camera.Position = glm::vec4(3.0f, 0.0f, 1.5f, 1.f);
+    glm::mat4 view = glm::lookAt(glm::vec3(camera.Position), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
@@ -139,33 +201,25 @@ void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
 
 void SampleApp::run() 
 {
-    // Store the window handle.
-    auto window = m_window.get();
-
     // Start by creating the surface and selecting the adapter.
-    auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
+    auto backend = this->findBackend<DirectX12Backend>(BackendType::Rendering);
     auto adapter = backend->findAdapter(m_adapterId);
 
     if (adapter == nullptr)
         adapter = backend->findAdapter(std::nullopt);
 
-    auto surface = backend->createSurface([&window](const VkInstance& instance) {
-        VkSurfaceKHR surface;
-        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
-
-        return surface;
-    });
+    auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(m_window.get()));
 
     // Get the proper frame buffer size.
     int width, height;
-    ::glfwGetFramebufferSize(window, &width, &height);
+    ::glfwGetFramebufferSize(m_window.get(), &width, &height);
 
     // Create viewport and scissors.
     m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+    m_device = backend->createDevice(*adapter, *surface, *backend, Format::B8G8R8A8_UNORM, Size2d(width, height), 3);
 
     // Initialize resources.
     this->initRenderGraph();
@@ -173,7 +227,7 @@ void SampleApp::run()
     this->initBuffers();
 
     // Run application loop until the window is closed.
-    while (!::glfwWindowShouldClose(window))
+    while (!::glfwWindowShouldClose(m_window.get()))
     {
         this->handleEvents();
         this->drawFrame();
@@ -183,10 +237,11 @@ void SampleApp::run()
     m_device->wait();
 
     // Destroy all resources.
-    m_cameraBindings = nullptr;
+    m_staticBindings = nullptr;
     m_perFrameBindings.clear();
     m_cameraBuffer = nullptr;
     m_cameraStagingBuffer = nullptr;
+    m_lightsBuffer = nullptr;
     m_transformBuffer = nullptr;
     m_vertexBuffer = nullptr;
     m_indexBuffer = nullptr;
@@ -197,7 +252,7 @@ void SampleApp::run()
     m_device = nullptr;
 
     // Destroy the window.
-    ::glfwDestroyWindow(window);
+    ::glfwDestroyWindow(m_window.get());
     ::glfwTerminate();
 }
 
@@ -262,7 +317,7 @@ void SampleApp::drawFrame()
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    m_pipeline->bind(*m_cameraBindings);
+    m_pipeline->bind(*m_staticBindings);
     m_pipeline->bind(*m_perFrameBindings[backBuffer]);
 
     // Bind the vertex and index buffers.

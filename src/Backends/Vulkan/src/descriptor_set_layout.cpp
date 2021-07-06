@@ -76,7 +76,7 @@ public:
 
             VkDescriptorSetLayoutBinding binding = {};
             binding.binding = bindingPoint;
-            binding.descriptorCount = 1;		// TODO: Implement support for descriptor arrays.
+            binding.descriptorCount = layout->descriptors();
             binding.pImmutableSamplers = nullptr;
             binding.stageFlags = shaderStages;
 
@@ -95,6 +95,7 @@ public:
             default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped."); return;
             }
 
+            //m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount += layout->descriptors();
             m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
             bindings.push_back(binding);
         });
@@ -318,9 +319,9 @@ VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::addDescripto
     return *this;
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize)
+VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
 {
-    return this->addDescriptor(makeUnique<VulkanDescriptorLayout>(*(this->instance()), type, binding, descriptorSize));
+    return this->addDescriptor(makeUnique<VulkanDescriptorLayout>(*(this->instance()), type, binding, descriptorSize, descriptors));
 }
 
 VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept

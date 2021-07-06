@@ -2,7 +2,6 @@
 
 #include <litefx/rendering.hpp>
 #include <litefx/backends/vulkan.hpp>
-
 #include "vk_mem_alloc.h"
 
 namespace LiteFX::Rendering::Backends {
@@ -31,10 +30,16 @@ namespace LiteFX::Rendering::Backends {
 		// ITransferable interface.
 	public:
 		/// <inheritdoc />
-		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void receiveData(const VulkanCommandBuffer& commandBuffer, const bool& receive) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void sendData(const VulkanCommandBuffer& commandBuffer, const bool& emit) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
+
+		/// <inheritdoc />
+		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
 
 		// IBuffer interface.
 	public:
