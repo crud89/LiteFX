@@ -9,6 +9,7 @@ using namespace LiteFX::Rendering::Backends;
 class DirectX12PipelineLayout::DirectX12RenderPipelineLayoutImpl : public Implement<DirectX12PipelineLayout> {
 public:
     friend class DirectX12RenderPipelineLayoutBuilder;
+    friend class DirectX12ComputePipelineLayoutBuilder;
     friend class DirectX12PipelineLayout;
 
 private:
@@ -120,7 +121,18 @@ DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12RenderPipeline& 
     this->handle() = m_impl->initialize();
 }
 
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts) :
+    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts)))
+{
+    this->handle() = m_impl->initialize();
+}
+
 DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline) noexcept :
+    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this))
+{
+}
+
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline) noexcept :
     ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this))
 {
 }
@@ -148,7 +160,7 @@ Array<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSe
 }
 
 // ------------------------------------------------------------------------------------------------
-// Builder implementation.
+// Render pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
 
 class DirectX12RenderPipelineLayoutBuilder::DirectX12RenderPipelineLayoutBuilderImpl : public Implement<DirectX12RenderPipelineLayoutBuilder> {
@@ -168,7 +180,7 @@ public:
 };
 
 // ------------------------------------------------------------------------------------------------
-// Builder interface.
+// Render pipeline layout builder interface.
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipelineLayoutBuilder::DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent) :
@@ -203,12 +215,78 @@ void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSetL
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
 
-DirectX12ShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgram()
+DirectX12GraphicsShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgram()
 {
-    return DirectX12ShaderProgramBuilder(*this);
+    return DirectX12GraphicsShaderProgramBuilder(*this);
 }
 
-DirectX12DescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages)
+DirectX12RenderPipelineDescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages)
 {
-    return DirectX12DescriptorSetLayoutBuilder(*this, static_cast<UInt32>(m_impl->m_descriptorSetLayouts.size()), space, stages);
+    return DirectX12RenderPipelineDescriptorSetLayoutBuilder(*this, static_cast<UInt32>(m_impl->m_descriptorSetLayouts.size()), space, stages);
+}
+
+// ------------------------------------------------------------------------------------------------
+// Compute pipeline layout builder implementation.
+// ------------------------------------------------------------------------------------------------
+
+class DirectX12ComputePipelineLayoutBuilder::DirectX12ComputePipelineLayoutBuilderImpl : public Implement<DirectX12ComputePipelineLayoutBuilder> {
+public:
+    friend class DirectX12ComputePipelineLayoutBuilder;
+    friend class DirectX12PipelineLayout;
+
+private:
+    UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
+    Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
+
+public:
+    DirectX12ComputePipelineLayoutBuilderImpl(DirectX12ComputePipelineLayoutBuilder* parent) :
+        base(parent)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Compute pipeline layout builder interface.
+// ------------------------------------------------------------------------------------------------
+
+DirectX12ComputePipelineLayoutBuilder::DirectX12ComputePipelineLayoutBuilder(DirectX12ComputePipelineBuilder& parent) :
+    m_impl(makePimpl<DirectX12ComputePipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(parent, UniquePtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(*std::as_const(parent).instance())))
+{
+}
+
+DirectX12ComputePipelineLayoutBuilder::~DirectX12ComputePipelineLayoutBuilder() noexcept = default;
+
+DirectX12ComputePipelineBuilder& DirectX12ComputePipelineLayoutBuilder::go()
+{
+    auto instance = this->instance();
+    instance->m_impl->m_shaderProgram = std::move(m_impl->m_shaderProgram);
+    instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
+    instance->handle() = instance->m_impl->initialize();
+
+    return PipelineLayoutBuilder::go();
+}
+
+void DirectX12ComputePipelineLayoutBuilder::use(UniquePtr<DirectX12ShaderProgram>&& program)
+{
+#ifndef NDEBUG
+    if (m_impl->m_shaderProgram != nullptr)
+        LITEFX_WARNING(DIRECTX12_LOG, "Another shader program has already been initialized and will be replaced. A pipeline layout can only have one shader program.");
+#endif
+
+    m_impl->m_shaderProgram = std::move(program);
+}
+
+void DirectX12ComputePipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSetLayout>&& layout)
+{
+    m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
+}
+
+DirectX12ComputeShaderProgramBuilder DirectX12ComputePipelineLayoutBuilder::shaderProgram()
+{
+    return DirectX12ComputeShaderProgramBuilder(*this);
+}
+
+DirectX12ComputePipelineDescriptorSetLayoutBuilder DirectX12ComputePipelineLayoutBuilder::addDescriptorSet(const UInt32& space)
+{
+    return DirectX12ComputePipelineDescriptorSetLayoutBuilder(*this, static_cast<UInt32>(m_impl->m_descriptorSetLayouts.size()), space);
 }

@@ -70,13 +70,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device, UniquePtr<DirectX12PipelineLayout>&& layout, const String& name) :
-	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, name, std::move(layout))), DirectX12RuntimeObject<DirectX12Device>(device, &device), ComResource<ID3D12PipelineState>(nullptr)
+	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, name, std::move(layout))), DirectX12RuntimeObject<DirectX12Device>(device, &device), DirectX12PipelineState(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }
 
 DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device) noexcept :
-	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this)), DirectX12RuntimeObject<DirectX12Device>(device, &device), ComResource<ID3D12PipelineState>(nullptr)
+	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this)), DirectX12RuntimeObject<DirectX12Device>(device, &device), DirectX12PipelineState(nullptr)
 {
 }
 

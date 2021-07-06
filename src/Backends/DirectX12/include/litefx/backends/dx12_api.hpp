@@ -46,6 +46,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12CommandBuffer;
     class DirectX12InputAssembler;
     class DirectX12Rasterizer;
+    class DirectX12PipelineState;
     class DirectX12RenderPipeline;
     class DirectX12ComputePipeline;
     class DirectX12FrameBuffer;
@@ -68,10 +69,12 @@ namespace LiteFX::Rendering::Backends {
 
     // Builder declarations.
     class DirectX12VertexBufferLayoutBuilder;
-    class DirectX12DescriptorSetLayoutBuilder;
+    class DirectX12RenderPipelineDescriptorSetLayoutBuilder;
+    class DirectX12ComputePipelineDescriptorSetLayoutBuilder;
     class DirectX12RenderPipelineLayoutBuilder;
     class DirectX12ComputePipelineLayoutBuilder;
-    class DirectX12ShaderProgramBuilder;
+    class DirectX12GraphicsShaderProgramBuilder;
+    class DirectX12ComputeShaderProgramBuilder;
     class DirectX12InputAssemblerBuilder;
     class DirectX12RasterizerBuilder;
     class DirectX12RenderPipelineBuilder;

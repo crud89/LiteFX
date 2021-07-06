@@ -781,7 +781,7 @@ namespace LiteFX::Rendering {
 	/// <summary>
 	/// 
 	/// </summary>
-	template <typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = TShaderProgram::shader_module_type> requires
+	template <typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = typename TShaderProgram::shader_module_type> requires
 		rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
 	class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
 	public:
@@ -789,14 +789,36 @@ namespace LiteFX::Rendering {
 
 	public:
 		virtual TDerived& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
+	};
+
+	/// <summary>
+	/// 
+	/// </summary>
+	template <typename TDerived, typename TShaderProgram, typename TParent>
+	class GraphicsShaderProgramBuilder : public ShaderProgramBuilder<TDerived, TShaderProgram, TParent> {
+	public:
+		using ShaderProgramBuilder<TDerived, TShaderProgram, TParent>::ShaderProgramBuilder;
+
+	public:
 		virtual TDerived& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
 		virtual TDerived& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
 		virtual TDerived& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
 		virtual TDerived& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
 		virtual TDerived& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-		virtual TDerived& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
 	};
 
+	/// <summary>
+	/// 
+	/// </summary>
+	template <typename TDerived, typename TShaderProgram, typename TParent>
+	class ComputeShaderProgramBuilder : public ShaderProgramBuilder<TDerived, TShaderProgram, TParent> {
+	public:
+		using ShaderProgramBuilder<TDerived, TShaderProgram, TParent>::ShaderProgramBuilder;
+
+	public:
+		virtual TDerived& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+	};
+	
 	/// <summary>
 	/// Represents a the layout of a <see cref="IRenderPipeline" />.
 	/// </summary>
