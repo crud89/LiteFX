@@ -732,7 +732,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new DirectX 12 render pipeline layout builder.
 		/// </summary>
-		/// <param name="parent">The parent render pipeline, that is described by this layout.</param>
 		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent);
 		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineLayoutBuilder&&) = delete;
 		DirectX12RenderPipelineLayoutBuilder(const DirectX12RenderPipelineLayoutBuilder&) = delete;
@@ -778,7 +777,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new DirectX 12 compute pipeline layout builder.
 		/// </summary>
-		/// <param name="parent">The parent compute pipeline, that is described by this layout.</param>
 		DirectX12ComputePipelineLayoutBuilder(DirectX12ComputePipelineBuilder& parent);
 		DirectX12ComputePipelineLayoutBuilder(DirectX12ComputePipelineLayoutBuilder&&) = delete;
 		DirectX12ComputePipelineLayoutBuilder(const DirectX12ComputePipelineLayoutBuilder&) = delete;
