@@ -1226,7 +1226,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void use(UniquePtr<DirectX12PipelineLayout>&& layout) override;
 
-		// DirectX 12ComputePipelineBuilder.
+		// DirectX12ComputePipelineBuilder.
 	public:
 		/// <summary>
 		/// Builds a <see cref="DirectX12PipelineLayout" /> for the compute pipeline.
