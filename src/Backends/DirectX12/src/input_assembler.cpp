@@ -119,7 +119,7 @@ DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = def
 
 DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::addVertexBuffer(const size_t& elementSize, const UInt32& binding)
 {
-    return this->make<DirectX12VertexBufferLayout>(elementSize, binding);
+    return DirectX12VertexBufferLayoutBuilder(*this, makeUnique<DirectX12VertexBufferLayout>(*this->instance(), elementSize, binding));
 }
 
 DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::withIndexType(const IndexType& type)
