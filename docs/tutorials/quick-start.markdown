@@ -488,9 +488,9 @@ Note that we are using *glm* to store the matrix here, but you can use any other
 Next, we create the two buffers that should store the camera data:
 
 ```cxx
-auto& cameraBindingLayout = m_pipeline->layout().layout(0);
-m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Staging, 1);
-m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.layout(0), BufferUsage::Resource, 1);
+auto& cameraBindingLayout = m_pipeline->layout().descriptorSet(0);
+m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.descriptor(0), BufferUsage::Staging, 1);
+m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.descriptor(0), BufferUsage::Resource, 1);
 ```
 
 First, we request a reference of the descriptor set layout (at space *0*), that contains the camera buffer descriptor. We then create two constant buffers for the descriptor bound to register *0* of the descriptor set. We store both buffers in a member variable, since we want to be able to update the camera buffer later (for example, if a resize-event occurs). The camera buffer is still static, since such events occur infrequently.
@@ -544,9 +544,9 @@ struct TransformBuffer {
 Next, we create three `Dynamic` buffers and map them to the descriptor set at space *1* that holds the per-frame transform buffer descriptors. There are three buffers, since we have three *frames in flight*, i.e. three frames that are computed concurrently. This equals the number of back-buffers in the swap chain, we created earlier. Since we have three buffers, we also need three descriptor sets, each containing a descriptor that points to the buffer for the current frame. The three buffers are stored in one *buffer array* with three elements, so each descriptor points to an individual element in the transform buffer array.
 
 ```cxx
-auto& transformBindingLayout = m_pipeline->layout().layout(1);
+auto& transformBindingLayout = m_pipeline->layout().descriptorSet(1);
 m_perFrameBindings = transformBindingLayout.allocate(3);
-m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.layout(0), BufferUsage::Dynamic, 3);
+m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.descriptor(0), BufferUsage::Dynamic, 3);
 std::ranges::for_each(m_perFrameBindings, [this, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
 ```
 
