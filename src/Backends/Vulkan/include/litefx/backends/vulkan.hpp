@@ -1219,6 +1219,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void submit(const bool& wait = false) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void wait() const noexcept override;
 	};
 
 	/// <summary>

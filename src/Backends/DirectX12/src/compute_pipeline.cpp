@@ -114,6 +114,11 @@ void DirectX12ComputePipeline::submit(const bool& wait) const noexcept
 	m_impl->m_commandBuffer->end(true, wait);
 }
 
+void DirectX12ComputePipeline::wait() const noexcept
+{
+	m_impl->m_commandBuffer->wait();
+}
+
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------

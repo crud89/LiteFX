@@ -1448,6 +1448,11 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <param name="wait">Waits for the underlying command buffer to finish before returning.</param>
 		virtual void submit(const bool& wait = false) const noexcept = 0;
+
+        /// <summary>
+        /// Waits for the underlying command buffer to finish after an earlier call to <see cref="submit" />.
+        /// </summary>
+        virtual void wait() const noexcept = 0;
 	};
 
 	/// <summary>
