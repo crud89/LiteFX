@@ -119,7 +119,7 @@ VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
 
 VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::addVertexBuffer(const size_t& elementSize, const UInt32& binding)
 {
-    return this->make<VulkanVertexBufferLayout>(elementSize, binding);
+    return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(*this->instance(), elementSize, binding));
 }
 
 VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withIndexType(const IndexType& type)

@@ -6,22 +6,23 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPipelineLayout::VulkanRenderPipelineLayoutImpl : public Implement<VulkanRenderPipelineLayout> {
+class VulkanPipelineLayout::VulkanPipelineLayoutImpl : public Implement<VulkanPipelineLayout> {
 public:
     friend class VulkanRenderPipelineLayoutBuilder;
-    friend class VulkanRenderPipelineLayout;
+    friend class VulkanComputePipelineLayoutBuilder;
+    friend class VulkanPipelineLayout;
 
 private:
     UniquePtr<VulkanShaderProgram> m_shaderProgram;
     Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
-    VulkanRenderPipelineLayoutImpl(VulkanRenderPipelineLayout* parent, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts) :
+    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts) :
         base(parent), m_shaderProgram(std::move(shaderProgram)), m_descriptorSetLayouts(std::move(descriptorLayouts))
     {
     }
 
-    VulkanRenderPipelineLayoutImpl(VulkanRenderPipelineLayout* parent) :
+    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent) :
         base(parent)
     {
     }
@@ -53,28 +54,39 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts) :
-    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts))), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts) :
+    m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts))), VulkanRuntimeObject<VulkanPipelineState>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 }
 
-VulkanRenderPipelineLayout::VulkanRenderPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept :
-    m_impl(makePimpl<VulkanRenderPipelineLayoutImpl>(this)), VulkanRuntimeObject<VulkanRenderPipeline>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanComputePipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts) :
+    m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts))), VulkanRuntimeObject<VulkanPipelineState>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
+{
+    this->handle() = m_impl->initialize();
+}
+
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept :
+    m_impl(makePimpl<VulkanPipelineLayoutImpl>(this)), VulkanRuntimeObject<VulkanPipelineState>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
 {
 }
 
-VulkanRenderPipelineLayout::~VulkanRenderPipelineLayout() noexcept
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanComputePipeline& pipeline) noexcept :
+    m_impl(makePimpl<VulkanPipelineLayoutImpl>(this)), VulkanRuntimeObject<VulkanPipelineState>(pipeline, pipeline.getDevice()), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
+{
+}
+
+VulkanPipelineLayout::~VulkanPipelineLayout() noexcept
 {
     ::vkDestroyPipelineLayout(this->getDevice()->handle(), this->handle(), nullptr);
 }
 
-const VulkanShaderProgram& VulkanRenderPipelineLayout::program() const noexcept
+const VulkanShaderProgram& VulkanPipelineLayout::program() const noexcept
 {
     return *m_impl->m_shaderProgram.get();
 }
 
-const VulkanDescriptorSetLayout& VulkanRenderPipelineLayout::layout(const UInt32& space) const
+const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(const UInt32& space) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
@@ -82,7 +94,7 @@ const VulkanDescriptorSetLayout& VulkanRenderPipelineLayout::layout(const UInt32
     throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
 }
 
-Array<const VulkanDescriptorSetLayout*> VulkanRenderPipelineLayout::layouts() const noexcept
+Array<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept
 {
     return m_impl->m_descriptorSetLayouts |
         std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); }) |
@@ -90,13 +102,13 @@ Array<const VulkanDescriptorSetLayout*> VulkanRenderPipelineLayout::layouts() co
 }
 
 // ------------------------------------------------------------------------------------------------
-// Builder implementation.
+// Render pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
 
 class VulkanRenderPipelineLayoutBuilder::VulkanRenderPipelineLayoutBuilderImpl : public Implement<VulkanRenderPipelineLayoutBuilder> {
 public:
     friend class VulkanRenderPipelineLayoutBuilder;
-    friend class VulkanRenderPipelineLayout;
+    friend class VulkanPipelineLayout;
 
 private:
     UniquePtr<VulkanShaderProgram> m_shaderProgram;
@@ -110,11 +122,11 @@ public:
 };
 
 // ------------------------------------------------------------------------------------------------
-// Builder interface.
+// Render pipeline layout builder interface.
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipelineLayoutBuilder::VulkanRenderPipelineLayoutBuilder(VulkanRenderPipelineBuilder& parent) :
-    m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this)), RenderPipelineLayoutBuilder(parent, UniquePtr<VulkanRenderPipelineLayout>(new VulkanRenderPipelineLayout(*std::as_const(parent).instance())))
+    m_impl(makePimpl<VulkanRenderPipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(parent, UniquePtr<VulkanPipelineLayout>(new VulkanPipelineLayout(*std::as_const(parent).instance())))
 {
 }
 
@@ -127,7 +139,7 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineLayoutBuilder::go()
     instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
     instance->handle() = instance->m_impl->initialize();
     
-    return RenderPipelineLayoutBuilder::go();
+    return PipelineLayoutBuilder::go();
 }
 
 void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<VulkanShaderProgram>&& program)
@@ -145,12 +157,78 @@ void VulkanRenderPipelineLayoutBuilder::use(UniquePtr<VulkanDescriptorSetLayout>
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
 
-VulkanShaderProgramBuilder VulkanRenderPipelineLayoutBuilder::shaderProgram()
+VulkanGraphicsShaderProgramBuilder VulkanRenderPipelineLayoutBuilder::shaderProgram()
 {
-    return VulkanShaderProgramBuilder(*this);
+    return VulkanGraphicsShaderProgramBuilder(*this);
 }
 
-VulkanDescriptorSetLayoutBuilder VulkanRenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages, const UInt32& poolSize)
+VulkanRenderPipelineDescriptorSetLayoutBuilder VulkanRenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages, const UInt32& poolSize)
 {
-    return VulkanDescriptorSetLayoutBuilder(*this, space, stages, poolSize);
+    return VulkanRenderPipelineDescriptorSetLayoutBuilder(*this, space, stages, poolSize);
+}
+
+// ------------------------------------------------------------------------------------------------
+// Compute pipeline layout builder implementation.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanComputePipelineLayoutBuilder::VulkanComputePipelineLayoutBuilderImpl : public Implement<VulkanComputePipelineLayoutBuilder> {
+public:
+    friend class VulkanComputePipelineLayoutBuilder;
+    friend class VulkanPipelineLayout;
+
+private:
+    UniquePtr<VulkanShaderProgram> m_shaderProgram;
+    Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
+
+public:
+    VulkanComputePipelineLayoutBuilderImpl(VulkanComputePipelineLayoutBuilder* parent) :
+        base(parent)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Compute pipeline layout builder interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanComputePipelineLayoutBuilder::VulkanComputePipelineLayoutBuilder(VulkanComputePipelineBuilder& parent) :
+    m_impl(makePimpl<VulkanComputePipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(parent, UniquePtr<VulkanPipelineLayout>(new VulkanPipelineLayout(*std::as_const(parent).instance())))
+{
+}
+
+VulkanComputePipelineLayoutBuilder::~VulkanComputePipelineLayoutBuilder() noexcept = default;
+
+VulkanComputePipelineBuilder& VulkanComputePipelineLayoutBuilder::go()
+{
+    auto instance = this->instance();
+    instance->m_impl->m_shaderProgram = std::move(m_impl->m_shaderProgram);
+    instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
+    instance->handle() = instance->m_impl->initialize();
+
+    return PipelineLayoutBuilder::go();
+}
+
+void VulkanComputePipelineLayoutBuilder::use(UniquePtr<VulkanShaderProgram>&& program)
+{
+#ifndef NDEBUG
+    if (m_impl->m_shaderProgram != nullptr)
+        LITEFX_WARNING(VULKAN_LOG, "Another shader program has already been initialized and will be replaced. A pipeline layout can only have one shader program.");
+#endif
+
+    m_impl->m_shaderProgram = std::move(program);
+}
+
+void VulkanComputePipelineLayoutBuilder::use(UniquePtr<VulkanDescriptorSetLayout>&& layout)
+{
+    m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
+}
+
+VulkanComputeShaderProgramBuilder VulkanComputePipelineLayoutBuilder::shaderProgram()
+{
+    return VulkanComputeShaderProgramBuilder(*this);
+}
+
+VulkanComputePipelineDescriptorSetLayoutBuilder VulkanComputePipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const UInt32& poolSize)
+{
+    return VulkanComputePipelineDescriptorSetLayoutBuilder(*this, space, poolSize);
 }

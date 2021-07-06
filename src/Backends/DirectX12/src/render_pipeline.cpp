@@ -12,7 +12,7 @@ public:
 	friend class DirectX12RenderPipeline;
 
 private:
-	UniquePtr<DirectX12RenderPipelineLayout> m_layout;
+	UniquePtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
@@ -24,7 +24,7 @@ private:
 	bool m_alphaToCoverage{ false };
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<DirectX12PipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
 		base(parent), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
@@ -220,14 +220,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12RenderPipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), ComResource<ID3D12PipelineState>(nullptr)
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12PipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), DirectX12PipelineState(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass) noexcept :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this)), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), ComResource<ID3D12PipelineState>(nullptr)
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this)), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), DirectX12PipelineState(nullptr)
 {
 }
 
@@ -243,7 +243,7 @@ const UInt32& DirectX12RenderPipeline::id() const noexcept
 	return m_impl->m_id;
 }
 
-const DirectX12RenderPipelineLayout& DirectX12RenderPipeline::layout() const noexcept
+const DirectX12PipelineLayout& DirectX12RenderPipeline::layout() const noexcept
 {
 	return *m_impl->m_layout;
 }
@@ -359,7 +359,7 @@ public:
 	friend class DirectX12RenderPipelineBuilder;
 
 private:
-	UniquePtr<DirectX12RenderPipelineLayout> m_layout;
+	UniquePtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
@@ -400,7 +400,7 @@ UniquePtr<DirectX12RenderPipeline> DirectX12RenderPipelineBuilder::go()
 	return RenderPipelineBuilder::go();
 }
 
-void DirectX12RenderPipelineBuilder::use(UniquePtr<DirectX12RenderPipelineLayout>&& layout)
+void DirectX12RenderPipelineBuilder::use(UniquePtr<DirectX12PipelineLayout>&& layout)
 {
 #ifndef NDEBUG
 	if (m_impl->m_layout != nullptr)
