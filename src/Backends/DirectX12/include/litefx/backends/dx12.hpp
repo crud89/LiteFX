@@ -627,6 +627,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual DirectX12GraphicsShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
 
+		// GraphicsShaderProgramBuilder interface.
+	public:
 		/// <inheritdoc />
 		virtual DirectX12GraphicsShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
@@ -670,6 +672,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual DirectX12ComputeShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
 
+		// ComputeShaderProgramBuilder interface.
+	public:
 		/// <inheritdoc />
 		virtual DirectX12ComputeShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
 	};
