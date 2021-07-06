@@ -55,6 +55,7 @@ private:
 	VulkanQueue* m_graphicsQueue;
 	VulkanQueue* m_transferQueue;
 	VulkanQueue* m_bufferQueue;
+	VulkanQueue* m_computeQueue;
 
 	VkCommandPool m_commandPool;
 	UniquePtr<VulkanSwapChain> m_swapChain;
@@ -124,6 +125,7 @@ public:
 		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, m_surface.handle());
 		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 		m_bufferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
+		m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::Normal);
 
 		if (m_graphicsQueue == nullptr)
 			throw RuntimeException("Unable to find a fitting command queue to present the specified surface.");
@@ -139,6 +141,13 @@ public:
 			// NOTE: Default transfer queue can be a fallback, too.
 			LITEFX_WARNING(VULKAN_LOG, "Unable to find dedicated transfer queue for host-device transfer. Using default transfer queue instead.");
 			m_bufferQueue = m_transferQueue;
+		}
+
+		if (m_computeQueue == nullptr)
+		{
+			// NOTE: Default compute queue can be a fallback, too.
+			LITEFX_WARNING(VULKAN_LOG, "Unable to find dedicated compute queue for host-device transfer. Using graphics queue instead.");
+			m_computeQueue = m_graphicsQueue;
 		}
 
 		// Define used queue families.
@@ -197,6 +206,7 @@ public:
 		m_graphicsQueue->bind();
 		m_transferQueue->bind();
 		m_bufferQueue->bind();
+		m_computeQueue->bind();
 	}
 
 public:
@@ -321,6 +331,11 @@ const VulkanQueue& VulkanDevice::transferQueue() const noexcept
 const VulkanQueue& VulkanDevice::bufferQueue() const noexcept
 {
 	return *m_impl->m_bufferQueue;
+}
+
+const VulkanQueue& VulkanDevice::computeQueue() const noexcept
+{
+	return *m_impl->m_computeQueue;
 }
 
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept

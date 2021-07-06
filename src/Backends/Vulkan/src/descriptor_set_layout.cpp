@@ -8,7 +8,8 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanDescriptorSetLayout::VulkanDescriptorSetLayoutImpl : public Implement<VulkanDescriptorSetLayout> {
 public:
-    friend class VulkanDescriptorSetLayoutBuilder;
+    friend class VulkanRenderPipelineDescriptorSetLayoutBuilder;
+    friend class VulkanComputePipelineDescriptorSetLayoutBuilder;
     friend class VulkanDescriptorSetLayout;
 
 private:
@@ -271,12 +272,12 @@ size_t VulkanDescriptorSetLayout::pools() const noexcept
 }
 
 // ------------------------------------------------------------------------------------------------
-// Builder implementation.
+// Render pipeline descriptor set layout builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilderImpl : public Implement<VulkanDescriptorSetLayoutBuilder> {
+class VulkanRenderPipelineDescriptorSetLayoutBuilder::VulkanRenderPipelineDescriptorSetLayoutBuilderImpl : public Implement<VulkanRenderPipelineDescriptorSetLayoutBuilder> {
 public:
-    friend class VulkanDescriptorSetLayoutBuilder;
+    friend class VulkanRenderPipelineDescriptorSetLayoutBuilder;
 
 private:
     Array<UniquePtr<VulkanDescriptorLayout>> m_descriptorLayouts;
@@ -284,24 +285,24 @@ private:
     ShaderStage m_stages;
 
 public:
-    VulkanDescriptorSetLayoutBuilderImpl(VulkanDescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
+    VulkanRenderPipelineDescriptorSetLayoutBuilderImpl(VulkanRenderPipelineDescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
         base(parent), m_poolSize(poolSize), m_space(space), m_stages(stages)
     {
     }
 };
 
 // ------------------------------------------------------------------------------------------------
-// Builder shared interface.
+// Render pipeline descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(*std::as_const(parent).instance())))
+VulkanRenderPipelineDescriptorSetLayoutBuilder::VulkanRenderPipelineDescriptorSetLayoutBuilder(VulkanRenderPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
+    m_impl(makePimpl<VulkanRenderPipelineDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(*std::as_const(parent).instance())))
 {
 }
 
-VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept = default;
+VulkanRenderPipelineDescriptorSetLayoutBuilder::~VulkanRenderPipelineDescriptorSetLayoutBuilder() noexcept = default;
 
-VulkanPipelineLayoutBuilder& VulkanDescriptorSetLayoutBuilder::go()
+VulkanRenderPipelineLayoutBuilder& VulkanRenderPipelineDescriptorSetLayoutBuilder::go()
 {
     auto instance = this->instance();
     instance->m_impl->m_descriptorLayouts = std::move(m_impl->m_descriptorLayouts);
@@ -313,30 +314,95 @@ VulkanPipelineLayoutBuilder& VulkanDescriptorSetLayoutBuilder::go()
     return DescriptorSetLayoutBuilder::go();
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::addDescriptor(UniquePtr<VulkanDescriptorLayout>&& layout)
+VulkanRenderPipelineDescriptorSetLayoutBuilder& VulkanRenderPipelineDescriptorSetLayoutBuilder::addDescriptor(UniquePtr<VulkanDescriptorLayout>&& layout)
 {
     m_impl->m_descriptorLayouts.push_back(std::move(layout));
     return *this;
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
+VulkanRenderPipelineDescriptorSetLayoutBuilder& VulkanRenderPipelineDescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
 {
     return this->addDescriptor(makeUnique<VulkanDescriptorLayout>(*(this->instance()), type, binding, descriptorSize, descriptors));
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
+VulkanRenderPipelineDescriptorSetLayoutBuilder& VulkanRenderPipelineDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
 {
     m_impl->m_space = space;
     return *this;
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::shaderStages(const ShaderStage& stages) noexcept
+VulkanRenderPipelineDescriptorSetLayoutBuilder& VulkanRenderPipelineDescriptorSetLayoutBuilder::shaderStages(const ShaderStage& stages) noexcept
 {
     m_impl->m_stages = stages;
     return *this;
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::poolSize(const UInt32& poolSize) noexcept
+VulkanRenderPipelineDescriptorSetLayoutBuilder& VulkanRenderPipelineDescriptorSetLayoutBuilder::poolSize(const UInt32& poolSize) noexcept
+{
+    m_impl->m_poolSize = poolSize;
+    return *this;
+}
+
+// ------------------------------------------------------------------------------------------------
+// Compute pipeline descriptor set layout builder implementation.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanComputePipelineDescriptorSetLayoutBuilder::VulkanComputePipelineDescriptorSetLayoutBuilderImpl : public Implement<VulkanComputePipelineDescriptorSetLayoutBuilder> {
+public:
+    friend class VulkanComputePipelineDescriptorSetLayoutBuilder;
+
+private:
+    Array<UniquePtr<VulkanDescriptorLayout>> m_descriptorLayouts;
+    UInt32 m_poolSize, m_space;
+
+public:
+    VulkanComputePipelineDescriptorSetLayoutBuilderImpl(VulkanComputePipelineDescriptorSetLayoutBuilder* parent, const UInt32& space, const UInt32& poolSize) :
+        base(parent), m_poolSize(poolSize), m_space(space)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Compute pipeline descriptor set layout builder shared interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanComputePipelineDescriptorSetLayoutBuilder::VulkanComputePipelineDescriptorSetLayoutBuilder(VulkanComputePipelineLayoutBuilder& parent, const UInt32& space, const UInt32& poolSize) :
+    m_impl(makePimpl<VulkanComputePipelineDescriptorSetLayoutBuilderImpl>(this, space, poolSize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(*std::as_const(parent).instance())))
+{
+}
+
+VulkanComputePipelineDescriptorSetLayoutBuilder::~VulkanComputePipelineDescriptorSetLayoutBuilder() noexcept = default;
+
+VulkanComputePipelineLayoutBuilder& VulkanComputePipelineDescriptorSetLayoutBuilder::go()
+{
+    auto instance = this->instance();
+    instance->m_impl->m_descriptorLayouts = std::move(m_impl->m_descriptorLayouts);
+    instance->m_impl->m_poolSize = std::move(m_impl->m_poolSize);
+    instance->m_impl->m_space = std::move(m_impl->m_space);
+    instance->m_impl->m_stages = ShaderStage::Compute;
+    instance->handle() = instance->m_impl->initialize();
+
+    return DescriptorSetLayoutBuilder::go();
+}
+
+VulkanComputePipelineDescriptorSetLayoutBuilder& VulkanComputePipelineDescriptorSetLayoutBuilder::addDescriptor(UniquePtr<VulkanDescriptorLayout>&& layout)
+{
+    m_impl->m_descriptorLayouts.push_back(std::move(layout));
+    return *this;
+}
+
+VulkanComputePipelineDescriptorSetLayoutBuilder& VulkanComputePipelineDescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
+{
+    return this->addDescriptor(makeUnique<VulkanDescriptorLayout>(*(this->instance()), type, binding, descriptorSize, descriptors));
+}
+
+VulkanComputePipelineDescriptorSetLayoutBuilder& VulkanComputePipelineDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
+{
+    m_impl->m_space = space;
+    return *this;
+}
+
+VulkanComputePipelineDescriptorSetLayoutBuilder& VulkanComputePipelineDescriptorSetLayoutBuilder::poolSize(const UInt32& poolSize) noexcept
 {
     m_impl->m_poolSize = poolSize;
     return *this;

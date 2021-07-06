@@ -456,9 +456,9 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::enableAlphaToCoverage(
 	return *this;
 }
 
-VulkanPipelineLayoutBuilder VulkanRenderPipelineBuilder::layout()
+VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::layout()
 {
-	return VulkanPipelineLayoutBuilder(*this);
+	return VulkanRenderPipelineLayoutBuilder(*this);
 }
 
 VulkanRasterizerBuilder VulkanRenderPipelineBuilder::rasterizer()
