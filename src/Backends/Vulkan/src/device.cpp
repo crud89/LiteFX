@@ -283,6 +283,11 @@ VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& 
 	return VulkanRenderPassBuilder(*this, samples);
 }
 
+VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const
+{
+	return VulkanComputePipelineBuilder(*this);
+}
+
 const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
 {
 	return *m_impl->m_swapChain;

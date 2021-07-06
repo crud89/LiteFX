@@ -12,7 +12,7 @@ public:
 	friend class VulkanRenderPipeline;
 
 private:
-	UniquePtr<VulkanRenderPipelineLayout> m_layout;
+	UniquePtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<VulkanInputAssembler> m_inputAssembler;
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
@@ -24,7 +24,7 @@ private:
 	bool m_alphaToCoverage{ false };
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<VulkanPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
 		base(parent), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
@@ -236,14 +236,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanRenderPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool& enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(VK_NULL_HANDLE)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool& enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
 }
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept : 
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkPipeline>(VK_NULL_HANDLE)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), VulkanPipelineState(VK_NULL_HANDLE)
 {
 }
 
@@ -262,7 +262,7 @@ const UInt32& VulkanRenderPipeline::id() const noexcept
 	return m_impl->m_id;
 }
 
-const VulkanRenderPipelineLayout& VulkanRenderPipeline::layout() const noexcept 
+const VulkanPipelineLayout& VulkanRenderPipeline::layout() const noexcept 
 {
 	return *m_impl->m_layout;
 }
@@ -364,7 +364,7 @@ public:
 	friend class VulkanRenderPipelineBuilder;
 
 private:
-	UniquePtr<VulkanRenderPipelineLayout> m_layout;
+	UniquePtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<VulkanInputAssembler> m_inputAssembler;
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
@@ -405,7 +405,7 @@ UniquePtr<VulkanRenderPipeline> VulkanRenderPipelineBuilder::go()
 	return RenderPipelineBuilder::go();
 }
 
-void VulkanRenderPipelineBuilder::use(UniquePtr<VulkanRenderPipelineLayout>&& layout)
+void VulkanRenderPipelineBuilder::use(UniquePtr<VulkanPipelineLayout>&& layout)
 {
 #ifndef NDEBUG
 	if (m_impl->m_layout != nullptr)
@@ -456,9 +456,9 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::enableAlphaToCoverage(
 	return *this;
 }
 
-VulkanRenderPipelineLayoutBuilder VulkanRenderPipelineBuilder::layout()
+VulkanPipelineLayoutBuilder VulkanRenderPipelineBuilder::layout()
 {
-	return VulkanRenderPipelineLayoutBuilder(*this);
+	return VulkanPipelineLayoutBuilder(*this);
 }
 
 VulkanRasterizerBuilder VulkanRenderPipelineBuilder::rasterizer()

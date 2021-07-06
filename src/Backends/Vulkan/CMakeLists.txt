@@ -21,7 +21,6 @@ SET(VULKAN_BACKEND_HEADERS
 SET(VULKAN_BACKEND_SOURCES
     "src/buffer.h"
     "src/image.h"
-
     "src/convert.cpp"
     "src/backend.cpp"
     "src/adaper.cpp"
@@ -33,8 +32,8 @@ SET(VULKAN_BACKEND_SOURCES
     "src/frame_buffer.cpp"
     "src/input_attachment_mapping.cpp"
     "src/render_pass.cpp"
-    "src/pipeline.cpp"
-
+    "src/render_pipeline.cpp"
+    "src/compute_pipeline.cpp"
     "src/shader_module.cpp"
     "src/shader_program.cpp"
     "src/pipeline_layout.cpp"

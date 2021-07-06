@@ -30,13 +30,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanShaderModule>>&& modules) :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this, std::move(modules))), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+VulkanShaderProgram::VulkanShaderProgram(const VulkanPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanShaderModule>>&& modules) :
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this, std::move(modules))), VulkanRuntimeObject<VulkanPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanRenderPipelineLayout& pipelineLayout) noexcept :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject<VulkanRenderPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+VulkanShaderProgram::VulkanShaderProgram(const VulkanPipelineLayout& pipelineLayout) noexcept :
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject<VulkanPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
@@ -71,14 +71,14 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(VulkanRenderPipelineLayoutBuilder& parent) :
+VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(VulkanPipelineLayoutBuilder& parent) :
     m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this)), ShaderProgramBuilder(parent, UniquePtr<VulkanShaderProgram>(new VulkanShaderProgram(*std::as_const(parent).instance())))
 {
 }
 
 VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
-VulkanRenderPipelineLayoutBuilder& VulkanShaderProgramBuilder::go()
+VulkanPipelineLayoutBuilder& VulkanShaderProgramBuilder::go()
 {
     auto instance = this->instance();
     instance->m_impl->m_modules = std::move(m_impl->m_modules);
