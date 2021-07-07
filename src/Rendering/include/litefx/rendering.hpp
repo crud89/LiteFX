@@ -851,6 +851,12 @@ namespace LiteFX::Rendering {
         virtual UInt32 images() const noexcept = 0;
 
         /// <summary>
+        /// Returns the number of texel/structured buffer descriptors within the descriptor set.
+        /// </summary>
+        /// <returns>The number of texel/structured buffer descriptors.</returns>
+        virtual UInt32 buffers() const noexcept = 0;
+
+        /// <summary>
         /// Returns the number of sampler descriptors within the descriptor set.
         /// </summary>
         /// <returns>The number of sampler descriptors.</returns>
@@ -903,27 +909,64 @@ namespace LiteFX::Rendering {
 
     public:
         virtual TDerived& addDescriptor(UniquePtr<TDescriptorLayout>&& layout) = 0;
-        virtual TDerived& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& elementSize, const UInt32& elements = 1) = 0;
+        virtual TDerived& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) = 0;
 
     public:
-        virtual TDerived& addUniform(const UInt32& binding, const UInt32& elementSize, const UInt32& elements = 1) {
-            return this->addDescriptor(DescriptorType::Uniform, binding, elementSize, elements);
+        /// <summary>
+        /// Adds an uniform/constant buffer descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptorSize">The size of a single descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        virtual TDerived& addUniform(const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) {
+            return this->addDescriptor(DescriptorType::Uniform, binding, descriptorSize, descriptors);
         }
 
-        virtual TDerived& addStorage(const UInt32& binding, const UInt32& elements = 1) {
-            return this->addDescriptor(DescriptorType::Storage, binding, 0, elements);
+        /// <summary>
+        /// Adds a texel buffer descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        virtual TDerived& addBuffer(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->addDescriptor(writable ? DescriptorType::WritableBuffer : DescriptorType::Buffer, binding, 0, descriptors);
         }
 
-        virtual TDerived& addImage(const UInt32& binding, const UInt32& elements = 1) {
-            return this->addDescriptor(DescriptorType::Image, binding, 0, elements);
+        /// <summary>
+        /// Adds a storage/structured buffer descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        virtual TDerived& addStorage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->addDescriptor(writable ? DescriptorType::WritableStorage : DescriptorType::Storage, binding, 0, descriptors);
         }
 
+        /// <summary>
+        /// Adds an image/texture descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        virtual TDerived& addImage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->addDescriptor(writable ? DescriptorType::WritableTexture : DescriptorType::Texture, binding, 0, descriptors);
+        }
+
+        /// <summary>
+        /// Adds an input attachment descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
         virtual TDerived& addInputAttachment(const UInt32& binding) {
             return this->addDescriptor(DescriptorType::InputAttachment, binding, 0);
         }
 
-        virtual TDerived& addSampler(const UInt32& binding, const UInt32& elements = 1) {
-            return this->addDescriptor(DescriptorType::Sampler, binding, 0, elements);
+        /// <summary>
+        /// Adds a sampler descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        virtual TDerived& addSampler(const UInt32& binding, const UInt32& descriptors = 1) {
+            return this->addDescriptor(DescriptorType::Sampler, binding, 0, descriptors);
         }
 
         virtual void use(UniquePtr<TDescriptorLayout>&& layout) {

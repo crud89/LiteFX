@@ -17,7 +17,7 @@ public:
     DirectX12DescriptorSetImpl(DirectX12DescriptorSet* parent, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
         base(parent), m_bufferHeap(std::move(bufferHeap)), m_samplerHeap(std::move(samplerHeap))
     {
-        auto buffers = parent->parent().uniforms() + parent->parent().images() + parent->parent().storages();
+        auto buffers = parent->parent().uniforms() + parent->parent().images() + parent->parent().storages() + parent->parent().buffers();
 
         if (buffers > 0 && m_bufferHeap == nullptr)
             throw ArgumentNotInitializedException("The buffer descriptor heap handle must be initialized, if the descriptor set layout contains uniform buffers, storage buffers or images.");

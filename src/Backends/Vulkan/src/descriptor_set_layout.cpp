@@ -21,7 +21,9 @@ private:
         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 0 },
         { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 0 },
         { VK_DESCRIPTOR_TYPE_SAMPLER, 0 },
-        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 0 }
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 0 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 0 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 0 }
     };
     Dictionary<VkDescriptorType, UInt32> m_poolSizeMapping {
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0 },
@@ -29,6 +31,8 @@ private:
         { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 2 },
         { VK_DESCRIPTOR_TYPE_SAMPLER, 3 },
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 4 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 5 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 6 }
     };
     ShaderStage m_stages;
     UInt32 m_space, m_poolSize;
@@ -88,20 +92,23 @@ public:
 
             switch (type)
             {
-            case DescriptorType::Uniform:         binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;    break;
-            case DescriptorType::Storage:         binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;    break;
-            case DescriptorType::Image:           binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;     break;
-            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;           break;
-            case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;  break;
-            default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped."); return;
+            case DescriptorType::Uniform:         binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
+            case DescriptorType::WritableStorage:
+            case DescriptorType::Storage:         binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
+            case DescriptorType::WritableTexture: binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
+            case DescriptorType::Texture:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
+            case DescriptorType::WritableBuffer:
+            case DescriptorType::Buffer:          binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
+            case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
+            default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");    return;
             }
 
-            //m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount += layout->descriptors();
             m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
             bindings.push_back(binding);
         });
 
-        LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input attachments: {6} }}...", m_space, m_descriptorLayouts.size(), m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount);
+        LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input Attachments: {6}, Writable Images: {7}, Texel Buffers: {8} }}...", m_space, m_descriptorLayouts.size(), m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER]].descriptorCount);
 
         // Create the descriptor set layout.
         VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
@@ -218,9 +225,14 @@ UInt32 VulkanDescriptorSetLayout::storages() const noexcept
     return  m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER].descriptorCount;
 }
 
+UInt32 VulkanDescriptorSetLayout::buffers() const noexcept
+{
+    return  m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER].descriptorCount;
+}
+
 UInt32 VulkanDescriptorSetLayout::images() const noexcept
 {
-    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE].descriptorCount;
+    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE].descriptorCount + m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE].descriptorCount;
 }
 
 UInt32 VulkanDescriptorSetLayout::samplers() const noexcept

@@ -399,6 +399,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt32 images() const noexcept override;
 
 		/// <inheritdoc />
+		virtual UInt32 buffers() const noexcept override;
+
+		/// <inheritdoc />
 		virtual UInt32 samplers() const noexcept override;
 
 		/// <inheritdoc />

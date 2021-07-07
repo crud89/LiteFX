@@ -159,12 +159,17 @@ UInt32 DirectX12DescriptorSetLayout::uniforms() const noexcept
 
 UInt32 DirectX12DescriptorSetLayout::storages() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Storage; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Storage || layout->descriptorType() == DescriptorType::WritableStorage; });
+}
+
+UInt32 DirectX12DescriptorSetLayout::buffers() const noexcept
+{
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Buffer || layout->descriptorType() == DescriptorType::WritableBuffer; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::images() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Image; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Texture || layout->descriptorType() == DescriptorType::WritableTexture; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::samplers() const noexcept
