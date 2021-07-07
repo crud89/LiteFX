@@ -1691,6 +1691,16 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns></returns>
 		virtual void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
 
+		/// <summary>
+		/// Returns the compute pipeline that can be invoked to blit an image resource.
+		/// </summary>
+		/// <remarks>
+		/// Blitting is used by <see cref="DirectX12Texture" /> to generate mip maps.
+		/// </remarks>
+		/// <returns>The compute pipeline that can be invoked to blit an image resource.</returns>
+		/// <seealso cref="DirectX12Texture::generateMipMaps" />
+		virtual const DirectX12ComputePipeline& blitPipeline() const noexcept;
+
 	public:
 		/// <summary>
 		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
