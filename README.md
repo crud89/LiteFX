@@ -1,6 +1,6 @@
 # LiteFX
 
-An extensible, descriptive, modern computer graphics and rendering engine.
+An extensible, descriptive, modern computer graphics and rendering engine, written in C++20.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU">
@@ -35,6 +35,7 @@ auto pipeline = renderPass->makePipeline(0, "Basic Pipeline")
         .addDescriptorSet(1, ShaderStage::Fragment)
             .addSampler(0)
             .go()
+        .go()
     .rasterizer()
         .withPolygonMode(PolygonMode::Solid)
         .withCullMode(CullMode::BackFaces)
@@ -58,11 +59,11 @@ LiteFX is written in modern C++20, following established design patterns to make
 
 ## Installation
 
-If you just want to start using LiteFX, you can acquire binaries of the latest version from the [releases page](https://github.com/crud89/LiteFX/releases).
+If you just want to start using LiteFX, you can acquire binaries of the latest version from the [releases page](https://github.com/crud89/LiteFX/releases) and follow the [project setup](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html) and [quick start](https://litefx.crudolph.io/docs/md_docs_tutorials_quick_start.html) guides.
 
 ### Manual Builds
 
-You can also build the sources on your own. Currently only MSVC builds under Windows are supported. However, the engine does use CMake and (besides the DirectX12 backend) no Windows-specific features, so porting the Vulkan backend and engine architecture should be absolutely possible (pull requests are much appreciated!).
+You can also build the sources on your own. Currently only MSVC builds under Windows are officially supported. However, the engine does use CMake and (besides the DirectX 12 backend) no Windows-specific features, so porting the Vulkan backend and engine architecture should be absolutely possible (pull requests are much appreciated!).
 
 #### Prerequisites
 
@@ -73,7 +74,7 @@ In order for the project to be built, there are a few prerequisites that need to
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). †
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, so you might want to install it, even if you only want to target the DirectX backend. Alternatively, you can download a pre-build DXC distribution.
+† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
 #### Cloning the Repository
 
@@ -106,20 +107,20 @@ You can customize the engine build, according to your specific needs. From Visua
 
 - `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later to be installed on your system).
 - `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
-- `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
-- `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
 - `BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
 - `BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
 - `BUILD_HLSL_SHADER_MODEL` (default: `6_3`): specifies the default HLSL shader model.
+- `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
+- `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
 
 † Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported. Note that both can be used for DirectX 12 and Vulkan.
 
 ### Dependencies
 
-All dependencies are automatically installed using *vcpkg*, when performing a manual build. There are only two dependencies that the engine itself enforces:
+All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine only has two hard dependencies:
 
 - [spdlog](https://github.com/gabime/spdlog): Lightweight logging library.
-- [{fmt}](https://github.com/fmtlib/fmt): String formatting library and implicit dependency by *spdlog*.
+- [{fmt}](https://github.com/fmtlib/fmt): String formatting library and implicit dependency of *spdlog*.
 
 Depending on which rendering backends are build, the following dependencies are required:
 
