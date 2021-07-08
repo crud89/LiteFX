@@ -10,9 +10,9 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 # Resolve package dependencies.
 FIND_PACKAGE(fmt CONFIG REQUIRED)
 
-CONFIGURE_FILE("config.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/config.h")
-CONFIGURE_FILE("version.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/version.h")
-CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/include/litefx/core.h")
+CONFIGURE_FILE("config.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h")
+CONFIGURE_FILE("version.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h")
+CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h")
 
 # Collect header & source files.
 SET(CORE_HEADERS
@@ -20,9 +20,6 @@ SET(CORE_HEADERS
     "include/litefx/string.hpp"
     "include/litefx/traits.hpp"
     "include/litefx/exceptions.hpp"
-    "include/litefx/core.h"
-    "include/litefx/config.h"
-    "include/litefx/version.h"
     "include/litefx/litefx.h"
 )
 
@@ -33,6 +30,9 @@ SET(CORE_SOURCES
 ADD_LIBRARY(${PROJECT_NAME} SHARED
     ${CORE_HEADERS}
     ${CORE_SOURCES}
+    "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h"
 )
 
 # Create source groups for better code organization.
@@ -49,9 +49,9 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
     VERSION ${LITEFX_VERSION}
     SOVERSION ${LITEFX_YEAR}
     DEFINE_SYMBOL ""
-    PUBLIC_HEADER "${CORE_HEADERS}"
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO "Debug"
     MAP_IMPORTED_CONFIG_MINSIZEREL "Release"
+    PUBLIC_HEADER "${CORE_HEADERS};${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h;${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h;${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h"
 )
 
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
@@ -59,8 +59,12 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
         "src/"
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
+
+# Ignore codecvt deprication warnings (as long as there is no replacement, the header will continue to work).
+TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC fmt::fmt)

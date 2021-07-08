@@ -10,7 +10,13 @@
       "cmakeCommandArgs": "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
-      "variables": []
+      "cmakeToolchain": "${projectDir}\\modules\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+      "variables": [
+        {
+          "name": "X_VCPKG_APPLOCAL_DEPS_INSTALL",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x86-Debug",
@@ -22,7 +28,13 @@
       "cmakeCommandArgs": "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
-      "variables": []
+      "cmakeToolchain": "${projectDir}\\modules\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+      "variables": [
+        {
+          "name": "X_VCPKG_APPLOCAL_DEPS_INSTALL",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x64-Release",
@@ -34,7 +46,13 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": []
+      "cmakeToolchain": "${projectDir}\\modules\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+      "variables": [
+        {
+          "name": "X_VCPKG_APPLOCAL_DEPS_INSTALL",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x86-Release",
@@ -46,7 +64,13 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x86_x64" ],
-      "variables": []
+      "cmakeToolchain": "${projectDir}\\modules\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+      "variables": [
+        {
+          "name": "X_VCPKG_APPLOCAL_DEPS_INSTALL",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x64-Debug (Vulkan only)",
@@ -58,7 +82,12 @@
       "cmakeCommandArgs": "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
+      "cmakeToolchain": "${projectDir}\\modules\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
       "variables": [
+        {
+          "name": "X_VCPKG_APPLOCAL_DEPS_INSTALL",
+          "value": "ON"
+        },
         {
           "name": "BUILD_DIRECTX_12_BACKEND",
           "value": "OFF"
@@ -75,7 +104,12 @@
       "cmakeCommandArgs": "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
+      "cmakeToolchain": "${projectDir}\\modules\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
       "variables": [
+        {
+          "name": "X_VCPKG_APPLOCAL_DEPS_INSTALL",
+          "value": "ON"
+        },
         {
           "name": "BUILD_VULKAN_BACKEND",
           "value": "OFF"
