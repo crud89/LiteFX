@@ -98,7 +98,7 @@ jobs:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
           configurationRegexFilter: '${{ matrix.architecture }}-Debug'
-          useVcpkgToolchainFile: true
+          useVcpkgToolchainFile: false
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
           
       - name: Upload build artifacts (Debug)
@@ -120,7 +120,7 @@ jobs:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
           configurationRegexFilter: '${{ matrix.architecture }}-Release'
-          useVcpkgToolchainFile: true
+          useVcpkgToolchainFile: false
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
 
       - name: Upload build artifacts (Release)
