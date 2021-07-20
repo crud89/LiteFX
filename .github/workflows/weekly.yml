@@ -85,7 +85,7 @@ jobs:
           cmakeListsOrSettingsJson: CMakeSettingsJson
           cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
           configurationRegexFilter: '${{ matrix.configuration }}'
-          useVcpkgToolchainFile: true
+          useVcpkgToolchainFile: false
           buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
           
       - name: Upload build artifacts

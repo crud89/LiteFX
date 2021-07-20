@@ -5,11 +5,6 @@
 ###################################################################################################
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
-
-SET(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)		# Install vcpkg dependencies automatically (experimental - might be changed or removed later; see: https://github.com/microsoft/vcpkg/issues/1653). 
-SET(VCPKG_MODULE_DIRECTORY "${CMAKE_SOURCE_DIR}/modules/vcpkg" CACHE STRING "VCPKG module directory." FORCE)
-SET(CMAKE_TOOLCHAIN_FILE "${VCPKG_MODULE_DIRECTORY}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "VCPKG toolchain file." FORCE)
-
 PROJECT(LiteFX LANGUAGES CXX)
 
 # Check if the build dir does not match the source dir (disallow in-source builds).
