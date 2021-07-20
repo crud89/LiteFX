@@ -25,6 +25,7 @@ jobs:
   job:
     name: ${{ matrix.os }}-ci
     runs-on: ${{ matrix.os }}
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     strategy:
       fail-fast: false
       matrix:
@@ -33,7 +34,6 @@ jobs:
           - os: windows-latest
             triplet: x64-windows
             configuration: x64-Release
-    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
 
     steps:
       - name: Checking out sources
