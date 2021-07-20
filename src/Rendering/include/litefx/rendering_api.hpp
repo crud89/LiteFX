@@ -365,6 +365,11 @@ namespace LiteFX::Rendering {
         Storage = 0x00000004,
 
         /// <summary>
+        /// Describes a shader texel storage buffer object (Vulkan) or unordered access view (DirectX).
+        /// </summary>
+        Texel = 0x00000005,
+
+        /// <summary>
         /// Describes another type of buffer, such as samplers or images.
         /// </summary>
         Other = 0x7FFFFFFF
