@@ -111,12 +111,13 @@ void SampleApp::initBuffers()
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& constantBindingLayout = m_pipeline->layout().descriptorSet(DescriptorSets::Constant);
-    m_cameraStagingBuffer = m_device->factory().createConstantBuffer(constantBindingLayout.descriptor(0), BufferUsage::Staging, 1);
-    m_cameraBuffer = m_device->factory().createConstantBuffer(constantBindingLayout.descriptor(0), BufferUsage::Resource, 1);
+    auto& cameraBufferLayout = constantBindingLayout.descriptor(0);
+    m_cameraStagingBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
+    m_cameraBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
 
     // Allocate the descriptor set and bind the camera buffer to it.
     m_constantBindings = constantBindingLayout.allocate();
-    m_constantBindings->update(*m_cameraBuffer, 0);
+    m_constantBindings->update(cameraBufferLayout.binding(), *m_cameraBuffer, 0);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer);
@@ -127,9 +128,10 @@ void SampleApp::initBuffers()
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = m_pipeline->layout().descriptorSet(DescriptorSets::PerFrame);
+    auto& transformBufferLayout = transformBindingLayout.descriptor(0);
     m_perFrameBindings = transformBindingLayout.allocate(3);
-    m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.descriptor(0), BufferUsage::Dynamic, 3);
-    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
+    m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
+    std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
 
     // End and submit the command buffer.
     commandBuffer->end(true, true);
@@ -147,7 +149,7 @@ void SampleApp::loadTexture()
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
     // Create the texture from the constant buffer descriptor set, since we only load the texture once and use it for all frames.
-    m_texture = m_constantBindings->makeTexture(1, Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6);
+    m_texture = m_device->factory().createTexture(Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6);
 
     // Create a staging buffer for the first mip-map of the texture.
     auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->size(0));
@@ -168,11 +170,11 @@ void SampleApp::loadTexture()
     commandBuffer->end(true, true);
 
     // Create a sampler state for the texture.
-    m_sampler = m_constantBindings->makeSampler(2, FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, 0.f, std::numeric_limits<Float>::max(), 16.f);
+    m_sampler = m_device->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, 0.f, std::numeric_limits<Float>::max(), 16.f);
 
     // Update the descriptor set.
-    m_constantBindings->update(*m_texture);
-    m_constantBindings->update(*m_sampler);
+    m_constantBindings->update(1, *m_texture);
+    m_constantBindings->update(2, *m_sampler);
 }
 
 void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)

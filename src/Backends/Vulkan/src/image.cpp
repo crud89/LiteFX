@@ -237,13 +237,12 @@ public:
 	friend class VulkanTexture;
 
 private:
-	const VulkanDescriptorLayout& m_descriptorLayout;
 	VkImageLayout m_imageLayout;
 	MultiSamplingLevel m_samples;
 
 public:
-	VulkanTextureImpl(VulkanTexture* parent, VkImageLayout imageLayout, const VulkanDescriptorLayout& descriptorLayout, const MultiSamplingLevel& samples) :
-		base(parent), m_imageLayout(imageLayout), m_descriptorLayout(descriptorLayout), m_samples(samples)
+	VulkanTextureImpl(VulkanTexture* parent, VkImageLayout imageLayout, const MultiSamplingLevel& samples) :
+		base(parent), m_imageLayout(imageLayout), m_samples(samples)
 	{
 	}
 
@@ -275,22 +274,12 @@ private:
 // Texture shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
-	VulkanImage(device, image, extent, format, dimensions, levels, layers, allocator, allocation), m_impl(makePimpl<VulkanTextureImpl>(this, imageLayout, layout, samples))
+VulkanTexture::VulkanTexture(const VulkanDevice& device, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation) :
+	VulkanImage(device, image, extent, format, dimensions, levels, layers, allocator, allocation), m_impl(makePimpl<VulkanTextureImpl>(this, imageLayout, samples))
 {
 }
 
 VulkanTexture::~VulkanTexture() noexcept = default;
-
-const UInt32& VulkanTexture::binding() const noexcept
-{
-	return m_impl->m_descriptorLayout.binding();
-}
-
-const VulkanDescriptorLayout& VulkanTexture::layout() const noexcept
-{
-	return m_impl->m_descriptorLayout;
-}
 
 const MultiSamplingLevel& VulkanTexture::samples() const noexcept
 {
@@ -381,23 +370,7 @@ void VulkanTexture::generateMipMaps(const VulkanCommandBuffer& commandBuffer) co
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-		VkPipelineStageFlags targetStages = {};
-		auto shaderStages = m_impl->m_descriptorLayout.parent().shaderStages();
-
-		if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
-			targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Geometry) == ShaderStage::Geometry)
-			targetStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Fragment) == ShaderStage::Fragment)
-			targetStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		if ((shaderStages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
-			targetStages |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-		if ((shaderStages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
-			targetStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
-			targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 	}
 }
 
@@ -451,23 +424,7 @@ void VulkanTexture::receiveData(const VulkanCommandBuffer& commandBuffer, const 
 			}
 		};
 
-		VkPipelineStageFlags targetStages = {};
-		auto shaderStages = m_impl->m_descriptorLayout.parent().shaderStages();
-
-		if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
-			targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Geometry) == ShaderStage::Geometry)
-			targetStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Fragment) == ShaderStage::Fragment)
-			targetStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		if ((shaderStages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
-			targetStages |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-		if ((shaderStages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
-			targetStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
-			targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		m_impl->m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
 }
@@ -522,23 +479,7 @@ void VulkanTexture::sendData(const VulkanCommandBuffer& commandBuffer, const boo
 			}
 		};
 
-		VkPipelineStageFlags targetStages = {};
-		auto shaderStages = m_impl->m_descriptorLayout.parent().shaderStages();
-
-		if ((shaderStages & ShaderStage::Vertex) == ShaderStage::Vertex)
-			targetStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Geometry) == ShaderStage::Geometry)
-			targetStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Fragment) == ShaderStage::Fragment)
-			targetStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		if ((shaderStages & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
-			targetStages |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-		if ((shaderStages & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
-			targetStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
-		if ((shaderStages & ShaderStage::Compute) == ShaderStage::Compute)
-			targetStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, targetStages, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		m_impl->m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
 }
@@ -619,16 +560,16 @@ void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const I
 		target.receiveData(commandBuffer, false);
 }
 
-UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	// Allocate the buffer.
 	VkImage image;
 	VmaAllocation allocation;
-	
+
 	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {7}, Samples: {6} }}", fmt::ptr(reinterpret_cast<void*>(image)), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, samples, layers);
 
-	return makeUnique<VulkanTexture>(device, layout, image, createInfo.initialLayout, extent, format, dimensions, levels, layers, samples, allocator, allocation);
+	return makeUnique<VulkanTexture>(device, image, createInfo.initialLayout, extent, format, dimensions, levels, layers, samples, allocator, allocation);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -640,7 +581,6 @@ public:
 	friend class VulkanSampler;
 
 private:
-	const VulkanDescriptorLayout& m_layout;
 	FilterMode m_magFilter, m_minFilter;
 	BorderMode m_borderU, m_borderV, m_borderW;
 	MipMapMode m_mipMapMode;
@@ -649,8 +589,8 @@ private:
 	Float m_anisotropy;
 
 public:
-	VulkanSamplerImpl(VulkanSampler* parent, const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
-		base(parent), m_layout(layout), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
+	VulkanSamplerImpl(VulkanSampler* parent, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+		base(parent), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
 	{
 	}
 
@@ -720,8 +660,8 @@ public:
 // Sampler shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSampler::VulkanSampler(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
-	Resource<VkSampler>(VK_NULL_HANDLE), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanSamplerImpl>(this, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
+VulkanSampler::VulkanSampler(const VulkanDevice& device, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+	Resource<VkSampler>(VK_NULL_HANDLE), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanSamplerImpl>(this, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
 {
 	this->handle() = m_impl->initialize();
 }
@@ -779,14 +719,4 @@ const Float& VulkanSampler::getMaxLOD() const noexcept
 const Float& VulkanSampler::getMinLOD() const noexcept
 {
 	return m_impl->m_minLod;
-}
-
-const UInt32& VulkanSampler::binding() const noexcept
-{
-	return m_impl->m_layout.binding();
-}
-
-const VulkanDescriptorLayout& VulkanSampler::layout() const noexcept
-{
-	return m_impl->m_layout;
 }

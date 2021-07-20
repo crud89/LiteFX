@@ -101,11 +101,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		const VulkanVertexBufferLayout& layout() const noexcept override;
 
-		// IBindable interface.
-	public:
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
 		// VulkanVertexBuffer.
 	public:
 		static UniquePtr<IVulkanVertexBuffer> allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
@@ -128,29 +123,5 @@ namespace LiteFX::Rendering::Backends {
 		// VulkanIndexBuffer.
 	public:
 		static UniquePtr<IVulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-	};
-
-	class VulkanConstantBuffer : public VulkanBuffer, public IVulkanConstantBuffer {
-		LITEFX_IMPLEMENTATION(VulkanConstantBufferImpl);
-
-	public:
-		explicit VulkanConstantBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanDescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation);
-		VulkanConstantBuffer(VulkanConstantBuffer&&) = delete;
-		VulkanConstantBuffer(const VulkanConstantBuffer&) = delete;
-		virtual ~VulkanConstantBuffer() noexcept;
-
-		// IDescriptor interface.
-	public:
-		/// <inheritdoc />
-		const VulkanDescriptorLayout& layout() const noexcept override;
-
-		// IBindable interface.
-	public:
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
-		// VulkanConstantBuffer.
-	public:
-		static UniquePtr<IVulkanConstantBuffer> allocate(const VulkanDescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 }

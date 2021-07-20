@@ -77,20 +77,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
-		explicit VulkanTexture(const VulkanDevice& device, const VulkanDescriptorLayout& layout, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
+		explicit VulkanTexture(const VulkanDevice& device, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
 		VulkanTexture(VulkanTexture&&) = delete;
 		VulkanTexture(const VulkanTexture&) = delete;
 		virtual ~VulkanTexture() noexcept;
-
-		// IBindable interface.
-	public:
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
-		// IDescriptor interface.
-	public:
-		/// <inheritdoc />
-		virtual const VulkanDescriptorLayout& layout() const noexcept override;
 
 		// ITexture interface.
 	public:
@@ -126,7 +116,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VkImageLayout& imageLayout() const noexcept override;
 
 	public:
-		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
@@ -140,7 +130,6 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new sampler instance.
 		/// </summary>
 		/// <param name="device"></param>
-		/// <param name="layout"></param>
 		/// <param name="magFilter"></param>
 		/// <param name="minFilter"></param>
 		/// <param name="borderU"></param>
@@ -151,7 +140,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit VulkanSampler(const VulkanDevice& device, const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f);
+		explicit VulkanSampler(const VulkanDevice& device, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f);
 		VulkanSampler(VulkanSampler&&) = delete;
 		VulkanSampler(const VulkanSampler&) = delete;
 		virtual ~VulkanSampler() noexcept;
@@ -187,14 +176,5 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const Float& getMinLOD() const noexcept override;
-
-		// IBindable interface.
-	public:
-		virtual const UInt32& binding() const noexcept override;
-
-		// IDescriptor interface.
-	public:
-		/// <inheritdoc />
-		virtual const VulkanDescriptorLayout& layout() const noexcept override;
 	};
 }

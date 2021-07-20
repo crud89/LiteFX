@@ -77,7 +77,7 @@ public:
             auto bindingPoint = layout->binding();
             auto type = layout->descriptorType();
 
-            LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Offset: {4}, Binding point: {5} }}...", ++i, m_descriptorLayouts.size(), type, layout->elementSize(), 0, bindingPoint);
+            LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_descriptorLayouts.size(), type, layout->elementSize(), 0, bindingPoint, layout->descriptors());
 
             VkDescriptorSetLayoutBinding binding = {};
             binding.binding = bindingPoint;

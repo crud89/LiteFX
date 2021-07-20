@@ -210,11 +210,6 @@ const VulkanVertexBufferLayout& VulkanVertexBuffer::layout() const noexcept
 	return m_impl->m_layout;
 }
 
-const UInt32& VulkanVertexBuffer::binding() const noexcept
-{
-	return m_impl->m_layout.binding();
-}
-
 UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
@@ -269,54 +264,4 @@ UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBuffe
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(reinterpret_cast<void*>(buffer)), BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<VulkanIndexBuffer>(*layout.getDevice(), buffer, layout, elements, allocator, allocation);
-}
-
-// ------------------------------------------------------------------------------------------------
-// Constant buffer implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanConstantBuffer::VulkanConstantBufferImpl : public Implement<VulkanConstantBuffer> {
-public:
-	friend class VulkanConstantBuffer;
-
-private:
-	const VulkanDescriptorLayout& m_layout;
-
-public:
-	VulkanConstantBufferImpl(VulkanConstantBuffer* parent, const VulkanDescriptorLayout& layout) :
-		base(parent), m_layout(layout)
-	{
-	}
-};
-
-// ------------------------------------------------------------------------------------------------
-// Constant buffer shared interface.
-// ------------------------------------------------------------------------------------------------
-
-VulkanConstantBuffer::VulkanConstantBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanDescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-	m_impl(makePimpl<VulkanConstantBufferImpl>(this, layout)), VulkanBuffer(device, buffer, layout.type(), elements, layout.elementSize(), alignment, allocator, allocation)
-{
-}
-
-VulkanConstantBuffer::~VulkanConstantBuffer() noexcept = default;
-
-const VulkanDescriptorLayout& VulkanConstantBuffer::layout() const noexcept
-{
-	return m_impl->m_layout;
-}
-
-const UInt32& VulkanConstantBuffer::binding() const noexcept
-{
-	return m_impl->m_layout.binding();
-}
-
-UniquePtr<IVulkanConstantBuffer> VulkanConstantBuffer::allocate(const VulkanDescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo * allocationResult)
-{
-	VkBuffer buffer;
-	VmaAllocation allocation;
-
-	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate constant buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(reinterpret_cast<void*>(buffer)), layout.type(), elements, layout.elementSize(), layout.elementSize() * elements);
-
-	return makeUnique<VulkanConstantBuffer>(*layout.getDevice(), buffer, layout, elements, alignment, allocator, allocation);
 }
