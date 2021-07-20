@@ -1,13 +1,12 @@
 {
   "name": "litefx",
-  "version-string": "2021.1.0.1",
-  "port-version": 1,
+  "version-string": "0.2.1.2021",
   "maintainers": [
     "Carsten Rudolph <18394207+crud89@users.noreply.github.com>"
   ],
   "description": "An extensible, descriptive, modern computer graphics and rendering engine.",
-  "homepage": "https://github.com/crud89/LiteFX",
-  "documentation": "https://github.com/crud89/LiteFX/wiki",
+  "homepage": "https://litefx.crudolph.io/",
+  "documentation": "https://litefx.crudolph.io/docs/",
   "license": "MIT",
   "supports": "windows & !arm",
   "dependencies": [
