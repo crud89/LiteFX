@@ -69,27 +69,12 @@ DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
     this->parent().free(*this);
 }
 
-UniquePtr<IDirectX12ConstantBuffer> DirectX12DescriptorSet::makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements) const
-{
-    return this->getDevice()->factory().createConstantBuffer(this->parent().descriptor(binding), usage, elements);
-}
-
-UniquePtr<IDirectX12Texture> DirectX12DescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
-{
-    return this->getDevice()->factory().createTexture(this->parent().descriptor(binding), format, size, dimension, levels, layers, samples);
-}
-
-UniquePtr<IDirectX12Sampler> DirectX12DescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) const
-{
-    return this->getDevice()->factory().createSampler(this->parent().descriptor(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
-}
-
-void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const noexcept
+void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const
 {
     if (bufferElement + elements > buffer.elements()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elements, bufferElement);
 
-    auto offset = this->parent().descriptorOffsetForBinding(buffer.layout().binding()) + firstDescriptor;
+    auto offset = this->parent().descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
 
@@ -105,9 +90,9 @@ void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, cons
     }
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Texture& texture, const UInt32& descriptor) const noexcept
+void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Texture& texture, const UInt32& descriptor) const
 {
-    auto offset = this->parent().descriptorOffsetForBinding(texture.layout().binding());
+    auto offset = this->parent().descriptorOffsetForBinding(binding);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
         .Format = ::getFormat(texture.format()),
@@ -120,9 +105,9 @@ void DirectX12DescriptorSet::update(const IDirectX12Texture& texture, const UInt
     this->getDevice()->handle()->CreateShaderResourceView(texture.handle().Get(), &textureView, descriptorHandle);
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler, const UInt32& descriptor) const noexcept
+void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampler& sampler, const UInt32& descriptor) const
 {
-    auto offset = this->parent().descriptorOffsetForBinding(sampler.layout().binding());
+    auto offset = this->parent().descriptorOffsetForBinding(binding);
 
     D3D12_SAMPLER_DESC samplerInfo = {
         .Filter = m_impl->getFilterMode(sampler.getMinifyingFilter(), sampler.getMagnifyingFilter(), sampler.getMipMapMode(), sampler.getAnisotropy()),
@@ -141,7 +126,7 @@ void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler, const UInt
     this->getDevice()->handle()->CreateSampler(&samplerInfo, descriptorHandle);
 }
 
-void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const noexcept
+void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const
 {
     auto offset = this->parent().descriptorOffsetForBinding(binding);
 

@@ -124,11 +124,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		const DirectX12VertexBufferLayout& layout() const noexcept override;
 
-		// IBindable interface.
-	public:
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
 		// IDirectX12VertexBuffer interface.
 	public:
 		virtual const D3D12_VERTEX_BUFFER_VIEW& view() const noexcept override;
@@ -159,29 +154,5 @@ namespace LiteFX::Rendering::Backends {
 		// DirectX 12 Index Buffer.
 	public:
 		static UniquePtr<IDirectX12IndexBuffer> allocate(const DirectX12Device& device, const DirectX12IndexBufferLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
-	};
-
-	class DirectX12ConstantBuffer : public DirectX12Buffer, public IDirectX12ConstantBuffer {
-		LITEFX_IMPLEMENTATION(DirectX12ConstantBufferImpl);
-
-	public:
-		explicit DirectX12ConstantBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12DescriptorLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation);
-		DirectX12ConstantBuffer(DirectX12ConstantBuffer&&) = delete;
-		DirectX12ConstantBuffer(const DirectX12ConstantBuffer&) = delete;
-		virtual ~DirectX12ConstantBuffer() noexcept;
-
-		// IConstantBuffer interface.
-	public:
-		/// <inheritdoc />
-		const DirectX12DescriptorLayout& layout() const noexcept override;
-
-		// IBindable interface.
-	public:
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
-		// DirectX 12 Constant Buffer.
-	public:
-		static UniquePtr<IDirectX12ConstantBuffer> allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 }

@@ -156,7 +156,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="IDescriptorLayout" />
 	/// </summary>
-	/// <seealso cref="IDirectX12ConstantBuffer" />
+	/// <seealso cref="IDirectX12Buffer" />
 	/// <seealso cref="IDirectX12Image" />
 	/// <seealso cref="IDirectX12Texture" />
 	/// <seealso cref="IDirectX12Sampler" />
@@ -223,8 +223,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Represents the base interface for a DirectX 12 buffer implementation.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSet" />
-	/// <seealso cref="IDirectX12ConstantBuffer" />
-	/// <seealso cref="IDirectX12ConstantTexture" />
+	/// <seealso cref="IDirectX12Texture" />
 	/// <seealso cref="IDirectX12VertexBuffer" />
 	/// <seealso cref="IDirectX12IndexBuffer" />
 	class LITEFX_DIRECTX12_API IDirectX12Buffer : public virtual ITransferableBuffer<IDirectX12Buffer, DirectX12CommandBuffer>, public virtual IResource<ComPtr<ID3D12Resource>>, public virtual IDirectX12Resource {
@@ -259,18 +258,6 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Represents a DirectX 12 uniform or storage buffer.
-	/// </summary>
-	/// <seealso cref="DirectX12DescriptorLayout" />
-	/// <seealso cref="DirectX12DescriptorSet" />
-	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12ConstantBuffer : public virtual IConstantBuffer<IDirectX12Buffer, DirectX12CommandBuffer, DirectX12DescriptorLayout>, public IDirectX12Buffer {
-	public:
-		virtual ~IDirectX12ConstantBuffer() noexcept = default;
-	};
-
-	/// <summary>
 	/// Represents a DirectX 12 sampled image or the base interface for a texture.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorLayout" />
@@ -292,7 +279,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IDirectX12Image" />
 	/// <seealso cref="IDirectX12Sampler" />
 	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12Texture : public virtual ITexture<DirectX12DescriptorLayout, IDirectX12Buffer, DirectX12CommandBuffer>, public IDirectX12Image {
+	class LITEFX_DIRECTX12_API IDirectX12Texture : public virtual ITexture<IDirectX12Buffer, DirectX12CommandBuffer>, public IDirectX12Image {
 	public:
 		virtual ~IDirectX12Texture() noexcept = default;
 	};
@@ -305,7 +292,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
 	/// <seealso cref="IDirectX12Image" />
 	/// <seealso cref="IDirectX12Texture" />
-	class LITEFX_DIRECTX12_API IDirectX12Sampler : public ISampler<DirectX12DescriptorLayout> {
+	class LITEFX_DIRECTX12_API IDirectX12Sampler : public ISampler {
 	public:
 		virtual ~IDirectX12Sampler() noexcept = default;
 	};
@@ -314,7 +301,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 <see cref="IDescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12ConstantBuffer, IDirectX12Texture, IDirectX12Sampler, IDirectX12Image, IDirectX12Buffer, DirectX12CommandBuffer> {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler, IDirectX12Image, DirectX12CommandBuffer> {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
 	public:
@@ -331,25 +318,16 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12ConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const override;
+		virtual void update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Texture> makeTexture(const UInt32& binding, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual void update(const UInt32& binding, const IDirectX12Texture& texture, const UInt32& descriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Sampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f) const override;
+		virtual void update(const UInt32& binding, const IDirectX12Sampler& sampler, const UInt32& descriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual void update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void update(const IDirectX12Texture& texture, const UInt32& descriptor = 0) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void update(const IDirectX12Sampler& sampler, const UInt32& descriptor = 0) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void attach(const UInt32& binding, const IDirectX12Image& image) const noexcept override;
+		virtual void attach(const UInt32& binding, const IDirectX12Image& image) const override;
 
 	public:
 		/// <summary>
@@ -1583,7 +1561,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <remarks>
 	/// The DX12 graphics factory is implemented using <a href="https://gpuopen.com/d3d12-memory-allocator/" target="_blank">D3D12 Memory Allocator</a>.
 	/// </remarks>
-	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public IGraphicsFactory<DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler> {
+	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public IGraphicsFactory<DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler> {
 		LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
 
 	public:
@@ -1598,12 +1576,6 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Image> createImage(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-
-		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Image> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-
-		/// <inheritdoc />
 		virtual UniquePtr<IDirectX12Buffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
@@ -1613,19 +1585,19 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12ConstantBuffer> createConstantBuffer(const DirectX12DescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
+		virtual UniquePtr<IDirectX12Texture> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Texture> createTexture(const DirectX12DescriptorLayout& layout, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IDirectX12Image> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<IDirectX12Texture>> createTextures(const DirectX12DescriptorLayout& layout, const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual Array<UniquePtr<IDirectX12Texture>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Sampler> createSampler(const DirectX12DescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		virtual UniquePtr<IDirectX12Sampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<IDirectX12Sampler>> createSamplers(const DirectX12DescriptorLayout& layout, const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		virtual Array<UniquePtr<IDirectX12Sampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 	};
 
 	/// <summary>

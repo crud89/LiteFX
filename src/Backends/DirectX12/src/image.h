@@ -79,20 +79,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12TextureImpl);
 
 	public:
-		explicit DirectX12Texture(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
+		explicit DirectX12Texture(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
 		DirectX12Texture(DirectX12Texture&&) = delete;
 		DirectX12Texture(const DirectX12Texture&) = delete;
 		virtual ~DirectX12Texture() noexcept;
-
-		// IBindable interface.
-	public:
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
-		// IDescriptor interface.
-	public:
-		/// <inheritdoc />
-		virtual const DirectX12DescriptorLayout& layout() const noexcept override;
 
 		// ITexture interface.
 	public:
@@ -117,7 +107,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceMipMapLevel = 0, const UInt32& targetElement = 0, const UInt32& mipMapLevels = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
 
 	public:
-		static UniquePtr<DirectX12Texture> allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<DirectX12Texture> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
 	/// <summary>
@@ -131,7 +121,6 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new sampler instance.
 		/// </summary>
 		/// <param name="device"></param>
-		/// <param name="layout"></param>
 		/// <param name="magFilter"></param>
 		/// <param name="minFilter"></param>
 		/// <param name="borderU"></param>
@@ -142,7 +131,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit DirectX12Sampler(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f);
+		explicit DirectX12Sampler(const DirectX12Device& device, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f);
 		DirectX12Sampler(DirectX12Sampler&&) = delete;
 		DirectX12Sampler(const DirectX12Sampler&) = delete;
 		virtual ~DirectX12Sampler() noexcept;
@@ -178,14 +167,5 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const Float& getMinLOD() const noexcept override;
-
-		// IBindable interface.
-	public:
-		virtual const UInt32& binding() const noexcept override;
-
-		// IDescriptor interface.
-	public:
-		/// <inheritdoc />
-		virtual const DirectX12DescriptorLayout& layout() const noexcept override;
 	};
 }

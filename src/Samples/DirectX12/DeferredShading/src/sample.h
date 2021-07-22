@@ -107,12 +107,12 @@ private:
 	/// <summary>
 	/// Stores the buffer that contains the camera information. Since the camera is static, we only need one (immutable) buffer for it, so the buffer will only contain one element.
 	/// </summary>
-	UniquePtr<IDirectX12ConstantBuffer> m_cameraBuffer, m_cameraStagingBuffer;
+	UniquePtr<IDirectX12Buffer> m_cameraBuffer, m_cameraStagingBuffer;
 
 	/// <summary>
 	/// Stores the buffer that holds the object transform. The buffer will contain three elements, since we have three frames in flight.
 	/// </summary>
-	UniquePtr<IDirectX12ConstantBuffer> m_transformBuffer;
+	UniquePtr<IDirectX12Buffer> m_transformBuffer;
 
 	/// <summary>
 	/// Stores the bindings to the transform buffer.

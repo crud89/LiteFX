@@ -41,20 +41,8 @@ void DirectX12Buffer::receiveData(const DirectX12CommandBuffer& commandBuffer, c
 {
 	if ((receive && this->state() & D3D12_RESOURCE_STATE_COPY_DEST) || (!receive && !(this->state() & D3D12_RESOURCE_STATE_COPY_DEST)))
 		return;
-
-	D3D12_RESOURCE_STATES targetState = receive ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_COMMON;
-
-	if (receive) switch (this->type())
-	{
-	case BufferType::Index:     targetState |= D3D12_RESOURCE_STATE_INDEX_BUFFER; break;
-	case BufferType::Uniform:
-	case BufferType::Vertex:    targetState |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER; break;
-	case BufferType::Storage:   targetState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS; break;
-	case BufferType::Other:
-	default:                    break;
-	}
-
-	this->transitionTo(commandBuffer, targetState);
+	
+	this->transitionTo(commandBuffer, receive ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_COMMON);
 }
 
 void DirectX12Buffer::sendData(const DirectX12CommandBuffer& commandBuffer, const bool& emit) const noexcept
@@ -62,19 +50,7 @@ void DirectX12Buffer::sendData(const DirectX12CommandBuffer& commandBuffer, cons
 	if ((emit && this->state() & D3D12_RESOURCE_STATE_COPY_SOURCE) || (!emit && !(this->state() & D3D12_RESOURCE_STATE_COPY_SOURCE)))
 		return;
 
-	D3D12_RESOURCE_STATES targetState = emit ? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_GENERIC_READ;
-
-	if (emit) switch (this->type())
-	{
-	case BufferType::Index:     targetState |= D3D12_RESOURCE_STATE_INDEX_BUFFER; break;
-	case BufferType::Uniform:
-	case BufferType::Vertex:    targetState |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER; break;
-	case BufferType::Storage:   targetState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS; break;
-	case BufferType::Other: 
-	default:                    break;
-	}
-
-	this->transitionTo(commandBuffer, targetState);
+	this->transitionTo(commandBuffer, emit ? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
 void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
@@ -266,11 +242,6 @@ const DirectX12VertexBufferLayout& DirectX12VertexBuffer::layout() const noexcep
 	return m_impl->m_layout;
 }
 
-const UInt32& DirectX12VertexBuffer::binding() const noexcept
-{
-	return m_impl->m_layout.binding();
-}
-
 const D3D12_VERTEX_BUFFER_VIEW& DirectX12VertexBuffer::view() const noexcept
 {
 	return m_impl->m_view;
@@ -352,62 +323,4 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const DirectX12D
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(resource.Get()), BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<DirectX12IndexBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));
-}
-
-// ------------------------------------------------------------------------------------------------
-// Constant buffer implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12ConstantBuffer::DirectX12ConstantBufferImpl : public Implement<DirectX12ConstantBuffer> {
-public:
-	friend class DirectX12ConstantBuffer;
-
-private:
-	const DirectX12DescriptorLayout& m_layout;
-
-public:
-	DirectX12ConstantBufferImpl(DirectX12ConstantBuffer* parent, const DirectX12DescriptorLayout& layout) :
-		base(parent), m_layout(layout)
-	{
-	}
-
-public:
-	void initialize()
-	{
-	}
-};
-
-// ------------------------------------------------------------------------------------------------
-// Constant buffer shared interface.
-// ------------------------------------------------------------------------------------------------
-
-DirectX12ConstantBuffer::DirectX12ConstantBuffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const DirectX12DescriptorLayout& layout, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-	m_impl(makePimpl<DirectX12ConstantBufferImpl>(this, layout)), DirectX12Buffer(device, std::move(buffer), BufferType::Uniform, elements, layout.elementSize(), 256, initialState, allocator, std::move(allocation))
-{
-	m_impl->initialize();
-}
-
-DirectX12ConstantBuffer::~DirectX12ConstantBuffer() noexcept = default;
-
-const DirectX12DescriptorLayout& DirectX12ConstantBuffer::layout() const noexcept
-{
-	return m_impl->m_layout;
-}
-
-const UInt32& DirectX12ConstantBuffer::binding() const noexcept
-{
-	return m_impl->m_layout.binding();
-}
-
-UniquePtr<IDirectX12ConstantBuffer> DirectX12ConstantBuffer::allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const UInt32& elements, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
-{
-	if (allocator == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The allocator must be initialized.");
-
-	ComPtr<ID3D12Resource> resource;
-	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, initialState, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(resource.Get()), BufferType::Uniform, elements, layout.elementSize(), layout.elementSize() * elements);
-
-	return makeUnique<DirectX12ConstantBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));
 }

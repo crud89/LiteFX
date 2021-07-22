@@ -189,12 +189,11 @@ public:
 	friend class DirectX12Texture;
 
 private:
-	const DirectX12DescriptorLayout& m_descriptorLayout;
 	MultiSamplingLevel m_samples;
 
 public:
-	DirectX12TextureImpl(DirectX12Texture* parent, const DirectX12DescriptorLayout& descriptorLayout, const MultiSamplingLevel& samples) :
-		base(parent), m_descriptorLayout(descriptorLayout), m_samples(samples)
+	DirectX12TextureImpl(DirectX12Texture* parent, const MultiSamplingLevel& samples) :
+		base(parent), m_samples(samples)
 	{
 	}
 
@@ -209,22 +208,12 @@ private:
 // Texture shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Texture::DirectX12Texture(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-	DirectX12Image(device, std::move(image), extent, format, dimension, levels, layers, initialState, allocator, std::move(allocation)), m_impl(makePimpl<DirectX12TextureImpl>(this, layout, samples))
+DirectX12Texture::DirectX12Texture(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	DirectX12Image(device, std::move(image), extent, format, dimension, levels, layers, initialState, allocator, std::move(allocation)), m_impl(makePimpl<DirectX12TextureImpl>(this, samples))
 {
 }
 
 DirectX12Texture::~DirectX12Texture() noexcept = default;
-
-const UInt32& DirectX12Texture::binding() const noexcept
-{
-	return m_impl->m_descriptorLayout.binding();
-}
-
-const DirectX12DescriptorLayout& DirectX12Texture::layout() const noexcept
-{
-	return m_impl->m_descriptorLayout;
-}
 
 const MultiSamplingLevel& DirectX12Texture::samples() const noexcept
 {
@@ -304,7 +293,7 @@ void DirectX12Texture::transferTo(const DirectX12CommandBuffer& commandBuffer, c
 		target.receiveData(commandBuffer, false);
 }
 
-UniquePtr<DirectX12Texture> DirectX12Texture::allocate(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<DirectX12Texture> DirectX12Texture::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("The allocator must be initialized.");
@@ -314,7 +303,7 @@ UniquePtr<DirectX12Texture> DirectX12Texture::allocate(const DirectX12Device& de
 	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, initialState, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create texture resource.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Samples: {5}, Levels: {6}, Layers: {7} }}", fmt::ptr(resource.Get()), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, samples, levels, layers);
 
-	return makeUnique<DirectX12Texture>(device, layout, std::move(resource), extent, format, dimension, levels, layers, samples, initialState, allocator, AllocationPtr(allocation));
+	return makeUnique<DirectX12Texture>(device, std::move(resource), extent, format, dimension, levels, layers, samples, initialState, allocator, AllocationPtr(allocation));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -326,7 +315,6 @@ public:
 	friend class DirectX12Sampler;
 
 private:
-	const DirectX12DescriptorLayout& m_layout;
 	FilterMode m_magFilter, m_minFilter;
 	BorderMode m_borderU, m_borderV, m_borderW;
 	MipMapMode m_mipMapMode;
@@ -335,8 +323,8 @@ private:
 	Float m_anisotropy;
 
 public:
-	DirectX12SamplerImpl(DirectX12Sampler* parent, const DirectX12DescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
-		base(parent), m_layout(layout), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
+	DirectX12SamplerImpl(DirectX12Sampler* parent, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+		base(parent), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
 	{
 	}
 };
@@ -345,8 +333,8 @@ public:
 // Sampler shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Sampler::DirectX12Sampler(const DirectX12Device& device, const DirectX12DescriptorLayout& layout, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
-	DirectX12RuntimeObject<DirectX12Device>(device, &device), m_impl(makePimpl<DirectX12SamplerImpl>(this, layout, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
+DirectX12Sampler::DirectX12Sampler(const DirectX12Device& device, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+	DirectX12RuntimeObject<DirectX12Device>(device, &device), m_impl(makePimpl<DirectX12SamplerImpl>(this, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
 {
 }
 
@@ -400,14 +388,4 @@ const Float& DirectX12Sampler::getMaxLOD() const noexcept
 const Float& DirectX12Sampler::getMinLOD() const noexcept
 {
 	return m_impl->m_minLod;
-}
-
-const UInt32& DirectX12Sampler::binding() const noexcept
-{
-	return m_impl->m_layout.binding();
-}
-
-const DirectX12DescriptorLayout& DirectX12Sampler::layout() const noexcept
-{
-	return m_impl->m_layout;
 }
