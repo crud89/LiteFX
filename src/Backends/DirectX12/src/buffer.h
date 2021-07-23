@@ -20,19 +20,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12BufferImpl);
 
 	public:
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="buffer"></param>
-		/// <param name="type"></param>
-		/// <param name="elements"></param>
-		/// <param name="elementSize"></param>
-		/// <param name="alignment"></param>
-		/// <param name="initialState"></param>
-		/// <param name="allocator"></param>
-		/// <param name="allocation"></param>
-		explicit DirectX12Buffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
+		explicit DirectX12Buffer(const DirectX12Device& device, ComPtr<ID3D12Resource>&& buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_STATES& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
 		DirectX12Buffer(DirectX12Buffer&&) = delete;
 		DirectX12Buffer(const DirectX12Buffer&) = delete;
 		virtual ~DirectX12Buffer() noexcept;
@@ -73,6 +61,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual size_t alignedElementSize() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const bool& writable() const noexcept override;
+
 		// IMappable interface.
 	public:
 		/// <inheritdoc />
@@ -94,20 +85,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
 
 	public:
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="allocator"></param>
-		/// <param name="type"></param>
-		/// <param name="elements"></param>
-		/// <param name="elementSize"></param>
-		/// <param name="alignment"></param>
-		/// <param name="initialState"></param>
-		/// <param name="resourceDesc"></param>
-		/// <param name="allocationDesc"></param>
-		/// <returns></returns>
-		static UniquePtr<IDirectX12Buffer> allocate(const DirectX12Device& device, AllocatorPtr allocator, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<IDirectX12Buffer> allocate(const DirectX12Device& device, AllocatorPtr allocator, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_STATES& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
 	class DirectX12VertexBuffer : public DirectX12Buffer, public IDirectX12VertexBuffer {

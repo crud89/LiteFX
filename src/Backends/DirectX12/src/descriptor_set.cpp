@@ -105,6 +105,9 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     }
     else if (descriptorLayout.descriptorType() == DescriptorType::WritableStorage || descriptorLayout.descriptorType() == DescriptorType::WritableBuffer)
     {
+        if (!buffer.writable())
+            throw InvalidArgumentException("The provided buffer is not writable and cannot be bound to a read/write descriptor.");
+
         // TODO: Support allocating counter resources?
         D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
             .Format = DXGI_FORMAT_UNKNOWN,
@@ -197,6 +200,9 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Textu
     }
     else if (descriptorLayout.descriptorType() == DescriptorType::WritableTexture)
     {
+        if (!texture.writable())
+            throw InvalidArgumentException("The provided texture is not writable and cannot be bound to a read/write descriptor.");
+
         D3D12_UNORDERED_ACCESS_VIEW_DESC textureView = {
             .Format = ::getFormat(texture.format())
         };

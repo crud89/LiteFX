@@ -187,6 +187,15 @@ namespace LiteFX::Rendering {
         /// <seealso cref="elementAlignment" />
         /// <seealso cref="elementSize" />
         virtual size_t alignedElementSize() const noexcept = 0;
+
+        /// <summary>
+        /// Returns <c>true</c>, if the resource can be bound to a read/write descriptor.
+        /// </summary>
+        /// <remarks>
+        /// If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception.
+        /// </remarks>
+        /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
+        virtual const bool& writable() const noexcept = 0;
     };
 
     /// <summary>
@@ -465,6 +474,8 @@ namespace LiteFX::Rendering {
         /// 
         /// Note that not all texture formats and sizes are supported for mip map generation and the result might not be satisfactory. For example, it is not possible to compute 
         /// proper mip maps for pre-compressed formats. Textures should have power of two sizes in order to not appear under-sampled.
+        /// 
+        /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
         /// </remarks>
         /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
         virtual void generateMipMaps(const TCommandBuffer& commandBuffer) const noexcept = 0;
@@ -1921,8 +1932,9 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        virtual UniquePtr<TBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1) const = 0;
+        virtual UniquePtr<TBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
 
         /// <summary>
         /// Creates a vertex buffer, based on the <paramref name="layout" />
@@ -1974,9 +1986,10 @@ namespace LiteFX::Rendering {
         /// <param name="layers">The number of layers (slices) in this texture.</param>
         /// <param name="levels">The number of mip map levels of the texture.</param>
         /// <param name="samples">The number of samples, the texture should be sampled with.</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        virtual UniquePtr<TTextureInterface> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+        virtual UniquePtr<TTextureInterface> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
         /// <summary>
         /// Creates an array of textures, based on the <paramref name="layout" />.
@@ -1988,9 +2001,10 @@ namespace LiteFX::Rendering {
         /// <param name="layers">The number of layers (slices) in this texture.</param>
         /// <param name="levels">The number of mip map levels of the textures.</param>
         /// <param name="samples">The number of samples, the textures should be sampled with.</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>An array of texture instances.</returns>
         /// <seealso cref="createTexture" />
-        virtual Array<UniquePtr<TTextureInterface>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+        virtual Array<UniquePtr<TTextureInterface>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
         /// <summary>
         /// Creates a texture sampler, based on the <paramref name="layout" />.
