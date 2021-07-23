@@ -175,7 +175,7 @@ void SampleApp::loadTexture()
     commandBuffer->end(true, true);
 
     // Create a sampler state for the texture.
-    m_sampler = m_device->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, 0.f, std::numeric_limits<Float>::max(), 16.f);
+    m_sampler = m_device->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
 
     // Update the descriptor set.
     m_constantBindings->update(1, *m_texture);
