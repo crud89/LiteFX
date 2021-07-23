@@ -254,6 +254,9 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_VULKAN_API IVulkanImage : public virtual IImage, public virtual IResource<VkImage> {
 	public:
 		virtual ~IVulkanImage() noexcept = default;
+
+	public:
+		virtual const VkImageView& imageView(const UInt32& plane = 0) const = 0;
 	};
 
 	/// <summary>

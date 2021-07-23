@@ -60,9 +60,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& layers() const noexcept override;
 
 		// IVulkanImage interface.
+	public:
+		virtual const VkImageView& imageView(const UInt32& plane = 0) const override;
+
 	protected:
 		virtual VmaAllocator& allocator() const noexcept;
 		virtual VmaAllocation& allocationInfo() const noexcept;
+		virtual VkImageView& imageView(const UInt32& plane = 0);
 
 	public:
 		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const bool& writable, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
@@ -102,6 +106,12 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceMipMapLevel = 0, const UInt32& targetElement = 0, const UInt32& mipMapLevels = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
+
+		// IVulkanImage interface.
+	public:
+		virtual const VkImageView& imageView(const UInt32& plane = 0) const override {
+			return VulkanImage::imageView(plane);
+		}
 
 		// IVulkanTexture interface.
 	public:

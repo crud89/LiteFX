@@ -99,7 +99,7 @@ void VulkanComputePipeline::bind(const VulkanDescriptorSet& descriptorSet) const
 	::vkCmdBindDescriptorSets(m_impl->m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
 }
 
-void VulkanComputePipeline::dispatch(const Vector3u& threadCount) const noexcept
+void VulkanComputePipeline::dispatch(const Vector3u& threadCount) const
 {
 	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
 		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
