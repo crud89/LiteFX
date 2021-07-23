@@ -166,21 +166,21 @@ public:
 	{
 		try
 		{
-			//m_blitPipeline = m_parent->buildComputePipeline()
-			//	.layout()
-			//		.shaderProgram()
-			//			.addComputeShaderModule("shaders/blit.dxi")
-			//			.go()
-			//		.addDescriptorSet(0)
-			//			.addUniform(0, 16, 1)
-			//			.addImage(1)
-			//			.addStorage(2)
-			//			.go()
-			//		.addDescriptorSet(1)
-			//			.addSampler(0)
-			//			.go()
-			//		.go()
-			//	.go();
+			m_blitPipeline = m_parent->buildComputePipeline()
+				.layout()
+					.shaderProgram()
+						.addComputeShaderModule("shaders/blit.dxi")
+						.go()
+					.addDescriptorSet(0)
+						.addUniform(0, 16, 1)
+						.addImage(1)
+						.addImage(2, 1, true)
+						.go()
+					.addDescriptorSet(1)
+						.addSampler(0)
+						.go()
+					.go()
+				.go();
 		}
 		catch (Exception& ex)
 		{

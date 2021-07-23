@@ -345,6 +345,23 @@ DXGI_FORMAT LiteFX::Rendering::Backends::getFormat(const BufferFormat& format)
 	}
 }
 
+bool LiteFX::Rendering::Backends::isSRGB(const Format& format)
+{
+	return 
+		format == Format::A8B8G8R8_SRGB || 
+		format == Format::B8G8R8A8_SRGB || 
+		format == Format::B8G8R8_SRGB ||
+		format == Format::BC1_RGBA_SRGB ||
+		format == Format::BC1_RGB_SRGB ||
+		format == Format::BC2_SRGB ||
+		format == Format::BC3_SRGB ||
+		format == Format::BC7_SRGB ||
+		format == Format::R8G8B8A8_SRGB || 
+		format == Format::R8G8B8_SRGB || 
+		format == Format::R8G8_SRGB || 
+		format == Format::R8_SRGB;
+}
+
 D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::getImageType(const ImageDimensions& dimensions)
 {
 	switch (dimensions)

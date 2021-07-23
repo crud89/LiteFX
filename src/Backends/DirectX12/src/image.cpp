@@ -222,7 +222,56 @@ const MultiSamplingLevel& DirectX12Texture::samples() const noexcept
 
 void DirectX12Texture::generateMipMaps(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
-	throw;
+	struct Parameters {
+		Float sizeX;
+		Float sizeY;
+		Float sRGB;
+		Float padding { 0.f };
+	} parametersData;
+
+	parametersData.sRGB = ::isSRGB(this->format()) ? 1.f : 0.f;
+
+	// Get the pipeline.
+	auto& pipeline = this->getDevice()->blitPipeline();
+
+	// Create and bind the parameters.
+	const auto& resourceBindingsLayout = pipeline.layout().descriptorSet(0);
+	auto resourceBindings = resourceBindingsLayout.allocate();
+	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
+	auto parameters = this->getDevice()->factory().createBuffer(parametersLayout.type(), BufferUsage::Dynamic, parametersLayout.elementSize(), 1);
+
+	// Create and bind the sampler.
+	const auto& samplerBindingsLayout = pipeline.layout().descriptorSet(1);
+	auto samplerBindings = samplerBindingsLayout.allocate();
+	auto sampler = this->getDevice()->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
+	samplerBindings->update(0, *sampler);
+
+	// Begin the pipeline usage.
+	pipeline.use();
+	auto size = this->extent();
+
+	for (int l(0); l < this->layers(); ++l)
+	{
+		for (UInt32 i(1); i < this->levels(); ++i, size /= 2)
+		{
+			// Update the invocation parameters.
+			// TODO: Use push constants here.
+			parametersData.sizeX = 1.f / static_cast<Float>(std::max<size_t>(size.width(), 1));
+			parametersData.sizeY = 1.f / static_cast<Float>(std::max<size_t>(size.height(), 1));
+			resourceBindings->update(parametersLayout.binding(), *parameters);
+
+			// Bind the previous mip map level to the SRV at binding point 1.
+			resourceBindings->update(1, *this, 0, i - 1, 1);
+
+			// Bind the current level to the UAV at binding point 2.
+			resourceBindings->update(2, *this, 0, i, 1);
+
+			// Dispatch the pipeline.
+			pipeline.dispatch({ 8, 8, 1 });
+		}
+	}
+
+	pipeline.submit(true);
 }
 
 void DirectX12Texture::receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept

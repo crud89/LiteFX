@@ -108,6 +108,11 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
+    bool LITEFX_DIRECTX12_API isSRGB(const Format& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
     D3D12_RESOURCE_DIMENSION LITEFX_DIRECTX12_API getImageType(const ImageDimensions& dimensions);
 
     /// <summary>
