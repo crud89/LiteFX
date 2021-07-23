@@ -845,14 +845,14 @@ VkImageType LiteFX::Rendering::Backends::getImageType(const ImageDimensions& dim
 	}
 }
 
-VkImageViewType LiteFX::Rendering::Backends::getImageViewType(const ImageDimensions& dimension)
+VkImageViewType LiteFX::Rendering::Backends::getImageViewType(const ImageDimensions& dimension, const UInt32& layers)
 {
 	switch (dimension)
 	{
 	case ImageDimensions::DIM_1:
-		return VkImageViewType::VK_IMAGE_VIEW_TYPE_1D;
+		return layers == 1 ? VkImageViewType::VK_IMAGE_VIEW_TYPE_1D : VkImageViewType::VK_IMAGE_VIEW_TYPE_1D_ARRAY;
 	case ImageDimensions::DIM_2:
-		return VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
+		return layers == 1 ? VkImageViewType::VK_IMAGE_VIEW_TYPE_2D : VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 	case ImageDimensions::DIM_3:
 		return VkImageViewType::VK_IMAGE_VIEW_TYPE_3D;
 	case ImageDimensions::CUBE:

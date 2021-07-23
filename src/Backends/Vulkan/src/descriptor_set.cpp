@@ -172,7 +172,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanTexture& te
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
         .image = texture.handle(),
-        .viewType = ::getImageViewType(texture.dimensions()),
+        .viewType = ::getImageViewType(texture.dimensions(), texture.layers()),
         .format = ::getFormat(texture.format()),
         .components = VkComponentMapping {
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
