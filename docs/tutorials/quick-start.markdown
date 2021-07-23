@@ -489,11 +489,12 @@ Next, we create the two buffers that should store the camera data:
 
 ```cxx
 auto& cameraBindingLayout = m_pipeline->layout().descriptorSet(0);
-m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.descriptor(0), BufferUsage::Staging, 1);
-m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.descriptor(0), BufferUsage::Resource, 1);
+auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
+m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
+m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
 ```
 
-First, we request a reference of the descriptor set layout (at space *0*), that contains the camera buffer descriptor. We then create two constant buffers for the descriptor bound to register *0* of the descriptor set. We store both buffers in a member variable, since we want to be able to update the camera buffer later (for example, if a resize-event occurs). The camera buffer is still static, since such events occur infrequently.
+First, we request a reference of the descriptor set layout (at space *0*), that contains the camera buffer descriptor layout (at binding point 0). We then create two constant buffers for and store them in a member variable, since we want to be able to update the camera buffer later (for example, if a resize-event occurs). The camera buffer is still static, since such events occur infrequently.
 
 Let's move on and compute the view and projection matrix and pre-multiply them together:
 
@@ -515,7 +516,7 @@ The last thing we need to do is making the descriptor point to the GPU-visible c
 
 ```cxx
 m_cameraBindings = cameraBindingLayout.allocate();
-m_cameraBindings->update(*m_cameraBuffer, 0);
+m_cameraBindings->update(cameraBufferLayout.binding(), *m_cameraBuffer, 0);
 ```
 
 Here we first allocate a descriptor set that holds our descriptor for the camera buffer. We then update the descriptor bound to register *0* to point to the GPU-visible camera buffer. Finally, with all the transfer commands being recorded to the command buffer, we can submit the buffer and wait for it to be executed:
@@ -545,9 +546,10 @@ Next, we create three `Dynamic` buffers and map them to the descriptor set at sp
 
 ```cxx
 auto& transformBindingLayout = m_pipeline->layout().descriptorSet(1);
+auto& transformBufferLayout = transformBindingLayout.descriptor(0);
 m_perFrameBindings = transformBindingLayout.allocate(3);
-m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.descriptor(0), BufferUsage::Dynamic, 3);
-std::ranges::for_each(m_perFrameBindings, [this, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
+m_transformBuffer = m_device->factory().createConstantBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
+std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
 ```
 
 ### Drawing Frames
