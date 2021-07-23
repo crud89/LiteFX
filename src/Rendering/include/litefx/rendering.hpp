@@ -640,10 +640,25 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Updates a texture within the current descriptor set.
         /// </summary>
+        /// <remarks>
+        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the 
+        /// <paramref name="binding" /> parameter.
+        /// 
+        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters <paramref name="firstLayer" /> and <paramref name="layers" /> are ignored.
+        /// 
+        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the <paramref name="firstLevel" /> parameter specifies 
+        /// the mip-map level to write to (or read from). Multiple levels are not allowed in this case, so the <paramref name="levels" /> parameter is ignored. Instead, you have to 
+        /// bind them to separate descriptors. Furthermore, the <paramref name="firstLayer" /> and <paramref name="layers" /> parameter can be used to specify the number of depth
+        /// or W-slices of a writable 3D texture or the side(s) of a cube map.
+        /// </remarks>
         /// <param name="binding">The texture binding point.</param>
         /// <param name="texture">The texture to write to the descriptor set.</param>
         /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the texture to.</param>
-        virtual void update(const UInt32& binding, const TTexture& texture, const UInt32& descriptor = 0) const = 0;
+        /// <param name="firstLevel">The index of the first mip-map level to bind.</param>
+        /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
+        /// <param name="firstLayer">The index of the first layer to bind.</param>
+        /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
+        virtual void update(const UInt32& binding, const TTexture& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const = 0;
 
         /// <summary>
         /// Updates a sampler within the current descriptor set.
