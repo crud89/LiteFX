@@ -232,28 +232,46 @@ void DirectX12Texture::generateMipMaps(const DirectX12CommandBuffer& commandBuff
 		Float sizeX;
 		Float sizeY;
 		Float sRGB;
-		Float padding { 0.f };
-	} parametersData;
+		Float padding;
+	};
 
-	parametersData.sRGB = ::isSRGB(this->format()) ? 1.f : 0.f;
+	// Create the array of parameter data.
+	Array<Parameters> parametersData(this->levels());
 
-	// Get the pipeline.
+	std::ranges::generate(parametersData, [this, i = 0]() mutable {
+		auto level = i++;
+
+		return Parameters {
+			.sizeX = 1.f / static_cast<Float>(std::max<size_t>(this->extent(level).width(), 1)),
+			.sizeY = 1.f / static_cast<Float>(std::max<size_t>(this->extent(level).height(), 1)),
+			.sRGB = ::isSRGB(this->format()) ? 1.f : 0.f
+		};
+	});
+
+	auto parametersBlock = parametersData | 
+		std::views::transform([](const Parameters& parameters) { return reinterpret_cast<const void*>(&parameters); }) | 
+		ranges::to<Array<const void*>>();
+
+	// Begin the pipeline.
 	auto& pipeline = this->getDevice()->blitPipeline();
+	pipeline.begin(commandBuffer);
 
 	// Create and bind the parameters.
 	const auto& resourceBindingsLayout = pipeline.layout().descriptorSet(0);
 	auto resourceBindings = resourceBindingsLayout.allocate();
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
-	auto parameters = this->getDevice()->factory().createBuffer(parametersLayout.type(), BufferUsage::Dynamic, parametersLayout.elementSize(), 1);
+	auto parameters = this->getDevice()->factory().createBuffer(parametersLayout.type(), BufferUsage::Dynamic, parametersLayout.elementSize(), this->levels());
+	parameters->map(parametersBlock, sizeof(Parameters));
 
 	// Create and bind the sampler.
 	const auto& samplerBindingsLayout = pipeline.layout().descriptorSet(1);
 	auto samplerBindings = samplerBindingsLayout.allocate();
 	auto sampler = this->getDevice()->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
 	samplerBindings->update(0, *sampler);
-
-	// Begin the pipeline usage.
-	pipeline.use();
+	pipeline.bind(*samplerBindings);
+	
+	// Transition the texture into a read/write state.
+	this->transitionTo(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	auto size = this->extent();
 
 	for (int l(0); l < this->layers(); ++l)
@@ -261,23 +279,28 @@ void DirectX12Texture::generateMipMaps(const DirectX12CommandBuffer& commandBuff
 		for (UInt32 i(1); i < this->levels(); ++i, size /= 2)
 		{
 			// Update the invocation parameters.
-			// TODO: Use push constants here.
-			parametersData.sizeX = 1.f / static_cast<Float>(std::max<size_t>(size.width(), 1));
-			parametersData.sizeY = 1.f / static_cast<Float>(std::max<size_t>(size.height(), 1));
-			resourceBindings->update(parametersLayout.binding(), *parameters);
+			resourceBindings->update(parametersLayout.binding(), *parameters, i);
 
 			// Bind the previous mip map level to the SRV at binding point 1.
-			resourceBindings->update(1, *this, 0, i - 1, 1);
+			resourceBindings->update(1, *this, 0, i - 1, 1, l, 1);
 
 			// Bind the current level to the UAV at binding point 2.
-			resourceBindings->update(2, *this, 0, i, 1);
+			resourceBindings->update(2, *this, 0, i, 1, l, 1);
 
 			// Dispatch the pipeline.
-			pipeline.dispatch({ 8, 8, 1 });
+			pipeline.bind(*resourceBindings);
+			pipeline.dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
+
+			// Wait for all writes.
+			// TODO: We need a way to abstract this.
+			auto barrier = CD3DX12_RESOURCE_BARRIER::UAV(this->handle().Get());
+			std::as_const(pipeline).commandBuffer()->handle()->ResourceBarrier(1, &barrier);
 		}
 	}
 
-	pipeline.submit(true);
+	// Transition back into a shader resource and end the pipeline.
+	this->transitionTo(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+	pipeline.end();
 }
 
 void DirectX12Texture::receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept

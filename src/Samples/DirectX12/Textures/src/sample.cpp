@@ -154,7 +154,7 @@ void SampleApp::loadTexture()
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
     // Create the texture from the constant buffer descriptor set, since we only load the texture once and use it for all frames.
-    m_texture = m_device->factory().createTexture(Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6);
+    m_texture = m_device->factory().createTexture(Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, true);
 
     // Create a staging buffer for the first mip-map of the texture.
     auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->size(0));

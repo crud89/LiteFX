@@ -271,6 +271,10 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 	if (samplerOffset + samplers > m_impl->m_globalSamplerHeapSize) [[unlikely]]
 		samplerOffset = 0;
+
+	// Deduct, whether to set the graphics or compute descriptor tables.
+	// TODO: Maybe we could store a simple boolean on the pipeline state to make this easier.
+	const bool isGraphicsSet = dynamic_cast<const DirectX12RenderPipeline*>(&descriptorSet.parent().parent().parent()) != nullptr;
 	
 	// Get the descriptor handles.
 	CD3DX12_CPU_DESCRIPTOR_HANDLE targetBufferHandle(m_impl->m_globalBufferHeap->GetCPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
@@ -284,7 +288,11 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 		// The parameter index equals the target descriptor set space.
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
-		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+		
+		if (isGraphicsSet)
+			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+		else
+			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
 
 		// Store the updated offset.
 		m_impl->m_bufferOffset = bufferOffset + buffers;
@@ -297,7 +305,11 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 		// The parameter index equals the target descriptor set space.
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), samplerOffset, m_impl->m_samplerDescriptorIncrement);
-		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+		
+		if (isGraphicsSet)
+			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+		else
+			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
 
 		// Store the updated offset.
 		m_impl->m_samplerOffset = samplerOffset + samplers;
@@ -310,7 +322,7 @@ void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& co
 	commandBuffer.handle()->SetDescriptorHeaps(globalHeaps.size(), globalHeaps.data());
 }
 
-const DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
+DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 {
 	return *m_impl->m_blitPipeline;
 }

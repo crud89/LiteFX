@@ -1169,19 +1169,19 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void bind(const DirectX12DescriptorSet& descriptorSet) const override;
 
-		/// <inheritdoc />
-		virtual void use() const override;
-
 		// IComputePipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual void dispatch(const Vector3u& threadCount) const noexcept override;
+		virtual const DirectX12CommandBuffer* commandBuffer() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void submit(const bool& wait = false) const noexcept override;
+		virtual void dispatch(const Vector3u& threadCount) const override;
 
 		/// <inheritdoc />
-		virtual void wait() const noexcept override;
+		virtual void begin(const DirectX12CommandBuffer& commandBuffer) override;
+
+		/// <inheritdoc />
+		virtual void end() override;
 	};
 
 	/// <summary>
@@ -1674,7 +1674,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </remarks>
 		/// <returns>The compute pipeline that can be invoked to blit an image resource.</returns>
 		/// <seealso cref="DirectX12Texture::generateMipMaps" />
-		virtual const DirectX12ComputePipeline& blitPipeline() const noexcept;
+		virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
 
 	public:
 		/// <summary>

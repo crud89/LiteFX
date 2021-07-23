@@ -956,6 +956,7 @@ namespace LiteFX::Rendering {
 		using descriptor_set_layout_type = TDescriptorSetLayout;
 		using shader_program_type = TShaderProgram;
 		using descriptor_set_type = TDescriptorSet;
+        using command_buffer_type = TDescriptorSet::command_buffer_type;
 
 	public:
 		virtual ~IPipelineLayout() noexcept = default;
@@ -1152,11 +1153,6 @@ namespace LiteFX::Rendering {
 		/// </summary>
 		/// <param name="descriptorSet">The descriptor set to bind.</param>
 		virtual void bind(const TDescriptorSet& descriptorSet) const = 0;
-
-		/// <summary>
-		/// Sets the active pipeline state.
-		/// </summary>
-		virtual void use() const = 0;
 	};
 
 	/// <summary>
@@ -1276,6 +1272,11 @@ namespace LiteFX::Rendering {
         /// <seealso cref="IIndexBuffer" />
         /// <seealso cref="drawIndexed" />
         virtual void bind(const TIndexBufferInterface& buffer) const = 0;
+
+        /// <summary>
+        /// Sets the active pipeline state.
+        /// </summary>
+        virtual void use() const = 0;
 
 	public:
 		/// <summary>
@@ -1403,10 +1404,19 @@ namespace LiteFX::Rendering {
 	/// </summary>
 	/// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
 	/// <seealso cref="IComputePipelineBuilder" />
-	template <typename TPipelineLayout>
+	template <typename TPipelineLayout, typename TCommandBuffer = TPipelineLayout::command_buffer_type>
 	class IComputePipeline : public IPipeline<TPipelineLayout> {
 	public:
 		virtual ~IComputePipeline() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the current command buffer.
+        /// </summary>
+        /// <returns>The current command buffer.</returns>
+        /// <seealso cref="begin" />
+        /// <seealso cref="end" />
+        virtual const TCommandBuffer* commandBuffer() const noexcept = 0;
 
 	public:
 		/// <summary>
@@ -1417,18 +1427,22 @@ namespace LiteFX::Rendering {
 		/// multiple recorded dispatches, call <see cref="submit" />.
 		/// </remarks>
 		/// <param name="threadCount">The number of thread groups per axis.</param>
-		virtual void dispatch(const Vector3u& threadCount) const noexcept = 0;
-
-		/// <summary>
-		/// Submits the commands that are recorded by calling <see cref="dispatch" />.
-		/// </summary>
-		/// <param name="wait">Waits for the underlying command buffer to finish before returning.</param>
-		virtual void submit(const bool& wait = false) const noexcept = 0;
+		virtual void dispatch(const Vector3u& threadCount) const = 0;
 
         /// <summary>
-        /// Waits for the underlying command buffer to finish after an earlier call to <see cref="submit" />.
+        /// Sets the active pipeline state.
         /// </summary>
-        virtual void wait() const noexcept = 0;
+        /// <remarks>
+        /// Calling this method causes the pipeline state and layout to be set on the <paramref name="commandBuffer" />. The command buffer instance will be stored until 
+        /// <see cref="end" /> is called. A compute pipeline must only be bound to one command buffer at a time.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer to use.</param>
+        virtual void begin(const TCommandBuffer& commandBuffer) = 0;
+
+        /// <summary>
+        /// Sets the active pipeline state.
+        /// </summary>
+        virtual void end() = 0;
 	};
 
 	/// <summary>
