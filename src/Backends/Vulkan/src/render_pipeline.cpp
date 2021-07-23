@@ -309,7 +309,7 @@ const bool& VulkanRenderPipeline::alphaToCoverage() const noexcept
 void VulkanRenderPipeline::bind(const IVulkanVertexBuffer& buffer) const 
 {
 	constexpr VkDeviceSize offsets[] = { 0 };
-	::vkCmdBindVertexBuffers(this->parent().activeFrameBuffer().commandBuffer().handle(), buffer.binding(), 1, &buffer.handle(), offsets);
+	::vkCmdBindVertexBuffers(this->parent().activeFrameBuffer().commandBuffer().handle(), buffer.layout().binding(), 1, &buffer.handle(), offsets);
 }
 
 void VulkanRenderPipeline::bind(const IVulkanIndexBuffer& buffer) const 

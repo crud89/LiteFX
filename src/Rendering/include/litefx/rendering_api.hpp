@@ -258,22 +258,59 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the type of a <see cref="IDescriptor" />.
     /// </summary>
+    /// <remarks>
+    /// Note that, while in theory you can declare a writable descriptor in any format, the rendering back-end might not necessarily support writing in a specific format.
+    /// </remarks>
     /// <seealso cref="IDescriptorLayout" />
+    /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads#supported-formats-and-api-calls" />
     enum class LITEFX_RENDERING_API DescriptorType {
         /// <summary>
-        /// A uniform buffer object (UBO) in Vulkan. Maps to a constant buffer view (CBV) in DirectX.
+        /// A uniform buffer in Vulkan. Maps to a constant buffer in DirectX.
         /// </summary>
+        /// <remarks>
+        /// A uniform or constant buffer is read-only. In GLSL, use the <c>uniform</c> keyword to access a uniform buffer. In HLSL, use the <c>ConstantBuffer</c> keyword.
+        /// </remarks>
         Uniform         = 0x00000001,
 
         /// <summary>
-        /// A shader storage buffer object (SSBO) in Vulkan. Maps to an unordered access view (UAV) in DirectX.
+        /// A shader storage buffer object in Vulkan. Maps to a structured buffer in DirectX.
         /// </summary>
+        /// <remarks>
+        /// A storage buffer is read-only by default. If you want to create a writable storage buffer, use <see cref="WritableStorage"> instead.
+        /// 
+        /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>StructuredBuffer</c> keyword.
+        /// 
+        /// The difference between <see cref="Uniform" /> and storage buffers is, that storage buffers can have variable length. However, they are typically less efficient.
+        /// </remarks>
         Storage         = 0x00000002,
 
         /// <summary>
-        /// A sampled image in Vulkan. Maps to a shader resource view (SRV) in DirectX.
+        /// A writable shader storage object in Vulkan. Maps to a read/write structured buffer in DirectX.
         /// </summary>
-        Image           = 0x00000003,
+        /// <remarks>
+        /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>RWStructuredBuffer</c> keyword.
+        /// </remarks>
+        WritableStorage = 0x00000012,
+
+        /// <summary>
+        /// A read-only sampled image.
+        /// </summary>
+        /// <remarks>
+        /// Textures are read-only by default. If you want to create a writable texture, use the <see cref="WritableTexture"> instead.
+        /// 
+        /// In GLSL, use the <c>uniform texture</c> keywords to access the texture. In HLSL, use the <c>Texture</c> keywords.
+        /// 
+        /// Note, that textures are typically not be accessed directly, but instead are sampled using a <see cref="Sampler" />.
+        /// </remarks>
+        Texture         = 0x00000003,
+
+        /// <summary>
+        /// A writable image.
+        /// </summary>
+        /// <remarks>
+        /// In GLSL, use the <c>uniform image</c> keywords to access the texture. In HLSL, use the <c>RWTexture</c> keywords.
+        /// </remaks>
+        WritableTexture = 0x00000013,
         
         /// <summary>
         /// A sampler state of a texture or image.
@@ -283,7 +320,23 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// The result of a render target from an earlier render pass. Maps to a <c>SubpassInput</c> in HLSL.
         /// </summary>
-        InputAttachment = 0x00000005
+        InputAttachment = 0x00000005,
+
+        /// <summary>
+        /// Represents a read-only texel buffer.
+        /// </summary>
+        /// <remarks>
+        /// Use the <c>uniform samplerBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>Buffer</c> keyword.
+        /// </remarks>
+        Buffer          = 0x00000006,
+
+        /// <summary>
+        /// Represents a writable texel buffer.
+        /// </summary>
+        /// <remarks>
+        /// Use the <c>uniform imageBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>RWBuffer</c> keyword.
+        /// </remarks>
+        WritableBuffer  = 0x00000016
     };
 
     /// <summary>
@@ -310,6 +363,11 @@ namespace LiteFX::Rendering {
         /// Describes a shader storage buffer object (Vulkan) or unordered access view (DirectX).
         /// </summary>
         Storage = 0x00000004,
+
+        /// <summary>
+        /// Describes a shader texel storage buffer object (Vulkan) or unordered access view (DirectX).
+        /// </summary>
+        Texel = 0x00000005,
 
         /// <summary>
         /// Describes another type of buffer, such as samplers or images.

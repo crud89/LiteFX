@@ -41,7 +41,7 @@ public:
 
         // Count the samplers and descriptors.
         std::ranges::for_each(m_layouts, [&, i = 0](const UniquePtr<DirectX12DescriptorLayout>& layout) mutable {
-            LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout->descriptorType(), layout->elementSize(), 0, layout->binding());
+            LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout->descriptorType(), layout->elementSize(), 0, layout->binding(), layout->descriptors());
             
             if (layout->descriptorType() == DescriptorType::Sampler)
             {
@@ -159,12 +159,17 @@ UInt32 DirectX12DescriptorSetLayout::uniforms() const noexcept
 
 UInt32 DirectX12DescriptorSetLayout::storages() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Storage; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Storage || layout->descriptorType() == DescriptorType::WritableStorage; });
+}
+
+UInt32 DirectX12DescriptorSetLayout::buffers() const noexcept
+{
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Buffer || layout->descriptorType() == DescriptorType::WritableBuffer; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::images() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Image; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Texture || layout->descriptorType() == DescriptorType::WritableTexture; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::samplers() const noexcept

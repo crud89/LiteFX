@@ -167,7 +167,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IDescriptorLayout" />
 	/// </summary>
-	/// <seealso cref="IVulkanConstantBuffer" />
+	/// <seealso cref="IVulkanBuffer" />
 	/// <seealso cref="IVulkanImage" />
 	/// <seealso cref="IVulkanTexture" />
 	/// <seealso cref="IVulkanSampler" />
@@ -214,8 +214,8 @@ namespace LiteFX::Rendering::Backends {
 	/// Represents the base interface for a Vulkan buffer implementation.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSet" />
-	/// <seealso cref="IVulkanConstantBuffer" />
-	/// <seealso cref="IVulkanConstantTexture" />
+	/// <seealso cref="IVulkanBuffer" />
+	/// <seealso cref="IVulkanTexture" />
 	/// <seealso cref="IVulkanVertexBuffer" />
 	/// <seealso cref="IVulkanIndexBuffer" />
 	class LITEFX_VULKAN_API IVulkanBuffer : public virtual ITransferableBuffer<IVulkanBuffer, VulkanCommandBuffer>, public virtual IResource<VkBuffer> {
@@ -244,18 +244,6 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Represents a Vulkan uniform or storage buffer.
-	/// </summary>
-	/// <seealso cref="VulkanDescriptorLayout" />
-	/// <seealso cref="VulkanDescriptorSet" />
-	/// <seealso cref="VulkanDescriptorSetLayout" />
-	/// <seealso cref="IVulkanBuffer" />
-	class LITEFX_VULKAN_API IVulkanConstantBuffer : public virtual IConstantBuffer<IVulkanBuffer, VulkanCommandBuffer, VulkanDescriptorLayout>, public IVulkanBuffer {
-	public:
-		virtual ~IVulkanConstantBuffer() noexcept = default;
-	};
-
-	/// <summary>
 	/// Represents a Vulkan sampled image or the base interface for a texture.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorLayout" />
@@ -268,11 +256,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~IVulkanImage() noexcept = default;
 
 	public:
-		/// <summary>
-		/// Returns the view for the image.
-		/// </summary>
-		/// <param name="plane">The plane for which to return the view.</param>
-		/// <returns>The image view handle.</returns>
 		virtual const VkImageView& imageView(const UInt32& plane = 0) const = 0;
 	};
 
@@ -285,7 +268,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IVulkanImage" />
 	/// <seealso cref="IVulkanSampler" />
 	/// <seealso cref="IVulkanBuffer" />
-	class LITEFX_VULKAN_API IVulkanTexture : public virtual ITexture<VulkanDescriptorLayout, IVulkanBuffer, VulkanCommandBuffer>, public IVulkanImage {
+	class LITEFX_VULKAN_API IVulkanTexture : public virtual ITexture<IVulkanBuffer, VulkanCommandBuffer>, public IVulkanImage {
 	public:
 		virtual ~IVulkanTexture() noexcept = default;
 
@@ -305,7 +288,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanDescriptorSetLayout" />
 	/// <seealso cref="IVulkanImage" />
 	/// <seealso cref="IVulkanTexture" />
-	class LITEFX_VULKAN_API IVulkanSampler : public ISampler<VulkanDescriptorLayout>, public virtual IResource<VkSampler> {
+	class LITEFX_VULKAN_API IVulkanSampler : public ISampler, public virtual IResource<VkSampler> {
 	public:
 		virtual ~IVulkanSampler() noexcept = default;
 	};
@@ -314,7 +297,9 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="IDescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanConstantBuffer, IVulkanTexture, IVulkanSampler, IVulkanImage, IVulkanBuffer, VulkanCommandBuffer>, public Resource<VkDescriptorSet> {
+	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanBuffer, IVulkanTexture, IVulkanSampler, IVulkanImage, VulkanCommandBuffer>, public Resource<VkDescriptorSet> {
+		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
+
 	public:
 		/// <summary>
 		/// Initializes a new descriptor set.
@@ -328,25 +313,16 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanConstantBuffer> makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1) const override;
+		virtual void update(const UInt32& binding, const IVulkanBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanTexture> makeTexture(const UInt32& binding, const Format& format, const Size3d& size, const ImageDimensions& dimensions = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual void update(const UInt32& binding, const IVulkanTexture& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanSampler> makeSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f) const override;
+		virtual void update(const UInt32& binding, const IVulkanSampler& sampler, const UInt32& descriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual void update(const IVulkanConstantBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void update(const IVulkanTexture& texture, const UInt32& descriptor = 0) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void update(const IVulkanSampler& sampler, const UInt32& descriptor = 0) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void attach(const UInt32& binding, const IVulkanImage& image) const noexcept override;
+		virtual void attach(const UInt32& binding, const IVulkanImage& image) const override;
 	};
 
 	/// <summary>
@@ -397,6 +373,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual UInt32 images() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32 buffers() const noexcept override;
 
 		/// <inheritdoc />
 		virtual UInt32 samplers() const noexcept override;
@@ -1209,19 +1188,19 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void bind(const VulkanDescriptorSet& descriptorSet) const override;
 
-		/// <inheritdoc />
-		virtual void use() const override;
-
 		// IComputePipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual void dispatch(const Vector3u& threadCount) const noexcept override;
+		virtual const VulkanCommandBuffer* commandBuffer() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void submit(const bool& wait = false) const noexcept override;
+		virtual void dispatch(const Vector3u& threadCount) const override;
 
 		/// <inheritdoc />
-		virtual void wait() const noexcept override;
+		virtual void begin(const VulkanCommandBuffer& commandBuffer) override;
+
+		/// <inheritdoc />
+		virtual void end() override;
 	};
 
 	/// <summary>
@@ -1602,7 +1581,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <remarks>
 	/// Internally this factory implementation is based on <a href="https://gpuopen.com/vulkan-memory-allocator/" target="_blank">Vulkan Memory Allocator</a>.
 	/// </remarks>
-	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanDescriptorLayout, IVulkanImage, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanConstantBuffer, IVulkanBuffer, IVulkanTexture, IVulkanSampler> {
+	class LITEFX_VULKAN_API VulkanGraphicsFactory : public IGraphicsFactory<VulkanDescriptorLayout, IVulkanImage, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanBuffer, IVulkanTexture, IVulkanSampler> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
 
 	public:
@@ -1617,13 +1596,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanImage> createImage(const Format& format, const Size3d& size, const ImageDimensions& dimensions = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-
-		/// <inheritdoc />
-		virtual UniquePtr<IVulkanImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
-
-		/// <inheritdoc />
-		virtual UniquePtr<IVulkanBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1) const override;
+		virtual UniquePtr<IVulkanBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
@@ -1632,19 +1605,19 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanConstantBuffer> createConstantBuffer(const VulkanDescriptorLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
+		virtual UniquePtr<IVulkanImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanTexture> createTexture(const VulkanDescriptorLayout& layout, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual UniquePtr<IVulkanTexture> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<IVulkanTexture>> createTextures(const VulkanDescriptorLayout& layout, const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		virtual Array<UniquePtr<IVulkanTexture>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanSampler> createSampler(const VulkanDescriptorLayout& layout, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		virtual UniquePtr<IVulkanSampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<IVulkanSampler>> createSamplers(const VulkanDescriptorLayout& layout, const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		virtual Array<UniquePtr<IVulkanSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
 	};
 
 	/// <summary>

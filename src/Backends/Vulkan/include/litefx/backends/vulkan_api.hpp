@@ -57,7 +57,6 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanBuffer;
     class IVulkanVertexBuffer;
     class IVulkanIndexBuffer;
-    class IVulkanConstantBuffer;
     class IVulkanImage;
     class IVulkanTexture;
     class IVulkanSampler;
@@ -151,7 +150,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// 
     /// </summary>
-    VkImageViewType LITEFX_VULKAN_API getImageViewType(const ImageDimensions& dimension);
+    VkImageViewType LITEFX_VULKAN_API getImageViewType(const ImageDimensions& dimension, const UInt32& layers = 1);
 
     /// <summary>
     /// 

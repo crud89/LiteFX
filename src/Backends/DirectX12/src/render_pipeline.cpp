@@ -295,7 +295,7 @@ void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
 	if (buffer.state() != D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)
 		buffer.transitionTo(commandBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 	
-	commandBuffer.handle()->IASetVertexBuffers(buffer.binding(), 1, &buffer.view());
+	commandBuffer.handle()->IASetVertexBuffers(buffer.layout().binding(), 1, &buffer.view());
 	commandBuffer.handle()->IASetPrimitiveTopology(::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 }
 

@@ -39,6 +39,10 @@ public:
 public:
 	VkFramebuffer initialize()
 	{
+        // Clear earlier images.
+        m_renderTargetViews.clear();
+        m_outputAttachments.clear();
+
         // Retrieve the image views for the input and output attachments.
         Array<VkImageView> attachmentViews;
 

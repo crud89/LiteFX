@@ -62,7 +62,6 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12Buffer;
     class IDirectX12VertexBuffer;
     class IDirectX12IndexBuffer;
-    class IDirectX12ConstantBuffer;
     class IDirectX12Image;
     class IDirectX12Texture;
     class IDirectX12Sampler;
@@ -105,6 +104,11 @@ namespace LiteFX::Rendering::Backends {
     /// 
     /// </summary>
     DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const BufferFormat& format);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    bool LITEFX_DIRECTX12_API isSRGB(const Format& format);
 
     /// <summary>
     /// 

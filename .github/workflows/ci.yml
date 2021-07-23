@@ -12,6 +12,11 @@ on:
   pull_request:
     branches:
       - main
+    types:
+    - opened
+    - reopened
+    - synchronize
+    - ready_for_review
 
 env:
   vulkanSdkVersion: '1.2.148.0' # Lowest version that ships with DXC is 1.2.148.0
@@ -20,6 +25,7 @@ jobs:
   job:
     name: ${{ matrix.os }}-ci
     runs-on: ${{ matrix.os }}
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     strategy:
       fail-fast: false
       matrix:

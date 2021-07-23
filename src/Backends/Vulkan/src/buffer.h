@@ -11,18 +11,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
 
 	public:
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="device"></param>
-		/// <param name="buffer"></param>
-		/// <param name="type"></param>
-		/// <param name="elements"></param>
-		/// <param name="elementSize"></param>
-		/// <param name="alignment"></param>
-		/// <param name="allocator"></param>
-		/// <param name="allocation"></param>
-		explicit VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		explicit VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VmaAllocation& allocation);
 		VulkanBuffer(VulkanBuffer&&) = delete;
 		VulkanBuffer(const VulkanBuffer&) = delete;
 		virtual ~VulkanBuffer() noexcept;
@@ -63,6 +52,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual size_t alignedElementSize() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const bool& writable() const noexcept override;
+
 		// IMappable interface.
 	public:
 		/// <inheritdoc />
@@ -73,18 +65,7 @@ namespace LiteFX::Rendering::Backends {
 
 		// VulkanBuffer.
 	public:
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="elements"></param>
-		/// <param name="elementSize"></param>
-		/// <param name="allocator"></param>
-		/// <param name="createInfo"></param>
-		/// <param name="allocationInfo"></param>
-		/// <param name="allocationResult"></param>
-		/// <returns></returns>
-		static UniquePtr<IVulkanBuffer> allocate(const VulkanDevice& device, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IVulkanBuffer> allocate(const VulkanDevice& device, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	class VulkanVertexBuffer : public VulkanBuffer, public IVulkanVertexBuffer {
@@ -100,11 +81,6 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		/// <inheritdoc />
 		const VulkanVertexBufferLayout& layout() const noexcept override;
-
-		// IBindable interface.
-	public:
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
 
 		// VulkanVertexBuffer.
 	public:
@@ -128,29 +104,5 @@ namespace LiteFX::Rendering::Backends {
 		// VulkanIndexBuffer.
 	public:
 		static UniquePtr<IVulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-	};
-
-	class VulkanConstantBuffer : public VulkanBuffer, public IVulkanConstantBuffer {
-		LITEFX_IMPLEMENTATION(VulkanConstantBufferImpl);
-
-	public:
-		explicit VulkanConstantBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanDescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VmaAllocation& allocation);
-		VulkanConstantBuffer(VulkanConstantBuffer&&) = delete;
-		VulkanConstantBuffer(const VulkanConstantBuffer&) = delete;
-		virtual ~VulkanConstantBuffer() noexcept;
-
-		// IDescriptor interface.
-	public:
-		/// <inheritdoc />
-		const VulkanDescriptorLayout& layout() const noexcept override;
-
-		// IBindable interface.
-	public:
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
-		// VulkanConstantBuffer.
-	public:
-		static UniquePtr<IVulkanConstantBuffer> allocate(const VulkanDescriptorLayout& layout, const UInt32& elements, const size_t& alignment, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 }

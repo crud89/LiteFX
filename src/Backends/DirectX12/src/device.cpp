@@ -16,6 +16,7 @@ private:
 	const DirectX12Backend& m_backend;
 	UniquePtr<DirectX12Queue> m_graphicsQueue, m_transferQueue, m_bufferQueue, m_computeQueue;
 	UniquePtr<DirectX12GraphicsFactory> m_factory;
+	UniquePtr<DirectX12ComputePipeline> m_blitPipeline;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
 	UniquePtr<DirectX12SwapChain> m_swapChain;
 	DWORD m_debugCallbackCookie = 0;
@@ -161,6 +162,32 @@ public:
 		m_computeQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Compute, QueuePriority::High);
 	}
 
+	void createBlitPipeline()
+	{
+		try
+		{
+			m_blitPipeline = m_parent->buildComputePipeline()
+				.layout()
+					.shaderProgram()
+						.addComputeShaderModule("shaders/blit.dxi")
+						.go()
+					.addDescriptorSet(0)
+						.addUniform(0, 16, 1)
+						.addImage(1)
+						.addImage(2, 1, true)
+						.go()
+					.addDescriptorSet(1)
+						.addSampler(0)
+						.go()
+					.go()
+				.go();
+		}
+		catch (Exception& ex)
+		{
+			LITEFX_WARNING(DIRECTX12_LOG, "Unable to create blit pipeline. Blitting will not be available. Error: {0}", ex.what());
+		}	
+	}
+
 public:
 	Array<Format> getSurfaceFormats() const
 	{
@@ -204,6 +231,7 @@ DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, const 
 	m_impl->createQueues();
 	m_impl->createFactory();
 	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
+	m_impl->createBlitPipeline();
 }
 
 DirectX12Device::~DirectX12Device() noexcept = default;
@@ -243,6 +271,10 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 	if (samplerOffset + samplers > m_impl->m_globalSamplerHeapSize) [[unlikely]]
 		samplerOffset = 0;
+
+	// Deduct, whether to set the graphics or compute descriptor tables.
+	// TODO: Maybe we could store a simple boolean on the pipeline state to make this easier.
+	const bool isGraphicsSet = dynamic_cast<const DirectX12RenderPipeline*>(&descriptorSet.parent().parent().parent()) != nullptr;
 	
 	// Get the descriptor handles.
 	CD3DX12_CPU_DESCRIPTOR_HANDLE targetBufferHandle(m_impl->m_globalBufferHeap->GetCPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
@@ -256,7 +288,11 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 		// The parameter index equals the target descriptor set space.
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
-		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+		
+		if (isGraphicsSet)
+			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+		else
+			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
 
 		// Store the updated offset.
 		m_impl->m_bufferOffset = bufferOffset + buffers;
@@ -269,7 +305,11 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 		// The parameter index equals the target descriptor set space.
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), samplerOffset, m_impl->m_samplerDescriptorIncrement);
-		commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+		
+		if (isGraphicsSet)
+			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+		else
+			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
 
 		// Store the updated offset.
 		m_impl->m_samplerOffset = samplerOffset + samplers;
@@ -280,6 +320,11 @@ void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& co
 {
 	const std::array<ID3D12DescriptorHeap*, 2> globalHeaps{ m_impl->m_globalBufferHeap.Get(), m_impl->m_globalSamplerHeap.Get() };
 	commandBuffer.handle()->SetDescriptorHeaps(globalHeaps.size(), globalHeaps.data());
+}
+
+DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
+{
+	return *m_impl->m_blitPipeline;
 }
 
 DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const MultiSamplingLevel& samples) const

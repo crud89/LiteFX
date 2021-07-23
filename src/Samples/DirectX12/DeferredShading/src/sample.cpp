@@ -146,12 +146,13 @@ void SampleApp::initBuffers()
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& cameraBindingLayout = m_geometryPipeline->layout().descriptorSet(DescriptorSets::Constant);
-    m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.descriptor(0), BufferUsage::Staging, 1);
-    m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBindingLayout.descriptor(0), BufferUsage::Resource, 1);
+    auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
+    m_cameraStagingBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
+    m_cameraBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
 
     // Allocate the descriptor set and bind the camera buffer to it.
     m_cameraBindings = cameraBindingLayout.allocate();
-    m_cameraBindings->update(*m_cameraBuffer, 0);
+    m_cameraBindings->update(cameraBufferLayout.binding(), *m_cameraBuffer, 0);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer);
@@ -159,9 +160,10 @@ void SampleApp::initBuffers()
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = m_geometryPipeline->layout().descriptorSet(DescriptorSets::PerFrame);
+    auto& transformBufferLayout = transformBindingLayout.descriptor(0);
     m_perFrameBindings = transformBindingLayout.allocate(3);
-    m_transformBuffer = m_device->factory().createConstantBuffer(transformBindingLayout.descriptor(0), BufferUsage::Dynamic, 3);
-    std::ranges::for_each(m_perFrameBindings, [this, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(*m_transformBuffer, i++); });
+    m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
+    std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
 
     // Create buffers for lighting pass, i.e. the view plane vertex and index buffers.
     auto stagedViewPlaneVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, viewPlaneVertices.size());

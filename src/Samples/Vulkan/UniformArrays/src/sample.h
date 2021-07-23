@@ -87,12 +87,12 @@ private:
 	/// <summary>
 	/// Stores the buffers that contains the camera and lights information. Since the camera and lights are static, we only need one (immutable) buffer for it, so the buffer will only contain one element.
 	/// </summary>
-	UniquePtr<IVulkanConstantBuffer> m_cameraBuffer, m_cameraStagingBuffer, m_lightsBuffer;
+	UniquePtr<IVulkanBuffer> m_cameraBuffer, m_cameraStagingBuffer, m_lightsBuffer;
 
 	/// <summary>
 	/// Stores the buffer that holds the object transform. The buffer will contain three elements, since we have three frames in flight.
 	/// </summary>
-	UniquePtr<IVulkanConstantBuffer> m_transformBuffer;
+	UniquePtr<IVulkanBuffer> m_transformBuffer;
 
 	/// <summary>
 	/// Stores the bindings to the transform buffer.

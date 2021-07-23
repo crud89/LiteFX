@@ -231,9 +231,13 @@ struct LITEFX_RENDERING_API fmt::formatter<DescriptorType> : formatter<string_vi
 		switch (t) {
 		using enum DescriptorType;
 		case Sampler: name = "Sampler"; break;
-		case Storage: name = "Uniform"; break;
-		case Uniform: name = "Storage"; break;
-		case Image:   name = "Image"; break;
+		case Uniform: name = "Uniform"; break;
+		case Storage: name = "Storage"; break;
+		case WritableStorage: name = "WritableStorage"; break;
+		case Texture: name = "Texture"; break;
+		case WritableTexture: name = "WritableTexture"; break;
+		case Buffer:  name = "Buffer"; break;
+		case WritableBuffer:  name = "WritableBuffer"; break;
 		case InputAttachment: name = "Input Attachment"; break;
 		}
 		return formatter<string_view>::format(name, ctx);

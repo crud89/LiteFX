@@ -13,7 +13,7 @@ public:
 
 private:
 	UniquePtr<DirectX12PipelineLayout> m_layout;
-	UniquePtr<DirectX12CommandBuffer> m_commandBuffer;
+	const DirectX12CommandBuffer* m_commandBuffer = nullptr;
 	String m_name;
 
 public:
@@ -30,9 +30,6 @@ public:
 public:
 	ComPtr<ID3D12PipelineState> initialize()
 	{
-		// Acquire a command buffer for compute commands.
-		m_commandBuffer = m_parent->parent().computeQueue().createCommandBuffer(false);
-
 		// Define the pipeline state.
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineStateDescription = {};
 
@@ -92,31 +89,43 @@ const DirectX12PipelineLayout& DirectX12ComputePipeline::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
+const DirectX12CommandBuffer* DirectX12ComputePipeline::commandBuffer() const noexcept
+{
+	return m_impl->m_commandBuffer;
+}
+
 void DirectX12ComputePipeline::bind(const DirectX12DescriptorSet& descriptorSet) const
 {
+	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
+		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
+
 	this->getDevice()->updateGlobalDescriptors(*m_impl->m_commandBuffer, descriptorSet);
 }
 
-void DirectX12ComputePipeline::use() const
+void DirectX12ComputePipeline::dispatch(const Vector3u& threadCount) const
 {
-	m_impl->m_commandBuffer->begin();
-	std::as_const(*m_impl->m_commandBuffer).handle()->SetPipelineState(this->handle().Get());
-	std::as_const(*m_impl->m_commandBuffer).handle()->SetComputeRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
+	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
+		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
+
+	m_impl->m_commandBuffer->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-void DirectX12ComputePipeline::dispatch(const Vector3u& threadCount) const noexcept
+void DirectX12ComputePipeline::begin(const DirectX12CommandBuffer& commandBuffer)
 {
-	std::as_const(*m_impl->m_commandBuffer).handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
+	if (m_impl->m_commandBuffer != nullptr) [[unlikely]]
+		throw RuntimeException("A compute pipeline must only be bound to one command buffer. Call `end` on the pipeline first.");
+
+	m_impl->m_commandBuffer = &commandBuffer;
+	m_impl->m_commandBuffer->handle()->SetPipelineState(this->handle().Get());
+	m_impl->m_commandBuffer->handle()->SetComputeRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
+
+	// TODO: Remove this, if issue #33 is resolved.
+	this->getDevice()->bindGlobalDescriptorHeaps(*m_impl->m_commandBuffer);
 }
 
-void DirectX12ComputePipeline::submit(const bool& wait) const noexcept
+void DirectX12ComputePipeline::end()
 {
-	m_impl->m_commandBuffer->end(true, wait);
-}
-
-void DirectX12ComputePipeline::wait() const noexcept
-{
-	m_impl->m_commandBuffer->wait();
+	m_impl->m_commandBuffer = nullptr;
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -17,7 +17,7 @@ public:
     DirectX12DescriptorSetImpl(DirectX12DescriptorSet* parent, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
         base(parent), m_bufferHeap(std::move(bufferHeap)), m_samplerHeap(std::move(samplerHeap))
     {
-        auto buffers = parent->parent().uniforms() + parent->parent().images() + parent->parent().storages();
+        auto buffers = parent->parent().uniforms() + parent->parent().images() + parent->parent().storages() + parent->parent().buffers();
 
         if (buffers > 0 && m_bufferHeap == nullptr)
             throw ArgumentNotInitializedException("The buffer descriptor heap handle must be initialized, if the descriptor set layout contains uniform buffers, storage buffers or images.");
@@ -69,60 +69,193 @@ DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
     this->parent().free(*this);
 }
 
-UniquePtr<IDirectX12ConstantBuffer> DirectX12DescriptorSet::makeBuffer(const UInt32& binding, const BufferUsage& usage, const UInt32& elements) const
-{
-    return this->getDevice()->factory().createConstantBuffer(this->parent().descriptor(binding), usage, elements);
-}
-
-UniquePtr<IDirectX12Texture> DirectX12DescriptorSet::makeTexture(const UInt32& binding, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
-{
-    return this->getDevice()->factory().createTexture(this->parent().descriptor(binding), format, size, dimension, levels, layers, samples);
-}
-
-UniquePtr<IDirectX12Sampler> DirectX12DescriptorSet::makeSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) const
-{
-    return this->getDevice()->factory().createSampler(this->parent().descriptor(binding), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
-}
-
-void DirectX12DescriptorSet::update(const IDirectX12ConstantBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const noexcept
+void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const
 {
     if (bufferElement + elements > buffer.elements()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elements, bufferElement);
 
-    auto offset = this->parent().descriptorOffsetForBinding(buffer.layout().binding()) + firstDescriptor;
+    const auto& descriptorLayout = this->parent().descriptor(binding);
+    auto offset = this->parent().descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
 
-    for (UInt32 i(0); i < elements; ++i)
+    if (descriptorLayout.descriptorType() == DescriptorType::Uniform)
     {
-        D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferView = {
-            .BufferLocation = buffer.handle()->GetGPUVirtualAddress() + static_cast<size_t>(bufferElement + i) * buffer.alignedElementSize(),
-            .SizeInBytes = static_cast<UInt32>(buffer.alignedElementSize())
+        for (UInt32 i(0); i < elements; ++i)
+        {
+            D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferView = {
+                .BufferLocation = buffer.handle()->GetGPUVirtualAddress() + static_cast<size_t>(bufferElement + i) * buffer.alignedElementSize(),
+                .SizeInBytes = static_cast<UInt32>(buffer.alignedElementSize())
+            };
+
+            this->getDevice()->handle()->CreateConstantBufferView(&constantBufferView, descriptorHandle);
+            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+        }
+    }
+    else if (descriptorLayout.descriptorType() == DescriptorType::Storage || descriptorLayout.descriptorType() == DescriptorType::Buffer)
+    {
+        D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+            .Format = DXGI_FORMAT_UNKNOWN,
+            .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+            .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+            .Buffer = { .FirstElement = bufferElement, .NumElements = elements, .StructureByteStride = static_cast<UInt32>(descriptorLayout.elementSize()), .Flags = D3D12_BUFFER_SRV_FLAG_NONE }
         };
 
-        this->getDevice()->handle()->CreateConstantBufferView(&constantBufferView, descriptorHandle);
-        descriptorHandle = descriptorHandle.Offset(descriptorSize);
+        this->getDevice()->handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
+    }
+    else if (descriptorLayout.descriptorType() == DescriptorType::WritableStorage || descriptorLayout.descriptorType() == DescriptorType::WritableBuffer)
+    {
+        if (!buffer.writable())
+            throw InvalidArgumentException("The provided buffer is not writable and cannot be bound to a read/write descriptor.");
+
+        // TODO: Support allocating counter resources?
+        D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
+            .Format = DXGI_FORMAT_UNKNOWN,
+            .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+            .Buffer = { .FirstElement = bufferElement, .NumElements = elements, .StructureByteStride = static_cast<UInt32>(descriptorLayout.elementSize()), .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_NONE }
+        };
+
+        this->getDevice()->handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
+    }
+    else [[unlikely]]
+    {
+        throw InvalidArgumentException("The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
     }
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Texture& texture, const UInt32& descriptor) const noexcept
+void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Texture& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
 {
-    auto offset = this->parent().descriptorOffsetForBinding(texture.layout().binding());
-
-    D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
-        .Format = ::getFormat(texture.format()),
-        .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
-        .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-        .Texture2D = { .MostDetailedMip = 0, .MipLevels = texture.levels(), .PlaneSlice = 0, .ResourceMinLODClamp = 0 }
-    };
-
+    // TODO: Add LOD lower bound (for clamping) as parameter?
+    // Acquire a descriptor handle.
+    const auto& descriptorLayout = this->parent().descriptor(binding);
+    auto offset = this->parent().descriptorOffsetForBinding(binding);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, this->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-    this->getDevice()->handle()->CreateShaderResourceView(texture.handle().Get(), &textureView, descriptorHandle);
+
+    // Get the number of levels and layers.
+    const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
+    const UInt32 numLayers = layers == 0 ? texture.layers() - firstLayer : layers;
+
+    if (descriptorLayout.descriptorType() == DescriptorType::Texture)
+    {
+        D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
+            .Format = ::getFormat(texture.format()),
+            .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+        };
+
+        switch (texture.dimensions())
+        {
+        case ImageDimensions::DIM_1:
+            if (texture.layers() == 1)
+            {
+                textureView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+                textureView.Texture1D = { .MostDetailedMip = firstLevel, .MipLevels = numLevels, .ResourceMinLODClamp = 0 };
+            }
+            else
+            {
+                textureView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+                textureView.Texture1DArray = { .MostDetailedMip = firstLevel, .MipLevels = numLevels, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .ResourceMinLODClamp = 0 };
+            }
+
+            break;
+        case ImageDimensions::DIM_2:
+            if (texture.samples() == MultiSamplingLevel::x1)
+            {
+                if (texture.layers() == 1)
+                {
+                    textureView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+                    textureView.Texture2D = { .MostDetailedMip = firstLevel, .MipLevels = numLevels, .PlaneSlice = 0, .ResourceMinLODClamp = 0 };
+                }
+                else
+                {
+                    textureView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+                    textureView.Texture2DArray = { .MostDetailedMip = firstLevel, .MipLevels = numLevels, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0, .ResourceMinLODClamp = 0 };
+                }
+            }
+            else
+            {
+                if (texture.layers() == 1)
+                {
+                    textureView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
+                    textureView.Texture2DMS = { };
+                }
+                else
+                {
+                    textureView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY;
+                    textureView.Texture2DMSArray = { .FirstArraySlice = firstLayer, .ArraySize = numLayers };
+                }
+            }
+
+            break;
+        case ImageDimensions::DIM_3:
+            textureView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+            textureView.Texture3D = { .MostDetailedMip = firstLevel, .MipLevels = numLevels, .ResourceMinLODClamp = 0 };
+            break;
+        case ImageDimensions::CUBE:
+            textureView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+            textureView.TextureCube = { .MostDetailedMip = firstLevel, .MipLevels = numLevels, .ResourceMinLODClamp = 0 };
+            break;
+        }
+
+        this->getDevice()->handle()->CreateShaderResourceView(texture.handle().Get(), &textureView, descriptorHandle);
+    }
+    else if (descriptorLayout.descriptorType() == DescriptorType::WritableTexture)
+    {
+        if (!texture.writable())
+            throw InvalidArgumentException("The provided texture is not writable and cannot be bound to a read/write descriptor.");
+
+        D3D12_UNORDERED_ACCESS_VIEW_DESC textureView = {
+            .Format = ::getFormat(texture.format())
+        };
+
+        switch (texture.dimensions())
+        {
+        case ImageDimensions::DIM_1:
+            if (texture.layers() == 1)
+            {
+                textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
+                textureView.Texture1D = { .MipSlice = firstLevel };
+            }
+            else
+            {
+                textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+                textureView.Texture1DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers };
+            }
+
+            break;
+        case ImageDimensions::DIM_2:
+            if (texture.layers() == 1)
+            {
+                textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+                textureView.Texture2D = { .MipSlice = firstLevel, .PlaneSlice = 0 };
+            }
+            else
+            {
+                textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+                textureView.Texture2DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0 };
+            }
+
+            break;
+        case ImageDimensions::DIM_3:
+            textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+            textureView.Texture3D = { .MipSlice = firstLevel, .FirstWSlice = firstLayer, .WSize = layers == 0 ? static_cast<UInt32>(texture.extent().depth()) : layers };
+            break;
+        case ImageDimensions::CUBE:
+            textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+            textureView.Texture2DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0 };
+            break;
+        }
+
+        this->getDevice()->handle()->CreateUnorderedAccessView(texture.handle().Get(), nullptr, &textureView, descriptorHandle);
+    }
+    else
+    {
+        throw InvalidArgumentException("The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
+    }
 }
 
-void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler, const UInt32& descriptor) const noexcept
+void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampler& sampler, const UInt32& descriptor) const
 {
-    auto offset = this->parent().descriptorOffsetForBinding(sampler.layout().binding());
+    auto offset = this->parent().descriptorOffsetForBinding(binding);
 
     D3D12_SAMPLER_DESC samplerInfo = {
         .Filter = m_impl->getFilterMode(sampler.getMinifyingFilter(), sampler.getMagnifyingFilter(), sampler.getMipMapMode(), sampler.getAnisotropy()),
@@ -141,7 +274,7 @@ void DirectX12DescriptorSet::update(const IDirectX12Sampler& sampler, const UInt
     this->getDevice()->handle()->CreateSampler(&samplerInfo, descriptorHandle);
 }
 
-void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const noexcept
+void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const
 {
     auto offset = this->parent().descriptorOffsetForBinding(binding);
 
