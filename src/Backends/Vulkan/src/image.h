@@ -14,7 +14,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 
 	public:
-		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
+		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const bool& writable, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
 		VulkanImage(VulkanImage&&) = delete;
 		VulkanImage(const VulkanImage&) = delete;
 		virtual ~VulkanImage() noexcept;
@@ -35,6 +35,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual size_t alignedElementSize() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const bool& writable() const noexcept override;
 
 		// IImage interface.
 	public:
@@ -62,7 +65,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual VmaAllocation& allocationInfo() const noexcept;
 
 	public:
-		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const bool& writable, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
@@ -72,7 +75,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
 
 	public:
-		explicit VulkanTexture(const VulkanDevice& device, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator allocator, VmaAllocation allocation);
+		explicit VulkanTexture(const VulkanDevice& device, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, VmaAllocator allocator, VmaAllocation allocation);
 		VulkanTexture(VulkanTexture&&) = delete;
 		VulkanTexture(const VulkanTexture&) = delete;
 		virtual ~VulkanTexture() noexcept;
@@ -100,18 +103,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceMipMapLevel = 0, const UInt32& targetElement = 0, const UInt32& mipMapLevels = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
 
-		// IVulkanImage interface.
-	public:
-		virtual const VkImageView& imageView(const UInt32& plane = 0) const override {
-			return VulkanImage::imageView(plane);
-		}
-
 		// IVulkanTexture interface.
 	public:
 		virtual const VkImageLayout& imageLayout() const noexcept override;
 
 	public:
-		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>

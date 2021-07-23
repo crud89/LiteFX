@@ -47,7 +47,7 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	VkBufferUsageFlags usageFlags = {};
@@ -72,7 +72,11 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		alignment = m_impl->m_device.adapter().getLimits().minStorageBufferOffsetAlignment;
 		break;
 	case BufferType::Texel:
-		usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+		if (allowWrite)
+			usageFlags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+		else
+			usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+
 		alignment = m_impl->m_device.adapter().getLimits().minTexelBufferOffsetAlignment;
 		break;
 	}
@@ -107,7 +111,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -120,7 +124,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 }
 
@@ -246,10 +250,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, false, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
-UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
+UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
 		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
@@ -269,7 +273,11 @@ UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const Format& for
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.samples = ::getSamples(samples);
-	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_SAMPLED_BIT);
+	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	imageInfo.usage |= allowWrite ? VK_IMAGE_USAGE_STORAGE_BIT : VK_IMAGE_USAGE_SAMPLED_BIT;
+	
+	if (::hasDepth(format) || ::hasStencil(format))
+		imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
 	Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
 
@@ -283,13 +291,13 @@ UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const Format& for
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanTexture::allocate(m_impl->m_device, size, format, dimension, levels, layers, samples, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanTexture::allocate(m_impl->m_device, size, format, dimension, levels, layers, samples, allowWrite, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
-Array<UniquePtr<IVulkanTexture>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples) const
+Array<UniquePtr<IVulkanTexture>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
 	Array<UniquePtr<IVulkanTexture>> textures(elements);
-	std::ranges::generate(textures, [&, this]() { return this->createTexture(format, size, dimension, levels, layers, samples); });
+	std::ranges::generate(textures, [&, this]() { return this->createTexture(format, size, dimension, levels, layers, samples, allowWrite); });
 	return textures;
 }
 
