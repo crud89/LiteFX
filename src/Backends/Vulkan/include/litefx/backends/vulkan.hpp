@@ -254,14 +254,6 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_VULKAN_API IVulkanImage : public virtual IImage, public virtual IResource<VkImage> {
 	public:
 		virtual ~IVulkanImage() noexcept = default;
-
-	public:
-		/// <summary>
-		/// Returns the view for the image.
-		/// </summary>
-		/// <param name="plane">The plane for which to return the view.</param>
-		/// <returns>The image view handle.</returns>
-		virtual const VkImageView& imageView(const UInt32& plane = 0) const = 0;
 	};
 
 	/// <summary>
@@ -303,6 +295,8 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSetLayout" />
 	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanBuffer, IVulkanTexture, IVulkanSampler, IVulkanImage, VulkanCommandBuffer>, public Resource<VkDescriptorSet> {
+		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
+
 	public:
 		/// <summary>
 		/// Initializes a new descriptor set.
@@ -319,7 +313,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void update(const UInt32& binding, const IVulkanBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual void update(const UInt32& binding, const IVulkanTexture& texture, const UInt32& descriptor = 0) const override;
+		virtual void update(const UInt32& binding, const IVulkanTexture& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const override;
 
 		/// <inheritdoc />
 		virtual void update(const UInt32& binding, const IVulkanSampler& sampler, const UInt32& descriptor = 0) const override;

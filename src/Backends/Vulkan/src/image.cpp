@@ -16,7 +16,6 @@ public:
 private:
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocationInfo;
-	Array<VkImageView> m_views;
 	Format m_format;
 	Size3d m_extent;
 	UInt32 m_elements{ 1 }, m_layers, m_levels;
@@ -26,51 +25,6 @@ public:
 	VulkanImageImpl(VulkanImage* parent, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, VmaAllocator allocator, VmaAllocation allocation) :
 		base(parent), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format), m_dimensions(dimensions), m_levels(levels), m_layers(layers)
 	{
-		VkImageViewCreateInfo createInfo = {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-			.pNext = nullptr,
-			.image = m_parent->handle(),
-			.viewType = ::getImageViewType(dimensions),
-			.format = ::getFormat(m_format),
-			.components = VkComponentMapping {
-				.r = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.b = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.a = VK_COMPONENT_SWIZZLE_IDENTITY
-			},
-			.subresourceRange = VkImageSubresourceRange {
-				.baseMipLevel = 0, 
-				.levelCount = m_levels,
-				.baseArrayLayer = 0,
-				.layerCount = m_layers
-			}
-		};
-
-		if (!::hasDepth(m_format) && !::hasStencil(m_format))
-		{
-			VkImageView imageView;
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			raiseIfFailed<RuntimeException>(::vkCreateImageView(m_parent->getDevice()->handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
-			m_views.push_back(imageView);
-		}
-		else
-		{
-			VkImageView imageView;
-
-			if (::hasDepth(m_format))
-			{
-				createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-				raiseIfFailed<RuntimeException>(::vkCreateImageView(m_parent->getDevice()->handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
-				m_views.push_back(imageView);
-			}
-
-			if (::hasStencil(m_format))
-			{
-				createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-				raiseIfFailed<RuntimeException>(::vkCreateImageView(m_parent->getDevice()->handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
-				m_views.push_back(imageView);
-			}
-		}
 	}
 };
 
@@ -85,9 +39,6 @@ VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d
 
 VulkanImage::~VulkanImage() noexcept 
 {
-	for (auto& view : m_impl->m_views)
-		::vkDestroyImageView(this->getDevice()->handle(), view, nullptr);
-
 	if (m_impl->m_allocator != nullptr && m_impl->m_allocationInfo != nullptr)
 	{
 		::vmaDestroyImage(m_impl->m_allocator, this->handle(), m_impl->m_allocationInfo);
@@ -191,14 +142,6 @@ const UInt32& VulkanImage::layers() const noexcept
 	return m_impl->m_layers;
 }
 
-const VkImageView& VulkanImage::imageView(const UInt32& plane) const
-{
-	if (plane >= m_impl->m_views.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The image does not have a plane {0}.", plane);
-
-	return m_impl->m_views[plane];
-}
-
 VmaAllocator& VulkanImage::allocator() const noexcept
 {
 	return m_impl->m_allocator;
@@ -207,14 +150,6 @@ VmaAllocator& VulkanImage::allocator() const noexcept
 VmaAllocation& VulkanImage::allocationInfo() const noexcept
 {
 	return m_impl->m_allocationInfo;
-}
-
-VkImageView& VulkanImage::imageView(const UInt32& plane)
-{
-	if (plane >= m_impl->m_views.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The image does not have a plane {0}.", plane);
-
-	return m_impl->m_views[plane];
 }
 
 UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)

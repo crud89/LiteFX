@@ -57,14 +57,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& layers() const noexcept override;
 
 		// IVulkanImage interface.
-	public:
-		/// <inheritdoc />
-		virtual const VkImageView& imageView(const UInt32& plane = 0) const override;
-
 	protected:
 		virtual VmaAllocator& allocator() const noexcept;
 		virtual VmaAllocation& allocationInfo() const noexcept;
-		virtual VkImageView& imageView(const UInt32& plane = 0);
 
 	public:
 		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
