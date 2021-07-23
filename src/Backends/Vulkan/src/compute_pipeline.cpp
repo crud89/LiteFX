@@ -13,7 +13,7 @@ public:
 
 private:
 	UniquePtr<VulkanPipelineLayout> m_layout;
-	UniquePtr<VulkanCommandBuffer> m_commandBuffer;
+	const VulkanCommandBuffer* m_commandBuffer = nullptr;
 	String m_name;
 
 public:
@@ -32,10 +32,6 @@ public:
 	{
 		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_name);
 	
-		// Get the device and create a command buffer.
-		auto device = m_parent->getDevice();
-		m_commandBuffer = m_parent->parent().computeQueue().createCommandBuffer(false);
-
 		// Setup shader stages.
 		auto modules = m_layout->program().modules();
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(&m_layout->program())), modules.size());
@@ -54,7 +50,7 @@ public:
 		pipelineInfo.stage = shaderStages.front();
 
 		VkPipeline pipeline;
-		raiseIfFailed<RuntimeException>(::vkCreateComputePipelines(device->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
+		raiseIfFailed<RuntimeException>(::vkCreateComputePipelines(m_parent->getDevice()->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
 
 		return pipeline;
 	}
@@ -90,30 +86,39 @@ const VulkanPipelineLayout& VulkanComputePipeline::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-void VulkanComputePipeline::bind(const VulkanDescriptorSet& descriptorSet) const
+const VulkanCommandBuffer* VulkanComputePipeline::commandBuffer() const noexcept
 {
-	::vkCmdBindDescriptorSets(std::as_const(*m_impl->m_commandBuffer).handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
+	return m_impl->m_commandBuffer;
 }
 
-void VulkanComputePipeline::use() const 
+void VulkanComputePipeline::bind(const VulkanDescriptorSet& descriptorSet) const
 {
-	m_impl->m_commandBuffer->begin();
-	::vkCmdBindPipeline(std::as_const(*m_impl->m_commandBuffer).handle(), VK_PIPELINE_BIND_POINT_COMPUTE, this->handle());
+	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
+		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
+
+	::vkCmdBindDescriptorSets(m_impl->m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
 }
 
 void VulkanComputePipeline::dispatch(const Vector3u& threadCount) const noexcept
 {
-	::vkCmdDispatch(std::as_const(*m_impl->m_commandBuffer).handle(), threadCount.x(), threadCount.y(), threadCount.z());
+	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
+		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
+
+	::vkCmdDispatch(m_impl->m_commandBuffer->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-void VulkanComputePipeline::submit(const bool& wait) const noexcept
+void VulkanComputePipeline::begin(const VulkanCommandBuffer& commandBuffer)
 {
-	m_impl->m_commandBuffer->end(true, wait);
+	if (m_impl->m_commandBuffer != nullptr) [[unlikely]]
+		throw RuntimeException("A compute pipeline must only be bound to one command buffer. Call `end` on the pipeline first.");
+
+	m_impl->m_commandBuffer = &commandBuffer;
+	::vkCmdBindPipeline(m_impl->m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_COMPUTE, this->handle());
 }
 
-void VulkanComputePipeline::wait() const noexcept
+void VulkanComputePipeline::end()
 {
-	m_impl->m_commandBuffer->wait();
+	m_impl->m_commandBuffer = nullptr;
 }
 
 // ------------------------------------------------------------------------------------------------

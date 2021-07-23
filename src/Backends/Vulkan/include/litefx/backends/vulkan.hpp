@@ -1185,19 +1185,19 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void bind(const VulkanDescriptorSet& descriptorSet) const override;
 
-		/// <inheritdoc />
-		virtual void use() const override;
-
 		// IComputePipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual void dispatch(const Vector3u& threadCount) const noexcept override;
+		virtual const VulkanCommandBuffer* commandBuffer() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void submit(const bool& wait = false) const noexcept override;
+		virtual void dispatch(const Vector3u& threadCount) const override;
 
 		/// <inheritdoc />
-		virtual void wait() const noexcept override;
+		virtual void begin(const VulkanCommandBuffer& commandBuffer) override;
+
+		/// <inheritdoc />
+		virtual void end() override;
 	};
 
 	/// <summary>
