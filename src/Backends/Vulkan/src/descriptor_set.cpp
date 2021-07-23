@@ -85,7 +85,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
     
     if (descriptorLayout.descriptorType() == DescriptorType::Uniform)
     {
-        bufferInfos.reserve(elements);
+        bufferInfos.resize(elements);
         std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
             VkDescriptorBufferInfo bufferInfo{ };
 
