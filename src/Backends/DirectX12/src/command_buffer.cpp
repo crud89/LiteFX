@@ -43,12 +43,12 @@ public:
 
 		// Create the actual command list.
 		ComPtr<ID3D12GraphicsCommandList4> commandList;
-		// TODO: Also pass the pipeline state, if possible. 
-		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 
-		if (!begin)
-			raiseIfFailed<RuntimeException>(commandList->Close(), "Unable to close command list.");
-		
+		if (begin)
+			raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
+		else
+			raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
+
 		return commandList;
 	}
 
