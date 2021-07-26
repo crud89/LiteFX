@@ -590,6 +590,9 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// A barrier that transitions a set of resources backed by <see cref="IDeviceMemory" /> into different <see cref="ResourceState" />.
     /// </summary>
+    /// <remarks>
+    /// It is recommended to insert multiple transitions into one single barrier. This can be done by calling <see cref="transition" /> multiple times. 
+    /// </remarks>
     template <typename TBuffer, typename TImage> requires
         rtti::implements<TBuffer, IBuffer> &&
         rtti::implements<TImage, IImage>
@@ -602,7 +605,74 @@ namespace LiteFX::Rendering {
         virtual ~IBarrier() noexcept = default;
 
     public:
-        //virtual void transition(const TBuffer&)
+        /// <summary>
+        /// Inserts a transition for all sub-resources of <paramref name="buffer"/> into <paramref name="targetState" />.
+        /// </summary>
+        /// <param name="buffer">The resource to transition.</param>
+        /// <param name="targetState">The target state to transition the resource to.</param>
+        virtual void transition(TBuffer& buffer, const ResourceState& targetState) = 0;
+
+        /// <summary>
+        /// Inserts a transition for the sub-resource <paramref name="element" /> of <paramref name="buffer" /> into <paramref name="targetState" />.
+        /// </summary>
+        /// <param name="buffer">The resource to transition.</param>
+        /// <param name="element">The element of the resource to transition.</param>
+        /// <param name="targetState">The target state to transition the sub-resource to.</param>
+        virtual void transition(TBuffer& buffer, const UInt32& element, const ResourceState& targetState) = 0;
+
+        /// <summary>
+        /// Inserts a transition for all sub-resources of <paramref name="buffer"/> from <paramref name="sourceState" /> into <paramref name="targetState" />.
+        /// </summary>
+        /// <param name="buffer">The resource to transition.</param>
+        /// <param name="sourceState">The source state to transition the resource from.</param>
+        /// <param name="targetState">The target state to transition the resource to.</param>
+        virtual void transition(TBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState);
+
+        /// <summary>
+        /// Inserts a transition for the sub-resource <paramref name="element" /> of <paramref name="buffer" /> from <paramref name="sourceState" /> into 
+        /// <paramref name="targetState" />.
+        /// </summary>
+        /// <param name="buffer">The resource to transition.</param>
+        /// <param name="sourceState">The source state to transition the sub-resource from.</param>
+        /// <param name="element">The element of the resource to transition.</param>
+        /// <param name="targetState">The target state to transition the sub-resource to.</param>
+        virtual void transition(TBuffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) = 0;
+
+        /// <summary>
+        /// Inserts a transition for all sub-resources of <paramref name="image"/> into <paramref name="targetState" />.
+        /// </summary>
+        /// <param name="image">The resource to transition.</param>
+        /// <param name="targetState">The target state to transition the resource to.</param>
+        virtual void transition(TImage& image, const ResourceState& targetState) = 0;
+
+        /// <summary>
+        /// Inserts a transition for a sub-resource of <paramref name="image" /> into <paramref name="targetState" />.
+        /// </summary>
+        /// <param name="image">The resource to transition.</param>
+        /// <param name="level">The mip-map level of the sub-resource.</param>
+        /// <param name="layer">The array layer of the sub-resource.</param>
+        /// <param name="plane">The plane of the sub-resource.</param>
+        /// <param name="targetState">The target state to transition the sub-resource to.</param>
+        virtual void transition(TImage& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
+
+        /// <summary>
+        /// Inserts a transition for all sub-resources of <paramref name="image"/> from <paramref name="sourceState" /> into <paramref name="targetState" />.
+        /// </summary>
+        /// <param name="image">The resource to transition.</param>
+        /// <param name="sourceState">The source state to transition the resource from.</param>
+        /// <param name="targetState">The target state to transition the resource to.</param>
+        virtual void transition(TImage& image, const ResourceState& sourceState, const ResourceState& targetState) = 0;
+
+        /// <summary>
+        /// Inserts a transition for a sub-resource of <paramref name="image" /> from <paramref name="sourceState" /> into <paramref name="targetState" />.
+        /// </summary>
+        /// <param name="image">The resource to transition.</param>
+        /// <param name="sourceState">The source state to transition the sub-resource from.</param>
+        /// <param name="level">The mip-map level of the sub-resource.</param>
+        /// <param name="layer">The array layer of the sub-resource.</param>
+        /// <param name="plane">The plane of the sub-resource.</param>
+        /// <param name="targetState">The target state to transition the sub-resource to.</param>
+        virtual void transition(TImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
     };
 
     /// <summary>

@@ -1692,6 +1692,19 @@ namespace LiteFX::Rendering {
         /// <param name="wait">If set to <c>true</c>, the command buffer blocks, until the submitted commands have been executed.</param>
         /// <seealso cref="wait" />
         virtual void submit(const bool& wait = false) const = 0;
+
+    public:
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// Calling this method will also update the resource states of each resource within the barrier. However, the actual state of the resource does not change until the barrier
+        /// is executed on the command queue. Keep this in mind when inserting multiple barriers from different threads or in different command buffers, which may not be executed in 
+        /// order. You might have to manually synchronize barrier execution.
+        /// </remarks>
+        /// <param name="barrier"></param>
+        /// <returns></returns>
+        //virtual void barrier(const TBarrier& barrier) const noexcept = 0;
     };
 
     /// <summary>
