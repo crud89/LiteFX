@@ -1084,6 +1084,29 @@ namespace LiteFX::Rendering {
         ReadOnly = 0x00000005,
 
         /// <summary>
+        /// The resource is used as a read-only buffer that can be bound to all read-only descriptor types.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_GENERIC_READ`</term>
+        ///         <term>`VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Note that this resource type is required for resources that are created with <see cref="BufferUsage::Dynamic" />.
+        /// </remarks>
+        GenericRead = 0x00000006,
+
+        /// <summary>
         /// The resource is used as a read-write storage or texel buffer.
         /// </summary>
         /// <remarks>
@@ -1102,7 +1125,7 @@ namespace LiteFX::Rendering {
         ///     </item>
         /// </list>
         /// </remarks>
-        ReadWrite = 0x00000006,
+        ReadWrite = 0x00000007,
 
         /// <summary>
         /// The resource is used as a copy source.
