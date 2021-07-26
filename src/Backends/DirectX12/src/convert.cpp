@@ -605,3 +605,24 @@ D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getBlendOperati
 	default: throw InvalidArgumentException("Unsupported blend operation.");
 	}
 }
+
+D3D12_RESOURCE_STATES LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::getResourceState(const ResourceState& resourceState)
+{
+	switch (resourceState) {
+	case ResourceState::Common: return D3D12_RESOURCE_STATE_COMMON;
+	case ResourceState::UniformBuffer:
+	case ResourceState::VertexBuffer: return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+	case ResourceState::IndexBuffer: return D3D12_RESOURCE_STATE_INDEX_BUFFER;
+	case ResourceState::ReadOnly: return D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+	case ResourceState::ReadWrite: return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	case ResourceState::CopySource: return D3D12_RESOURCE_STATE_COPY_SOURCE;
+	case ResourceState::CopyDestination: return D3D12_RESOURCE_STATE_COPY_DEST;
+	case ResourceState::RenderTarget: return D3D12_RESOURCE_STATE_RENDER_TARGET;
+	case ResourceState::DepthRead: return D3D12_RESOURCE_STATE_DEPTH_READ;
+	case ResourceState::DepthWrite: return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	case ResourceState::Present: return D3D12_RESOURCE_STATE_PRESENT;
+	case ResourceState::ResolveSource: return D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+	case ResourceState::ResolveDestination: return D3D12_RESOURCE_STATE_RESOLVE_DEST;
+	default: throw InvalidArgumentException("Unsupported resource state.");
+	}
+}

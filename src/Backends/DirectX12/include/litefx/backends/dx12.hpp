@@ -213,10 +213,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~IDirectX12Resource() noexcept = default;
 
 	public:
-		virtual const D3D12_RESOURCE_STATES& state() const noexcept = 0;
-		virtual D3D12_RESOURCE_STATES& state() noexcept = 0;
-		virtual D3D12_RESOURCE_BARRIER transitionTo(const D3D12_RESOURCE_STATES& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const = 0;
-		virtual void transitionTo(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_STATES& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const = 0;
+		virtual D3D12_RESOURCE_BARRIER transitionTo(const ResourceState& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const = 0;
+		virtual void transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const = 0;
 	};
 
 	/// <summary>

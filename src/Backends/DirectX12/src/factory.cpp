@@ -63,6 +63,17 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferT
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	resourceDesc.Flags = allowWrite ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
+	ResourceState initialState = ResourceState::CopyDestination;
+
+	if (usage == BufferUsage::Dynamic || usage == BufferUsage::Staging) switch (type)
+	{
+		case BufferType::Uniform: ResourceState::UniformBuffer;
+		case BufferType::Vertex: ResourceState::VertexBuffer;
+		case BufferType::Index: ResourceState::IndexBuffer;
+		case BufferType::Texel:
+		case BufferType::Storage: allowWrite ? ResourceState::ReadWrite : ResourceState::ReadOnly;
+	}
+
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
 
 	switch (usage)
@@ -70,13 +81,13 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferT
 	case BufferUsage::Dynamic:
 	case BufferUsage::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, D3D12_RESOURCE_STATE_GENERIC_READ, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, initialState, resourceDesc, allocationDesc);
 	case BufferUsage::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite,D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, initialState, resourceDesc, allocationDesc);
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite,D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, initialState, resourceDesc, allocationDesc);
 	default:
 		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}
@@ -104,13 +115,13 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 	case BufferUsage::Dynamic:
 	case BufferUsage::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_GENERIC_READ, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::VertexBuffer, resourceDesc, allocationDesc);
 	case BufferUsage::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	default:
 		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}
@@ -138,13 +149,13 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 	case BufferUsage::Dynamic:
 	case BufferUsage::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_GENERIC_READ, resourceDesc, allocationDesc);
+		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::IndexBuffer, resourceDesc, allocationDesc);
 	case BufferUsage::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	default:
 		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}
@@ -169,12 +180,12 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 	if (::hasDepth(format) || ::hasStencil(format))
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, false, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, false, ResourceState::DepthRead, resourceDesc, allocationDesc);
 	}
 	else
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, false, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, false, ResourceState::RenderTarget, resourceDesc, allocationDesc);
 	}
 }
 
@@ -201,7 +212,7 @@ UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const Forma
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
 	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 	
-	return DirectX12Texture::allocate(m_impl->m_device, m_impl->m_allocator, size, format, dimension, levels, layers, samples, allowWrite, D3D12_RESOURCE_STATE_COPY_DEST, resourceDesc, allocationDesc);
+	return DirectX12Texture::allocate(m_impl->m_device, m_impl->m_allocator, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 }
 
 Array<UniquePtr<IDirectX12Texture>> DirectX12GraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const

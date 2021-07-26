@@ -1239,6 +1239,52 @@ namespace LiteFX::Rendering {
         Present = 0x00000023,
 
         /// <summary>
+        /// The resource is a multi-sampled image that will be resolved into a present target.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_RESOLVE_SOURCE`</term>
+        ///         <term>`VK_ACCESS_MEMORY_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        ResolveSource = 0x00000024,
+
+        /// <summary>
+        /// The resource is resolved from a multi-sampled image.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_RESOLVE_DEST`</term>
+        ///         <term>`VK_ACCESS_MEMORY_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        ResolveDestination = 0x00000025,
+
+        /// <summary>
         /// The state of the resource is not known by the engine.
         /// </summary>
         /// <remarks>

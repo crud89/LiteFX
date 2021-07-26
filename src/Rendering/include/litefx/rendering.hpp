@@ -196,6 +196,18 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
         virtual const bool& writable() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the current state of the resource.
+        /// </summary>
+        /// <returns>The current state of the resource.</returns>
+        virtual const ResourceState& state() const noexcept = 0;
+
+        /// <summary>
+        /// Returns a reference of the current state of the resource.
+        /// </summary>
+        /// <returns>A reference of the current state of the resource.</returns>
+        virtual ResourceState& state() noexcept = 0;
     };
 
     /// <summary>
