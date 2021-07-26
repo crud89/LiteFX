@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if !defined (LITEFX_RENDERING_API)
 #  if defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
@@ -971,6 +971,281 @@ namespace LiteFX::Rendering {
         ReverseSubtract = 0x03,
         Minimum = 0x04,
         Maximum = 0x05
+    };
+
+    /// <summary>
+    /// Specifies the state of a resource.
+    /// </summary>
+    /// <seealso cref="IDeviceMemory" />
+    enum class LITEFX_RENDERING_API ResourceState {
+        /// <summary>
+        /// The state of the resource is undefined or does not matter.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_COMMON`</term>
+        ///         <term>`VK_ACCESS_NONE_KHR`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_UNDEFINED`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        Common = 0x00000001,
+
+        /// <summary>
+        /// The resource is used as a read-only vertex buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER`</term>
+        ///         <term>`VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT`</term>
+        ///         <term>–</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        VertexBuffer = 0x00000002,
+
+        /// <summary>
+        /// The resource is used as a read-only index buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_INDEX_BUFFER`</term>
+        ///         <term>`VK_ACCESS_INDEX_READ_BIT`</term>
+        ///         <term>–</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        IndexBuffer = 0x0000003,
+
+        /// <summary>
+        /// The resource is used as a read-only uniform or constant buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER`</term>
+        ///         <term>`VK_ACCESS_UNIFORM_READ_BIT`</term>
+        ///         <term>–</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        UniformBuffer = 0x00000004,
+
+        /// <summary>
+        /// The resource is used as a read-only storage or texel buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE`</term>
+        ///         <term>`VK_ACCESS_SHADER_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        ReadOnly = 0x00000005,
+
+        /// <summary>
+        /// The resource is used as a read-write storage or texel buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_UNORDERED_ACCESS`</term>
+        ///         <term>`VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_GENERAL`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        ReadWrite = 0x00000006,
+
+        /// <summary>
+        /// The resource is used as a copy source.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_COPY_SOURCE`</term>
+        ///         <term>`VK_ACCESS_TRANSFER_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        CopySource = 0x00000010,
+
+        /// <summary>
+        /// The resource is used as a copy destination.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_COPY_DEST`</term>
+        ///         <term>`VK_ACCESS_TRANSFER_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        CopyDestination = 0x00000011,
+
+        /// <summary>
+        /// The resource is used as a render target.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_RENDER_TARGET`</term>
+        ///         <term>`VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        RenderTarget = 0x00000020,
+
+        /// <summary>
+        /// The resource is used as a read-only depth/stencil target.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_DEPTH_READ`</term>
+        ///         <term>`VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        DepthRead = 0x00000021,
+
+        /// <summary>
+        /// The resource is used as a write-only depth/stencil target.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_DEPTH_WRITE`</term>
+        ///         <term>`VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        DepthWrite = 0x00000022,
+
+        /// <summary>
+        /// The resource is presented on a swap chain.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_PRESENT`</term>
+        ///         <term>`VK_ACCESS_MEMORY_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        Present = 0x00000023,
+
+        /// <summary>
+        /// The state of the resource is not known by the engine.
+        /// </summary>
+        /// <remarks>
+        /// A resource with an unknown state is not invalid. However, it is not valid to transition a resource out of or into this state. If a resource ends up
+        /// in this state, the state of the <see cref="IDeviceMemory" /> should be manually set.
+        /// </remarks>
+        Undefined = 0x7FFFFFFF
     };
 
     // Define flags.
