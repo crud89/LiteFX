@@ -41,25 +41,18 @@ DirectX12Buffer::~DirectX12Buffer() noexcept = default;
 
 void DirectX12Buffer::receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept
 {
-	if ((receive && this->state() == ResourceState::CopyDestination) || (!receive && this->state() != ResourceState::CopyDestination))
-		return;
-	
-	this->transitionTo(commandBuffer, receive ? ResourceState::CopyDestination : ResourceState::Common);
+	//if ((receive && this->state() == ResourceState::CopyDestination) || (!receive && this->state() != ResourceState::CopyDestination))
+	//	return;
+	//
+	//this->transitionTo(commandBuffer, receive ? ResourceState::CopyDestination : ResourceState::Common);
 }
 
 void DirectX12Buffer::sendData(const DirectX12CommandBuffer& commandBuffer, const bool& emit) const noexcept
 {
-	if ((emit && this->state() == ResourceState::CopySource) || (!emit && this->state() != ResourceState::CopySource))
-		return;
+	//if ((emit && this->state() == ResourceState::CopySource) || (!emit && this->state() != ResourceState::CopySource))
+	//	return;
 
-	switch (m_impl->m_type)
-	{
-	case BufferType::Uniform: this->transitionTo(commandBuffer, emit ? ResourceState::CopySource : ResourceState::UniformBuffer);
-	case BufferType::Vertex: this->transitionTo(commandBuffer, emit ? ResourceState::CopySource : ResourceState::VertexBuffer);
-	case BufferType::Index: this->transitionTo(commandBuffer, emit ? ResourceState::CopySource : ResourceState::IndexBuffer);
-	case BufferType::Texel:
-	case BufferType::Storage: this->transitionTo(commandBuffer, emit ? ResourceState::CopySource : m_impl->m_writable ? ResourceState::ReadWrite : ResourceState::ReadOnly);
-	}
+	//this->transitionTo(commandBuffer, emit ? ResourceState::CopySource : ResourceState::GenericRead);
 }
 
 void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
@@ -174,21 +167,39 @@ void DirectX12Buffer::map(Span<const void* const> data, const size_t& elementSiz
 
 D3D12_RESOURCE_BARRIER DirectX12Buffer::transitionTo(const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
-	if (this->state(subresource) == state) [[unlikely]]
+	// NOTE: We assume that each sub-resource has been transitioned into the same state (which is enforced by the barrier later).
+	ResourceState currentState = subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES ? this->state(0) : this->state(subresource);
+
+	if (currentState == state) [[unlikely]]
 		throw InvalidArgumentException("The specified buffer state must be different from the current resource state.");
 
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(this->state(subresource)), ::getResourceState(state), subresource, flags);
-	const_cast<DirectX12Buffer*>(this)->state(subresource) = state;
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(currentState), ::getResourceState(state), subresource, flags);
+	
+	if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
+		for (UInt32 r(0); r < this->elements(); ++r)
+			const_cast<DirectX12Buffer*>(this)->state(r) = state;
+	else
+		const_cast<DirectX12Buffer*>(this)->state(subresource) = state;
+
 	return barrier;
 }
 
 void DirectX12Buffer::transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
-	if (this->state(subresource) == state)
+	// NOTE: We assume that each sub-resource has been transitioned into the same state (which is enforced by the barrier later).
+	ResourceState currentState = subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES ? this->state(0) : this->state(subresource);
+	
+	if (currentState == state) [[unlikely]]
 		return;
 
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(this->state(subresource)), ::getResourceState(state), subresource, flags);
-	const_cast<DirectX12Buffer*>(this)->state(subresource) = state;
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(currentState), ::getResourceState(state), subresource, flags);
+	
+	if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
+		for (UInt32 r(0); r < this->elements(); ++r)
+			const_cast<DirectX12Buffer*>(this)->state(r) = state;
+	else
+		const_cast<DirectX12Buffer*>(this)->state(subresource) = state;
+
 	commandBuffer.handle()->ResourceBarrier(1, &barrier);
 }
 

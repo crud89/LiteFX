@@ -164,15 +164,32 @@ const UInt32& DirectX12Image::planes() const noexcept
 
 D3D12_RESOURCE_BARRIER DirectX12Image::transitionTo(const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(this->state(subresource)), ::getResourceState(state), subresource, flags);
-	const_cast<DirectX12Image*>(this)->state(subresource) = state;
+	// NOTE: We assume that each sub-resource has been transitioned into the same state (which is enforced by the barrier later).
+	ResourceState& currentState = subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES ? const_cast<DirectX12Image*>(this)->state(0) : const_cast<DirectX12Image*>(this)->state(subresource);
+
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(currentState), ::getResourceState(state), subresource, flags);
+
+	if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
+		for (UInt32 r(0); r < this->elements(); ++r)
+			const_cast<DirectX12Image*>(this)->state(r) = state;
+	else
+		currentState = state;
+
 	return barrier;
 }
 
 void DirectX12Image::transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(this->state(subresource)), ::getResourceState(state), subresource, flags);
-	const_cast<DirectX12Image*>(this)->state(subresource) = state;
+	ResourceState& currentState = subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES ? const_cast<DirectX12Image*>(this)->state(0) : const_cast<DirectX12Image*>(this)->state(subresource);
+
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(currentState), ::getResourceState(state), subresource, flags);
+
+	if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
+		for (UInt32 r(0); r < this->elements(); ++r)
+			const_cast<DirectX12Image*>(this)->state(r) = state;
+	else
+		currentState = state;
+
 	commandBuffer.handle()->ResourceBarrier(1, &barrier);
 }
 
