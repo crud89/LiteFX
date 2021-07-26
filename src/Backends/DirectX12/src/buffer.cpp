@@ -16,13 +16,14 @@ private:
 	BufferType m_type;
 	UInt32 m_elements;
 	size_t m_elementSize, m_alignment;
-	ResourceState m_state;
+	Array<ResourceState> m_states;
 	bool m_writable;
 
 public:
 	DirectX12BufferImpl(DirectX12Buffer* parent, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(std::move(allocation)), m_state(initialState)
+		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(std::move(allocation))
 	{
+		m_states.resize(elements, initialState);
 	}
 };
 
@@ -129,14 +130,20 @@ const bool& DirectX12Buffer::writable() const noexcept
 	return m_impl->m_writable;
 }
 
-const ResourceState& DirectX12Buffer::state() const noexcept
+const ResourceState& DirectX12Buffer::state(const UInt32& subresource) const
 {
-	return m_impl->m_state;
+	if (subresource >= m_impl->m_states.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+
+	return m_impl->m_states[subresource];
 }
 
-ResourceState& DirectX12Buffer::state() noexcept
+ResourceState& DirectX12Buffer::state(const UInt32& subresource)
 {
-	return m_impl->m_state;
+	if (subresource >= m_impl->m_states.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+
+	return m_impl->m_states[subresource];
 }
 
 void DirectX12Buffer::map(const void* const data, const size_t& size, const UInt32& element)
@@ -165,23 +172,23 @@ void DirectX12Buffer::map(Span<const void* const> data, const size_t& elementSiz
 	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
 }
 
-D3D12_RESOURCE_BARRIER DirectX12Buffer::transitionTo(const ResourceState& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
+D3D12_RESOURCE_BARRIER DirectX12Buffer::transitionTo(const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
-	if (m_impl->m_state == state) [[unlikely]]
+	if (this->state(subresource) == state) [[unlikely]]
 		throw InvalidArgumentException("The specified buffer state must be different from the current resource state.");
 
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(m_impl->m_state), ::getResourceState(state), element, flags);
-	m_impl->m_state = state;
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(this->state(subresource)), ::getResourceState(state), subresource, flags);
+	const_cast<DirectX12Buffer*>(this)->state(subresource) = state;
 	return barrier;
 }
 
-void DirectX12Buffer::transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
+void DirectX12Buffer::transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
-	if (m_impl->m_state == state)
+	if (this->state(subresource) == state)
 		return;
 
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(m_impl->m_state), ::getResourceState(state), element, flags);
-	m_impl->m_state = state;
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(this->state(subresource)), ::getResourceState(state), subresource, flags);
+	const_cast<DirectX12Buffer*>(this)->state(subresource) = state;
 	commandBuffer.handle()->ResourceBarrier(1, &barrier);
 }
 

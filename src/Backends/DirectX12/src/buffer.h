@@ -65,10 +65,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual const bool& writable() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ResourceState& state() const noexcept override;
+		virtual const ResourceState& state(const UInt32& subresource = 0) const override;
 
 		/// <inheritdoc />
-		virtual ResourceState& state() noexcept override;
+		virtual ResourceState& state(const UInt32& subresource = 0) override;
 
 		// IMappable interface.
 	public:

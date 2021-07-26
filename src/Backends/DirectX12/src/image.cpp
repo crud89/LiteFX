@@ -15,15 +15,17 @@ private:
 	AllocationPtr m_allocation;
 	Format m_format;
 	Size3d m_extent;
-	UInt32 m_elements{ 1 }, m_levels, m_layers; 
-	ResourceState m_state;
+	UInt32 m_elements{ 1 }, m_levels, m_layers, m_planes; 
+	Array<ResourceState> m_states;
 	ImageDimensions m_dimensions;
 	bool m_writable;
 
 public:
 	DirectX12ImageImpl(DirectX12Image* parent, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_state(initialState), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_writable(writable)
+		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_writable(writable)
 	{
+		m_planes = ::D3D12GetFormatPlaneCount(m_parent->getDevice()->handle().Get(), ::getFormat(format));
+		m_states.resize(m_planes * m_layers * m_levels, initialState);
 	}
 };
 
@@ -84,14 +86,20 @@ const bool& DirectX12Image::writable() const noexcept
 	return m_impl->m_writable;
 }
 
-const ResourceState& DirectX12Image::state() const noexcept
+const ResourceState& DirectX12Image::state(const UInt32& subresource) const
 {
-	return m_impl->m_state;
+	if (subresource >= m_impl->m_states.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+
+	return m_impl->m_states[subresource];
 }
 
-ResourceState& DirectX12Image::state() noexcept
+ResourceState& DirectX12Image::state(const UInt32& subresource)
 {
-	return m_impl->m_state;
+	if (subresource >= m_impl->m_states.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+
+	return m_impl->m_states[subresource];
 }
 
 size_t DirectX12Image::size(const UInt32& level) const noexcept
@@ -149,17 +157,22 @@ const UInt32& DirectX12Image::layers() const noexcept
 	return m_impl->m_layers;
 }
 
-D3D12_RESOURCE_BARRIER DirectX12Image::transitionTo(const ResourceState& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
+const UInt32& DirectX12Image::planes() const noexcept
 {
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(m_impl->m_state), ::getResourceState(state), element, flags);
-	m_impl->m_state = state;
+	return m_impl->m_planes;
+}
+
+D3D12_RESOURCE_BARRIER DirectX12Image::transitionTo(const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
+{
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(this->state(subresource)), ::getResourceState(state), subresource, flags);
+	const_cast<DirectX12Image*>(this)->state(subresource) = state;
 	return barrier;
 }
 
-void DirectX12Image::transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& element, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
+void DirectX12Image::transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
 {
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(m_impl->m_state), ::getResourceState(state), element, flags);
-	m_impl->m_state = state;
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(this->state(subresource)), ::getResourceState(state), subresource, flags);
+	const_cast<DirectX12Image*>(this)->state(subresource) = state;
 	commandBuffer.handle()->ResourceBarrier(1, &barrier);
 }
 

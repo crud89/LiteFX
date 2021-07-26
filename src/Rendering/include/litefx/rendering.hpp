@@ -200,14 +200,26 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns the current state of the resource.
         /// </summary>
+        /// <param name="subresource">The index of the sub-resource for which the state is requested.</param>
         /// <returns>The current state of the resource.</returns>
-        virtual const ResourceState& state() const noexcept = 0;
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the specified sub-resource is not an element of the resource.</exception>
+        virtual const ResourceState& state(const UInt32& subresource = 0) const = 0;
 
         /// <summary>
         /// Returns a reference of the current state of the resource.
         /// </summary>
+        /// <remarks>
+        /// This overload can be used to change the internal resource state. It exists, to support external resource transitions in certain scenarios, where 
+        /// automatic resource state tracking is not supported. For example, there might be implicit state transitions in some scenarios. Usually those scenarios
+        /// do not require you to transition the resource into another state, however if you have to, the internal state of the resource does not match the 
+        /// actual state. In order for the barrier to be well-formed, you have to set the proper state first.
+        /// 
+        /// In most cases, however, use a <see cref="IBarrier" /> to transition between resource states.
+        /// </remarks>
+        /// <param name="subresource">The index of the sub-resource for which the state is requested.</param>
         /// <returns>A reference of the current state of the resource.</returns>
-        virtual ResourceState& state() noexcept = 0;
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the specified sub-resource is not an element of the resource.</exception>
+        virtual ResourceState& state(const UInt32& subresource = 0) = 0;
     };
 
     /// <summary>
@@ -452,6 +464,16 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The number of layers (slices) of the image.</returns>
         virtual const UInt32& layers() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the number of planes of the image resource.
+        /// </summary>
+        /// <remarks>
+        /// The number of planes is dictated by the image format.
+        /// </remarks>
+        /// <returns>The number of planes of the image resource.</returns>
+        /// <seealso cref="format" />
+        virtual const UInt32& planes() const noexcept = 0;
     };
 
     /// <summary>
@@ -563,6 +585,24 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The minimum texture level of detail.</returns>
         virtual const Float& getMinLOD() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// A barrier that transitions a set of resources backed by <see cref="IDeviceMemory" /> into different <see cref="ResourceState" />.
+    /// </summary>
+    template <typename TBuffer, typename TImage> requires
+        rtti::implements<TBuffer, IBuffer> &&
+        rtti::implements<TImage, IImage>
+    class IBarrier {
+    public:
+        using buffer_type = TBuffer;
+        using image_type = TImage;
+
+    public:
+        virtual ~IBarrier() noexcept = default;
+
+    public:
+        //virtual void transition(const TBuffer&)
     };
 
     /// <summary>

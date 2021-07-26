@@ -40,10 +40,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual const bool& writable() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ResourceState& state() const noexcept override;
+		virtual const ResourceState& state(const UInt32& subresource = 0) const override;
 
 		/// <inheritdoc />
-		virtual ResourceState& state() noexcept override;
+		virtual ResourceState& state(const UInt32& subresource = 0) override;
 
 		// IImage interface.
 	public:
@@ -64,6 +64,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const UInt32& layers() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& planes() const noexcept override;
 
 		// IDirectX12Resource interface.
 	public:
