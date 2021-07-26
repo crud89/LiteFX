@@ -271,13 +271,6 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_VULKAN_API IVulkanTexture : public virtual ITexture<IVulkanBuffer, VulkanCommandBuffer>, public IVulkanImage {
 	public:
 		virtual ~IVulkanTexture() noexcept = default;
-
-	public:
-		/// <summary>
-		/// Returns the image layout of the texture.
-		/// </summary>
-		/// <returns>The image layout of the texture.</returns>
-		virtual const VkImageLayout& imageLayout() const noexcept = 0;
 	};
 
 	/// <summary>

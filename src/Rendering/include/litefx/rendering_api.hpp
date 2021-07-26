@@ -987,7 +987,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1008,7 +1008,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1029,7 +1029,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1050,7 +1050,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1071,7 +1071,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1092,7 +1092,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1113,7 +1113,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1134,7 +1134,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1155,7 +1155,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1178,7 +1178,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1201,7 +1201,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1224,7 +1224,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1247,7 +1247,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>
@@ -1270,7 +1270,7 @@ namespace LiteFX::Rendering {
         /// <list type="table">
         ///     <listheader>
         ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlagBits`)</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
         ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
         ///     </listheader>
         ///     <item>

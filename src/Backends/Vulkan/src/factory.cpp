@@ -94,6 +94,18 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 
 	bufferInfo.usage = usageFlags;
 
+	// Get the initial resource state.
+	ResourceState initialState = ResourceState::CopyDestination;
+
+	if (usage == BufferUsage::Dynamic || usage == BufferUsage::Staging) switch (type)
+	{
+	case BufferType::Uniform: ResourceState::UniformBuffer;
+	case BufferType::Vertex: ResourceState::VertexBuffer;
+	case BufferType::Index: ResourceState::IndexBuffer;
+	case BufferType::Texel:
+	case BufferType::Storage: allowWrite ? ResourceState::ReadWrite : ResourceState::ReadOnly;
+	}
+
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
@@ -111,7 +123,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -124,7 +136,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 }
 
@@ -154,13 +166,16 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const V
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
+	// Get the initial resource state.
+	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::VertexBuffer : ResourceState::CopyDestination;
+
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
 	{
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanVertexBuffer::allocate(layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -173,7 +188,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const V
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanVertexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanVertexBuffer::allocate(layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 }
 
@@ -203,13 +218,16 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Vul
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
+	// Get the initial resource state.
+	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::IndexBuffer : ResourceState::CopyDestination;
+
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
 	{
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanIndexBuffer::allocate(layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -222,7 +240,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Vul
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanIndexBuffer::allocate(layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanIndexBuffer::allocate(layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 }
 
@@ -250,7 +268,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, false, m_impl->m_allocator, imageInfo, allocInfo);
+	if (::hasDepth(format)) [[unlikely]]
+		return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, false, ResourceState::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
+	else
+		return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, false, ResourceState::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
@@ -291,7 +312,7 @@ UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const Format& for
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanTexture::allocate(m_impl->m_device, size, format, dimension, levels, layers, samples, allowWrite, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanTexture::allocate(m_impl->m_device, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
 Array<UniquePtr<IVulkanTexture>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
