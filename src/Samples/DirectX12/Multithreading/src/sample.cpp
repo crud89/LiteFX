@@ -236,6 +236,30 @@ void SampleApp::handleEvents()
     ::glfwPollEvents();
 }
 
+void SampleApp::drawObject(int index, int backBuffer, float time)
+{
+    // TODO Acquire command buffer from index.
+    const auto& commandBuffer = m_renderPass->commandBuffer(index);
+
+    // Set the pipeline on the command buffer.
+    m_pipeline->use(commandBuffer);
+
+    // Compute world transform and update the transform buffer.
+    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+
+    // Bind both descriptor sets to the pipeline.
+    commandBuffer->bind(*m_cameraBindings);
+    commandBuffer->bind(*m_perFrameBindings[backBuffer]);
+
+    // Bind the vertex and index buffers.
+    commandBuffer->bind(*m_vertexBuffer);
+    commandBuffer->bind(*m_indexBuffer);
+
+    // Record the draw call.
+    commandBuffer->drawIndexed(m_indexBuffer->elements());
+}
+
 void SampleApp::drawFrame()
 {
     // Store the initial time this method has been called first.
@@ -246,25 +270,16 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     m_renderPass->begin(backBuffer);
-    m_pipeline->use();
 
     // Get the amount of time that has passed since the first frame.
     auto now = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    // Compute world transform and update the transform buffer.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+    // Initialize 8 worker threads.
+    // NOTE: You probably do not want to do this each frame. Instead use a thread pool or an array of endlessly running threads, that execute once per frame.
+    std::ranges::generate(m_workers, [this, &backBuffer, &time, i = 0]() mutable { return std::thread(&SampleApp::drawObject, this, i, backBuffer, time); });
+    std::ranges::for_each(m_workers, [](std::thread& thread) { thread.join(); });
 
-    // Bind both descriptor sets to the pipeline.
-    m_pipeline->bind(*m_cameraBindings);
-    m_pipeline->bind(*m_perFrameBindings[backBuffer]);
-
-    // Bind the vertex and index buffers.
-    m_pipeline->bind(*m_vertexBuffer);
-    m_pipeline->bind(*m_indexBuffer);
-
-    // Draw the object and present the frame by ending the render pass.
-    m_pipeline->drawIndexed(m_indexBuffer->elements());
+    // If all commands are recorded, end the render pass to present the image.
     m_renderPass->end();
 }

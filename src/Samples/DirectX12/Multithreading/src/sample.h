@@ -104,6 +104,11 @@ private:
 	/// </summary>
 	UniquePtr<DirectX12DescriptorSet> m_cameraBindings;
 
+	/// <summary>
+	/// Stores the array of worker threads.
+	/// </summary>
+	Array<std::thread> m_workers = Array<std::thread>(8);
+
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
 		App(), m_window(std::move(window)), m_adapterId(adapterId)
@@ -137,5 +142,6 @@ public:
 	virtual void initialize() override;
 	virtual void resize(int width, int height) override;
 	void handleEvents();
+	void drawObject(int i, int backBuffer, float time);
 	void drawFrame();
 };
