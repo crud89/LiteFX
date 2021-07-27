@@ -10,39 +10,6 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	/// <summary>
-	/// Records commands for a <see cref="DirectX12CommandQueue" />
-	/// </summary>
-	/// <seealso cref="DirectX12CommandQueue" />
-	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer, public DirectX12RuntimeObject<DirectX12Queue>, public ComResource<ID3D12GraphicsCommandList4> {
-		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
-
-	public:
-		/// <summary>
-		/// Initializes the command buffer from a command queue.
-		/// </summary>
-		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
-		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
-		explicit DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin = false);
-		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
-		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
-		virtual ~DirectX12CommandBuffer() noexcept;
-
-		// ICommandBuffer interface.
-	public:
-		/// <inheritdoc />
-		virtual void wait() const override;
-
-		/// <inheritdoc />
-		virtual void begin() const override;
-
-		/// <inheritdoc />
-		virtual void end(const bool& submit = true, const bool& wait = false) const override;
-
-		/// <inheritdoc />
-		virtual void submit(const bool& wait = false) const override;
-	};
-
-	/// <summary>
 	/// Implements a DirectX 12 vertex buffer layout.
 	/// </summary>
 	/// <seealso cref="DirectX12VertexBufferLayoutBuilder" />
@@ -331,6 +298,42 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="commandBuffer">The command buffer to add the barriers to.</param>
 		/// <param name="flags">The flags for the resource barriers. Can be used to begin and end split barriers.</param>
 		virtual void executeInverse(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const noexcept;
+	};
+
+	/// <summary>
+	/// Records commands for a <see cref="DirectX12CommandQueue" />
+	/// </summary>
+	/// <seealso cref="DirectX12CommandQueue" />
+	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer<IDirectX12Buffer, IDirectX12Image, DirectX12Barrier>, public DirectX12RuntimeObject<DirectX12Queue>, public ComResource<ID3D12GraphicsCommandList4> {
+		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
+
+	public:
+		/// <summary>
+		/// Initializes the command buffer from a command queue.
+		/// </summary>
+		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
+		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
+		explicit DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin = false);
+		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
+		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
+		virtual ~DirectX12CommandBuffer() noexcept;
+
+		// ICommandBuffer interface.
+	public:
+		/// <inheritdoc />
+		virtual void wait() const override;
+
+		/// <inheritdoc />
+		virtual void begin() const override;
+
+		/// <inheritdoc />
+		virtual void end(const bool& submit = true, const bool& wait = false) const override;
+
+		/// <inheritdoc />
+		virtual void submit(const bool& wait = false) const override;
+
+		/// <inheritdoc />
+		virtual void barrier(const DirectX12Barrier& barrier, const bool& invert = false) const noexcept override;
 	};
 
 	/// <summary>
@@ -1035,7 +1038,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void use() const override;
 
-
 		// IRenderPipeline interface.
 	public:
 		/// <inheritdoc />
@@ -1259,7 +1261,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 frame buffer.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12FrameBuffer : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public IFrameBuffer<DirectX12CommandBuffer, IDirectX12Image> {
+	class LITEFX_DIRECTX12_API DirectX12FrameBuffer : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public IFrameBuffer<DirectX12CommandBuffer> {
 		LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
 
 	public:

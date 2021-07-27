@@ -498,6 +498,83 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Represents a command buffer, that buffers commands that should be submitted to a <see cref="ICommandQueue" />.
+    /// </summary>
+    template <typename TBuffer, typename TImage, typename TBarrier> requires
+        rtti::implements<TBarrier, IBarrier<TBuffer, TImage>>
+    class ICommandBuffer {
+    public:
+        using buffer_type = TBuffer;
+        using image_type = TImage;
+        using barrier_type = TBarrier;
+
+    public:
+        virtual ~ICommandBuffer() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Waits for the command buffer to be executed.
+        /// </summary>
+        /// <remarks>
+        /// If the command buffer gets submitted, it does not necessarily get executed straight away. If you depend on a command buffer to be finished, you can call this method.
+        /// </remarks>
+        virtual void wait() const = 0;
+
+        /// <summary>
+        /// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="ICommandQueue" />.
+        /// </summary>
+        /// <remarks>
+        /// Note that, if a command buffer has been submitted before, this method waits for the earlier commands to be executed by calling <see cref="wait" />.
+        /// </remarks>
+        virtual void begin() const = 0;
+
+        /// <summary>
+        /// Ends recording commands on the command buffer.
+        /// </summary>
+        /// <param name="submit">If set to <c>true</c>, the command buffer is automatically submitted by calling the <see cref="submit" /> method.</param>
+        /// <param name="wait">If <paramref name="submit" /> is set to <c>true</c>, this parameter gets passed to the <see cref="submit" /> method.</param>
+        /// <seealso cref="submit" />
+        virtual void end(const bool& submit = true, const bool& wait = false) const = 0;
+
+        /// <summary>
+        /// Submits the command buffer to the parent command queue.
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        /// <param name="wait">If set to <c>true</c>, the command buffer blocks, until the submitted commands have been executed.</param>
+        /// <seealso cref="wait" />
+        virtual void submit(const bool& wait = false) const = 0;
+
+    public:
+        /// <summary>
+        /// Executes the transitions that have been added to <paramref name="barrier" />.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method will also update the resource states of each resource within the barrier. However, the actual state of the resource does not change until the barrier
+        /// is executed on the command queue. Keep this in mind when inserting multiple barriers from different threads or in different command buffers, which may not be executed in 
+        /// order. You might have to manually synchronize barrier execution.
+        /// </remarks>
+        /// <param name="barrier">The barrier containing the transitions to perform.</param>
+        /// <param name="invert">If set to <c>true</c>, the barrier will perform a transition back to the original resource states.</param>
+        virtual void barrier(const TBarrier& barrier, const bool& invert = false) const noexcept = 0;
+
+        /// <summary>
+        /// Uses the image at level *0* to generate mip-maps for the remaining levels.
+        /// </summary>
+        /// <remarks>
+        /// It is strongly advised, not to generate mip maps at runtime. Instead, prefer using a format that supports pre-computed mip maps. If you have to, prefer computing
+        /// mip maps in a pre-process.
+        /// 
+        /// Note that not all texture formats and sizes are supported for mip map generation and the result might not be satisfactory. For example, it is not possible to compute 
+        /// proper mip maps for pre-compressed formats. Textures should have power of two sizes in order to not appear under-sampled.
+        /// 
+        /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
+        //virtual void generateMipMaps(const TImage& image) noexcept = 0;
+    };
+
+    /// <summary>
     /// Defines a set of descriptors.
     /// </summary>
     /// <remarks>
@@ -563,11 +640,11 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TSampler">The type of the sampler interface. Must inherit from <see cref="ISampler"/>.</typeparam>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
     /// <seealso cref="IDescriptorSetLayout" />
-    template <typename TBuffer, typename TImage, typename TSampler, typename TCommandBuffer> requires
+    template <typename TBuffer, typename TImage, typename TSampler, typename TCommandBuffer, typename TBarrier = TCommandBuffer::barrier_type> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TSampler, ISampler> &&
         std::derived_from<TImage, IImage> &&
-        rtti::implements<TCommandBuffer, ICommandBuffer>
+        rtti::implements<TCommandBuffer, ICommandBuffer<TBuffer, TImage, TBarrier>>
     class IDescriptorSet {
     public:
         using buffer_type = TBuffer;
@@ -1400,15 +1477,12 @@ namespace LiteFX::Rendering {
 	/// Stores the images for the output attachments for a back buffer of a <see cref="IRenderPass" />, as well as a <see cref="ICommandBuffer" /> instance, that records draw commands.
 	/// </summary>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
-	/// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
 	/// <seealso cref="RenderTarget" />
-	template <typename TCommandBuffer, typename TImageInterface> requires
-		rtti::implements<TCommandBuffer, ICommandBuffer> &&
-		std::derived_from<TImageInterface, IImage>
+	template <typename TCommandBuffer, typename TBuffer = TCommandBuffer::buffer_type, typename TImage = TCommandBuffer::image_type, typename TBarrier = TCommandBuffer::barrier_type> requires
+		rtti::implements<TCommandBuffer, ICommandBuffer<TBuffer, TImage, TBarrier>>
 	class IFrameBuffer {
 	public:
 		using command_buffer_type = TCommandBuffer;
-		using image_interface_type = TImageInterface;
 
     public:
         virtual ~IFrameBuffer() noexcept = default;
@@ -1461,13 +1535,13 @@ namespace LiteFX::Rendering {
         /// Returns the images that store the output attachments for the render targets of the <see cref="IRenderPass" />.
         /// </summary>
         /// <returns>The images that store the output attachments for the render targets of the <see cref="IRenderPass" />.</returns>
-        virtual Array<const TImageInterface*> images() const noexcept = 0;
+        virtual Array<const TImage*> images() const noexcept = 0;
 
         /// <summary>
         /// Returns the image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.
         /// </summary>
         /// <returns>The image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.</returns>
-        virtual const TImageInterface& image(const UInt32& location) const = 0;
+        virtual const TImage& image(const UInt32& location) const = 0;
 
     public:
         /// <summary>
@@ -1492,8 +1566,8 @@ namespace LiteFX::Rendering {
     /// </remarks>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
-    template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type, typename TImageInterface = typename TFrameBuffer::image_interface_type> requires
-        rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImageInterface>>
+    template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type> requires
+        rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer>>
     class IInputAttachmentMappingSource {
     public:
         using frame_buffer_type = TFrameBuffer;
@@ -1560,10 +1634,9 @@ namespace LiteFX::Rendering {
 	/// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
 	/// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
 	/// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
-	/// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
 	// TODO: Add concepts to constrain render pipeline and input attachments properly.
-	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImageInterface = TFrameBuffer::image_interface_type> requires
-		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer, TImageInterface>> /*&&
+	template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type> requires
+		rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer>> /*&&
 		rtti::implements<TRenderPipeline, IRenderPipeline<TPipelineLayout>> &&
 		rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
 	class IRenderPass : public IInputAttachmentMappingSource<TFrameBuffer> {
@@ -1784,8 +1857,8 @@ namespace LiteFX::Rendering {
     /// Represents a command queue.
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="ICommandBuffer"/>.</typeparam>
-    template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, ICommandBuffer>
+    template <typename TCommandBuffer, typename TBuffer = TCommandBuffer::buffer_type, typename TImage = TCommandBuffer::image_type, typename TBarrier = TCommandBuffer::barrier_type> requires
+        rtti::implements<TCommandBuffer, ICommandBuffer<TBuffer, TImage, TBarrier>>
     class ICommandQueue {
     public:
         using command_buffer_type = TCommandBuffer;

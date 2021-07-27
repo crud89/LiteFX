@@ -168,9 +168,8 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
 
     // Declare render pass input and output access and transition barriers.
     // TODO: This could possibly be pre-defined as a part of the frame buffer, but would it also safe much time?
-    Array<D3D12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
-        std::views::transform([&frameBuffer](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil ? frameBuffer->image(renderTarget.location()).transitionTo(ResourceState::RenderTarget) : frameBuffer->image(renderTarget.location()).transitionTo(ResourceState::DepthWrite); }) | 
-        ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
+    DirectX12Barrier transitionBarrier;
+    std::ranges::for_each(m_impl->m_renderTargets, [&transitionBarrier, &frameBuffer](const RenderTarget& renderTarget) { transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), renderTarget.type() != RenderTargetType::DepthStencil ? ResourceState::RenderTarget : ResourceState::DepthWrite); });
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetView(frameBuffer->renderTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->renderTargetDescriptorSize());
     Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC> renderTargets = m_impl->m_renderTargets |
@@ -193,7 +192,7 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
         return renderTargetDesc;
     }) | ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
 
-    frameBuffer->commandBuffer().handle()->ResourceBarrier(transitionBarriers.size(), transitionBarriers.data());
+    frameBuffer->commandBuffer().barrier(transitionBarrier);
 
     // Declare the depth/stencil render target access (if there is such a target) and begin the render pass.
     if (m_impl->m_depthStencilTarget == nullptr)
@@ -248,26 +247,24 @@ void DirectX12RenderPass::end() const
     bool requiresResolve = this->hasPresentTarget() && m_impl->m_multiSamplingLevel > MultiSamplingLevel::x1;
 
     // Transition the present and depth/stencil views.
-    Array<D3D12_RESOURCE_BARRIER> transitionBarriers = m_impl->m_renderTargets |
-        std::views::transform([&frameBuffer, &requiresResolve](const RenderTarget& renderTarget) {
-            const auto& renderTargetImage = frameBuffer->image(renderTarget.location());
-
-            switch (renderTarget.type()) 
-            {
-            default:
-            case RenderTargetType::Color:           return renderTargetImage.transitionTo(ResourceState::ReadOnly);
-            case RenderTargetType::DepthStencil:    return renderTargetImage.transitionTo(ResourceState::DepthRead);
-            case RenderTargetType::Present:         return renderTargetImage.transitionTo(requiresResolve ? ResourceState::ResolveSource : ResourceState::Present);
-            }
-        }) | ranges::to<Array<D3D12_RESOURCE_BARRIER>>();
+    DirectX12Barrier transitionBarrier;
+    std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
+        switch (renderTarget.type())
+        {
+        default:
+        case RenderTargetType::Color:           return transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceState::ReadOnly);
+        case RenderTargetType::DepthStencil:    return transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceState::DepthRead);
+        case RenderTargetType::Present:         return transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), requiresResolve ? ResourceState::ResolveSource : ResourceState::Present);
+        }
+    });
 
     // Add another barrier for the back buffer image, if required.
     const IDirectX12Image* backBufferImage = this->getDevice()->swapChain().images()[m_impl->m_backBuffer];
 
     if (requiresResolve)
-        transitionBarriers.push_back(backBufferImage->transitionTo(ResourceState::ResolveDestination));
+        transitionBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceState::ResolveDestination);
 
-    frameBuffer->commandBuffer().handle()->ResourceBarrier(transitionBarriers.size(), transitionBarriers.data());
+    frameBuffer->commandBuffer().barrier(transitionBarrier);
 
     // If required, we need to resolve the present target.
     if (requiresResolve)
@@ -276,7 +273,9 @@ void DirectX12RenderPass::end() const
         frameBuffer->commandBuffer().handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, ::getFormat(m_impl->m_presentTarget->format()));
 
         // Transition the present target back to the present state.
-        backBufferImage->transitionTo(frameBuffer->commandBuffer(), ResourceState::Present);
+        DirectX12Barrier presentBarrier;
+        presentBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceState::Present);
+        frameBuffer->commandBuffer().barrier(presentBarrier);
     }
 
     // End the command buffer recording and submit it.

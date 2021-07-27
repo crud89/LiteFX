@@ -141,3 +141,11 @@ void DirectX12CommandBuffer::submit(const bool& wait) const
 	if (wait)
 		this->wait();
 }
+
+void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier, const bool& invert) const noexcept
+{
+	if (invert)
+		barrier.executeInverse(*this);
+	else
+		barrier.execute(*this);
+}
