@@ -19,15 +19,16 @@ private:
 	Array<VkImageView> m_views;
 	Format m_format;
 	Size3d m_extent;
-	UInt32 m_elements{ 1 }, m_layers, m_levels;
+	UInt32 m_elements, m_layers, m_levels, m_planes;
 	ImageDimensions m_dimensions;
 	bool m_writable;
-	ResourceState m_state;
+	Array<ResourceState> m_states;
+	MultiSamplingLevel m_samples;
 
 public:
-	VulkanImageImpl(VulkanImage* parent, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const bool& writable, const ResourceState& initialState, VmaAllocator allocator, VmaAllocation allocation) :
-		base(parent), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format), m_dimensions(dimensions), m_levels(levels), m_layers(layers), m_writable(writable), m_state(initialState)
-	{
+	VulkanImageImpl(VulkanImage* parent, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator allocator, VmaAllocation allocation) :
+		base(parent), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format), m_dimensions(dimensions), m_levels(levels), m_layers(layers), m_writable(writable), m_samples(samples)
+	{	
 		VkImageViewCreateInfo createInfo = {
 			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 			.pNext = nullptr,
@@ -73,6 +74,15 @@ public:
 				m_views.push_back(imageView);
 			}
 		}
+
+		// Note: Currently no multi-planar images are supported. Planes have a two-fold meaning in this context. Multi-planar images are images, which have a format with `_2PLANE` or `_3PLANE` in the name, or
+		//       which are listed here: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#formats-requiring-sampler-ycbcr-conversion.
+		//       More info: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#VkFormatProperties (See "Multi-planar").
+		//       All those formats are currently not supported. To stay in line with DX12 plane indexing, depth and stencil parts of an depth/stencil image are also separated by planes. Depending on the format,
+		//       the proper aspect is selected based on the plane.
+		m_planes = static_cast<UInt32>(m_views.size());
+		m_elements = m_levels * m_layers * m_planes;
+		m_states.resize(m_elements, initialState);
 	}
 };
 
@@ -80,8 +90,8 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const bool& writable, const ResourceState& initialState, VmaAllocator allocator, VmaAllocation allocation) :
-	m_impl(makePimpl<VulkanImageImpl>(this, extent, format, dimensions, levels, layers, writable, initialState, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkImage>(image)
+VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator allocator, VmaAllocation allocation) :
+	m_impl(makePimpl<VulkanImageImpl>(this, extent, format, dimensions, levels, layers, samples, writable, initialState, allocator, allocation)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkImage>(image)
 {
 }
 
@@ -117,13 +127,13 @@ size_t VulkanImage::size() const noexcept
 			totalSize += elementSize;
 		}
 
-		return totalSize * m_impl->m_elements;
+		return totalSize * m_impl->m_planes;
 	}
 }
 
 size_t VulkanImage::elementSize() const noexcept
 {
-	return this->size() / m_impl->m_elements;
+	return this->size();
 }
 
 size_t VulkanImage::elementAlignment() const noexcept
@@ -136,6 +146,7 @@ size_t VulkanImage::elementAlignment() const noexcept
 
 size_t VulkanImage::alignedElementSize() const noexcept
 {
+	// TODO: Align this by `elementAlignment`.
 	return this->elementSize();
 }
 
@@ -144,14 +155,20 @@ const bool& VulkanImage::writable() const noexcept
 	return m_impl->m_writable;
 }
 
-const ResourceState& VulkanImage::state() const noexcept
+const ResourceState& VulkanImage::state(const UInt32& subresource) const
 {
-	return m_impl->m_state;
+	if (subresource >= m_impl->m_states.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+
+	return m_impl->m_states[subresource];
 }
 
-ResourceState& VulkanImage::state() noexcept
+ResourceState& VulkanImage::state(const UInt32& subresource)
 {
-	return m_impl->m_state;
+	if (subresource >= m_impl->m_states.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+
+	return m_impl->m_states[subresource];
 }
 
 size_t VulkanImage::size(const UInt32& level) const noexcept
@@ -208,6 +225,11 @@ const UInt32& VulkanImage::layers() const noexcept
 	return m_impl->m_layers;
 }
 
+const MultiSamplingLevel& VulkanImage::samples() const noexcept
+{
+	return m_impl->m_samples;
+}
+
 const VkImageView& VulkanImage::imageView(const UInt32& plane) const
 {
 	if (plane >= m_impl->m_views.size()) [[unlikely]]
@@ -234,353 +256,15 @@ VkImageView& VulkanImage::imageView(const UInt32& plane)
 	return m_impl->m_views[plane];
 }
 
-UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const bool& writable, const ResourceState& initialState, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkImage image;
 	VmaAllocation allocation;
 
 	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Writable: {7} }}", fmt::ptr(reinterpret_cast<void*>(image)), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, writable);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Writable: {7} }}", fmt::ptr(reinterpret_cast<void*>(image)), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, writable, samples);
 
-	return makeUnique<VulkanImage>(device, image, extent, format, dimensions, levels, layers, writable, initialState, allocator, allocation);
-}
-
-// ------------------------------------------------------------------------------------------------
-// Texture shared implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanTexture::VulkanTextureImpl : public Implement<VulkanTexture> {
-public:
-	friend class VulkanTexture;
-
-private:
-	MultiSamplingLevel m_samples;
-
-public:
-	VulkanTextureImpl(VulkanTexture* parent, VkImageLayout imageLayout, const MultiSamplingLevel& samples) :
-		base(parent), m_samples(samples)
-	{
-	}
-
-private:
-	VkImageAspectFlags getAspectMask(const UInt32& plane = std::numeric_limits<UInt32>::max()) const
-	{
-		if (plane == std::numeric_limits<UInt32>::max())
-		{
-			if (::hasDepth(m_parent->format()) && ::hasStencil(m_parent->format()))
-				return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-			else [[likely]]
-				return VK_IMAGE_ASPECT_COLOR_BIT;
-		}
-		else
-		{
-			if (::hasDepth(m_parent->format()) && plane == 0)
-				return VK_IMAGE_ASPECT_DEPTH_BIT;
-			else if (::hasStencil(m_parent->format()) && plane == 1)
-				return VK_IMAGE_ASPECT_STENCIL_BIT;
-			else if (plane > 0)
-				throw InvalidArgumentException("Unsupported plane {0} for format {1}.", plane, m_parent->format());
-			else [[likely]]
-				return VK_IMAGE_ASPECT_COLOR_BIT;
-		}
-	}
-};
-
-// ------------------------------------------------------------------------------------------------
-// Texture shared interface.
-// ------------------------------------------------------------------------------------------------
-
-VulkanTexture::VulkanTexture(const VulkanDevice& device, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator allocator, VmaAllocation allocation) :
-	VulkanImage(device, image, extent, format, dimensions, levels, layers, writable, initialState, allocator, allocation), m_impl(makePimpl<VulkanTextureImpl>(this, imageLayout, samples))
-{
-}
-
-VulkanTexture::~VulkanTexture() noexcept = default;
-
-const MultiSamplingLevel& VulkanTexture::samples() const noexcept
-{
-	return m_impl->m_samples;
-}
-
-void VulkanTexture::generateMipMaps(const VulkanCommandBuffer& commandBuffer) const noexcept
-{
-	VkImageMemoryBarrier barrier {
-		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		.pNext = nullptr,
-		.srcAccessMask = 0,
-		.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = this->handle(),
-		.subresourceRange = VkImageSubresourceRange { .aspectMask = m_impl->getAspectMask() }
-	};
-
-	auto layout = ::getImageLayout(this->state());
-
-	for (UInt32 layer(0); layer < this->layers(); ++layer)
-	{
-		Int32 mipWidth = static_cast<Int32>(this->extent().width());
-		Int32 mipHeight = static_cast<Int32>(this->extent().height());
-		Int32 mipDepth = static_cast<Int32>(this->extent().depth());
-
-		for (UInt32 level(1); level < this->levels(); ++level)
-		{
-			// Transition the previous level to transfer source.
-			barrier.subresourceRange.aspectMask = m_impl->getAspectMask();
-			barrier.subresourceRange.baseArrayLayer = layer;
-			barrier.subresourceRange.layerCount = 1;
-			barrier.subresourceRange.baseMipLevel = level - 1;
-			barrier.subresourceRange.levelCount = 1;
-			barrier.oldLayout = layout;
-			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-
-			::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-			// Blit the image of the previous level into the current level.
-			VkImageBlit blit {
-				.srcSubresource = VkImageSubresourceLayers {
-					.aspectMask = m_impl->getAspectMask(),
-					.mipLevel = level - 1,
-					.baseArrayLayer = layer,
-					.layerCount = 1
-				},
-				.dstSubresource = VkImageSubresourceLayers {
-					.aspectMask = m_impl->getAspectMask(),
-					.mipLevel = level,
-					.baseArrayLayer = layer,
-					.layerCount = 1
-				}
-			};
-
-			blit.srcOffsets[0] = { 0, 0, 0 };
-			blit.srcOffsets[1] = { mipWidth, mipHeight, mipDepth };
-			blit.dstOffsets[0] = { 0, 0, 0 };
-			blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, mipDepth > 1 ? mipDepth / 2 : 1 };
-
-			::vkCmdBlitImage(commandBuffer.handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
-
-			// Compute the new size.
-			mipWidth  = std::max(mipWidth  / 2, 1);
-			mipHeight = std::max(mipHeight / 2, 1);
-			mipDepth  = std::max(mipDepth  / 2, 1);
-		}
-	}
-
-	// Finally, transition all the levels back to the original layout.
-	if (layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-	{
-		barrier.subresourceRange.aspectMask = m_impl->getAspectMask();
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = this->layers();
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = this->levels();
-		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.newLayout = layout;
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-	}
-}
-
-void VulkanTexture::receiveData(const VulkanCommandBuffer& commandBuffer, const bool& receive) const noexcept
-{
-	if ((receive && this->state() == ResourceState::CopyDestination) || (!receive && this->state() != ResourceState::CopyDestination))
-		return;
-
-	if (receive)
-	{
-		VkImageMemoryBarrier barrier = {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-			.pNext = nullptr,
-			.srcAccessMask = 0,
-			.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-			.oldLayout = ::getImageLayout(this->state()),
-			.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.image = this->handle(),
-			.subresourceRange = VkImageSubresourceRange {
-				.aspectMask = m_impl->getAspectMask(),
-				.baseMipLevel = 0,
-				.levelCount = this->levels(),
-				.baseArrayLayer = 0,
-				.layerCount = this->layers()
-			}
-		};
-
-		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-		const_cast<VulkanTexture*>(this)->state() = ResourceState::CopyDestination;
-	}
-	else
-	{
-		VkImageMemoryBarrier barrier = {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-			.pNext = nullptr,
-			.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-			.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-			.oldLayout = ::getImageLayout(this->state()),
-			.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.image = this->handle(),
-			.subresourceRange = VkImageSubresourceRange {
-				.aspectMask = m_impl->getAspectMask(),
-				.baseMipLevel = 0,
-				.levelCount = this->levels(),
-				.baseArrayLayer = 0,
-				.layerCount = this->layers()
-			}
-		};
-
-		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-		const_cast<VulkanTexture*>(this)->state() = ResourceState::ReadOnly;
-	}
-}
-
-void VulkanTexture::sendData(const VulkanCommandBuffer& commandBuffer, const bool& emit) const noexcept
-{
-	if ((emit && this->state() != ResourceState::CopySource) || (!emit && this->state() == ResourceState::CopySource))
-		return;
-
-	if (emit)
-	{
-		VkImageMemoryBarrier barrier = {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-			.pNext = nullptr,
-			.srcAccessMask = 0,
-			.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-			.oldLayout = ::getImageLayout(this->state()),
-			.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.image = this->handle(),
-			.subresourceRange = VkImageSubresourceRange {
-				.aspectMask = m_impl->getAspectMask(),
-				.baseMipLevel = 0,
-				.levelCount = this->levels(),
-				.baseArrayLayer = 0,
-				.layerCount = this->layers()
-			}
-		};
-
-		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-		const_cast<VulkanTexture*>(this)->state() = ResourceState::CopySource;
-	}
-	else
-	{
-		VkImageMemoryBarrier barrier = {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-			.pNext = nullptr,
-			.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-			.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-			.oldLayout = ::getImageLayout(this->state()),
-			.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.image = this->handle(),
-			.subresourceRange = VkImageSubresourceRange {
-				.aspectMask = m_impl->getAspectMask(),
-				.baseMipLevel = 0,
-				.levelCount = this->levels(),
-				.baseArrayLayer = 0,
-				.layerCount = this->layers()
-			}
-		};
-
-		::vkCmdPipelineBarrier(commandBuffer.handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-		const_cast<VulkanTexture*>(this)->state() = ResourceState::ReadOnly;
-	}
-}
-
-void VulkanTexture::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
-{
-	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
-
-	if (this->levels() < targetElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The image has only {0} mip-map levels, but a transfer for {1} levels starting from level {2} has been requested. For transfers of multiple layers or planes, use multiple transfer commands instead.", this->levels(), elements, targetElement);
-
-	source.sendData(commandBuffer, true);
-	this->receiveData(commandBuffer, true);
-
-	// Create a copy command and add it to the command buffer.
-	Array<VkBufferImageCopy> copyInfos(elements);
-	std::ranges::generate(copyInfos, [&, this, i = targetElement]() mutable {
-		return VkBufferImageCopy {
-			.bufferOffset = source.alignedElementSize() * sourceElement,
-			.bufferRowLength = 0,
-			.bufferImageHeight = 0,
-			.imageSubresource = VkImageSubresourceLayers {
-				.aspectMask = m_impl->getAspectMask(plane),
-				.mipLevel = i++,
-				.baseArrayLayer = layer,
-				.layerCount = 1
-			}, 
-			.imageOffset = { 0, 0, 0 },
-			.imageExtent = { static_cast<UInt32>(this->extent().width()), static_cast<UInt32>(this->extent().height()), static_cast<UInt32>(this->extent().depth()) }
-		};
-	});
-
-	::vkCmdCopyBufferToImage(commandBuffer.handle(), source.handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, copyInfos.size(), copyInfos.data());
-
-	if (!leaveSourceState)
-		source.sendData(commandBuffer, false);
-
-	if (!leaveTargetState)
-		this->receiveData(commandBuffer, false);
-}
-
-void VulkanTexture::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
-{
-	if (target.elements() <= targetElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
-
-	if (this->levels() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The image has only {0} mip-map levels, but a transfer for {1} levels starting from level {2} has been requested. For transfers of multiple layers or planes, use multiple transfer commands instead.", this->levels(), elements, sourceElement);
-
-	this->sendData(commandBuffer, true);
-	target.receiveData(commandBuffer, true);
-
-	// Create a copy command and add it to the command buffer.
-	Array<VkBufferImageCopy> copyInfos(elements);
-	std::ranges::generate(copyInfos, [&, this, i = sourceElement]() mutable {
-		return VkBufferImageCopy{
-			.bufferOffset = target.alignedElementSize() * targetElement,
-			.bufferRowLength = 0,
-			.bufferImageHeight = 0,
-			.imageSubresource = VkImageSubresourceLayers {
-				.aspectMask = m_impl->getAspectMask(plane),
-				.mipLevel = i++,
-				.baseArrayLayer = layer,
-				.layerCount = 1
-			},
-			.imageOffset = { 0, 0, 0 },
-			.imageExtent = { static_cast<UInt32>(this->extent().width()), static_cast<UInt32>(this->extent().height()), static_cast<UInt32>(this->extent().depth()) }
-		};
-	});
-
-	::vkCmdCopyImageToBuffer(commandBuffer.handle(), this->handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, target.handle(), copyInfos.size(), copyInfos.data());
-
-	if (!leaveSourceState)
-		this->sendData(commandBuffer, false);
-
-	if (!leaveTargetState)
-		target.receiveData(commandBuffer, false);
-}
-
-UniquePtr<VulkanTexture> VulkanTexture::allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	// Allocate the buffer.
-	VkImage image;
-	VmaAllocation allocation;
-
-	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated texture {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {7}, Samples: {6}, Writable: {7} }}", fmt::ptr(reinterpret_cast<void*>(image)), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, samples, layers, writable);
-
-	return makeUnique<VulkanTexture>(device, image, createInfo.initialLayout, extent, format, dimensions, levels, layers, samples, writable, initialState, allocator, allocation);
+	return makeUnique<VulkanImage>(device, image, extent, format, dimensions, levels, layers, samples, writable, initialState, allocator, allocation);
 }
 
 // ------------------------------------------------------------------------------------------------

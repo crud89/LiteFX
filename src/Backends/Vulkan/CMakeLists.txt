@@ -40,6 +40,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/rasterizer.cpp"
     "src/input_assembler.cpp"
     "src/command_buffer.cpp"
+    "src/barrier.cpp"
     "src/vertex_buffer_layout.cpp"
     "src/index_buffer_layout.cpp"
     "src/descriptor_layout.cpp"

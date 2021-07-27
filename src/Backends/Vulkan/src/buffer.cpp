@@ -17,12 +17,13 @@ private:
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocation;
 	bool m_writable;
-	ResourceState m_state;
+	Array<ResourceState> m_states;
 
 public:
 	VulkanBufferImpl(VulkanBuffer* parent, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(allocation), m_state(initialState)
+		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(allocation)
 	{
+		m_states.resize(elements, initialState);
 	}
 };
 
@@ -39,76 +40,6 @@ VulkanBuffer::~VulkanBuffer() noexcept
 {
 	::vmaDestroyBuffer(m_impl->m_allocator, this->handle(), m_impl->m_allocation);
 	LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", fmt::ptr(reinterpret_cast<void*>(this->handle())));
-}
-
-void VulkanBuffer::receiveData(const VulkanCommandBuffer& commandBuffer, const bool& receive) const noexcept
-{
-	// Buffers don't require memory transition in Vulkan.
-}
-
-void VulkanBuffer::sendData(const VulkanCommandBuffer& commandBuffer, const bool& emit) const noexcept
-{
-	// Buffers don't require memory transition in Vulkan.
-}
-
-void VulkanBuffer::transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
-{
-	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
-
-	if (this->elements() < targetElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
-
-#ifndef NDEBUG
-	if (layer > 0) [[unlikely]]
-		LITEFX_WARNING(VULKAN_LOG, "You've specified a buffer copy operation for layer {0}, however layers are ignored for buffer-buffer transfers.", layer);
-
-	if (plane > 0) [[unlikely]]
-		LITEFX_WARNING(VULKAN_LOG, "You've specified a buffer copy operation for plane {0}, however planes are ignored for buffer-buffer transfers.", plane);
-#endif
-
-	source.sendData(commandBuffer, true);
-	this->receiveData(commandBuffer, true);
-
-	// Depending on the alignment, the transfer can be combined into a single copy command.
-	Array<VkBufferCopy> copyInfos;
-
-	if (this->elementAlignment() == 0 && source.elementAlignment() == 0)
-	{
-		// Copy from unaligned to unaligned memory, so we can simply do one copy for the whole memory chunk.
-		VkBufferCopy copyInfo{};
-		copyInfo.size = source.elementSize() * elements;
-		copyInfo.srcOffset = sourceElement * source.elementSize();
-		copyInfo.dstOffset = targetElement * this->alignedElementSize();
-		copyInfos.push_back(copyInfo);
-	}
-	else
-	{
-		// All other options require us to record one command per element. Since `alignedElementSize` returns `elementSize`, if there's no alignment, it does 
-		// not matter which buffer is aligned or unaligned.
-		copyInfos.resize(elements);
-		std::ranges::generate(copyInfos, [this, &source, &sourceElement, &targetElement, i = 0]() mutable {
-			VkBufferCopy copyInfo{};
-			copyInfo.size = source.alignedElementSize();
-			copyInfo.srcOffset = (sourceElement + i) * source.alignedElementSize();
-			copyInfo.dstOffset = (targetElement + i) * this->alignedElementSize();
-			i++;
-			return copyInfo;
-		});
-	}
-
-	::vkCmdCopyBuffer(commandBuffer.handle(), source.handle(), this->handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
-
-	if (!leaveSourceState)
-		source.sendData(commandBuffer, false);
-
-	if (!leaveTargetState)
-		this->receiveData(commandBuffer, false);
-}
-
-void VulkanBuffer::transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
-{
-	target.transferFrom(commandBuffer, *this, sourceElement, targetElement, elements);
 }
 
 const BufferType& VulkanBuffer::type() const noexcept
@@ -146,14 +77,20 @@ const bool& VulkanBuffer::writable() const noexcept
 	return m_impl->m_writable;
 }
 
-const ResourceState& VulkanBuffer::state() const noexcept
+const ResourceState& VulkanBuffer::state(const UInt32& subresource) const
 {
-	return m_impl->m_state;
+	if (subresource >= m_impl->m_states.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+
+	return m_impl->m_states[subresource];
 }
 
-ResourceState& VulkanBuffer::state() noexcept
+ResourceState& VulkanBuffer::state(const UInt32& subresource)
 {
-	return m_impl->m_state;
+	if (subresource >= m_impl->m_states.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+
+	return m_impl->m_states[subresource];
 }
 
 void VulkanBuffer::map(const void* const data, const size_t& size, const UInt32& element)

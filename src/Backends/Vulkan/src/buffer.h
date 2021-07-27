@@ -16,20 +16,6 @@ namespace LiteFX::Rendering::Backends {
 		VulkanBuffer(const VulkanBuffer&) = delete;
 		virtual ~VulkanBuffer() noexcept;
 
-		// ITransferable interface.
-	public:
-		/// <inheritdoc />
-		virtual void receiveData(const VulkanCommandBuffer& commandBuffer, const bool& receive) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void sendData(const VulkanCommandBuffer& commandBuffer, const bool& emit) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
-
-		/// <inheritdoc />
-		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
-
 		// IBuffer interface.
 	public:
 		/// <inheritdoc />
@@ -56,10 +42,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual const bool& writable() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ResourceState& state() const noexcept override;
+		virtual const ResourceState& state(const UInt32& subresource = 0) const override;
 
 		/// <inheritdoc />
-		virtual ResourceState& state() noexcept override;
+		virtual ResourceState& state(const UInt32& subresource = 0) override;
 
 		// IMappable interface.
 	public:

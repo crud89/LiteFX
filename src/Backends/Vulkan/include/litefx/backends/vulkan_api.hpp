@@ -58,7 +58,6 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanVertexBuffer;
     class IVulkanIndexBuffer;
     class IVulkanImage;
-    class IVulkanTexture;
     class IVulkanSampler;
 
     // Builder declarations.
