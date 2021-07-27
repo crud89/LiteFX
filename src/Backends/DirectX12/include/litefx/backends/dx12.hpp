@@ -333,6 +333,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual void submit(const bool& wait = false) const override;
 
 		/// <inheritdoc />
+		virtual void generateMipMaps(IDirectX12Image& image) noexcept override;
+
+		/// <inheritdoc />
 		virtual void barrier(const DirectX12Barrier& barrier, const bool& invert = false) const noexcept override;
 
 		/// <inheritdoc />

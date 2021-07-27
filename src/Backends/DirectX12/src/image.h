@@ -75,7 +75,6 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		virtual AllocatorPtr allocator() const noexcept;
 		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
-		virtual void generateMipMaps(const DirectX12CommandBuffer& commandBuffer) noexcept;
 
 	public:
 		static UniquePtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);

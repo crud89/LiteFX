@@ -571,7 +571,7 @@ namespace LiteFX::Rendering {
         /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
         /// </remarks>
         /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
-        //virtual void generateMipMaps(const TImage& image) noexcept = 0;
+        virtual void generateMipMaps(TImage& image) noexcept = 0;
         
         /// <summary>
         /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
