@@ -266,6 +266,12 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>>, public virtual IDirectX12Resource {
 	public:
 		virtual ~IDirectX12Image() noexcept = default;
+
+	public:
+		inline UInt32 getSubresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane) const noexcept
+		{
+			return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
+		}
 	};
 
 	/// <summary>
@@ -293,6 +299,68 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_DIRECTX12_API IDirectX12Sampler : public ISampler {
 	public:
 		virtual ~IDirectX12Sampler() noexcept = default;
+	};
+
+	/// <summary>
+	/// Implements a DirectX 12 resource barrier.
+	/// </summary>
+	/// <seealso cref="DirectX12CommandBuffer" />
+	/// <seealso cref="IDirectX12Buffer" />
+	/// <seealso cref="IDirectX12Image" />
+	/// <seealso cref="IDirectX12Texture" />
+	class LITEFX_DIRECTX12_API DirectX12Barrier : public IBarrier<IDirectX12Buffer, IDirectX12Image> {
+		LITEFX_IMPLEMENTATION(DirectX12BarrierImpl);
+
+	public:
+		explicit DirectX12Barrier() noexcept;
+		DirectX12Barrier(const DirectX12Barrier&) = delete;
+		DirectX12Barrier(DirectX12Barrier&&) = delete;
+		virtual ~DirectX12Barrier() noexcept;
+
+		// IBarrier interface.
+	public:
+		/// <inheritdoc />
+		virtual void transition(IDirectX12Buffer& buffer, const ResourceState& targetState) override;
+
+		/// <inheritdoc />
+		virtual void transition(IDirectX12Buffer& buffer, const UInt32& element, const ResourceState& targetState) override;
+
+		/// <inheritdoc />
+		virtual void transition(IDirectX12Buffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) override;
+
+		/// <inheritdoc />
+		virtual void transition(IDirectX12Buffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) override;
+
+		/// <inheritdoc />
+		virtual void transition(IDirectX12Image& image, const ResourceState& targetState) override;
+
+		/// <inheritdoc />
+		virtual void transition(IDirectX12Image& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override;
+
+		/// <inheritdoc />
+		virtual void transition(IDirectX12Image& image, const ResourceState& sourceState, const ResourceState& targetState) override;
+
+		/// <inheritdoc />
+		virtual void transition(IDirectX12Image& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override;
+
+	public:
+		/// <summary>
+		/// Adds the barrier to a command buffer and updates the resource target states.
+		/// </summary>
+		/// <param name="commandBuffer">The command buffer to add the barriers to.</param>
+		/// <param name="flags">The flags for the resource barriers. Can be used to begin and end split barriers.</param>
+		virtual void execute(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const noexcept;
+
+		/// <summary>
+		/// Adds the inverse barriers to a command buffers and updates the resource target states.
+		/// </summary>
+		/// <remarks>
+		/// This method can be used to quickly transition all resources back to the source state without requiring to record a new barrier. It performs the opposite transitions to
+		/// the ones created with <see cref="execute" />.
+		/// </remarks>
+		/// <param name="commandBuffer">The command buffer to add the barriers to.</param>
+		/// <param name="flags">The flags for the resource barriers. Can be used to begin and end split barriers.</param>
+		virtual void executeInverse(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const noexcept;
 	};
 
 	/// <summary>

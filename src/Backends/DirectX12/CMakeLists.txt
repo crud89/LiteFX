@@ -35,6 +35,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/input_attachment_mapping.cpp"
     "src/render_pass.cpp"
     "src/command_buffer.cpp"
+    "src/barrier.cpp"
     "src/render_pipeline.cpp"
     "src/compute_pipeline.cpp"
     "src/pipeline_layout.cpp"

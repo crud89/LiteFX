@@ -144,9 +144,14 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Gets the number of array elements inside the memory chunk.
+        /// Gets the number of sub-resources inside the memory chunk.
         /// </summary>
+        /// <remarks>
+        /// For buffers, this equals the number of array elements. For images, this equals the product of layers, levels and planes. This number represents the number of states, that 
+        /// can be obtained by calling the <see cref="state" /> method.
+        /// </remarks>
         /// <returns>The number of array elements inside the memory chunk.</returns>
+        /// <seealso cref="state" />
         virtual const UInt32& elements() const noexcept = 0;
 
         /// <summary>
@@ -594,8 +599,8 @@ namespace LiteFX::Rendering {
     /// It is recommended to insert multiple transitions into one single barrier. This can be done by calling <see cref="transition" /> multiple times. 
     /// </remarks>
     template <typename TBuffer, typename TImage> requires
-        rtti::implements<TBuffer, IBuffer> &&
-        rtti::implements<TImage, IImage>
+        std::derived_from<TBuffer, IBuffer> &&
+        std::derived_from<TImage, IImage>
     class IBarrier {
     public:
         using buffer_type = TBuffer;
@@ -626,7 +631,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The resource to transition.</param>
         /// <param name="sourceState">The source state to transition the resource from.</param>
         /// <param name="targetState">The target state to transition the resource to.</param>
-        virtual void transition(TBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState);
+        virtual void transition(TBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) = 0;
 
         /// <summary>
         /// Inserts a transition for the sub-resource <paramref name="element" /> of <paramref name="buffer" /> from <paramref name="sourceState" /> into 

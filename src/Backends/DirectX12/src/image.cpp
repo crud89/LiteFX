@@ -15,7 +15,7 @@ private:
 	AllocationPtr m_allocation;
 	Format m_format;
 	Size3d m_extent;
-	UInt32 m_elements{ 1 }, m_levels, m_layers, m_planes; 
+	UInt32 m_elements, m_levels, m_layers, m_planes; 
 	Array<ResourceState> m_states;
 	ImageDimensions m_dimensions;
 	bool m_writable;
@@ -25,7 +25,8 @@ public:
 		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_writable(writable)
 	{
 		m_planes = ::D3D12GetFormatPlaneCount(m_parent->getDevice()->handle().Get(), ::getFormat(format));
-		m_states.resize(m_planes * m_layers * m_levels, initialState);
+		m_elements = m_planes * m_layers * m_levels;
+		m_states.resize(m_elements, initialState);
 	}
 };
 
@@ -232,12 +233,6 @@ public:
 		base(parent), m_samples(samples)
 	{
 	}
-
-private:
-	UInt32 getSubresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane)
-	{
-		return level + (layer * m_parent->levels()) + (plane * m_parent->levels() * m_parent->layers());
-	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -362,7 +357,7 @@ void DirectX12Texture::transferFrom(const DirectX12CommandBuffer& commandBuffer,
 	for (int resource(0); resource < elements; ++resource)
 	{
 		this->getDevice()->handle()->GetCopyableFootprints(&bufferDesc, sourceElement + resource, 1, 0, &footprint, nullptr, nullptr, nullptr);
-		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(this->handle().Get(), m_impl->getSubresourceId(targetElement + resource, layer, plane));
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(this->handle().Get(), IDirectX12Image::getSubresourceId(targetElement + resource, layer, plane));
 		commandBuffer.handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
 
@@ -389,7 +384,7 @@ void DirectX12Texture::transferTo(const DirectX12CommandBuffer& commandBuffer, c
 
 	for (int resource(0); resource < elements; ++resource)
 	{
-		this->getDevice()->handle()->GetCopyableFootprints(&bufferDesc, m_impl->getSubresourceId(sourceElement + resource, layer, plane), 1, 0, &footprint, nullptr, nullptr, nullptr);
+		this->getDevice()->handle()->GetCopyableFootprints(&bufferDesc, IDirectX12Image::getSubresourceId(sourceElement + resource, layer, plane), 1, 0, &footprint, nullptr, nullptr, nullptr);
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(this->handle().Get(), footprint), targetLocation(target.handle().Get(), targetElement + resource);
 		commandBuffer.handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
