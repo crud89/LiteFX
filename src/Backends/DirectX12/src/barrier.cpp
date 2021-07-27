@@ -16,6 +16,7 @@ public:
 private:
 	Array<BufferElement> m_buffers;
 	Array<ImageElement> m_images;
+	Array<D3D12_RESOURCE_BARRIER> m_uavBarriers;
 
 public:
 	DirectX12BarrierImpl(DirectX12Barrier* parent) :
@@ -75,14 +76,26 @@ void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& s
 	m_impl->m_images.push_back(ImageElement(image, image.getSubresourceId(level, layer, plane), sourceState, targetState));
 }
 
+void DirectX12Barrier::waitFor(IDirectX12Buffer& buffer)
+{
+	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(std::as_const(buffer).handle().Get()));
+}
+
+void DirectX12Barrier::waitFor(IDirectX12Image& image)
+{
+	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(std::as_const(image).handle().Get()));
+}
+
 void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const noexcept
 {
 	Array<D3D12_RESOURCE_BARRIER> barriers(m_impl->m_buffers.size() + m_impl->m_images.size());
 
 	std::ranges::generate(barriers, [this, &flags, &commandBuffer, i = 0]() mutable {
-		if (i < m_impl->m_buffers.size())
+		auto element = i++;
+
+		if (element < m_impl->m_buffers.size())
 		{
-			auto& bufferElement = m_impl->m_buffers[i];
+			auto& bufferElement = m_impl->m_buffers[element];
 			auto& buffer = std::get<0>(bufferElement);
 			auto& subresource = std::get<1>(bufferElement);
 			auto& targetState = std::get<3>(bufferElement);
@@ -97,7 +110,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, cons
 		}
 		else
 		{
-			auto& imageElement = m_impl->m_images[i - m_impl->m_buffers.size()];
+			auto& imageElement = m_impl->m_images[element - m_impl->m_buffers.size()];
 			auto& image = std::get<0>(imageElement);
 			auto& subresource = std::get<1>(imageElement);
 			auto& targetState = std::get<3>(imageElement);
@@ -112,6 +125,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, cons
 		}
 	});
 
+	barriers.insert(barriers.end(), m_impl->m_uavBarriers.begin(), m_impl->m_uavBarriers.end());
 	commandBuffer.handle()->ResourceBarrier(barriers.size(), barriers.data());
 }
 
@@ -120,9 +134,11 @@ void DirectX12Barrier::executeInverse(const DirectX12CommandBuffer& commandBuffe
 	Array<D3D12_RESOURCE_BARRIER> barriers(m_impl->m_buffers.size() + m_impl->m_images.size());
 
 	std::ranges::generate(barriers, [this, &flags, &commandBuffer, i = 0]() mutable {
-		if (i < m_impl->m_buffers.size())
+		auto element = i++;
+
+		if (element < m_impl->m_buffers.size())
 		{
-			auto& bufferElement = m_impl->m_buffers[i];
+			auto& bufferElement = m_impl->m_buffers[element];
 			auto& buffer = std::get<0>(bufferElement);
 			auto& subresource = std::get<1>(bufferElement);
 			auto& targetState = std::get<2>(bufferElement);
@@ -137,7 +153,7 @@ void DirectX12Barrier::executeInverse(const DirectX12CommandBuffer& commandBuffe
 		}
 		else
 		{
-			auto& imageElement = m_impl->m_images[i - m_impl->m_buffers.size()];
+			auto& imageElement = m_impl->m_images[element - m_impl->m_buffers.size()];
 			auto& image = std::get<0>(imageElement);
 			auto& subresource = std::get<1>(imageElement);
 			auto& targetState = std::get<2>(imageElement);
@@ -152,5 +168,6 @@ void DirectX12Barrier::executeInverse(const DirectX12CommandBuffer& commandBuffe
 		}
 	});
 
+	barriers.insert(barriers.end(), m_impl->m_uavBarriers.begin(), m_impl->m_uavBarriers.end());
 	commandBuffer.handle()->ResourceBarrier(barriers.size(), barriers.data());
 }

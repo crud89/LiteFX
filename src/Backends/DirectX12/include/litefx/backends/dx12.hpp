@@ -343,6 +343,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void transition(IDirectX12Image& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override;
 
+		/// <inheritdoc />
+		virtual void waitFor(IDirectX12Buffer& buffer) override;
+
+		/// <inheritdoc />
+		virtual void waitFor(IDirectX12Image& image) override;
+
 	public:
 		/// <summary>
 		/// Adds the barrier to a command buffer and updates the resource target states.

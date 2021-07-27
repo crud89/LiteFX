@@ -678,6 +678,24 @@ namespace LiteFX::Rendering {
         /// <param name="plane">The plane of the sub-resource.</param>
         /// <param name="targetState">The target state to transition the sub-resource to.</param>
         virtual void transition(TImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
+
+        /// <summary>
+        /// Inserts a barrier that waits for all read/write accesses to <paramref name="buffer" /> to be finished before continuing.
+        /// </summary>
+        /// <remarks>
+        /// This translates to a UAV barrier in DirectX 12 and an execution + memory barrier with no layout transition in Vulkan.
+        /// </remarks>
+        /// <typeparam name="buffer">The buffer to wait for.</typeparam>
+        virtual void waitFor(TBuffer& buffer) = 0;
+
+        /// <summary>
+        /// Inserts a barrier that waits for all read/write accesses to <paramref name="image" /> to be finished before continuing.
+        /// </summary>
+        /// <remarks>
+        /// This translates to a UAV barrier in DirectX 12 and an execution + memory barrier with no layout transition in Vulkan.
+        /// </remarks>
+        /// <typeparam name="image">The image to wait for.</typeparam>
+        virtual void waitFor(TImage& image) = 0;
     };
 
     /// <summary>
