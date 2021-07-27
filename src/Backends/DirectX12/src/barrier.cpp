@@ -63,7 +63,7 @@ void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& t
 
 void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState)
 {
-	this->transition(image, image.state(image.getSubresourceId(level, layer, plane)), level, layer, plane, targetState);
+	this->transition(image, image.state(image.subresourceId(level, layer, plane)), level, layer, plane, targetState);
 }
 
 void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& sourceState, const ResourceState& targetState)
@@ -73,7 +73,7 @@ void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& s
 
 void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState)
 {
-	m_impl->m_images.push_back(ImageElement(image, image.getSubresourceId(level, layer, plane), sourceState, targetState));
+	m_impl->m_images.push_back(ImageElement(image, image.subresourceId(level, layer, plane), sourceState, targetState));
 }
 
 void DirectX12Barrier::waitFor(const IDirectX12Buffer& buffer)

@@ -213,12 +213,6 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>> {
 	public:
 		virtual ~IDirectX12Image() noexcept = default;
-
-	public:
-		inline UInt32 getSubresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane) const noexcept
-		{
-			return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
-		}
 	};
 
 	/// <summary>
@@ -239,6 +233,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12CommandBuffer" />
 	/// <seealso cref="IDirectX12Buffer" />
 	/// <seealso cref="IDirectX12Image" />
+	/// <seealso cref="IBarrier" />
 	class LITEFX_DIRECTX12_API DirectX12Barrier : public IBarrier<IDirectX12Buffer, IDirectX12Image> {
 		LITEFX_IMPLEMENTATION(DirectX12BarrierImpl);
 

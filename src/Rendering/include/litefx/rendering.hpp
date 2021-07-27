@@ -317,6 +317,12 @@ namespace LiteFX::Rendering {
         virtual const MultiSamplingLevel& samples() const noexcept = 0;
 
         // TODO: getSampler() for combined samplers?
+
+    public:
+        inline virtual UInt32 subresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane) const noexcept
+        {
+            return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
+        }
     };
 
     /// <summary>
