@@ -95,16 +95,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 	bufferInfo.usage = usageFlags;
 
 	// Get the initial resource state.
-	ResourceState initialState = ResourceState::CopyDestination;
-
-	if (usage == BufferUsage::Dynamic || usage == BufferUsage::Staging) switch (type)
-	{
-	case BufferType::Uniform: ResourceState::UniformBuffer;
-	case BufferType::Vertex: ResourceState::VertexBuffer;
-	case BufferType::Index: ResourceState::IndexBuffer;
-	case BufferType::Texel:
-	case BufferType::Storage: allowWrite ? ResourceState::ReadWrite : ResourceState::ReadOnly;
-	}
+	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::GenericRead : ResourceState::CopyDestination;
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
@@ -167,7 +158,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const V
 	}
 
 	// Get the initial resource state.
-	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::VertexBuffer : ResourceState::CopyDestination;
+	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::GenericRead : ResourceState::CopyDestination;
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
@@ -219,7 +210,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Vul
 	}
 
 	// Get the initial resource state.
-	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::IndexBuffer : ResourceState::CopyDestination;
+	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::GenericRead : ResourceState::CopyDestination;
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
