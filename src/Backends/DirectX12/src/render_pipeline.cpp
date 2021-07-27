@@ -291,10 +291,6 @@ void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
 {
 	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
 
-	// Transition the buffer to the appropriate state, if it isn't already.
-	if (buffer.state() != ResourceState::VertexBuffer)
-		buffer.transitionTo(commandBuffer, ResourceState::VertexBuffer);
-	
 	commandBuffer.handle()->IASetVertexBuffers(buffer.layout().binding(), 1, &buffer.view());
 	commandBuffer.handle()->IASetPrimitiveTopology(::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 }
@@ -302,10 +298,6 @@ void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
 void DirectX12RenderPipeline::bind(const IDirectX12IndexBuffer& buffer) const
 {
 	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
-
-	//// Transition the buffer to the appropriate state, if it isn't already.
-	if (buffer.state() != ResourceState::IndexBuffer)
-		buffer.transitionTo(commandBuffer, ResourceState::IndexBuffer);
 
 	commandBuffer.handle()->IASetIndexBuffer(&buffer.view());
 }

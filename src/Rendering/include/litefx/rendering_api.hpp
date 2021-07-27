@@ -715,7 +715,7 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Describes the number of samples with which a <see cref="ITexture" /> is sampled.
+    /// Describes the number of samples with which a <see cref="IImage" /> is sampled.
     /// </summary>
     enum class LITEFX_RENDERING_API MultiSamplingLevel {
         /// <summary>
@@ -1705,6 +1705,21 @@ namespace LiteFX::Rendering {
         /// <param name="barrier"></param>
         /// <returns></returns>
         //virtual void barrier(const TBarrier& barrier) const noexcept = 0;
+
+        /// <summary>
+        /// Uses the image at level *0* to generate mip-maps for the remaining levels.
+        /// </summary>
+        /// <remarks>
+        /// It is strongly advised, not to generate mip maps at runtime. Instead, prefer using a format that supports pre-computed mip maps. If you have to, prefer computing
+        /// mip maps in a pre-process.
+        /// 
+        /// Note that not all texture formats and sizes are supported for mip map generation and the result might not be satisfactory. For example, it is not possible to compute 
+        /// proper mip maps for pre-compressed formats. Textures should have power of two sizes in order to not appear under-sampled.
+        /// 
+        /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
+        //virtual void generateMipMaps(const TImage& image) noexcept = 0;
     };
 
     /// <summary>

@@ -158,7 +158,6 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="IDirectX12Buffer" />
 	/// <seealso cref="IDirectX12Image" />
-	/// <seealso cref="IDirectX12Texture" />
 	/// <seealso cref="IDirectX12Sampler" />
 	/// <seealso cref="DirectX12DescriptorSet" />
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
@@ -200,31 +199,13 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Represents a DirectX 12 memory resource.
-	/// </summary>
-	/// <seealso cref="IDirectX12ConstantBuffer" />
-	/// <seealso cref="IDirectX12ConstantTexture" />
-	/// <seealso cref="IDirectX12VertexBuffer" />
-	/// <seealso cref="IDirectX12IndexBuffer" />
-	/// <seealso cref="IDirectX12IndexImage" />
-	/// <seealso cref="IDirectX12IndexTexture" />
-	class LITEFX_DIRECTX12_API IDirectX12Resource {
-	public:
-		virtual ~IDirectX12Resource() noexcept = default;
-
-	public:
-		virtual D3D12_RESOURCE_BARRIER transitionTo(const ResourceState& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const = 0;
-		virtual void transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const = 0;
-	};
-
-	/// <summary>
 	/// Represents the base interface for a DirectX 12 buffer implementation.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSet" />
-	/// <seealso cref="IDirectX12Texture" />
+	/// <seealso cref="IDirectX12Image" />
 	/// <seealso cref="IDirectX12VertexBuffer" />
 	/// <seealso cref="IDirectX12IndexBuffer" />
-	class LITEFX_DIRECTX12_API IDirectX12Buffer : public virtual ITransferableBuffer<IDirectX12Buffer, DirectX12CommandBuffer>, public virtual IResource<ComPtr<ID3D12Resource>>, public virtual IDirectX12Resource {
+	class LITEFX_DIRECTX12_API IDirectX12Buffer : public virtual IBuffer, public virtual IResource<ComPtr<ID3D12Resource>> {
 	public:
 		virtual ~IDirectX12Buffer() noexcept = default;
 	};
@@ -234,7 +215,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12VertexBufferLayout" />
 	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual IVertexBuffer<IDirectX12Buffer, DirectX12VertexBufferLayout, DirectX12CommandBuffer>, public IDirectX12Buffer {
+	class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual IVertexBuffer<DirectX12VertexBufferLayout>, public IDirectX12Buffer {
 	public:
 		virtual ~IDirectX12VertexBuffer() noexcept = default;
 
@@ -247,7 +228,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12IndexBufferLayout" />
 	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IIndexBuffer<IDirectX12Buffer, DirectX12IndexBufferLayout, DirectX12CommandBuffer>, public IDirectX12Buffer {
+	class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IIndexBuffer<DirectX12IndexBufferLayout>, public IDirectX12Buffer {
 	public:
 		virtual ~IDirectX12IndexBuffer() noexcept = default;
 
@@ -261,9 +242,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12DescriptorLayout" />
 	/// <seealso cref="DirectX12DescriptorSet" />
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	/// <seealso cref="IDirectX12Texture" />
 	/// <seealso cref="IDirectX12Sampler" />
-	class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>>, public virtual IDirectX12Resource {
+	class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>> {
 	public:
 		virtual ~IDirectX12Image() noexcept = default;
 
@@ -275,27 +255,12 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Represents a DirectX 12 texture.
-	/// </summary>
-	/// <seealso cref="DirectX12DescriptorLayout" />
-	/// <seealso cref="DirectX12DescriptorSet" />
-	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	/// <seealso cref="IDirectX12Image" />
-	/// <seealso cref="IDirectX12Sampler" />
-	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12Texture : public virtual ITexture<IDirectX12Buffer, DirectX12CommandBuffer>, public IDirectX12Image {
-	public:
-		virtual ~IDirectX12Texture() noexcept = default;
-	};
-
-	/// <summary>
 	/// Represents a DirectX 12 sampler.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorLayout" />
 	/// <seealso cref="DirectX12DescriptorSet" />
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
 	/// <seealso cref="IDirectX12Image" />
-	/// <seealso cref="IDirectX12Texture" />
 	class LITEFX_DIRECTX12_API IDirectX12Sampler : public ISampler {
 	public:
 		virtual ~IDirectX12Sampler() noexcept = default;
@@ -307,7 +272,6 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12CommandBuffer" />
 	/// <seealso cref="IDirectX12Buffer" />
 	/// <seealso cref="IDirectX12Image" />
-	/// <seealso cref="IDirectX12Texture" />
 	class LITEFX_DIRECTX12_API DirectX12Barrier : public IBarrier<IDirectX12Buffer, IDirectX12Image> {
 		LITEFX_IMPLEMENTATION(DirectX12BarrierImpl);
 
@@ -344,10 +308,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual void transition(IDirectX12Image& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override;
 
 		/// <inheritdoc />
-		virtual void waitFor(IDirectX12Buffer& buffer) override;
+		virtual void waitFor(const IDirectX12Buffer& buffer) override;
 
 		/// <inheritdoc />
-		virtual void waitFor(IDirectX12Image& image) override;
+		virtual void waitFor(const IDirectX12Image& image) override;
 
 	public:
 		/// <summary>
@@ -373,7 +337,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 <see cref="IDescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler, IDirectX12Image, DirectX12CommandBuffer> {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler, DirectX12CommandBuffer> {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
 	public:
@@ -393,7 +357,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual void update(const UInt32& binding, const IDirectX12Texture& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const override;
+		virtual void update(const UInt32& binding, const IDirectX12Image& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const override;
 
 		/// <inheritdoc />
 		virtual void update(const UInt32& binding, const IDirectX12Sampler& sampler, const UInt32& descriptor = 0) const override;
@@ -1037,7 +1001,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 <see cref="IRenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPipelineBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public virtual DirectX12PipelineState, public IRenderPipeline<DirectX12PipelineLayout, DirectX12InputAssembler, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Buffer> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public virtual DirectX12PipelineState, public IRenderPipeline<DirectX12PipelineLayout, DirectX12InputAssembler, IDirectX12VertexBuffer, IDirectX12IndexBuffer> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 
@@ -1633,7 +1597,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <remarks>
 	/// The DX12 graphics factory is implemented using <a href="https://gpuopen.com/d3d12-memory-allocator/" target="_blank">D3D12 Memory Allocator</a>.
 	/// </remarks>
-	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public IGraphicsFactory<DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler> {
+	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public IGraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler> {
 		LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
 
 	public:
@@ -1660,10 +1624,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual UniquePtr<IDirectX12Image> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Texture> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
+		virtual UniquePtr<IDirectX12Image> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<IDirectX12Texture>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
+		virtual Array<UniquePtr<IDirectX12Image>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
 
 		/// <inheritdoc />
 		virtual UniquePtr<IDirectX12Sampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;

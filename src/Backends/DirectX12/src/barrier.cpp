@@ -76,14 +76,14 @@ void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& s
 	m_impl->m_images.push_back(ImageElement(image, image.getSubresourceId(level, layer, plane), sourceState, targetState));
 }
 
-void DirectX12Barrier::waitFor(IDirectX12Buffer& buffer)
+void DirectX12Barrier::waitFor(const IDirectX12Buffer& buffer)
 {
-	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(std::as_const(buffer).handle().Get()));
+	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(buffer.handle().Get()));
 }
 
-void DirectX12Barrier::waitFor(IDirectX12Image& image)
+void DirectX12Barrier::waitFor(const IDirectX12Image& image)
 {
-	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(std::as_const(image).handle().Get()));
+	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(image.handle().Get()));
 }
 
 void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const noexcept

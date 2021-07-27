@@ -39,55 +39,6 @@ DirectX12Buffer::DirectX12Buffer(const DirectX12Device& device, ComPtr<ID3D12Res
 
 DirectX12Buffer::~DirectX12Buffer() noexcept = default;
 
-void DirectX12Buffer::receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept
-{
-	//if ((receive && this->state() == ResourceState::CopyDestination) || (!receive && this->state() != ResourceState::CopyDestination))
-	//	return;
-	//
-	//this->transitionTo(commandBuffer, receive ? ResourceState::CopyDestination : ResourceState::Common);
-}
-
-void DirectX12Buffer::sendData(const DirectX12CommandBuffer& commandBuffer, const bool& emit) const noexcept
-{
-	//if ((emit && this->state() == ResourceState::CopySource) || (!emit && this->state() != ResourceState::CopySource))
-	//	return;
-
-	//this->transitionTo(commandBuffer, emit ? ResourceState::CopySource : ResourceState::GenericRead);
-}
-
-void DirectX12Buffer::transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
-{
-	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
-
-	if (this->elements() < targetElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The current buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", this->elements(), elements, targetElement);
-
-#ifndef NDEBUG
-	if (layer > 0) [[unlikely]]
-		LITEFX_WARNING(DIRECTX12_LOG, "You've specified a buffer copy operation for layer {0}, however layers are ignored for buffer-buffer transfers.", layer);
-
-	if (plane > 0) [[unlikely]]
-		LITEFX_WARNING(DIRECTX12_LOG, "You've specified a buffer copy operation for plane {0}, however planes are ignored for buffer-buffer transfers.", plane);
-#endif
-
-	source.sendData(commandBuffer, true);	
-	this->receiveData(commandBuffer, true);
-
-	commandBuffer.handle()->CopyBufferRegion(this->handle().Get(), targetElement * this->alignedElementSize(), source.handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
-
-	if (!leaveSourceState)
-		source.sendData(commandBuffer, false);
-
-	if (!leaveTargetState)
-		this->receiveData(commandBuffer, false);
-}
-
-void DirectX12Buffer::transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements, const bool& leaveSourceState, const bool& leaveTargetState, const UInt32& layer, const UInt32& plane) const
-{
-	target.transferFrom(commandBuffer, *this, sourceElement, targetElement, elements, leaveSourceState, leaveTargetState, layer, plane);
-}
-
 const BufferType& DirectX12Buffer::type() const noexcept
 {
 	return m_impl->m_type;
@@ -163,44 +114,6 @@ void DirectX12Buffer::map(const void* const data, const size_t& size, const UInt
 void DirectX12Buffer::map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement)
 {
 	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
-}
-
-D3D12_RESOURCE_BARRIER DirectX12Buffer::transitionTo(const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
-{
-	// NOTE: We assume that each sub-resource has been transitioned into the same state (which is enforced by the barrier later).
-	ResourceState currentState = subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES ? this->state(0) : this->state(subresource);
-
-	if (currentState == state) [[unlikely]]
-		throw InvalidArgumentException("The specified buffer state must be different from the current resource state.");
-
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(currentState), ::getResourceState(state), subresource, flags);
-	
-	if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
-		for (UInt32 r(0); r < this->elements(); ++r)
-			const_cast<DirectX12Buffer*>(this)->state(r) = state;
-	else
-		const_cast<DirectX12Buffer*>(this)->state(subresource) = state;
-
-	return barrier;
-}
-
-void DirectX12Buffer::transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& subresource, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const
-{
-	// NOTE: We assume that each sub-resource has been transitioned into the same state (which is enforced by the barrier later).
-	ResourceState currentState = subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES ? this->state(0) : this->state(subresource);
-	
-	if (currentState == state) [[unlikely]]
-		return;
-
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->handle().Get(), ::getResourceState(currentState), ::getResourceState(state), subresource, flags);
-	
-	if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
-		for (UInt32 r(0); r < this->elements(); ++r)
-			const_cast<DirectX12Buffer*>(this)->state(r) = state;
-	else
-		const_cast<DirectX12Buffer*>(this)->state(subresource) = state;
-
-	commandBuffer.handle()->ResourceBarrier(1, &barrier);
 }
 
 AllocatorPtr DirectX12Buffer::allocator() const noexcept

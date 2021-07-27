@@ -169,16 +169,16 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 	if (::hasDepth(format) || ::hasStencil(format))
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, false, ResourceState::DepthRead, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, resourceDesc, allocationDesc);
 	}
 	else
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, false, ResourceState::ReadOnly, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::ReadOnly, resourceDesc, allocationDesc);
 	}
 }
 
-UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
 		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
@@ -201,12 +201,12 @@ UniquePtr<IDirectX12Texture> DirectX12GraphicsFactory::createTexture(const Forma
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
 	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 	
-	return DirectX12Texture::allocate(m_impl->m_device, m_impl->m_allocator, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 }
 
-Array<UniquePtr<IDirectX12Texture>> DirectX12GraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+Array<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
-	Array<UniquePtr<IDirectX12Texture>> textures(elements);
+	Array<UniquePtr<IDirectX12Image>> textures(elements);
 	std::ranges::generate(textures, [&, this]() { return this->createTexture(format, size, dimension, levels, layers, samples); });
 	return textures;
 }

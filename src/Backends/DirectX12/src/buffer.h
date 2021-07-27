@@ -25,20 +25,6 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Buffer(const DirectX12Buffer&) = delete;
 		virtual ~DirectX12Buffer() noexcept;
 
-		// ITransferable interface.
-	public:
-		/// <inheritdoc />
-		virtual void receiveData(const DirectX12CommandBuffer& commandBuffer, const bool& receive) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void sendData(const DirectX12CommandBuffer& commandBuffer, const bool& emit) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void transferFrom(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& source, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
-
-		/// <inheritdoc />
-		virtual void transferTo(const DirectX12CommandBuffer& commandBuffer, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
-
 		// IBuffer interface.
 	public:
 		/// <inheritdoc />
@@ -77,11 +63,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement = 0) override;
-
-		// IDirectX12Resource interface.
-	public:
-		virtual D3D12_RESOURCE_BARRIER transitionTo(const ResourceState& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const override;
-		virtual void transitionTo(const DirectX12CommandBuffer& commandBuffer, const ResourceState& state, const UInt32& element = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS& flags = D3D12_RESOURCE_BARRIER_FLAG_NONE) const override;
 
 		// DirectX 12 buffer.
 	protected:

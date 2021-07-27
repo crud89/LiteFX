@@ -64,7 +64,6 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12VertexBuffer;
     class IDirectX12IndexBuffer;
     class IDirectX12Image;
-    class IDirectX12Texture;
     class IDirectX12Sampler;
 
     // Builder declarations.
