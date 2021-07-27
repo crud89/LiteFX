@@ -572,6 +572,96 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
         //virtual void generateMipMaps(const TImage& image) noexcept = 0;
+        
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
+        /// </summary>
+        /// <param name="source">The source buffer to transfer data from.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
+        /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        virtual void transfer(const TBuffer& source, const TBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const = 0;
+
+        /// <summary>
+        /// Performs a buffer-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="subresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
+        /// resources are counted in the following order:
+        /// 
+        /// <list type="bullet">
+        ///     <item>
+        ///         <term>Level</term>
+        ///         <description>Contains the mip-map levels.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Layer</term>
+        ///         <description>Contains the array slices.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Plane</term>
+        ///         <description>Contains planes for multi-planar formats.</description>
+        ///     </item>
+        /// </list>
+        /// 
+        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
+        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
+        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
+        /// </remarks>
+        /// <param name="source">The source buffer to transfer data from.</param>
+        /// <param name="target">The target image to transfer data to.</param>
+        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        virtual void transfer(const TBuffer& source, const TImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const = 0;
+
+        /// <summary>
+        /// Performs an image-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
+        /// </summary>
+        /// <param name="source">The source image to transfer data from.</param>
+        /// <param name="target">The target image to transfer data to.</param>
+        /// <param name="sourceSubresource">The index of the first sub-resource to copy from the source image.</param>
+        /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
+        /// <param name="subresources">The number of sub-resources to copy between the images.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        virtual void transfer(const TImage& source, const TImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const = 0;
+
+        /// <summary>
+        /// Performs an image-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="firstSubresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
+        /// resources are counted in the following order:
+        /// 
+        /// <list type="bullet">
+        ///     <item>
+        ///         <term>Level</term>
+        ///         <description>Contains the mip-map levels.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Layer</term>
+        ///         <description>Contains the array slices.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Plane</term>
+        ///         <description>Contains planes for multi-planar formats.</description>
+        ///     </item>
+        /// </list>
+        /// 
+        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
+        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
+        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
+        /// </remarks>
+        /// <param name="source">The source image to transfer data from.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource to copy from the source image.</param>
+        /// <param name="targetElement">The index of the first target element to receive data.</param>
+        /// <param name="subresources">The number of sub-resources to copy.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        virtual void transfer(const TImage& source, const TBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const = 0;
     };
 
     /// <summary>

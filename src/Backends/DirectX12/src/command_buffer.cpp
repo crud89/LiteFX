@@ -149,3 +149,72 @@ void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier, const bool
 	else
 		barrier.execute(*this);
 }
+
+void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+{
+	if (source.elements() < sourceElement + elements) [[unlikely]]
+		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+
+	if (target.elements() < targetElement + elements) [[unlikely]]
+		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
+
+	this->handle()->CopyBufferRegion(target.handle().Get(), targetElement * target.alignedElementSize(), source.handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
+}
+
+void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+{
+	if (source.elements() < sourceElement + elements) [[unlikely]]
+		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+
+	if (target.elements() < firstSubresource + elements) [[unlikely]]
+		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+	const auto& sourceDesc = source.handle()->GetDesc();
+
+	for (int sr(0); sr < elements; ++sr)
+	{
+		this->getDevice()->handle()->GetCopyableFootprints(&sourceDesc, sourceElement + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), firstSubresource + sr);
+		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+	}
+}
+
+void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Image& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+{
+	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
+
+	if (target.elements() < targetSubresource + subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
+
+	// TODO: Check if we can possibly do this more efficiently by copying multiple sub-resources at once.
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+	const auto& sourceDesc = source.handle()->GetDesc();
+
+	for (int sr(0); sr < subresources; ++sr)
+	{
+		this->getDevice()->handle()->GetCopyableFootprints(&sourceDesc, sourceSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), targetSubresource + sr);
+		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+	}
+}
+
+void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+{
+	if (source.elements() < firstSubresource + subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
+
+	if (target.elements() <= targetElement + subresources) [[unlikely]]
+		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+	const auto& sourceDesc = source.handle()->GetDesc();
+
+	for (int sr(0); sr < subresources; ++sr)
+	{
+		this->getDevice()->handle()->GetCopyableFootprints(&sourceDesc, firstSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), targetElement + sr);
+		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
+	}
+}
