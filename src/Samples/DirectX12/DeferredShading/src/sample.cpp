@@ -133,7 +133,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+    commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
@@ -141,7 +141,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+    commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -169,12 +169,12 @@ void SampleApp::initBuffers()
     auto stagedViewPlaneVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, viewPlaneVertices.size());
     stagedViewPlaneVertices->map(viewPlaneVertices.data(), viewPlaneVertices.size() * sizeof(::Vertex), 0);
     m_viewPlaneVertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, viewPlaneVertices.size());
-    m_viewPlaneVertexBuffer->transferFrom(*commandBuffer, *stagedViewPlaneVertices, 0, 0, viewPlaneVertices.size());
+    commandBuffer->transfer(*stagedViewPlaneVertices, *m_viewPlaneVertexBuffer, 0, 0, viewPlaneVertices.size());
 
     auto stagedViewPlaneIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, viewPlaneIndices.size());
     stagedViewPlaneIndices->map(viewPlaneIndices.data(), viewPlaneIndices.size() * m_inputAssembler->indexBufferLayout().elementSize(), 0);
     m_viewPlaneIndexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, viewPlaneIndices.size());
-    m_viewPlaneIndexBuffer->transferFrom(*commandBuffer, *stagedViewPlaneIndices, 0, 0, viewPlaneIndices.size());
+    commandBuffer->transfer(*stagedViewPlaneIndices, *m_viewPlaneIndexBuffer, 0, 0, viewPlaneIndices.size());
 
     // Create the G-Buffer bindings.
     m_gBufferBindings = m_lightingPipeline->layout().descriptorSet(0).allocate(3);
@@ -191,7 +191,7 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
+    commandBuffer.transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 }
 
 void SampleApp::run() 

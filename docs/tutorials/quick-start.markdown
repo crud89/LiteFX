@@ -446,7 +446,7 @@ The `BufferUsage` defines where the buffer should be visible from. `Staging` cor
 
 ```cxx
 m_vertexBuffer = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 ```
 
 We store the vertex buffer in a member variable. We then go ahead and repeat the same process for the index buffer:
@@ -456,7 +456,7 @@ auto stagedIndices = m_device->factory().createIndexBuffer(inputAssembler->index
 stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout().elementSize(), 0);
 
 m_indexBuffer = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 ```
 
 #### Constant/Uniform Buffers
@@ -509,7 +509,7 @@ In the last line, we pre-multiply the view/projection matrix and store it in the
 
 ```cxx
 m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-m_cameraBuffer->transferFrom(*commandBuffer, *m_cameraStagingBuffer);
+commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 ```
 
 The last thing we need to do is making the descriptor point to the GPU-visible camera buffer. We only need to do this once, since we do not change the buffer location on the GPU:
@@ -673,7 +673,7 @@ camera.ViewProjection = projection * view;
 
 auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
 m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-m_cameraBuffer->transferFrom(*commandBuffer, *m_cameraStagingBuffer);
+commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 commandBuffer->end(true, true);
 ```
 

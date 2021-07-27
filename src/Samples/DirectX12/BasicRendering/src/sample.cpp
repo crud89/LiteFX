@@ -93,7 +93,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+    commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
@@ -101,7 +101,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+    commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -137,10 +137,10 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
+    commandBuffer.transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 }
 
-void SampleApp::run() 
+void SampleApp::run()
 {
     // Start by creating the surface and selecting the adapter.
     auto backend = this->findBackend<DirectX12Backend>(BackendType::Rendering);

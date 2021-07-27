@@ -107,7 +107,7 @@ private:
 	/// <summary>
 	/// Stores the texture.
 	/// </summary>
-	UniquePtr<IDirectX12Texture> m_texture;
+	UniquePtr<IDirectX12Image> m_texture;
 
 	/// <summary>
 	/// Stores the sampler state for <see cref="m_texture" />.
