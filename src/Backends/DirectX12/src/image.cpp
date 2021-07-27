@@ -63,13 +63,13 @@ size_t DirectX12Image::size() const noexcept
 			totalSize += elementSize;
 		}
 
-		return totalSize * m_impl->m_elements;
+		return totalSize * m_impl->m_planes;
 	}
 }
 
 size_t DirectX12Image::elementSize() const noexcept
 {
-	return this->size() / m_impl->m_elements;
+	return this->size();
 }
 
 size_t DirectX12Image::elementAlignment() const noexcept
@@ -80,6 +80,7 @@ size_t DirectX12Image::elementAlignment() const noexcept
 
 size_t DirectX12Image::alignedElementSize() const noexcept
 {
+	// TODO: Align this by `elementAlignment`.
 	return this->elementSize();
 }
 
@@ -137,7 +138,6 @@ Size3d DirectX12Image::extent(const UInt32& level) const noexcept
 
 	return size;
 }
-
 
 const Format& DirectX12Image::format() const noexcept
 {

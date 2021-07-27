@@ -172,6 +172,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns the size of a single element within the buffer. If there is only one element, this is equal to <see cref="size" />.
         /// </summary>
+        /// <remarks>
+        /// For images, this method will return a value that equals the result of <see cref="size" />.
+        /// </remarks>
         /// <returns>The size of a single element within the buffer</returns>
         /// <seealso cref="elementAlignment" />
         /// <seealso cref="alignedElementSize" />
@@ -188,6 +191,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns the actual size of the element in device memory.
         /// </summary>
+        /// <remarks>
+        /// For images, this method will return a value that equals the result of <see cref="size" />, aligned by <see cref="elementAlignment" />.
+        /// </remarks>
         /// <returns>The actual size of the element in device memory.</returns>
         /// <seealso cref="elementAlignment" />
         /// <seealso cref="elementSize" />
