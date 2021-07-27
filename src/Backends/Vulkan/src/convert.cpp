@@ -978,6 +978,7 @@ VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::getAccessFlags(cons
 	case ResourceState::UniformBuffer: return VkAccessFlagBits::VK_ACCESS_UNIFORM_READ_BIT;
 	case ResourceState::VertexBuffer: return VkAccessFlagBits::VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 	case ResourceState::IndexBuffer: return VkAccessFlagBits::VK_ACCESS_INDEX_READ_BIT;
+	case ResourceState::GenericRead: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT | VkAccessFlagBits::VK_ACCESS_INDEX_READ_BIT | VkAccessFlagBits::VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VkAccessFlagBits::VK_ACCESS_UNIFORM_READ_BIT | VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT | VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
 	case ResourceState::ReadOnly: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT;
 	case ResourceState::ReadWrite: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT | VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT;
 	case ResourceState::CopySource: return VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT;
