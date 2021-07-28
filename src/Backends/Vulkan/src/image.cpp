@@ -225,6 +225,11 @@ const UInt32& VulkanImage::layers() const noexcept
 	return m_impl->m_layers;
 }
 
+const UInt32& VulkanImage::planes() const noexcept
+{
+	return m_impl->m_planes;
+}
+
 const MultiSamplingLevel& VulkanImage::samples() const noexcept
 {
 	return m_impl->m_samples;

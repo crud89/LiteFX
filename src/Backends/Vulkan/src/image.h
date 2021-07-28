@@ -66,6 +66,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& layers() const noexcept override;
 
 		/// <inheritdoc />
+		virtual const UInt32& planes() const noexcept override;
+
+		/// <inheritdoc />
 		virtual const MultiSamplingLevel& samples() const noexcept override;
 
 		// IVulkanImage interface.

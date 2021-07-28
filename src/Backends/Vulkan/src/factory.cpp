@@ -260,12 +260,12 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
 	if (::hasDepth(format)) [[unlikely]]
-		return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, false, ResourceState::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
+		return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
 	else
-		return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, false, ResourceState::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
+		return VulkanImage::allocate(m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
-UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
 		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
@@ -303,12 +303,12 @@ UniquePtr<IVulkanTexture> VulkanGraphicsFactory::createTexture(const Format& for
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanTexture::allocate(m_impl->m_device, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, m_impl->m_allocator, imageInfo, allocInfo);
+	return VulkanImage::allocate(m_impl->m_device, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, m_impl->m_allocator, imageInfo, allocInfo);
 }
 
-Array<UniquePtr<IVulkanTexture>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+Array<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
-	Array<UniquePtr<IVulkanTexture>> textures(elements);
+	Array<UniquePtr<IVulkanImage>> textures(elements);
 	std::ranges::generate(textures, [&, this]() { return this->createTexture(format, size, dimension, levels, layers, samples, allowWrite); });
 	return textures;
 }

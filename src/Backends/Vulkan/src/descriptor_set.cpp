@@ -130,7 +130,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
     ::vkUpdateDescriptorSets(this->getDevice()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanTexture& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
+void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanImage& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
 {
     VkDescriptorImageInfo imageInfo{ };
     VkWriteDescriptorSet descriptorWrite{ };
