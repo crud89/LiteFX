@@ -235,6 +235,89 @@ const MultiSamplingLevel& VulkanImage::samples() const noexcept
 	return m_impl->m_samples;
 }
 
+VkImageAspectFlags VulkanImage::aspectMask() const noexcept
+{
+	// Get the aspect mask for all sub-resources.
+	if (::hasDepth(m_impl->m_format) && ::hasStencil(m_impl->m_format))
+	{
+		return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
+	else if (::hasDepth(m_impl->m_format))
+	{
+		return VK_IMAGE_ASPECT_DEPTH_BIT;
+	}
+	else if (::hasStencil(m_impl->m_format))
+	{
+		return VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
+	//else if (::isMultiPlanar(m_impl->m_format))
+	else if (m_impl->m_planes > 1)
+	{
+		VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT;
+
+		if (m_impl->m_planes > 1)
+			aspectMask |= VK_IMAGE_ASPECT_PLANE_1_BIT;
+		if (m_impl->m_planes > 2)
+			aspectMask |= VK_IMAGE_ASPECT_PLANE_2_BIT;
+		if (m_impl->m_planes > 3) [[unlikely]]
+			LITEFX_ERROR(VULKAN_LOG, "An image resource with a multi-planar format has {0} planes, which is not supported (maximum is {1}).", m_impl->m_planes, 3);
+
+		return aspectMask;
+	}
+	else [[likely]]
+	{
+		return VK_IMAGE_ASPECT_COLOR_BIT;
+	}
+}
+
+VkImageAspectFlags VulkanImage::aspectMask(const UInt32& plane) const 
+{
+	if (::hasDepth(m_impl->m_format) && ::hasStencil(m_impl->m_format))
+	{
+		if (plane > 2) [[unlikely]]		// Should actually never happen.
+			throw RuntimeException("An image resource with a depth/stencil format has more than two planes, which is not supported.");
+
+		return plane == 1 ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
+	}
+	else if (::hasDepth(m_impl->m_format))
+	{
+		if (plane > 1) [[unlikely]]		// Should actually never happen.
+			throw RuntimeException("An image resource with a depth-only format has more than one planes, which is not supported.");
+
+		return VK_IMAGE_ASPECT_DEPTH_BIT;
+	}
+	else if (::hasStencil(m_impl->m_format))
+	{
+		if (plane > 1) [[unlikely]]		// Should actually never happen.
+			throw RuntimeException("An image resource with a stencil-only format has more than one planes, which is not supported.");
+
+		return VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
+	else if (m_impl->m_planes > 1)
+	{
+		if (plane == 0)
+			return VK_IMAGE_ASPECT_PLANE_0_BIT;
+		else if (plane == 1)
+			return VK_IMAGE_ASPECT_PLANE_1_BIT;
+		else if (plane == 2)
+			return VK_IMAGE_ASPECT_PLANE_2_BIT;
+		else [[unlikely]]		// Should actually never happen.
+			throw RuntimeException("An image resource with a multi-planar format has more than three planes, which is not supported.");
+	}
+	else [[likely]]
+	{
+		return VK_IMAGE_ASPECT_COLOR_BIT;
+	}
+}
+
+void VulkanImage::resolveSubresource(const UInt32& subresource, UInt32& plane, UInt32& layer, UInt32& level) const
+{
+	const UInt32 resourcesPerPlane = m_impl->m_levels * m_impl->m_layers;
+	plane = subresource / resourcesPerPlane;
+	layer = (subresource % resourcesPerPlane) / m_impl->m_levels;
+	level = subresource % m_impl->m_levels;
+}
+
 const VkImageView& VulkanImage::imageView(const UInt32& plane) const
 {
 	if (plane >= m_impl->m_views.size()) [[unlikely]]

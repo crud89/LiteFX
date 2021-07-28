@@ -210,6 +210,9 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~IVulkanImage() noexcept = default;
 
 	public:
+		virtual VkImageAspectFlags aspectMask() const noexcept = 0;
+		virtual VkImageAspectFlags aspectMask(const UInt32& plane) const = 0;
+		virtual void resolveSubresource(const UInt32& subresource, UInt32& plane, UInt32& layer, UInt32& level) const = 0;
 		virtual const VkImageView& imageView(const UInt32& plane = 0) const = 0;
 	};
 

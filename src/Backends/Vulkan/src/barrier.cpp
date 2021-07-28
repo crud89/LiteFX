@@ -164,21 +164,25 @@ void VulkanBarrier::transition(IVulkanImage& image, const ResourceState& sourceS
 
 void VulkanBarrier::waitFor(const IVulkanBuffer& buffer)
 {
+    // TODO: We could possible use a VkBufferMemoryBarrier with no layout transition for this instead of a global barrier. This should
+    //       be equal to a default barrier, but with matching target and source states.
     m_impl->m_waitBarriers.push_back(VkMemoryBarrier {
         .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = ::getAccessFlags(buffer.state(0)),
-        .dstAccessMask = ::getAccessFlags(buffer.state(0))
+        .dstAccessMask = VK_ACCESS_SHADER_READ_BIT
     });
 }
 
 void VulkanBarrier::waitFor(const IVulkanImage& image)
 {
-    m_impl->m_waitBarriers.push_back(VkMemoryBarrier{
+    // TODO: We could possible use a VkImageMemoryBarrier with no layout transition for this instead of a global barrier. This should
+    //       be equal to a default barrier, but with matching target and source states.
+    m_impl->m_waitBarriers.push_back(VkMemoryBarrier {
         .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = ::getAccessFlags(image.state(0)),
-        .dstAccessMask = ::getAccessFlags(image.state(0))
+        .dstAccessMask = VK_ACCESS_SHADER_READ_BIT
     });
 }
 
@@ -208,8 +212,10 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
         UInt32 offset = 0, size = buffer.size();
 
         if (element == VK_RESOURCE_BARRIER_ALL_SUBRESOURCES)
+        {
             for (UInt32 e(0); e < buffer.elements(); ++e)
                 buffer.state(e) = targetState;
+        }
         else
         {
             offset = buffer.alignedElementSize() * element;
@@ -242,29 +248,12 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
         firstStageToConsume = getEarliestStage(firstStageToConsume, targetState);
 
         VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        UInt32 layer = 0, level = 0;
+        UInt32 layer = 0, level = 0, plane = 0;
 
         if (subresource == VK_RESOURCE_BARRIER_ALL_SUBRESOURCES)
         {
-            // Get the aspect mask for all sub-resources.
-            if (::hasDepth(image.format()) && ::hasStencil(image.format()))
-                aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-            else if (::hasDepth(image.format()))
-                aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-            else if (::hasStencil(image.format()))
-                aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-            //else if (::isMultiPlanar(image.format()))
-            else if (image.planes() > 1)
-            {
-                aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT;
-
-                if (image.planes() > 1)
-                    aspectMask |= VK_IMAGE_ASPECT_PLANE_1_BIT;
-                if (image.planes() > 2)
-                    aspectMask |= VK_IMAGE_ASPECT_PLANE_2_BIT;
-                if (image.planes() > 3) [[unlikely]]
-                    throw RuntimeException("An image resource with a multi-planar format has more than three planes, which is not supported.");
-            }
+            // Get the image aspect mask for all planes.
+            aspectMask = image.aspectMask();
 
             // Update the image target states.
             for (UInt32 e(0); e < image.elements(); ++e)
@@ -272,47 +261,11 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
         }
         else
         {
-            // Get the plane index from the sub-resource and compute the image aspect.
-            UInt32 resourcesPerPlane = image.elements() / image.planes();
-            UInt32 plane = subresource / resourcesPerPlane;
+            // Resolve the sub-resource.
+            image.resolveSubresource(subresource, plane, layer, level);
 
-            if (::hasDepth(image.format()) && ::hasStencil(image.format()))
-            {
-                if (plane > 2) [[unlikely]]		// Should actually never happen.
-                    throw RuntimeException("An image resource with a depth/stencil format has more than two planes, which is not supported.");
-
-                aspectMask = plane == 1 ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
-            }
-            else if (::hasDepth(image.format()))
-            {
-                if (plane > 1) [[unlikely]]		// Should actually never happen.
-                    throw RuntimeException("An image resource with a depth-only format has more than one planes, which is not supported.");
-
-                aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-            }
-            else if (::hasStencil(image.format()))
-            {
-                if (plane > 1) [[unlikely]]		// Should actually never happen.
-                    throw RuntimeException("An image resource with a stencil-only format has more than one planes, which is not supported.");
-
-                aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-            }
-            else if (image.planes() > 1)
-            {
-                if (plane == 0)
-                    aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT;
-                else if (plane == 1)
-                    aspectMask = VK_IMAGE_ASPECT_PLANE_1_BIT;
-                else if (plane == 2)
-                    aspectMask = VK_IMAGE_ASPECT_PLANE_2_BIT;
-                else [[unlikely]]		// Should actually never happen.
-                    throw RuntimeException("An image resource with a multi-planar format has more than three planes, which is not supported.");
-            }
-
-            // Compute the layer and level from the sub-resource id.
-            UInt32 resourcesPerLayer = resourcesPerPlane / image.layers();
-            layer = (subresource % resourcesPerPlane) / resourcesPerLayer;
-            level = subresource % resourcesPerLayer;
+            // Get the image aspect mask for the plane.
+            aspectMask = image.aspectMask(plane);
 
             // Update the sub-resource target state.
             image.state(subresource) = targetState;
@@ -368,8 +321,10 @@ void VulkanBarrier::executeInverse(const VulkanCommandBuffer& commandBuffer) con
         UInt32 offset = 0, size = buffer.size();
 
         if (element == VK_RESOURCE_BARRIER_ALL_SUBRESOURCES)
+        {
             for (UInt32 e(0); e < buffer.elements(); ++e)
                 buffer.state(e) = targetState;
+        }
         else
         {
             offset = buffer.alignedElementSize() * element;
@@ -402,29 +357,12 @@ void VulkanBarrier::executeInverse(const VulkanCommandBuffer& commandBuffer) con
         firstStageToConsume = getEarliestStage(firstStageToConsume, targetState);
 
         VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        UInt32 layer = 0, level = 0;
+        UInt32 layer = 0, level = 0, plane = 0;
 
         if (subresource == VK_RESOURCE_BARRIER_ALL_SUBRESOURCES)
         {
-            // Get the aspect mask for all sub-resources.
-            if (::hasDepth(image.format()) && ::hasStencil(image.format()))
-                aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-            else if (::hasDepth(image.format()))
-                aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-            else if (::hasStencil(image.format()))
-                aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-            //else if (::isMultiPlanar(image.format()))
-            else if (image.planes() > 1)
-            {
-                aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT;
-
-                if (image.planes() > 1)
-                    aspectMask |= VK_IMAGE_ASPECT_PLANE_1_BIT;
-                if (image.planes() > 2)
-                    aspectMask |= VK_IMAGE_ASPECT_PLANE_2_BIT;
-                if (image.planes() > 3) [[unlikely]]
-                    throw RuntimeException("An image resource with a multi-planar format has more than three planes, which is not supported.");
-            }
+            // Get the image aspect mask for all planes.
+            aspectMask = image.aspectMask();
 
             // Update the image target states.
             for (UInt32 e(0); e < image.elements(); ++e)
@@ -432,47 +370,11 @@ void VulkanBarrier::executeInverse(const VulkanCommandBuffer& commandBuffer) con
         }
         else
         {
-            // Get the plane index from the sub-resource and compute the image aspect.
-            UInt32 resourcesPerPlane = image.elements() / image.planes();
-            UInt32 plane = subresource / resourcesPerPlane;
+            // Resolve the sub-resource.
+            image.resolveSubresource(subresource, plane, layer, level);
 
-            if (::hasDepth(image.format()) && ::hasStencil(image.format()))
-            {
-                if (plane > 2) [[unlikely]]		// Should actually never happen.
-                    throw RuntimeException("An image resource with a depth/stencil format has more than two planes, which is not supported.");
-
-                aspectMask = plane == 1 ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
-            }
-            else if (::hasDepth(image.format()))
-            {
-                if (plane > 1) [[unlikely]]		// Should actually never happen.
-                    throw RuntimeException("An image resource with a depth-only format has more than one planes, which is not supported.");
-
-                aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-            }
-            else if (::hasStencil(image.format()))
-            {
-                if (plane > 1) [[unlikely]]		// Should actually never happen.
-                    throw RuntimeException("An image resource with a stencil-only format has more than one planes, which is not supported.");
-
-                aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-            }
-            else if (image.planes() > 1)
-            {
-                if (plane == 0)
-                    aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT;
-                else if (plane == 1)
-                    aspectMask = VK_IMAGE_ASPECT_PLANE_1_BIT;
-                else if (plane == 2)
-                    aspectMask = VK_IMAGE_ASPECT_PLANE_2_BIT;
-                else [[unlikely]]		// Should actually never happen.
-                    throw RuntimeException("An image resource with a multi-planar format has more than three planes, which is not supported.");
-            }
-
-            // Compute the layer and level from the sub-resource id.
-            UInt32 resourcesPerLayer = resourcesPerPlane / image.layers();
-            layer = (subresource % resourcesPerPlane) / resourcesPerLayer;
-            level = subresource % resourcesPerLayer;
+            // Get the image aspect mask for the plane.
+            aspectMask = image.aspectMask(plane);
 
             // Update the sub-resource target state.
             image.state(subresource) = targetState;

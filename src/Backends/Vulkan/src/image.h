@@ -73,6 +73,9 @@ namespace LiteFX::Rendering::Backends {
 
 		// IVulkanImage interface.
 	public:
+		virtual VkImageAspectFlags aspectMask() const noexcept override;
+		virtual VkImageAspectFlags aspectMask(const UInt32& plane) const override;
+		virtual void resolveSubresource(const UInt32& subresource, UInt32& plane, UInt32& layer, UInt32& level) const override;
 		virtual const VkImageView& imageView(const UInt32& plane = 0) const override;
 
 	protected:
