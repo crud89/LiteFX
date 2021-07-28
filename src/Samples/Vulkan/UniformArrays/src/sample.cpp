@@ -130,7 +130,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+    commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
@@ -138,7 +138,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+    commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 
     // Initialize the static buffers. The camera and lights buffers are constant, so we only need to create one buffer (for each), that can be read 
     // from all frames. Since this is a write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -163,7 +163,7 @@ void SampleApp::initBuffers()
 
     auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | ranges::to<Array<const void*>>();
     lightsStagingBuffer->map(lightsData, sizeof(LightBuffer));
-    m_lightsBuffer->transferFrom(*commandBuffer, *lightsStagingBuffer, 0, 0, LIGHT_SOURCES);
+    commandBuffer->transfer(*lightsStagingBuffer, *m_lightsBuffer, 0, 0, LIGHT_SOURCES);
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
@@ -198,7 +198,7 @@ void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
+    commandBuffer.transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 }
 
 void SampleApp::run() 
