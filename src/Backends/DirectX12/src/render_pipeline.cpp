@@ -287,27 +287,7 @@ const bool& DirectX12RenderPipeline::alphaToCoverage() const noexcept
 	return m_impl->m_alphaToCoverage;
 }
 
-void DirectX12RenderPipeline::bind(const IDirectX12VertexBuffer& buffer) const
-{
-	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
-
-	commandBuffer.handle()->IASetVertexBuffers(buffer.layout().binding(), 1, &buffer.view());
-	commandBuffer.handle()->IASetPrimitiveTopology(::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
-}
-
-void DirectX12RenderPipeline::bind(const IDirectX12IndexBuffer& buffer) const
-{
-	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
-
-	commandBuffer.handle()->IASetIndexBuffer(&buffer.view());
-}
-
-void DirectX12RenderPipeline::bind(const DirectX12DescriptorSet& descriptorSet) const
-{
-	this->getDevice()->updateGlobalDescriptors(this->parent().activeFrameBuffer().commandBuffer(), descriptorSet);
-}
-
-void DirectX12RenderPipeline::use() const
+void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
 	// TODO: Check if the arguments are right, or if they are in absolute coordinates.
 	auto viewports = m_impl->m_viewports |
@@ -320,25 +300,13 @@ void DirectX12RenderPipeline::use() const
 
 	Float blendFactor[4] = { m_impl->m_blendFactors.x(), m_impl->m_blendFactors.y(), m_impl->m_blendFactors.z(), m_impl->m_blendFactors.w() };
 
-	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 	commandBuffer.handle()->RSSetViewports(viewports.size(), viewports.data());
 	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
 	commandBuffer.handle()->OMSetStencilRef(m_impl->m_stencilRef);
 	commandBuffer.handle()->OMSetBlendFactor(blendFactor);
-}
-
-void DirectX12RenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
-{
-	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
-	commandBuffer.handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);
-}
-
-void DirectX12RenderPipeline::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const
-{
-	const auto& commandBuffer = this->parent().activeFrameBuffer().commandBuffer();
-	commandBuffer.handle()->DrawIndexedInstanced(indices, instances, firstIndex, vertexOffset, firstInstance);
+	commandBuffer.handle()->IASetPrimitiveTopology(::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -13,7 +13,6 @@ public:
 
 private:
 	UniquePtr<DirectX12PipelineLayout> m_layout;
-	const DirectX12CommandBuffer* m_commandBuffer = nullptr;
 	String m_name;
 
 public:
@@ -89,43 +88,10 @@ const DirectX12PipelineLayout& DirectX12ComputePipeline::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-const DirectX12CommandBuffer* DirectX12ComputePipeline::commandBuffer() const noexcept
+void DirectX12ComputePipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
-	return m_impl->m_commandBuffer;
-}
-
-void DirectX12ComputePipeline::bind(const DirectX12DescriptorSet& descriptorSet) const
-{
-	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
-		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
-
-	this->getDevice()->updateGlobalDescriptors(*m_impl->m_commandBuffer, descriptorSet);
-}
-
-void DirectX12ComputePipeline::dispatch(const Vector3u& threadCount) const
-{
-	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
-		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
-
-	m_impl->m_commandBuffer->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
-}
-
-void DirectX12ComputePipeline::begin(const DirectX12CommandBuffer& commandBuffer)
-{
-	if (m_impl->m_commandBuffer != nullptr) [[unlikely]]
-		throw RuntimeException("A compute pipeline must only be bound to one command buffer. Call `end` on the pipeline first.");
-
-	m_impl->m_commandBuffer = &commandBuffer;
-	m_impl->m_commandBuffer->handle()->SetPipelineState(this->handle().Get());
-	m_impl->m_commandBuffer->handle()->SetComputeRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
-
-	// TODO: Remove this, if issue #33 is resolved.
-	this->getDevice()->bindGlobalDescriptorHeaps(*m_impl->m_commandBuffer);
-}
-
-void DirectX12ComputePipeline::end()
-{
-	m_impl->m_commandBuffer = nullptr;
+	commandBuffer.handle()->SetPipelineState(this->handle().Get());
+	commandBuffer.handle()->SetComputeRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 }
 
 // ------------------------------------------------------------------------------------------------

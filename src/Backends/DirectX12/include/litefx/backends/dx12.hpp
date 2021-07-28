@@ -296,61 +296,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Records commands for a <see cref="DirectX12CommandQueue" />
-	/// </summary>
-	/// <seealso cref="DirectX12CommandQueue" />
-	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer<IDirectX12Buffer, IDirectX12Image, DirectX12Barrier>, public DirectX12RuntimeObject<DirectX12Queue>, public ComResource<ID3D12GraphicsCommandList4> {
-		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
-
-	public:
-		/// <summary>
-		/// Initializes the command buffer from a command queue.
-		/// </summary>
-		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
-		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
-		explicit DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin = false);
-		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
-		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
-		virtual ~DirectX12CommandBuffer() noexcept;
-
-		// ICommandBuffer interface.
-	public:
-		/// <inheritdoc />
-		virtual void wait() const override;
-
-		/// <inheritdoc />
-		virtual void begin() const override;
-
-		/// <inheritdoc />
-		virtual void end(const bool& submit = true, const bool& wait = false) const override;
-
-		/// <inheritdoc />
-		virtual void submit(const bool& wait = false) const override;
-
-		/// <inheritdoc />
-		virtual void generateMipMaps(IDirectX12Image& image) noexcept override;
-
-		/// <inheritdoc />
-		virtual void barrier(const DirectX12Barrier& barrier, const bool& invert = false) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void transfer(const IDirectX12Buffer& source, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
-
-		/// <inheritdoc />
-		virtual void transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
-
-		/// <inheritdoc />
-		virtual void transfer(const IDirectX12Image& source, const IDirectX12Image& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
-
-		/// <inheritdoc />
-		virtual void transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
-	};
-
-	/// <summary>
 	/// Implements a DirectX 12 <see cref="IDescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler, DirectX12CommandBuffer> {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler> {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
 	public:
@@ -1008,6 +957,85 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		using ComResource<ID3D12PipelineState>::ComResource;
 		virtual ~DirectX12PipelineState() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Sets the current pipeline state on the <paramref name="commandBuffer" />.
+		/// </summary>
+		/// <param name="commandBuffer">The command buffer to set the current pipeline state on.</param>
+		virtual void use(const DirectX12CommandBuffer& commandBuffer) const noexcept = 0;
+	};
+
+	/// <summary>
+	/// Records commands for a <see cref="DirectX12CommandQueue" />
+	/// </summary>
+	/// <seealso cref="DirectX12CommandQueue" />
+	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer<IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public DirectX12RuntimeObject<DirectX12Queue>, public ComResource<ID3D12GraphicsCommandList4> {
+		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
+
+	public:
+		/// <summary>
+		/// Initializes the command buffer from a command queue.
+		/// </summary>
+		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
+		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
+		explicit DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin = false);
+		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
+		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
+		virtual ~DirectX12CommandBuffer() noexcept;
+
+		// ICommandBuffer interface.
+	public:
+		/// <inheritdoc />
+		virtual void wait() const override;
+
+		/// <inheritdoc />
+		virtual void begin() const override;
+
+		/// <inheritdoc />
+		virtual void end(const bool& submit = true, const bool& wait = false) const override;
+
+		/// <inheritdoc />
+		virtual void submit(const bool& wait = false) const override;
+
+		/// <inheritdoc />
+		virtual void generateMipMaps(IDirectX12Image& image) noexcept override;
+
+		/// <inheritdoc />
+		virtual void barrier(const DirectX12Barrier& barrier, const bool& invert = false) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void transfer(const IDirectX12Buffer& source, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(const IDirectX12Image& source, const IDirectX12Image& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
+		virtual void use(const DirectX12PipelineState& pipeline) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void bind(const DirectX12DescriptorSet& descriptorSet) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void bind(const IDirectX12IndexBuffer& buffer) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void dispatch(const Vector3u& threadCount) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept override;
 	};
 
 	/// <summary>
@@ -1042,12 +1070,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const DirectX12PipelineLayout& layout() const noexcept override;
 
-		/// <inheritdoc />
-		virtual void bind(const DirectX12DescriptorSet& descriptorSet) const override;
-
-		/// <inheritdoc />
-		virtual void use() const override;
-
 		// IRenderPipeline interface.
 	public:
 		/// <inheritdoc />
@@ -1074,28 +1096,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const bool& alphaToCoverage() const noexcept override;
 
+		// DirectX12PipelineState interface.
 	public:
-		/// <inheritdoc />
-		/// <remarks>
-		/// If the <paramref name="buffer" /> is not yet in <c>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</c> state, the method will attempt to
-		/// transition it using the command buffer of the active parent frame buffer. It might be more efficient to do this beforehand manually using
-		/// multiple barriers at once, if there are multiple vertex buffers that need to be transitioned.
-		/// </remarks>
-		virtual void bind(const IDirectX12VertexBuffer& buffer) const override;
-
-		/// <inheritdoc />
-		/// <remarks>
-		/// If the <paramref name="buffer" /> is not yet in <c>D3D12_RESOURCE_STATE_INDEX_BUFFER</c> state, the method will attempt to transition it 
-		/// using the command buffer of the active parent frame buffer. It might be more efficient to do this beforehand manually using multiple 
-		/// barriers at once, if there are multiple vertex buffers that need to be transitioned.
-		/// </remarks>
-		virtual void bind(const IDirectX12IndexBuffer& buffer) const override;
-
-		/// <inheritdoc />
-		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
-
-		/// <inheritdoc />
-		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
+		virtual void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
 	};
 
 	/// <summary>
@@ -1214,22 +1217,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const DirectX12PipelineLayout& layout() const noexcept override;
 
-		/// <inheritdoc />
-		virtual void bind(const DirectX12DescriptorSet& descriptorSet) const override;
-
-		// IComputePipeline interface.
+		// DirectX12PipelineState interface.
 	public:
-		/// <inheritdoc />
-		virtual const DirectX12CommandBuffer* commandBuffer() const noexcept override;
-
-		/// <inheritdoc />
-		virtual void dispatch(const Vector3u& threadCount) const override;
-
-		/// <inheritdoc />
-		virtual void begin(const DirectX12CommandBuffer& commandBuffer) override;
-
-		/// <inheritdoc />
-		virtual void end() override;
+		virtual void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
 	};
 
 	/// <summary>

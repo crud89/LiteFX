@@ -162,10 +162,6 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     // Begin the command recording on the frame buffers command buffer.
     frameBuffer->commandBuffer().begin();
 
-    // Bind the global descriptor heaps.
-    // TODO: This is done once per render pass, since a frame buffer owns a command list. This may be ineffective and we may want to re-use command lists over multiple render passes (See issue #33).
-    this->getDevice()->bindGlobalDescriptorHeaps(frameBuffer->commandBuffer());
-
     // Declare render pass input and output access and transition barriers.
     // TODO: This could possibly be pre-defined as a part of the frame buffer, but would it also safe much time?
     DirectX12Barrier transitionBarrier;

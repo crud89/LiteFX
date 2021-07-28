@@ -93,6 +93,12 @@ public:
 		raiseIfFailed<RuntimeException>(m_commandAllocator->Reset(), "Unable to reset command allocator.");
 		raiseIfFailed<RuntimeException>(m_parent->handle()->Reset(m_commandAllocator.Get(), nullptr), "Unable to reset command list.");
 	}
+
+	void bindDescriptorHeaps()
+	{
+		if (m_parent->parent().type() == QueueType::Compute || m_parent->parent().type() == QueueType::Graphics)
+			m_parent->getDevice()->bindGlobalDescriptorHeaps(*m_parent);
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -103,6 +109,9 @@ DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, cons
 	m_impl(makePimpl<DirectX12CommandBufferImpl>(this)), DirectX12RuntimeObject(queue, queue.getDevice()), ComResource<ID3D12GraphicsCommandList4>(nullptr)
 {
 	this->handle() = m_impl->initialize(begin);
+
+	if (begin)
+		m_impl->bindDescriptorHeaps();
 }
 
 DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;
@@ -119,6 +128,9 @@ void DirectX12CommandBuffer::begin() const
 
 	// Reset the command buffer.
 	m_impl->reset();
+
+	// Bind the descriptor heaps.
+	m_impl->bindDescriptorHeaps();
 }
 
 void DirectX12CommandBuffer::end(const bool& submit, const bool& wait) const
@@ -168,9 +180,9 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 		std::views::transform([](const Parameters& parameters) { return reinterpret_cast<const void*>(&parameters); }) |
 		ranges::to<Array<const void*>>();
 
-	// Begin the pipeline.
+	// Set the active pipeline state.
 	auto& pipeline = this->getDevice()->blitPipeline();
-	pipeline.begin(*this);
+	this->use(pipeline);
 
 	// Create and bind the parameters.
 	const auto& resourceBindingsLayout = pipeline.layout().descriptorSet(0);
@@ -184,7 +196,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	auto samplerBindings = samplerBindingsLayout.allocate();
 	auto sampler = this->getDevice()->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
 	samplerBindings->update(0, *sampler);
-	pipeline.bind(*samplerBindings);
+	this->bind(*samplerBindings);
 
 	// Transition the texture into a read/write state.
 	DirectX12Barrier barrier, waitBarrier;
@@ -207,17 +219,16 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 			resourceBindings->update(2, image, 0, i, 1, l, 1);
 
 			// Dispatch the pipeline.
-			pipeline.bind(*resourceBindings);
-			pipeline.dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
+			this->bind(*resourceBindings);
+			this->dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
 
 			// Wait for all writes.
 			this->barrier(waitBarrier);
 		}
 	}
 
-	// Transition back into a shader resource and end the pipeline.
+	// Transition back into a shader resource.
 	this->barrier(barrier, true);
-	pipeline.end();
 }
 
 void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier, const bool& invert) const noexcept
@@ -295,4 +306,39 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), targetElement + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
+}
+
+void DirectX12CommandBuffer::use(const DirectX12PipelineState& pipeline) const noexcept
+{
+	pipeline.use(*this);
+}
+
+void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) const noexcept
+{
+	this->getDevice()->updateGlobalDescriptors(*this, descriptorSet);
+}
+
+void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 
+{
+	this->handle()->IASetVertexBuffers(buffer.layout().binding(), 1, &buffer.view());
+}
+
+void DirectX12CommandBuffer::bind(const IDirectX12IndexBuffer& buffer) const noexcept 
+{
+	this->handle()->IASetIndexBuffer(&buffer.view());
+}
+
+void DirectX12CommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
+{
+	this->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
+}
+
+void DirectX12CommandBuffer::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const noexcept
+{
+	this->handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);
+}
+
+void DirectX12CommandBuffer::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const noexcept
+{
+	this->handle()->DrawIndexedInstanced(indices, instances, firstIndex, vertexOffset, firstInstance);
 }
