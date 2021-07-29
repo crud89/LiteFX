@@ -311,7 +311,7 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     m_renderPass->begin(backBuffer);
-    auto& commandBuffer = m_renderPass->activeFrameBuffer().commandBuffer();
+    auto& commandBuffer = m_renderPass->activeFrameBuffer().commandBuffer(0);
     commandBuffer.use(*m_pipeline);
 
     // Get the amount of time that has passed since the first frame.

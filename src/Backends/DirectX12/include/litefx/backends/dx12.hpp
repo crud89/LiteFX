@@ -1265,7 +1265,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderPass">The parent render pass of the frame buffer.</param>
 		/// <param name="bufferIndex">The index of the frame buffer within the parent render pass.</param>
 		/// <param name="renderArea">The initial size of the render area.</param>
-		DirectX12FrameBuffer(const DirectX12RenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea);
+		/// <param name="commandBuffers">The number of command buffers, the frame buffer stores.</param>
+		DirectX12FrameBuffer(const DirectX12RenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers = 1);
 		DirectX12FrameBuffer(const DirectX12FrameBuffer&) noexcept = delete;
 		DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = delete;
 		virtual ~DirectX12FrameBuffer() noexcept;
@@ -1329,7 +1330,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12CommandBuffer& commandBuffer() const noexcept override;
+		virtual Array<const DirectX12CommandBuffer*> commandBuffers() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12CommandBuffer& commandBuffer(const UInt32& index) const override;
 
 		/// <inheritdoc />
 		virtual Array<const IDirectX12Image*> images() const noexcept override;
@@ -1355,10 +1359,11 @@ namespace LiteFX::Rendering::Backends {
 		/// Creates and initializes a new DirectX 12 render pass instance.
 		/// </summary>
 		/// <param name="device">The parent device instance.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
 		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
 		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
 		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-		explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+		explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
 		DirectX12RenderPass(const DirectX12RenderPass&) = delete;
 		DirectX12RenderPass(DirectX12RenderPass&&) = delete;
 		virtual ~DirectX12RenderPass() noexcept;
@@ -1445,6 +1450,8 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1) noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers) noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1) noexcept;
 		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
 		virtual ~DirectX12RenderPassBuilder() noexcept;
@@ -1453,6 +1460,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(DirectX12InputAttachmentMapping&& inputAttachment) override;
 
 	public:
+		virtual DirectX12RenderPassBuilder& commandBuffers(const UInt32& count) override;
 		virtual DirectX12RenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 		virtual DirectX12RenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
@@ -1599,7 +1607,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt64 submit(const DirectX12CommandBuffer& commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(Span<const DirectX12CommandBuffer> commandBuffers) const override;
+		virtual UInt64 submit(const Array<const DirectX12CommandBuffer*>& commandBuffers) const override;
 
 		/// <inheritdoc />
 		virtual void waitFor(const UInt64& fence) const noexcept override;

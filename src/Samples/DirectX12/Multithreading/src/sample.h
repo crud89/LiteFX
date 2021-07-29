@@ -25,6 +25,8 @@ struct GlfwWindowDeleter {
 
 typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
+#define NUM_WORKERS 8
+
 class SampleApp : public LiteFX::App {
 public:
 	static String name() noexcept { return "LiteFX Sample: DirectX 12 Multithreading"; }
@@ -107,7 +109,7 @@ private:
 	/// <summary>
 	/// Stores the array of worker threads.
 	/// </summary>
-	Array<std::thread> m_workers = Array<std::thread>(8);
+	Array<std::thread> m_workers = Array<std::thread>(NUM_WORKERS);
 
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :

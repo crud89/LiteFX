@@ -1590,10 +1590,20 @@ namespace LiteFX::Rendering {
         virtual size_t getHeight() const noexcept = 0;
 
         /// <summary>
-        /// Returns the command buffer that records draw commands for the frame buffer.
+        /// Returns all command buffers, the frame buffer stores.
         /// </summary>
-        /// <returns>The command buffer that records draw commands for the frame buffer</returns>
-        virtual const TCommandBuffer& commandBuffer() const noexcept = 0;
+        /// <returns>All command buffers, the frame buffer stores.</returns>
+        /// <seealso cref="commandBuffer" />
+        virtual Array<const TCommandBuffer*> commandBuffers() const noexcept = 0;
+
+        /// <summary>
+        /// Returns a command buffer that records draw commands for the frame buffer.
+        /// </summary>
+        /// <param name="index">The index of the command buffer.</param>
+        /// <returns>A command buffer that records draw commands for the frame buffer</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
+        /// <seealso cref="commandBuffers" />
+        virtual const TCommandBuffer& commandBuffer(const UInt32& index) const = 0;
 
         /// <summary>
         /// Returns the images that store the output attachments for the render targets of the <see cref="IRenderPass" />.
@@ -1837,6 +1847,7 @@ namespace LiteFX::Rendering {
         virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
 
     public:
+        virtual TDerived& commandBuffers(const UInt32& count) = 0;
         virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
         virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
         virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
@@ -1994,7 +2005,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        virtual UInt64 submit(Span<const TCommandBuffer> commandBuffers) const = 0;
+        virtual UInt64 submit(const Array<const TCommandBuffer*>& commandBuffers) const = 0;
 
         /// <summary>
         /// Waits for a certain fence value to complete on the command queue.

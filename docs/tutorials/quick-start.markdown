@@ -569,10 +569,16 @@ Each frame is drawn in one or multiple sequential *render passes*. We already a 
 m_renderPass->begin(backBuffer);
 ```
 
+In order to draw something, we need to acquire a command buffer to record drawing commands to. Each render pass stores a set of command buffers within the current (active) frame buffer. The right frame buffer is selected when passing the `backBuffer` to the `begin` method. A frame buffer can store multiple command buffers in order to allow for multiple threads to record commands concurrently, however, in our example we only use one command buffer:
+
+```cxx
+auto& commandBuffer = m_renderPass->activeFrameBuffer().commandBuffer(0);
+```
+
 Next up, we want to handle drawing geometry. Each geometry draw call requires a certain *state* to let the GPU know, how to handle the data we pass to it. This state is contained the *pipeline* we defined earlier. In a real-world application, there may be many pipelines with different shaders, rasterizer and input assembler states. You should, however, always aim minimize the amount of pipeline switches. You can do this by pre-ordering the objects in your scene, so that you draw all objects that require the same pipeline state at the same time. In this example, however, we only have one pipeline state and we now tell the GPU to use it for the subsequent workload:
 
 ```cxx
-m_pipeline->use();
+commandBuffer.use(*m_pipeline);
 ```
 
 Now it's time to update the transform buffer for our object. We want to animate a rotating triangle, so we can use a clock to dictate the amount of rotation. We use the duration since the beginning to compute a rotation matrix, that we use to update the transform buffer:
@@ -590,16 +596,16 @@ m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transfo
 Before we can record the draw call, we need to make sure, the shader sees the right resources by binding all descriptor sets:
 
 ```cxx
-m_pipeline->bind(*m_vertexBuffer);
-m_pipeline->bind(*m_indexBuffer);
-m_pipeline->bind(*m_cameraBindings);
-m_pipeline->bind(*m_perFrameBindings[backBuffer]);
+commandBuffer.bind(*m_vertexBuffer);
+commandBuffer.bind(*m_indexBuffer);
+commandBuffer.bind(*m_cameraBindings);
+commandBuffer.bind(*m_perFrameBindings[backBuffer]);
 ```
 
-Finally, we can record the actual draw call and end the render pass:
+Finally, we can record the actual draw call and end the render pass, which will cause the command buffer to be submitted to the graphics queue:
 
 ```cxx
-m_pipeline->drawIndexed(m_indexBuffer->elements());
+commandBuffer.drawIndexed(m_indexBuffer->elements());
 m_renderPass->end();
 ```
 

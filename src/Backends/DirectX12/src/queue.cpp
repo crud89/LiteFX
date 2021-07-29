@@ -142,17 +142,19 @@ UInt64 DirectX12Queue::submit(const DirectX12CommandBuffer& commandBuffer) const
 	return m_impl->m_fenceValue;
 }
 
-UInt64 DirectX12Queue::submit(Span<const DirectX12CommandBuffer> commandBuffers) const
+UInt64 DirectX12Queue::submit(const Array<const DirectX12CommandBuffer*>& commandBuffers) const
 {
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
-	// End the command buffers.
+	// End and submit the command buffers.
 	Array<ID3D12CommandList*> handles(commandBuffers.size());
 	std::ranges::generate(handles, [&commandBuffers, i = 0]() mutable {
-		const auto& commandBuffer = commandBuffers[i++];
-		commandBuffer.end();
-		return commandBuffer.handle().Get();
+		const auto commandBuffer = commandBuffers[i++];
+		commandBuffer->end();
+		return commandBuffer->handle().Get();
 	});
+
+	this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
 
 	// Insert a fence and return the value.
 	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), ++m_impl->m_fenceValue), "Unable to add fence signal to command buffer.");

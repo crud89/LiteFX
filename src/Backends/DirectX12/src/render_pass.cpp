@@ -10,17 +10,20 @@ class DirectX12RenderPass::DirectX12RenderPassImpl : public Implement<DirectX12R
 public:
     friend class DirectX12RenderPassBuilder;
     friend class DirectX12RenderPass;
+    using RenderPassContext = Tuple<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>, Optional<D3D12_RENDER_PASS_DEPTH_STENCIL_DESC>>;
 
 private:
     Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
     Array<DirectX12InputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<DirectX12FrameBuffer>> m_frameBuffers;
+    UniquePtr<DirectX12CommandBuffer> m_beginCommandBuffer, m_endCommandBuffer;
     const DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
     UInt32 m_backBuffer{ 0 };
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
     MultiSamplingLevel m_multiSamplingLevel{ MultiSamplingLevel::x1 };
+    Array<RenderPassContext> m_contexts;
 
 public:
     DirectX12RenderPassImpl(DirectX12RenderPass* parent, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
@@ -59,18 +62,82 @@ public:
         //std::ranges::sort(m_inputAttachments, [this](const DirectX12InputAttachmentMapping& a, const DirectX12InputAttachmentMapping& b) { return a.location() < b.location(); });
         std::sort(std::begin(m_inputAttachments), std::end(m_inputAttachments), [](const DirectX12InputAttachmentMapping& a, const DirectX12InputAttachmentMapping& b) { return a.location() < b.location(); });
     }
+
+    void initRenderTargetViews(const UInt32& backBuffer)
+    {
+        auto& frameBuffer = m_frameBuffers[backBuffer];
+        
+        CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetView(frameBuffer->renderTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->renderTargetDescriptorSize());
+        std::get<0>(m_contexts[backBuffer]) = m_renderTargets |
+            std::views::filter([](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
+            std::views::transform([&frameBuffer, &renderTargetView](const RenderTarget& renderTarget) {
+                Float clearColor[4] = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() };
+                CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(renderTarget.format()), clearColor };
+
+                D3D12_RENDER_PASS_BEGINNING_ACCESS beginAccess = renderTarget.clearBuffer() ?
+                    D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+                    D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD, { } };
+
+                D3D12_RENDER_PASS_ENDING_ACCESS endAccess = renderTarget.isVolatile() ?
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
+
+                D3D12_RENDER_PASS_RENDER_TARGET_DESC renderTargetDesc{ renderTargetView, beginAccess, endAccess };
+                renderTargetView = renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
+
+                return renderTargetDesc;
+            }) | ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
+
+        if (m_depthStencilTarget == nullptr)
+            std::get<1>(m_contexts[backBuffer]) = std::nullopt;
+        else
+        {
+            CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(m_depthStencilTarget->format()), m_depthStencilTarget->clearValues().x(), static_cast<Byte>(m_depthStencilTarget->clearValues().y()) };
+
+            D3D12_RENDER_PASS_ENDING_ACCESS depthEndAccess, stencilEndAccess;
+            D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess = m_depthStencilTarget->clearBuffer() && ::hasDepth(m_depthStencilTarget->format()) ?
+                D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+                D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
+
+            D3D12_RENDER_PASS_BEGINNING_ACCESS stencilBeginAccess = m_depthStencilTarget->clearStencil() && ::hasStencil(m_depthStencilTarget->format()) ?
+                D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+                D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
+
+            if (depthBeginAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS)
+                depthEndAccess = D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS, { } };
+            else
+                depthEndAccess = m_depthStencilTarget->isVolatile() ?
+                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
+                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
+            
+            if (stencilBeginAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS)
+                stencilEndAccess = D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS, { } };
+            else
+                stencilEndAccess = m_depthStencilTarget->isVolatile() ?
+                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
+                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
+
+            CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilView(frameBuffer->depthStencilTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->depthStencilTargetDescriptorSize());
+            std::get<1>(m_contexts[backBuffer]) = D3D12_RENDER_PASS_DEPTH_STENCIL_DESC{ depthStencilView, depthBeginAccess, stencilBeginAccess, depthEndAccess, stencilEndAccess };
+        }
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
     m_impl(makePimpl<DirectX12RenderPassImpl>(this, renderTargets, samples, inputAttachments)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
 {
     // Initialize the frame buffers.
     m_impl->m_frameBuffers.resize(this->getDevice()->swapChain().buffers());
-    std::ranges::generate(m_impl->m_frameBuffers, [this, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*this, i++, this->parent().swapChain().renderArea()); });
+    m_impl->m_contexts.resize(this->getDevice()->swapChain().buffers());
+    std::ranges::generate(m_impl->m_frameBuffers, [this, &commandBuffers, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*this, i++, this->parent().swapChain().renderArea(), commandBuffers); });
+
+    // Initialize the command buffers.
+    m_impl->m_beginCommandBuffer = device.graphicsQueue().createCommandBuffer(false);
+    m_impl->m_endCommandBuffer   = device.graphicsQueue().createCommandBuffer(false);
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device) noexcept :
@@ -159,73 +226,27 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
     m_impl->m_backBuffer = buffer;
 
+    // Initialize the render pass context.
+    m_impl->initRenderTargetViews(buffer);
+    const auto& context = m_impl->m_contexts[buffer];
+
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
     this->getDevice()->graphicsQueue().waitFor(frameBuffer->lastFence());
-    frameBuffer->commandBuffer().begin();
+    m_impl->m_beginCommandBuffer->begin();
 
-    // Declare render pass input and output access and transition barriers.
+    // Declare render pass input transition barriers.
     // TODO: This could possibly be pre-defined as a part of the frame buffer, but would it also safe much time?
     DirectX12Barrier transitionBarrier;
     std::ranges::for_each(m_impl->m_renderTargets, [&transitionBarrier, &frameBuffer](const RenderTarget& renderTarget) { transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), renderTarget.type() != RenderTargetType::DepthStencil ? ResourceState::RenderTarget : ResourceState::DepthWrite); });
+    m_impl->m_beginCommandBuffer->barrier(transitionBarrier);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetView(frameBuffer->renderTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->renderTargetDescriptorSize());
-    Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC> renderTargets = m_impl->m_renderTargets |
-        std::views::filter([](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
-        std::views::transform([&frameBuffer, &renderTargetView](const RenderTarget& renderTarget) {
-        Float clearColor[4] = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() };
-        CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(renderTarget.format()), clearColor };
-
-        D3D12_RENDER_PASS_BEGINNING_ACCESS beginAccess = renderTarget.clearBuffer() ?
-            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
-            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD, { } };
-
-        D3D12_RENDER_PASS_ENDING_ACCESS endAccess = renderTarget.isVolatile() ?
-            D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
-            D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
-
-        D3D12_RENDER_PASS_RENDER_TARGET_DESC renderTargetDesc{ renderTargetView, beginAccess, endAccess };
-        renderTargetView = renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
-
-        return renderTargetDesc;
-    }) | ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
-
-    frameBuffer->commandBuffer().barrier(transitionBarrier);
-
-    // Declare the depth/stencil render target access (if there is such a target) and begin the render pass.
-    if (m_impl->m_depthStencilTarget == nullptr)
-        frameBuffer->commandBuffer().handle()->BeginRenderPass(renderTargets.size(), renderTargets.data(), nullptr, D3D12_RENDER_PASS_FLAG_NONE);
-    else
-    {
-        CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(m_impl->m_depthStencilTarget->format()), m_impl->m_depthStencilTarget->clearValues().x(), static_cast<Byte>(m_impl->m_depthStencilTarget->clearValues().y()) };
-
-        D3D12_RENDER_PASS_ENDING_ACCESS depthEndAccess, stencilEndAccess;
-        D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess = m_impl->m_depthStencilTarget->clearBuffer() && ::hasDepth(m_impl->m_depthStencilTarget->format()) ?
-            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
-            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
-
-        D3D12_RENDER_PASS_BEGINNING_ACCESS stencilBeginAccess = m_impl->m_depthStencilTarget->clearStencil() && ::hasStencil(m_impl->m_depthStencilTarget->format()) ?
-            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
-            D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
-
-        if (depthBeginAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS)
-            depthEndAccess = D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS, { } };
-        else
-            depthEndAccess = m_impl->m_depthStencilTarget->isVolatile() ?
-                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
-                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
-
-        if (stencilBeginAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS)
-            stencilEndAccess = D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS, { } };
-        else
-            stencilEndAccess = m_impl->m_depthStencilTarget->isVolatile() ?
-                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
-                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
-
-        CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilView(frameBuffer->depthStencilTargetHeap()->GetCPUDescriptorHandleForHeapStart(), 0, frameBuffer->depthStencilTargetDescriptorSize());
-        D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc{ depthStencilView, depthBeginAccess, stencilBeginAccess, depthEndAccess, stencilEndAccess };
-
-        frameBuffer->commandBuffer().handle()->BeginRenderPass(renderTargets.size(), renderTargets.data(), &depthStencilDesc, D3D12_RENDER_PASS_FLAG_NONE);
-    }
+    // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
+    std::as_const(*m_impl->m_beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
+    std::as_const(*m_impl->m_beginCommandBuffer).handle()->EndRenderPass();
+    std::ranges::for_each(frameBuffer->commandBuffers(), [&context](const DirectX12CommandBuffer* commandBuffer) { 
+        commandBuffer->begin(); 
+        commandBuffer->handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+    });
 }
 
 void DirectX12RenderPass::end() const
@@ -237,8 +258,13 @@ void DirectX12RenderPass::end() const
     auto frameBuffer = m_impl->m_activeFrameBuffer;
     const auto& swapChain = this->getDevice()->swapChain();
 
-    // End the render pass and the command buffer recording.
-    frameBuffer->commandBuffer().handle()->EndRenderPass();
+    // Resume and end the render pass.
+    const auto& buffer = m_impl->m_backBuffer;
+    const auto& context = m_impl->m_contexts[buffer];
+    std::ranges::for_each(frameBuffer->commandBuffers(), [&context](const DirectX12CommandBuffer* commandBuffer) { commandBuffer->handle()->EndRenderPass(); });
+    m_impl->m_endCommandBuffer->begin();
+    std::as_const(*m_impl->m_endCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+    std::as_const(*m_impl->m_endCommandBuffer).handle()->EndRenderPass();
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
     bool requiresResolve = this->hasPresentTarget() && m_impl->m_multiSamplingLevel > MultiSamplingLevel::x1;
@@ -261,22 +287,27 @@ void DirectX12RenderPass::end() const
     if (requiresResolve)
         transitionBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceState::ResolveDestination);
 
-    frameBuffer->commandBuffer().barrier(transitionBarrier);
+    m_impl->m_endCommandBuffer->barrier(transitionBarrier);
 
     // If required, we need to resolve the present target.
     if (requiresResolve)
     {
         const IDirectX12Image* multiSampledImage = &frameBuffer->image(m_impl->m_presentTarget->location());
-        frameBuffer->commandBuffer().handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, ::getFormat(m_impl->m_presentTarget->format()));
+        std::as_const(*m_impl->m_endCommandBuffer).handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, ::getFormat(m_impl->m_presentTarget->format()));
 
         // Transition the present target back to the present state.
         DirectX12Barrier presentBarrier;
         presentBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceState::Present);
-        frameBuffer->commandBuffer().barrier(presentBarrier);
+        m_impl->m_endCommandBuffer->barrier(presentBarrier);
     }
 
-    // End the command buffer recording and submit it.
-    m_impl->m_activeFrameBuffer->lastFence() = this->getDevice()->graphicsQueue().submit(frameBuffer->commandBuffer());
+    // End the command buffer recording and submit all command buffers.
+    // NOTE: In order to suspend/resume render passes, we need to pass them to the queue in one `ExecuteCommandLists` (i.e. submit) call. The order we pass them to the call is 
+    //       important, since the first command list also gets executed first.
+    Array<const DirectX12CommandBuffer*> commandBuffers = frameBuffer->commandBuffers();
+    commandBuffers.insert(commandBuffers.begin(), m_impl->m_beginCommandBuffer.get());
+    commandBuffers.push_back(m_impl->m_endCommandBuffer.get());
+    m_impl->m_activeFrameBuffer->lastFence() = this->getDevice()->graphicsQueue().submit(commandBuffers);
 
     // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
     //       frame in the queue has been drawn and the back buffer can be written again.
@@ -340,10 +371,11 @@ private:
     Array<DirectX12InputAttachmentMapping> m_inputAttachments;
     Array<RenderTarget> m_renderTargets;
     MultiSamplingLevel m_multiSamplingLevel;
+    UInt32 m_commandBuffers;
 
 public:
-    DirectX12RenderPassBuilderImpl(DirectX12RenderPassBuilder* parent, const MultiSamplingLevel& samples) :
-        base(parent), m_multiSamplingLevel(samples)
+    DirectX12RenderPassBuilderImpl(DirectX12RenderPassBuilder* parent, const UInt32& commandBuffers, const MultiSamplingLevel& samples) :
+        base(parent), m_multiSamplingLevel(samples), m_commandBuffers(commandBuffers)
     {
     }
 };
@@ -352,8 +384,18 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& samples) noexcept :
-    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this, samples)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device)))
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& samples) noexcept : 
+    DirectX12RenderPassBuilder(device, 1, samples)
+{
+}
+
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers) noexcept :
+    DirectX12RenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1)
+{
+}
+
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples) noexcept :
+    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this, commandBuffers, samples)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device)))
 {
 }
 
@@ -368,7 +410,12 @@ UniquePtr<DirectX12RenderPass> DirectX12RenderPassBuilder::go()
 
     // Initialize the frame buffers.
     instance->m_impl->m_frameBuffers.resize(instance->getDevice()->swapChain().buffers());
-    std::ranges::generate(instance->m_impl->m_frameBuffers, [&instance, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*instance, i++, instance->parent().swapChain().renderArea()); });
+    instance->m_impl->m_contexts.resize(instance->getDevice()->swapChain().buffers());
+    std::ranges::generate(instance->m_impl->m_frameBuffers, [this, &instance, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*instance, i++, instance->parent().swapChain().renderArea(), m_impl->m_commandBuffers); });
+
+    // Initialize the command buffers.
+    instance->m_impl->m_beginCommandBuffer = instance->getDevice()->graphicsQueue().createCommandBuffer(false);
+    instance->m_impl->m_endCommandBuffer   = instance->getDevice()->graphicsQueue().createCommandBuffer(false);
 
     return RenderPassBuilder::go();
 }
@@ -381,6 +428,12 @@ void DirectX12RenderPassBuilder::use(RenderTarget&& target)
 void DirectX12RenderPassBuilder::use(DirectX12InputAttachmentMapping&& attachment)
 {
     m_impl->m_inputAttachments.push_back(std::move(attachment));
+}
+
+DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::commandBuffers(const UInt32& count)
+{
+    m_impl->m_commandBuffers = count;
+    return *this;
 }
 
 DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
