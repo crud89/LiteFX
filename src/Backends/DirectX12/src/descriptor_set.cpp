@@ -123,7 +123,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     }
 }
 
-void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Texture& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
+void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
 {
     // TODO: Add LOD lower bound (for clamping) as parameter?
     // Acquire a descriptor handle.

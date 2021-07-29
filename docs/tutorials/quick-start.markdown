@@ -446,7 +446,7 @@ The `BufferUsage` defines where the buffer should be visible from. `Staging` cor
 
 ```cxx
 m_vertexBuffer = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 ```
 
 We store the vertex buffer in a member variable. We then go ahead and repeat the same process for the index buffer:
@@ -456,7 +456,7 @@ auto stagedIndices = m_device->factory().createIndexBuffer(inputAssembler->index
 stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout().elementSize(), 0);
 
 m_indexBuffer = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 ```
 
 #### Constant/Uniform Buffers
@@ -509,7 +509,7 @@ In the last line, we pre-multiply the view/projection matrix and store it in the
 
 ```cxx
 m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-m_cameraBuffer->transferFrom(*commandBuffer, *m_cameraStagingBuffer);
+commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 ```
 
 The last thing we need to do is making the descriptor point to the GPU-visible camera buffer. We only need to do this once, since we do not change the buffer location on the GPU:
@@ -522,7 +522,8 @@ m_cameraBindings->update(cameraBufferLayout.binding(), *m_cameraBuffer, 0);
 Here we first allocate a descriptor set that holds our descriptor for the camera buffer. We then update the descriptor bound to register *0* to point to the GPU-visible camera buffer. Finally, with all the transfer commands being recorded to the command buffer, we can submit the buffer and wait for it to be executed:
 
 ```cxx
-commandBuffer->end(true, true);
+auto fence = m_device->bufferQueue().submit(*commandBuffer);
+m_device->bufferQueue().waitFor(fence);
 commandBuffer = nullptr;
 stagedVertices = nullptr;
 stagedIndices = nullptr;
@@ -568,10 +569,16 @@ Each frame is drawn in one or multiple sequential *render passes*. We already a 
 m_renderPass->begin(backBuffer);
 ```
 
+In order to draw something, we need to acquire a command buffer to record drawing commands to. Each render pass stores a set of command buffers within the current (active) frame buffer. The right frame buffer is selected when passing the `backBuffer` to the `begin` method. A frame buffer can store multiple command buffers in order to allow for multiple threads to record commands concurrently, however, in our example we only use one command buffer:
+
+```cxx
+auto& commandBuffer = m_renderPass->activeFrameBuffer().commandBuffer(0);
+```
+
 Next up, we want to handle drawing geometry. Each geometry draw call requires a certain *state* to let the GPU know, how to handle the data we pass to it. This state is contained the *pipeline* we defined earlier. In a real-world application, there may be many pipelines with different shaders, rasterizer and input assembler states. You should, however, always aim minimize the amount of pipeline switches. You can do this by pre-ordering the objects in your scene, so that you draw all objects that require the same pipeline state at the same time. In this example, however, we only have one pipeline state and we now tell the GPU to use it for the subsequent workload:
 
 ```cxx
-m_pipeline->use();
+commandBuffer.use(*m_pipeline);
 ```
 
 Now it's time to update the transform buffer for our object. We want to animate a rotating triangle, so we can use a clock to dictate the amount of rotation. We use the duration since the beginning to compute a rotation matrix, that we use to update the transform buffer:
@@ -589,16 +596,16 @@ m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transfo
 Before we can record the draw call, we need to make sure, the shader sees the right resources by binding all descriptor sets:
 
 ```cxx
-m_pipeline->bind(*m_vertexBuffer);
-m_pipeline->bind(*m_indexBuffer);
-m_pipeline->bind(*m_cameraBindings);
-m_pipeline->bind(*m_perFrameBindings[backBuffer]);
+commandBuffer.bind(*m_vertexBuffer);
+commandBuffer.bind(*m_indexBuffer);
+commandBuffer.bind(*m_cameraBindings);
+commandBuffer.bind(*m_perFrameBindings[backBuffer]);
 ```
 
-Finally, we can record the actual draw call and end the render pass:
+Finally, we can record the actual draw call and end the render pass, which will cause the command buffer to be submitted to the graphics queue:
 
 ```cxx
-m_pipeline->drawIndexed(m_indexBuffer->elements());
+commandBuffer.drawIndexed(m_indexBuffer->elements());
 m_renderPass->end();
 ```
 
@@ -673,7 +680,7 @@ camera.ViewProjection = projection * view;
 
 auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
 m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-m_cameraBuffer->transferFrom(*commandBuffer, *m_cameraStagingBuffer);
+commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 commandBuffer->end(true, true);
 ```
 

@@ -57,6 +57,15 @@ LiteFX is written in modern C++20, following established design patterns to make
 
 † Shaders can be built using *glslc* or *DXC*. *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
 
+### Key Features
+
+- **Fluent API**: the fluent API can help you to organize creation of your render context. Instances, render passes and pipeline states typically require a lot of code to set them up. LiteFX hides this code behind an flexible builder architecture. However, if you don't like it, you can still create all objects on your own.
+- **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it implements support for [DirectX 12 render passes](https://docs.microsoft.com/en-us/windows/win32/direct3d12/direct3d-12-render-passes) or [Vulkan timeline semaphores](https://www.khronos.org/blog/vulkan-timeline-semaphores) for improved thread synchronization.
+- **Multi-Threading Support**: LiteFX comes with support for multi-threaded render passes in order to maximize throughput and prevent GPU stalls. It takes care of the necessary synchronization between threads and exposes interfaces for manual synchronization. 
+- **Descriptor and Memory Management**: descriptors and buffers can be hard to get around. LiteFX abstracts them away in a way that is both efficient and easy to adapt.
+- **CMake Integration**: you can use CMake to integrate the engine into your project. Furthermore, it exports scripts that allow you to integrate assets and shaders into your build process. It can be installed using *vcpkg*, making project setup quick and painless.
+- **Much More**: If you want to learn what else you can do, check out the [guides](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html) and [wiki](https://github.com/crud89/LiteFX/wiki).
+
 ## Installation
 
 If you just want to start using LiteFX, you can acquire binaries of the latest version from the [releases page](https://github.com/crud89/LiteFX/releases) and follow the [project setup](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html) and [quick start](https://litefx.crudolph.io/docs/md_docs_tutorials_quick_start.html) guides.

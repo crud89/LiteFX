@@ -107,7 +107,7 @@ private:
 	/// <summary>
 	/// Stores the texture.
 	/// </summary>
-	UniquePtr<IVulkanTexture> m_texture;
+	UniquePtr<IVulkanImage> m_texture;
 
 	/// <summary>
 	/// Stores the sampler state for <see cref="m_texture" />.

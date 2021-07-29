@@ -44,6 +44,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12ShaderModule;
     class DirectX12ShaderProgram;
     class DirectX12CommandBuffer;
+    class DirectX12Barrier;
     class DirectX12InputAssembler;
     class DirectX12Rasterizer;
     class DirectX12PipelineState;
@@ -63,7 +64,6 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12VertexBuffer;
     class IDirectX12IndexBuffer;
     class IDirectX12Image;
-    class IDirectX12Texture;
     class IDirectX12Sampler;
 
     // Builder declarations.
@@ -181,6 +181,11 @@ namespace LiteFX::Rendering::Backends {
     /// 
     /// </summary>
     D3D12_BLEND_OP LITEFX_DIRECTX12_API getBlendOperation(const BlendOperation& blendOperation);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    D3D12_RESOURCE_STATES LITEFX_DIRECTX12_API getResourceState(const ResourceState& resourceState);
 
     /// <summary>
     /// Implements a DirectX12 <see cref="IGraphicsAdapter" />.

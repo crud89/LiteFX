@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if !defined (LITEFX_RENDERING_API)
 #  if defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
@@ -48,20 +48,72 @@ namespace LiteFX::Rendering {
         Other = 0x7FFFFFFF,
     };
 
+    /// <summary>
+    /// Represents the type of a <see cref="ICommandQueue" />.
+    /// </summary>
+    /// <remarks>
+    /// There are three major queue types: `Graphics`, `Compute` and `Transfer`. Each queue type has a larger subset of commands it is allowed to execute. For example, a 
+    /// graphics queue can be used to execute transfer or compute commands, whilst a compute queue may not execute graphics commands (such as *draw*). 
+    /// 
+    /// You should always aim to use a queue that is dedicated for the workload you want to submit. For example, if you want to upload resources to the GPU, use the a
+    /// dedicated transfer queue and synchronize access to the resource by waiting for the queue to finish at the point of time you need to access the resource. You can,
+    /// however, also use the graphics queue for transfers. This can be more efficient, if you have resources that require to be updated with each frame. The performance 
+    /// impact of synchronizing two queues may be larger than simply using the graphics queue to begin with.
+    /// 
+    /// The advantage of using dedicated queues is, that they do not necessarily block execution. For example, when performing a compute or transfer workload on a 
+    /// graphics queue, you do not need to synchronize in order to wait for the result, however this also means that no rendering can take place until the workloads have
+    /// finished.
+    /// </remarks>
     enum class LITEFX_RENDERING_API QueueType {
+        /// <summary>
+        /// Describes an unspecified command queue. It is not valid to create a queue instance with this type.
+        /// </summary>
         None = 0x00000000,
+
+        /// <summary>
+        /// Represents a queue that can execute graphics, compute and transfer workloads.
+        /// </summary>
         Graphics = 0x00000001,
+
+        /// <summary>
+        /// Represents a queue that can execute compute and transfer workloads.
+        /// </summary>
         Compute = 0x00000002,
+
+        /// <summary>
+        /// Represents a queue that can execute only transfer workloads.
+        /// </summary>
         Transfer = 0x00000004,
+
+        /// <summary>
+        /// Represents an invalid queue type.
+        /// </summary>
         Other = 0x7FFFFFFF
     };
 
+    /// <summary>
+    /// Specifies the priority with which a queue is scheduled on the GPU.
+    /// </summary>
     enum class LITEFX_RENDERING_API QueuePriority {
+        /// <summary>
+        /// The default queue priority.
+        /// </summary>
         Normal = 33,
+
+        /// <summary>
+        /// A high queue priority.
+        /// </summary>
         High = 66,
+
+        /// <summary>
+        /// The highest possible queue priority. Submitting work to this queue might block other queues.
+        /// </summary>
         Realtime = 100
     };
 
+    /// <summary>
+    /// Describes a texel format.
+    /// </summary>
     enum class LITEFX_RENDERING_API Format {
         None = 0x00000000,
         R4G4_UNORM,
@@ -213,6 +265,12 @@ namespace LiteFX::Rendering {
         Other = 0x7FFFFFFF
     };
 
+    /// <summary>
+    /// Describes a buffer attribute format.
+    /// </summary>
+    /// <seealso cref="getBufferFormatChannels" />
+    /// <seealso cref="getBufferFormatChannelSize" />
+    /// <seealso cref="getBufferFormatType" />
     enum class LITEFX_RENDERING_API BufferFormat {
         None = 0x00000000,
         X16F = 0x10000101,
@@ -241,17 +299,64 @@ namespace LiteFX::Rendering {
         XYZW32U = 0x20000404
     };
 
+    /// <summary>
+    /// Describes the semantic of a buffer attribute.
+    /// </summary>
+    /// <seealso cref="BufferAttribute" />
     enum class LITEFX_RENDERING_API AttributeSemantic {
+        /// <summary>
+        /// The attribute contains a bi-normal vector.
+        /// </summary>
         Binormal = 0x00000001,
+
+        /// <summary>
+        /// The attribute contains blend indices.
+        /// </summary>
         BlendIndices = 0x00000002,
+
+        /// <summary>
+        /// The attribute contains blend weights.
+        /// </summary>
         BlendWeight = 0x00000003,
+
+        /// <summary>
+        /// The attribute contains a color value.
+        /// </summary>
         Color = 0x00000004,
+
+        /// <summary>
+        /// The attribute contains a normal vector.
+        /// </summary>
         Normal = 0x00000005,
+
+        /// <summary>
+        /// The attribute contains a position vector.
+        /// </summary>
         Position = 0x00000006,
+
+        /// <summary>
+        /// The attribute contains a pre-transformed position vector.
+        /// </summary>
         TransformedPosition = 0x00000007,
+
+        /// <summary>
+        /// The attribute contains a point size.
+        /// </summary>
         PointSize = 0x00000008,
+
+        /// <summary>
+        /// The attribute contains a tangent vector.
+        /// </summary>
         Tangent = 0x00000009,
+
+        /// <summary>
+        /// The attribute contains a texture coordinate.
+        /// </summary>
         TextureCoordinate = 0x0000000A,
+
+        /// <summary>
+        /// The attribute is a generic, unknown semantic.
+        /// </summary>
         Unknown = 0x7FFFFFFF
     };
 
@@ -438,39 +543,131 @@ namespace LiteFX::Rendering {
         Readback = 0x00000100
     };
 
+    /// <summary>
+    /// Describes the element type of an index buffer.
+    /// </summary>
     enum class LITEFX_RENDERING_API IndexType {
+        /// <summary>
+        /// Indices are stored as 2 byte unsigned integers.
+        /// </summary>
         UInt16 = 0x00000010,
+
+        /// <summary>
+        /// Indices are stored as 4 byte unsigned integers.
+        /// </summary>
         UInt32 = 0x00000020
     };
 
+    /// <summary>
+    /// Describes the valid shader stages of a graphics pipeline.
+    /// </summary>
     enum class LITEFX_RENDERING_API ShaderStage {
+        /// <summary>
+        /// Represents the vertex shader stage.
+        /// </summary>
         Vertex = 0x00000001,
+
+        /// <summary>
+        /// Represents the tessellation control or hull shader stage.
+        /// </summary>
         TessellationControl = 0x00000002,
+
+        /// <summary>
+        /// Represents the tessellation evaluation or domain shader stage.
+        /// </summary>
         TessellationEvaluation = 0x00000004,
+
+        /// <summary>
+        /// Represents the  geometry shader stage.
+        /// </summary>
+        /// <remarks>
+        /// Note that geometry shaders come with a performance penalty and might not be supported on all platforms. If you can, avoid using them.
+        /// </remarks>
         Geometry = 0x00000008,
+
+        /// <summary>
+        /// Represents the fragment or vertex shader stage.
+        /// </summary>
         Fragment = 0x00000010,
+
+        /// <summary>
+        /// Represents the compute shader stage.
+        /// </summary>
         Compute = 0x00000020,
+
+        /// <summary>
+        /// Represents an unknown shader stage.
+        /// </summary>
         Other = 0x7FFFFFFF
     };
 
+    /// <summary>
+    /// Describes the draw mode for polygons.
+    /// </summary>
+    /// <seealso cref="InputAssembler" />
     enum class LITEFX_RENDERING_API PolygonMode {
+        /// <summary>
+        /// Polygons are drawn as solid surfaces.
+        /// </summary>
         Solid = 0x00000001,
+
+        /// <summary>
+        /// Polygons are only drawn as wireframes.
+        /// </summary>
         Wireframe = 0x00000002,
+
+        /// <summary>
+        /// Polygons are drawn as points at the vertex positions.
+        /// </summary>
         Point = 0x00000004
     };
 
+    /// <summary>
+    /// Describes which faces are culled by the <see cref="Rasterizer" /> stage.
+    /// </summary>
+    /// <seealso cref="Rasterizer" />
     enum class LITEFX_RENDERING_API CullMode {
+        /// <summary>
+        /// The rasterizer will discard front-facing polygons.
+        /// </summary>
         FrontFaces = 0x00000001,
+
+        /// <summary>
+        /// The rasterizer wll discard back-facing polygons.
+        /// </summary>
         BackFaces = 0x00000002,
+
+        /// <summary>
+        /// The rasterizer will discard front and back-facing polygons.
+        /// </summary>
         Both = 0x00000004,
+
+        /// <summary>
+        /// The rasterizer will not discard any polygons.
+        /// </summary>
         Disabled = 0x0000000F
     };
 
+    /// <summary>
+    /// Describes the order or vertex winding, that is used to determine, whether a polygon is facing towards or away from the camera.
+    /// </summary>
+    /// <seealso cref="CullMode" />
+    /// <seealso cref="Rasterizer" />
     enum class LITEFX_RENDERING_API CullOrder {
+        /// <summary>
+        /// Vertices are evaluated in a clock-wise manner.
+        /// </summary>
         ClockWise = 0x00000001,
+
+        /// <summary>
+        /// Vertices are evaluated in a counter clock-wise manner.
+        /// </summary>
         CounterClockWise = 0x00000002
     };
 
+    /// <summary>
+    /// Describes the type of a render target.
+    /// </summary>
     enum class LITEFX_RENDERING_API RenderTargetType {
         /// <summary>
         /// Represents a color target.
@@ -491,63 +688,231 @@ namespace LiteFX::Rendering {
         Present = 0x00000004
     };
 
+    /// <summary>
+    /// Describes the dimensions of a image resource, i.e. the dimensions that are required to access a texel or describe the image extent.
+    /// </summary>
+    /// <seealso cref="IImage" />
     enum class LITEFX_RENDERING_API ImageDimensions {
+        /// <summary>
+        /// Represents a 1D image.
+        /// </summary>
         DIM_1 = 0x01,
+
+        /// <summary>
+        /// Represents a 2D image.
+        /// </summary>
         DIM_2 = 0x02,
+
+        /// <summary>
+        /// Represents a 3D image.
+        /// </summary>
         DIM_3 = 0x03,
+
+        /// <summary>
+        /// Represents a set of six 2D images that are used to build a cube map.
+        /// </summary>
         CUBE = 0x04
     };
 
+    /// <summary>
+    /// Describes the number of samples with which a <see cref="IImage" /> is sampled.
+    /// </summary>
     enum class LITEFX_RENDERING_API MultiSamplingLevel {
+        /// <summary>
+        /// The default number of samples. Multi-sampling will be de-activated, if this sampling level is used.
+        /// </summary>
         x1 = 0x00000001,
+
+        /// <summary>
+        /// Use 2 samples per pixel.
+        /// </summary>
         x2 = 0x00000002,
+
+        /// <summary>
+        /// Use 4 samples per pixel.
+        /// </summary>
         x4 = 0x00000004,
+
+        /// <summary>
+        /// Use 8 samples per pixel.
+        /// </summary>
         x8 = 0x00000008,
+
+        /// <summary>
+        /// Use 16 samples per pixel.
+        /// </summary>
         x16 = 0x00000010,
+
+        /// <summary>
+        /// Use 32 samples per pixel.
+        /// </summary>
         x32 = 0x00000020,
+
+        /// <summary>
+        /// Use 64 samples per pixel.
+        /// </summary>
         x64 = 0x00000040
     };
 
+    /// <summary>
+    /// Describes the filter operation when accessing a pixel from a texture coordinate.
+    /// </summary>
+    /// <seealso cref="IImage" />
     enum class LITEFX_RENDERING_API FilterMode {
+        /// <summary>
+        /// Take the nearest texel with respect to the texture coordinate.
+        /// </summary>
         Nearest = 0x00000001,
+
+        /// <summary>
+        /// Linearly interpolate between the two closest texels with respect to the texture coordinate.
+        /// </summary>
         Linear = 0x00000002
     };
 
+    /// <summary>
+    /// Describes the filter operation between two mip-map levels.
+    /// </summary>
+    /// <seealso cref="IImage" />
+    /// <seealso cref="FilterMode" />
     enum class LITEFX_RENDERING_API MipMapMode {
+        /// <summary>
+        /// Take the texel from the mip-map level that is closest to the actual depth.
+        /// </summary>
         Nearest = 0x00000001,
+
+        /// <summary>
+        /// Linearly interpolate between the texels of the two neighboring mip-map levels.
+        /// </summary>
         Linear = 0x00000002
     };
 
+    /// <summary>
+    /// Describes how to treat texture coordinates that are outside the domain `[0..1]`.
+    /// </summary>
     enum class LITEFX_RENDERING_API BorderMode {
+        /// <summary>
+        /// Repeat the texture.
+        /// </summary>
         Repeat = 0x00000001,
+
+        /// <summary>
+        /// Mirror the texture.
+        /// </summary>
         RepeatMirrored = 0x00010001,
+
+        /// <summary>
+        /// Take the closest edge texel.
+        /// </summary>
         ClampToEdge = 0x00000002,
+
+        /// <summary>
+        /// Take the closest edge texel from the opposite site.
+        /// </summary>
         ClampToEdgeMirrored = 0x00010002,
+
+        /// <summary>
+        /// Return a pre-specified border color.
+        /// </summary>
         ClampToBorder = 0x00000003,
     };
 
+    /// <summary>
+    /// Describes the operation used to compare depth or stencil values during depth/stencil tests.
+    /// </summary>
+    /// <seealso cref="DepthStencilState" />
     enum class LITEFX_RENDERING_API CompareOperation {
+        /// <summary>
+        /// The test always fails.
+        /// </summary>
         Never = 0x00000000,
+
+        /// <summary>
+        /// The test succeeds, if the current value is less than the stencil ref or previous depth value.
+        /// </summary>
         Less = 0x00000001,
+
+        /// <summary>
+        /// The test succeeds, if the current value is greater than the stencil ref or previous depth value.
+        /// </summary>
         Greater = 0x0000002,
+
+        /// <summary>
+        /// The test succeeds, if the current value is equal to the stencil ref or previous depth value.
+        /// </summary>
         Equal = 0x00000003,
+
+        /// <summary>
+        /// The test succeeds, if the current value is less or equal to the stencil ref or previous depth value.
+        /// </summary>
         LessEqual = 0x00000004,
+
+        /// <summary>
+        /// The test succeeds, if the current value is greater or euql to the stencil ref or previous depth value.
+        /// </summary>
         GreaterEqual = 0x00000005,
+
+        /// <summary>
+        /// The test succeeds, if the current value is not equal to the stencil ref or previous depth value.
+        /// </summary>
         NotEqual = 0x00000006,
+
+        /// <summary>
+        /// The test always succeeds.
+        /// </summary>
         Always = 0x00000007
     };
 
+    /// <summary>
+    /// An operation that is applied to the stencil buffer.
+    /// </summary>
+    /// <seealso cref="DepthStencilState" />
     enum class LITEFX_RENDERING_API StencilOperation {
+        /// <summary>
+        /// Keep the current stencil value.
+        /// </summary>
         Keep = 0x00000000,
+        
+        /// <summary>
+        /// Set the stencil value to `0`.
+        /// </summary>
         Zero = 0x00000001,
+
+        /// <summary>
+        /// Replace the current stencil value with the stencil ref.
+        /// </summary>
         Replace = 0x00000002,
+
+        /// <summary>
+        /// Increment the current stencil value.
+        /// </summary>
         IncrementClamp = 0x00000003,
+
+        /// <summary>
+        /// Decrement the current stencil value.
+        /// </summary>
         DecrementClamp = 0x00000004,
+
+        /// <summary>
+        /// Bitwise invert the current stencil value.
+        /// </summary>
         Invert = 0x00000005,
+
+        /// <summary>
+        /// Increment the current stencil value and wrap it, if it goes out of bounds.
+        /// </summary>
         IncrementWrap = 0x00000006,
+
+        /// <summary>
+        /// Decrement the current stencil value and wrap it, if it goes out of bounds.
+        /// </summary>
         DecrementWrap = 0x00000007
     };
 
+    /// <summary>
+    /// Specifies a blend factor.
+    /// </summary>
+    /// <seealso cref="DepthStencilState" />
     enum class LITEFX_RENDERING_API BlendFactor {
         Zero = 0,
         One = 1,
@@ -570,13 +935,36 @@ namespace LiteFX::Rendering {
         OneMinusSource1Alpha = 18
     };
 
+    /// <summary>
+    /// Specifies a write mask for a color buffer.
+    /// </summary>
+    /// <seealso cref="RenderTargetType" />
     enum class LITEFX_RENDERING_API WriteMask {
+        /// <summary>
+        /// Write into the red channel.
+        /// </summary>
         R = 0x01,
+
+        /// <summary>
+        /// Write into the green channel.
+        /// </summary>
         G = 0x02,
+
+        /// <summary>
+        /// Write into the blue channel.
+        /// </summary>
         B = 0x04,
+
+        /// <summary>
+        /// Write into the alpha channel.
+        /// </summary>
         A = 0x08
     };
 
+    /// <summary>
+    /// Specifies a blend operation.
+    /// </summary>
+    /// <seealso cref="DepthStencilState" />
     enum class LITEFX_RENDERING_API BlendOperation {
         Add = 0x01,
         Subtract = 0x02,
@@ -585,38 +973,397 @@ namespace LiteFX::Rendering {
         Maximum = 0x05
     };
 
+    /// <summary>
+    /// Specifies the state of a resource.
+    /// </summary>
+    /// <seealso cref="IDeviceMemory" />
+    enum class LITEFX_RENDERING_API ResourceState {
+        /// <summary>
+        /// The state of the resource is undefined or does not matter.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_COMMON`</term>
+        ///         <term>`VK_ACCESS_NONE_KHR`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_UNDEFINED`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        Common = 0x00000001,
+
+        /// <summary>
+        /// The resource is used as a read-only vertex buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER`</term>
+        ///         <term>`VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT`</term>
+        ///         <term>–</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        VertexBuffer = 0x00000002,
+
+        /// <summary>
+        /// The resource is used as a read-only index buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_INDEX_BUFFER`</term>
+        ///         <term>`VK_ACCESS_INDEX_READ_BIT`</term>
+        ///         <term>–</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        IndexBuffer = 0x0000003,
+
+        /// <summary>
+        /// The resource is used as a read-only uniform or constant buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER`</term>
+        ///         <term>`VK_ACCESS_UNIFORM_READ_BIT`</term>
+        ///         <term>–</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        UniformBuffer = 0x00000004,
+
+        /// <summary>
+        /// The resource is used as a read-only storage or texel buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE`</term>
+        ///         <term>`VK_ACCESS_SHADER_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        ReadOnly = 0x00000005,
+
+        /// <summary>
+        /// The resource is used as a read-only buffer that can be bound to all read-only descriptor types.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_GENERIC_READ`</term>
+        ///         <term>`VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Note that this resource type is required for resources that are created with <see cref="BufferUsage::Dynamic" />.
+        /// </remarks>
+        GenericRead = 0x00000006,
+
+        /// <summary>
+        /// The resource is used as a read-write storage or texel buffer.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_UNORDERED_ACCESS`</term>
+        ///         <term>`VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_GENERAL`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        ReadWrite = 0x00000007,
+
+        /// <summary>
+        /// The resource is used as a copy source.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_COPY_SOURCE`</term>
+        ///         <term>`VK_ACCESS_TRANSFER_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        CopySource = 0x00000010,
+
+        /// <summary>
+        /// The resource is used as a copy destination.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_COPY_DEST`</term>
+        ///         <term>`VK_ACCESS_TRANSFER_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        CopyDestination = 0x00000011,
+
+        /// <summary>
+        /// The resource is used as a render target.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_RENDER_TARGET`</term>
+        ///         <term>`VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        RenderTarget = 0x00000020,
+
+        /// <summary>
+        /// The resource is used as a read-only depth/stencil target.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_DEPTH_READ`</term>
+        ///         <term>`VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        DepthRead = 0x00000021,
+
+        /// <summary>
+        /// The resource is used as a write-only depth/stencil target.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_DEPTH_WRITE`</term>
+        ///         <term>`VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        DepthWrite = 0x00000022,
+
+        /// <summary>
+        /// The resource is presented on a swap chain.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_PRESENT`</term>
+        ///         <term>`VK_ACCESS_MEMORY_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        Present = 0x00000023,
+
+        /// <summary>
+        /// The resource is a multi-sampled image that will be resolved into a present target.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_RESOLVE_SOURCE`</term>
+        ///         <term>`VK_ACCESS_MEMORY_READ_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        ResolveSource = 0x00000024,
+
+        /// <summary>
+        /// The resource is resolved from a multi-sampled image.
+        /// </summary>
+        /// <remarks>
+        /// The following table contains the API-specific flags for each supported back-end.
+        /// 
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>DirectX 12 ❎</term>
+        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
+        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>`D3D12_RESOURCE_STATE_RESOLVE_DEST`</term>
+        ///         <term>`VK_ACCESS_MEMORY_WRITE_BIT`</term>
+        ///         <term>`VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`</term>
+        ///     </item>
+        /// </list>
+        /// 
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// </remarks>
+        ResolveDestination = 0x00000025,
+
+        /// <summary>
+        /// The state of the resource is not known by the engine.
+        /// </summary>
+        /// <remarks>
+        /// A resource with an unknown state is not invalid. However, it is not valid to transition a resource out of or into this state. If a resource ends up
+        /// in this state, the state of the <see cref="IDeviceMemory" /> should be manually set.
+        /// </remarks>
+        Undefined = 0x7FFFFFFF
+    };
+
     // Define flags.
     LITEFX_DEFINE_FLAGS(QueueType);
     LITEFX_DEFINE_FLAGS(ShaderStage);
     LITEFX_DEFINE_FLAGS(BufferFormat);
-    LITEFX_DEFINE_FLAGS(WriteMask)
+    LITEFX_DEFINE_FLAGS(WriteMask);
 
     // Helper functions.
+
+    /// <summary>
+    /// Returns the number of channels for a buffer format.
+    /// </summary>
+    /// <seealso cref="BufferFormat" />
     inline UInt32 getBufferFormatChannels(const BufferFormat& format) {
         return static_cast<UInt32>(format) & 0x000000FF;
     }
 
+    /// <summary>
+    /// Returns the number of bytes used by a channel of a buffer format.
+    /// </summary>
+    /// <seealso cref="BufferFormat" />
     inline UInt32 getBufferFormatChannelSize(const BufferFormat& format) {
         return (static_cast<UInt32>(format) & 0xFF000000) >> 24;
     }
 
+    /// <summary>
+    /// Returns the underlying data type of a buffer format.
+    /// </summary>
+    /// <seealso cref="BufferFormat" />
     inline UInt32 getBufferFormatType(const BufferFormat& format) {
         return (static_cast<UInt32>(format) & 0x0000FF00) >> 8;
     }
 
     /// <summary>
-    /// 
+    /// Returns the size of an element of a specified format.
     /// </summary>
     size_t LITEFX_RENDERING_API getSize(const Format& format);
 
     /// <summary>
-    /// 
+    /// Returns <c>true</c>, if the format contains a depth channel.
     /// </summary>
+    /// <seealso cref="DepthStencilState" />
     bool LITEFX_RENDERING_API hasDepth(const Format& format);
 
     /// <summary>
-    /// 
+    /// Returns <c>true</c>, if the format contains a stencil channel.
     /// </summary>
+    /// <seealso cref="DepthStencilState" />
     bool LITEFX_RENDERING_API hasStencil(const Format& format);
 
     /// <summary>
@@ -903,48 +1650,6 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual const BlendState& blendState() const noexcept override;
-    };
-
-    /// <summary>
-    /// Represents a command buffer, that buffers commands that should be submitted to a <see cref="ICommandQueue" />.
-    /// </summary>
-    class LITEFX_RENDERING_API ICommandBuffer {
-    public:
-        virtual ~ICommandBuffer() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Waits for the command buffer to be executed.
-        /// </summary>
-        /// <remarks>
-        /// If the command buffer gets submitted, it does not necessarily get executed straight away. If you depend on a command buffer to be finished, you can call this method.
-        /// </remarks>
-        virtual void wait() const = 0;
-
-        /// <summary>
-        /// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="ICommandQueue" />.
-        /// </summary>
-        /// <remarks>
-        /// Note that, if a command buffer has been submitted before, this method waits for the earlier commands to be executed by calling <see cref="wait" />.
-        /// </remarks>
-        virtual void begin() const = 0;
-
-        /// <summary>
-        /// Ends recording commands on the command buffer.
-        /// </summary>
-        /// <param name="submit">If set to <c>true</c>, the command buffer is automatically submitted by calling the <see cref="submit" /> method.</param>
-        /// <param name="wait">If <paramref name="submit" /> is set to <c>true</c>, this parameter gets passed to the <see cref="submit" /> method.</param>
-        /// <seealso cref="submit" />
-        virtual void end(const bool& submit = true, const bool& wait = false) const = 0;
-
-        /// <summary>
-        /// Submits the command buffer to the parent command queue.
-        /// </summary>
-        /// <remarks>
-        /// </remarks>
-        /// <param name="wait">If set to <c>true</c>, the command buffer blocks, until the submitted commands have been executed.</param>
-        /// <seealso cref="wait" />
-        virtual void submit(const bool& wait = false) const = 0;
     };
 
     /// <summary>

@@ -13,13 +13,14 @@ public:
 private:
     Array<UniquePtr<IVulkanImage>> m_outputAttachments;
     Array<const IVulkanImage*> m_renderTargetViews;
-	UniquePtr<VulkanCommandBuffer> m_commandBuffer;
+	Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
 	Size2d m_size;
 	VkSemaphore m_semaphore;
     UInt32 m_bufferIndex;
+    UInt64 m_lastFence{ 0 };
 
 public:
-    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const UInt32& bufferIndex, const Size2d& renderArea) :
+    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
         base(parent), m_bufferIndex(bufferIndex), m_size(renderArea)
 	{
 		// Initialize the semaphore.
@@ -28,7 +29,8 @@ public:
 		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
 
         // Retrieve a command buffer from the graphics queue.
-        m_commandBuffer = m_parent->getDevice()->graphicsQueue().createCommandBuffer(false);
+        m_commandBuffers.resize(commandBuffers);
+        std::ranges::generate(m_commandBuffers, [this]() { return m_parent->getDevice()->graphicsQueue().createCommandBuffer(true, false); });
 	}
 
 	~VulkanFrameBufferImpl()
@@ -118,8 +120,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex, renderArea)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkFramebuffer>(VK_NULL_HANDLE)
+VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex, renderArea, commandBuffers)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkFramebuffer>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 }
@@ -131,7 +133,12 @@ VulkanFrameBuffer::~VulkanFrameBuffer() noexcept
 
 const VkSemaphore& VulkanFrameBuffer::semaphore() const noexcept
 {
-	return m_impl->m_semaphore;
+    return m_impl->m_semaphore;
+}
+
+UInt64& VulkanFrameBuffer::lastFence() const noexcept
+{
+    return m_impl->m_lastFence;
 }
 
 const UInt32& VulkanFrameBuffer::bufferIndex() const noexcept
@@ -154,9 +161,19 @@ size_t VulkanFrameBuffer::getHeight() const noexcept
 	return m_impl->m_size.height();
 }
 
-const VulkanCommandBuffer& VulkanFrameBuffer::commandBuffer() const noexcept
+const VulkanCommandBuffer& VulkanFrameBuffer::commandBuffer(const UInt32& index) const
 {
-	return *m_impl->m_commandBuffer;
+    if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
+        throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
+
+	return *m_impl->m_commandBuffers[index];
+}
+
+Array<const VulkanCommandBuffer*> VulkanFrameBuffer::commandBuffers() const noexcept
+{
+    return m_impl->m_commandBuffers |
+        std::views::transform([](const UniquePtr<VulkanCommandBuffer>& commandBuffer) { return commandBuffer.get(); }) |
+        ranges::to<Array<const VulkanCommandBuffer*>>();
 }
 
 Array<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept

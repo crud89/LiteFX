@@ -14,7 +14,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 
 	public:
-		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const bool& writable, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
+		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
 		VulkanImage(VulkanImage&&) = delete;
 		VulkanImage(const VulkanImage&) = delete;
 		virtual ~VulkanImage() noexcept;
@@ -39,6 +39,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const bool& writable() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const ResourceState& state(const UInt32& subresource = 0) const override;
+
+		/// <inheritdoc />
+		virtual ResourceState& state(const UInt32& subresource = 0) override;
+
 		// IImage interface.
 	public:
 		/// <inheritdoc />
@@ -59,8 +65,17 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const UInt32& layers() const noexcept override;
 
+		/// <inheritdoc />
+		virtual const UInt32& planes() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const MultiSamplingLevel& samples() const noexcept override;
+
 		// IVulkanImage interface.
 	public:
+		virtual VkImageAspectFlags aspectMask() const noexcept override;
+		virtual VkImageAspectFlags aspectMask(const UInt32& plane) const override;
+		virtual void resolveSubresource(const UInt32& subresource, UInt32& plane, UInt32& layer, UInt32& level) const override;
 		virtual const VkImageView& imageView(const UInt32& plane = 0) const override;
 
 	protected:
@@ -69,56 +84,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual VkImageView& imageView(const UInt32& plane = 0);
 
 	public:
-		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const bool& writable, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-	};
-
-	/// <summary>
-	/// Implements a Vulkan <see cref="ITexture" />.
-	/// </summary>
-	class VulkanTexture : public VulkanImage, public IVulkanTexture {
-		LITEFX_IMPLEMENTATION(VulkanTextureImpl);
-
-	public:
-		explicit VulkanTexture(const VulkanDevice& device, VkImage image, const VkImageLayout& imageLayout, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, VmaAllocator allocator, VmaAllocation allocation);
-		VulkanTexture(VulkanTexture&&) = delete;
-		VulkanTexture(const VulkanTexture&) = delete;
-		virtual ~VulkanTexture() noexcept;
-
-		// ITexture interface.
-	public:
-		/// <inheritdoc />
-		virtual const MultiSamplingLevel& samples() const noexcept override;
-
-	public:
-		/// <inheritdoc />
-		virtual void generateMipMaps(const VulkanCommandBuffer& commandBuffer) const noexcept override;
-
-		// ITransferable interface.
-	public:
-		/// <inheritdoc />
-		virtual void receiveData(const VulkanCommandBuffer& commandBuffer, const bool& receive) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void sendData(const VulkanCommandBuffer& commandBuffer, const bool& emit) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void transferFrom(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& source, const UInt32& sourceElement = 0, const UInt32& targetMipMapLevel = 0, const UInt32& mipMapLevels = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
-
-		/// <inheritdoc />
-		virtual void transferTo(const VulkanCommandBuffer& commandBuffer, const IVulkanBuffer& target, const UInt32& sourceMipMapLevel = 0, const UInt32& targetElement = 0, const UInt32& mipMapLevels = 1, const bool& leaveSourceState = false, const bool& leaveTargetState = false, const UInt32& layer = 0, const UInt32& plane = 0) const override;
-
-		// IVulkanImage interface.
-	public:
-		virtual const VkImageView& imageView(const UInt32& plane = 0) const override {
-			return VulkanImage::imageView(plane);
-		}
-
-		// IVulkanTexture interface.
-	public:
-		virtual const VkImageLayout& imageLayout() const noexcept override;
-
-	public:
-		static UniquePtr<VulkanTexture> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>

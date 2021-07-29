@@ -58,7 +58,6 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanVertexBuffer;
     class IVulkanIndexBuffer;
     class IVulkanImage;
-    class IVulkanTexture;
     class IVulkanSampler;
 
     // Builder declarations.
@@ -176,6 +175,16 @@ namespace LiteFX::Rendering::Backends {
     /// 
     /// </summary>
     VkBlendOp LITEFX_VULKAN_API getBlendOperation(const BlendOperation& blendOperation);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkImageLayout LITEFX_VULKAN_API getImageLayout(const ResourceState& resourceState);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    VkAccessFlags LITEFX_VULKAN_API getAccessFlags(const ResourceState& resourceState);
 
     /// <summary>
     /// Represents a Vulkan <see cref="IGraphicsAdapter" />.

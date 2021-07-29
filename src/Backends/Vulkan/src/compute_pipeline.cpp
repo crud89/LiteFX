@@ -13,7 +13,6 @@ public:
 
 private:
 	UniquePtr<VulkanPipelineLayout> m_layout;
-	const VulkanCommandBuffer* m_commandBuffer = nullptr;
 	String m_name;
 
 public:
@@ -86,39 +85,14 @@ const VulkanPipelineLayout& VulkanComputePipeline::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-const VulkanCommandBuffer* VulkanComputePipeline::commandBuffer() const noexcept
+void VulkanComputePipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
 {
-	return m_impl->m_commandBuffer;
+	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, this->handle());
 }
 
-void VulkanComputePipeline::bind(const VulkanDescriptorSet& descriptorSet) const
+void VulkanComputePipeline::bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept
 {
-	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
-		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
-
-	::vkCmdBindDescriptorSets(m_impl->m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
-}
-
-void VulkanComputePipeline::dispatch(const Vector3u& threadCount) const
-{
-	if (m_impl->m_commandBuffer == nullptr) [[unlikely]]
-		throw RuntimeException("The compute pipeline has not been started. Call `begin` on the pipeline first.");
-
-	::vkCmdDispatch(m_impl->m_commandBuffer->handle(), threadCount.x(), threadCount.y(), threadCount.z());
-}
-
-void VulkanComputePipeline::begin(const VulkanCommandBuffer& commandBuffer)
-{
-	if (m_impl->m_commandBuffer != nullptr) [[unlikely]]
-		throw RuntimeException("A compute pipeline must only be bound to one command buffer. Call `end` on the pipeline first.");
-
-	m_impl->m_commandBuffer = &commandBuffer;
-	::vkCmdBindPipeline(m_impl->m_commandBuffer->handle(), VK_PIPELINE_BIND_POINT_COMPUTE, this->handle());
-}
-
-void VulkanComputePipeline::end()
-{
-	m_impl->m_commandBuffer = nullptr;
+	::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
 }
 
 // ------------------------------------------------------------------------------------------------

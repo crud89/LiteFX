@@ -131,7 +131,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+    commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
@@ -139,7 +139,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+    commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 
     // Initialize the static buffers. The camera and lights buffers are constant, so we only need to create one buffer (for each), that can be read 
     // from all frames. Since this is a write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -164,7 +164,7 @@ void SampleApp::initBuffers()
 
     auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | ranges::to<Array<const void*>>();
     lightsStagingBuffer->map(lightsData, sizeof(LightBuffer));
-    m_lightsBuffer->transferFrom(*commandBuffer, *lightsStagingBuffer, 0, 0, LIGHT_SOURCES);
+    commandBuffer->transfer(*lightsStagingBuffer, *m_lightsBuffer, 0, 0, LIGHT_SOURCES);
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
@@ -175,7 +175,8 @@ void SampleApp::initBuffers()
     std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
     
     // End and submit the command buffer.
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::initLights()
@@ -199,7 +200,7 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
+    commandBuffer.transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 }
 
 void SampleApp::run() 
@@ -291,7 +292,8 @@ void SampleApp::resize(int width, int height)
     // Also update the camera.
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
     this->updateCamera(*commandBuffer);
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::handleEvents()
@@ -309,7 +311,8 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     m_renderPass->begin(backBuffer);
-    m_pipeline->use();
+    auto& commandBuffer = m_renderPass->activeFrameBuffer().commandBuffer(0);
+    commandBuffer.use(*m_pipeline);
 
     // Get the amount of time that has passed since the first frame.
     auto now = std::chrono::high_resolution_clock::now();
@@ -320,14 +323,14 @@ void SampleApp::drawFrame()
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    m_pipeline->bind(*m_staticBindings);
-    m_pipeline->bind(*m_perFrameBindings[backBuffer]);
+    commandBuffer.bind(*m_staticBindings);
+    commandBuffer.bind(*m_perFrameBindings[backBuffer]);
 
     // Bind the vertex and index buffers.
-    m_pipeline->bind(*m_vertexBuffer);
-    m_pipeline->bind(*m_indexBuffer);
+    commandBuffer.bind(*m_vertexBuffer);
+    commandBuffer.bind(*m_indexBuffer);
 
     // Draw the object and present the frame by ending the render pass.
-    m_pipeline->drawIndexed(m_indexBuffer->elements());
+    commandBuffer.drawIndexed(m_indexBuffer->elements());
     m_renderPass->end();
 }

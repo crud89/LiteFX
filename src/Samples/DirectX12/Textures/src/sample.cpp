@@ -101,7 +101,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+    commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
@@ -109,7 +109,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+    commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -139,7 +139,8 @@ void SampleApp::initBuffers()
     std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
 
     // End and submit the command buffer.
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::loadTexture()
@@ -160,19 +161,17 @@ void SampleApp::loadTexture()
     auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->size(0));
     stagedTexture->map(imageData.get(), m_texture->size(0), 0);
 
-    // Transfer the texture using the graphics queue to ensure that the image transition is supported for the descriptor set shader stages.
-    auto commandBuffer = m_device->graphicsQueue().createCommandBuffer(true);
-    m_texture->transferFrom(*commandBuffer, *stagedTexture);
+    // Transfer the texture using the compute queue (since we want to be able to generate mip maps, which is done on the compute queue).
+    auto commandBuffer = m_device->computeQueue().createCommandBuffer(true);
+    commandBuffer->transfer(*stagedTexture, *m_texture);
 
     // Generate the rest of the mip maps.
-    m_texture->generateMipMaps(*commandBuffer);
+    commandBuffer->generateMipMaps(*m_texture);
 
-    // Submit the command buffer and wait for it to execute.
-    // NOTE: If the command buffer goes out of scope, it will get destroyed and its fence released. This causes validation errors, since the command buffer must
-    //       have finished before being released. Instead of waiting here, it is probably better for applications that do repeated texture uploads to store a
-    //       command buffer instance and re-use it without waiting after each submit. It is even more efficient, to put multiple texture transfers into the 
-    //       command buffer before submitting.
-    commandBuffer->end(true, true);
+    // Submit the command buffer and wait for it to execute. Note that it is possible to do the waiting later when we actually use the texture during rendering. This
+    // would not block earlier draw calls, if the texture would be streamed in at run-time.
+    auto fence = m_device->computeQueue().submit(*commandBuffer);
+    m_device->computeQueue().waitFor(fence);
 
     // Create a sampler state for the texture.
     m_sampler = m_device->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
@@ -190,7 +189,7 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer.get());
+    commandBuffer.transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 }
 
 void SampleApp::run()
@@ -284,7 +283,8 @@ void SampleApp::resize(int width, int height)
     // Also update the camera.
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
     this->updateCamera(*commandBuffer);
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::handleEvents()
@@ -302,7 +302,8 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     m_renderPass->begin(backBuffer);
-    m_pipeline->use();
+    auto& commandBuffer = m_renderPass->activeFrameBuffer().commandBuffer(0);
+    commandBuffer.use(*m_pipeline);
 
     // Get the amount of time that has passed since the first frame.
     auto now = std::chrono::high_resolution_clock::now();
@@ -313,15 +314,15 @@ void SampleApp::drawFrame()
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    m_pipeline->bind(*m_constantBindings);
-    m_pipeline->bind(*m_samplerBindings);
-    m_pipeline->bind(*m_perFrameBindings[backBuffer]);
+    commandBuffer.bind(*m_constantBindings);
+    commandBuffer.bind(*m_samplerBindings);
+    commandBuffer.bind(*m_perFrameBindings[backBuffer]);
 
     // Bind the vertex and index buffers.
-    m_pipeline->bind(*m_vertexBuffer);
-    m_pipeline->bind(*m_indexBuffer);
+    commandBuffer.bind(*m_vertexBuffer);
+    commandBuffer.bind(*m_indexBuffer);
 
     // Draw the object and present the frame by ending the render pass.
-    m_pipeline->drawIndexed(m_indexBuffer->elements());
+    commandBuffer.drawIndexed(m_indexBuffer->elements());
     m_renderPass->end();
 }

@@ -20,6 +20,7 @@ private:
     Array<VkClearValue> m_clearValues;
     UInt32 m_backBuffer{ 0 };
     MultiSamplingLevel m_samples;
+    UniquePtr<VulkanCommandBuffer> m_primaryCommandBuffer;
 
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
@@ -241,14 +242,17 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
     m_impl(makePimpl<VulkanRenderPassImpl>(this, renderTargets, samples, inputAttachments)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 
     // Initialize the frame buffers.
     m_impl->m_frameBuffers.resize(this->getDevice()->swapChain().buffers());
-    std::ranges::generate(m_impl->m_frameBuffers, [this, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*this, i++, this->parent().swapChain().renderArea()); });
+    std::ranges::generate(m_impl->m_frameBuffers, [this, &commandBuffers, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*this, i++, this->parent().swapChain().renderArea(), commandBuffers); });
+
+    // Initialize the command buffers.
+    m_impl->m_primaryCommandBuffer = getDevice()->graphicsQueue().createCommandBuffer(false);
 }
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device) noexcept :
@@ -340,8 +344,9 @@ void VulkanRenderPass::begin(const UInt32& buffer)
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
     m_impl->m_backBuffer = buffer;
 
-    // Begin the command recording on the frame buffers command buffer.
-    frameBuffer->commandBuffer().begin();
+    // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
+    this->getDevice()->graphicsQueue().waitFor(frameBuffer->lastFence());
+    m_impl->m_primaryCommandBuffer->begin();
 
     // Begin the render pass.
     VkRenderPassBeginInfo renderPassInfo{};
@@ -354,7 +359,10 @@ void VulkanRenderPass::begin(const UInt32& buffer)
     renderPassInfo.clearValueCount = m_impl->m_clearValues.size();
     renderPassInfo.pClearValues = m_impl->m_clearValues.data();
 
-    ::vkCmdBeginRenderPass(frameBuffer->commandBuffer().handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    ::vkCmdBeginRenderPass(std::as_const(*m_impl->m_primaryCommandBuffer).handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+
+    // Begin the frame buffer command buffers.
+    std::ranges::for_each(frameBuffer->commandBuffers(), [this](const VulkanCommandBuffer* commandBuffer) { commandBuffer->begin(*this); });
 }
 
 void VulkanRenderPass::end() const
@@ -364,32 +372,39 @@ void VulkanRenderPass::end() const
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
 
     auto frameBuffer = m_impl->m_activeFrameBuffer;
-    
+
     // End the render pass and the command buffer recording.
-    ::vkCmdEndRenderPass(frameBuffer->commandBuffer().handle());
-    frameBuffer->commandBuffer().end(false);
+    auto secondaryBuffers = frameBuffer->commandBuffers();
+    auto secondaryHandles = secondaryBuffers |
+        std::views::transform([](const VulkanCommandBuffer* commandBuffer) { commandBuffer->end(); return commandBuffer->handle(); }) |
+        ranges::to<Array<VkCommandBuffer>>();
+    ::vkCmdExecuteCommands(std::as_const(*m_impl->m_primaryCommandBuffer).handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
+    ::vkCmdEndRenderPass(std::as_const(*m_impl->m_primaryCommandBuffer).handle());
 
     // Submit the command buffer.
     if (!this->hasPresentTarget())
-        frameBuffer->commandBuffer().submit();
+        frameBuffer->lastFence() = this->getDevice()->graphicsQueue().submit(*m_impl->m_primaryCommandBuffer);
     else
     {
-        Array<VkSemaphore> waitForSemaphores = { this->getDevice()->swapChain().semaphore() };
-        Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
-        Array<VkSemaphore> signalSemaphores = { frameBuffer->semaphore() };
-        frameBuffer->commandBuffer().submit(waitForSemaphores, waitForStages, signalSemaphores, false);
+        // Draw the frame, if the result of the render pass it should be presented to the swap chain.
+        std::array<VkSemaphore, 1> waitForSemaphores = { this->getDevice()->swapChain().semaphore() };
+        std::array<VkPipelineStageFlags, 1> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
+        std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
+        frameBuffer->lastFence() = this->getDevice()->graphicsQueue().submit(*m_impl->m_primaryCommandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
 
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.waitSemaphoreCount = signalSemaphores.size();
-        presentInfo.pWaitSemaphores = signalSemaphores.data();
-        presentInfo.pImageIndices = &m_impl->m_backBuffer;
-        presentInfo.pResults = nullptr;
+        std::array<VkSwapchainKHR, 1> swapChains = { this->getDevice()->swapChain().handle() };
 
-        VkSwapchainKHR swapChains[] = { this->getDevice()->swapChain().handle() };
-        presentInfo.pSwapchains = swapChains;
-        presentInfo.swapchainCount = 1;
+        VkPresentInfoKHR presentInfo {
+            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .pNext = nullptr,
+            .waitSemaphoreCount = static_cast<UInt32>(signalSemaphores.size()),
+            .pWaitSemaphores = signalSemaphores.data(),
+            .swapchainCount = static_cast<UInt32>(swapChains.size()),
+            .pSwapchains = swapChains.data(),
+            .pImageIndices = &m_impl->m_backBuffer,
+            .pResults = nullptr
+        };
 
         raiseIfFailed<RuntimeException>(::vkQueuePresentKHR(this->getDevice()->graphicsQueue().handle(), &presentInfo), "Unable to present swap chain.");
     }
@@ -450,10 +465,11 @@ private:
     Array<VulkanInputAttachmentMapping> m_inputAttachments;
     Array<RenderTarget> m_renderTargets;
     MultiSamplingLevel m_samples;
+    UInt32 m_commandBuffers;
 
 public:
-    VulkanRenderPassBuilderImpl(VulkanRenderPassBuilder* parent, const MultiSamplingLevel& samples) :
-        base(parent), m_samples(samples)
+    VulkanRenderPassBuilderImpl(VulkanRenderPassBuilder* parent, const MultiSamplingLevel& samples, const UInt32& commandBuffers) :
+        base(parent), m_samples(samples), m_commandBuffers(commandBuffers)
     {
     }
 };
@@ -462,8 +478,18 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers) noexcept :
+    VulkanRenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1)
+{
+}
+
 VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples) noexcept :
-    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this, samples)), RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass>(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device)))
+    VulkanRenderPassBuilder(device, 1, samples)
+{
+}
+
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples) noexcept :
+    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this, samples, commandBuffers)), RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass>(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device)))
 {
 }
 
@@ -479,8 +505,11 @@ UniquePtr<VulkanRenderPass> VulkanRenderPassBuilder::go()
 
     // Initialize the frame buffers.
     instance->m_impl->m_frameBuffers.resize(instance->getDevice()->swapChain().buffers());
-    std::ranges::generate(instance->m_impl->m_frameBuffers, [&instance, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*instance, i++, instance->parent().swapChain().renderArea()); });
+    std::ranges::generate(instance->m_impl->m_frameBuffers, [this, &instance, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*instance, i++, instance->parent().swapChain().renderArea(), m_impl->m_commandBuffers); });
 
+    // Initialize the command buffers.
+    instance->m_impl->m_primaryCommandBuffer = instance->getDevice()->graphicsQueue().createCommandBuffer(false);
+    
     return RenderPassBuilder::go();
 }
 
@@ -492,6 +521,12 @@ void VulkanRenderPassBuilder::use(RenderTarget&& target)
 void VulkanRenderPassBuilder::use(VulkanInputAttachmentMapping&& attachment)
 {
     m_impl->m_inputAttachments.push_back(std::move(attachment));
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::commandBuffers(const UInt32& count)
+{
+    m_impl->m_commandBuffers = count;
+    return *this;
 }
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)

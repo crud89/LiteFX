@@ -133,7 +133,7 @@ void SampleApp::initBuffers()
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     m_vertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    m_vertexBuffer->transferFrom(*commandBuffer, *stagedVertices, 0, 0, vertices.size());
+    commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
@@ -141,7 +141,7 @@ void SampleApp::initBuffers()
 
     // Create the actual index buffer and transfer the staging buffer into it.
     m_indexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    m_indexBuffer->transferFrom(*commandBuffer, *stagedIndices, 0, 0, indices.size());
+    commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -169,18 +169,19 @@ void SampleApp::initBuffers()
     auto stagedViewPlaneVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, viewPlaneVertices.size());
     stagedViewPlaneVertices->map(viewPlaneVertices.data(), viewPlaneVertices.size() * sizeof(::Vertex), 0);
     m_viewPlaneVertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, viewPlaneVertices.size());
-    m_viewPlaneVertexBuffer->transferFrom(*commandBuffer, *stagedViewPlaneVertices, 0, 0, viewPlaneVertices.size());
+    commandBuffer->transfer(*stagedViewPlaneVertices, *m_viewPlaneVertexBuffer, 0, 0, viewPlaneVertices.size());
 
     auto stagedViewPlaneIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, viewPlaneIndices.size());
     stagedViewPlaneIndices->map(viewPlaneIndices.data(), viewPlaneIndices.size() * m_inputAssembler->indexBufferLayout().elementSize(), 0);
     m_viewPlaneIndexBuffer = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, viewPlaneIndices.size());
-    m_viewPlaneIndexBuffer->transferFrom(*commandBuffer, *stagedViewPlaneIndices, 0, 0, viewPlaneIndices.size());
+    commandBuffer->transfer(*stagedViewPlaneIndices, *m_viewPlaneIndexBuffer, 0, 0, viewPlaneIndices.size());
 
     // Create the G-Buffer bindings.
     m_gBufferBindings = m_lightingPipeline->layout().descriptorSet(0).allocate(3);
 
     // End and submit the command buffer.
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
@@ -191,7 +192,7 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    m_cameraBuffer->transferFrom(commandBuffer, *m_cameraStagingBuffer);
+    commandBuffer.transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 }
 
 void SampleApp::run() 
@@ -289,7 +290,8 @@ void SampleApp::resize(int width, int height)
     // Also update the camera.
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
     this->updateCamera(*commandBuffer);
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::handleEvents()
@@ -305,43 +307,49 @@ void SampleApp::drawFrame()
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
-    // Begin rendering on the geometry pass and use the only pipeline we've created for it.
-    m_geometryPass->begin(backBuffer);
-    m_geometryPipeline->use();
+    {
+        // Begin rendering on the geometry pass and use the only pipeline we've created for it.
+        m_geometryPass->begin(backBuffer);
+        auto& commandBuffer = m_geometryPass->activeFrameBuffer().commandBuffer(0);
+        commandBuffer.use(*m_geometryPipeline);
 
-    // Get the amount of time that has passed since the first frame.
-    auto now = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+        // Get the amount of time that has passed since the first frame.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    // Compute world transform and update the transform buffer.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+        // Compute world transform and update the transform buffer.
+        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
-    // Bind both descriptor sets to the pipeline.
-    m_geometryPipeline->bind(*m_cameraBindings);
-    m_geometryPipeline->bind(*m_perFrameBindings[backBuffer]);
+        // Bind both descriptor sets to the pipeline.
+        commandBuffer.bind(*m_cameraBindings);
+        commandBuffer.bind(*m_perFrameBindings[backBuffer]);
 
-    // Bind the vertex and index buffers.
-    m_geometryPipeline->bind(*m_vertexBuffer);
-    m_geometryPipeline->bind(*m_indexBuffer);
+        // Bind the vertex and index buffers.
+        commandBuffer.bind(*m_vertexBuffer);
+        commandBuffer.bind(*m_indexBuffer);
 
-    // Draw the object and end the geometry pass.
-    m_geometryPipeline->drawIndexed(m_indexBuffer->elements());
-    m_geometryPass->end();
+        // Draw the object and end the geometry pass.
+        commandBuffer.drawIndexed(m_indexBuffer->elements());
+        m_geometryPass->end();
+    }
 
-    // Start the lighting pass.
-    m_lightingPass->begin(backBuffer);
-    m_lightingPipeline->use();
+    {
+        // Start the lighting pass.
+        m_lightingPass->begin(backBuffer);
+        auto& commandBuffer = m_lightingPass->activeFrameBuffer().commandBuffer(0);
+        commandBuffer.use(*m_lightingPipeline);
 
-    // Bind the G-Buffer.
-    m_lightingPass->updateAttachments(*m_gBufferBindings[backBuffer]);
+        // Bind the G-Buffer.
+        m_lightingPass->updateAttachments(*m_gBufferBindings[backBuffer]);
 
-    // Draw the view plane.
-    m_lightingPipeline->bind(*m_viewPlaneVertexBuffer);
-    m_lightingPipeline->bind(*m_viewPlaneIndexBuffer);
-    m_lightingPipeline->bind(*m_gBufferBindings[backBuffer]);
-    m_lightingPipeline->drawIndexed(m_viewPlaneIndexBuffer->elements());
+        // Draw the view plane.
+        commandBuffer.bind(*m_viewPlaneVertexBuffer);
+        commandBuffer.bind(*m_viewPlaneIndexBuffer);
+        commandBuffer.bind(*m_gBufferBindings[backBuffer]);
+        commandBuffer.drawIndexed(m_viewPlaneIndexBuffer->elements());
 
-    // End the lighting pass.
-    m_lightingPass->end();
+        // End the lighting pass.
+        m_lightingPass->end();
+    }
 }
