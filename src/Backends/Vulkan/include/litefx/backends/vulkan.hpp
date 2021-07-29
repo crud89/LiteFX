@@ -1015,14 +1015,23 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <summary>
-		/// Initializes the command buffer from a command queue.
+		/// Initializes a command buffer from a command queue.
 		/// </summary>
 		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
 		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
-		explicit VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin = false);
+		/// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
+		explicit VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin = false, const bool& primary = true);
 		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
 		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
 		virtual ~VulkanCommandBuffer() noexcept;
+
+		// Vulkan Command Buffer interface.
+	public:
+		/// <summary>
+		/// Begins the command buffer as a secondary command buffer that inherits the state of <paramref name="renderPass" />.
+		/// </summary>
+		/// <param name="renderPass">The render pass state to inherit.</param>
+		virtual void begin(const VulkanRenderPass& renderPass) const noexcept;
 
 		// ICommandBuffer interface.
 	public:
@@ -1313,7 +1322,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderPass">The parent render pass of the frame buffer.</param>
 		/// <param name="bufferIndex">The index of the frame buffer within the parent render pass.</param>
 		/// <param name="renderArea">The initial size of the render area.</param>
-		VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea);
+		/// <param name="commandBuffers">The number of command buffers, the frame buffer stores.</param>
+		VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers = 1);
 		VulkanFrameBuffer(const VulkanFrameBuffer&) noexcept = delete;
 		VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
 		virtual ~VulkanFrameBuffer() noexcept;
@@ -1350,7 +1360,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanCommandBuffer& commandBuffer() const noexcept override;
+		virtual const VulkanCommandBuffer& commandBuffer(const UInt32& index) const override;
+
+		/// <inheritdoc />
+		virtual Array<const VulkanCommandBuffer*> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
 		virtual Array<const IVulkanImage*> images() const noexcept override;
@@ -1376,10 +1389,11 @@ namespace LiteFX::Rendering::Backends {
 		/// Creates and initializes a new Vulkan render pass instance.
 		/// </summary>
 		/// <param name="device">The parent device instance.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
 		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
 		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
 		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;
 		virtual ~VulkanRenderPass() noexcept;
@@ -1466,6 +1480,8 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) noexcept;
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers) noexcept;
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel) noexcept;
 		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
 		virtual ~VulkanRenderPassBuilder() noexcept;
@@ -1474,6 +1490,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(VulkanInputAttachmentMapping&& inputAttachment) override;
 
 	public:
+		virtual VulkanRenderPassBuilder& commandBuffers(const UInt32& count) override;
 		virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 		virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
 		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
@@ -1655,7 +1672,15 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
 		/// <returns>The value of the fence, inserted after the command buffers.</returns>
 		/// <seealso cref="waitFor" />
-		virtual UInt64 submit(Span<const VulkanCommandBuffer> commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
+		virtual UInt64 submit(const Array<const VulkanCommandBuffer*>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
+
+		/// <summary>
+		/// Creates a command buffer that can be used to allocate commands on the queue.
+		/// </summary>
+		/// <param name="secondary">If set to <c>true</c>, the queue will create a secondary command buffer instance.</param>
+		/// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
+		/// <returns>The instance of the command buffer.</returns>
+		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer(const bool& secondary, const bool& beginRecording) const;
 
 		// ICommandQueue interface.
 	public:
@@ -1682,7 +1707,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt64 submit(const VulkanCommandBuffer& commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(Span<const VulkanCommandBuffer> commandBuffers) const override;
+		virtual UInt64 submit(const Array<const VulkanCommandBuffer*>& commandBuffers) const override;
 
 		/// <inheritdoc />
 		virtual void waitFor(const UInt64& fence) const noexcept override;

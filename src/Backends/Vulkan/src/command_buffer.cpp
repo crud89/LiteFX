@@ -12,6 +12,7 @@ public:
 
 private:
 	bool m_recording{ false };
+	Optional<VkCommandPool> m_commandPool;
 
 public:
 	VulkanCommandBufferImpl(VulkanCommandBuffer* parent) :
@@ -20,13 +21,27 @@ public:
 	}
 
 public:
-	VkCommandBuffer initialize()
+	VkCommandBuffer initialize(const bool& primary)
 	{
+		// Secondary command buffers have their own command pool.
+		if (!primary)
+		{
+			VkCommandPoolCreateInfo poolInfo = {
+				.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+				.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+				.queueFamilyIndex = m_parent->parent().queueId()
+			};
+
+			VkCommandPool commandPool;
+			raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &commandPool), "Unable to create command pool.");
+			m_commandPool = commandPool;
+		}
+
 		// Create the command buffer.
 		VkCommandBufferAllocateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		bufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		bufferInfo.commandPool = m_parent->parent().commandPool();
+		bufferInfo.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+		bufferInfo.commandPool = primary ? m_parent->parent().commandPool() : m_commandPool.value();
 		bufferInfo.commandBufferCount = 1;
 
 		VkCommandBuffer buffer;
@@ -40,13 +55,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin) :
+VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin, const bool& primary) :
 	m_impl(makePimpl<VulkanCommandBufferImpl>(this)), VulkanRuntimeObject<VulkanQueue>(queue, queue.getDevice()), Resource<VkCommandBuffer>(nullptr)
 {
 	if (!queue.isBound())
 		throw InvalidArgumentException("You must bind the queue before creating a command buffer from it.");
 
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(primary);
 
 	if (begin)
 		this->begin();
@@ -54,18 +69,51 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const bool& b
 
 VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
 {
-	::vkFreeCommandBuffers(this->getDevice()->handle(), this->parent().commandPool(), 1, &this->handle());
+	if (!m_impl->m_commandPool.has_value())
+		::vkFreeCommandBuffers(this->getDevice()->handle(), this->parent().commandPool(), 1, &this->handle());
+	else
+	{
+		::vkFreeCommandBuffers(this->getDevice()->handle(), m_impl->m_commandPool.value(), 1, &this->handle());
+		::vkDestroyCommandPool(this->getDevice()->handle(), m_impl->m_commandPool.value(), nullptr);
+	}
 }
 
 void VulkanCommandBuffer::begin() const
 {
 	// Set the buffer into recording state.
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	VkCommandBufferBeginInfo beginInfo {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		.pNext = nullptr,
+		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+	};
 
 	raiseIfFailed<RuntimeException>(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
 	
+	m_impl->m_recording = true;
+}
+
+void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const noexcept
+{
+	// Create an inheritance info for the parent buffer.
+	VkCommandBufferInheritanceInfo inheritanceInfo {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
+		.pNext = nullptr,
+		.renderPass = renderPass.handle(),
+		.subpass = 0,
+		.framebuffer = renderPass.activeFrameBuffer().handle(),
+		.occlusionQueryEnable = false
+	};
+
+	// Set the buffer into recording state.
+	VkCommandBufferBeginInfo beginInfo {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		.pNext = nullptr,
+		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT,
+		.pInheritanceInfo = &inheritanceInfo
+	};
+
+	raiseIfFailed<RuntimeException>(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
+
 	m_impl->m_recording = true;
 }
 
@@ -229,10 +277,10 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImag
 	Array<VkImageCopy> copyInfos(subresources);
 
 	std::ranges::generate(copyInfos, [&, this, i = 0]() mutable {
-		UInt32 sourceSubresource = sourceSubresource + i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
-		UInt32 targetSubresource = sourceSubresource + i, targetLayer = 0, targetLevel = 0, targetPlane = 0;
-		source.resolveSubresource(sourceSubresource, sourceLayer, sourceLevel, sourcePlane);
-		target.resolveSubresource(targetSubresource, targetLayer, targetLevel, targetPlane);
+		UInt32 sourceRsc = sourceSubresource + i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
+		UInt32 targetRsc = sourceSubresource + i, targetLayer = 0, targetLevel = 0, targetPlane = 0;
+		source.resolveSubresource(sourceRsc, sourceLayer, sourceLevel, sourcePlane);
+		target.resolveSubresource(targetRsc, targetLayer, targetLevel, targetPlane);
 		i++;
 
 		return VkImageCopy {

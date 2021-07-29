@@ -141,7 +141,12 @@ void VulkanQueue::release()
 
 UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
 {
-	return makeUnique<VulkanCommandBuffer>(*this, beginRecording);
+	return this->createCommandBuffer(false, beginRecording);
+}
+
+UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& secondary, const bool& beginRecording) const
+{
+	return makeUnique<VulkanCommandBuffer>(*this, beginRecording, !secondary);
 }
 
 UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer) const
@@ -193,12 +198,12 @@ UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer, Span<VkSema
 	return signalValues[0];
 }
 
-UInt64 VulkanQueue::submit(Span<const VulkanCommandBuffer> commandBuffers) const
+UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffers) const
 {
 	return this->submit(commandBuffers, {}, {}, {});
 }
 
-UInt64 VulkanQueue::submit(Span<const VulkanCommandBuffer> commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
+UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
 {
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -206,8 +211,8 @@ UInt64 VulkanQueue::submit(Span<const VulkanCommandBuffer> commandBuffers, Span<
 	Array<VkCommandBuffer> handles(commandBuffers.size());
 	std::ranges::generate(handles, [&commandBuffers, i = 0]() mutable {
 		const auto& commandBuffer = commandBuffers[i++];
-		commandBuffer.end();
-		return commandBuffer.handle();
+		commandBuffer->end();
+		return commandBuffer->handle();
 	});
 
 	// Create an array of all signal semaphores.

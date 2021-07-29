@@ -319,7 +319,7 @@ void SampleApp::drawFrame()
     {
         // Begin rendering on the geometry pass and use the only pipeline we've created for it.
         m_geometryPass->begin(backBuffer);
-        auto& commandBuffer = m_geometryPass->activeFrameBuffer().commandBuffer();
+        auto& commandBuffer = m_geometryPass->activeFrameBuffer().commandBuffer(0);
         commandBuffer.use(*m_geometryPipeline);
 
         // Get the amount of time that has passed since the first frame.
@@ -346,7 +346,7 @@ void SampleApp::drawFrame()
     {
         // Start the lighting pass.
         m_lightingPass->begin(backBuffer);
-        auto& commandBuffer = m_lightingPass->activeFrameBuffer().commandBuffer();
+        auto& commandBuffer = m_lightingPass->activeFrameBuffer().commandBuffer(0);
         commandBuffer.use(*m_lightingPipeline);
 
         // Bind the G-Buffer.
