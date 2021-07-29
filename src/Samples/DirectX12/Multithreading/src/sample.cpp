@@ -30,6 +30,18 @@ struct TransformBuffer {
     glm::mat4 World;
 } transform[NUM_WORKERS];
 
+const Array<glm::vec3> translations =
+{
+    { -2.0f, -2.0f,  0.0f },
+    {  2.0f, -2.0f,  0.0f },
+    { -2.0f,  2.0f,  0.0f },
+    {  2.0f,  2.0f,  0.0f },
+    { -2.0f,  0.0f,  0.0f },
+    {  2.0f,  0.0f,  0.0f },
+    {  0.0f, -2.0f,  0.0f },
+    {  0.0f,  2.0f,  0.0f },
+};
+
 static void onResize(GLFWwindow* window, int width, int height)
 {
     auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
@@ -38,7 +50,7 @@ static void onResize(GLFWwindow* window, int width, int height)
 
 void SampleApp::initRenderGraph()
 {
-    m_renderPass = m_device->buildRenderPass()
+    m_renderPass = m_device->buildRenderPass(MultiSamplingLevel::x1, NUM_WORKERS)
         .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
         .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false)
         .go();
@@ -66,6 +78,7 @@ void SampleApp::initPipelines()
             .withCullMode(CullMode::BackFaces)
             .withCullOrder(CullOrder::ClockWise)
             .withLineWidth(1.f)
+            .withDepthState(DepthStencilState::DepthState { .Operation = CompareOperation::LessEqual })
             .go()
         .inputAssembler()
             .withTopology(PrimitiveTopology::TriangleList)
@@ -134,7 +147,7 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 view = glm::lookAt(glm::vec3(5.f, 5.f, 2.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
@@ -247,7 +260,7 @@ void SampleApp::drawObject(int index, int backBuffer, float time)
     commandBuffer.use(*m_pipeline);
 
     // Compute world transform and update the transform buffer.
-    transform[index].World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    transform[index].World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[index]);
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform[index]), sizeof(TransformBuffer), backBuffer * NUM_WORKERS + index);
 
     // Bind both descriptor sets to the pipeline.
@@ -279,7 +292,7 @@ void SampleApp::drawFrame()
 
     // Initialize 8 worker threads.
     // NOTE: You probably do not want to do this each frame. Instead use a thread pool or an array of endlessly running threads, that execute once per frame.
-    std::ranges::generate(m_workers, [this, &backBuffer, &time, i = 0]() mutable { return std::thread(&SampleApp::drawObject, this, i, backBuffer, time); });
+    std::ranges::generate(m_workers, [this, &backBuffer, &time, i = 0]() mutable { return std::thread(&SampleApp::drawObject, this, i++, backBuffer, time); });
     std::ranges::for_each(m_workers, [](std::thread& thread) { thread.join(); });
 
     // If all commands are recorded, end the render pass to present the image.
