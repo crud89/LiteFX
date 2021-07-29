@@ -291,9 +291,9 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 	return *m_impl->m_swapChain;
 }
 
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples) const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
 {
-	return VulkanRenderPassBuilder(*this, samples);
+	return VulkanRenderPassBuilder(*this, commandBuffers, samples);
 }
 
 VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const

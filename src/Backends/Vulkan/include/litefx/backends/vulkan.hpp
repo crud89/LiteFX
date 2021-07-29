@@ -1810,9 +1810,10 @@ namespace LiteFX::Rendering::Backends {
 		/// Returns a builder for a <see cref="VulkanRenderPass" />.
 		/// </summary>
 		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
 		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
 		/// <seealso cref="IGraphicsDevice::build" />
-		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const;
+		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
 
 		/// <summary>
 		/// Returns a builder for a <see cref="VulkanComputePipelineBuilder" />.
