@@ -40,6 +40,7 @@ const Array<glm::vec3> translations =
     {  2.0f,  0.0f,  0.0f },
     {  0.0f, -2.0f,  0.0f },
     {  0.0f,  2.0f,  0.0f },
+    {  0.0f,  0.0f,  0.0f }
 };
 
 static void onResize(GLFWwindow* window, int width, int height)
