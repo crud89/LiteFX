@@ -85,7 +85,6 @@ private:
 	void defineMandatoryExtensions() noexcept
 	{
 		m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-		m_extensions.push_back(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
 	}
 
 public:
@@ -167,15 +166,19 @@ public:
 				queueCreateInfo.pQueuePriorities = queuePriorities.back().data();
 
 				return queueCreateInfo;
-			}) |
-			ranges::to<Array<VkDeviceQueueCreateInfo>>();
+			}) | ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
 		// Define the device features.
 		VkPhysicalDeviceFeatures deviceFeatures = {};
+		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
+			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+			.timelineSemaphore = true 
+		};
 
 		// Define the device itself.
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.pNext = &deviceFeatures12;
 		createInfo.queueCreateInfoCount = static_cast<UInt32>(queueCreateInfos.size());
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.pEnabledFeatures = &deviceFeatures;
