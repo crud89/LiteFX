@@ -295,72 +295,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Records commands for a <see cref="VulkanCommandQueue" />
-	/// </summary>
-	/// <seealso cref="VulkanQueue" />
-	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer<IVulkanBuffer, IVulkanImage, VulkanBarrier>, public Resource<VkCommandBuffer> {
-		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
-
-	public:
-		/// <summary>
-		/// Initializes the command buffer from a command queue.
-		/// </summary>
-		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
-		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
-		explicit VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin = false);
-		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
-		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
-		virtual ~VulkanCommandBuffer() noexcept;
-
-		// Vulkan command buffer interface.
-	public:
-		/// <summary>
-		/// Submits the command buffer.
-		/// </summary>
-		/// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
-		/// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
-		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
-		/// <param name="waitForQueue"><c>true</c> to wait for the command queue to be idle.</param>
-		virtual void submit(const Array<VkSemaphore>& waitForSemaphores, const Array<VkPipelineStageFlags>& waitForStages, const Array<VkSemaphore>& signalSemaphores = { }, const bool& waitForQueue = false) const;
-
-		// ICommandBuffer interface.
-	public:
-		/// <inheritdoc />
-		virtual void wait() const override;
-
-		/// <inheritdoc />
-		virtual void begin() const override;
-
-		/// <inheritdoc />
-		virtual void end(const bool& submit = true, const bool& wait = false) const override;
-
-		/// <inheritdoc />
-		virtual void submit(const bool& wait = false) const override;
-
-		/// <inheritdoc />
-		virtual void generateMipMaps(IVulkanImage& image) noexcept override;
-
-		/// <inheritdoc />
-		virtual void barrier(const VulkanBarrier& barrier, const bool& invert = false) const noexcept override;
-
-		/// <inheritdoc />
-		virtual void transfer(const IVulkanBuffer& source, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
-
-		/// <inheritdoc />
-		virtual void transfer(const IVulkanBuffer& source, const IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
-
-		/// <inheritdoc />
-		virtual void transfer(const IVulkanImage& source, const IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
-
-		/// <inheritdoc />
-		virtual void transfer(const IVulkanImage& source, const IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
-	};
-
-	/// <summary>
 	/// Implements a Vulkan <see cref="IDescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, VulkanCommandBuffer>, public Resource<VkDescriptorSet> {
+	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
 	public:
@@ -1052,6 +990,86 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		using Resource<VkPipeline>::Resource;
 		virtual ~VulkanPipelineState() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Sets the current pipeline state on the <paramref name="commandBuffer" />.
+		/// </summary>
+		/// <param name="commandBuffer">The command buffer to set the current pipeline state on.</param>
+		virtual void use(const VulkanCommandBuffer& commandBuffer) const noexcept = 0;
+
+		/// <summary>
+		/// Binds a descriptor set on a command buffer.
+		/// </summary>
+		/// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
+		/// <param name="descriptorSet">The descriptor set to bind.</param>
+		virtual void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept = 0;
+	};
+
+	/// <summary>
+	/// Records commands for a <see cref="VulkanCommandQueue" />
+	/// </summary>
+	/// <seealso cref="VulkanQueue" />
+	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer<IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
+		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
+
+	public:
+		/// <summary>
+		/// Initializes the command buffer from a command queue.
+		/// </summary>
+		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
+		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
+		explicit VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin = false);
+		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
+		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
+		virtual ~VulkanCommandBuffer() noexcept;
+
+		// ICommandBuffer interface.
+	public:
+		/// <inheritdoc />
+		virtual void begin() const override;
+
+		/// <inheritdoc />
+		virtual void end() const override;
+
+		/// <inheritdoc />
+		virtual void generateMipMaps(IVulkanImage& image) noexcept override;
+
+		/// <inheritdoc />
+		virtual void barrier(const VulkanBarrier& barrier, const bool& invert = false) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void transfer(const IVulkanBuffer& source, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(const IVulkanBuffer& source, const IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(const IVulkanImage& source, const IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(const IVulkanImage& source, const IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
+		virtual void use(const VulkanPipelineState& pipeline) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void bind(const VulkanDescriptorSet& descriptorSet) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void bind(const IVulkanVertexBuffer& buffer) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void bind(const IVulkanIndexBuffer& buffer) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void dispatch(const Vector3u& threadCount) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept override;
 	};
 
 	/// <summary>
@@ -1086,12 +1104,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const VulkanPipelineLayout& layout() const noexcept override;
 
-		/// <inheritdoc />
-		virtual void bind(const VulkanDescriptorSet& descriptorSet) const override;
-
-		/// <inheritdoc />
-		virtual void use() const override;
-
 		// IRenderPipeline interface.
 	public:
 		/// <inheritdoc />
@@ -1118,18 +1130,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const bool& alphaToCoverage() const noexcept override;
 
+		// VulkanPipelineState interface.
 	public:
 		/// <inheritdoc />
-		virtual void bind(const IVulkanVertexBuffer& buffer) const override;
+		virtual void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const IVulkanIndexBuffer& buffer) const override;
-
-		/// <inheritdoc />
-		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const override;
-
-		/// <inheritdoc />
-		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const override;
+		virtual void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
 	};
 
 	/// <summary>
@@ -1248,22 +1255,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const VulkanPipelineLayout& layout() const noexcept override;
 
-		/// <inheritdoc />
-		virtual void bind(const VulkanDescriptorSet& descriptorSet) const override;
-
-		// IComputePipeline interface.
+		// VulkanPipelineState interface.
 	public:
 		/// <inheritdoc />
-		virtual const VulkanCommandBuffer* commandBuffer() const noexcept override;
+		virtual void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void dispatch(const Vector3u& threadCount) const override;
-
-		/// <inheritdoc />
-		virtual void begin(const VulkanCommandBuffer& commandBuffer) override;
-
-		/// <inheritdoc />
-		virtual void end() override;
+		virtual void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
 	};
 
 	/// <summary>
@@ -1327,6 +1325,15 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <returns>A reference of the semaphore, that can be used to signal, that the frame buffer is finished.</returns>
 		virtual const VkSemaphore& semaphore() const noexcept;
+
+		/// <summary>
+		/// Returns a reference of the last fence value for the frame buffer.
+		/// </summary>
+		/// <remarks>
+		/// The frame buffer must only be re-used, if this fence is reached in the graphics queue.
+		/// </remarks>
+		/// <returns>A reference of the last fence value for the frame buffer.</returns>
+		virtual UInt64& lastFence() const noexcept;
 
 		// IFrameBuffer interface.
 	public:
@@ -1616,6 +1623,40 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>The queue ID.</returns>
 		virtual const UInt32& queueId() const noexcept;
 
+		/// <summary>
+		/// Returns the internal timeline semaphore used to synchronize the queue execution.
+		/// </summary>
+		/// <returns>The internal timeline semaphore.</returns>
+		virtual const VkSemaphore& timelineSemaphore() const noexcept;
+
+		/// <summary>
+		/// Submits a single command buffer and inserts a fence to wait for it.
+		/// </summary>
+		/// <remarks>
+		/// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
+		/// </remarks>
+		/// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
+		/// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
+		/// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
+		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
+		/// <returns>The value of the fence, inserted after the command buffer.</returns>
+		/// <seealso cref="waitFor" />
+		virtual UInt64 submit(const VulkanCommandBuffer& commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
+
+		/// <summary>
+		/// Submits a set of command buffers and inserts a fence to wait for them.
+		/// </summary>
+		/// <remarks>
+		/// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
+		/// </remarks>
+		/// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
+		/// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
+		/// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
+		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
+		/// <returns>The value of the fence, inserted after the command buffers.</returns>
+		/// <seealso cref="waitFor" />
+		virtual UInt64 submit(Span<const VulkanCommandBuffer> commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
+
 		// ICommandQueue interface.
 	public:
 		/// <inheritdoc />
@@ -1636,6 +1677,18 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
+
+		/// <inheritdoc />
+		virtual UInt64 submit(const VulkanCommandBuffer& commandBuffer) const override;
+
+		/// <inheritdoc />
+		virtual UInt64 submit(Span<const VulkanCommandBuffer> commandBuffers) const override;
+
+		/// <inheritdoc />
+		virtual void waitFor(const UInt64& fence) const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt64 currentFence() const noexcept override;
 	};
 
 	/// <summary>

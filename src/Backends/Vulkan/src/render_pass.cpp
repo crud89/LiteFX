@@ -340,7 +340,8 @@ void VulkanRenderPass::begin(const UInt32& buffer)
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
     m_impl->m_backBuffer = buffer;
 
-    // Begin the command recording on the frame buffers command buffer.
+    // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
+    this->getDevice()->graphicsQueue().waitFor(frameBuffer->lastFence());
     frameBuffer->commandBuffer().begin();
 
     // Begin the render pass.
@@ -367,29 +368,31 @@ void VulkanRenderPass::end() const
     
     // End the render pass and the command buffer recording.
     ::vkCmdEndRenderPass(frameBuffer->commandBuffer().handle());
-    frameBuffer->commandBuffer().end(false);
 
     // Submit the command buffer.
     if (!this->hasPresentTarget())
-        frameBuffer->commandBuffer().submit();
+        frameBuffer->lastFence() = this->getDevice()->graphicsQueue().submit(frameBuffer->commandBuffer());
     else
     {
-        Array<VkSemaphore> waitForSemaphores = { this->getDevice()->swapChain().semaphore() };
-        Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
-        Array<VkSemaphore> signalSemaphores = { frameBuffer->semaphore() };
-        frameBuffer->commandBuffer().submit(waitForSemaphores, waitForStages, signalSemaphores, false);
+        // Draw the frame, if the result of the render pass it should be presented to the swap chain.
+        std::array<VkSemaphore, 1> waitForSemaphores = { this->getDevice()->swapChain().semaphore() };
+        std::array<VkPipelineStageFlags, 1> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
+        std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
+        frameBuffer->lastFence() = this->getDevice()->graphicsQueue().submit(frameBuffer->commandBuffer(), waitForSemaphores, waitForStages, signalSemaphores);
 
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.waitSemaphoreCount = signalSemaphores.size();
-        presentInfo.pWaitSemaphores = signalSemaphores.data();
-        presentInfo.pImageIndices = &m_impl->m_backBuffer;
-        presentInfo.pResults = nullptr;
+        std::array<VkSwapchainKHR, 1> swapChains = { this->getDevice()->swapChain().handle() };
 
-        VkSwapchainKHR swapChains[] = { this->getDevice()->swapChain().handle() };
-        presentInfo.pSwapchains = swapChains;
-        presentInfo.swapchainCount = 1;
+        VkPresentInfoKHR presentInfo {
+            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .pNext = nullptr,
+            .waitSemaphoreCount = static_cast<UInt32>(signalSemaphores.size()),
+            .pWaitSemaphores = signalSemaphores.data(),
+            .swapchainCount = static_cast<UInt32>(swapChains.size()),
+            .pSwapchains = swapChains.data(),
+            .pImageIndices = &m_impl->m_backBuffer,
+            .pResults = nullptr
+        };
 
         raiseIfFailed<RuntimeException>(::vkQueuePresentKHR(this->getDevice()->graphicsQueue().handle(), &presentInfo), "Unable to present swap chain.");
     }

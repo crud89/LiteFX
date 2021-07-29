@@ -126,7 +126,8 @@ void SampleApp::initBuffers()
     std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const UniquePtr<VulkanDescriptorSet>& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
 
     // End and submit the command buffer.
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
@@ -237,7 +238,8 @@ void SampleApp::resize(int width, int height)
     // Also update the camera.
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
     this->updateCamera(*commandBuffer);
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::handleEvents()
@@ -255,7 +257,8 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     m_renderPass->begin(backBuffer);
-    m_pipeline->use();
+    auto& commandBuffer = m_renderPass->activeFrameBuffer().commandBuffer();
+    commandBuffer.use(*m_pipeline);
 
     // Get the amount of time that has passed since the first frame.
     auto now = std::chrono::high_resolution_clock::now();
@@ -266,14 +269,14 @@ void SampleApp::drawFrame()
     m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    m_pipeline->bind(*m_cameraBindings);
-    m_pipeline->bind(*m_perFrameBindings[backBuffer]);
+    commandBuffer.bind(*m_cameraBindings);
+    commandBuffer.bind(*m_perFrameBindings[backBuffer]);
 
     // Bind the vertex and index buffers.
-    m_pipeline->bind(*m_vertexBuffer);
-    m_pipeline->bind(*m_indexBuffer);
+    commandBuffer.bind(*m_vertexBuffer);
+    commandBuffer.bind(*m_indexBuffer);
 
     // Draw the object and present the frame by ending the render pass.
-    m_pipeline->drawIndexed(m_indexBuffer->elements());
+    commandBuffer.drawIndexed(m_indexBuffer->elements());
     m_renderPass->end();
 }

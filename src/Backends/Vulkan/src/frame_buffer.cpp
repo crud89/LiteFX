@@ -17,6 +17,7 @@ private:
 	Size2d m_size;
 	VkSemaphore m_semaphore;
     UInt32 m_bufferIndex;
+    UInt64 m_lastFence{ 0 };
 
 public:
     VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const UInt32& bufferIndex, const Size2d& renderArea) :
@@ -131,7 +132,12 @@ VulkanFrameBuffer::~VulkanFrameBuffer() noexcept
 
 const VkSemaphore& VulkanFrameBuffer::semaphore() const noexcept
 {
-	return m_impl->m_semaphore;
+    return m_impl->m_semaphore;
+}
+
+UInt64& VulkanFrameBuffer::lastFence() const noexcept
+{
+    return m_impl->m_lastFence;
 }
 
 const UInt32& VulkanFrameBuffer::bufferIndex() const noexcept

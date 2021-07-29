@@ -306,23 +306,7 @@ const bool& VulkanRenderPipeline::alphaToCoverage() const noexcept
 	return m_impl->m_alphaToCoverage;
 }
 
-void VulkanRenderPipeline::bind(const IVulkanVertexBuffer& buffer) const 
-{
-	constexpr VkDeviceSize offsets[] = { 0 };
-	::vkCmdBindVertexBuffers(this->parent().activeFrameBuffer().commandBuffer().handle(), buffer.layout().binding(), 1, &buffer.handle(), offsets);
-}
-
-void VulkanRenderPipeline::bind(const IVulkanIndexBuffer& buffer) const 
-{
-	::vkCmdBindIndexBuffer(this->parent().activeFrameBuffer().commandBuffer().handle(), buffer.handle(), 0, buffer.layout().indexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
-}
-
-void VulkanRenderPipeline::bind(const VulkanDescriptorSet& descriptorSet) const
-{
-	::vkCmdBindDescriptorSets(this->parent().activeFrameBuffer().commandBuffer().handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
-}
-
-void VulkanRenderPipeline::use() const 
+void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
 {
 	auto viewports = m_impl->m_viewports |
 		std::views::transform([](const auto& viewport) { return VkViewport{.x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth()}; }) |
@@ -335,23 +319,17 @@ void VulkanRenderPipeline::use() const
 	Float blendFactor[4] = { m_impl->m_blendFactors.x(), m_impl->m_blendFactors.y(), m_impl->m_blendFactors.z(), m_impl->m_blendFactors.w() };
 
 	// Bind the pipeline and setup the dynamic state.
-	auto commandBuffer = this->parent().activeFrameBuffer().commandBuffer().handle();
-	::vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
-	::vkCmdSetViewport(commandBuffer, 0, static_cast<UInt32>(viewports.size()), viewports.data());
-	::vkCmdSetScissor(commandBuffer, 0, static_cast<UInt32>(scissors.size()), scissors.data());
-	::vkCmdSetLineWidth(commandBuffer, std::as_const(*m_impl->m_rasterizer).lineWidth());
-	::vkCmdSetBlendConstants(commandBuffer, blendFactor);
-	::vkCmdSetStencilReference(commandBuffer, VK_STENCIL_FACE_FRONT_AND_BACK, m_impl->m_stencilRef);
+	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
+	::vkCmdSetViewport(commandBuffer.handle(), 0, static_cast<UInt32>(viewports.size()), viewports.data());
+	::vkCmdSetScissor(commandBuffer.handle(), 0, static_cast<UInt32>(scissors.size()), scissors.data());
+	::vkCmdSetLineWidth(commandBuffer.handle(), std::as_const(*m_impl->m_rasterizer).lineWidth());
+	::vkCmdSetBlendConstants(commandBuffer.handle(), blendFactor);
+	::vkCmdSetStencilReference(commandBuffer.handle(), VK_STENCIL_FACE_FRONT_AND_BACK, m_impl->m_stencilRef);
 }
 
-void VulkanRenderPipeline::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const
+void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept
 {
-	::vkCmdDraw(this->parent().activeFrameBuffer().commandBuffer().handle(), vertices, instances, firstVertex, firstInstance);
-}
-
-void VulkanRenderPipeline::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const
-{
-	::vkCmdDrawIndexed(this->parent().activeFrameBuffer().commandBuffer().handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
+	::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
 }
 
 // ------------------------------------------------------------------------------------------------

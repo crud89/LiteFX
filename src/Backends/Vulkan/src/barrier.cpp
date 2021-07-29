@@ -41,21 +41,22 @@ constexpr VkPipelineStageFlagBits getEarliestPossibleAccess(const ResourceState&
 {
     switch (state)
     {
-        case ResourceState::Common:             return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        case ResourceState::UniformBuffer:      return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
-        case ResourceState::VertexBuffer:       return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-        case ResourceState::IndexBuffer:        return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-        case ResourceState::GenericRead:        return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-        case ResourceState::ReadOnly:           return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-        case ResourceState::ReadWrite:          return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-        case ResourceState::CopySource:         return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TRANSFER_BIT;
-        case ResourceState::CopyDestination:    return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TRANSFER_BIT;
-        case ResourceState::RenderTarget:       return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        case ResourceState::DepthRead:          return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-        case ResourceState::DepthWrite:         return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        case ResourceState::Present:            return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        case ResourceState::ResolveSource:      return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        case ResourceState::ResolveDestination: return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    default:
+    case ResourceState::Common:             return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    case ResourceState::UniformBuffer:      return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+    case ResourceState::VertexBuffer:       return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+    case ResourceState::IndexBuffer:        return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+    case ResourceState::GenericRead:        return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+    case ResourceState::ReadOnly:           return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+    case ResourceState::ReadWrite:          return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+    case ResourceState::CopySource:         return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TRANSFER_BIT;
+    case ResourceState::CopyDestination:    return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_TRANSFER_BIT;
+    case ResourceState::RenderTarget:       return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    case ResourceState::DepthRead:          return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+    case ResourceState::DepthWrite:         return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    case ResourceState::Present:            return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    case ResourceState::ResolveSource:      return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    case ResourceState::ResolveDestination: return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     }
 }
 
@@ -63,6 +64,7 @@ constexpr VkPipelineStageFlagBits getLatestPossibleAccess(const ResourceState& s
 {
     switch (state)
     {
+    default:
     case ResourceState::Common:             return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     case ResourceState::UniformBuffer:      return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
     case ResourceState::VertexBuffer:       return VkPipelineStageFlagBits::VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;

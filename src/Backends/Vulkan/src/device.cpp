@@ -85,7 +85,7 @@ private:
 	void defineMandatoryExtensions() noexcept
 	{
 		m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-		//m_extensions.push_back(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
+		m_extensions.push_back(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
 	}
 
 public:
