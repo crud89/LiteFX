@@ -522,7 +522,8 @@ m_cameraBindings->update(cameraBufferLayout.binding(), *m_cameraBuffer, 0);
 Here we first allocate a descriptor set that holds our descriptor for the camera buffer. We then update the descriptor bound to register *0* to point to the GPU-visible camera buffer. Finally, with all the transfer commands being recorded to the command buffer, we can submit the buffer and wait for it to be executed:
 
 ```cxx
-commandBuffer->end(true, true);
+auto fence = m_device->bufferQueue().submit(*commandBuffer);
+m_device->bufferQueue().waitFor(fence);
 commandBuffer = nullptr;
 stagedVertices = nullptr;
 stagedIndices = nullptr;
