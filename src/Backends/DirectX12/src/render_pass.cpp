@@ -159,7 +159,8 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
     m_impl->m_backBuffer = buffer;
 
-    // Begin the command recording on the frame buffers command buffer.
+    // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
+    this->getDevice()->graphicsQueue().waitFor(frameBuffer->lastFence());
     frameBuffer->commandBuffer().begin();
 
     // Declare render pass input and output access and transition barriers.
