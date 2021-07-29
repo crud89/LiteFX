@@ -139,7 +139,8 @@ void SampleApp::initBuffers()
     std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const UniquePtr<DirectX12DescriptorSet>& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
 
     // End and submit the command buffer.
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::loadTexture()
@@ -160,19 +161,17 @@ void SampleApp::loadTexture()
     auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, m_texture->size(0));
     stagedTexture->map(imageData.get(), m_texture->size(0), 0);
 
-    // Transfer the texture using the graphics queue to ensure that the image transition is supported for the descriptor set shader stages.
-    auto commandBuffer = m_device->graphicsQueue().createCommandBuffer(true);
+    // Transfer the texture using the compute queue (since we want to be able to generate mip maps, which is done on the compute queue).
+    auto commandBuffer = m_device->computeQueue().createCommandBuffer(true);
     commandBuffer->transfer(*stagedTexture, *m_texture);
 
     // Generate the rest of the mip maps.
     commandBuffer->generateMipMaps(*m_texture);
 
-    // Submit the command buffer and wait for it to execute.
-    // NOTE: If the command buffer goes out of scope, it will get destroyed and its fence released. This causes validation errors, since the command buffer must
-    //       have finished before being released. Instead of waiting here, it is probably better for applications that do repeated texture uploads to store a
-    //       command buffer instance and re-use it without waiting after each submit. It is even more efficient, to put multiple texture transfers into the 
-    //       command buffer before submitting.
-    commandBuffer->end(true, true);
+    // Submit the command buffer and wait for it to execute. Note that it is possible to do the waiting later when we actually use the texture during rendering. This
+    // would not block earlier draw calls, if the texture would be streamed in at run-time.
+    auto fence = m_device->computeQueue().submit(*commandBuffer);
+    m_device->computeQueue().waitFor(fence);
 
     // Create a sampler state for the texture.
     m_sampler = m_device->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
@@ -284,7 +283,8 @@ void SampleApp::resize(int width, int height)
     // Also update the camera.
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
     this->updateCamera(*commandBuffer);
-    commandBuffer->end(true, true);
+    auto fence = m_device->bufferQueue().submit(*commandBuffer);
+    m_device->bufferQueue().waitFor(fence);
 }
 
 void SampleApp::handleEvents()

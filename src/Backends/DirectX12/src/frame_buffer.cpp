@@ -18,6 +18,7 @@ private:
     UInt32 m_renderTargetDescriptorSize, m_depthStencilDescriptorSize;
     Size2d m_size;
     UInt32 m_bufferIndex;
+    UInt64 m_lastFence{ 0 };
 
 public:
     DirectX12FrameBufferImpl(DirectX12FrameBuffer* parent, const UInt32& bufferIndex, const Size2d& renderArea) :
@@ -145,6 +146,11 @@ const UInt32& DirectX12FrameBuffer::renderTargetDescriptorSize() const noexcept
 const UInt32& DirectX12FrameBuffer::depthStencilTargetDescriptorSize() const noexcept
 {
     return m_impl->m_depthStencilDescriptorSize;
+}
+
+UInt64& DirectX12FrameBuffer::lastFence() const noexcept
+{
+    return m_impl->m_lastFence;
 }
 
 const UInt32& DirectX12FrameBuffer::bufferIndex() const noexcept

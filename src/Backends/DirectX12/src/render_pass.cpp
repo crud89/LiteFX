@@ -275,8 +275,11 @@ void DirectX12RenderPass::end() const
     }
 
     // End the command buffer recording and submit it.
-    frameBuffer->commandBuffer().end(true);
+    m_impl->m_activeFrameBuffer->lastFence() = this->getDevice()->graphicsQueue().submit(frameBuffer->commandBuffer());
 
+    // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
+    //       frame in the queue has been drawn and the back buffer can be written again.
+    //       Instead of blocking, we could also use a wait-able swap chain (https://www.gamedev.net/forums/topic/677527-dx12-fences-and-swap-chain-present/).
     if (m_impl->m_presentTarget != nullptr)
         raiseIfFailed<RuntimeException>(swapChain.handle()->Present(0, swapChain.supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 

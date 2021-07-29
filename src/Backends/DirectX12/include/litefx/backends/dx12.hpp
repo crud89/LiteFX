@@ -987,16 +987,10 @@ namespace LiteFX::Rendering::Backends {
 		// ICommandBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual void wait() const override;
-
-		/// <inheritdoc />
 		virtual void begin() const override;
 
 		/// <inheritdoc />
-		virtual void end(const bool& submit = true, const bool& wait = false) const override;
-
-		/// <inheritdoc />
-		virtual void submit(const bool& wait = false) const override;
+		virtual void end() const override;
 
 		/// <inheritdoc />
 		virtual void generateMipMaps(IDirectX12Image& image) noexcept override;
@@ -1311,6 +1305,15 @@ namespace LiteFX::Rendering::Backends {
 		/// <seealso cref="depthStencilTargetHeap" />
 		virtual const UInt32& depthStencilTargetDescriptorSize() const noexcept;
 
+		/// <summary>
+		/// Returns a reference of the last fence value for the frame buffer.
+		/// </summary>
+		/// <remarks>
+		/// The frame buffer must only be re-used, if this fence is reached in the graphics queue.
+		/// </remarks>
+		/// <returns>A reference of the last fence value for the frame buffer.</returns>
+		virtual UInt64& lastFence() const noexcept;
+
 		// IFrameBuffer interface.
 	public:
 		/// <inheritdoc />
@@ -1591,6 +1594,18 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual UniquePtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
+
+		/// <inheritdoc />
+		virtual UInt64 submit(const DirectX12CommandBuffer& commandBuffer) const override;
+
+		/// <inheritdoc />
+		virtual UInt64 submit(Span<const DirectX12CommandBuffer> commandBuffers) const override;
+
+		/// <inheritdoc />
+		virtual void waitFor(const UInt64& fence) const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt64 currentFence() const noexcept override;
 	};
 
 	/// <summary>

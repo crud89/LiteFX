@@ -1118,37 +1118,23 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Waits for the command buffer to be executed.
-        /// </summary>
-        /// <remarks>
-        /// If the command buffer gets submitted, it does not necessarily get executed straight away. If you depend on a command buffer to be finished, you can call this method.
-        /// </remarks>
-        virtual void wait() const = 0;
-
-        /// <summary>
         /// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="ICommandQueue" />.
         /// </summary>
         /// <remarks>
-        /// Note that, if a command buffer has been submitted before, this method waits for the earlier commands to be executed by calling <see cref="wait" />.
+        /// Note that you have to wait for a command buffer to be executed on the parent <see cref="ICommandQueue" /> before you can begin recording on it again.
         /// </remarks>
+        /// <exception cref="RuntimeException">Thrown, if the command buffer is already recording.</exception>
+        /// <seealso cref="end" />
         virtual void begin() const = 0;
 
         /// <summary>
         /// Ends recording commands on the command buffer.
         /// </summary>
-        /// <param name="submit">If set to <c>true</c>, the command buffer is automatically submitted by calling the <see cref="submit" /> method.</param>
-        /// <param name="wait">If <paramref name="submit" /> is set to <c>true</c>, this parameter gets passed to the <see cref="submit" /> method.</param>
-        /// <seealso cref="submit" />
-        virtual void end(const bool& submit = true, const bool& wait = false) const = 0;
-
-        /// <summary>
-        /// Submits the command buffer to the parent command queue.
-        /// </summary>
         /// <remarks>
+        /// It is valid to call this method multiple times. If a command buffer is already closed, nothing will happen.
         /// </remarks>
-        /// <param name="wait">If set to <c>true</c>, the command buffer blocks, until the submitted commands have been executed.</param>
-        /// <seealso cref="wait" />
-        virtual void submit(const bool& wait = false) const = 0;
+        /// <seealso cref="begin" />
+        virtual void end() const = 0;
 
     public:
         /// <summary>
@@ -1987,6 +1973,52 @@ namespace LiteFX::Rendering {
         /// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
         /// <returns>The instance of the command buffer.</returns>
         virtual UniquePtr<TCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const = 0;
+
+        /// <summary>
+        /// Submits a single command buffer and inserts a fence to wait for it.
+        /// </summary>
+        /// <remarks>
+        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
+        /// <returns>The value of the fence, inserted after the command buffer.</returns>
+        /// <seealso cref="waitFor" />
+        virtual UInt64 submit(const TCommandBuffer& commandBuffer) const = 0;
+
+        /// <summary>
+        /// Submits a set of command buffers and inserts a fence to wait for them.
+        /// </summary>
+        /// <remarks>
+        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
+        /// </remarks>
+        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
+        /// <returns>The value of the fence, inserted after the command buffers.</returns>
+        /// <seealso cref="waitFor" />
+        virtual UInt64 submit(Span<const TCommandBuffer> commandBuffers) const = 0;
+
+        /// <summary>
+        /// Waits for a certain fence value to complete on the command queue.
+        /// </summary>
+        /// <remarks>
+        /// Each time one or more command buffers are submitted to the queue, a fence is inserted and its value will be returned. By calling this method, it is possible to
+        /// wait for this fence. A fence value is guaranteed to be larger than earlier fences, so the method returns, if the latest signaled fence value is larger or equal
+        /// to the value specified in <paramref name="fence" />. 
+        /// 
+        /// Note that this behavior can cause overflows when performing *excessive* fencing! Take for example a scenario, where each frame requires 80 fences to be signaled
+        /// and an application that runs at 60 frames per second in average. In this case, each second 4.800 fences are inserted into the queue. Given the limit of an 64
+        /// bit unsigned integer fence value, the application can run ~2.9 billion years before overflowing. Drop me an e-mail or open an issue, if you ever happen to run 
+        /// into such a situation.
+        /// </remarks>
+        /// <param name="fence">The value of the fence to wait for.</param>
+        /// <seealso cref="submit" />
+        virtual void waitFor(const UInt64& fence) const noexcept = 0;
+
+        /// <summary>
+        /// Returns the value of the latest fence inserted into the queue.
+        /// </summary>
+        /// <returns>The value of the latest fence inserted into the queue.</returns>
+        /// <seealso cref="waitFor" />
+        virtual UInt64 currentFence() const noexcept = 0;
     };
 
     /// <summary>

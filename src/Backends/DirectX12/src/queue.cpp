@@ -13,7 +13,10 @@ public:
 private:
 	QueueType m_type;
 	QueuePriority m_priority;
+	ComPtr<ID3D12Fence> m_fence;
+	UInt64 m_fenceValue{ 0 };
 	bool m_bound;
+	mutable std::mutex m_mutex;
 
 public:
 	DirectX12QueueImpl(DirectX12Queue* parent, const QueueType& type, const QueuePriority& priority) :
@@ -53,6 +56,7 @@ public:
 		}
 
 		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
+		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
 
 		return commandQueue;
 	}
@@ -119,4 +123,59 @@ void DirectX12Queue::release()
 UniquePtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording) const
 {
 	return makeUnique<DirectX12CommandBuffer>(*this, beginRecording);
+}
+
+UInt64 DirectX12Queue::submit(const DirectX12CommandBuffer& commandBuffer) const
+{
+	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
+	// End the command buffer.
+	commandBuffer.end();
+	
+	// Submit the command buffer.
+	Array<ID3D12CommandList*> commandBuffers{ commandBuffer.handle().Get() };
+	this->handle()->ExecuteCommandLists(1, commandBuffers.data());
+
+	// Insert a fence and return the value.
+	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), ++m_impl->m_fenceValue), "Unable to add fence signal to command buffer.");
+
+	return m_impl->m_fenceValue;
+}
+
+UInt64 DirectX12Queue::submit(Span<const DirectX12CommandBuffer> commandBuffers) const
+{
+	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
+	// End the command buffers.
+	Array<ID3D12CommandList*> handles(commandBuffers.size());
+	std::ranges::generate(handles, [&commandBuffers, i = 0]() mutable {
+		const auto& commandBuffer = commandBuffers[i++];
+		commandBuffer.end();
+		return commandBuffer.handle().Get();
+	});
+
+	// Insert a fence and return the value.
+	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), ++m_impl->m_fenceValue), "Unable to add fence signal to command buffer.");
+
+	return m_impl->m_fenceValue;
+}
+
+void DirectX12Queue::waitFor(const UInt64& fence) const noexcept
+{
+	if (m_impl->m_fence->GetCompletedValue() < fence)
+	{
+		HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
+		HRESULT hr = m_impl->m_fence->SetEventOnCompletion(fence, eventHandle);
+
+		if (SUCCEEDED(hr))
+			::WaitForSingleObject(eventHandle, INFINITE);
+
+		::CloseHandle(eventHandle);
+		raiseIfFailed<RuntimeException>(hr, "Unable to register fence completion event.");
+	}
+}
+
+UInt64 DirectX12Queue::currentFence() const noexcept
+{
+	return m_impl->m_fenceValue;
 }

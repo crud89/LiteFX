@@ -12,15 +12,11 @@ public:
 
 private:
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-	ComPtr<ID3D12Fence> m_fence;
-	UINT32 m_currentSignal;
-#ifndef NDEBUG
-	bool m_signalQueued{ false };
-#endif
+	bool m_recording{ false };
 
 public:
 	DirectX12CommandBufferImpl(DirectX12CommandBuffer* parent) :
-		base(parent), m_currentSignal(0)
+		base(parent)
 	{
 	}
 
@@ -39,12 +35,11 @@ public:
 		}
 
 		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
-		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
 
 		// Create the actual command list.
 		ComPtr<ID3D12GraphicsCommandList4> commandList;
 
-		if (begin)
+		if (m_recording = begin)
 			raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 		else
 			raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
@@ -52,46 +47,11 @@ public:
 		return commandList;
 	}
 
-	HRESULT queueSignal()
-	{
-#ifndef NDEBUG
-		if (m_signalQueued)
-			throw RuntimeException("Another signal has already been queued. Don't call 'begin()' on the same command buffer twice, since this may cause race conditions!");
-
-		HRESULT hr = m_parent->parent().handle()->Signal(m_fence.Get(), ++m_currentSignal);
-		m_signalQueued = true;
-#else
-		HRESULT hr = m_parent->parent().handle()->Signal(m_fence.Get(), ++m_currentSignal);
-#endif
-
-		return hr;
-	}
-
-	void waitForSignal()
-	{
-		if (m_fence->GetCompletedValue() != m_currentSignal)
-		{
-			HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
-			HRESULT hr = m_fence->SetEventOnCompletion(m_currentSignal, eventHandle);
-
-			if (SUCCEEDED(hr))
-				::WaitForSingleObject(eventHandle, INFINITE);
-			
-			::CloseHandle(eventHandle);
-
-			raiseIfFailed<RuntimeException>(hr, "Unable to register fence completion event.");
-		}
-
-#ifndef NDEBUG
-		m_signalQueued = false;
-#endif
-	}
-
 	void reset()
 	{
-		// TODO: Also pass the pipeline state, if possible. 
 		raiseIfFailed<RuntimeException>(m_commandAllocator->Reset(), "Unable to reset command allocator.");
 		raiseIfFailed<RuntimeException>(m_parent->handle()->Reset(m_commandAllocator.Get(), nullptr), "Unable to reset command list.");
+		m_recording = true;
 	}
 
 	void bindDescriptorHeaps()
@@ -116,16 +76,8 @@ DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, cons
 
 DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;
 
-void DirectX12CommandBuffer::wait() const
-{
-	m_impl->waitForSignal();
-}
-
 void DirectX12CommandBuffer::begin() const
 {
-	// Wait for the fence to be completed.
-	m_impl->waitForSignal();
-
 	// Reset the command buffer.
 	m_impl->reset();
 
@@ -133,25 +85,13 @@ void DirectX12CommandBuffer::begin() const
 	m_impl->bindDescriptorHeaps();
 }
 
-void DirectX12CommandBuffer::end(const bool& submit, const bool& wait) const
+void DirectX12CommandBuffer::end() const
 {
 	// Close the command list, so that it does not longer record any commands.
-	raiseIfFailed<RuntimeException>(this->handle()->Close(), "Unable to close command buffer for recording.");
+	if (m_impl->m_recording)
+		raiseIfFailed<RuntimeException>(this->handle()->Close(), "Unable to close command buffer for recording.");
 
-	if (submit)
-		this->submit(wait);
-}
-
-void DirectX12CommandBuffer::submit(const bool& wait) const
-{
-	Array<ID3D12CommandList*> commandLists { this->handle().Get() };
-	this->parent().handle()->ExecuteCommandLists(static_cast<UInt32>(commandLists.size()), commandLists.data());
-
-	// Queue a signal that indicates the end of the current list.
-	raiseIfFailed<RuntimeException>(m_impl->queueSignal(), "Unable to add fence signal to command buffer.");
-
-	if (wait)
-		this->wait();
+	m_impl->m_recording = false;
 }
 
 void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
