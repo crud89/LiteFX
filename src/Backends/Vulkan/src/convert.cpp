@@ -974,7 +974,7 @@ VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::getImageLayout(cons
 VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::getAccessFlags(const ResourceState& resourceState)
 {
 	switch (resourceState) {
-	case ResourceState::Common: return VkAccessFlagBits::VK_ACCESS_NONE_KHR;
+	case ResourceState::Common: return 0; //return VkAccessFlagBits::VK_ACCESS_NONE_KHR;
 	case ResourceState::UniformBuffer: return VkAccessFlagBits::VK_ACCESS_UNIFORM_READ_BIT;
 	case ResourceState::VertexBuffer: return VkAccessFlagBits::VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 	case ResourceState::IndexBuffer: return VkAccessFlagBits::VK_ACCESS_INDEX_READ_BIT;
