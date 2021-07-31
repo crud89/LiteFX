@@ -553,7 +553,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ShaderStage& stages() const noexcept override;
+		virtual const ShaderStage& stage() const noexcept override;
 	};
 
 	/// <summary>
@@ -596,7 +596,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const DirectX12PushConstantsRange& range(const ShaderStage& stage) const override;
 
 		/// <inheritdoc />
-		virtual const Array<const DirectX12PushConstantsRange*> ranges() const noexcept override;
+		virtual Array<const DirectX12PushConstantsRange*> ranges() const noexcept override;
 	};
 
 	/// <summary>

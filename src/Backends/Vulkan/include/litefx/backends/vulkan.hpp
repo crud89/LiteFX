@@ -539,12 +539,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new push constants range.
 		/// </summary>
-		/// <param name="shaderStages">The shader stages, that access the push constants from the range.</param>
+		/// <param name="shaderStage">The shader stage, that access the push constants from the range.</param>
 		/// <param name="offset">The offset relative to the parent push constants backing memory that marks the beginning of the range.</param>
 		/// <param name="size">The size of the push constants range.</param>
 		/// <param name="space">The space from which the push constants of the range will be accessible in the shader.</param>
 		/// <param name="binding">The register from which the push constants of the range will be accessible in the shader.</param>
-		explicit VulkanPushConstantsRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding);
+		explicit VulkanPushConstantsRange(const ShaderStage& shaderStage, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding);
 		VulkanPushConstantsRange(const VulkanPushConstantsRange&) = delete;
 		VulkanPushConstantsRange(VulkanPushConstantsRange&&) = delete;
 		virtual ~VulkanPushConstantsRange() noexcept;
@@ -563,7 +563,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ShaderStage& stages() const noexcept override;
+		virtual const ShaderStage& stage() const noexcept override;
 	};
 
 	/// <summary>
@@ -600,7 +600,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanPushConstantsRange& range(const ShaderStage& stage) const override;
 
 		/// <inheritdoc />
-		virtual const Array<const VulkanPushConstantsRange*> ranges() const noexcept override;
+		virtual Array<const VulkanPushConstantsRange*> ranges() const noexcept override;
 	};
 
 	/// <summary>

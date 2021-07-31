@@ -35,18 +35,10 @@ private:
         m_rangePointers = std::move(ranges);
 
         std::ranges::for_each(m_rangePointers, [this](const UniquePtr<DirectX12PushConstantsRange>& range) {
-            auto stages = range->stages();
+            if (m_ranges.contains(static_cast<ShaderStage>(range->stage())))
+                throw InvalidArgumentException("Only one push constant range can be mapped to a shader stage.");
 
-            for (int i = 0; i < sizeof(ShaderStage) * CHAR_BIT; ++i)
-            {
-                if (!LITEFX_FLAG_IS_SET(stages, 1u << i))
-                    continue;
-
-                if (m_ranges.contains(static_cast<ShaderStage>(1u << i)))
-                    throw InvalidArgumentException("Only one push constant range can be mapped to a shader stage.");
-
-                m_ranges[static_cast<ShaderStage>(1u << i)] = range.get();
-            }
+            m_ranges[range->stage()] = range.get();
         });
     }
 };
@@ -86,7 +78,7 @@ const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(const Sha
     return *m_impl->m_ranges[stage];
 }
 
-const Array<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const noexcept
+Array<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const noexcept
 {
     return m_impl->m_rangePointers |
         std::views::transform([](const UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); }) |

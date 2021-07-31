@@ -869,7 +869,7 @@ namespace LiteFX::Rendering {
         /// Returns the shader stage(s), the range is accessible from.
         /// </summary>
         /// <returns>The shader stage(s), the range is accessible from.</returns>
-        virtual const ShaderStage& stages() const noexcept = 0;
+        virtual const ShaderStage& stage() const noexcept = 0;
     };
 
     /// <summary>
@@ -926,7 +926,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All push constant ranges.</returns>
         /// <seealso cref="range" />
-        virtual const Array<const TPushConstantsRange*> ranges() const noexcept = 0;
+        virtual Array<const TPushConstantsRange*> ranges() const noexcept = 0;
     };
 
     /// <summary>

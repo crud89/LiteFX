@@ -39,6 +39,25 @@ public:
         Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         bool hasInputAttachments = false;
 
+        if (m_pushConstantsLayout != nullptr)
+        {
+            std::ranges::for_each(m_pushConstantsLayout->ranges(), [&descriptorParameters](const DirectX12PushConstantsRange* range) {
+                CD3DX12_ROOT_PARAMETER1 rootParameter = {};
+
+                switch (range->stage())
+                {
+                case ShaderStage::Vertex: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_VERTEX); break;
+                case ShaderStage::Geometry: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_GEOMETRY); break;
+                case ShaderStage::Fragment: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_PIXEL); break;
+                case ShaderStage::TessellationEvaluation: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_DOMAIN); break;
+                case ShaderStage::TessellationControl: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_HULL); break;
+                default: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_ALL); break;
+                }
+
+                descriptorParameters.push_back(rootParameter);
+            });
+        }
+
         std::ranges::for_each(m_descriptorSetLayouts, [&](const UniquePtr<DirectX12DescriptorSetLayout>& layout) {
             // Parse the shader stage descriptor.
             D3D12_SHADER_VISIBILITY shaderStages = D3D12_SHADER_VISIBILITY_ALL;

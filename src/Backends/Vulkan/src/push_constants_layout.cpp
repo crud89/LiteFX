@@ -21,6 +21,12 @@ public:
     VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, const UInt32& size) :
         base(parent), m_size(size)
     {
+        // Align the size to 4 bytes.
+        m_size = size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size;
+
+        // Issue a warning, if the size is too large.
+        if (m_size > 128)
+            LITEFX_WARNING(DIRECTX12_LOG, "The push constant layout backing memory is defined with a size greater than 128 bytes. Blocks larger than 128 bytes are not forbidden, but also not guaranteed to be supported on all hardware.");
     }
 
 private:
@@ -29,18 +35,10 @@ private:
         m_rangePointers = std::move(ranges);
 
         std::ranges::for_each(m_rangePointers, [this](const UniquePtr<VulkanPushConstantsRange>& range) {
-            auto stages = range->stages();
+            if (m_ranges.contains(static_cast<ShaderStage>(range->stage())))
+                throw InvalidArgumentException("Only one push constant range can be mapped to a shader stage.");
 
-            for (int i = 0; i < sizeof(ShaderStage) * CHAR_BIT; ++i)
-            {
-                if (!LITEFX_FLAG_IS_SET(stages, 1u << i))
-                    continue;
-
-                if (m_ranges.contains(static_cast<ShaderStage>(1u << i)))
-                    throw InvalidArgumentException("Only one push constant range can be mapped to a shader stage.");
-
-                m_ranges[static_cast<ShaderStage>(1u << i)] = range.get();
-            }
+            m_ranges[range->stage()] = range.get();
         });
     }
 };
@@ -69,9 +67,7 @@ const UInt32& VulkanPushConstantsLayout::size() const noexcept
 
 const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(const ShaderStage& stage) const
 {
-    auto bits = static_cast<UInt32>(stage);
-
-    if (!(bits && !(bits & (bits - 1))))
+    if (!(static_cast<UInt32>(stage) && !(static_cast<UInt32>(stage) & (static_cast<UInt32>(stage) - 1))))
         throw ArgumentOutOfRangeException("The stage mask must only contain one shader stage.");
 
     if (!m_impl->m_ranges.contains(stage))
@@ -80,7 +76,7 @@ const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(const ShaderSta
     return *m_impl->m_ranges[stage];
 }
 
-const Array<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const noexcept
+Array<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const noexcept
 {
     return m_impl->m_rangePointers |
         std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); }) |

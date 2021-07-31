@@ -36,14 +36,21 @@ public:
             std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |
             ranges::to<Array<VkDescriptorSetLayout>>();
 
-        LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size());
+        // Query for push constant ranges.
+        Array<const VulkanPushConstantsRange*> ranges = m_pushConstantsLayout == nullptr ? Array<const VulkanPushConstantsRange*>{} : m_pushConstantsLayout->ranges();
+        auto rangeHandles = ranges |
+            std::views::transform([](const VulkanPushConstantsRange* range) { return VkPushConstantRange{ .stageFlags = static_cast<VkShaderStageFlags>(::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() }; }) |
+            ranges::to<Array<VkPushConstantRange>>();
 
         // Create the pipeline layout.
+        LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size());
+
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = descriptorSetLayouts.size();
         pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-        pipelineLayoutInfo.pushConstantRangeCount = 0;
+        pipelineLayoutInfo.pushConstantRangeCount = static_cast<UInt32>(rangeHandles.size());
+        pipelineLayoutInfo.pPushConstantRanges = rangeHandles.data();
 
         VkPipelineLayout layout;
         raiseIfFailed<RuntimeException>(::vkCreatePipelineLayout(m_parent->getDevice()->handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
