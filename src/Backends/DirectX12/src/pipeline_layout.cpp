@@ -14,11 +14,12 @@ public:
 
 private:
     UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
+    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
-    DirectX12RenderPipelineLayoutImpl(DirectX12PipelineLayout* parent, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts) :
-        base(parent), m_shaderProgram(std::move(shaderProgram)), m_descriptorSetLayouts(std::move(descriptorLayouts))
+    DirectX12RenderPipelineLayoutImpl(DirectX12PipelineLayout* parent, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+        base(parent), m_shaderProgram(std::move(shaderProgram)), m_descriptorSetLayouts(std::move(descriptorLayouts)), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
         if (shaderProgram == nullptr)
             throw RuntimeException("The shader program must be initialized before creating a pipeline layout.");
@@ -119,14 +120,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts) :
-    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts)))
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
 {
     this->handle() = m_impl->initialize();
 }
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts) :
-    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts)))
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
 {
     this->handle() = m_impl->initialize();
 }
@@ -163,6 +164,11 @@ Array<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSe
         ranges::to<Array<const DirectX12DescriptorSetLayout*>>();
 }
 
+const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() const noexcept
+{
+    return m_impl->m_pushConstantsLayout.get();
+}
+
 // ------------------------------------------------------------------------------------------------
 // Render pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -174,6 +180,7 @@ public:
 
 private:
     UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
+    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
@@ -199,6 +206,7 @@ DirectX12RenderPipelineBuilder& DirectX12RenderPipelineLayoutBuilder::go()
     auto instance = this->instance();
     instance->m_impl->m_shaderProgram = std::move(m_impl->m_shaderProgram);
     instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
+    instance->m_impl->m_pushConstantsLayout = std::move(m_impl->m_pushConstantsLayout);
     instance->handle() = instance->m_impl->initialize();
 
     return PipelineLayoutBuilder::go();
@@ -219,6 +227,11 @@ void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSetL
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
 
+void DirectX12RenderPipelineLayoutBuilder::use(UniquePtr<DirectX12PushConstantsLayout>&& layout)
+{
+    m_impl->m_pushConstantsLayout = std::move(layout);
+}
+
 DirectX12GraphicsShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shaderProgram()
 {
     return DirectX12GraphicsShaderProgramBuilder(*this);
@@ -227,6 +240,11 @@ DirectX12GraphicsShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shad
 DirectX12RenderPipelineDescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages)
 {
     return DirectX12RenderPipelineDescriptorSetLayoutBuilder(*this, static_cast<UInt32>(m_impl->m_descriptorSetLayouts.size()), space, stages);
+}
+
+DirectX12RenderPipelinePushConstantsLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addPushConstants(const UInt32& size)
+{
+    return DirectX12RenderPipelinePushConstantsLayoutBuilder(*this, size);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -240,6 +258,7 @@ public:
 
 private:
     UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
+    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
@@ -265,6 +284,7 @@ DirectX12ComputePipelineBuilder& DirectX12ComputePipelineLayoutBuilder::go()
     auto instance = this->instance();
     instance->m_impl->m_shaderProgram = std::move(m_impl->m_shaderProgram);
     instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
+    instance->m_impl->m_pushConstantsLayout = std::move(m_impl->m_pushConstantsLayout);
     instance->handle() = instance->m_impl->initialize();
 
     return PipelineLayoutBuilder::go();
@@ -285,6 +305,11 @@ void DirectX12ComputePipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSet
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
 
+void DirectX12ComputePipelineLayoutBuilder::use(UniquePtr<DirectX12PushConstantsLayout>&& layout)
+{
+    m_impl->m_pushConstantsLayout = std::move(layout);
+}
+
 DirectX12ComputeShaderProgramBuilder DirectX12ComputePipelineLayoutBuilder::shaderProgram()
 {
     return DirectX12ComputeShaderProgramBuilder(*this);
@@ -293,4 +318,9 @@ DirectX12ComputeShaderProgramBuilder DirectX12ComputePipelineLayoutBuilder::shad
 DirectX12ComputePipelineDescriptorSetLayoutBuilder DirectX12ComputePipelineLayoutBuilder::addDescriptorSet(const UInt32& space)
 {
     return DirectX12ComputePipelineDescriptorSetLayoutBuilder(*this, static_cast<UInt32>(m_impl->m_descriptorSetLayouts.size()), space);
+}
+
+DirectX12ComputePipelinePushConstantsLayoutBuilder DirectX12ComputePipelineLayoutBuilder::addPushConstants(const UInt32& size)
+{
+    return DirectX12ComputePipelinePushConstantsLayoutBuilder(*this, size);
 }

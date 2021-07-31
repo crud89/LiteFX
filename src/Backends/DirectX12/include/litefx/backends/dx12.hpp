@@ -519,6 +519,143 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Implements the DirectX 12 <see cref="IPushConstantsRange" />.
+	/// </summary>
+	/// <seealso cref="DirectX12PushConstantsLayout" />
+	class LITEFX_DIRECTX12_API DirectX12PushConstantsRange : public IPushConstantsRange {
+		LITEFX_IMPLEMENTATION(DirectX12PushConstantsRangeImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new push constants range.
+		/// </summary>
+		/// <param name="shaderStages">The shader stages, that access the push constants from the range.</param>
+		/// <param name="offset">The offset relative to the parent push constants backing memory that marks the beginning of the range.</param>
+		/// <param name="size">The size of the push constants range.</param>
+		/// <param name="space">The space from which the push constants of the range will be accessible in the shader.</param>
+		/// <param name="binding">The register from which the push constants of the range will be accessible in the shader.</param>
+		explicit DirectX12PushConstantsRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding);
+		DirectX12PushConstantsRange(const DirectX12PushConstantsRange&) = delete;
+		DirectX12PushConstantsRange(DirectX12PushConstantsRange&&) = delete;
+		virtual ~DirectX12PushConstantsRange() noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& space() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& offset() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& size() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const ShaderStage& stages() const noexcept override;
+	};
+
+	/// <summary>
+	/// Implements the DirectX 12 <see cref="IPushConstantsLayout" />.
+	/// </summary>
+	/// <remarks>
+	/// In DirectX 12, push constants map to root constants. Those are 32 bit values that are directly stored on the root signature. Thus, push constants can bloat your root 
+	/// signature, since all the required memory is directly reserved on it. The way they are implemented is, that each range gets directly written in 4 byte chunks into the
+	/// command buffer. Thus, overlapping is not directly supported (as opposed to Vulkan). If you have overlapping push constants ranges, the overlap will be duplicated in
+	/// the root signature.
+	/// </remarks>
+	/// <seealso cref="DirectX12PushConstantsRange" />
+	/// <seealso cref="DirectX12RenderPipelinePushConstantsLayoutBuilder" />
+	/// <seealso cref="DirectX12ComputePipelinePushConstantsLayoutBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12PushConstantsLayout : public virtual DirectX12RuntimeObject<DirectX12PipelineLayout>, public IPushConstantsLayout<DirectX12PushConstantsRange> {
+		LITEFX_IMPLEMENTATION(DirectX12PushConstantsLayoutImpl);
+		LITEFX_BUILDER(DirectX12RenderPipelinePushConstantsLayoutBuilder);
+		LITEFX_BUILDER(DirectX12ComputePipelinePushConstantsLayoutBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a new push constants layout.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout.</param>
+		/// <param name="ranges">The ranges contained by the layout.</param>
+		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
+		explicit DirectX12PushConstantsLayout(const DirectX12PipelineLayout& parent, Array<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size);
+		DirectX12PushConstantsLayout(const DirectX12PushConstantsLayout&) = delete;
+		DirectX12PushConstantsLayout(DirectX12PushConstantsLayout&&) = delete;
+		virtual ~DirectX12PushConstantsLayout() noexcept;
+
+	private:
+		explicit DirectX12PushConstantsLayout(const DirectX12PipelineLayout& parent, const UInt32& size);
+
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& size() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12PushConstantsRange& range(const ShaderStage& stage) const override;
+
+		/// <inheritdoc />
+		virtual const Array<const DirectX12PushConstantsRange*> ranges() const noexcept override;
+	};
+
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="IPushConstantsLayout" /> for a <see cref="IRenderPipeline" />.
+	/// </summary>
+	/// <seealso cref="DirectX12PushConstantsLayout" />
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12RenderPipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12RenderPipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelinePushConstantsLayoutBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 render pipeline push constants layout builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		explicit DirectX12RenderPipelinePushConstantsLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& size);
+		DirectX12RenderPipelinePushConstantsLayoutBuilder(const DirectX12RenderPipelinePushConstantsLayoutBuilder&) = delete;
+		DirectX12RenderPipelinePushConstantsLayoutBuilder(DirectX12RenderPipelinePushConstantsLayoutBuilder&&) = delete;
+		virtual ~DirectX12RenderPipelinePushConstantsLayoutBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+
+		// PushConstantsLayoutBuilder interface.
+	public:
+		virtual DirectX12RenderPipelinePushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
+	};
+
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="IPushConstantsLayout" /> for a <see cref="IComputePipeline" />.
+	/// </summary>
+	/// <seealso cref="DirectX12PushConstantsLayout" />
+	class LITEFX_DIRECTX12_API DirectX12ComputePipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12ComputePipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12ComputePipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12ComputePipelinePushConstantsLayoutBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 compute pipeline push constants layout builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		explicit DirectX12ComputePipelinePushConstantsLayoutBuilder(DirectX12ComputePipelineLayoutBuilder& parent, const UInt32& size);
+		DirectX12ComputePipelinePushConstantsLayoutBuilder(const DirectX12ComputePipelinePushConstantsLayoutBuilder&) = delete;
+		DirectX12ComputePipelinePushConstantsLayoutBuilder(DirectX12ComputePipelinePushConstantsLayoutBuilder&&) = delete;
+		virtual ~DirectX12ComputePipelinePushConstantsLayoutBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12ComputePipelineLayoutBuilder& go() override;
+
+		// PushConstantsLayoutBuilder interface.
+	public:
+		virtual DirectX12ComputePipelinePushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
+	};
+
+	/// <summary>
 	/// Implements a DirectX 12 <see cref="IShaderModule" />.
 	/// </summary>
 	/// <seealso cref="DirectX12ShaderProgram" />
@@ -661,7 +798,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 <see cref="IPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPipelineLayoutBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12PipelineLayout : public virtual DirectX12RuntimeObject<DirectX12PipelineState>, public IPipelineLayout<DirectX12DescriptorSetLayout, DirectX12ShaderProgram>, public ComResource<ID3D12RootSignature> {
+	class LITEFX_DIRECTX12_API DirectX12PipelineLayout : public virtual DirectX12RuntimeObject<DirectX12PipelineState>, public IPipelineLayout<DirectX12DescriptorSetLayout, DirectX12PushConstantsLayout, DirectX12ShaderProgram>, public ComResource<ID3D12RootSignature> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineLayoutBuilder);
 		LITEFX_BUILDER(DirectX12ComputePipelineLayoutBuilder);
@@ -673,7 +810,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="pipeline">The parent pipeline state the layout describes.</param>
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
-		explicit DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts);
+		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
+		explicit DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
 
 		/// <summary>
 		/// Initializes a new DirectX 12 compute pipeline layout.
@@ -681,7 +819,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="pipeline">The parent pipeline state the layout describes.</param>
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
-		explicit DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts);
+		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
+		explicit DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
 
 		DirectX12PipelineLayout(DirectX12PipelineLayout&&) noexcept = delete;
 		DirectX12PipelineLayout(const DirectX12PipelineLayout&) noexcept = delete;
@@ -701,6 +840,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const DirectX12DescriptorSetLayout*> descriptorSets() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
 	};
 
 	/// <summary>
@@ -733,6 +875,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void use(UniquePtr<DirectX12DescriptorSetLayout>&& layout) override;
 
+		/// <inheritdoc />
+		virtual void use(UniquePtr<DirectX12PushConstantsLayout>&& layout) override;
+
 		// DirectX12RenderPipelineBuilder.
 	public:
 		/// <summary>
@@ -746,6 +891,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="space">The space, the descriptor set is bound to.</param>
 		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
 		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
+
+		/// <summary>
+		/// Builds a new push constants layout for the render pipeline layout.
+		/// </summary>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		virtual DirectX12RenderPipelinePushConstantsLayoutBuilder addPushConstants(const UInt32& size);
 	};
 
 	/// <summary>
@@ -777,6 +928,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void use(UniquePtr<DirectX12DescriptorSetLayout>&& layout) override;
+		
+		/// <inheritdoc />
+		virtual void use(UniquePtr<DirectX12PushConstantsLayout>&& layout) override;
 
 		// DirectX12ComputePipelineBuilder.
 	public:
@@ -790,6 +944,12 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="space">The space, the descriptor set is bound to.</param>
 		virtual DirectX12ComputePipelineDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& space = 0);
+
+		/// <summary>
+		/// Builds a new push constants layout for the compute pipeline layout.
+		/// </summary>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		virtual DirectX12ComputePipelinePushConstantsLayoutBuilder addPushConstants(const UInt32& size);
 	};
 
 	/// <summary>
