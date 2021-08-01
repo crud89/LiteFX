@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -94,7 +94,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_ras
 </div><!--header-->
 <div class="contents">
 
-<p>Represents the rasterizer state of a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a render pipeline state.">IRenderPipeline</a>.  
+<p>Represents the rasterizer state of a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a graphics IPipeline.">IRenderPipeline</a>.  
  <a href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="rendering__api_8hpp_source.html">rendering_api.hpp</a>&gt;</code></p>
@@ -117,21 +117,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5e1608a2de245ad5daf64a100ef72656"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#a5e1608a2de245ad5daf64a100ef72656">lineWidth</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a5e1608a2de245ad5daf64a100ef72656"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the line width of the rasterizer state.  <a href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#a5e1608a2de245ad5daf64a100ef72656">More...</a><br /></td></tr>
 <tr class="separator:a5e1608a2de245ad5daf64a100ef72656"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad8ae88b4e506895db711f6486192ba54"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#ad8ae88b4e506895db711f6486192ba54">useDepthBias</a> () const noexcept=0</td></tr>
-<tr class="memdesc:ad8ae88b4e506895db711f6486192ba54"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the depth bias is used.  <a href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#ad8ae88b4e506895db711f6486192ba54">More...</a><br /></td></tr>
-<tr class="separator:ad8ae88b4e506895db711f6486192ba54"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a07deed0ef4868dc36faf11d53484a245"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#a07deed0ef4868dc36faf11d53484a245">depthBiasClamp</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a07deed0ef4868dc36faf11d53484a245"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the depth bias clamp.  <a href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#a07deed0ef4868dc36faf11d53484a245">More...</a><br /></td></tr>
-<tr class="separator:a07deed0ef4868dc36faf11d53484a245"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab71faf344d16033aded764f57dd3e6bd"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#ab71faf344d16033aded764f57dd3e6bd">depthBiasConstantFactor</a> () const noexcept=0</td></tr>
-<tr class="memdesc:ab71faf344d16033aded764f57dd3e6bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the constant depth bias factor.  <a href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#ab71faf344d16033aded764f57dd3e6bd">More...</a><br /></td></tr>
-<tr class="separator:ab71faf344d16033aded764f57dd3e6bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa07c0aaa2c41c629e3828adb92da0a7"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#aaa07c0aaa2c41c629e3828adb92da0a7">depthBiasSlopeFactor</a> () const noexcept=0</td></tr>
-<tr class="memdesc:aaa07c0aaa2c41c629e3828adb92da0a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the depth bias slope factor.  <a href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#aaa07c0aaa2c41c629e3828adb92da0a7">More...</a><br /></td></tr>
-<tr class="separator:aaa07c0aaa2c41c629e3828adb92da0a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39f78b93bebf50d09b18e21ba261ab11"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html">DepthStencilState</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#a39f78b93bebf50d09b18e21ba261ab11">depthStencilState</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a39f78b93bebf50d09b18e21ba261ab11"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the depth/stencil state of the rasterizer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#a39f78b93bebf50d09b18e21ba261ab11">More...</a><br /></td></tr>
+<tr class="separator:a39f78b93bebf50d09b18e21ba261ab11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Represents the rasterizer state of a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a render pipeline state.">IRenderPipeline</a>. </p>
+<div class="textblock"><p>Represents the rasterizer state of a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a graphics IPipeline.">IRenderPipeline</a>. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac610d8927bb0301ea5eaa70a50d35b22"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac610d8927bb0301ea5eaa70a50d35b22">&#9670;&nbsp;</a></span>~IRasterizer()</h2>
@@ -219,8 +210,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a07deed0ef4868dc36faf11d53484a245"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a07deed0ef4868dc36faf11d53484a245">&#9670;&nbsp;</a></span>depthBiasClamp()</h2>
+<a id="a39f78b93bebf50d09b18e21ba261ab11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39f78b93bebf50d09b18e21ba261ab11">&#9670;&nbsp;</a></span>depthStencilState()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -229,7 +220,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a>&amp; LiteFX::Rendering::IRasterizer::depthBiasClamp </td>
+          <td class="memname">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html">DepthStencilState</a>&amp; LiteFX::Rendering::IRasterizer::depthStencilState </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -242,73 +233,10 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns the depth bias clamp. </p>
-<dl class="section return"><dt>Returns</dt><dd>The depth bias clamp.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#ad8ae88b4e506895db711f6486192ba54" title="Returns true, if the depth bias is used.">useDepthBias</a></dd></dl>
+<p>Returns the depth/stencil state of the rasterizer. </p>
+<dl class="section return"><dt>Returns</dt><dd>The depth/stencil state of the rasterizer.</dd></dl>
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#a6c352974fdc1d9fe1dccc9a3008a9dce">LiteFX::Rendering::Rasterizer</a>.</p>
-
-</div>
-</div>
-<a id="ab71faf344d16033aded764f57dd3e6bd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab71faf344d16033aded764f57dd3e6bd">&#9670;&nbsp;</a></span>depthBiasConstantFactor()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a>&amp; LiteFX::Rendering::IRasterizer::depthBiasConstantFactor </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the constant depth bias factor. </p>
-<dl class="section return"><dt>Returns</dt><dd>The constant depth bias factor.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#ad8ae88b4e506895db711f6486192ba54" title="Returns true, if the depth bias is used.">useDepthBias</a></dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#a0580e898d8d532d6a8b4db35b5c8dab1">LiteFX::Rendering::Rasterizer</a>.</p>
-
-</div>
-</div>
-<a id="aaa07c0aaa2c41c629e3828adb92da0a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa07c0aaa2c41c629e3828adb92da0a7">&#9670;&nbsp;</a></span>depthBiasSlopeFactor()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a>&amp; LiteFX::Rendering::IRasterizer::depthBiasSlopeFactor </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the depth bias slope factor. </p>
-<dl class="section return"><dt>Returns</dt><dd>The depth bias slope factor.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#ad8ae88b4e506895db711f6486192ba54" title="Returns true, if the depth bias is used.">useDepthBias</a></dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#a4b966ef58a6bc5c8bfffda89e812adc5">LiteFX::Rendering::Rasterizer</a>.</p>
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#a889a9b193a64c24296da099ee735bb43">LiteFX::Rendering::Rasterizer</a>.</p>
 
 </div>
 </div>
@@ -370,37 +298,6 @@ Public Member Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The polygon mode of the rasterizer state.</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#af8c2fdda235df10b5be4efe3460e4e85">LiteFX::Rendering::Rasterizer</a>.</p>
-
-</div>
-</div>
-<a id="ad8ae88b4e506895db711f6486192ba54"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad8ae88b4e506895db711f6486192ba54">&#9670;&nbsp;</a></span>useDepthBias()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual bool LiteFX::Rendering::IRasterizer::useDepthBias </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns <code>true</code>, if the depth bias is used. </p>
-<p>The depth bias can be used to alter the depth value function, i.e. how the values within the depth buffer are distributed. By default, the depth buffer uses an exponential function scale to increase precision for closer objects. The values provided with <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#a07deed0ef4868dc36faf11d53484a245" title="Returns the depth bias clamp.">depthBiasClamp</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#ab71faf344d16033aded764f57dd3e6bd" title="Returns the constant depth bias factor.">depthBiasConstantFactor</a> and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html#aaa07c0aaa2c41c629e3828adb92da0a7" title="Returns the depth bias slope factor.">depthBiasSlopeFactor</a> are used to change the domain clamping, offset and steepness of the depth value distribution. </p>
-<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the depth bias is used.</dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_rasterizer.html#a09200de9274629d1fe85c5eb97066172">LiteFX::Rendering::Rasterizer</a>.</p>
 
 </div>
 </div>

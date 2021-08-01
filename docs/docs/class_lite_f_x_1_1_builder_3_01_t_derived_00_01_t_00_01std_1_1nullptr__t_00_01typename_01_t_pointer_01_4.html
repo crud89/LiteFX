@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -126,12 +126,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a06da6c920625d057da88eedd7faa242b"><td class="memTemplParams" colspan="2">template&lt;typename TInstance &gt; </td></tr>
 <tr class="memitem:a06da6c920625d057da88eedd7faa242b"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a06da6c920625d057da88eedd7faa242b">use</a> (<a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a37c52f664fd1e290e2314e560584e46c">pointer_type</a> &amp;&amp;)</td></tr>
 <tr class="separator:a06da6c920625d057da88eedd7faa242b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adddeb3cb563c936e7f20acc239928940"><td class="memTemplParams" colspan="2">template&lt;rtti::has_builder TInstance, typename ... TArgs, std::enable_if_t&lt; std::is_same_v&lt; typename TInstance::builder::pointer_type, UniquePtr&lt; TInstance &gt;&gt;, int &gt;  = 0, typename TBuilder  = TInstance::builder&gt; </td></tr>
-<tr class="memitem:adddeb3cb563c936e7f20acc239928940"><td class="memTemplItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename <a class="el" href="class_lite_f_x_1_1_builder.html#ab8028b7112e72fcf58c9660621b008bb">TBuilder::parent_type</a> * &gt; &amp;&amp;<a class="el" href="namespace_lite_f_x_1_1rtti.html#a241d52ef7c7a834b7cb777fe5250196c">rtti::is_explicitly_constructible</a>&lt; TInstance, const T &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#adddeb3cb563c936e7f20acc239928940">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:adddeb3cb563c936e7f20acc239928940"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea295aac0c66019cf739c573c13c833c"><td class="memTemplParams" colspan="2">template&lt;rtti::has_builder TInstance, typename ... TArgs, std::enable_if_t&lt; std::is_same_v&lt; typename TInstance::builder::pointer_type, SharedPtr&lt; TInstance &gt;&gt;, int &gt;  = 0, typename TBuilder  = TInstance::builder&gt; </td></tr>
-<tr class="memitem:aea295aac0c66019cf739c573c13c833c"><td class="memTemplItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename <a class="el" href="class_lite_f_x_1_1_builder.html#ab8028b7112e72fcf58c9660621b008bb">TBuilder::parent_type</a> * &gt; &amp;&amp;<a class="el" href="namespace_lite_f_x_1_1rtti.html#a2ecab3774466df5786e3bcc827aff3d1">rtti::is_explicitly_constructible_v</a>&lt; TInstance, const T &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#aea295aac0c66019cf739c573c13c833c">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:aea295aac0c66019cf739c573c13c833c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83f2c3cd787e21340818a6662258c727"><td class="memItemLeft" align="right" valign="top">virtual TPointer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a83f2c3cd787e21340818a6662258c727">go</a> ()</td></tr>
 <tr class="separator:a83f2c3cd787e21340818a6662258c727"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -409,66 +403,6 @@ template&lt;typename TDerived , typename T , typename TPointer &gt; </div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="adddeb3cb563c936e7f20acc239928940"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adddeb3cb563c936e7f20acc239928940">&#9670;&nbsp;</a></span>make() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDerived , typename T , typename TPointer &gt; </div>
-<div class="memtemplate">
-template&lt;rtti::has_builder TInstance, typename ... TArgs, std::enable_if_t&lt; std::is_same_v&lt; typename TInstance::builder::pointer_type, UniquePtr&lt; TInstance &gt;&gt;, int &gt;  = 0, typename TBuilder  = TInstance::builder&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">requires std::is_convertible_v&lt;TDerived*, typename <a class="el" href="class_lite_f_x_1_1_builder.html#ab8028b7112e72fcf58c9660621b008bb">TBuilder::parent_type</a>*&gt;&amp;&amp; <a class="el" href="namespace_lite_f_x_1_1rtti.html#a241d52ef7c7a834b7cb777fe5250196c">rtti::is_explicitly_constructible</a>&lt;TInstance, const T&amp;, TArgs...&gt; TBuilder <a class="el" href="class_lite_f_x_1_1_builder.html">LiteFX::Builder</a>&lt; TDerived, T, std::nullptr_t, typename TPointer &gt;::make </td>
-          <td>(</td>
-          <td class="paramtype">TArgs &amp;&amp;...&#160;</td>
-          <td class="paramname"><em>_args</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aea295aac0c66019cf739c573c13c833c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea295aac0c66019cf739c573c13c833c">&#9670;&nbsp;</a></span>make() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDerived , typename T , typename TPointer &gt; </div>
-<div class="memtemplate">
-template&lt;rtti::has_builder TInstance, typename ... TArgs, std::enable_if_t&lt; std::is_same_v&lt; typename TInstance::builder::pointer_type, SharedPtr&lt; TInstance &gt;&gt;, int &gt;  = 0, typename TBuilder  = TInstance::builder&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">requires std::is_convertible_v&lt;TDerived*, typename <a class="el" href="class_lite_f_x_1_1_builder.html#ab8028b7112e72fcf58c9660621b008bb">TBuilder::parent_type</a>*&gt;&amp;&amp; <a class="el" href="namespace_lite_f_x_1_1rtti.html#a2ecab3774466df5786e3bcc827aff3d1">rtti::is_explicitly_constructible_v</a>&lt;TInstance, const T&amp;, TArgs...&gt; TBuilder <a class="el" href="class_lite_f_x_1_1_builder.html">LiteFX::Builder</a>&lt; TDerived, T, std::nullptr_t, typename TPointer &gt;::make </td>
-          <td>(</td>
-          <td class="paramtype">TArgs &amp;&amp;...&#160;</td>
-          <td class="paramname"><em>_args</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

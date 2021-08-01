@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -106,7 +106,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1899194e7d61373406c922cc5b336007"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a1899194e7d61373406c922cc5b336007">~IDeviceMemory</a> () noexcept=default</td></tr>
 <tr class="separator:a1899194e7d61373406c922cc5b336007"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50f35d6ae5d631be285fc87c7fdf18b0"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0">elements</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a50f35d6ae5d631be285fc87c7fdf18b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of array elements inside the memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0">More...</a><br /></td></tr>
+<tr class="memdesc:a50f35d6ae5d631be285fc87c7fdf18b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of sub-resources inside the memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0">More...</a><br /></td></tr>
 <tr class="separator:a50f35d6ae5d631be285fc87c7fdf18b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66f85883ca87702a04035e1e51af0e53"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53">size</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a66f85883ca87702a04035e1e51af0e53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the size (in bytes) of the aligned memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53">More...</a><br /></td></tr>
@@ -120,6 +120,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a379a3fbcd746e43f6c34f26f97e01b7c"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a379a3fbcd746e43f6c34f26f97e01b7c">alignedElementSize</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a379a3fbcd746e43f6c34f26f97e01b7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the actual size of the element in device memory.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a379a3fbcd746e43f6c34f26f97e01b7c">More...</a><br /></td></tr>
 <tr class="separator:a379a3fbcd746e43f6c34f26f97e01b7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6417097f66bdcbf22bc84970d2c38163"><td class="memItemLeft" align="right" valign="top">virtual const bool &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a6417097f66bdcbf22bc84970d2c38163">writable</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a6417097f66bdcbf22bc84970d2c38163"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the resource can be bound to a read/write descriptor.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a6417097f66bdcbf22bc84970d2c38163">More...</a><br /></td></tr>
+<tr class="separator:a6417097f66bdcbf22bc84970d2c38163"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62dc9b0459919621c174ad7120707322"><td class="memItemLeft" align="right" valign="top">virtual const ResourceState &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a62dc9b0459919621c174ad7120707322">state</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresource=0) const =0</td></tr>
+<tr class="memdesc:a62dc9b0459919621c174ad7120707322"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current state of the resource.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a62dc9b0459919621c174ad7120707322">More...</a><br /></td></tr>
+<tr class="separator:a62dc9b0459919621c174ad7120707322"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8bee9655b76b061f9750b82b913ded0"><td class="memItemLeft" align="right" valign="top">virtual ResourceState &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#ae8bee9655b76b061f9750b82b913ded0">state</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresource=0)=0</td></tr>
+<tr class="memdesc:ae8bee9655b76b061f9750b82b913ded0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a reference of the current state of the resource.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#ae8bee9655b76b061f9750b82b913ded0">More...</a><br /></td></tr>
+<tr class="separator:ae8bee9655b76b061f9750b82b913ded0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Describes a chunk of device memory. </p>
@@ -174,6 +183,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Returns the actual size of the element in device memory. </p>
+<p>For images, this method will return a value that equals the result of <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53" title="Gets the size (in bytes) of the aligned memory chunk.">size</a>, aligned by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a992a32832746ca4f328711e9c924a5bd" title="Returns the alignment of a single element.">elementAlignment</a>. </p>
 <dl class="section return"><dt>Returns</dt><dd>The actual size of the element in device memory.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a992a32832746ca4f328711e9c924a5bd" title="Returns the alignment of a single element.">elementAlignment</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a0f5bc5ff213aca68d049a18c995d3ef5" title="Returns the size of a single element within the buffer. If there is only one element,...">elementSize</a></dd></dl>
 
@@ -235,8 +245,10 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Gets the number of array elements inside the memory chunk. </p>
+<p>Gets the number of sub-resources inside the memory chunk. </p>
+<p>For buffers, this equals the number of array elements. For images, this equals the product of layers, levels and planes. This number represents the number of states, that can be obtained by calling the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a62dc9b0459919621c174ad7120707322" title="Returns the current state of the resource.">state</a> method. </p>
 <dl class="section return"><dt>Returns</dt><dd>The number of array elements inside the memory chunk.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a62dc9b0459919621c174ad7120707322" title="Returns the current state of the resource.">state</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#acb3556e07c406dc05e81c8013a3d570a">LiteFX::Rendering::Backends::VulkanImage</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a9d659e6631e85742fffab10d260d1716">LiteFX::Rendering::Backends::VulkanBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#af87729555023b1f4cd7dec019ac59c4e">LiteFX::Rendering::Backends::DirectX12Image</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a56796d93e81462f44d641f7777c75287">LiteFX::Rendering::Backends::DirectX12Buffer</a>.</p>
 
@@ -266,6 +278,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Returns the size of a single element within the buffer. If there is only one element, this is equal to <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53" title="Gets the size (in bytes) of the aligned memory chunk.">size</a>. </p>
+<p>For images, this method will return a value that equals the result of <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53" title="Gets the size (in bytes) of the aligned memory chunk.">size</a>. </p>
 <dl class="section return"><dt>Returns</dt><dd>The size of a single element within the buffer</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a992a32832746ca4f328711e9c924a5bd" title="Returns the alignment of a single element.">elementAlignment</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a379a3fbcd746e43f6c34f26f97e01b7c" title="Returns the actual size of the element in device memory.">alignedElementSize</a></dd></dl>
 
@@ -299,9 +312,128 @@ Public Member Functions</h2></td></tr>
 <p>Gets the size (in bytes) of the aligned memory chunk. </p>
 <p>The size of the device memory block depends on different factors. The actual used memory of one element can be obtained by calling by the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a0f5bc5ff213aca68d049a18c995d3ef5" title="Returns the size of a single element within the buffer. If there is only one element,...">elementSize</a>. For different reasons, though, elements may be required to be aligned to a certain size. The size of one aligned element is returned by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a379a3fbcd746e43f6c34f26f97e01b7c" title="Returns the actual size of the element in device memory.">alignedElementSize</a>. The size of the memory block, the elements get aligned to is returned by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a992a32832746ca4f328711e9c924a5bd" title="Returns the alignment of a single element.">elementAlignment</a>. </p>
 <dl class="section return"><dt>Returns</dt><dd>The size (in bytes) of the memory chunk.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0" title="Gets the number of array elements inside the memory chunk.">elements</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a0f5bc5ff213aca68d049a18c995d3ef5" title="Returns the size of a single element within the buffer. If there is only one element,...">elementSize</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a992a32832746ca4f328711e9c924a5bd" title="Returns the alignment of a single element.">elementAlignment</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a379a3fbcd746e43f6c34f26f97e01b7c" title="Returns the actual size of the element in device memory.">alignedElementSize</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0" title="Gets the number of sub-resources inside the memory chunk.">elements</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a0f5bc5ff213aca68d049a18c995d3ef5" title="Returns the size of a single element within the buffer. If there is only one element,...">elementSize</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a992a32832746ca4f328711e9c924a5bd" title="Returns the alignment of a single element.">elementAlignment</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a379a3fbcd746e43f6c34f26f97e01b7c" title="Returns the actual size of the element in device memory.">alignedElementSize</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a607a12a439c046293413b5af9040f634">LiteFX::Rendering::Backends::VulkanImage</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#aac06721d7ea1bff51269de9f216bbed4">LiteFX::Rendering::Backends::VulkanBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a33978ac1c6a226d57e3f9aa9aa3680df">LiteFX::Rendering::Backends::DirectX12Image</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a705925c8a4f36694986bd68b904742d6">LiteFX::Rendering::Backends::DirectX12Buffer</a>.</p>
+
+</div>
+</div>
+<a id="a62dc9b0459919621c174ad7120707322"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62dc9b0459919621c174ad7120707322">&#9670;&nbsp;</a></span>state() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const ResourceState&amp; LiteFX::Rendering::IDeviceMemory::state </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresource</em> = <code>0</code></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the current state of the resource. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">subresource</td><td>The index of the sub-resource for which the state is requested.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The current state of the resource.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">ArgumentOutOfRangeException</td><td>Thrown, if the specified sub-resource is not an element of the resource.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a804e9254f8345bfcbb131fdb18bc5d4a">LiteFX::Rendering::Backends::VulkanImage</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#aa29d37626c33abb8e7fc6b0270f6e840">LiteFX::Rendering::Backends::VulkanBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ae18f4fb9f6ec19d5d9e491c24c94678b">LiteFX::Rendering::Backends::DirectX12Image</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a8e580dbef1033b5498ebb1dcde6b3fb9">LiteFX::Rendering::Backends::DirectX12Buffer</a>.</p>
+
+</div>
+</div>
+<a id="ae8bee9655b76b061f9750b82b913ded0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8bee9655b76b061f9750b82b913ded0">&#9670;&nbsp;</a></span>state() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual ResourceState&amp; LiteFX::Rendering::IDeviceMemory::state </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresource</em> = <code>0</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns a reference of the current state of the resource. </p>
+<p>This overload can be used to change the internal resource state. It exists, to support external resource transitions in certain scenarios, where automatic resource state tracking is not supported. For example, there might be implicit state transitions in some scenarios. Usually those scenarios do not require you to transition the resource into another state, however if you have to, the internal state of the resource does not match the actual state. In order for the barrier to be well-formed, you have to set the proper state first.</p>
+<p>In most cases, however, use a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_barrier.html" title="A barrier that transitions a set of resources backed by IDeviceMemory into different ResourceState.">IBarrier</a> to transition between resource states. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">subresource</td><td>The index of the sub-resource for which the state is requested.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference of the current state of the resource.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">ArgumentOutOfRangeException</td><td>Thrown, if the specified sub-resource is not an element of the resource.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a2ff87b57dab8b1e976921e765b37fa92">LiteFX::Rendering::Backends::VulkanImage</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#ae37b53f1740f96d7b043d715b51f5362">LiteFX::Rendering::Backends::VulkanBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a092f82e67d6a271b9215b7610e922e42">LiteFX::Rendering::Backends::DirectX12Image</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#aa04949c4ca0baa951850b2e154b4cac0">LiteFX::Rendering::Backends::DirectX12Buffer</a>.</p>
+
+</div>
+</div>
+<a id="a6417097f66bdcbf22bc84970d2c38163"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6417097f66bdcbf22bc84970d2c38163">&#9670;&nbsp;</a></span>writable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const bool&amp; LiteFX::Rendering::IDeviceMemory::writable </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns <code>true</code>, if the resource can be bound to a read/write descriptor. </p>
+<p>If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the resource can be bound to a read/write descriptor.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_image.html#a5689a8ffe643d3ff2c67783e3b41155f">LiteFX::Rendering::Backends::VulkanImage</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#ac5b4fe431dc297c9fd6abe2aa0650ec7">LiteFX::Rendering::Backends::VulkanBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#aba8d144476f95936da2c6014083e4652">LiteFX::Rendering::Backends::DirectX12Image</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a37eb63926cbd2fb3f71f5e8365025b4f">LiteFX::Rendering::Backends::DirectX12Buffer</a>.</p>
 
 </div>
 </div>

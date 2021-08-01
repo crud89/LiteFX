@@ -1,13 +1,25 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer =
 [
     [ "VulkanCommandBufferImpl", "class_vulkan_command_buffer_1_1_vulkan_command_buffer_impl.html", "class_vulkan_command_buffer_1_1_vulkan_command_buffer_impl" ],
-    [ "VulkanCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2b27fba3f2d5b5625f304ec1aa21a4c6", null ],
+    [ "VulkanCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a5d1f9f3bf72ff4d590b2a67413f840b6", null ],
     [ "VulkanCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a509318cb573cca0b0fc6bd5b866c4918", null ],
     [ "VulkanCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#ae027de7ab6e8f327b7de49ec4b56167e", null ],
     [ "~VulkanCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#acf6bce275854d8cd702ea7c35c4bc0f2", null ],
+    [ "barrier", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a099ebf1181bc3d51c962d455dd2f71e6", null ],
     [ "begin", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a3d992e05fabf1c2791c8965c5faac382", null ],
-    [ "end", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a02a662e37f66f56557044bd2ac732528", null ],
-    [ "submit", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#ad03469b2e3024b4fafd3b89684643491", null ],
-    [ "submit", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a7269395eb90a37074089e697b2fb635a", null ],
-    [ "wait", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a29dfebeee0f1e5d7232e231fa531fe1c", null ]
+    [ "begin", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2ff5406374b025c28ef020c778f1b8b6", null ],
+    [ "bind", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a07513fa9db865afb2ae3f15a6db5cec2", null ],
+    [ "bind", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#aa45931df5f2b9e18ff2b45abc33cb5d2", null ],
+    [ "bind", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a601b8fb582a661ac53133403276b2081", null ],
+    [ "dispatch", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#acf9b4596f4bc07fd90ce01e6b1585b5e", null ],
+    [ "draw", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#aebd143cbcfefe3fef5d79f4030158ef0", null ],
+    [ "drawIndexed", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#af0c65f86c927d7596c60ea8689ce06b1", null ],
+    [ "end", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2db74c40d8532bdf9eeec8debe134d3a", null ],
+    [ "generateMipMaps", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a975421f3dfa2a35d6352dfbbe47ed3de", null ],
+    [ "pushConstants", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#af00cd8c171eac294af6ba3af6642505a", null ],
+    [ "transfer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a827491ba10e1e1e536c7f02e9ae2f128", null ],
+    [ "transfer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#af5b519604aa1c1349ea9c12ab5a81289", null ],
+    [ "transfer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a49b5e49b95b91ffb3d10be5c7049fcff", null ],
+    [ "transfer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2efa43579f7692a59a435cd9eae97e05", null ],
+    [ "use", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a4a530e4d52b2926f26b58e868af5993c", null ]
 ];

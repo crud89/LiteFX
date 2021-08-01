@@ -142,7 +142,7 @@ jobs:
           password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
           certificatesha1: '${{ secrets.SIGN_CERTIFICATE_SHA1 }}'
           certificatename: '${{ secrets.SIGN_CERTIFICATE_NAME }}'
-          folder: '${{ steps.setup-environment.outputs.buildPath }}/install'
+          folder: '${{ steps.setup-environment.outputs.buildPath }}install/bin/'
           recursive: true
 
       - name: Upload install artifacts

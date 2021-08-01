@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -87,6 +87,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_ren
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_render_target-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -101,6 +102,12 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_ren
 
 <p>Inherited by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">LiteFX::Rendering::RenderTarget</a>.</p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_render_target_1_1_blend_state.html">BlendState</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the blend state of the render target.  <a href="struct_lite_f_x_1_1_rendering_1_1_i_render_target_1_1_blend_state.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a628b97390a68378b2454e995f7a89160"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a628b97390a68378b2454e995f7a89160">~IRenderTarget</a> () noexcept=default</td></tr>
@@ -111,9 +118,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:acb6df28443ce8cf4cf7250d71a926eca"><td class="memItemLeft" align="right" valign="top">virtual const RenderTargetType &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#acb6df28443ce8cf4cf7250d71a926eca">type</a> () const noexcept=0</td></tr>
 <tr class="memdesc:acb6df28443ce8cf4cf7250d71a926eca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the type of the render target.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#acb6df28443ce8cf4cf7250d71a926eca">More...</a><br /></td></tr>
 <tr class="separator:acb6df28443ce8cf4cf7250d71a926eca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ce3bfb2e861976013bfc9c34f889c12"><td class="memItemLeft" align="right" valign="top">virtual const MultiSamplingLevel &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a6ce3bfb2e861976013bfc9c34f889c12">samples</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a6ce3bfb2e861976013bfc9c34f889c12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of samples of the render target when used for multi-sampling.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a6ce3bfb2e861976013bfc9c34f889c12">More...</a><br /></td></tr>
-<tr class="separator:a6ce3bfb2e861976013bfc9c34f889c12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a947f500d023edcaea7c6b700ab31d5c4"><td class="memItemLeft" align="right" valign="top">virtual const Format &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a947f500d023edcaea7c6b700ab31d5c4">format</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a947f500d023edcaea7c6b700ab31d5c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the internal format of the render target.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a947f500d023edcaea7c6b700ab31d5c4">More...</a><br /></td></tr>
 <tr class="separator:a947f500d023edcaea7c6b700ab31d5c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -129,6 +133,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac03716f329c92c4279d0ca374ddafdbd"><td class="memItemLeft" align="right" valign="top">virtual const bool &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#ac03716f329c92c4279d0ca374ddafdbd">isVolatile</a> () const noexcept=0</td></tr>
 <tr class="memdesc:ac03716f329c92c4279d0ca374ddafdbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the target should not be made persistent for access after the render pass has finished.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#ac03716f329c92c4279d0ca374ddafdbd">More...</a><br /></td></tr>
 <tr class="separator:ac03716f329c92c4279d0ca374ddafdbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0aa497eacfbabde367adbfb54b575520"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_render_target_1_1_blend_state.html">BlendState</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a0aa497eacfbabde367adbfb54b575520">blendState</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a0aa497eacfbabde367adbfb54b575520"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the render targets blend state.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a0aa497eacfbabde367adbfb54b575520">More...</a><br /></td></tr>
+<tr class="separator:a0aa497eacfbabde367adbfb54b575520"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Represents a render target, i.e. an abstract view of the output of an <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html" title="Represents a render pass.">IRenderPass</a>. </p>
@@ -161,6 +168,36 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a0aa497eacfbabde367adbfb54b575520"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0aa497eacfbabde367adbfb54b575520">&#9670;&nbsp;</a></span>blendState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_i_render_target_1_1_blend_state.html">BlendState</a>&amp; LiteFX::Rendering::IRenderTarget::blendState </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the render targets blend state. </p>
+<dl class="section return"><dt>Returns</dt><dd>The render targets blend state.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html#a6e0740dc7dcb6dd181def6eeef6d3eb5">LiteFX::Rendering::RenderTarget</a>.</p>
+
+</div>
+</div>
 <a id="a98bee37d4a6fec154a9f80dd59a05559"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a98bee37d4a6fec154a9f80dd59a05559">&#9670;&nbsp;</a></span>clearBuffer()</h2>
 
@@ -343,36 +380,6 @@ Public Member Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>The location of the render target output attachment within the fragment shader</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html#a81e4a6b5fcd44749d86829db0a727812">LiteFX::Rendering::RenderTarget</a>.</p>
-
-</div>
-</div>
-<a id="a6ce3bfb2e861976013bfc9c34f889c12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ce3bfb2e861976013bfc9c34f889c12">&#9670;&nbsp;</a></span>samples()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual const MultiSamplingLevel&amp; LiteFX::Rendering::IRenderTarget::samples </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the number of samples of the render target when used for multi-sampling. </p>
-<dl class="section return"><dt>Returns</dt><dd>The number of samples of the render target.</dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html#a621cbd7299bddb6bb94508e1130e945a">LiteFX::Rendering::RenderTarget</a>.</p>
 
 </div>
 </div>

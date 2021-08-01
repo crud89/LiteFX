@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -100,23 +100,13 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_shade
 <p><code>#include &lt;<a class="el" href="rendering_8hpp_source.html">rendering.hpp</a>&gt;</code></p>
 
 <p>Inherits <a class="el" href="class_lite_f_x_1_1_builder.html">LiteFX::Builder&lt; TDerived, TShaderProgram, TParent &gt;</a>.</p>
+
+<p>Inherited by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_compute_shader_program_builder.html">LiteFX::Rendering::ComputeShaderProgramBuilder&lt; DirectX12ComputeShaderProgramBuilder, DirectX12ShaderProgram, DirectX12ComputePipelineLayoutBuilder &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_compute_shader_program_builder.html">LiteFX::Rendering::ComputeShaderProgramBuilder&lt; VulkanComputeShaderProgramBuilder, VulkanShaderProgram, VulkanComputePipelineLayoutBuilder &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_shader_program_builder.html">LiteFX::Rendering::GraphicsShaderProgramBuilder&lt; DirectX12GraphicsShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_shader_program_builder.html">LiteFX::Rendering::GraphicsShaderProgramBuilder&lt; VulkanGraphicsShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_compute_shader_program_builder.html">LiteFX::Rendering::ComputeShaderProgramBuilder&lt; TDerived, TShaderProgram, TParent &gt;</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_graphics_shader_program_builder.html">LiteFX::Rendering::GraphicsShaderProgramBuilder&lt; TDerived, TShaderProgram, TParent &gt;</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4169329ab026b62c0fbb7923ebedd03e"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html#a4169329ab026b62c0fbb7923ebedd03e">addShaderModule</a> (const ShaderStage &amp;type, const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;fileName, const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;entryPoint=&quot;main&quot;)=0</td></tr>
 <tr class="separator:a4169329ab026b62c0fbb7923ebedd03e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e88fb9716a582538996ce2bd06c6618"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html#a5e88fb9716a582538996ce2bd06c6618">addVertexShaderModule</a> (const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;fileName, const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;entryPoint=&quot;main&quot;)=0</td></tr>
-<tr class="separator:a5e88fb9716a582538996ce2bd06c6618"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4671a80c4801b86067b8e10dfa00685"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html#ab4671a80c4801b86067b8e10dfa00685">addTessellationControlShaderModule</a> (const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;fileName, const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;entryPoint=&quot;main&quot;)=0</td></tr>
-<tr class="separator:ab4671a80c4801b86067b8e10dfa00685"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad276405951a0031c33ad94b32ed5c83f"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html#ad276405951a0031c33ad94b32ed5c83f">addTessellationEvaluationShaderModule</a> (const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;fileName, const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;entryPoint=&quot;main&quot;)=0</td></tr>
-<tr class="separator:ad276405951a0031c33ad94b32ed5c83f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f9cf9351424ef80cfb5936b7c2bb062"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html#a2f9cf9351424ef80cfb5936b7c2bb062">addGeometryShaderModule</a> (const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;fileName, const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;entryPoint=&quot;main&quot;)=0</td></tr>
-<tr class="separator:a2f9cf9351424ef80cfb5936b7c2bb062"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2c453954535057b8e58c456803c9838"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html#ab2c453954535057b8e58c456803c9838">addFragmentShaderModule</a> (const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;fileName, const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;entryPoint=&quot;main&quot;)=0</td></tr>
-<tr class="separator:ab2c453954535057b8e58c456803c9838"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1399d8dc8927123a1db4368a0ae0e168"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html#a1399d8dc8927123a1db4368a0ae0e168">addComputeShaderModule</a> (const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;fileName, const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;entryPoint=&quot;main&quot;)=0</td></tr>
-<tr class="separator:a1399d8dc8927123a1db4368a0ae0e168"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_builder"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_builder')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_builder.html">LiteFX::Builder&lt; TDerived, TShaderProgram, TParent &gt;</a></td></tr>
 <tr class="memitem:a9d36251fed9e742ad6261a66917e8bf7 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">const TShaderProgram *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a9d36251fed9e742ad6261a66917e8bf7">instance</a> () const noexcept</td></tr>
 <tr class="separator:a9d36251fed9e742ad6261a66917e8bf7 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -132,10 +122,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9a467e50fc8f4db7e6d8ff5a2b54381c inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#ad97fa87a98bf3cdf3a4df27f910da56f">use</a> (<a class="el" href="class_lite_f_x_1_1_builder.html#a95ce991f0f204ba6133127b0a07cb6f9">pointer_type</a> &amp;&amp;)</td></tr>
 <tr class="separator:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename TBuilder::parent_type * &gt; &amp;&amp;rtti::is_explicitly_constructible_v&lt; TInstance, const TShaderProgram &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename TBuilder::parent_type * &gt; &amp;&amp;rtti::is_explicitly_constructible_v&lt; TInstance, const TShaderProgram &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4385222f548880c248995bba6f18980a inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">virtual TParent &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a4385222f548880c248995bba6f18980a">go</a> ()</td></tr>
 <tr class="separator:a4385222f548880c248995bba6f18980a inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -157,137 +143,17 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:aa31367e19593bc00b752aceaa531bb5e inherit pro_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = TShaderProgram::shader_module_type&gt;<br />
+<div class="textblock"><h3>template&lt;typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = typename TShaderProgram::shader_module_type&gt;<br />
 class LiteFX::Rendering::ShaderProgramBuilder&lt; TDerived, TShaderProgram, TParent, TShaderModule &gt;</h3>
 
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a1399d8dc8927123a1db4368a0ae0e168"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1399d8dc8927123a1db4368a0ae0e168">&#9670;&nbsp;</a></span>addComputeShaderModule()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDerived , typename TShaderProgram , typename TParent , typename TShaderModule  = TShaderProgram::shader_module_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html">LiteFX::Rendering::ShaderProgramBuilder</a>&lt; TDerived, TShaderProgram, TParent, TShaderModule &gt;::addComputeShaderModule </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>fileName</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>entryPoint</em> = <code>&quot;main&quot;</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program_builder.html#a124c1f6e35bb9ede8367bbe748bdeda4">LiteFX::Rendering::Backends::VulkanShaderProgramBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_shader_program_builder.html#a29c99e1f48f5b6422ac190b86217589c">LiteFX::Rendering::Backends::DirectX12ShaderProgramBuilder</a>.</p>
-
-</div>
-</div>
-<a id="ab2c453954535057b8e58c456803c9838"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2c453954535057b8e58c456803c9838">&#9670;&nbsp;</a></span>addFragmentShaderModule()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDerived , typename TShaderProgram , typename TParent , typename TShaderModule  = TShaderProgram::shader_module_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html">LiteFX::Rendering::ShaderProgramBuilder</a>&lt; TDerived, TShaderProgram, TParent, TShaderModule &gt;::addFragmentShaderModule </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>fileName</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>entryPoint</em> = <code>&quot;main&quot;</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program_builder.html#a0f1296788e73a98d743fbcd6fd8f5359">LiteFX::Rendering::Backends::VulkanShaderProgramBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_shader_program_builder.html#a4e286bc6d37e3713f8798f050e547bfb">LiteFX::Rendering::Backends::DirectX12ShaderProgramBuilder</a>.</p>
-
-</div>
-</div>
-<a id="a2f9cf9351424ef80cfb5936b7c2bb062"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2f9cf9351424ef80cfb5936b7c2bb062">&#9670;&nbsp;</a></span>addGeometryShaderModule()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDerived , typename TShaderProgram , typename TParent , typename TShaderModule  = TShaderProgram::shader_module_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html">LiteFX::Rendering::ShaderProgramBuilder</a>&lt; TDerived, TShaderProgram, TParent, TShaderModule &gt;::addGeometryShaderModule </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>fileName</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>entryPoint</em> = <code>&quot;main&quot;</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program_builder.html#a013ff93da15c254514f97f163fac7280">LiteFX::Rendering::Backends::VulkanShaderProgramBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_shader_program_builder.html#a5c3c84c3a986d98f5402d9ec6a2284ec">LiteFX::Rendering::Backends::DirectX12ShaderProgramBuilder</a>.</p>
-
-</div>
-</div>
 <a id="a4169329ab026b62c0fbb7923ebedd03e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4169329ab026b62c0fbb7923ebedd03e">&#9670;&nbsp;</a></span>addShaderModule()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TShaderProgram , typename TParent , typename TShaderModule  = TShaderProgram::shader_module_type&gt; </div>
+template&lt;typename TDerived , typename TShaderProgram , typename TParent , typename TShaderModule  = typename TShaderProgram::shader_module_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -323,127 +189,7 @@ template&lt;typename TDerived , typename TShaderProgram , typename TParent , typ
 </table>
 </div><div class="memdoc">
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program_builder.html#abb10e53fd38f312756f0f6f6c213eee5">LiteFX::Rendering::Backends::VulkanShaderProgramBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_shader_program_builder.html#a5d1212692467d1e02ff8d4702765c582">LiteFX::Rendering::Backends::DirectX12ShaderProgramBuilder</a>.</p>
-
-</div>
-</div>
-<a id="ab4671a80c4801b86067b8e10dfa00685"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab4671a80c4801b86067b8e10dfa00685">&#9670;&nbsp;</a></span>addTessellationControlShaderModule()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDerived , typename TShaderProgram , typename TParent , typename TShaderModule  = TShaderProgram::shader_module_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html">LiteFX::Rendering::ShaderProgramBuilder</a>&lt; TDerived, TShaderProgram, TParent, TShaderModule &gt;::addTessellationControlShaderModule </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>fileName</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>entryPoint</em> = <code>&quot;main&quot;</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program_builder.html#ac533de47b1a8132b19d721ed4391c601">LiteFX::Rendering::Backends::VulkanShaderProgramBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_shader_program_builder.html#a37d8a7238daa0474d8a0a8883d2e1dea">LiteFX::Rendering::Backends::DirectX12ShaderProgramBuilder</a>.</p>
-
-</div>
-</div>
-<a id="ad276405951a0031c33ad94b32ed5c83f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad276405951a0031c33ad94b32ed5c83f">&#9670;&nbsp;</a></span>addTessellationEvaluationShaderModule()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDerived , typename TShaderProgram , typename TParent , typename TShaderModule  = TShaderProgram::shader_module_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html">LiteFX::Rendering::ShaderProgramBuilder</a>&lt; TDerived, TShaderProgram, TParent, TShaderModule &gt;::addTessellationEvaluationShaderModule </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>fileName</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>entryPoint</em> = <code>&quot;main&quot;</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program_builder.html#a4dbbc5ebc76a3b114b2694842bededa9">LiteFX::Rendering::Backends::VulkanShaderProgramBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_shader_program_builder.html#aeed10586fa15fa6ef06eb00b595ea47d">LiteFX::Rendering::Backends::DirectX12ShaderProgramBuilder</a>.</p>
-
-</div>
-</div>
-<a id="a5e88fb9716a582538996ce2bd06c6618"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5e88fb9716a582538996ce2bd06c6618">&#9670;&nbsp;</a></span>addVertexShaderModule()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDerived , typename TShaderProgram , typename TParent , typename TShaderModule  = TShaderProgram::shader_module_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html">LiteFX::Rendering::ShaderProgramBuilder</a>&lt; TDerived, TShaderProgram, TParent, TShaderModule &gt;::addVertexShaderModule </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>fileName</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td>
-          <td class="paramname"><em>entryPoint</em> = <code>&quot;main&quot;</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program_builder.html#aa7eee5ddd4f9a40ec0f1d9fcc4b9f9df">LiteFX::Rendering::Backends::VulkanShaderProgramBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_shader_program_builder.html#a164ff71a19a052b06feee2a98582e987">LiteFX::Rendering::Backends::DirectX12ShaderProgramBuilder</a>.</p>
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_shader_program_builder.html#a5c967d71979a0e87515277fa581c693d">LiteFX::Rendering::Backends::VulkanComputeShaderProgramBuilder</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_shader_program_builder.html#a721c3fceae7874401916b948af033db0">LiteFX::Rendering::Backends::VulkanGraphicsShaderProgramBuilder</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_shader_program_builder.html#a14ca03355ab9babde7bca8dde4000627">LiteFX::Rendering::Backends::DirectX12ComputeShaderProgramBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_shader_program_builder.html#a3e59dc3a31c41c3b5200b246cc732bb0">LiteFX::Rendering::Backends::DirectX12GraphicsShaderProgramBuilder</a>.</p>
 
 </div>
 </div>

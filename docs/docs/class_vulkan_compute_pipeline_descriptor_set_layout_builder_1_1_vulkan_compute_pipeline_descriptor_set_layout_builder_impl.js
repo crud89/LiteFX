@@ -1,0 +1,5 @@
+var class_vulkan_compute_pipeline_descriptor_set_layout_builder_1_1_vulkan_compute_pipeline_descriptor_set_layout_builder_impl =
+[
+    [ "VulkanComputePipelineDescriptorSetLayoutBuilderImpl", "class_vulkan_compute_pipeline_descriptor_set_layout_builder_1_1_vulkan_compute_pipeline_descriptor_set_layout_builder_impl.html#a9cea3ab1d1bd53438271242974f69560", null ],
+    [ "VulkanComputePipelineDescriptorSetLayoutBuilder", "class_vulkan_compute_pipeline_descriptor_set_layout_builder_1_1_vulkan_compute_pipeline_descriptor_set_layout_builder_impl.html#a12699bf3e36b95060b1c427098f21ba9", null ]
+];

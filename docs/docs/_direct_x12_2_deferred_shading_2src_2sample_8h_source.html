@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -154,9 +154,9 @@ $(document).ready(function(){initNavTree('_direct_x12_2_deferred_shading_2src_2s
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    <a class="code" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr&lt;IDirectX12IndexBuffer&gt;</a> m_viewPlaneIndexBuffer;</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <a class="code" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr&lt;IDirectX12ConstantBuffer&gt;</a> m_cameraBuffer, m_cameraStagingBuffer;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <a class="code" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr&lt;IDirectX12Buffer&gt;</a> m_cameraBuffer, m_cameraStagingBuffer;</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <a class="code" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr&lt;IDirectX12ConstantBuffer&gt;</a> m_transformBuffer;</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <a class="code" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr&lt;IDirectX12Buffer&gt;</a> m_transformBuffer;</div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
 <div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    <a class="code" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array&lt;UniquePtr&lt;DirectX12DescriptorSet&gt;</a>&gt; m_perFrameBindings;</div>
 <div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; </div>
@@ -189,7 +189,7 @@ $(document).ready(function(){initNavTree('_direct_x12_2_deferred_shading_2src_2s
 <div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;};</div>
 <div class="ttc" id="aclass_lite_f_x_1_1_app_html"><div class="ttname"><a href="class_lite_f_x_1_1_app.html">LiteFX::App</a></div><div class="ttdef"><b>Definition:</b> app.hpp:17</div></div>
 <div class="ttc" id="aclass_lite_f_x_1_1_app_version_html"><div class="ttname"><a href="class_lite_f_x_1_1_app_version.html">LiteFX::AppVersion</a></div><div class="ttdef"><b>Definition:</b> app.hpp:81</div></div>
-<div class="ttc" id="aclass_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer_html"><div class="ttname"><a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a></div><div class="ttdoc">Records commands for a DirectX12CommandQueue</div><div class="ttdef"><b>Definition:</b> dx12.hpp:17</div></div>
+<div class="ttc" id="aclass_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer_html"><div class="ttname"><a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a></div><div class="ttdoc">Records commands for a DirectX12CommandQueue</div><div class="ttdef"><b>Definition:</b> dx12.hpp:1161</div></div>
 <div class="ttc" id="aclass_sample_app_html"><div class="ttname"><a href="class_sample_app.html">SampleApp</a></div><div class="ttdef"><b>Definition:</b> sample.h:28</div></div>
 <div class="ttc" id="aclass_sample_app_html_a47fae730896ad8b1e81eabafcb18b1f4"><div class="ttname"><a href="class_sample_app.html#a47fae730896ad8b1e81eabafcb18b1f4">SampleApp::version</a></div><div class="ttdeci">static AppVersion version() noexcept</div><div class="ttdef"><b>Definition:</b> sample.h:33</div></div>
 <div class="ttc" id="aclass_sample_app_html_a4e7ce0984bb9bd1e37b27bba795c4228"><div class="ttname"><a href="class_sample_app.html#a4e7ce0984bb9bd1e37b27bba795c4228">SampleApp::getName</a></div><div class="ttdeci">String getName() const noexcept override</div><div class="ttdef"><b>Definition:</b> sample.h:31</div></div>
@@ -201,8 +201,8 @@ $(document).ready(function(){initNavTree('_direct_x12_2_deferred_shading_2src_2s
 <div class="ttc" id="aclass_sample_app_html_ae404618632469c192082ae64f412153b"><div class="ttname"><a href="class_sample_app.html#ae404618632469c192082ae64f412153b">SampleApp::initialize</a></div><div class="ttdeci">virtual void initialize() override</div></div>
 <div class="ttc" id="aclass_sample_app_html_aedff3a2e57ecb5274f082fcbe29aa8de"><div class="ttname"><a href="class_sample_app.html#aedff3a2e57ecb5274f082fcbe29aa8de">SampleApp::resize</a></div><div class="ttdeci">virtual void resize(int width, int height) override</div></div>
 <div class="ttc" id="aclass_sample_app_html_af5195d86cc55a74065d9b64459b7090a"><div class="ttname"><a href="class_sample_app.html#af5195d86cc55a74065d9b64459b7090a">SampleApp::name</a></div><div class="ttdeci">static String name() noexcept</div><div class="ttdef"><b>Definition:</b> sample.h:30</div></div>
-<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_1_1_backends_html"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering_1_1_backends.html">LiteFX::Rendering::Backends</a></div><div class="ttdef"><b>Definition:</b> dx12.hpp:9</div></div>
-<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html">LiteFX::Rendering</a></div><div class="ttdef"><b>Definition:</b> dx12.hpp:9</div></div>
+<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_1_1_backends_html"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering_1_1_backends.html">LiteFX::Rendering::Backends</a></div><div class="ttdef"><b>Definition:</b> dx12.hpp:8</div></div>
+<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html">LiteFX::Rendering</a></div><div class="ttdef"><b>Definition:</b> dx12.hpp:8</div></div>
 <div class="ttc" id="anamespace_lite_f_x_html"><div class="ttname"><a href="namespace_lite_f_x.html">LiteFX</a></div><div class="ttdef"><b>Definition:</b> app.hpp:6</div></div>
 <div class="ttc" id="anamespace_lite_f_x_html_a011c7594818b9883306e7b5465a4a602"><div class="ttname"><a href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">LiteFX::String</a></div><div class="ttdeci">std::string String</div><div class="ttdef"><b>Definition:</b> string.hpp:10</div></div>
 <div class="ttc" id="anamespace_lite_f_x_html_a44a0ba2aca32b92906c89ef4df069dbe"><div class="ttname"><a href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">LiteFX::Array</a></div><div class="ttdeci">std::vector&lt; T &gt; Array</div><div class="ttdoc">Represents a dynamic array.</div><div class="ttdef"><b>Definition:</b> containers.hpp:57</div></div>

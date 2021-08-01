@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -90,21 +90,23 @@ $(document).ready(function(){initNavTree('functions_type.html',''); initResizabl
 
 <h3><a id="index_a"></a>- a -</h3><ul>
 <li>adapter_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#abe8638e26a22a82262eee57900d952f8">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a3eb3af62cc8abfa65bd47ce2d84426dc">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</a>
 </li>
 </ul>
 
 
 <h3><a id="index_b"></a>- b -</h3><ul>
+<li>barrier_type
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#abef22a0568619462d5798ebc56ae43fb">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+</li>
 <li>base
 : <a class="el" href="class_lite_f_x_1_1_implement.html#ac2b90bec2009e8c47f83886b5e3b5bff">LiteFX::Implement&lt; TInterface &gt;</a>
 </li>
-<li>buffer_interface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a353ba3cd4bebc34a05e067e882af0de7">LiteFX::Rendering::IDescriptorSet&lt; TConstantBuffer, TTexture, TSampler, TImage, TBufferInterface, TCommandBuffer, TDescriptorLayout &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a564910e4b735bebbb736fdb8af322f9b">LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;</a>
-</li>
 <li>buffer_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#a06c445150b70922b959e28d2f052011f">LiteFX::Rendering::ITransferable&lt; TBufferInterface, TCommandBuffer &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_barrier.html#abd7193043907403cedc839118524f2c1">LiteFX::Rendering::IBarrier&lt; TBuffer, TImage &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7c82d316238b25d81ebb5c19fc8ce51d">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a28b499e5ead3064ac30a37aabfa1c3f3">LiteFX::Rendering::IDescriptorSet&lt; TBuffer, TImage, TSampler &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ab9729563c0295f5dd28394c13fed8caa">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
 <li>builder_type
 : <a class="el" href="class_lite_f_x_1_1_builder.html#a4472ed47a33de6a5d370c32ae2c200e5">LiteFX::Builder&lt; TDerived, T, TParent, TPointer &gt;</a>
@@ -115,19 +117,11 @@ $(document).ready(function(){initNavTree('functions_type.html',''); initResizabl
 
 <h3><a id="index_c"></a>- c -</h3><ul>
 <li>command_buffer_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a20ffe08a9e5370c47c04bca6ca32bf90">LiteFX::Rendering::ICommandQueue&lt; TCommandBuffer &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a1b14fd4f3e13e74d9acd84ad81c5e787">LiteFX::Rendering::IDescriptorSet&lt; TConstantBuffer, TTexture, TSampler, TImage, TBufferInterface, TCommandBuffer, TDescriptorLayout &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a80a9db2491af339a96245b611e3cde7d">LiteFX::Rendering::IFrameBuffer&lt; TCommandBuffer, TImageInterface &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#a7e97499de737ff4dc7dbde2f9a45f6f3">LiteFX::Rendering::ITransferable&lt; TBufferInterface, TCommandBuffer &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#aaa5aedea7a89994c7c4db7025406d66e">LiteFX::Rendering::ICommandQueue&lt; TCommandBuffer, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ad7fa9041195cce896ce67e1f3df427f4">LiteFX::Rendering::IFrameBuffer&lt; TCommandBuffer, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline &gt;</a>
 </li>
 <li>command_queue_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#af16a236298fd6b21d83ef0aaa866cdd9">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</a>
-</li>
-<li>constant_buffer_interface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a4f34d6fe4bf9dc811c3add8b1a94bbbd">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TImageInterface, TVertexBufferInterface, TIndexBufferInterface, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface, TVertexBufferLayout, TIndexBufferLayout, TCommandBuffer &gt;</a>
-</li>
-<li>constant_buffer_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#ac0bd11dee3861881c4d42ffa236fe4b1">LiteFX::Rendering::IDescriptorSet&lt; TConstantBuffer, TTexture, TSampler, TImage, TBufferInterface, TCommandBuffer, TDescriptorLayout &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ae5efb713c0ca150b96e2bfce34947182">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</a>
 </li>
 </ul>
 
@@ -138,63 +132,60 @@ $(document).ready(function(){initNavTree('functions_type.html',''); initResizabl
 , <a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a16f4e2aa82d3e8e0fce6029732f5e31d">LiteFX::Builder&lt; TDerived, T, std::nullptr_t, typename TPointer &gt;</a>
 </li>
 <li>descriptor_layout_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor.html#ad57514de159c92b34c65591638951dc4">LiteFX::Rendering::IDescriptor&lt; TDescriptorLayout &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0d32417cc66939c4d0e9266b8726a974">LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a3dd60f6db1c8c2fe578f954e6580e05c">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TImageInterface, TVertexBufferInterface, TIndexBufferInterface, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface, TVertexBufferLayout, TIndexBufferLayout, TCommandBuffer &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#acb7d3e47273559adee81ad3a6686aaed">LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#afd4ffe665472dc95ba7c27b16399e3a1">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
 <li>descriptor_set_layout_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline_layout.html#a95461fe8903974d6058c1a5653d38fc6">LiteFX::Rendering::IRenderPipelineLayout&lt; TDescriptorSetLayout, TShaderProgram, TDescriptorLayout, TDescriptorSet, TShaderModule &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#a177395e868dfd4c46745f736bd491473">LiteFX::Rendering::IPipelineLayout&lt; TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram, TDescriptorLayout, TDescriptorSet, TPushConstantsRange, TShaderModule &gt;</a>
 </li>
 <li>descriptor_set_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a061c08d62e49c3b36d3748b352a5092f">LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline_layout.html#abb03f3c483d4ece51b2a3160e9e84b4c">LiteFX::Rendering::IRenderPipelineLayout&lt; TDescriptorSetLayout, TShaderProgram, TDescriptorLayout, TDescriptorSet, TShaderModule &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ab8058504a87abecdfe4d8d9309680741">LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#ae5fb30f0b5710829176fd9eb4661fcb5">LiteFX::Rendering::IPipelineLayout&lt; TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram, TDescriptorLayout, TDescriptorSet, TPushConstantsRange, TShaderModule &gt;</a>
 </li>
 </ul>
 
 
 <h3><a id="index_f"></a>- f -</h3><ul>
 <li>factory_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a9f525feb7e2c9ab9a94b4b00d254339f">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a1f392e68754bda10a6ca624bcdc6a582">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</a>
 </li>
 <li>frame_buffer_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a4a5d03c4cd2fcd534159b94322a754eb">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a57304d875cc46863f36ef7277fc6a8d5">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa4f0bf6e12fffe5f9d7805b417b09bad">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;</a>
-</li>
-</ul>
-
-
-<h3><a id="index_g"></a>- g -</h3><ul>
-<li>generic_buffer_interface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a7253f8700d0c95aa22151494918341c1">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TImageInterface, TVertexBufferInterface, TIndexBufferInterface, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface, TVertexBufferLayout, TIndexBufferLayout, TCommandBuffer &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8b90ca546805019998f7b66e3e26cd4a">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a081698235eb5097f44379c27aecc0518">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#adc36965075ea95a6b5adcb57d81700db">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;</a>
 </li>
 </ul>
 
 
 <h3><a id="index_i"></a>- i -</h3><ul>
 <li>image_interface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a8aa953ea66cbb9537726d191d3efcba0">LiteFX::Rendering::IFrameBuffer&lt; TCommandBuffer, TImageInterface &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a489dd640dbd2c80bc217a2924f91fcf0">LiteFX::Rendering::ISwapChain&lt; TImageInterface &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a489dd640dbd2c80bc217a2924f91fcf0">LiteFX::Rendering::ISwapChain&lt; TImageInterface &gt;</a>
 </li>
 <li>image_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#af859a6f19f2a2b8f9aba792ae35e5db9">LiteFX::Rendering::IDescriptorSet&lt; TConstantBuffer, TTexture, TSampler, TImage, TBufferInterface, TCommandBuffer, TDescriptorLayout &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_barrier.html#ad583d4b5e922a2b406e07b9226c78e5e">LiteFX::Rendering::IBarrier&lt; TBuffer, TImage &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae316235dd7c3ee4dfcee5b36ed70e4ed">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a4b67805798d6578cb44c4a16a9736136">LiteFX::Rendering::IDescriptorSet&lt; TBuffer, TImage, TSampler &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#aa0ead3c34a1528deabe0c004b8774356">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
 <li>index_buffer_interface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a7e47592b06802fa22d15959177fdfda5">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TImageInterface, TVertexBufferInterface, TIndexBufferInterface, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface, TVertexBufferLayout, TIndexBufferLayout, TCommandBuffer &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4142a9894096004aef68dd49b1e93e7a">LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a17bb12770f2b6194af7f43aa760e629d">LiteFX::Rendering::IRenderPipeline&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
 <li>index_buffer_layout_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html#abfdc873f79288989437fda8a4d85342c">LiteFX::Rendering::IIndexBuffer&lt; TDerived, TIndexBufferLayout, TCommandBuffer &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html#a8396f6c61276672441c38892b6b6e1a6">LiteFX::Rendering::IIndexBuffer&lt; TIndexBufferLayout &gt;</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_assembler.html#a8b6f0a48d88ce127bf5c556461d60206">LiteFX::Rendering::IInputAssembler&lt; TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
+<li>index_buffer_type
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a0d977137803b62cedb6ef046c67a260e">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#aaa14377c550af098ad0d6a7c43537f96">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
+</li>
 <li>input_assembler_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4e5a6c86e25b506aad234af4f3ac3223">LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a9325058856bd15b583e52d5464c9fb91">LiteFX::Rendering::IRenderPipeline&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
 <li>input_attachment_mapping_source_type
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping.html#ae3e6100ebb822d3adca8ab9faa458966">LiteFX::Rendering::IInputAttachmentMapping&lt; TInputAttachmentMappingSource, TFrameBuffer &gt;</a>
 </li>
 <li>input_attachment_mapping_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a5e981252b5528efd8978e38e1df1fc94">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ae43a7512c3c150e20fc5e80d2b3953d6">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;</a>
 </li>
 <li>instance_type
 : <a class="el" href="class_lite_f_x_1_1_builder.html#a816e8000c8b1c7221389725e8ba09307">LiteFX::Builder&lt; TDerived, T, TParent, TPointer &gt;</a>
@@ -211,32 +202,42 @@ $(document).ready(function(){initNavTree('functions_type.html',''); initResizabl
 : <a class="el" href="class_lite_f_x_1_1_builder.html#ab8028b7112e72fcf58c9660621b008bb">LiteFX::Builder&lt; TDerived, T, TParent, TPointer &gt;</a>
 , <a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#aa551cf67127916924ca5bded2bbdf38e">LiteFX::Builder&lt; TDerived, T, std::nullptr_t, typename TPointer &gt;</a>
 </li>
+<li>pipeline_layout_type
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html#ae0743df833273cf73fff315d28d51561">LiteFX::Rendering::IPipeline&lt; TPipelineLayout, TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram, TDescriptorSet &gt;</a>
+</li>
+<li>pipeline_type
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ab18707464c1c953935074b8a1f18f7fe">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+</li>
 <li>pointer_type
 : <a class="el" href="class_lite_f_x_1_1_builder.html#a95ce991f0f204ba6133127b0a07cb6f9">LiteFX::Builder&lt; TDerived, T, TParent, TPointer &gt;</a>
 , <a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a37c52f664fd1e290e2314e560584e46c">LiteFX::Builder&lt; TDerived, T, std::nullptr_t, typename TPointer &gt;</a>
+</li>
+<li>push_constants_layout_type
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#ac28f3a7488da035290404330bbcf524f">LiteFX::Rendering::IPipelineLayout&lt; TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram, TDescriptorLayout, TDescriptorSet, TPushConstantsRange, TShaderModule &gt;</a>
+</li>
+<li>push_constants_range_type
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_push_constants_layout.html#a78745e12d95806372c64c137a2d0de8c">LiteFX::Rendering::IPushConstantsLayout&lt; TPushConstantsRange &gt;</a>
 </li>
 </ul>
 
 
 <h3><a id="index_r"></a>- r -</h3><ul>
 <li>render_pass_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a279d42ae6dc68ab0f0fae6f1ea4740bf">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</a>
-</li>
-<li>render_pipeline_layout_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a3ff6fb31c0669736eef533ecaa093941">LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad99053aebdf926a39b013ccc1d7d8501">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</a>
 </li>
 <li>render_pipeline_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a53d11ee69d0cbacb0061cffffa6b57c1">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a5faead0ec082bed116297299ba06932b">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;</a>
+</li>
+<li>RenderPassContext
+: <a class="el" href="class_direct_x12_render_pass_1_1_direct_x12_render_pass_impl.html#ad395efb2bc57dc6962894ab8c9b06e5d">LiteFX::Rendering::Backends::DirectX12RenderPass::DirectX12RenderPassImpl</a>
 </li>
 </ul>
 
 
 <h3><a id="index_s"></a>- s -</h3><ul>
-<li>sampler_interface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a2b72d28244f80e813b7268d0008c4167">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TImageInterface, TVertexBufferInterface, TIndexBufferInterface, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface, TVertexBufferLayout, TIndexBufferLayout, TCommandBuffer &gt;</a>
-</li>
 <li>sampler_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#ac7249e87078548095325d9c649452369">LiteFX::Rendering::IDescriptorSet&lt; TConstantBuffer, TTexture, TSampler, TImage, TBufferInterface, TCommandBuffer, TDescriptorLayout &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a6894b6d8bd23d930580059ffb4cdfcd1">LiteFX::Rendering::IDescriptorSet&lt; TBuffer, TImage, TSampler &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#afdab60944c079266418f12932cdb2545">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
 <li>scalar_type
 : <a class="el" href="class_lite_f_x_1_1_math_1_1_vector.html#a9a0607c61f7054dc462a6de6a64ae91d">LiteFX::Math::Vector&lt; T, DIM &gt;</a>
@@ -245,26 +246,16 @@ $(document).ready(function(){initNavTree('functions_type.html',''); initResizabl
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_shader_program.html#a62d14897e85c52dad4f4856df0959f5a">LiteFX::Rendering::IShaderProgram&lt; TShaderModule &gt;</a>
 </li>
 <li>shader_program_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline_layout.html#aba64a3b45e79379c2a8fe564c576d03c">LiteFX::Rendering::IRenderPipelineLayout&lt; TDescriptorSetLayout, TShaderProgram, TDescriptorLayout, TDescriptorSet, TShaderModule &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html#a3787d7766562e1b1a59783d4f700926a">LiteFX::Rendering::IPipelineLayout&lt; TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram, TDescriptorLayout, TDescriptorSet, TPushConstantsRange, TShaderModule &gt;</a>
 </li>
 <li>surface_callback
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a18d55e26103c4cbc89f67559c060ec1e">LiteFX::Rendering::Backends::VulkanBackend</a>
 </li>
 <li>surface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a06636bce4b03d0328d2014c2959cfd73">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a288de2c6866a8454fca7288e956c11e5">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</a>
 </li>
 <li>swap_chain_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5dee77351b62298181a9722d72e1550f">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</a>
-</li>
-</ul>
-
-
-<h3><a id="index_t"></a>- t -</h3><ul>
-<li>texture_interface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ab74735bd90f4b5c1c815542bc6300a05">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TImageInterface, TVertexBufferInterface, TIndexBufferInterface, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface, TVertexBufferLayout, TIndexBufferLayout, TCommandBuffer &gt;</a>
-</li>
-<li>texture_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html#a9c497bf78c1381063cbdb88bdeaae387">LiteFX::Rendering::IDescriptorSet&lt; TConstantBuffer, TTexture, TSampler, TImage, TBufferInterface, TCommandBuffer, TDescriptorLayout &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a90a82c8adc3ec9c4be8f04eb193e8e18">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</a>
 </li>
 </ul>
 
@@ -274,12 +265,15 @@ $(document).ready(function(){initNavTree('functions_type.html',''); initResizabl
 : <a class="el" href="class_lite_f_x_1_1_math_1_1_vector.html#a68ddc712ce1b5ea32c864df2cca05eb9">LiteFX::Math::Vector&lt; T, DIM &gt;</a>
 </li>
 <li>vertex_buffer_interface_type
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a0c9ecbb5733f9a096be7e03e208db48a">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TImageInterface, TVertexBufferInterface, TIndexBufferInterface, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface, TVertexBufferLayout, TIndexBufferLayout, TCommandBuffer &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a41bd084e56efe9e4c3d6953d13d02d12">LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a67ea71850b801c631f30664ea94a5e5b">LiteFX::Rendering::IRenderPipeline&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
 <li>vertex_buffer_layout_type
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_assembler.html#ae07582186425c1a337906d0f831c8635">LiteFX::Rendering::IInputAssembler&lt; TVertexBufferLayout, TIndexBufferLayout &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a02367b5dcc3b7b5f39788c3c216e4aeb">LiteFX::Rendering::IVertexBuffer&lt; TDerived, TVertexBufferLayout, TCommandBuffer &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a13d36bda6217cd387b093b595920fba6">LiteFX::Rendering::IVertexBuffer&lt; TVertexBufferLayout &gt;</a>
+</li>
+<li>vertex_buffer_type
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae61e10f31173d8972fca66381bab5386">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a2b8e32ad59e6b851466fd85ebbabe75a">LiteFX::Rendering::IGraphicsFactory&lt; TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
 </li>
 </ul>
 </div><!-- contents -->

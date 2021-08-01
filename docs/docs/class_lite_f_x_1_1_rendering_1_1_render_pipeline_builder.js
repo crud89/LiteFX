@@ -1,8 +1,9 @@
 var class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder =
 [
-    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#af5bce134b3c0e977e5dbf89e657f5814", null ],
-    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a403fc166a1fc6a3edc774335d83edf4d", null ],
-    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ad957e6e984b5e75b502372d865fe6ba3", null ],
-    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a9b04e2297581ad6f6dfc42f090e805c3", null ],
-    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ac2afec2e4b88a9ea7a8b2823cc74040f", null ]
+    [ "enableAlphaToCoverage", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a3f810ca1b4936b9b84a11e37b00249b5", null ],
+    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#aad037447def55a77a45769f2843125f3", null ],
+    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a4be28eb23cf949dd645a2c0812c93496", null ],
+    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a6fbad2094d4172a6af421f1f9a72c7c5", null ],
+    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a8a8428e62fd726da30b0e58d9a41177f", null ],
+    [ "use", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ad79104e1c1124a073d23ad77273c234c", null ]
 ];

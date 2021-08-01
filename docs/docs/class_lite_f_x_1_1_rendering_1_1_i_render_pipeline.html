@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt; Class Template Reference</title>
+<title>LiteFX: LiteFX::Rendering::IRenderPipeline&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -91,177 +91,127 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_ren
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">LiteFX::Rendering::IRenderPipeline&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Represents a render pipeline state.  
+<p>Represents a graphics <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html" title="Represents a pipeline state.">IPipeline</a>.  
  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="rendering_8hpp_source.html">rendering.hpp</a>&gt;</code></p>
+
+<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html">LiteFX::Rendering::IPipeline&lt; TPipelineLayout, TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram, TDescriptorSet &gt;</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a3ff6fb31c0669736eef533ecaa093941"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a3ff6fb31c0669736eef533ecaa093941">render_pipeline_layout_type</a> = TRenderPipelineLayout</td></tr>
-<tr class="separator:a3ff6fb31c0669736eef533ecaa093941"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a41bd084e56efe9e4c3d6953d13d02d12"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a41bd084e56efe9e4c3d6953d13d02d12">vertex_buffer_interface_type</a> = TVertexBufferInterface</td></tr>
-<tr class="separator:a41bd084e56efe9e4c3d6953d13d02d12"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4142a9894096004aef68dd49b1e93e7a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4142a9894096004aef68dd49b1e93e7a">index_buffer_interface_type</a> = TIndexBufferInterface</td></tr>
-<tr class="separator:a4142a9894096004aef68dd49b1e93e7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e5a6c86e25b506aad234af4f3ac3223"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4e5a6c86e25b506aad234af4f3ac3223">input_assembler_type</a> = TInputAssembler</td></tr>
-<tr class="separator:a4e5a6c86e25b506aad234af4f3ac3223"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a564910e4b735bebbb736fdb8af322f9b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a564910e4b735bebbb736fdb8af322f9b">buffer_interface_type</a> = TBufferInterface</td></tr>
-<tr class="separator:a564910e4b735bebbb736fdb8af322f9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67ea71850b801c631f30664ea94a5e5b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a67ea71850b801c631f30664ea94a5e5b">vertex_buffer_interface_type</a> = TVertexBufferInterface</td></tr>
+<tr class="separator:a67ea71850b801c631f30664ea94a5e5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17bb12770f2b6194af7f43aa760e629d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a17bb12770f2b6194af7f43aa760e629d">index_buffer_interface_type</a> = TIndexBufferInterface</td></tr>
+<tr class="separator:a17bb12770f2b6194af7f43aa760e629d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9325058856bd15b583e52d5464c9fb91"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a9325058856bd15b583e52d5464c9fb91">input_assembler_type</a> = TInputAssembler</td></tr>
+<tr class="separator:a9325058856bd15b583e52d5464c9fb91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_pipeline')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html">LiteFX::Rendering::IPipeline&lt; TPipelineLayout, TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram, TDescriptorSet &gt;</a></td></tr>
+<tr class="memitem:ae0743df833273cf73fff315d28d51561 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html#ae0743df833273cf73fff315d28d51561">pipeline_layout_type</a> = TPipelineLayout</td></tr>
+<tr class="separator:ae0743df833273cf73fff315d28d51561 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aac9782d1b85f7f24e9995a8e3d7018b0"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#aac9782d1b85f7f24e9995a8e3d7018b0">~IRenderPipeline</a> () noexcept=default</td></tr>
-<tr class="separator:aac9782d1b85f7f24e9995a8e3d7018b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29c1247462de9a9819cfd2cc6c8573e7"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a29c1247462de9a9819cfd2cc6c8573e7">name</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a29c1247462de9a9819cfd2cc6c8573e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the name of the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a29c1247462de9a9819cfd2cc6c8573e7">More...</a><br /></td></tr>
-<tr class="separator:a29c1247462de9a9819cfd2cc6c8573e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4362b36495ae085ad07bf6ddf5fe18f5"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4362b36495ae085ad07bf6ddf5fe18f5">id</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a4362b36495ae085ad07bf6ddf5fe18f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the ID of the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4362b36495ae085ad07bf6ddf5fe18f5">More...</a><br /></td></tr>
-<tr class="separator:a4362b36495ae085ad07bf6ddf5fe18f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ccfcec08370f4614df27bc7be887030"><td class="memItemLeft" align="right" valign="top">virtual const TRenderPipelineLayout &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a6ccfcec08370f4614df27bc7be887030">layout</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a6ccfcec08370f4614df27bc7be887030"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the layout of the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a6ccfcec08370f4614df27bc7be887030">More...</a><br /></td></tr>
-<tr class="separator:a6ccfcec08370f4614df27bc7be887030"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6baf9bbf30d1b5b43b48980863f10b7c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; TInputAssembler &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a6baf9bbf30d1b5b43b48980863f10b7c">inputAssembler</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a6baf9bbf30d1b5b43b48980863f10b7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the input assembler state used by the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a6baf9bbf30d1b5b43b48980863f10b7c">More...</a><br /></td></tr>
-<tr class="separator:a6baf9bbf30d1b5b43b48980863f10b7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1cb4f6bdc55d9dbc0da34a020efee2be"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html">IRasterizer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a1cb4f6bdc55d9dbc0da34a020efee2be">rasterizer</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a1cb4f6bdc55d9dbc0da34a020efee2be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the rasterizer state used by the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a1cb4f6bdc55d9dbc0da34a020efee2be">More...</a><br /></td></tr>
-<tr class="separator:a1cb4f6bdc55d9dbc0da34a020efee2be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ad96afc681a92f41008ee755bf9f33f"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html">IViewport</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a7ad96afc681a92f41008ee755bf9f33f">viewports</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a7ad96afc681a92f41008ee755bf9f33f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the viewports, the render pipeline can draw to.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a7ad96afc681a92f41008ee755bf9f33f">More...</a><br /></td></tr>
-<tr class="separator:a7ad96afc681a92f41008ee755bf9f33f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4d1fc6b661f0415926a523e5541b0fa4"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_scissor.html">IScissor</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4d1fc6b661f0415926a523e5541b0fa4">scissors</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a4d1fc6b661f0415926a523e5541b0fa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the scissors of the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4d1fc6b661f0415926a523e5541b0fa4">More...</a><br /></td></tr>
-<tr class="separator:a4d1fc6b661f0415926a523e5541b0fa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a18157f57a29730368a2bce1bdc5ab0df"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a18157f57a29730368a2bce1bdc5ab0df">bind</a> (const TVertexBufferInterface &amp;buffer) const =0</td></tr>
-<tr class="memdesc:a18157f57a29730368a2bce1bdc5ab0df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a vertex buffer to the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a18157f57a29730368a2bce1bdc5ab0df">More...</a><br /></td></tr>
-<tr class="separator:a18157f57a29730368a2bce1bdc5ab0df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55a1dca5afbf43fb91c50d70004b8296"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a55a1dca5afbf43fb91c50d70004b8296">bind</a> (const TIndexBufferInterface &amp;buffer) const =0</td></tr>
-<tr class="memdesc:a55a1dca5afbf43fb91c50d70004b8296"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a index buffer to the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a55a1dca5afbf43fb91c50d70004b8296">More...</a><br /></td></tr>
-<tr class="separator:a55a1dca5afbf43fb91c50d70004b8296"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9d278f4f21e2bcaf157c8ee951237c77"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a9d278f4f21e2bcaf157c8ee951237c77">bind</a> (const TDescriptorSet &amp;descriptorSet) const =0</td></tr>
-<tr class="memdesc:a9d278f4f21e2bcaf157c8ee951237c77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the provided descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a9d278f4f21e2bcaf157c8ee951237c77">More...</a><br /></td></tr>
-<tr class="separator:a9d278f4f21e2bcaf157c8ee951237c77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acc9930f0ed8365d804c622e08afbc58d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#acc9930f0ed8365d804c622e08afbc58d">use</a> () const =0</td></tr>
-<tr class="memdesc:acc9930f0ed8365d804c622e08afbc58d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the render pipeline to its parent render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#acc9930f0ed8365d804c622e08afbc58d">More...</a><br /></td></tr>
-<tr class="separator:acc9930f0ed8365d804c622e08afbc58d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32f68feed372bb5740041ccc2eda1277"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a32f68feed372bb5740041ccc2eda1277">draw</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;vertices, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstVertex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const =0</td></tr>
-<tr class="memdesc:a32f68feed372bb5740041ccc2eda1277"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws a number of vertices from the currently bound vertex buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a32f68feed372bb5740041ccc2eda1277">More...</a><br /></td></tr>
-<tr class="separator:a32f68feed372bb5740041ccc2eda1277"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68f5a352afdbea959b5cc86e5ea3bab3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a68f5a352afdbea959b5cc86e5ea3bab3">drawIndexed</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;indices, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const =0</td></tr>
-<tr class="memdesc:a68f5a352afdbea959b5cc86e5ea3bab3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a68f5a352afdbea959b5cc86e5ea3bab3">More...</a><br /></td></tr>
-<tr class="separator:a68f5a352afdbea959b5cc86e5ea3bab3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a924eb23eacc38a8a2683e538f1d56210"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a924eb23eacc38a8a2683e538f1d56210">draw</a> (const TVertexBufferInterface &amp;vertexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstVertex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
-<tr class="memdesc:a924eb23eacc38a8a2683e538f1d56210"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws all vertices from the vertex buffer provided in <em>vertexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a924eb23eacc38a8a2683e538f1d56210">More...</a><br /></td></tr>
-<tr class="separator:a924eb23eacc38a8a2683e538f1d56210"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9b71e714c72813812b200986da7c469a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a9b71e714c72813812b200986da7c469a">drawIndexed</a> (const TIndexBufferInterface &amp;indexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
-<tr class="memdesc:a9b71e714c72813812b200986da7c469a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the currently bound vertex buffer using the index buffer provided in <em>indexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a9b71e714c72813812b200986da7c469a">More...</a><br /></td></tr>
-<tr class="separator:a9b71e714c72813812b200986da7c469a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a675f12c357d406718ba25d947614a386"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a675f12c357d406718ba25d947614a386">drawIndexed</a> (const TVertexBufferInterface &amp;vertexBuffer, const TIndexBufferInterface &amp;indexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
-<tr class="memdesc:a675f12c357d406718ba25d947614a386"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the vertex buffer provided by <em>vertexBuffer</em>  using the index buffer, provided by <em>indexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a675f12c357d406718ba25d947614a386">More...</a><br /></td></tr>
-<tr class="separator:a675f12c357d406718ba25d947614a386"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b484cbd0135271446ef338c4f74139c"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a7b484cbd0135271446ef338c4f74139c">~IRenderPipeline</a> () noexcept=default</td></tr>
+<tr class="separator:a7b484cbd0135271446ef338c4f74139c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcd73c0fdcbf4471a23b2ff3ae4a2077"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#afcd73c0fdcbf4471a23b2ff3ae4a2077">id</a> () const noexcept=0</td></tr>
+<tr class="memdesc:afcd73c0fdcbf4471a23b2ff3ae4a2077"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the ID of the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#afcd73c0fdcbf4471a23b2ff3ae4a2077">More...</a><br /></td></tr>
+<tr class="separator:afcd73c0fdcbf4471a23b2ff3ae4a2077"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa732c4dcb7258385b7e9a5e3750237c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; TInputAssembler &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#aaa732c4dcb7258385b7e9a5e3750237c">inputAssembler</a> () const noexcept=0</td></tr>
+<tr class="memdesc:aaa732c4dcb7258385b7e9a5e3750237c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the input assembler state used by the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#aaa732c4dcb7258385b7e9a5e3750237c">More...</a><br /></td></tr>
+<tr class="separator:aaa732c4dcb7258385b7e9a5e3750237c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23b950ba012a5c567c0cf4aa0f908aa7"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html">IRasterizer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a23b950ba012a5c567c0cf4aa0f908aa7">rasterizer</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a23b950ba012a5c567c0cf4aa0f908aa7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the rasterizer state used by the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a23b950ba012a5c567c0cf4aa0f908aa7">More...</a><br /></td></tr>
+<tr class="separator:a23b950ba012a5c567c0cf4aa0f908aa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af526f77d4915c443f0da24c021a62da2"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html">IViewport</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#af526f77d4915c443f0da24c021a62da2">viewports</a> () const noexcept=0</td></tr>
+<tr class="memdesc:af526f77d4915c443f0da24c021a62da2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the viewports, the render pipeline can draw to.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#af526f77d4915c443f0da24c021a62da2">More...</a><br /></td></tr>
+<tr class="separator:af526f77d4915c443f0da24c021a62da2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbdc17e5dfdecb0d2e765f9d07ef7996"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_scissor.html">IScissor</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#acbdc17e5dfdecb0d2e765f9d07ef7996">scissors</a> () const noexcept=0</td></tr>
+<tr class="memdesc:acbdc17e5dfdecb0d2e765f9d07ef7996"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the scissors of the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#acbdc17e5dfdecb0d2e765f9d07ef7996">More...</a><br /></td></tr>
+<tr class="separator:acbdc17e5dfdecb0d2e765f9d07ef7996"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1eb9b8cde9360883da682f0bf6a51be"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#ab1eb9b8cde9360883da682f0bf6a51be">stencilRef</a> () const noexcept=0</td></tr>
+<tr class="memdesc:ab1eb9b8cde9360883da682f0bf6a51be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a reference to the stencil reference value.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#ab1eb9b8cde9360883da682f0bf6a51be">More...</a><br /></td></tr>
+<tr class="separator:ab1eb9b8cde9360883da682f0bf6a51be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a796d769d5a196a5a2a2c029d42be6aea"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a796d769d5a196a5a2a2c029d42be6aea">blendFactors</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a796d769d5a196a5a2a2c029d42be6aea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a reference of the constant blend factors for the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a796d769d5a196a5a2a2c029d42be6aea">More...</a><br /></td></tr>
+<tr class="separator:a796d769d5a196a5a2a2c029d42be6aea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51da225f2eec6cce993950fec1ed339c"><td class="memItemLeft" align="right" valign="top">virtual const bool &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a51da225f2eec6cce993950fec1ed339c">alphaToCoverage</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a51da225f2eec6cce993950fec1ed339c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the pipeline uses <em>Alpha-to-Coverage</em> multi-sampling.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a51da225f2eec6cce993950fec1ed339c">More...</a><br /></td></tr>
+<tr class="separator:a51da225f2eec6cce993950fec1ed339c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html">LiteFX::Rendering::IPipeline&lt; TPipelineLayout, TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram, TDescriptorSet &gt;</a></td></tr>
+<tr class="memitem:a36083bbadf9b62c91026d16cd0755d4e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html#a36083bbadf9b62c91026d16cd0755d4e">~IPipeline</a> () noexcept=default</td></tr>
+<tr class="separator:a36083bbadf9b62c91026d16cd0755d4e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcb04a5fb88449e2533b9b193a84e0e5 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html#adcb04a5fb88449e2533b9b193a84e0e5">name</a> () const noexcept=0</td></tr>
+<tr class="memdesc:adcb04a5fb88449e2533b9b193a84e0e5 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the name of the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html#adcb04a5fb88449e2533b9b193a84e0e5">More...</a><br /></td></tr>
+<tr class="separator:adcb04a5fb88449e2533b9b193a84e0e5 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0dd8001b81682053744d1d214537fc5b inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="memItemLeft" align="right" valign="top">virtual const TPipelineLayout &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html#a0dd8001b81682053744d1d214537fc5b">layout</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a0dd8001b81682053744d1d214537fc5b inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the layout of the render pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html#a0dd8001b81682053744d1d214537fc5b">More...</a><br /></td></tr>
+<tr class="separator:a0dd8001b81682053744d1d214537fc5b inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_pipeline"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TRenderPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TBufferInterface, typename TCommandBuffer = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type&gt;<br />
-class LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;</h3>
+<div class="textblock"><h3>template&lt;typename TPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type&gt;<br />
+class LiteFX::Rendering::IRenderPipeline&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;</h3>
 
-<p>Represents a render pipeline state. </p>
+<p>Represents a graphics <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html" title="Represents a pipeline state.">IPipeline</a>. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">TRenderPipelineLayout</td><td>The type of the render pipeline layout. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline_layout.html" title="Represents a the layout of a IRenderPipeline.">IRenderPipelineLayout</a>.</td></tr>
+    <tr><td class="paramname">TPipelineLayout</td><td>The type of the render pipeline layout. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html" title="Represents a the layout of a IRenderPipeline.">IPipelineLayout</a>.</td></tr>
     <tr><td class="paramname">TInputAssembler</td><td>The type of the input assembler state. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_assembler.html" title="Represents a the input assembler state of a IRenderPipeline.">IInputAssembler</a>.</td></tr>
     <tr><td class="paramname">TVertexBufferInterface</td><td>The type of the vertex buffer interface. Must inherit from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html" title="Describes a vertex buffer.">IVertexBuffer</a>.</td></tr>
     <tr><td class="paramname">TIndexBufferInterface</td><td>The type of the index buffer interface. Must inherit from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html" title="Describes an index buffer.">IIndexBuffer</a>.</td></tr>
     <tr><td class="paramname">TVertexBufferLayout</td><td>The type of the vertex buffer layout. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout.html" title="Describes a vertex buffer layout.">IVertexBufferLayout</a>.</td></tr>
     <tr><td class="paramname">TIndexBufferLayout</td><td>The type of the index buffer layout. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_index_buffer_layout.html" title="Describes a index buffer layout.">IIndexBufferLayout</a>.</td></tr>
-    <tr><td class="paramname">TShaderProgram</td><td>The type of the shader program. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_shader_program.html" title="Represents a shader program, consisting of multiple IShaderModules.">IShaderProgram</a>.</td></tr>
-    <tr><td class="paramname">TDescriptorSetLayout</td><td>The type of the descriptor set layout. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html" title="Describes the layout of a descriptor set.">IDescriptorSetLayout</a>.</td></tr>
-    <tr><td class="paramname">TDescriptorSet</td><td>The type of the descriptor set. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html" title="Defines a set of descriptors.">IDescriptorSet</a>.</td></tr>
-    <tr><td class="paramname">TBufferInterface</td><td>The type of the buffer interface. Must inherit from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html" title="Base interface for buffer objects.">IBuffer</a>.</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section see"><dt>See also</dt><dd>IRenderPipelineBuilder</dd></dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a564910e4b735bebbb736fdb8af322f9b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a564910e4b735bebbb736fdb8af322f9b">&#9670;&nbsp;</a></span>buffer_interface_type</h2>
+<a id="a17bb12770f2b6194af7f43aa760e629d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17bb12770f2b6194af7f43aa760e629d">&#9670;&nbsp;</a></span>index_buffer_interface_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a564910e4b735bebbb736fdb8af322f9b">buffer_interface_type</a> =  TBufferInterface</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a17bb12770f2b6194af7f43aa760e629d">index_buffer_interface_type</a> =  TIndexBufferInterface</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a4142a9894096004aef68dd49b1e93e7a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4142a9894096004aef68dd49b1e93e7a">&#9670;&nbsp;</a></span>index_buffer_interface_type</h2>
+<a id="a9325058856bd15b583e52d5464c9fb91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9325058856bd15b583e52d5464c9fb91">&#9670;&nbsp;</a></span>input_assembler_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4142a9894096004aef68dd49b1e93e7a">index_buffer_interface_type</a> =  TIndexBufferInterface</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a9325058856bd15b583e52d5464c9fb91">input_assembler_type</a> =  TInputAssembler</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a4e5a6c86e25b506aad234af4f3ac3223"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4e5a6c86e25b506aad234af4f3ac3223">&#9670;&nbsp;</a></span>input_assembler_type</h2>
+<a id="a67ea71850b801c631f30664ea94a5e5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67ea71850b801c631f30664ea94a5e5b">&#9670;&nbsp;</a></span>vertex_buffer_interface_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a4e5a6c86e25b506aad234af4f3ac3223">input_assembler_type</a> =  TInputAssembler</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3ff6fb31c0669736eef533ecaa093941"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ff6fb31c0669736eef533ecaa093941">&#9670;&nbsp;</a></span>render_pipeline_layout_type</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a3ff6fb31c0669736eef533ecaa093941">render_pipeline_layout_type</a> =  TRenderPipelineLayout</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a41bd084e56efe9e4c3d6953d13d02d12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a41bd084e56efe9e4c3d6953d13d02d12">&#9670;&nbsp;</a></span>vertex_buffer_interface_type</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a41bd084e56efe9e4c3d6953d13d02d12">vertex_buffer_interface_type</a> =  TVertexBufferInterface</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a67ea71850b801c631f30664ea94a5e5b">vertex_buffer_interface_type</a> =  TVertexBufferInterface</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -269,19 +219,19 @@ template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aac9782d1b85f7f24e9995a8e3d7018b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aac9782d1b85f7f24e9995a8e3d7018b0">&#9670;&nbsp;</a></span>~IRenderPipeline()</h2>
+<a id="a7b484cbd0135271446ef338c4f74139c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b484cbd0135271446ef338c4f74139c">&#9670;&nbsp;</a></span>~IRenderPipeline()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">IRenderPipeline</a> </td>
+          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">IRenderPipeline</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -297,471 +247,85 @@ template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a9d278f4f21e2bcaf157c8ee951237c77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9d278f4f21e2bcaf157c8ee951237c77">&#9670;&nbsp;</a></span>bind() <span class="overload">[1/3]</span></h2>
+<a id="a51da225f2eec6cce993950fec1ed339c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51da225f2eec6cce993950fec1ed339c">&#9670;&nbsp;</a></span>alphaToCoverage()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::bind </td>
+          <td class="memname">virtual const bool&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::alphaToCoverage </td>
           <td>(</td>
-          <td class="paramtype">const TDescriptorSet &amp;&#160;</td>
-          <td class="paramname"><em>descriptorSet</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Binds the provided descriptor set. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">descriptorSet</td><td>The descriptor set to bind.</td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Returns <code>true</code>, if the pipeline uses <em>Alpha-to-Coverage</em> multi-sampling. </p>
+<p>Alpha-to-Coverage is a multi-sampling technique used for partially transparent sprites or textures (such as foliage) to prevent visible flickering along edges. If enabled, the alpha-channel of the first (non-depth/stencil) render target is used to generate a temporary coverage mask that is combined with the fragment coverage mask using a logical <b>AND</b>. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code>, if the pipeline uses <em>Alpha-to-Coverage</em> multi-sampling.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#aa9ba59988dc5dc779dc8bc8100357009">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#a969f0ebf6d5cab1caf2817157b767d79">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>.</p>
 
 </div>
 </div>
-<a id="a55a1dca5afbf43fb91c50d70004b8296"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a55a1dca5afbf43fb91c50d70004b8296">&#9670;&nbsp;</a></span>bind() <span class="overload">[2/3]</span></h2>
+<a id="a796d769d5a196a5a2a2c029d42be6aea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a796d769d5a196a5a2a2c029d42be6aea">&#9670;&nbsp;</a></span>blendFactors()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::bind </td>
+          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::blendFactors </td>
           <td>(</td>
-          <td class="paramtype">const TIndexBufferInterface &amp;&#160;</td>
-          <td class="paramname"><em>buffer</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Binds a index buffer to the pipeline. </p>
-<p>After binding the index buffer, the next call to <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a68f5a352afdbea959b5cc86e5ea3bab3" title="Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.">drawIndexed</a> will read from it, until another index buffer is bound. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">buffer</td><td>The index buffer to bind to the pipeline.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html" title="Describes an index buffer.">IIndexBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a68f5a352afdbea959b5cc86e5ea3bab3" title="Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.">drawIndexed</a></dd></dl>
+<p>Returns a reference of the constant blend factors for the pipeline. </p>
+<p>You can change the values inside this vector reference to influence the constant blend factors. Blend factors are set for all render targets that use the blend factors <code>BlendFactor::ConstantColor</code>, <code>BlendFactor::OneMinusConstantColor</code>, <code>BlendFactor::ConstantAlpha</code> or <code>BlendFactor::OneMinusConstantAlpha</code>. They are set on each call to IRenderPipeline::use. </p>
+<dl class="section return"><dt>Returns</dt><dd>A reference of the constant blend factors for the pipeline.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#a9198572c0682747a55356e6429fd5015">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#aa62c18452c4557dc01477c7399875b31">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>.</p>
 
 </div>
 </div>
-<a id="a18157f57a29730368a2bce1bdc5ab0df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a18157f57a29730368a2bce1bdc5ab0df">&#9670;&nbsp;</a></span>bind() <span class="overload">[3/3]</span></h2>
+<a id="afcd73c0fdcbf4471a23b2ff3ae4a2077"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afcd73c0fdcbf4471a23b2ff3ae4a2077">&#9670;&nbsp;</a></span>id()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::bind </td>
-          <td>(</td>
-          <td class="paramtype">const TVertexBufferInterface &amp;&#160;</td>
-          <td class="paramname"><em>buffer</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Binds a vertex buffer to the pipeline. </p>
-<p>After binding the vertex buffer, the next call to <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a32f68feed372bb5740041ccc2eda1277" title="Draws a number of vertices from the currently bound vertex buffer.">draw</a> or <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a68f5a352afdbea959b5cc86e5ea3bab3" title="Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.">drawIndexed</a> will read from it, until another vertex buffer is bound. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">buffer</td><td>The vertex buffer to bind to the pipeline.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html" title="Describes a vertex buffer.">IVertexBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a32f68feed372bb5740041ccc2eda1277" title="Draws a number of vertices from the currently bound vertex buffer.">draw</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a68f5a352afdbea959b5cc86e5ea3bab3" title="Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.">drawIndexed</a></dd></dl>
-
-</div>
-</div>
-<a id="a924eb23eacc38a8a2683e538f1d56210"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a924eb23eacc38a8a2683e538f1d56210">&#9670;&nbsp;</a></span>draw() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::draw </td>
-          <td>(</td>
-          <td class="paramtype">const TVertexBufferInterface &amp;&#160;</td>
-          <td class="paramname"><em>vertexBuffer</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstVertex</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Draws all vertices from the vertex buffer provided in <em>vertexBuffer</em> . </p>
-<p>This helper method binds the vertex buffer and issues a draw command for all vertices. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">vertexBuffer</td><td>The vertex buffer to draw from.</td></tr>
-    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
-    <tr><td class="paramname">firstVertex</td><td>The index of the first vertex to start drawing from.</td></tr>
-    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a32f68feed372bb5740041ccc2eda1277"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32f68feed372bb5740041ccc2eda1277">&#9670;&nbsp;</a></span>draw() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::draw </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>vertices</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstVertex</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Draws a number of vertices from the currently bound vertex buffer. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">vertices</td><td>The number of vertices to draw.</td></tr>
-    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
-    <tr><td class="paramname">firstVertex</td><td>The index of the first vertex to start drawing from.</td></tr>
-    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#a37be1104027d53c2ded6d89cd1bbf4ff">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#abff962a52e01f16b026774a73e974720">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>.</p>
-
-</div>
-</div>
-<a id="a9b71e714c72813812b200986da7c469a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9b71e714c72813812b200986da7c469a">&#9670;&nbsp;</a></span>drawIndexed() <span class="overload">[1/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::drawIndexed </td>
-          <td>(</td>
-          <td class="paramtype">const TIndexBufferInterface &amp;&#160;</td>
-          <td class="paramname"><em>indexBuffer</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstIndex</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;&#160;</td>
-          <td class="paramname"><em>vertexOffset</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Draws the currently bound vertex buffer using the index buffer provided in <em>indexBuffer</em> . </p>
-<p>This helper method binds the index buffer and issues a draw command for all indices. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">indexBuffer</td><td>The index buffer to draw with.</td></tr>
-    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
-    <tr><td class="paramname">firstIndex</td><td>The index of the first element of the index buffer to start drawing from.</td></tr>
-    <tr><td class="paramname">vertexOffset</td><td>The offset added to each index to find the corresponding vertex.</td></tr>
-    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a675f12c357d406718ba25d947614a386"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a675f12c357d406718ba25d947614a386">&#9670;&nbsp;</a></span>drawIndexed() <span class="overload">[2/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::drawIndexed </td>
-          <td>(</td>
-          <td class="paramtype">const TVertexBufferInterface &amp;&#160;</td>
-          <td class="paramname"><em>vertexBuffer</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const TIndexBufferInterface &amp;&#160;</td>
-          <td class="paramname"><em>indexBuffer</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstIndex</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;&#160;</td>
-          <td class="paramname"><em>vertexOffset</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Draws the vertex buffer provided by <em>vertexBuffer</em>  using the index buffer, provided by <em>indexBuffer</em> . </p>
-<p>This helper method binds the provided vertex and index buffers and issues a draw command for all indices. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">vertexBuffer</td><td>The vertex buffer to draw from.</td></tr>
-    <tr><td class="paramname">indexBuffer</td><td>The index buffer to draw with.</td></tr>
-    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
-    <tr><td class="paramname">firstIndex</td><td>The index of the first element of the index buffer to start drawing from.</td></tr>
-    <tr><td class="paramname">vertexOffset</td><td>The offset added to each index to find the corresponding vertex.</td></tr>
-    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a68f5a352afdbea959b5cc86e5ea3bab3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68f5a352afdbea959b5cc86e5ea3bab3">&#9670;&nbsp;</a></span>drawIndexed() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::drawIndexed </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>indices</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstIndex</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;&#160;</td>
-          <td class="paramname"><em>vertexOffset</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">indices</td><td>The number of indices to draw.</td></tr>
-    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
-    <tr><td class="paramname">firstIndex</td><td>The index of the first element of the index buffer to start drawing from.</td></tr>
-    <tr><td class="paramname">vertexOffset</td><td>The offset added to each index to find the corresponding vertex.</td></tr>
-    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#aecfbda1e3c49ea3fd14e381f9737f075">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#a90f84cc5bee7ef14d1fddf8c9a1c735f">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>.</p>
-
-</div>
-</div>
-<a id="a4362b36495ae085ad07bf6ddf5fe18f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4362b36495ae085ad07bf6ddf5fe18f5">&#9670;&nbsp;</a></span>id()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::id </td>
+          <td class="memname">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::id </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -782,19 +346,19 @@ template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename
 
 </div>
 </div>
-<a id="a6baf9bbf30d1b5b43b48980863f10b7c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6baf9bbf30d1b5b43b48980863f10b7c">&#9670;&nbsp;</a></span>inputAssembler()</h2>
+<a id="aaa732c4dcb7258385b7e9a5e3750237c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa732c4dcb7258385b7e9a5e3750237c">&#9670;&nbsp;</a></span>inputAssembler()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt;TInputAssembler&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::inputAssembler </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt;TInputAssembler&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::inputAssembler </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -814,83 +378,19 @@ template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename
 
 </div>
 </div>
-<a id="a6ccfcec08370f4614df27bc7be887030"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ccfcec08370f4614df27bc7be887030">&#9670;&nbsp;</a></span>layout()</h2>
+<a id="a23b950ba012a5c567c0cf4aa0f908aa7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23b950ba012a5c567c0cf4aa0f908aa7">&#9670;&nbsp;</a></span>rasterizer()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TRenderPipelineLayout&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::layout </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the layout of the render pipeline. </p>
-<dl class="section return"><dt>Returns</dt><dd>The layout of the render pipeline.</dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#ad666b2e96ab948365fd082a4e970d30d">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#a7e27881722e4fefe28594e6618184e4c">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>.</p>
-
-</div>
-</div>
-<a id="a29c1247462de9a9819cfd2cc6c8573e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a29c1247462de9a9819cfd2cc6c8573e7">&#9670;&nbsp;</a></span>name()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual const <a class="el" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::name </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the name of the render pipeline. </p>
-<dl class="section return"><dt>Returns</dt><dd>The name of the render pipeline.</dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#a7cd31c4a62a5a9d1be968d7b21c0777d">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#ad51e426978ffdb0d9027046448e0fb9d">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>.</p>
-
-</div>
-</div>
-<a id="a1cb4f6bdc55d9dbc0da34a020efee2be"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1cb4f6bdc55d9dbc0da34a020efee2be">&#9670;&nbsp;</a></span>rasterizer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html">IRasterizer</a>&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::rasterizer </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html">IRasterizer</a>&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::rasterizer </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -910,19 +410,19 @@ template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename
 
 </div>
 </div>
-<a id="a4d1fc6b661f0415926a523e5541b0fa4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4d1fc6b661f0415926a523e5541b0fa4">&#9670;&nbsp;</a></span>scissors()</h2>
+<a id="acbdc17e5dfdecb0d2e765f9d07ef7996"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acbdc17e5dfdecb0d2e765f9d07ef7996">&#9670;&nbsp;</a></span>scissors()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_scissor.html">IScissor</a>*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::scissors </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_scissor.html">IScissor</a>*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::scissors </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -942,19 +442,19 @@ template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename
 
 </div>
 </div>
-<a id="acc9930f0ed8365d804c622e08afbc58d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acc9930f0ed8365d804c622e08afbc58d">&#9670;&nbsp;</a></span>use()</h2>
+<a id="ab1eb9b8cde9360883da682f0bf6a51be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1eb9b8cde9360883da682f0bf6a51be">&#9670;&nbsp;</a></span>stencilRef()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::use </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::stencilRef </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -962,30 +462,32 @@ template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Binds the render pipeline to its parent render pass. </p>
+<p>Returns a reference to the stencil reference value. </p>
+<p>The stencil reference value is used by the stencil test and is set with each call to IRenderPipeline::use. </p>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the stencil reference value.</dd></dl>
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#a7b345d2ddac38907062892d34e340528">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#af00037fd516e75331e5fa3ddeefcff9e">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>.</p>
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#a2c61664c7df1e7ced6dc156309cbd8bd">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#a6969669c0da8a86890c343904b8b9a38">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>.</p>
 
 </div>
 </div>
-<a id="a7ad96afc681a92f41008ee755bf9f33f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ad96afc681a92f41008ee755bf9f33f">&#9670;&nbsp;</a></span>viewports()</h2>
+<a id="af526f77d4915c443f0da24c021a62da2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af526f77d4915c443f0da24c021a62da2">&#9670;&nbsp;</a></span>viewports()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TBufferInterface , typename TCommandBuffer  = TVertexBufferInterface::command_buffer_type, typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type, typename TDescriptorSetLayout  = TRenderPipelineLayout::descriptor_set_layout_type, typename TShaderProgram  = TRenderPipelineLayout::shader_program_type, typename TDescriptorSet  = TDescriptorSetLayout::descriptor_set_type&gt; </div>
+template&lt;typename TPipelineLayout , typename TInputAssembler , typename TVertexBufferInterface , typename TIndexBufferInterface , typename TVertexBufferLayout  = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout  = TIndexBufferInterface::index_buffer_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html">IViewport</a>*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;::viewports </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html">IViewport</a>*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html">LiteFX::Rendering::IRenderPipeline</a>&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;::viewports </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>

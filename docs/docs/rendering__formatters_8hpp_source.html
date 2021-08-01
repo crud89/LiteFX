@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -323,355 +323,359 @@ $(document).ready(function(){initNavTree('rendering__formatters_8hpp_source.html
 <div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
 <div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> DescriptorType;</div>
 <div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;        <span class="keywordflow">case</span> Sampler: name = <span class="stringliteral">&quot;Sampler&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;        <span class="keywordflow">case</span> Storage: name = <span class="stringliteral">&quot;Uniform&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        <span class="keywordflow">case</span> Uniform: name = <span class="stringliteral">&quot;Storage&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        <span class="keywordflow">case</span> Image:   name = <span class="stringliteral">&quot;Image&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;        <span class="keywordflow">case</span> InputAttachment: name = <span class="stringliteral">&quot;Input Attachment&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;        }</div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    }</div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;};</div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160; </div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;BufferType&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00246"></a><span class="lineno"><a class="line" href="structfmt.html#a3a0bd7fc0534f532bc6e50b55a6acbca">  246</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a3a0bd7fc0534f532bc6e50b55a6acbca">format</a>(BufferType t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;        string_view name = <span class="stringliteral">&quot;Invalid&quot;</span>;</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> BufferType;</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;        <span class="keywordflow">case</span> Index:      name = <span class="stringliteral">&quot;Index&quot;</span>;      <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="struct_lite_f_x_1_1_graphics_1_1_vertex.html">Vertex</a>:     name = <span class="stringliteral">&quot;Vertex&quot;</span>;     <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;        <span class="keywordflow">case</span> Uniform:    name = <span class="stringliteral">&quot;Uniform&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;        <span class="keywordflow">case</span> Storage:    name = <span class="stringliteral">&quot;Storage&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;        <span class="keywordflow">case</span> Other:      name = <span class="stringliteral">&quot;Other&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;        }</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    }</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;};</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160; </div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;BufferUsage&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00263"></a><span class="lineno"><a class="line" href="structfmt.html#adb64c47752c7845374f51da569196164">  263</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#adb64c47752c7845374f51da569196164">format</a>(BufferUsage t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;        string_view name = <span class="stringliteral">&quot;Invalid&quot;</span>;</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> BufferUsage;</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;        <span class="keywordflow">case</span> Staging:  name = <span class="stringliteral">&quot;Staging&quot;</span>;  <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="class_lite_f_x_1_1_resource.html">Resource</a>: name = <span class="stringliteral">&quot;Resource&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;        <span class="keywordflow">case</span> Dynamic:  name = <span class="stringliteral">&quot;Dynamic&quot;</span>;  <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;        <span class="keywordflow">case</span> Readback: name = <span class="stringliteral">&quot;Readback&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;        }</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    }</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;};</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160; </div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;IndexType&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00279"></a><span class="lineno"><a class="line" href="structfmt.html#a23a1e4e0dff16bdbd6bb10e0a7180a1b">  279</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a23a1e4e0dff16bdbd6bb10e0a7180a1b">format</a>(IndexType t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;        string_view name = <span class="stringliteral">&quot;Invalid&quot;</span>;</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> IndexType;</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespace_lite_f_x_1_1_math.html#a492f9b0c7e29617145869c29f6b45820">UInt16</a>: name = <span class="stringliteral">&quot;UInt16&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>: name = <span class="stringliteral">&quot;UInt32&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;        }</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    }</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;};</div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160; </div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;ShaderStage&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00293"></a><span class="lineno"><a class="line" href="structfmt.html#a85a4a113d94a1c2fc1623efe0631782a">  293</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a85a4a113d94a1c2fc1623efe0631782a">format</a>(ShaderStage t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;        <a class="code" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array&lt;String&gt;</a> names;</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160; </div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;        <span class="keywordflow">if</span> (t == ShaderStage::Other)</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;            names.push_back(<span class="stringliteral">&quot;Other&quot;</span>);</div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;        <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;        {</div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::Vertex) == ShaderStage::Vertex)</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;                names.push_back(<span class="stringliteral">&quot;Vertex&quot;</span>);</div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::TessellationControl) == ShaderStage::TessellationControl)</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;                names.push_back(<span class="stringliteral">&quot;Tessellation Control&quot;</span>);</div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)</div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;                names.push_back(<span class="stringliteral">&quot;Tessellation Evaluation&quot;</span>);</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::Geometry) == ShaderStage::Geometry)</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;                names.push_back(<span class="stringliteral">&quot;Geometry&quot;</span>);</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::Fragment) == ShaderStage::Fragment)</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;                names.push_back(<span class="stringliteral">&quot;Fragment&quot;</span>);</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::Compute) == ShaderStage::Compute)</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;                names.push_back(<span class="stringliteral">&quot;Compute&quot;</span>);</div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;        }</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160; </div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;        <a class="code" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> name = <a class="code" href="namespace_lite_f_x.html#ae04757e836f9a4231706f25a764a3356">Join</a>(names, <span class="stringliteral">&quot; | &quot;</span>);</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;    }</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;};</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160; </div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;BufferFormat&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00322"></a><span class="lineno"><a class="line" href="structfmt.html#a8662d992ff93ceeb238c8db9c6a4d622">  322</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a8662d992ff93ceeb238c8db9c6a4d622">format</a>(BufferFormat t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;        <a class="code" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array&lt;String&gt;</a> names;</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160; </div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;        <span class="keywordflow">switch</span> (::<a class="code" href="namespace_lite_f_x_1_1_rendering.html#a0651293ae36a5850131c33b7ef65c0b0">getBufferFormatChannels</a>(t))</div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;        {</div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;        <span class="keywordflow">case</span> 1:</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;            names.push_back(<span class="stringliteral">&quot;X&quot;</span>);</div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        <span class="keywordflow">case</span> 2:</div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;            names.push_back(<span class="stringliteral">&quot;XY&quot;</span>);</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;        <span class="keywordflow">case</span> 3:</div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;            names.push_back(<span class="stringliteral">&quot;XYZ&quot;</span>);</div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;        <span class="keywordflow">case</span> 4:</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;            names.push_back(<span class="stringliteral">&quot;XYZW&quot;</span>);</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;        <span class="keywordflow">default</span>:</div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;            <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(<span class="stringliteral">&quot;Invalid&quot;</span>, ctx);</div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;        }</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160; </div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;        <span class="keywordflow">switch</span> (::<a class="code" href="namespace_lite_f_x_1_1_rendering.html#a711b6d7d731ddc364c6a860d43100abb">getBufferFormatChannelSize</a>(t))</div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;        {</div>
-<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;        <span class="keywordflow">case</span> 8:</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;            names.push_back(<span class="stringliteral">&quot;8&quot;</span>);</div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;        <span class="keywordflow">case</span> 16:</div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;            names.push_back(<span class="stringliteral">&quot;16&quot;</span>);</div>
-<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;        <span class="keywordflow">case</span> 32:</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;            names.push_back(<span class="stringliteral">&quot;32&quot;</span>);</div>
-<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;        <span class="keywordflow">case</span> 64:</div>
-<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;            names.push_back(<span class="stringliteral">&quot;64&quot;</span>);</div>
-<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;        <span class="keywordflow">default</span>:</div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;            <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(<span class="stringliteral">&quot;Invalid&quot;</span>, ctx);</div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;        }</div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160; </div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;        <span class="keywordflow">switch</span> (::<a class="code" href="namespace_lite_f_x_1_1_rendering.html#a8d689aca8f6fec924dd339edf8d2bfbf">getBufferFormatType</a>(t))</div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;        {</div>
-<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;        <span class="keywordflow">case</span> 0x01:</div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;            names.push_back(<span class="stringliteral">&quot;F&quot;</span>);</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;        <span class="keywordflow">case</span> 0x02:</div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;            names.push_back(<span class="stringliteral">&quot;I&quot;</span>);</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;        <span class="keywordflow">case</span> 0x04:</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;            names.push_back(<span class="stringliteral">&quot;S&quot;</span>);</div>
-<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;        <span class="keywordflow">default</span>:</div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;            <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(<span class="stringliteral">&quot;Invalid&quot;</span>, ctx);</div>
-<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;        }</div>
-<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160; </div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;        <a class="code" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> name = <a class="code" href="namespace_lite_f_x.html#ae04757e836f9a4231706f25a764a3356">Join</a>(names);</div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;    }</div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;};</div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160; </div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;PolygonMode&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00384"></a><span class="lineno"><a class="line" href="structfmt.html#a168cd402667c71dd611028abed9afa8b">  384</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a168cd402667c71dd611028abed9afa8b">format</a>(PolygonMode t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160; </div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> PolygonMode;</div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;        <span class="keywordflow">case</span> Solid: name = <span class="stringliteral">&quot;Solid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;        <span class="keywordflow">case</span> Wireframe: name = <span class="stringliteral">&quot;Wireframe&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;        <span class="keywordflow">case</span> Point: name = <span class="stringliteral">&quot;Point&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;        }</div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160; </div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;    }</div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;};</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;        <span class="keywordflow">case</span> Uniform: name = <span class="stringliteral">&quot;Uniform&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        <span class="keywordflow">case</span> Storage: name = <span class="stringliteral">&quot;Storage&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        <span class="keywordflow">case</span> WritableStorage: name = <span class="stringliteral">&quot;WritableStorage&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;        <span class="keywordflow">case</span> Texture: name = <span class="stringliteral">&quot;Texture&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;        <span class="keywordflow">case</span> WritableTexture: name = <span class="stringliteral">&quot;WritableTexture&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;        <span class="keywordflow">case</span> Buffer:  name = <span class="stringliteral">&quot;Buffer&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;        <span class="keywordflow">case</span> WritableBuffer:  name = <span class="stringliteral">&quot;WritableBuffer&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;        <span class="keywordflow">case</span> InputAttachment: name = <span class="stringliteral">&quot;Input Attachment&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;        }</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    }</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;};</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160; </div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;BufferType&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00250"></a><span class="lineno"><a class="line" href="structfmt.html#a3a0bd7fc0534f532bc6e50b55a6acbca">  250</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a3a0bd7fc0534f532bc6e50b55a6acbca">format</a>(BufferType t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;        string_view name = <span class="stringliteral">&quot;Invalid&quot;</span>;</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> BufferType;</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;        <span class="keywordflow">case</span> Index:      name = <span class="stringliteral">&quot;Index&quot;</span>;      <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="struct_lite_f_x_1_1_graphics_1_1_vertex.html">Vertex</a>:     name = <span class="stringliteral">&quot;Vertex&quot;</span>;     <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;        <span class="keywordflow">case</span> Uniform:    name = <span class="stringliteral">&quot;Uniform&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;        <span class="keywordflow">case</span> Storage:    name = <span class="stringliteral">&quot;Storage&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;        <span class="keywordflow">case</span> Other:      name = <span class="stringliteral">&quot;Other&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;        }</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    }</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;};</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160; </div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;BufferUsage&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00267"></a><span class="lineno"><a class="line" href="structfmt.html#adb64c47752c7845374f51da569196164">  267</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#adb64c47752c7845374f51da569196164">format</a>(BufferUsage t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;        string_view name = <span class="stringliteral">&quot;Invalid&quot;</span>;</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> BufferUsage;</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;        <span class="keywordflow">case</span> Staging:  name = <span class="stringliteral">&quot;Staging&quot;</span>;  <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="class_lite_f_x_1_1_resource.html">Resource</a>: name = <span class="stringliteral">&quot;Resource&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;        <span class="keywordflow">case</span> Dynamic:  name = <span class="stringliteral">&quot;Dynamic&quot;</span>;  <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;        <span class="keywordflow">case</span> Readback: name = <span class="stringliteral">&quot;Readback&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;        }</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;    }</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;};</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160; </div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;IndexType&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00283"></a><span class="lineno"><a class="line" href="structfmt.html#a23a1e4e0dff16bdbd6bb10e0a7180a1b">  283</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a23a1e4e0dff16bdbd6bb10e0a7180a1b">format</a>(IndexType t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;        string_view name = <span class="stringliteral">&quot;Invalid&quot;</span>;</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> IndexType;</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespace_lite_f_x_1_1_math.html#a492f9b0c7e29617145869c29f6b45820">UInt16</a>: name = <span class="stringliteral">&quot;UInt16&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>: name = <span class="stringliteral">&quot;UInt32&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;        }</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;    }</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;};</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160; </div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;ShaderStage&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00297"></a><span class="lineno"><a class="line" href="structfmt.html#a85a4a113d94a1c2fc1623efe0631782a">  297</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a85a4a113d94a1c2fc1623efe0631782a">format</a>(ShaderStage t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;        <a class="code" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array&lt;String&gt;</a> names;</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160; </div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;        <span class="keywordflow">if</span> (t == ShaderStage::Other)</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;            names.push_back(<span class="stringliteral">&quot;Other&quot;</span>);</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;        {</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::Vertex) == ShaderStage::Vertex)</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;                names.push_back(<span class="stringliteral">&quot;Vertex&quot;</span>);</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::TessellationControl) == ShaderStage::TessellationControl)</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;                names.push_back(<span class="stringliteral">&quot;Tessellation Control&quot;</span>);</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;                names.push_back(<span class="stringliteral">&quot;Tessellation Evaluation&quot;</span>);</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::Geometry) == ShaderStage::Geometry)</div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;                names.push_back(<span class="stringliteral">&quot;Geometry&quot;</span>);</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::Fragment) == ShaderStage::Fragment)</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;                names.push_back(<span class="stringliteral">&quot;Fragment&quot;</span>);</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;            <span class="keywordflow">if</span> ((t &amp; ShaderStage::Compute) == ShaderStage::Compute)</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;                names.push_back(<span class="stringliteral">&quot;Compute&quot;</span>);</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;        }</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160; </div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;        <a class="code" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> name = <a class="code" href="namespace_lite_f_x.html#ae04757e836f9a4231706f25a764a3356">Join</a>(names, <span class="stringliteral">&quot; | &quot;</span>);</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;    }</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;};</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160; </div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;BufferFormat&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00326"></a><span class="lineno"><a class="line" href="structfmt.html#a8662d992ff93ceeb238c8db9c6a4d622">  326</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a8662d992ff93ceeb238c8db9c6a4d622">format</a>(BufferFormat t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;        <a class="code" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array&lt;String&gt;</a> names;</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160; </div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;        <span class="keywordflow">switch</span> (::<a class="code" href="namespace_lite_f_x_1_1_rendering.html#a0651293ae36a5850131c33b7ef65c0b0">getBufferFormatChannels</a>(t))</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        {</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;        <span class="keywordflow">case</span> 1:</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;            names.push_back(<span class="stringliteral">&quot;X&quot;</span>);</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;        <span class="keywordflow">case</span> 2:</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;            names.push_back(<span class="stringliteral">&quot;XY&quot;</span>);</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;        <span class="keywordflow">case</span> 3:</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;            names.push_back(<span class="stringliteral">&quot;XYZ&quot;</span>);</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;        <span class="keywordflow">case</span> 4:</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;            names.push_back(<span class="stringliteral">&quot;XYZW&quot;</span>);</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;        <span class="keywordflow">default</span>:</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;            <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(<span class="stringliteral">&quot;Invalid&quot;</span>, ctx);</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;        }</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160; </div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;        <span class="keywordflow">switch</span> (::<a class="code" href="namespace_lite_f_x_1_1_rendering.html#a711b6d7d731ddc364c6a860d43100abb">getBufferFormatChannelSize</a>(t))</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;        {</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;        <span class="keywordflow">case</span> 8:</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;            names.push_back(<span class="stringliteral">&quot;8&quot;</span>);</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;        <span class="keywordflow">case</span> 16:</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;            names.push_back(<span class="stringliteral">&quot;16&quot;</span>);</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;        <span class="keywordflow">case</span> 32:</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;            names.push_back(<span class="stringliteral">&quot;32&quot;</span>);</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;        <span class="keywordflow">case</span> 64:</div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;            names.push_back(<span class="stringliteral">&quot;64&quot;</span>);</div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;        <span class="keywordflow">default</span>:</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;            <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(<span class="stringliteral">&quot;Invalid&quot;</span>, ctx);</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;        }</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160; </div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;        <span class="keywordflow">switch</span> (::<a class="code" href="namespace_lite_f_x_1_1_rendering.html#a8d689aca8f6fec924dd339edf8d2bfbf">getBufferFormatType</a>(t))</div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;        {</div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;        <span class="keywordflow">case</span> 0x01:</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;            names.push_back(<span class="stringliteral">&quot;F&quot;</span>);</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;        <span class="keywordflow">case</span> 0x02:</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;            names.push_back(<span class="stringliteral">&quot;I&quot;</span>);</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;        <span class="keywordflow">case</span> 0x04:</div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;            names.push_back(<span class="stringliteral">&quot;S&quot;</span>);</div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;        <span class="keywordflow">default</span>:</div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;            <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(<span class="stringliteral">&quot;Invalid&quot;</span>, ctx);</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;        }</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160; </div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;        <a class="code" href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">String</a> name = <a class="code" href="namespace_lite_f_x.html#ae04757e836f9a4231706f25a764a3356">Join</a>(names);</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;    }</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;};</div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160; </div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;PolygonMode&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00388"></a><span class="lineno"><a class="line" href="structfmt.html#a168cd402667c71dd611028abed9afa8b">  388</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a168cd402667c71dd611028abed9afa8b">format</a>(PolygonMode t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160; </div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> PolygonMode;</div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;        <span class="keywordflow">case</span> Solid: name = <span class="stringliteral">&quot;Solid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;        <span class="keywordflow">case</span> Wireframe: name = <span class="stringliteral">&quot;Wireframe&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;        <span class="keywordflow">case</span> Point: name = <span class="stringliteral">&quot;Point&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;        }</div>
 <div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160; </div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;CullMode&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00402"></a><span class="lineno"><a class="line" href="structfmt.html#ad3ebccc962183e6e45431ad1474b756c">  402</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#ad3ebccc962183e6e45431ad1474b756c">format</a>(CullMode t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160; </div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> CullMode;</div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;        <span class="keywordflow">case</span> FrontFaces: name = <span class="stringliteral">&quot;FrontFaces&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;        <span class="keywordflow">case</span> BackFaces: name = <span class="stringliteral">&quot;BackFaces&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;        <span class="keywordflow">case</span> Both: name = <span class="stringliteral">&quot;Both&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;        <span class="keywordflow">case</span> Disabled: name = <span class="stringliteral">&quot;Disabled&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;        }</div>
-<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160; </div>
-<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;    }</div>
-<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;};</div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;    }</div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;};</div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160; </div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;CullMode&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00406"></a><span class="lineno"><a class="line" href="structfmt.html#ad3ebccc962183e6e45431ad1474b756c">  406</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#ad3ebccc962183e6e45431ad1474b756c">format</a>(CullMode t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160; </div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> CullMode;</div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;        <span class="keywordflow">case</span> FrontFaces: name = <span class="stringliteral">&quot;FrontFaces&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;        <span class="keywordflow">case</span> BackFaces: name = <span class="stringliteral">&quot;BackFaces&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;        <span class="keywordflow">case</span> Both: name = <span class="stringliteral">&quot;Both&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;        <span class="keywordflow">case</span> Disabled: name = <span class="stringliteral">&quot;Disabled&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;        }</div>
 <div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160; </div>
-<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;CullOrder&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00421"></a><span class="lineno"><a class="line" href="structfmt.html#ac01a17e3c18d1ce25f8cb745639e6c60">  421</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#ac01a17e3c18d1ce25f8cb745639e6c60">format</a>(CullOrder t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160; </div>
-<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> CullOrder;</div>
-<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;        <span class="keywordflow">case</span> ClockWise: name = <span class="stringliteral">&quot;ClockWise&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;        <span class="keywordflow">case</span> CounterClockWise: name = <span class="stringliteral">&quot;CounterClockWise&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;        }</div>
-<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160; </div>
-<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;    }</div>
-<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;};</div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;    }</div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;};</div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160; </div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;CullOrder&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00425"></a><span class="lineno"><a class="line" href="structfmt.html#ac01a17e3c18d1ce25f8cb745639e6c60">  425</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#ac01a17e3c18d1ce25f8cb745639e6c60">format</a>(CullOrder t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160; </div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> CullOrder;</div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;        <span class="keywordflow">case</span> ClockWise: name = <span class="stringliteral">&quot;ClockWise&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;        <span class="keywordflow">case</span> CounterClockWise: name = <span class="stringliteral">&quot;CounterClockWise&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;        }</div>
 <div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160; </div>
-<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;RenderTargetType&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00438"></a><span class="lineno"><a class="line" href="structfmt.html#a2d6ab8c32fc89d6eac13db8470f4e642">  438</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a2d6ab8c32fc89d6eac13db8470f4e642">format</a>(RenderTargetType t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160; </div>
-<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> RenderTargetType;</div>
-<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;        <span class="keywordflow">case</span> Color: name = <span class="stringliteral">&quot;Color&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;        <span class="keywordflow">case</span> DepthStencil: name = <span class="stringliteral">&quot;DepthStencil&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;        <span class="keywordflow">case</span> Present: name = <span class="stringliteral">&quot;Present&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;        }</div>
-<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160; </div>
-<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;    }</div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;};</div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;    }</div>
+<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;};</div>
+<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160; </div>
+<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;RenderTargetType&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00442"></a><span class="lineno"><a class="line" href="structfmt.html#a2d6ab8c32fc89d6eac13db8470f4e642">  442</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a2d6ab8c32fc89d6eac13db8470f4e642">format</a>(RenderTargetType t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160; </div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> RenderTargetType;</div>
+<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;        <span class="keywordflow">case</span> Color: name = <span class="stringliteral">&quot;Color&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;        <span class="keywordflow">case</span> DepthStencil: name = <span class="stringliteral">&quot;DepthStencil&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;        <span class="keywordflow">case</span> Present: name = <span class="stringliteral">&quot;Present&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;        }</div>
 <div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160; </div>
-<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;MultiSamplingLevel&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00456"></a><span class="lineno"><a class="line" href="structfmt.html#a980f4936806a9b77c0984d9df3d34407">  456</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a980f4936806a9b77c0984d9df3d34407">format</a>(MultiSamplingLevel t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160; </div>
-<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> MultiSamplingLevel;</div>
-<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;        <span class="keywordflow">case</span> x1: name = <span class="stringliteral">&quot;1&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;        <span class="keywordflow">case</span> x2: name = <span class="stringliteral">&quot;2&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;        <span class="keywordflow">case</span> x4: name = <span class="stringliteral">&quot;4&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;        <span class="keywordflow">case</span> x8: name = <span class="stringliteral">&quot;8&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;        <span class="keywordflow">case</span> x16: name = <span class="stringliteral">&quot;16&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;        <span class="keywordflow">case</span> x32: name = <span class="stringliteral">&quot;32&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;        <span class="keywordflow">case</span> x64: name = <span class="stringliteral">&quot;64&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;        }</div>
-<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160; </div>
-<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;    }</div>
-<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;};</div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;    }</div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;};</div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160; </div>
+<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;MultiSamplingLevel&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00460"></a><span class="lineno"><a class="line" href="structfmt.html#a980f4936806a9b77c0984d9df3d34407">  460</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a980f4936806a9b77c0984d9df3d34407">format</a>(MultiSamplingLevel t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160; </div>
+<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> MultiSamplingLevel;</div>
+<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;        <span class="keywordflow">case</span> x1: name = <span class="stringliteral">&quot;1&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;        <span class="keywordflow">case</span> x2: name = <span class="stringliteral">&quot;2&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;        <span class="keywordflow">case</span> x4: name = <span class="stringliteral">&quot;4&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;        <span class="keywordflow">case</span> x8: name = <span class="stringliteral">&quot;8&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;        <span class="keywordflow">case</span> x16: name = <span class="stringliteral">&quot;16&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;        <span class="keywordflow">case</span> x32: name = <span class="stringliteral">&quot;32&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;        <span class="keywordflow">case</span> x64: name = <span class="stringliteral">&quot;64&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;        }</div>
 <div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160; </div>
-<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;FilterMode&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00478"></a><span class="lineno"><a class="line" href="structfmt.html#a3782771590d0e3055d5cb728268ee7bf">  478</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a3782771590d0e3055d5cb728268ee7bf">format</a>(FilterMode t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160; </div>
-<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> FilterMode;</div>
-<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;        <span class="keywordflow">case</span> Nearest: name = <span class="stringliteral">&quot;Nearest&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;        <span class="keywordflow">case</span> Linear: name = <span class="stringliteral">&quot;Linear&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;        }</div>
-<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160; </div>
-<div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;    }</div>
-<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160;};</div>
+<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;    }</div>
+<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160;};</div>
+<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160; </div>
+<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;FilterMode&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00482"></a><span class="lineno"><a class="line" href="structfmt.html#a3782771590d0e3055d5cb728268ee7bf">  482</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a3782771590d0e3055d5cb728268ee7bf">format</a>(FilterMode t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160; </div>
+<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> FilterMode;</div>
+<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;        <span class="keywordflow">case</span> Nearest: name = <span class="stringliteral">&quot;Nearest&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160;        <span class="keywordflow">case</span> Linear: name = <span class="stringliteral">&quot;Linear&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160;        }</div>
 <div class="line"><a name="l00491"></a><span class="lineno">  491</span>&#160; </div>
-<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;MipMapMode&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00495"></a><span class="lineno"><a class="line" href="structfmt.html#a83e10ec14a2b8244ebad401336fd338e">  495</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a83e10ec14a2b8244ebad401336fd338e">format</a>(MipMapMode t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160; </div>
-<div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> MipMapMode;</div>
-<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;        <span class="keywordflow">case</span> Nearest: name = <span class="stringliteral">&quot;Nearest&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;        <span class="keywordflow">case</span> Linear: name = <span class="stringliteral">&quot;Linear&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;        }</div>
-<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160; </div>
-<div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;    }</div>
-<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;};</div>
+<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160;    }</div>
+<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;};</div>
+<div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160; </div>
+<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;MipMapMode&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00499"></a><span class="lineno"><a class="line" href="structfmt.html#a83e10ec14a2b8244ebad401336fd338e">  499</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a83e10ec14a2b8244ebad401336fd338e">format</a>(MipMapMode t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160; </div>
+<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> MipMapMode;</div>
+<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;        <span class="keywordflow">case</span> Nearest: name = <span class="stringliteral">&quot;Nearest&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;        <span class="keywordflow">case</span> Linear: name = <span class="stringliteral">&quot;Linear&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;        }</div>
 <div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160; </div>
-<div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;BorderMode&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00512"></a><span class="lineno"><a class="line" href="structfmt.html#a43c35701f75aed1d363eb1b3d2881804">  512</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a43c35701f75aed1d363eb1b3d2881804">format</a>(BorderMode t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160; </div>
-<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> BorderMode;</div>
-<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;        <span class="keywordflow">case</span> Repeat: name = <span class="stringliteral">&quot;Repeat&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;        <span class="keywordflow">case</span> ClampToEdge: name = <span class="stringliteral">&quot;ClampToEdge&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;        <span class="keywordflow">case</span> ClampToBorder: name = <span class="stringliteral">&quot;ClampToBorder&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;        <span class="keywordflow">case</span> RepeatMirrored: name = <span class="stringliteral">&quot;RepeatMirrored&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;        <span class="keywordflow">case</span> ClampToEdgeMirrored: name = <span class="stringliteral">&quot;ClampToEdgeMirrored&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;        }</div>
-<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160; </div>
-<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;    }</div>
-<div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;};</div>
+<div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;    }</div>
+<div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160;};</div>
+<div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160; </div>
+<div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;BorderMode&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00516"></a><span class="lineno"><a class="line" href="structfmt.html#a43c35701f75aed1d363eb1b3d2881804">  516</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a43c35701f75aed1d363eb1b3d2881804">format</a>(BorderMode t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160; </div>
+<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> BorderMode;</div>
+<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;        <span class="keywordflow">case</span> Repeat: name = <span class="stringliteral">&quot;Repeat&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160;        <span class="keywordflow">case</span> ClampToEdge: name = <span class="stringliteral">&quot;ClampToEdge&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;        <span class="keywordflow">case</span> ClampToBorder: name = <span class="stringliteral">&quot;ClampToBorder&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;        <span class="keywordflow">case</span> RepeatMirrored: name = <span class="stringliteral">&quot;RepeatMirrored&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;        <span class="keywordflow">case</span> ClampToEdgeMirrored: name = <span class="stringliteral">&quot;ClampToEdgeMirrored&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Invalid&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;        }</div>
 <div class="line"><a name="l00528"></a><span class="lineno">  528</span>&#160; </div>
-<div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;AttributeSemantic&gt; : formatter&lt;string_view&gt; {</div>
-<div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
-<div class="line"><a name="l00532"></a><span class="lineno"><a class="line" href="structfmt.html#a9f758b10daa179f8d9311739a700ba2b">  532</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a9f758b10daa179f8d9311739a700ba2b">format</a>(AttributeSemantic t, FormatContext&amp; ctx) {</div>
-<div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;        string_view name;</div>
-<div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160; </div>
-<div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
-<div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> AttributeSemantic;</div>
-<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;        <span class="keywordflow">case</span> Binormal: name = <span class="stringliteral">&quot;Binormal&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;        <span class="keywordflow">case</span> BlendIndices: name = <span class="stringliteral">&quot;BlendIndices&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;        <span class="keywordflow">case</span> BlendWeight: name = <span class="stringliteral">&quot;BlendWeight&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;        <span class="keywordflow">case</span> Color: name = <span class="stringliteral">&quot;Color&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;        <span class="keywordflow">case</span> Normal: name = <span class="stringliteral">&quot;Normal&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;        <span class="keywordflow">case</span> Position: name = <span class="stringliteral">&quot;Position&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;        <span class="keywordflow">case</span> TransformedPosition: name = <span class="stringliteral">&quot;TransformedPosition&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;        <span class="keywordflow">case</span> PointSize: name = <span class="stringliteral">&quot;PointSize&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160;        <span class="keywordflow">case</span> Tangent: name = <span class="stringliteral">&quot;Tangent&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;        <span class="keywordflow">case</span> TextureCoordinate: name = <span class="stringliteral">&quot;TextureCoordinate&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Unknown&quot;</span>; <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;        }</div>
-<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160; </div>
-<div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
-<div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;    }</div>
-<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;};</div>
+<div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;    }</div>
+<div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;};</div>
+<div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160; </div>
+<div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;<span class="keyword">struct </span>LITEFX_RENDERING_API <a class="code" href="structfmt.html">fmt</a>::formatter&lt;AttributeSemantic&gt; : formatter&lt;string_view&gt; {</div>
+<div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> FormatContext&gt;</div>
+<div class="line"><a name="l00536"></a><span class="lineno"><a class="line" href="structfmt.html#a9f758b10daa179f8d9311739a700ba2b">  536</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="structfmt.html#a9f758b10daa179f8d9311739a700ba2b">format</a>(AttributeSemantic t, FormatContext&amp; ctx) {</div>
+<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;        string_view name;</div>
+<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160; </div>
+<div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;        <span class="keywordflow">switch</span> (t) {</div>
+<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;        <span class="keyword">using</span> <span class="keyword">enum</span> AttributeSemantic;</div>
+<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;        <span class="keywordflow">case</span> Binormal: name = <span class="stringliteral">&quot;Binormal&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;        <span class="keywordflow">case</span> BlendIndices: name = <span class="stringliteral">&quot;BlendIndices&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;        <span class="keywordflow">case</span> BlendWeight: name = <span class="stringliteral">&quot;BlendWeight&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;        <span class="keywordflow">case</span> Color: name = <span class="stringliteral">&quot;Color&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160;        <span class="keywordflow">case</span> Normal: name = <span class="stringliteral">&quot;Normal&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;        <span class="keywordflow">case</span> Position: name = <span class="stringliteral">&quot;Position&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;        <span class="keywordflow">case</span> TransformedPosition: name = <span class="stringliteral">&quot;TransformedPosition&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;        <span class="keywordflow">case</span> PointSize: name = <span class="stringliteral">&quot;PointSize&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;        <span class="keywordflow">case</span> Tangent: name = <span class="stringliteral">&quot;Tangent&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;        <span class="keywordflow">case</span> TextureCoordinate: name = <span class="stringliteral">&quot;TextureCoordinate&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;        <span class="keywordflow">default</span>: name = <span class="stringliteral">&quot;Unknown&quot;</span>; <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;        }</div>
+<div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160; </div>
+<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;        <span class="keywordflow">return</span> formatter&lt;string_view&gt;::format(name, ctx);</div>
+<div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;    }</div>
+<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;};</div>
 <div class="ttc" id="aclass_lite_f_x_1_1_resource_html"><div class="ttname"><a href="class_lite_f_x_1_1_resource.html">LiteFX::Resource</a></div><div class="ttdef"><b>Definition:</b> containers.hpp:269</div></div>
 <div class="ttc" id="anamespace_lite_f_x_1_1_math_html_a2c8d4a702fa98fc521a431084842b245"><div class="ttname"><a href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">LiteFX::Math::UInt32</a></div><div class="ttdeci">uint32_t UInt32</div><div class="ttdef"><b>Definition:</b> math.hpp:37</div></div>
 <div class="ttc" id="anamespace_lite_f_x_1_1_math_html_a492f9b0c7e29617145869c29f6b45820"><div class="ttname"><a href="namespace_lite_f_x_1_1_math.html#a492f9b0c7e29617145869c29f6b45820">LiteFX::Math::UInt16</a></div><div class="ttdeci">uint16_t UInt16</div><div class="ttdef"><b>Definition:</b> math.hpp:35</div></div>
-<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html">LiteFX::Rendering</a></div><div class="ttdef"><b>Definition:</b> dx12.hpp:9</div></div>
-<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html_a0651293ae36a5850131c33b7ef65c0b0"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html#a0651293ae36a5850131c33b7ef65c0b0">LiteFX::Rendering::getBufferFormatChannels</a></div><div class="ttdeci">UInt32 getBufferFormatChannels(const BufferFormat &amp;format)</div><div class="ttdef"><b>Definition:</b> rendering_api.hpp:470</div></div>
-<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html_a711b6d7d731ddc364c6a860d43100abb"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html#a711b6d7d731ddc364c6a860d43100abb">LiteFX::Rendering::getBufferFormatChannelSize</a></div><div class="ttdeci">UInt32 getBufferFormatChannelSize(const BufferFormat &amp;format)</div><div class="ttdef"><b>Definition:</b> rendering_api.hpp:474</div></div>
-<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html_a8d689aca8f6fec924dd339edf8d2bfbf"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html#a8d689aca8f6fec924dd339edf8d2bfbf">LiteFX::Rendering::getBufferFormatType</a></div><div class="ttdeci">UInt32 getBufferFormatType(const BufferFormat &amp;format)</div><div class="ttdef"><b>Definition:</b> rendering_api.hpp:478</div></div>
+<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html">LiteFX::Rendering</a></div><div class="ttdef"><b>Definition:</b> dx12.hpp:8</div></div>
+<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html_a0651293ae36a5850131c33b7ef65c0b0"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html#a0651293ae36a5850131c33b7ef65c0b0">LiteFX::Rendering::getBufferFormatChannels</a></div><div class="ttdeci">UInt32 getBufferFormatChannels(const BufferFormat &amp;format)</div><div class="ttdoc">Returns the number of channels for a buffer format.</div><div class="ttdef"><b>Definition:</b> rendering_api.hpp:1332</div></div>
+<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html_a711b6d7d731ddc364c6a860d43100abb"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html#a711b6d7d731ddc364c6a860d43100abb">LiteFX::Rendering::getBufferFormatChannelSize</a></div><div class="ttdeci">UInt32 getBufferFormatChannelSize(const BufferFormat &amp;format)</div><div class="ttdoc">Returns the number of bytes used by a channel of a buffer format.</div><div class="ttdef"><b>Definition:</b> rendering_api.hpp:1340</div></div>
+<div class="ttc" id="anamespace_lite_f_x_1_1_rendering_html_a8d689aca8f6fec924dd339edf8d2bfbf"><div class="ttname"><a href="namespace_lite_f_x_1_1_rendering.html#a8d689aca8f6fec924dd339edf8d2bfbf">LiteFX::Rendering::getBufferFormatType</a></div><div class="ttdeci">UInt32 getBufferFormatType(const BufferFormat &amp;format)</div><div class="ttdoc">Returns the underlying data type of a buffer format.</div><div class="ttdef"><b>Definition:</b> rendering_api.hpp:1348</div></div>
 <div class="ttc" id="anamespace_lite_f_x_html_a011c7594818b9883306e7b5465a4a602"><div class="ttname"><a href="namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602">LiteFX::String</a></div><div class="ttdeci">std::string String</div><div class="ttdef"><b>Definition:</b> string.hpp:10</div></div>
 <div class="ttc" id="anamespace_lite_f_x_html_a44a0ba2aca32b92906c89ef4df069dbe"><div class="ttname"><a href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">LiteFX::Array</a></div><div class="ttdeci">std::vector&lt; T &gt; Array</div><div class="ttdoc">Represents a dynamic array.</div><div class="ttdef"><b>Definition:</b> containers.hpp:57</div></div>
 <div class="ttc" id="anamespace_lite_f_x_html_ae04757e836f9a4231706f25a764a3356"><div class="ttname"><a href="namespace_lite_f_x.html#ae04757e836f9a4231706f25a764a3356">LiteFX::Join</a></div><div class="ttdeci">String Join(const TStrings &amp;elements, const String &amp;delimiter=&quot;&quot;)</div><div class="ttdef"><b>Definition:</b> string.hpp:15</div></div>
 <div class="ttc" id="astruct_lite_f_x_1_1_graphics_1_1_vertex_html"><div class="ttname"><a href="struct_lite_f_x_1_1_graphics_1_1_vertex.html">LiteFX::Graphics::Vertex</a></div><div class="ttdef"><b>Definition:</b> graphics.hpp:11</div></div>
 <div class="ttc" id="astructfmt_html"><div class="ttname"><a href="structfmt.html">fmt</a></div><div class="ttdef"><b>Definition:</b> app_formatters.hpp:6</div></div>
 <div class="ttc" id="astructfmt_html_a04949012688530c2adcedf2ed0f35b43"><div class="ttname"><a href="structfmt.html#a04949012688530c2adcedf2ed0f35b43">fmt::format</a></div><div class="ttdeci">auto format(QueueType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:26</div></div>
-<div class="ttc" id="astructfmt_html_a168cd402667c71dd611028abed9afa8b"><div class="ttname"><a href="structfmt.html#a168cd402667c71dd611028abed9afa8b">fmt::format</a></div><div class="ttdeci">auto format(PolygonMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:384</div></div>
+<div class="ttc" id="astructfmt_html_a168cd402667c71dd611028abed9afa8b"><div class="ttname"><a href="structfmt.html#a168cd402667c71dd611028abed9afa8b">fmt::format</a></div><div class="ttdeci">auto format(PolygonMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:388</div></div>
 <div class="ttc" id="astructfmt_html_a200586cc0bf4fa863887dd8fe43afe32"><div class="ttname"><a href="structfmt.html#a200586cc0bf4fa863887dd8fe43afe32">fmt::format</a></div><div class="ttdeci">auto format(QueuePriority t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:51</div></div>
-<div class="ttc" id="astructfmt_html_a23a1e4e0dff16bdbd6bb10e0a7180a1b"><div class="ttname"><a href="structfmt.html#a23a1e4e0dff16bdbd6bb10e0a7180a1b">fmt::format</a></div><div class="ttdeci">auto format(IndexType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:279</div></div>
-<div class="ttc" id="astructfmt_html_a2d6ab8c32fc89d6eac13db8470f4e642"><div class="ttname"><a href="structfmt.html#a2d6ab8c32fc89d6eac13db8470f4e642">fmt::format</a></div><div class="ttdeci">auto format(RenderTargetType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:438</div></div>
-<div class="ttc" id="astructfmt_html_a3782771590d0e3055d5cb728268ee7bf"><div class="ttname"><a href="structfmt.html#a3782771590d0e3055d5cb728268ee7bf">fmt::format</a></div><div class="ttdeci">auto format(FilterMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:478</div></div>
-<div class="ttc" id="astructfmt_html_a3a0bd7fc0534f532bc6e50b55a6acbca"><div class="ttname"><a href="structfmt.html#a3a0bd7fc0534f532bc6e50b55a6acbca">fmt::format</a></div><div class="ttdeci">auto format(BufferType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:246</div></div>
-<div class="ttc" id="astructfmt_html_a43c35701f75aed1d363eb1b3d2881804"><div class="ttname"><a href="structfmt.html#a43c35701f75aed1d363eb1b3d2881804">fmt::format</a></div><div class="ttdeci">auto format(BorderMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:512</div></div>
-<div class="ttc" id="astructfmt_html_a83e10ec14a2b8244ebad401336fd338e"><div class="ttname"><a href="structfmt.html#a83e10ec14a2b8244ebad401336fd338e">fmt::format</a></div><div class="ttdeci">auto format(MipMapMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:495</div></div>
+<div class="ttc" id="astructfmt_html_a23a1e4e0dff16bdbd6bb10e0a7180a1b"><div class="ttname"><a href="structfmt.html#a23a1e4e0dff16bdbd6bb10e0a7180a1b">fmt::format</a></div><div class="ttdeci">auto format(IndexType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:283</div></div>
+<div class="ttc" id="astructfmt_html_a2d6ab8c32fc89d6eac13db8470f4e642"><div class="ttname"><a href="structfmt.html#a2d6ab8c32fc89d6eac13db8470f4e642">fmt::format</a></div><div class="ttdeci">auto format(RenderTargetType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:442</div></div>
+<div class="ttc" id="astructfmt_html_a3782771590d0e3055d5cb728268ee7bf"><div class="ttname"><a href="structfmt.html#a3782771590d0e3055d5cb728268ee7bf">fmt::format</a></div><div class="ttdeci">auto format(FilterMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:482</div></div>
+<div class="ttc" id="astructfmt_html_a3a0bd7fc0534f532bc6e50b55a6acbca"><div class="ttname"><a href="structfmt.html#a3a0bd7fc0534f532bc6e50b55a6acbca">fmt::format</a></div><div class="ttdeci">auto format(BufferType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:250</div></div>
+<div class="ttc" id="astructfmt_html_a43c35701f75aed1d363eb1b3d2881804"><div class="ttname"><a href="structfmt.html#a43c35701f75aed1d363eb1b3d2881804">fmt::format</a></div><div class="ttdeci">auto format(BorderMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:516</div></div>
+<div class="ttc" id="astructfmt_html_a83e10ec14a2b8244ebad401336fd338e"><div class="ttname"><a href="structfmt.html#a83e10ec14a2b8244ebad401336fd338e">fmt::format</a></div><div class="ttdeci">auto format(MipMapMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:499</div></div>
 <div class="ttc" id="astructfmt_html_a84b2ae08879484795dc194bceee802b4"><div class="ttname"><a href="structfmt.html#a84b2ae08879484795dc194bceee802b4">fmt::format</a></div><div class="ttdeci">auto format(DescriptorType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:229</div></div>
-<div class="ttc" id="astructfmt_html_a85a4a113d94a1c2fc1623efe0631782a"><div class="ttname"><a href="structfmt.html#a85a4a113d94a1c2fc1623efe0631782a">fmt::format</a></div><div class="ttdeci">auto format(ShaderStage t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:293</div></div>
-<div class="ttc" id="astructfmt_html_a8662d992ff93ceeb238c8db9c6a4d622"><div class="ttname"><a href="structfmt.html#a8662d992ff93ceeb238c8db9c6a4d622">fmt::format</a></div><div class="ttdeci">auto format(BufferFormat t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:322</div></div>
-<div class="ttc" id="astructfmt_html_a980f4936806a9b77c0984d9df3d34407"><div class="ttname"><a href="structfmt.html#a980f4936806a9b77c0984d9df3d34407">fmt::format</a></div><div class="ttdeci">auto format(MultiSamplingLevel t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:456</div></div>
-<div class="ttc" id="astructfmt_html_a9f758b10daa179f8d9311739a700ba2b"><div class="ttname"><a href="structfmt.html#a9f758b10daa179f8d9311739a700ba2b">fmt::format</a></div><div class="ttdeci">auto format(AttributeSemantic t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:532</div></div>
-<div class="ttc" id="astructfmt_html_ac01a17e3c18d1ce25f8cb745639e6c60"><div class="ttname"><a href="structfmt.html#ac01a17e3c18d1ce25f8cb745639e6c60">fmt::format</a></div><div class="ttdeci">auto format(CullOrder t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:421</div></div>
-<div class="ttc" id="astructfmt_html_ad3ebccc962183e6e45431ad1474b756c"><div class="ttname"><a href="structfmt.html#ad3ebccc962183e6e45431ad1474b756c">fmt::format</a></div><div class="ttdeci">auto format(CullMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:402</div></div>
+<div class="ttc" id="astructfmt_html_a85a4a113d94a1c2fc1623efe0631782a"><div class="ttname"><a href="structfmt.html#a85a4a113d94a1c2fc1623efe0631782a">fmt::format</a></div><div class="ttdeci">auto format(ShaderStage t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:297</div></div>
+<div class="ttc" id="astructfmt_html_a8662d992ff93ceeb238c8db9c6a4d622"><div class="ttname"><a href="structfmt.html#a8662d992ff93ceeb238c8db9c6a4d622">fmt::format</a></div><div class="ttdeci">auto format(BufferFormat t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:326</div></div>
+<div class="ttc" id="astructfmt_html_a980f4936806a9b77c0984d9df3d34407"><div class="ttname"><a href="structfmt.html#a980f4936806a9b77c0984d9df3d34407">fmt::format</a></div><div class="ttdeci">auto format(MultiSamplingLevel t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:460</div></div>
+<div class="ttc" id="astructfmt_html_a9f758b10daa179f8d9311739a700ba2b"><div class="ttname"><a href="structfmt.html#a9f758b10daa179f8d9311739a700ba2b">fmt::format</a></div><div class="ttdeci">auto format(AttributeSemantic t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:536</div></div>
+<div class="ttc" id="astructfmt_html_ac01a17e3c18d1ce25f8cb745639e6c60"><div class="ttname"><a href="structfmt.html#ac01a17e3c18d1ce25f8cb745639e6c60">fmt::format</a></div><div class="ttdeci">auto format(CullOrder t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:425</div></div>
+<div class="ttc" id="astructfmt_html_ad3ebccc962183e6e45431ad1474b756c"><div class="ttname"><a href="structfmt.html#ad3ebccc962183e6e45431ad1474b756c">fmt::format</a></div><div class="ttdeci">auto format(CullMode t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:406</div></div>
 <div class="ttc" id="astructfmt_html_ada6d9e1e67ea9f3ddb95f621f07057d1"><div class="ttname"><a href="structfmt.html#ada6d9e1e67ea9f3ddb95f621f07057d1">fmt::format</a></div><div class="ttdeci">auto format(Format t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:69</div></div>
-<div class="ttc" id="astructfmt_html_adb64c47752c7845374f51da569196164"><div class="ttname"><a href="structfmt.html#adb64c47752c7845374f51da569196164">fmt::format</a></div><div class="ttdeci">auto format(BufferUsage t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:263</div></div>
+<div class="ttc" id="astructfmt_html_adb64c47752c7845374f51da569196164"><div class="ttname"><a href="structfmt.html#adb64c47752c7845374f51da569196164">fmt::format</a></div><div class="ttdeci">auto format(BufferUsage t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:267</div></div>
 <div class="ttc" id="astructfmt_html_aeb1a0e908554233e8d51a7799c0c09cb"><div class="ttname"><a href="structfmt.html#aeb1a0e908554233e8d51a7799c0c09cb">fmt::format</a></div><div class="ttdeci">auto format(GraphicsAdapterType t, FormatContext &amp;ctx)</div><div class="ttdef"><b>Definition:</b> rendering_formatters.hpp:10</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
