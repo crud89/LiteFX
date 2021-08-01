@@ -1222,7 +1222,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="IBarrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="IPipeline"/>.</typeparam>
-    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type> requires
+    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type> requires
         rtti::implements<TBarrier, IBarrier<TBuffer, TImage>> &&
         std::derived_from<TPipeline, IPipeline<TPipelineLayout>>
     class ICommandBuffer {
@@ -1433,6 +1433,13 @@ namespace LiteFX::Rendering {
         /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept = 0;
+
+        /// <summary>
+        /// Pushes a block of memory into the push constants backing memory.
+        /// </summary>
+        /// <param name="layout">The layout of the push constants to update.</param>
+        /// <param name="memory">A pointer to the source memory.</param>
+        virtual void pushConstants(const TPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
 
     public:
         /// <summary>

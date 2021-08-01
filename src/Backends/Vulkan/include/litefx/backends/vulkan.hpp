@@ -1233,6 +1233,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
 	};
 
 	/// <summary>

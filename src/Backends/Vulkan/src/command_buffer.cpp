@@ -373,3 +373,8 @@ void VulkanCommandBuffer::drawIndexed(const UInt32& indices, const UInt32& insta
 {
 	::vkCmdDrawIndexed(this->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }
+
+void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept
+{
+	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.parent().handle(), static_cast<VkShaderStageFlags>(::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
+}
