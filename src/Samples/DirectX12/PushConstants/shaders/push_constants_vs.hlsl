@@ -20,6 +20,7 @@ struct CameraData
 struct TransformData
 {
     float4x4 Model;
+    float4 Color;
 };
 
 ConstantBuffer<CameraData>    camera    : register(b0, space0);
@@ -32,7 +33,7 @@ VertexData main(in VertexInput input)
     float4 position = mul(float4(input.Position, 1.0), transform.Model);
     vertex.Position = mul(position, camera.ViewProjection);
     
-    vertex.Color = input.Color;
+    vertex.Color = transform.Color;
  
     return vertex;
 }

@@ -25,8 +25,6 @@ struct GlfwWindowDeleter {
 
 typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
-#define NUM_WORKERS 9
-
 class SampleApp : public LiteFX::App {
 public:
 	static String name() noexcept { return "LiteFX Sample: DirectX 12 Push Constants"; }
