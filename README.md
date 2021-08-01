@@ -70,7 +70,7 @@ LiteFX is written in modern C++20, following established design patterns to make
 
 If you just want to start using LiteFX, you can acquire binaries of the latest version from the [releases page](https://github.com/crud89/LiteFX/releases) and follow the [project setup](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html) and [quick start](https://litefx.crudolph.io/docs/md_docs_tutorials_quick_start.html) guides.
 
-### Using `vcpkg`
+### Using vcpkg
 
 If you are using vcpkg, you can use the [registry](https://github.com/crud89/LiteFX-Registry) to install the engine directly.
 
