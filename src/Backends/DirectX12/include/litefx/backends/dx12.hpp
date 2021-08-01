@@ -351,6 +351,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineDescriptorSetLayoutBuilder);
 		LITEFX_BUILDER(DirectX12ComputePipelineDescriptorSetLayoutBuilder);
+		friend DirectX12PipelineLayout;
 
 	public:
 		/// <summary>
@@ -360,14 +361,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
 		/// <param name="space">The space or set id of the descriptor set.</param>
 		/// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
-		/// <param name="rootParameterIndex">The index of the associated root parameter in the descriptor table.</param>
-		explicit DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& rootParameterIndex);
+		explicit DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages);
 		DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) = delete;
 		DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout&) = delete;
 		virtual ~DirectX12DescriptorSetLayout() noexcept;
 
 	private:
-		explicit DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, const UInt32& rootParameterIndex) noexcept;
+		explicit DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout) noexcept;
 
 	public:
 		/// <summary>
@@ -384,6 +384,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>The index of the first descriptor for the binding.</returns>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown, if the descriptor set does not contain a descriptor bound to the binding point specified by <paramref name="binding"/>.</exception>
 		virtual UInt32 descriptorOffsetForBinding(const UInt32& binding) const;
+
+	protected:
+		/// <summary>
+		/// Returns a reference of the index of the descriptor set root parameter.
+		/// </summary>
+		/// <returns>A reference of the index of the descriptor set root parameter.</returns>
+		virtual UInt32& rootParameterIndex() noexcept;
 
 	public:
 		/// <inheritdoc />
@@ -440,10 +447,9 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a DirectX 12 descriptor set layout builder.
 		/// </summary>
 		/// <param name="parent">The parent pipeline layout builder.</param>
-		/// <param name="rootParameterIndex">The index of the associated root parameter in the descriptor table.</param>
 		/// <param name="space">The space the descriptor set is bound to.</param>
 		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-		explicit DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
+		explicit DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
 		DirectX12RenderPipelineDescriptorSetLayoutBuilder(const DirectX12RenderPipelineDescriptorSetLayoutBuilder&) = delete;
 		DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineDescriptorSetLayoutBuilder&&) = delete;
 		virtual ~DirectX12RenderPipelineDescriptorSetLayoutBuilder() noexcept;
@@ -489,9 +495,8 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a DirectX 12 descriptor set layout builder.
 		/// </summary>
 		/// <param name="parent">The parent pipeline layout builder.</param>
-		/// <param name="rootParameterIndex">The index of the associated root parameter in the descriptor table.</param>
 		/// <param name="space">The space the descriptor set is bound to.</param>
-		explicit DirectX12ComputePipelineDescriptorSetLayoutBuilder(DirectX12ComputePipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space = 0);
+		explicit DirectX12ComputePipelineDescriptorSetLayoutBuilder(DirectX12ComputePipelineLayoutBuilder& parent, const UInt32& space = 0);
 		DirectX12ComputePipelineDescriptorSetLayoutBuilder(const DirectX12ComputePipelineDescriptorSetLayoutBuilder&) = delete;
 		DirectX12ComputePipelineDescriptorSetLayoutBuilder(DirectX12ComputePipelineDescriptorSetLayoutBuilder&&) = delete;
 		virtual ~DirectX12ComputePipelineDescriptorSetLayoutBuilder() noexcept;

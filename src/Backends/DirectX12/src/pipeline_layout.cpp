@@ -38,12 +38,13 @@ public:
         Array<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
         Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         bool hasInputAttachments = false;
+        UInt32 rootParameterIndex{ 0 };
 
         LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
 
         if (m_pushConstantsLayout != nullptr)
         {
-            std::ranges::for_each(m_pushConstantsLayout->ranges(), [&descriptorParameters, i = 0](DirectX12PushConstantsRange* range) mutable {
+            std::ranges::for_each(m_pushConstantsLayout->ranges(), [&](DirectX12PushConstantsRange* range) {
                 CD3DX12_ROOT_PARAMETER1 rootParameter = {};
 
                 switch (range->stage())
@@ -56,7 +57,8 @@ public:
                 default: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_ALL); break;
                 }
 
-                range->rootParameterIndex() = i++;
+                // Store the range.
+                range->rootParameterIndex() = rootParameterIndex++;
                 descriptorParameters.push_back(rootParameter);
             });
         }
@@ -111,6 +113,7 @@ public:
             descriptorRanges.push_back(std::move(rangeSet));
 
             // Store the range set.
+            layout->rootParameterIndex() = rootParameterIndex++;
             descriptorParameters.push_back(rootParameter);
         });
 
@@ -261,7 +264,7 @@ DirectX12GraphicsShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shad
 
 DirectX12RenderPipelineDescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages)
 {
-    return DirectX12RenderPipelineDescriptorSetLayoutBuilder(*this, static_cast<UInt32>(m_impl->m_descriptorSetLayouts.size()), space, stages);
+    return DirectX12RenderPipelineDescriptorSetLayoutBuilder(*this, space, stages);
 }
 
 DirectX12RenderPipelinePushConstantsLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addPushConstants(const UInt32& size)
@@ -339,7 +342,7 @@ DirectX12ComputeShaderProgramBuilder DirectX12ComputePipelineLayoutBuilder::shad
 
 DirectX12ComputePipelineDescriptorSetLayoutBuilder DirectX12ComputePipelineLayoutBuilder::addDescriptorSet(const UInt32& space)
 {
-    return DirectX12ComputePipelineDescriptorSetLayoutBuilder(*this, static_cast<UInt32>(m_impl->m_descriptorSetLayouts.size()), space);
+    return DirectX12ComputePipelineDescriptorSetLayoutBuilder(*this, space);
 }
 
 DirectX12ComputePipelinePushConstantsLayoutBuilder DirectX12ComputePipelineLayoutBuilder::addPushConstants(const UInt32& size)
