@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -95,12 +95,12 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backe
 </div><!--header-->
 <div class="contents">
 
-<p>A graphics factory that produces objects for a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html" title="Implements a DirectX12 graphics device.">DirectX12Device</a>.  
+<p>A graphics factory that produces objects for a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html" title="Implements a DirectX 12 graphics device.">DirectX12Device</a>.  
  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="dx12_8hpp_source.html">dx12.hpp</a>&gt;</code></p>
 
-<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler &gt;</a>.</p>
+<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -118,62 +118,56 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a44fd678d5ba3d837f7ed56aa7fb000a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac50e50755eb20afebc66287312dbfbf6"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#ac50e50755eb20afebc66287312dbfbf6">~DirectX12GraphicsFactory</a> () noexcept</td></tr>
 <tr class="separator:ac50e50755eb20afebc66287312dbfbf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9eaafd200e9ea63a5087bd04996b429e"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a9eaafd200e9ea63a5087bd04996b429e">createImage</a> (const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;size, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;levels=1, const MultiSamplingLevel &amp;samples=MultiSamplingLevel::x1) const override</td></tr>
-<tr class="separator:a9eaafd200e9ea63a5087bd04996b429e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaeaea8eefa3f03e6ecec9976af3dd2e3"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#aaeaea8eefa3f03e6ecec9976af3dd2e3">createAttachment</a> (const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;size, const MultiSamplingLevel &amp;samples=MultiSamplingLevel::x1) const override</td></tr>
-<tr class="separator:aaeaea8eefa3f03e6ecec9976af3dd2e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb232b05af39894701ed047b39248a09"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#aeb232b05af39894701ed047b39248a09">createBuffer</a> (const BufferType &amp;type, const BufferUsage &amp;usage, const size_t &amp;elementSize, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const override</td></tr>
-<tr class="memdesc:aeb232b05af39894701ed047b39248a09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a buffer of type <em>type</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#aeb232b05af39894701ed047b39248a09">More...</a><br /></td></tr>
-<tr class="separator:aeb232b05af39894701ed047b39248a09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67621c5a034b472f823db05b10a35de3"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a67621c5a034b472f823db05b10a35de3">createBuffer</a> (const BufferType &amp;type, const BufferUsage &amp;usage, const size_t &amp;elementSize, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1, const bool &amp;allowWrite=false) const override</td></tr>
+<tr class="memdesc:a67621c5a034b472f823db05b10a35de3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a buffer of type <em>type</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a67621c5a034b472f823db05b10a35de3">More...</a><br /></td></tr>
+<tr class="separator:a67621c5a034b472f823db05b10a35de3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a39a98c0752394301b16cac52025bed5c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_vertex_buffer.html">IDirectX12VertexBuffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a39a98c0752394301b16cac52025bed5c">createVertexBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_vertex_buffer_layout.html">DirectX12VertexBufferLayout</a> &amp;layout, const BufferUsage &amp;usage, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const override</td></tr>
 <tr class="separator:a39a98c0752394301b16cac52025bed5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b23c853c3d39cc1505b1c363039b0b8"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_index_buffer.html">IDirectX12IndexBuffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a0b23c853c3d39cc1505b1c363039b0b8">createIndexBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer_layout.html">DirectX12IndexBufferLayout</a> &amp;layout, const BufferUsage &amp;usage, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements) const override</td></tr>
 <tr class="separator:a0b23c853c3d39cc1505b1c363039b0b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad55f83ed15c5e64c7bd0c4ef90f63df2"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_constant_buffer.html">IDirectX12ConstantBuffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#ad55f83ed15c5e64c7bd0c4ef90f63df2">createConstantBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html">DirectX12DescriptorLayout</a> &amp;layout, const BufferUsage &amp;usage, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements) const override</td></tr>
-<tr class="separator:ad55f83ed15c5e64c7bd0c4ef90f63df2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9fe21431d8cf6763bb95f50da475bff4"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_texture.html">IDirectX12Texture</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a9fe21431d8cf6763bb95f50da475bff4">createTexture</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html">DirectX12DescriptorLayout</a> &amp;layout, const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;size, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;levels=1, const MultiSamplingLevel &amp;samples=MultiSamplingLevel::x1) const override</td></tr>
-<tr class="separator:a9fe21431d8cf6763bb95f50da475bff4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a11afd376b215c7ae6e9a7ecdb8633baa"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_sampler.html">IDirectX12Sampler</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a11afd376b215c7ae6e9a7ecdb8633baa">createSampler</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html">DirectX12DescriptorLayout</a> &amp;layout, const FilterMode &amp;magFilter=FilterMode::Nearest, const FilterMode &amp;minFilter=FilterMode::Nearest, const BorderMode &amp;borderU=BorderMode::Repeat, const BorderMode &amp;borderV=BorderMode::Repeat, const BorderMode &amp;borderW=BorderMode::Repeat, const MipMapMode &amp;mipMapMode=MipMapMode::Nearest, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;mipMapBias=0.f, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;maxLod=std::numeric_limits&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &gt;::max(), const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;minLod=0.f, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;anisotropy=0.f) const override</td></tr>
-<tr class="separator:a11afd376b215c7ae6e9a7ecdb8633baa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler &gt;</a></td></tr>
-<tr class="memitem:ad964f2f0b45fbfe71e9c530331b1133b inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ad964f2f0b45fbfe71e9c530331b1133b">~IGraphicsFactory</a> () noexcept=default</td></tr>
-<tr class="separator:ad964f2f0b45fbfe71e9c530331b1133b inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cd6f26051f530502aa8e3e61c8c07af inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; IDirectX12VertexBuffer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a4cd6f26051f530502aa8e3e61c8c07af">createVertexBuffer</a> (const TVertexBufferInterface::vertex_buffer_layout_type &amp;layout, const BufferUsage &amp;usage, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const=0</td></tr>
-<tr class="memdesc:a4cd6f26051f530502aa8e3e61c8c07af inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a vertex buffer, based on the <em>layout</em>   <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a4cd6f26051f530502aa8e3e61c8c07af">More...</a><br /></td></tr>
-<tr class="separator:a4cd6f26051f530502aa8e3e61c8c07af inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a300e56eb7a8bd5e8c6407e01625b6e54 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; IDirectX12IndexBuffer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a300e56eb7a8bd5e8c6407e01625b6e54">createIndexBuffer</a> (const TIndexBufferInterface::index_buffer_layout_type &amp;layout, const BufferUsage &amp;usage, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements) const=0</td></tr>
-<tr class="memdesc:a300e56eb7a8bd5e8c6407e01625b6e54 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates an index buffer, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a300e56eb7a8bd5e8c6407e01625b6e54">More...</a><br /></td></tr>
-<tr class="separator:a300e56eb7a8bd5e8c6407e01625b6e54 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e7ca557c23375f3f5d81ba1cf0ffa30 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; IDirectX12ConstantBuffer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a5e7ca557c23375f3f5d81ba1cf0ffa30">createConstantBuffer</a> (const DirectX12DescriptorLayout &amp;layout, const BufferUsage &amp;usage, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements) const=0</td></tr>
-<tr class="memdesc:a5e7ca557c23375f3f5d81ba1cf0ffa30 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a constant buffer, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a5e7ca557c23375f3f5d81ba1cf0ffa30">More...</a><br /></td></tr>
-<tr class="separator:a5e7ca557c23375f3f5d81ba1cf0ffa30 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a352343bfc19c6cc15c948e73830789a4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; IDirectX12Texture &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a352343bfc19c6cc15c948e73830789a4">createTexture</a> (const DirectX12DescriptorLayout &amp;layout, const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;size, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;levels=1, const MultiSamplingLevel &amp;samples=MultiSamplingLevel::x1) const=0</td></tr>
-<tr class="memdesc:a352343bfc19c6cc15c948e73830789a4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a texture, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a352343bfc19c6cc15c948e73830789a4">More...</a><br /></td></tr>
-<tr class="separator:a352343bfc19c6cc15c948e73830789a4 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9cce5a54b0936a5bbb8651ba05a3036c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; IDirectX12Sampler &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a9cce5a54b0936a5bbb8651ba05a3036c">createSampler</a> (const DirectX12DescriptorLayout &amp;layout, const FilterMode &amp;magFilter=FilterMode::Nearest, const FilterMode &amp;minFilter=FilterMode::Nearest, const BorderMode &amp;borderU=BorderMode::Repeat, const BorderMode &amp;borderV=BorderMode::Repeat, const BorderMode &amp;borderW=BorderMode::Repeat, const MipMapMode &amp;mipMapMode=MipMapMode::Nearest, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;mipMapBias=0.f, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;maxLod=std::numeric_limits&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &gt;::max(), const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;minLod=0.f, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;anisotropy=0.f) const=0</td></tr>
-<tr class="memdesc:a9cce5a54b0936a5bbb8651ba05a3036c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a texture sampler, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a9cce5a54b0936a5bbb8651ba05a3036c">More...</a><br /></td></tr>
-<tr class="separator:a9cce5a54b0936a5bbb8651ba05a3036c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaeaea8eefa3f03e6ecec9976af3dd2e3"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#aaeaea8eefa3f03e6ecec9976af3dd2e3">createAttachment</a> (const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;size, const MultiSamplingLevel &amp;samples=MultiSamplingLevel::x1) const override</td></tr>
+<tr class="memdesc:aaeaea8eefa3f03e6ecec9976af3dd2e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates an image that is used as render target attachment.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#aaeaea8eefa3f03e6ecec9976af3dd2e3">More...</a><br /></td></tr>
+<tr class="separator:aaeaea8eefa3f03e6ecec9976af3dd2e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae61093611385c3328e858ad4fe0a88a4"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#ae61093611385c3328e858ad4fe0a88a4">createTexture</a> (const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> &amp;size, const ImageDimensions &amp;dimension=ImageDimensions::DIM_2, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;levels=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;layers=1, const MultiSamplingLevel &amp;samples=MultiSamplingLevel::x1, const bool &amp;allowWrite=false) const override</td></tr>
+<tr class="memdesc:ae61093611385c3328e858ad4fe0a88a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a texture, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#ae61093611385c3328e858ad4fe0a88a4">More...</a><br /></td></tr>
+<tr class="separator:ae61093611385c3328e858ad4fe0a88a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab51c15e1e9e3aab3661914c82cc4232d"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#ab51c15e1e9e3aab3661914c82cc4232d">createTextures</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements, const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> &amp;size, const ImageDimensions &amp;dimension=ImageDimensions::DIM_2, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;levels=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;layers=1, const MultiSamplingLevel &amp;samples=MultiSamplingLevel::x1, const bool &amp;allowWrite=false) const override</td></tr>
+<tr class="memdesc:ab51c15e1e9e3aab3661914c82cc4232d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates an array of textures, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#ab51c15e1e9e3aab3661914c82cc4232d">More...</a><br /></td></tr>
+<tr class="separator:ab51c15e1e9e3aab3661914c82cc4232d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa093d102e138e3cf4cd2d93f780d516e"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_sampler.html">IDirectX12Sampler</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#aa093d102e138e3cf4cd2d93f780d516e">createSampler</a> (const FilterMode &amp;magFilter=FilterMode::Nearest, const FilterMode &amp;minFilter=FilterMode::Nearest, const BorderMode &amp;borderU=BorderMode::Repeat, const BorderMode &amp;borderV=BorderMode::Repeat, const BorderMode &amp;borderW=BorderMode::Repeat, const MipMapMode &amp;mipMapMode=MipMapMode::Nearest, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;mipMapBias=0.f, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;maxLod=std::numeric_limits&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &gt;::max(), const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;minLod=0.f, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;anisotropy=0.f) const override</td></tr>
+<tr class="memdesc:aa093d102e138e3cf4cd2d93f780d516e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a texture sampler, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#aa093d102e138e3cf4cd2d93f780d516e">More...</a><br /></td></tr>
+<tr class="separator:aa093d102e138e3cf4cd2d93f780d516e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6413b686f60267b49a0c70779a2a9ec2"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_sampler.html">IDirectX12Sampler</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a6413b686f60267b49a0c70779a2a9ec2">createSamplers</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements, const FilterMode &amp;magFilter=FilterMode::Nearest, const FilterMode &amp;minFilter=FilterMode::Nearest, const BorderMode &amp;borderU=BorderMode::Repeat, const BorderMode &amp;borderV=BorderMode::Repeat, const BorderMode &amp;borderW=BorderMode::Repeat, const MipMapMode &amp;mipMapMode=MipMapMode::Nearest, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;mipMapBias=0.f, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;maxLod=std::numeric_limits&lt; <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &gt;::max(), const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;minLod=0.f, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;anisotropy=0.f) const override</td></tr>
+<tr class="memdesc:a6413b686f60267b49a0c70779a2a9ec2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates an array of texture samplers, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_factory.html#a6413b686f60267b49a0c70779a2a9ec2">More...</a><br /></td></tr>
+<tr class="separator:a6413b686f60267b49a0c70779a2a9ec2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a></td></tr>
+<tr class="memitem:a3eca22e2aeadcd934d38f2d850cbe375 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a3eca22e2aeadcd934d38f2d850cbe375">~IGraphicsFactory</a> () noexcept=default</td></tr>
+<tr class="separator:a3eca22e2aeadcd934d38f2d850cbe375 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab65b3ca3a44fcf5453761c881a328b74 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; IDirectX12VertexBuffer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ab65b3ca3a44fcf5453761c881a328b74">createVertexBuffer</a> (const TVertexBuffer::vertex_buffer_layout_type &amp;layout, const BufferUsage &amp;usage, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const=0</td></tr>
+<tr class="memdesc:ab65b3ca3a44fcf5453761c881a328b74 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a vertex buffer, based on the <em>layout</em>   <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ab65b3ca3a44fcf5453761c881a328b74">More...</a><br /></td></tr>
+<tr class="separator:ab65b3ca3a44fcf5453761c881a328b74 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15ee0c195ac521a02ceab629586b4a64 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; IDirectX12IndexBuffer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a15ee0c195ac521a02ceab629586b4a64">createIndexBuffer</a> (const TIndexBuffer::index_buffer_layout_type &amp;layout, const BufferUsage &amp;usage, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements) const=0</td></tr>
+<tr class="memdesc:a15ee0c195ac521a02ceab629586b4a64 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates an index buffer, based on the <em>layout</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a15ee0c195ac521a02ceab629586b4a64">More...</a><br /></td></tr>
+<tr class="separator:a15ee0c195ac521a02ceab629586b4a64 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler &gt;</a></td></tr>
-<tr class="memitem:a0c9ecbb5733f9a096be7e03e208db48a inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a0c9ecbb5733f9a096be7e03e208db48a">vertex_buffer_interface_type</a> = IDirectX12VertexBuffer</td></tr>
-<tr class="separator:a0c9ecbb5733f9a096be7e03e208db48a inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e47592b06802fa22d15959177fdfda5 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a7e47592b06802fa22d15959177fdfda5">index_buffer_interface_type</a> = IDirectX12IndexBuffer</td></tr>
-<tr class="separator:a7e47592b06802fa22d15959177fdfda5 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3dd60f6db1c8c2fe578f954e6580e05c inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a3dd60f6db1c8c2fe578f954e6580e05c">descriptor_layout_type</a> = DirectX12DescriptorLayout</td></tr>
-<tr class="separator:a3dd60f6db1c8c2fe578f954e6580e05c inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7253f8700d0c95aa22151494918341c1 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a7253f8700d0c95aa22151494918341c1">generic_buffer_interface_type</a> = IDirectX12Buffer</td></tr>
-<tr class="separator:a7253f8700d0c95aa22151494918341c1 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4f34d6fe4bf9dc811c3add8b1a94bbbd inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a4f34d6fe4bf9dc811c3add8b1a94bbbd">constant_buffer_interface_type</a> = IDirectX12ConstantBuffer</td></tr>
-<tr class="separator:a4f34d6fe4bf9dc811c3add8b1a94bbbd inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab74735bd90f4b5c1c815542bc6300a05 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ab74735bd90f4b5c1c815542bc6300a05">texture_interface_type</a> = IDirectX12Texture</td></tr>
-<tr class="separator:ab74735bd90f4b5c1c815542bc6300a05 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b72d28244f80e813b7268d0008c4167 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a2b72d28244f80e813b7268d0008c4167">sampler_interface_type</a> = IDirectX12Sampler</td></tr>
-<tr class="separator:a2b72d28244f80e813b7268d0008c4167 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a></td></tr>
+<tr class="memitem:afd4ffe665472dc95ba7c27b16399e3a1 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#afd4ffe665472dc95ba7c27b16399e3a1">descriptor_layout_type</a> = DirectX12DescriptorLayout</td></tr>
+<tr class="separator:afd4ffe665472dc95ba7c27b16399e3a1 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b8e32ad59e6b851466fd85ebbabe75a inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a2b8e32ad59e6b851466fd85ebbabe75a">vertex_buffer_type</a> = IDirectX12VertexBuffer</td></tr>
+<tr class="separator:a2b8e32ad59e6b851466fd85ebbabe75a inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa14377c550af098ad0d6a7c43537f96 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#aaa14377c550af098ad0d6a7c43537f96">index_buffer_type</a> = IDirectX12IndexBuffer</td></tr>
+<tr class="separator:aaa14377c550af098ad0d6a7c43537f96 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9729563c0295f5dd28394c13fed8caa inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#ab9729563c0295f5dd28394c13fed8caa">buffer_type</a> = IDirectX12Buffer</td></tr>
+<tr class="separator:ab9729563c0295f5dd28394c13fed8caa inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0ead3c34a1528deabe0c004b8774356 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#aa0ead3c34a1528deabe0c004b8774356">image_type</a> = IDirectX12Image</td></tr>
+<tr class="separator:aa0ead3c34a1528deabe0c004b8774356 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdab60944c079266418f12932cdb2545 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#afdab60944c079266418f12932cdb2545">sampler_type</a> = IDirectX12Sampler</td></tr>
+<tr class="separator:afdab60944c079266418f12932cdb2545 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_graphics_factory"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A graphics factory that produces objects for a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html" title="Implements a DirectX12 graphics device.">DirectX12Device</a>. </p>
+<div class="textblock"><p>A graphics factory that produces objects for a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html" title="Implements a DirectX 12 graphics device.">DirectX12Device</a>. </p>
 <p>The DX12 graphics factory is implemented using <a href="https://gpuopen.com/d3d12-memory-allocator/" target="_blank">D3D12 Memory Allocator</a>. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="abb6b5aab0d5c5947a8902536ac8f5011"></a>
@@ -327,17 +321,15 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
 <p>Creates an image that is used as render target attachment. </p>
-<p>Render target attachments are always generated in the initial state <code>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE</code> and must be transitioned into <code>D3D12_RESOURCE_STATE_RENDER_TARGET</code> before drawing to them.</p>
-<p>Depth/Stencil attachments are created with <code>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ</code> and must be transitioned to <code>D3D12_RESOURCE_STATE_DEPTH_WRITE</code> before writing to them.</p>
-<p>The attachment type (render target or depth/stencil) is acquired from <em>format</em> . If the format has a depth and/or a stencil channel, it is assumed to be a depth/stencil attachment. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a3fb4087c48fe20d8f38aa004382f0b7d">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler &gt;</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a1b3bc4003deb9f70deca59f937f6af17">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a>.</p>
 
 </div>
 </div>
-<a id="aeb232b05af39894701ed047b39248a09"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb232b05af39894701ed047b39248a09">&#9670;&nbsp;</a></span>createBuffer()</h2>
+<a id="a67621c5a034b472f823db05b10a35de3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67621c5a034b472f823db05b10a35de3">&#9670;&nbsp;</a></span>createBuffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -367,7 +359,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>elements</em> = <code>1</code>&#160;</td>
+          <td class="paramname"><em>elements</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>allowWrite</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -384,111 +382,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Creates a buffer of type <em>type</em> . </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a4989c5d0993254556be5d5e26b0cbbeb">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler &gt;</a>.</p>
-
-</div>
-</div>
-<a id="ad55f83ed15c5e64c7bd0c4ef90f63df2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad55f83ed15c5e64c7bd0c4ef90f63df2">&#9670;&nbsp;</a></span>createConstantBuffer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_constant_buffer.html">IDirectX12ConstantBuffer</a> &gt; DirectX12GraphicsFactory::createConstantBuffer </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html">DirectX12DescriptorLayout</a> &amp;&#160;</td>
-          <td class="paramname"><em>layout</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const BufferUsage &amp;&#160;</td>
-          <td class="paramname"><em>usage</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>elements</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>The initial state and source heap of a constant buffer depends on the <em>usage</em>  parameter:</p>
-<ul>
-<li>
-<code>Staging</code> and <code>Dynamic</code>: Created on the <code>D3D12_HEAP_TYPE_UPLOAD&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_GENERIC_READ</code>. Should be transitioned to <code>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</code> before accessing it.  </code></li>
-<li>
-<code> <code><a class="el" href="class_lite_f_x_1_1_resource.html">Resource</a></code>: Created on the <code>D3D12_HEAP_TYPE_DEFAULT&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_COPY_DEST</code>. Should be transitioned to <code>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</code> before accessing it.  </code></code></li>
-<li>
-<code><code> <code>Readback</code>: Created on the <code>D3D12_HEAP_TYPE_READBACK&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_COPY_DEST</code>. Should be transitioned to <code>D3D12_RESOURCE_STATE_COPY_SOURCE</code> before transferring data from it.  </code></code></code></li>
-</ul>
-<p><code><code><code> </code></code></code></p>
-
-</div>
-</div>
-<a id="a9eaafd200e9ea63a5087bd04996b429e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9eaafd200e9ea63a5087bd04996b429e">&#9670;&nbsp;</a></span>createImage()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &gt; DirectX12GraphicsFactory::createImage </td>
-          <td>(</td>
-          <td class="paramtype">const Format &amp;&#160;</td>
-          <td class="paramname"><em>format</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;&#160;</td>
-          <td class="paramname"><em>size</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>levels</em> = <code>1</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
-          <td class="paramname"><em>samples</em> = <code>MultiSamplingLevel::x1</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Creates a image buffer. </p>
-<p>A image always is generated in the initial state <code>D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_UNORDERED_ACCESS</code>. </p>
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a49a6dbe441303a4cb05dfab40e652709">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Image, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12ConstantBuffer, IDirectX12Buffer, IDirectX12Texture, IDirectX12Sampler &gt;</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a54d984011aecdbc2be23a14139df8f24">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a>.</p>
 
 </div>
 </div>
@@ -531,22 +425,13 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The initial state and source heap of an index buffer depends on the <em>usage</em>  parameter:</p>
-<ul>
-<li>
-<code>Staging</code> and <code>Dynamic</code>: Created on the <code>D3D12_HEAP_TYPE_UPLOAD&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_GENERIC_READ</code>. Implicitly transitions to <code>D3D12_RESOURCE_STATE_INDEX_BUFFER</code> when first used by the GPU †.  </code></li>
-<li>
-<code> <code><a class="el" href="class_lite_f_x_1_1_resource.html">Resource</a></code>: Created on the <code>D3D12_HEAP_TYPE_DEFAULT&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_COPY_DEST</code>. Implicitly transitions to <code>D3D12_RESOURCE_STATE_INDEX_BUFFER</code> when first used by the GPU †.  </code></code></li>
-<li>
-<code><code> <code>Readback</code>: Created on the <code>D3D12_HEAP_TYPE_READBACK&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_COPY_DEST</code>. Should be transitioned to <code>D3D12_RESOURCE_STATE_COPY_SOURCE</code> before transferring data from it.  </code></code></code></li>
-</ul>
-<p><code><code><code>† Note that this implicit transition does not reflect into the buffer <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource.html#a19f36f115edbfddbb432c3e3e8a5c93a">IDirectX12Resource::state</a> member, so be careful when transitioning the buffer into another state. </code></code></code></p>
-<p><code><code><code> </code></code></code></p>
+
+<p></p>
 
 </div>
 </div>
-<a id="a11afd376b215c7ae6e9a7ecdb8633baa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a11afd376b215c7ae6e9a7ecdb8633baa">&#9670;&nbsp;</a></span>createSampler()</h2>
+<a id="aa093d102e138e3cf4cd2d93f780d516e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa093d102e138e3cf4cd2d93f780d516e">&#9670;&nbsp;</a></span>createSampler()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -557,8 +442,96 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_sampler.html">IDirectX12Sampler</a> &gt; DirectX12GraphicsFactory::createSampler </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html">DirectX12DescriptorLayout</a> &amp;&#160;</td>
-          <td class="paramname"><em>layout</em>, </td>
+          <td class="paramtype">const FilterMode &amp;&#160;</td>
+          <td class="paramname"><em>magFilter</em> = <code>FilterMode::Nearest</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const FilterMode &amp;&#160;</td>
+          <td class="paramname"><em>minFilter</em> = <code>FilterMode::Nearest</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const BorderMode &amp;&#160;</td>
+          <td class="paramname"><em>borderU</em> = <code>BorderMode::Repeat</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const BorderMode &amp;&#160;</td>
+          <td class="paramname"><em>borderV</em> = <code>BorderMode::Repeat</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const BorderMode &amp;&#160;</td>
+          <td class="paramname"><em>borderW</em> = <code>BorderMode::Repeat</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const MipMapMode &amp;&#160;</td>
+          <td class="paramname"><em>mipMapMode</em> = <code>MipMapMode::Nearest</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;&#160;</td>
+          <td class="paramname"><em>mipMapBias</em> = <code>0.f</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;&#160;</td>
+          <td class="paramname"><em>maxLod</em> = <code>std::numeric_limits&lt;<a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a>&gt;::max()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;&#160;</td>
+          <td class="paramname"><em>minLod</em> = <code>0.f</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a5f0e08243809f53dff6b21d29e8a6f75">Float</a> &amp;&#160;</td>
+          <td class="paramname"><em>anisotropy</em> = <code>0.f</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates a texture sampler, based on the <em>layout</em> . </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a1b396b735195fac245f46405f27f3487">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a6413b686f60267b49a0c70779a2a9ec2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6413b686f60267b49a0c70779a2a9ec2">&#9670;&nbsp;</a></span>createSamplers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_sampler.html">IDirectX12Sampler</a> &gt; &gt; DirectX12GraphicsFactory::createSamplers </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -633,12 +606,14 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p></p>
+<p>Creates an array of texture samplers, based on the <em>layout</em> . </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a5e0244185561c50695ce092683350873">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a>.</p>
 
 </div>
 </div>
-<a id="a9fe21431d8cf6763bb95f50da475bff4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9fe21431d8cf6763bb95f50da475bff4">&#9670;&nbsp;</a></span>createTexture()</h2>
+<a id="ae61093611385c3328e858ad4fe0a88a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae61093611385c3328e858ad4fe0a88a4">&#9670;&nbsp;</a></span>createTexture()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -647,22 +622,22 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_texture.html">IDirectX12Texture</a> &gt; DirectX12GraphicsFactory::createTexture </td>
+          <td class="memname"><a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &gt; DirectX12GraphicsFactory::createTexture </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html">DirectX12DescriptorLayout</a> &amp;&#160;</td>
-          <td class="paramname"><em>layout</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">const Format &amp;&#160;</td>
           <td class="paramname"><em>format</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> &amp;&#160;</td>
           <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ImageDimensions &amp;&#160;</td>
+          <td class="paramname"><em>dimension</em> = <code>ImageDimensions::DIM_2</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -673,8 +648,20 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>layers</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
-          <td class="paramname"><em>samples</em> = <code>MultiSamplingLevel::x1</code>&#160;</td>
+          <td class="paramname"><em>samples</em> = <code>MultiSamplingLevel::x1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>allowWrite</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -689,7 +676,85 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p></p>
+<p>Creates a texture, based on the <em>layout</em> . </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#a028bdbf27a45fd52aca99ed70392258c">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a>.</p>
+
+</div>
+</div>
+<a id="ab51c15e1e9e3aab3661914c82cc4232d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab51c15e1e9e3aab3661914c82cc4232d">&#9670;&nbsp;</a></span>createTextures()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &gt; &gt; DirectX12GraphicsFactory::createTextures </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Format &amp;&#160;</td>
+          <td class="paramname"><em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> &amp;&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ImageDimensions &amp;&#160;</td>
+          <td class="paramname"><em>dimension</em> = <code>ImageDimensions::DIM_2</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>levels</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>layers</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
+          <td class="paramname"><em>samples</em> = <code>MultiSamplingLevel::x1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>allowWrite</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates an array of textures, based on the <em>layout</em> . </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html#aebcc0f682dd8a9b43671855ff3b6c9c7">LiteFX::Rendering::IGraphicsFactory&lt; DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler &gt;</a>.</p>
 
 </div>
 </div>
@@ -732,17 +797,8 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The initial state and source heap of a vertex buffer depends on the <em>usage</em>  parameter:</p>
-<ul>
-<li>
-<code>Staging</code> and <code>Dynamic</code>: Created on the <code>D3D12_HEAP_TYPE_UPLOAD&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_GENERIC_READ</code>. Implicitly transitions to <code>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</code> when first used by the GPU †.  </code></li>
-<li>
-<code> <code><a class="el" href="class_lite_f_x_1_1_resource.html">Resource</a></code>: Created on the <code>D3D12_HEAP_TYPE_DEFAULT&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_COPY_DEST</code>. Implicitly transitions to <code>D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER</code> when first used by the GPU †.  </code></code></li>
-<li>
-<code><code> <code>Readback</code>: Created on the <code>D3D12_HEAP_TYPE_READBACK&lt;c&gt; heap in the initial state <code>D3D12_RESOURCE_STATE_COPY_DEST</code>. Should be transitioned to <code>D3D12_RESOURCE_STATE_COPY_SOURCE</code> before transferring data from it.  </code></code></code></li>
-</ul>
-<p><code><code><code>† Note that this implicit transition does not reflect into the buffer <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource.html#a19f36f115edbfddbb432c3e3e8a5c93a">IDirectX12Resource::state</a> member, so be careful when transitioning the buffer into another state. </code></code></code></p>
-<p><code><code><code> </code></code></code></p>
+
+<p></p>
 
 </div>
 </div>

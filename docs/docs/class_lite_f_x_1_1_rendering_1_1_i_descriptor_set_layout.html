@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt; Class Template Reference</title>
+<title>LiteFX: LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -91,7 +91,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_des
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -102,55 +102,58 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_des
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a0d32417cc66939c4d0e9266b8726a974"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0d32417cc66939c4d0e9266b8726a974">descriptor_layout_type</a> = TDescriptorLayout</td></tr>
-<tr class="separator:a0d32417cc66939c4d0e9266b8726a974"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a061c08d62e49c3b36d3748b352a5092f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a061c08d62e49c3b36d3748b352a5092f">descriptor_set_type</a> = TDescriptorSet</td></tr>
-<tr class="separator:a061c08d62e49c3b36d3748b352a5092f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb7d3e47273559adee81ad3a6686aaed"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#acb7d3e47273559adee81ad3a6686aaed">descriptor_layout_type</a> = TDescriptorLayout</td></tr>
+<tr class="separator:acb7d3e47273559adee81ad3a6686aaed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8058504a87abecdfe4d8d9309680741"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ab8058504a87abecdfe4d8d9309680741">descriptor_set_type</a> = TDescriptorSet</td></tr>
+<tr class="separator:ab8058504a87abecdfe4d8d9309680741"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aacbd10a46715c08235c52c7c546f4689"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aacbd10a46715c08235c52c7c546f4689">~IDescriptorSetLayout</a> () noexcept=default</td></tr>
-<tr class="separator:aacbd10a46715c08235c52c7c546f4689"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2e9736b88868a9f901a63f5397e0519"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const TDescriptorLayout * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ad2e9736b88868a9f901a63f5397e0519">layouts</a> () const noexcept=0</td></tr>
-<tr class="memdesc:ad2e9736b88868a9f901a63f5397e0519"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the layouts of the descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ad2e9736b88868a9f901a63f5397e0519">More...</a><br /></td></tr>
-<tr class="separator:ad2e9736b88868a9f901a63f5397e0519"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1e989b8ed2e8f9f6fca1a5e79d25cac"><td class="memItemLeft" align="right" valign="top">virtual const TDescriptorLayout &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aa1e989b8ed2e8f9f6fca1a5e79d25cac">layout</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;binding) const =0</td></tr>
-<tr class="memdesc:aa1e989b8ed2e8f9f6fca1a5e79d25cac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the descriptor layout for the descriptor bound to the binding point provided with <em>binding</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aa1e989b8ed2e8f9f6fca1a5e79d25cac">More...</a><br /></td></tr>
-<tr class="separator:aa1e989b8ed2e8f9f6fca1a5e79d25cac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ef67df374998cbc30a525f5589e25e0"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a4ef67df374998cbc30a525f5589e25e0">space</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a4ef67df374998cbc30a525f5589e25e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the space index of the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a4ef67df374998cbc30a525f5589e25e0">More...</a><br /></td></tr>
-<tr class="separator:a4ef67df374998cbc30a525f5589e25e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47792c3152ed716aca0227808256837e"><td class="memItemLeft" align="right" valign="top">virtual const ShaderStage &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a47792c3152ed716aca0227808256837e">shaderStages</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a47792c3152ed716aca0227808256837e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the shader stages, the descriptor set is used in.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a47792c3152ed716aca0227808256837e">More...</a><br /></td></tr>
-<tr class="separator:a47792c3152ed716aca0227808256837e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af4c9228bddc2e685ff7901974a66cf58"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#af4c9228bddc2e685ff7901974a66cf58">uniforms</a> () const noexcept=0</td></tr>
-<tr class="memdesc:af4c9228bddc2e685ff7901974a66cf58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of uniform/constant buffer descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#af4c9228bddc2e685ff7901974a66cf58">More...</a><br /></td></tr>
-<tr class="separator:af4c9228bddc2e685ff7901974a66cf58"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0767037303eda4ed90a3c4ef265fee07"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0767037303eda4ed90a3c4ef265fee07">storages</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a0767037303eda4ed90a3c4ef265fee07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of shader storage buffer/unordered access view descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0767037303eda4ed90a3c4ef265fee07">More...</a><br /></td></tr>
-<tr class="separator:a0767037303eda4ed90a3c4ef265fee07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aafd034abf40e914dfa7503d5edce5449"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aafd034abf40e914dfa7503d5edce5449">images</a> () const noexcept=0</td></tr>
-<tr class="memdesc:aafd034abf40e914dfa7503d5edce5449"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of image descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aafd034abf40e914dfa7503d5edce5449">More...</a><br /></td></tr>
-<tr class="separator:aafd034abf40e914dfa7503d5edce5449"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0308c45037c7938ec5491c0adbc6e93d"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0308c45037c7938ec5491c0adbc6e93d">samplers</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a0308c45037c7938ec5491c0adbc6e93d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of sampler descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0308c45037c7938ec5491c0adbc6e93d">More...</a><br /></td></tr>
-<tr class="separator:a0308c45037c7938ec5491c0adbc6e93d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78c86de564313c5c7e126a9eca84d5df"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a78c86de564313c5c7e126a9eca84d5df">inputAttachments</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a78c86de564313c5c7e126a9eca84d5df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of input attachment descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a78c86de564313c5c7e126a9eca84d5df">More...</a><br /></td></tr>
-<tr class="separator:a78c86de564313c5c7e126a9eca84d5df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e0eff47b8935d6f38539bc573b5fc5a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; TDescriptorSet &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a1e0eff47b8935d6f38539bc573b5fc5a">allocate</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a1e0eff47b8935d6f38539bc573b5fc5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new descriptor set or returns an instance of an unused descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a1e0eff47b8935d6f38539bc573b5fc5a">More...</a><br /></td></tr>
-<tr class="separator:a1e0eff47b8935d6f38539bc573b5fc5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac63278dc09d0f84563160e8fb67bc879"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; TDescriptorSet &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ac63278dc09d0f84563160e8fb67bc879">allocate</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;descriptorSets) const noexcept=0</td></tr>
-<tr class="memdesc:ac63278dc09d0f84563160e8fb67bc879"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates an array of descriptor sets.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ac63278dc09d0f84563160e8fb67bc879">More...</a><br /></td></tr>
-<tr class="separator:ac63278dc09d0f84563160e8fb67bc879"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4f30d465a94aec95c9bc65bbcf7b3038"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a4f30d465a94aec95c9bc65bbcf7b3038">free</a> (const TDescriptorSet &amp;descriptorSet) const noexcept=0</td></tr>
-<tr class="memdesc:a4f30d465a94aec95c9bc65bbcf7b3038"><td class="mdescLeft">&#160;</td><td class="mdescRight">Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a4f30d465a94aec95c9bc65bbcf7b3038">More...</a><br /></td></tr>
-<tr class="separator:a4f30d465a94aec95c9bc65bbcf7b3038"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc0495142646f71713eb51bf04c69d64"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#adc0495142646f71713eb51bf04c69d64">~IDescriptorSetLayout</a> () noexcept=default</td></tr>
+<tr class="separator:adc0495142646f71713eb51bf04c69d64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fb5c0fa3081c608b5186d13577a2ba9"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const TDescriptorLayout * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0fb5c0fa3081c608b5186d13577a2ba9">descriptors</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a0fb5c0fa3081c608b5186d13577a2ba9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the layouts of the descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0fb5c0fa3081c608b5186d13577a2ba9">More...</a><br /></td></tr>
+<tr class="separator:a0fb5c0fa3081c608b5186d13577a2ba9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c3c6f6835f81cff6580c00d9178a514"><td class="memItemLeft" align="right" valign="top">virtual const TDescriptorLayout &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a7c3c6f6835f81cff6580c00d9178a514">descriptor</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;binding) const =0</td></tr>
+<tr class="memdesc:a7c3c6f6835f81cff6580c00d9178a514"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the descriptor layout for the descriptor bound to the binding point provided with <em>binding</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a7c3c6f6835f81cff6580c00d9178a514">More...</a><br /></td></tr>
+<tr class="separator:a7c3c6f6835f81cff6580c00d9178a514"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d1935ace7ae0cfe0b3e618bb9f00e91"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0d1935ace7ae0cfe0b3e618bb9f00e91">space</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a0d1935ace7ae0cfe0b3e618bb9f00e91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the space index of the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0d1935ace7ae0cfe0b3e618bb9f00e91">More...</a><br /></td></tr>
+<tr class="separator:a0d1935ace7ae0cfe0b3e618bb9f00e91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18dc172109ce85139d3fda59350d2d32"><td class="memItemLeft" align="right" valign="top">virtual const ShaderStage &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a18dc172109ce85139d3fda59350d2d32">shaderStages</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a18dc172109ce85139d3fda59350d2d32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the shader stages, the descriptor set is used in.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a18dc172109ce85139d3fda59350d2d32">More...</a><br /></td></tr>
+<tr class="separator:a18dc172109ce85139d3fda59350d2d32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbe18a902fb59fd7bceaf285331f92f5"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#adbe18a902fb59fd7bceaf285331f92f5">uniforms</a> () const noexcept=0</td></tr>
+<tr class="memdesc:adbe18a902fb59fd7bceaf285331f92f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of uniform/constant buffer descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#adbe18a902fb59fd7bceaf285331f92f5">More...</a><br /></td></tr>
+<tr class="separator:adbe18a902fb59fd7bceaf285331f92f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0740e1d0f0994549149a757a01bbb94b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0740e1d0f0994549149a757a01bbb94b">storages</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a0740e1d0f0994549149a757a01bbb94b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of shader storage buffer/unordered access view descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0740e1d0f0994549149a757a01bbb94b">More...</a><br /></td></tr>
+<tr class="separator:a0740e1d0f0994549149a757a01bbb94b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39f044a72847e349ef110bb31d630d39"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a39f044a72847e349ef110bb31d630d39">images</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a39f044a72847e349ef110bb31d630d39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of image descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a39f044a72847e349ef110bb31d630d39">More...</a><br /></td></tr>
+<tr class="separator:a39f044a72847e349ef110bb31d630d39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80ab11c574e0802da679b9cc8127daa1"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a80ab11c574e0802da679b9cc8127daa1">buffers</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a80ab11c574e0802da679b9cc8127daa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of texel/structured buffer descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a80ab11c574e0802da679b9cc8127daa1">More...</a><br /></td></tr>
+<tr class="separator:a80ab11c574e0802da679b9cc8127daa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7c471031a88af5f595c2ea331d87618"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#af7c471031a88af5f595c2ea331d87618">samplers</a> () const noexcept=0</td></tr>
+<tr class="memdesc:af7c471031a88af5f595c2ea331d87618"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of sampler descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#af7c471031a88af5f595c2ea331d87618">More...</a><br /></td></tr>
+<tr class="separator:af7c471031a88af5f595c2ea331d87618"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2d1dcd251181216fb8b67fa3d348d6e"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aa2d1dcd251181216fb8b67fa3d348d6e">inputAttachments</a> () const noexcept=0</td></tr>
+<tr class="memdesc:aa2d1dcd251181216fb8b67fa3d348d6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of input attachment descriptors within the descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aa2d1dcd251181216fb8b67fa3d348d6e">More...</a><br /></td></tr>
+<tr class="separator:aa2d1dcd251181216fb8b67fa3d348d6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa1d9cab7f2b578dab6fd9947b097eeb"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; TDescriptorSet &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aaa1d9cab7f2b578dab6fd9947b097eeb">allocate</a> () const noexcept=0</td></tr>
+<tr class="memdesc:aaa1d9cab7f2b578dab6fd9947b097eeb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new descriptor set or returns an instance of an unused descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#aaa1d9cab7f2b578dab6fd9947b097eeb">More...</a><br /></td></tr>
+<tr class="separator:aaa1d9cab7f2b578dab6fd9947b097eeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9abc027dcac14ce77c5922facd466e4b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; TDescriptorSet &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a9abc027dcac14ce77c5922facd466e4b">allocate</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;descriptorSets) const noexcept=0</td></tr>
+<tr class="memdesc:a9abc027dcac14ce77c5922facd466e4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates an array of descriptor sets.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a9abc027dcac14ce77c5922facd466e4b">More...</a><br /></td></tr>
+<tr class="separator:a9abc027dcac14ce77c5922facd466e4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af23b72f6602014b114e57153610335a5"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#af23b72f6602014b114e57153610335a5">free</a> (const TDescriptorSet &amp;descriptorSet) const noexcept=0</td></tr>
+<tr class="memdesc:af23b72f6602014b114e57153610335a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.  <a href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#af23b72f6602014b114e57153610335a5">More...</a><br /></td></tr>
+<tr class="separator:af23b72f6602014b114e57153610335a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TDescriptorLayout, typename TDescriptorSet, typename TBufferInterface = TDescriptorSet::buffer_interface_type, typename TConstantBuffer = TDescriptorSet::constant_buffer_type, typename TTexture = TDescriptorSet::texture_type, typename TSampler = TDescriptorSet::sampler_type, typename TImage = TDescriptorSet::image_type, typename TCommandBuffer = TDescriptorSet::command_buffer_type&gt;<br />
-class LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;</h3>
+<div class="textblock"><h3>template&lt;typename TDescriptorLayout, typename TDescriptorSet, typename TBuffer = TDescriptorSet::buffer_type, typename TSampler = TDescriptorSet::sampler_type, typename TImage = TDescriptorSet::image_type&gt;<br />
+class LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;</h3>
 
 <p>Describes the layout of a descriptor set. </p>
 <p>A descriptor set groups together multiple descriptors. This concept is identified by the <code>set</code> keyword in GLSL and <code>space</code> in HLSL.</p>
@@ -164,32 +167,32 @@ class LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptor
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_layout.html" title="Describes a the layout of a single descriptor within a IDescriptorSet.">IDescriptorLayout</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html" title="Defines a set of descriptors.">IDescriptorSet</a></dd></dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a0d32417cc66939c4d0e9266b8726a974"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d32417cc66939c4d0e9266b8726a974">&#9670;&nbsp;</a></span>descriptor_layout_type</h2>
+<a id="acb7d3e47273559adee81ad3a6686aaed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb7d3e47273559adee81ad3a6686aaed">&#9670;&nbsp;</a></span>descriptor_layout_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a0d32417cc66939c4d0e9266b8726a974">descriptor_layout_type</a> =  TDescriptorLayout</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#acb7d3e47273559adee81ad3a6686aaed">descriptor_layout_type</a> =  TDescriptorLayout</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a061c08d62e49c3b36d3748b352a5092f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a061c08d62e49c3b36d3748b352a5092f">&#9670;&nbsp;</a></span>descriptor_set_type</h2>
+<a id="ab8058504a87abecdfe4d8d9309680741"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8058504a87abecdfe4d8d9309680741">&#9670;&nbsp;</a></span>descriptor_set_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a061c08d62e49c3b36d3748b352a5092f">descriptor_set_type</a> =  TDescriptorSet</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#ab8058504a87abecdfe4d8d9309680741">descriptor_set_type</a> =  TDescriptorSet</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -197,19 +200,19 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aacbd10a46715c08235c52c7c546f4689"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aacbd10a46715c08235c52c7c546f4689">&#9670;&nbsp;</a></span>~IDescriptorSetLayout()</h2>
+<a id="adc0495142646f71713eb51bf04c69d64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc0495142646f71713eb51bf04c69d64">&#9670;&nbsp;</a></span>~IDescriptorSetLayout()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">IDescriptorSetLayout</a> </td>
+          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">IDescriptorSetLayout</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -225,19 +228,19 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a1e0eff47b8935d6f38539bc573b5fc5a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1e0eff47b8935d6f38539bc573b5fc5a">&#9670;&nbsp;</a></span>allocate() <span class="overload">[1/2]</span></h2>
+<a id="aaa1d9cab7f2b578dab6fd9947b097eeb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa1d9cab7f2b578dab6fd9947b097eeb">&#9670;&nbsp;</a></span>allocate() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt;TDescriptorSet&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::allocate </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt;TDescriptorSet&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::allocate </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -251,7 +254,7 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 </div><div class="memdoc">
 
 <p>Allocates a new descriptor set or returns an instance of an unused descriptor set. </p>
-<p>Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of created descriptor sets. It does this by never releasing them. Instead, when a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html" title="Defines a set of descriptors.">IDescriptorSet</a> instance gets destroyed, it should call <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a4f30d465a94aec95c9bc65bbcf7b3038" title="Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.">free</a> in order to mark itself (i.e. its handle) as not being used any longer.</p>
+<p>Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of created descriptor sets. It does this by never releasing them. Instead, when a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set.html" title="Defines a set of descriptors.">IDescriptorSet</a> instance gets destroyed, it should call <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#af23b72f6602014b114e57153610335a5" title="Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.">free</a> in order to mark itself (i.e. its handle) as not being used any longer.</p>
 <p>Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries to hand out descriptor sets that marked as unused.</p>
 <p>Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted. </p>
 <dl class="section return"><dt>Returns</dt><dd>The instance of the descriptor set.</dd></dl>
@@ -260,19 +263,19 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 
 </div>
 </div>
-<a id="ac63278dc09d0f84563160e8fb67bc879"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac63278dc09d0f84563160e8fb67bc879">&#9670;&nbsp;</a></span>allocate() <span class="overload">[2/2]</span></h2>
+<a id="a9abc027dcac14ce77c5922facd466e4b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9abc027dcac14ce77c5922facd466e4b">&#9670;&nbsp;</a></span>allocate() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;<a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt;TDescriptorSet&gt; &gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::allocate </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;<a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt;TDescriptorSet&gt; &gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::allocate </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
           <td class="paramname"><em>descriptorSets</em></td><td>)</td>
@@ -299,49 +302,19 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 
 </div>
 </div>
-<a id="a4f30d465a94aec95c9bc65bbcf7b3038"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4f30d465a94aec95c9bc65bbcf7b3038">&#9670;&nbsp;</a></span>free()</h2>
+<a id="a80ab11c574e0802da679b9cc8127daa1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80ab11c574e0802da679b9cc8127daa1">&#9670;&nbsp;</a></span>buffers()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::free </td>
-          <td>(</td>
-          <td class="paramtype">const TDescriptorSet &amp;&#160;</td>
-          <td class="paramname"><em>descriptorSet</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one. </p>
-
-</div>
-</div>
-<a id="aafd034abf40e914dfa7503d5edce5449"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aafd034abf40e914dfa7503d5edce5449">&#9670;&nbsp;</a></span>images()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::images </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::buffers </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -354,58 +327,26 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 </table>
 </div><div class="memdoc">
 
-<p>Returns the number of image descriptors within the descriptor set. </p>
-<dl class="section return"><dt>Returns</dt><dd>The number of image descriptors.</dd></dl>
+<p>Returns the number of texel/structured buffer descriptors within the descriptor set. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of texel/structured buffer descriptors.</dd></dl>
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a098119e8ff4b8914d26039cd470628c1">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#aa410dc5b22dc92f0e51d365a371e4daf">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a128dd2a8c723b9b117915c8a88858502">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#ac0300c4af3262e329073147717eb6faa">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
 
 </div>
 </div>
-<a id="a78c86de564313c5c7e126a9eca84d5df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a78c86de564313c5c7e126a9eca84d5df">&#9670;&nbsp;</a></span>inputAttachments()</h2>
+<a id="a7c3c6f6835f81cff6580c00d9178a514"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c3c6f6835f81cff6580c00d9178a514">&#9670;&nbsp;</a></span>descriptor()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::inputAttachments </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the number of input attachment descriptors within the descriptor set. </p>
-<dl class="section return"><dt>Returns</dt><dd>The number of input attachment descriptors.</dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#adde6ffa47bf4a916d09fce8ca915b3a8">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#a4b2f6f265750c8e3db3e92bfddaa6f33">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
-
-</div>
-</div>
-<a id="aa1e989b8ed2e8f9f6fca1a5e79d25cac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa1e989b8ed2e8f9f6fca1a5e79d25cac">&#9670;&nbsp;</a></span>layout()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual const TDescriptorLayout&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::layout </td>
+          <td class="memname">virtual const TDescriptorLayout&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::descriptor </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
           <td class="paramname"><em>binding</em></td><td>)</td>
@@ -428,23 +369,23 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The descriptor layout for the descriptor bound to the binding point provided with <em>binding</em> .</dd></dl>
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a6e244e4e6c7c1e9f255412954ce7a0b4">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#a8d966a0a791031e20dbc4138fef447c0">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#af311a582146b736dadaba78675d3509a">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#a1b54202bc0cc98be6a485a5a59e83d3c">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
 
 </div>
 </div>
-<a id="ad2e9736b88868a9f901a63f5397e0519"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2e9736b88868a9f901a63f5397e0519">&#9670;&nbsp;</a></span>layouts()</h2>
+<a id="a0fb5c0fa3081c608b5186d13577a2ba9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fb5c0fa3081c608b5186d13577a2ba9">&#9670;&nbsp;</a></span>descriptors()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const TDescriptorLayout*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::layouts </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const TDescriptorLayout*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::descriptors </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -460,23 +401,117 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 <p>Returns the layouts of the descriptors within the descriptor set. </p>
 <dl class="section return"><dt>Returns</dt><dd>The layouts of the descriptors within the descriptor set.</dd></dl>
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a6d6b0c4ba55e4770002e0118339cbf8d">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#aed9dae59bfae11825f372c99964f2c6a">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a29d703970a47553bfd812a49af5106d3">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#af66c7163ed69e8a094d0de882a4fd291">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
 
 </div>
 </div>
-<a id="a0308c45037c7938ec5491c0adbc6e93d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0308c45037c7938ec5491c0adbc6e93d">&#9670;&nbsp;</a></span>samplers()</h2>
+<a id="af23b72f6602014b114e57153610335a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af23b72f6602014b114e57153610335a5">&#9670;&nbsp;</a></span>free()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::samplers </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::free </td>
+          <td>(</td>
+          <td class="paramtype">const TDescriptorSet &amp;&#160;</td>
+          <td class="paramname"><em>descriptorSet</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one. </p>
+
+</div>
+</div>
+<a id="a39f044a72847e349ef110bb31d630d39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39f044a72847e349ef110bb31d630d39">&#9670;&nbsp;</a></span>images()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::images </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the number of image descriptors within the descriptor set. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of image descriptors.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a098119e8ff4b8914d26039cd470628c1">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#aa410dc5b22dc92f0e51d365a371e4daf">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
+
+</div>
+</div>
+<a id="aa2d1dcd251181216fb8b67fa3d348d6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2d1dcd251181216fb8b67fa3d348d6e">&#9670;&nbsp;</a></span>inputAttachments()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::inputAttachments </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the number of input attachment descriptors within the descriptor set. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of input attachment descriptors.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#adde6ffa47bf4a916d09fce8ca915b3a8">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#a4b2f6f265750c8e3db3e92bfddaa6f33">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>.</p>
+
+</div>
+</div>
+<a id="af7c471031a88af5f595c2ea331d87618"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7c471031a88af5f595c2ea331d87618">&#9670;&nbsp;</a></span>samplers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::samplers </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -496,19 +531,19 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 
 </div>
 </div>
-<a id="a47792c3152ed716aca0227808256837e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a47792c3152ed716aca0227808256837e">&#9670;&nbsp;</a></span>shaderStages()</h2>
+<a id="a18dc172109ce85139d3fda59350d2d32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18dc172109ce85139d3fda59350d2d32">&#9670;&nbsp;</a></span>shaderStages()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const ShaderStage&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::shaderStages </td>
+          <td class="memname">virtual const ShaderStage&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::shaderStages </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -528,19 +563,19 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 
 </div>
 </div>
-<a id="a4ef67df374998cbc30a525f5589e25e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ef67df374998cbc30a525f5589e25e0">&#9670;&nbsp;</a></span>space()</h2>
+<a id="a0d1935ace7ae0cfe0b3e618bb9f00e91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d1935ace7ae0cfe0b3e618bb9f00e91">&#9670;&nbsp;</a></span>space()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::space </td>
+          <td class="memname">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::space </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -561,19 +596,19 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 
 </div>
 </div>
-<a id="a0767037303eda4ed90a3c4ef265fee07"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0767037303eda4ed90a3c4ef265fee07">&#9670;&nbsp;</a></span>storages()</h2>
+<a id="a0740e1d0f0994549149a757a01bbb94b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0740e1d0f0994549149a757a01bbb94b">&#9670;&nbsp;</a></span>storages()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::storages </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::storages </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -593,19 +628,19 @@ template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuf
 
 </div>
 </div>
-<a id="af4c9228bddc2e685ff7901974a66cf58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af4c9228bddc2e685ff7901974a66cf58">&#9670;&nbsp;</a></span>uniforms()</h2>
+<a id="adbe18a902fb59fd7bceaf285331f92f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbe18a902fb59fd7bceaf285331f92f5">&#9670;&nbsp;</a></span>uniforms()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBufferInterface  = TDescriptorSet::buffer_interface_type, typename TConstantBuffer  = TDescriptorSet::constant_buffer_type, typename TTexture  = TDescriptorSet::texture_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type, typename TCommandBuffer  = TDescriptorSet::command_buffer_type&gt; </div>
+template&lt;typename TDescriptorLayout , typename TDescriptorSet , typename TBuffer  = TDescriptorSet::buffer_type, typename TSampler  = TDescriptorSet::sampler_type, typename TImage  = TDescriptorSet::image_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBufferInterface, TConstantBuffer, TTexture, TSampler, TImage, TCommandBuffer &gt;::uniforms </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html">LiteFX::Rendering::IDescriptorSetLayout</a>&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;::uniforms </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>

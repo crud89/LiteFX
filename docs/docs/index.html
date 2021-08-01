@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -90,11 +90,11 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <div class="title"><a class="el" href="namespace_lite_f_x.html">LiteFX</a> </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md_README"></a> An extensible, descriptive, modern computer graphics and rendering engine.</p>
+<div class="textblock"><p><a class="anchor" id="md_README"></a> An extensible, descriptive, modern computer graphics and rendering engine, written in C++20.</p>
 <p align="center"></p>
 <p><img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU" alt="" class="inline"/> </p>
-<p><img src="https://img.shields.io/github/license/crud89/litefx" alt="GitHub" class="inline"/> <img src="https://img.shields.io/github/workflow/status/crud89/litefx/Weekly" alt="GitHub Workflow Status" class="inline"/> <img src="https://img.shields.io/github/release/crud89/litefx.svg" alt="Latest release" style="pointer-events: none;" class="inline"/> <img src="https://img.shields.io/github/release-date/crud89/litefx.svg" alt="Released at" style="pointer-events: none;" class="inline"/> <a href="https://litefx.crudolph.io/docs/"><img src="https://img.shields.io/badge/docs-gh--pages-70dcf4.svg" alt="Documentation" style="pointer-events: none;" class="inline"/></a></p>
-<h1><a class="anchor" id="autotoc_md19"></a>
+<p><a href="https://github.com/crud89/LiteFX/blob/main/LICENSE"><img src="https://img.shields.io/github/license/crud89/litefx" alt="GitHub" class="inline"/></a> <a href="https://github.com/crud89/LiteFX/actions/workflows/weekly.yml"><img src="https://img.shields.io/github/workflow/status/crud89/litefx/Weekly" alt="GitHub Workflow Status" class="inline"/></a> <a href="https://github.com/crud89/LiteFX/releases"><img src="https://img.shields.io/github/release/crud89/litefx.svg" alt="Latest release" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/crud89/LiteFX/tags"><img src="https://img.shields.io/github/release-date/crud89/litefx.svg" alt="Released at" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/crud89/LiteFX/issues"><img src="https://img.shields.io/github/issues/crud89/LiteFX" alt="Issues" class="inline"/></a> <a href="https://github.com/crud89/LiteFX/pulls"><img src="https://img.shields.io/github/issues-pr/crud89/LiteFX" alt="Pull Requests" class="inline"/></a> <a href="https://litefx.crudolph.io/docs/"><img src="https://img.shields.io/badge/docs-gh--pages-70dcf4.svg" alt="Documentation" style="pointer-events: none;" class="inline"/></a></p>
+<h1><a class="anchor" id="autotoc_md10"></a>
 About</h1>
 <p><a class="el" href="namespace_lite_f_x.html">LiteFX</a> is a computer graphics engine, that can be used to quick-start developing applications using Vulkan 🌋 and/or DirectX 12 ❎ rendering APIs. It provides a flexible abstraction layer over modern graphics pipelines. Furthermore, it can easily be build and integrated using CMake. It naturally extents build scripts with functions that can be used to handle assets and compile shaders † and model dependencies to both.</p>
 <p>The engine design follows an descriptive approach, which means that an application focuses on configuring what it needs and the engine then takes care of handling those requirements. To support this, the API also provides a fluent interface. Here is an example of how to easily setup a render pass graphics pipeline with a few lines of code:</p>
@@ -118,6 +118,7 @@ About</h1>
 <div class="line">        .addDescriptorSet(1, ShaderStage::Fragment)</div>
 <div class="line">            .addSampler(0)</div>
 <div class="line">            .go()</div>
+<div class="line">        .go()</div>
 <div class="line">    .rasterizer()</div>
 <div class="line">        .withPolygonMode(PolygonMode::Solid)</div>
 <div class="line">        .withCullMode(CullMode::BackFaces)</div>
@@ -134,15 +135,28 @@ About</h1>
 <div class="line">        .go()</div>
 <div class="line">    .go();</div>
 <div class="ttc" id="astruct_camera_buffer_html"><div class="ttname"><a href="struct_camera_buffer.html">CameraBuffer</a></div><div class="ttdef"><b>Definition:</b> sample.cpp:25</div></div>
-</div><!-- fragment --><p><a class="el" href="namespace_lite_f_x.html">LiteFX</a> is written in modern C++20, following established design patterns to make it easy to learn and adapt. It's focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.</p>
-<p>† Shader can be built using <em>glslc</em> or <em>DXC</em>. <em>glslc</em> can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. <em>DXC</em> can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over <em>glslc</em>.</p>
-<h1><a class="anchor" id="autotoc_md21"></a>
+</div><!-- fragment --><p><a class="el" href="namespace_lite_f_x.html">LiteFX</a> is written in modern C++20, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.</p>
+<p>† Shaders can be built using <em>glslc</em> or <em>DXC</em>. <em>glslc</em> can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. <em>DXC</em> can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over <em>glslc</em>.</p>
+<h2><a class="anchor" id="autotoc_md11"></a>
+Key Features</h2>
+<ul>
+<li><b>Fluent API</b>: the fluent API can help you to organize creation of your render context. Instances, render passes and pipeline states typically require a lot of code to set them up. <a class="el" href="namespace_lite_f_x.html">LiteFX</a> hides this code behind an flexible builder architecture. However, if you don't like it, you can still create all objects on your own.</li>
+<li><b>State of the Art</b>: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it implements support for <a href="https://docs.microsoft.com/en-us/windows/win32/direct3d12/direct3d-12-render-passes">DirectX 12 render passes</a> or <a href="https://www.khronos.org/blog/vulkan-timeline-semaphores">Vulkan timeline semaphores</a> for improved thread synchronization.</li>
+<li><b>Multi-Threading Support</b>: <a class="el" href="namespace_lite_f_x.html">LiteFX</a> comes with support for multi-threaded render passes in order to maximize throughput and prevent GPU stalls. It takes care of the necessary synchronization between threads and exposes interfaces for manual synchronization.</li>
+<li><b>Descriptor and Memory Management</b>: descriptors and buffers can be hard to get around. <a class="el" href="namespace_lite_f_x.html">LiteFX</a> abstracts them away in a way that is both efficient and easy to adapt.</li>
+<li><b>CMake Integration</b>: you can use CMake to integrate the engine into your project. Furthermore, it exports scripts that allow you to integrate assets and shaders into your build process. It can be installed using <em>vcpkg</em>, making project setup quick and painless.</li>
+<li><b>Much More</b>: If you want to learn what else you can do, check out the <a href="https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html">guides</a> and <a href="https://github.com/crud89/LiteFX/wiki">wiki</a>.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md12"></a>
 Installation</h1>
-<p>If you just want to start using <a class="el" href="namespace_lite_f_x.html">LiteFX</a>, you can acquire binaries of the latest version from the <a href="https://github.com/crud89/LiteFX/releases">releases page</a>.</p>
-<h2><a class="anchor" id="autotoc_md22"></a>
+<p>If you just want to start using <a class="el" href="namespace_lite_f_x.html">LiteFX</a>, you can acquire binaries of the latest version from the <a href="https://github.com/crud89/LiteFX/releases">releases page</a> and follow the <a href="https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html">project setup</a> and <a href="https://litefx.crudolph.io/docs/md_docs_tutorials_quick_start.html">quick start</a> guides.</p>
+<h2><a class="anchor" id="autotoc_md13"></a>
+Using &lt;tt&gt;vcpkg&lt;/tt&gt;</h2>
+<p>If you are using vcpkg, you can use the <a href="https://github.com/crud89/LiteFX-Registry">registry</a> to install the engine directly.</p>
+<h2><a class="anchor" id="autotoc_md14"></a>
 Manual Builds</h2>
-<p>You can also build the sources on your own. Currently only MSVC builds under Windows are supported. However, the engine does use CMake and (besides the DirectX12 backend) no Windows-specific features, so porting the Vulkan backend and engine architecture should be absolutely possible (pull requests are much appreciated!).</p>
-<h3><a class="anchor" id="autotoc_md23"></a>
+<p>You can also build the sources on your own. Currently only MSVC builds under Windows are officially supported. However, the engine does use CMake and (besides the DirectX 12 backend) no Windows-specific features, so porting the Vulkan backend and engine architecture should be absolutely possible (pull requests are much appreciated!).</p>
+<h3><a class="anchor" id="autotoc_md15"></a>
 Prerequisites</h3>
 <p>In order for the project to be built, there are a few prerequisites that need to be present on your environment:</p>
 <ul>
@@ -151,41 +165,41 @@ Prerequisites</h3>
 <li>Optional: Custom <a href="https://github.com/microsoft/DirectXShaderCompiler">DXC</a> build (required to build shaders for DirectX backend). †</li>
 <li>Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).</li>
 </ul>
-<p>† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, so you might want to install it, even if you only want to target the DirectX backend. Alternatively, you can download a pre-build DXC distribution.</p>
-<h3><a class="anchor" id="autotoc_md24"></a>
+<p>† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.</p>
+<h3><a class="anchor" id="autotoc_md16"></a>
 Cloning the Repository</h3>
 <p>Create a new directory from where you want to build the sources. Then open your shell and clone the repository:</p>
 <div class="fragment"><div class="line">git clone https://github.com/crud89/LiteFX.git . --recurse-submodules</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md26"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md17"></a>
 Performing a Build</h3>
 <p>There are multiple ways of creating a build from scratch. In general, all <em>CMake</em>-based build systems are supported.</p>
-<h4><a class="anchor" id="autotoc_md27"></a>
+<h4><a class="anchor" id="autotoc_md18"></a>
 From Command Line</h4>
 <p>Building from command line is the most straightforward way and is typically sufficient, if you only want to consume a fresh build.</p>
 <div class="fragment"><div class="line">cmake src/ -B out/build/</div>
 <div class="line">cmake --build out/build/ --target install --config Release</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md28"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md19"></a>
 Using Visual Studio</h4>
 <p>From Visual Studio open the folder where you just checked out the contents of the repository. In the <em>Project Explorer</em> change the view to <em>CMake Targets</em>. Right click <em><a class="el" href="namespace_lite_f_x.html">LiteFX</a></em> and select <em>Install</em>.</p>
-<h3><a class="anchor" id="autotoc_md29"></a>
+<h3><a class="anchor" id="autotoc_md20"></a>
 Build Customization</h3>
 <p>You can customize the engine build, according to your specific needs. From Visual Studio, you can simply edit the <code>src/CMakeSettings.json</code> file to do this. The usual CMake process is similar. All customizable options have the <code>BUILD_</code> prefix and are described in detail below:</p>
 <ul>
 <li><code>BUILD_VULKAN_BACKEND</code> (default: <code>ON</code>): builds the Vulkan 🌋 backend (requires <a href="https://vulkan.lunarg.com/">LunarG Vulkan SDK</a> 1.2.148.0 or later to be installed on your system).</li>
 <li><code>BUILD_DX12_BACKEND</code> (default: <code>ON</code>): builds the DirectX 12 ❎ backend.</li>
-<li><code>BUILD_EXAMPLES</code> (default: <code>ON</code>): builds the examples. Depending on which backends are built, some may be omitted.</li>
-<li><code>BUILD_EXAMPLES_DX12_PIX_LOADER</code> (default: <code>ON</code>): enables code that attempts to load the latest version of the <a href="https://devblogs.microsoft.com/pix/">PIX GPU capturer</a> in the DirectX 12 samples, if available (and if the command line argument <code>--load-pix=true</code> is specified).</li>
 <li><code>BUILD_WITH_GLM</code> (default: <code>ON</code>): adds <a href="https://glm.g-truc.net/0.9.9/index.html">glm</a> converters to math types. †</li>
 <li><code>BUILD_WITH_DIRECTX_MATH</code> (default: <code>ON</code>): adds <a href="https://github.com/microsoft/DirectXMath">DirectX Math</a> converters to math types. †</li>
 <li><code>BUILD_HLSL_SHADER_MODEL</code> (default: <code>6_3</code>): specifies the default HLSL shader model.</li>
+<li><code>BUILD_EXAMPLES</code> (default: <code>ON</code>): builds the examples. Depending on which backends are built, some may be omitted.</li>
+<li><code>BUILD_EXAMPLES_DX12_PIX_LOADER</code> (default: <code>ON</code>): enables code that attempts to load the latest version of the <a href="https://devblogs.microsoft.com/pix/">PIX GPU capturer</a> in the DirectX 12 samples, if available (and if the command line argument <code>--load-pix=true</code> is specified).</li>
 </ul>
 <p>† Note that <em>glm</em> and <em>DirectX Math</em> are installed using <em>vcpkg</em> automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported. Note that both can be used for DirectX 12 and Vulkan.</p>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md21"></a>
 Dependencies</h2>
-<p>All dependencies are automatically installed using <em>vcpkg</em>, when performing a manual build. There are only two dependencies that the engine itself enforces:</p>
+<p>All dependencies are automatically installed using <em>vcpkg</em>, when performing a manual build. The engine only has two hard dependencies:</p>
 <ul>
 <li><a href="https://github.com/gabime/spdlog">spdlog</a>: Lightweight logging library.</li>
-<li><a href="https://github.com/fmtlib/fmt">{fmt}</a>: String formatting library and implicit dependency by <em>spdlog</em>.</li>
+<li><a href="https://github.com/fmtlib/fmt">{fmt}</a>: String formatting library and implicit dependency of <em>spdlog</em>.</li>
 </ul>
 <p>Depending on which rendering backends are build, the following dependencies are required:</p>
 <ul>
@@ -205,16 +219,16 @@ Dependencies</h2>
 <li><a href="https://www.glfw.org/">glfw3</a>: Cross-platform window manager.</li>
 <li><a href="https://github.com/nothings/stb">stb</a>: Lightweight image loading and processing library.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md32"></a>
+<h1><a class="anchor" id="autotoc_md22"></a>
 Getting Started</h1>
 <p>For a <a href="https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html">quick-start guide</a>, a collection of tutorials and more in-depth information on how to use the engine and work with the code base, take a look at the <a href="https://litefx.crudolph.io/docs/">documentation</a> and the <a href="https://github.com/crud89/LiteFX/wiki">project wiki</a>.</p>
-<h1><a class="anchor" id="autotoc_md33"></a>
+<h1><a class="anchor" id="autotoc_md23"></a>
 Contribute</h1>
 <p>If you are having trouble using the engine, found a bug or have suggestions, just drop an <a href="https://github.com/crud89/LiteFX/issues">issue</a>. Keep in mind that this project is developed in my free time and I might not be able to provide any advanced support. If you want to, feel free to provide improvements by creating a pull request.</p>
-<h1><a class="anchor" id="autotoc_md34"></a>
+<h1><a class="anchor" id="autotoc_md24"></a>
 Projects using LiteFX</h1>
 <p>Want to add yours? Feel free to <a href="#" onclick="location.href='mai'+'lto:'+'lit'+'ef'+'x@c'+'ru'+'dol'+'ph'+'.io'+'?s'+'ubj'+'ec'+'t=['+'Gi'+'tHu'+'b]'+'%20'+'Li'+'teF'+'X%'+'20P'+'ro'+'jec'+'t%'+'20L'+'is'+'t'; return false;">contact</a> me!</p>
-<h1><a class="anchor" id="autotoc_md35"></a>
+<h1><a class="anchor" id="autotoc_md25"></a>
 License</h1>
 <p><a class="el" href="namespace_lite_f_x.html">LiteFX</a> is licensed under the permissive <a href="./LICENSE">MIT license</a>. The documentation (i.e. the contents of the <code>docs</code> folder of this repository, especially the <a class="el" href="namespace_lite_f_x.html">LiteFX</a> logo, banner and icon) is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a>.</p>
 <p>If you want to use <a class="el" href="namespace_lite_f_x.html">LiteFX</a> in your projects, linking to <a href="https://litefx.crudolph.io/">project website</a> and/or putting the logo in your project description is much appreciated. </p>

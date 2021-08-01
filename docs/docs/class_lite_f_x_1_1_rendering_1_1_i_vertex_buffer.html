@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::IVertexBuffer&lt; TDerived, TVertexBufferLayout, TCommandBuffer &gt; Class Template Reference</title>
+<title>LiteFX: LiteFX::Rendering::IVertexBuffer&lt; TVertexBufferLayout &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -91,7 +91,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_ver
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LiteFX::Rendering::IVertexBuffer&lt; TDerived, TVertexBufferLayout, TCommandBuffer &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">LiteFX::Rendering::IVertexBuffer&lt; TVertexBufferLayout &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -100,37 +100,20 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_ver
 
 <p><code>#include &lt;<a class="el" href="rendering_8hpp_source.html">rendering.hpp</a>&gt;</code></p>
 
-<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable_buffer.html">LiteFX::Rendering::ITransferableBuffer&lt; TDerived, TCommandBuffer &gt;</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_bindable.html">LiteFX::Rendering::IBindable</a>.</p>
+<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">LiteFX::Rendering::IBuffer</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a02367b5dcc3b7b5f39788c3c216e4aeb"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a02367b5dcc3b7b5f39788c3c216e4aeb">vertex_buffer_layout_type</a> = TVertexBufferLayout</td></tr>
-<tr class="separator:a02367b5dcc3b7b5f39788c3c216e4aeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_transferable')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html">LiteFX::Rendering::ITransferable&lt; TBufferInterface, TCommandBuffer &gt;</a></td></tr>
-<tr class="memitem:a7e97499de737ff4dc7dbde2f9a45f6f3 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#a7e97499de737ff4dc7dbde2f9a45f6f3">command_buffer_type</a> = TCommandBuffer</td></tr>
-<tr class="separator:a7e97499de737ff4dc7dbde2f9a45f6f3 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06c445150b70922b959e28d2f052011f inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#a06c445150b70922b959e28d2f052011f">buffer_type</a> = TBufferInterface</td></tr>
-<tr class="separator:a06c445150b70922b959e28d2f052011f inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13d36bda6217cd387b093b595920fba6"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a13d36bda6217cd387b093b595920fba6">vertex_buffer_layout_type</a> = TVertexBufferLayout</td></tr>
+<tr class="separator:a13d36bda6217cd387b093b595920fba6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a8bab74a746f767729b5b81ec1b38c5e8"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a8bab74a746f767729b5b81ec1b38c5e8">~IVertexBuffer</a> () noexcept=default</td></tr>
-<tr class="separator:a8bab74a746f767729b5b81ec1b38c5e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeee2067c3b8ac03f8fa06a6a787fe95e"><td class="memItemLeft" align="right" valign="top">virtual const TVertexBufferLayout &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#aeee2067c3b8ac03f8fa06a6a787fe95e">layout</a> () const noexcept=0</td></tr>
-<tr class="memdesc:aeee2067c3b8ac03f8fa06a6a787fe95e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the layout of the vertex buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#aeee2067c3b8ac03f8fa06a6a787fe95e">More...</a><br /></td></tr>
-<tr class="separator:aeee2067c3b8ac03f8fa06a6a787fe95e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable_buffer"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable_buffer')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable_buffer.html">LiteFX::Rendering::ITransferableBuffer&lt; TDerived, TCommandBuffer &gt;</a></td></tr>
-<tr class="memitem:ae76a5ff4a463c45733d0332c35ddb87b inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable_buffer"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable_buffer.html#ae76a5ff4a463c45733d0332c35ddb87b">~ITransferableBuffer</a> () noexcept=default</td></tr>
-<tr class="separator:ae76a5ff4a463c45733d0332c35ddb87b inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html">LiteFX::Rendering::ITransferable&lt; TBufferInterface, TCommandBuffer &gt;</a></td></tr>
-<tr class="memitem:aa30ac2c5edb4cc032999260cac643396 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#aa30ac2c5edb4cc032999260cac643396">~ITransferable</a> () noexcept=default</td></tr>
-<tr class="separator:aa30ac2c5edb4cc032999260cac643396 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae9a67cf19bf6c4bc3a1ea5be9980540e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#ae9a67cf19bf6c4bc3a1ea5be9980540e">transferFrom</a> (const TCommandBuffer &amp;commandBuffer, const TBufferInterface &amp;source, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const =0</td></tr>
-<tr class="memdesc:ae9a67cf19bf6c4bc3a1ea5be9980540e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transfers data from the <em>source</em>  buffer into the objects local memory.  <a href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#ae9a67cf19bf6c4bc3a1ea5be9980540e">More...</a><br /></td></tr>
-<tr class="separator:ae9a67cf19bf6c4bc3a1ea5be9980540e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a149bd08c8cce720e2f96d6d63d1e6ab5 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#a149bd08c8cce720e2f96d6d63d1e6ab5">transferTo</a> (const TCommandBuffer &amp;commandBuffer, const TBufferInterface &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const =0</td></tr>
-<tr class="memdesc:a149bd08c8cce720e2f96d6d63d1e6ab5 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transfers data from the objects local memory into the <em>target</em>  buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_transferable.html#a149bd08c8cce720e2f96d6d63d1e6ab5">More...</a><br /></td></tr>
-<tr class="separator:a149bd08c8cce720e2f96d6d63d1e6ab5 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_transferable"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76837c1100479851d187ffca44e5aa3e"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a76837c1100479851d187ffca44e5aa3e">~IVertexBuffer</a> () noexcept=default</td></tr>
+<tr class="separator:a76837c1100479851d187ffca44e5aa3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fa9cc61b831eceb80f529405ed413f0"><td class="memItemLeft" align="right" valign="top">virtual const TVertexBufferLayout &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a0fa9cc61b831eceb80f529405ed413f0">layout</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a0fa9cc61b831eceb80f529405ed413f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the layout of the vertex buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a0fa9cc61b831eceb80f529405ed413f0">More...</a><br /></td></tr>
+<tr class="separator:a0fa9cc61b831eceb80f529405ed413f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_buffer"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_buffer')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html">LiteFX::Rendering::IBuffer</a></td></tr>
 <tr class="memitem:ad4ff299f483b97b2286a7d978058ca29 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_buffer"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html#ad4ff299f483b97b2286a7d978058ca29">~IBuffer</a> () noexcept=default</td></tr>
 <tr class="separator:ad4ff299f483b97b2286a7d978058ca29 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -141,7 +124,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1899194e7d61373406c922cc5b336007 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a1899194e7d61373406c922cc5b336007">~IDeviceMemory</a> () noexcept=default</td></tr>
 <tr class="separator:a1899194e7d61373406c922cc5b336007 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50f35d6ae5d631be285fc87c7fdf18b0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0">elements</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a50f35d6ae5d631be285fc87c7fdf18b0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of array elements inside the memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0">More...</a><br /></td></tr>
+<tr class="memdesc:a50f35d6ae5d631be285fc87c7fdf18b0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of sub-resources inside the memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0">More...</a><br /></td></tr>
 <tr class="separator:a50f35d6ae5d631be285fc87c7fdf18b0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66f85883ca87702a04035e1e51af0e53 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53">size</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a66f85883ca87702a04035e1e51af0e53 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the size (in bytes) of the aligned memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53">More...</a><br /></td></tr>
@@ -155,6 +138,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a379a3fbcd746e43f6c34f26f97e01b7c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a379a3fbcd746e43f6c34f26f97e01b7c">alignedElementSize</a> () const noexcept=0</td></tr>
 <tr class="memdesc:a379a3fbcd746e43f6c34f26f97e01b7c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the actual size of the element in device memory.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a379a3fbcd746e43f6c34f26f97e01b7c">More...</a><br /></td></tr>
 <tr class="separator:a379a3fbcd746e43f6c34f26f97e01b7c inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6417097f66bdcbf22bc84970d2c38163 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memItemLeft" align="right" valign="top">virtual const bool &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a6417097f66bdcbf22bc84970d2c38163">writable</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a6417097f66bdcbf22bc84970d2c38163 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the resource can be bound to a read/write descriptor.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a6417097f66bdcbf22bc84970d2c38163">More...</a><br /></td></tr>
+<tr class="separator:a6417097f66bdcbf22bc84970d2c38163 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62dc9b0459919621c174ad7120707322 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memItemLeft" align="right" valign="top">virtual const ResourceState &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a62dc9b0459919621c174ad7120707322">state</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresource=0) const =0</td></tr>
+<tr class="memdesc:a62dc9b0459919621c174ad7120707322 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current state of the resource.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a62dc9b0459919621c174ad7120707322">More...</a><br /></td></tr>
+<tr class="separator:a62dc9b0459919621c174ad7120707322 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8bee9655b76b061f9750b82b913ded0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memItemLeft" align="right" valign="top">virtual ResourceState &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#ae8bee9655b76b061f9750b82b913ded0">state</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresource=0)=0</td></tr>
+<tr class="memdesc:ae8bee9655b76b061f9750b82b913ded0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a reference of the current state of the resource.  <a href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#ae8bee9655b76b061f9750b82b913ded0">More...</a><br /></td></tr>
+<tr class="separator:ae8bee9655b76b061f9750b82b913ded0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_mappable"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_mappable')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_mappable.html">LiteFX::Rendering::IMappable</a></td></tr>
 <tr class="memitem:a3628b605ee4497bcef9e6eaf396d2249 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_mappable"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_mappable.html#a3628b605ee4497bcef9e6eaf396d2249">~IMappable</a> () noexcept=default</td></tr>
 <tr class="separator:a3628b605ee4497bcef9e6eaf396d2249 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_mappable"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -164,37 +156,29 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a35fb6195349b04d425472ca65efce48f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_mappable"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_mappable.html#a35fb6195349b04d425472ca65efce48f">map</a> (<a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; const void *const &gt; data, const size_t &amp;elementSize, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstElement=0)=0</td></tr>
 <tr class="memdesc:a35fb6195349b04d425472ca65efce48f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_mappable"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps the memory blocks within <em>data</em>  to the internal memory of an array.  <a href="class_lite_f_x_1_1_rendering_1_1_i_mappable.html#a35fb6195349b04d425472ca65efce48f">More...</a><br /></td></tr>
 <tr class="separator:a35fb6195349b04d425472ca65efce48f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_mappable"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_bindable"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_bindable')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_bindable.html">LiteFX::Rendering::IBindable</a></td></tr>
-<tr class="memitem:a7fef0b566f09f2688be39b05d31842e2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_bindable"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_bindable.html#a7fef0b566f09f2688be39b05d31842e2">~IBindable</a> () noexcept=default</td></tr>
-<tr class="separator:a7fef0b566f09f2688be39b05d31842e2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_bindable"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f971b00495613d814b48919014c3552 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_bindable"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_bindable.html#a5f971b00495613d814b48919014c3552">binding</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a5f971b00495613d814b48919014c3552 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_bindable"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the binding point, this object will be bound to.  <a href="class_lite_f_x_1_1_rendering_1_1_i_bindable.html#a5f971b00495613d814b48919014c3552">More...</a><br /></td></tr>
-<tr class="separator:a5f971b00495613d814b48919014c3552 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_bindable"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TDerived, typename TVertexBufferLayout, typename TCommandBuffer&gt;<br />
-class LiteFX::Rendering::IVertexBuffer&lt; TDerived, TVertexBufferLayout, TCommandBuffer &gt;</h3>
+<div class="textblock"><h3>template&lt;typename TVertexBufferLayout&gt;<br />
+class LiteFX::Rendering::IVertexBuffer&lt; TVertexBufferLayout &gt;</h3>
 
 <p>Describes a vertex buffer. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">TDerived</td><td>The derived type of the buffer as CRTP parameter. Must inherit from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_transferable_buffer.html" title="Describes a transferable buffer object. Should be used as base class for all buffers.">ITransferableBuffer</a>.</td></tr>
-    <tr><td class="paramname">TCommandBuffer</td><td>The type of the command buffer. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html" title="Represents a command buffer, that buffers commands that should be submitted to a ICommandQueue.">ICommandBuffer</a>.</td></tr>
     <tr><td class="paramname">TVertexBufferLayout</td><td>The type of the vertex buffer layout. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer_layout.html" title="Describes a vertex buffer layout.">IVertexBufferLayout</a>.</td></tr>
   </table>
   </dd>
 </dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a02367b5dcc3b7b5f39788c3c216e4aeb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a02367b5dcc3b7b5f39788c3c216e4aeb">&#9670;&nbsp;</a></span>vertex_buffer_layout_type</h2>
+<a id="a13d36bda6217cd387b093b595920fba6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13d36bda6217cd387b093b595920fba6">&#9670;&nbsp;</a></span>vertex_buffer_layout_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TVertexBufferLayout , typename TCommandBuffer &gt; </div>
+template&lt;typename TVertexBufferLayout &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html">LiteFX::Rendering::IVertexBuffer</a>&lt; TDerived, TVertexBufferLayout, TCommandBuffer &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a02367b5dcc3b7b5f39788c3c216e4aeb">vertex_buffer_layout_type</a> =  TVertexBufferLayout</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html">LiteFX::Rendering::IVertexBuffer</a>&lt; TVertexBufferLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a13d36bda6217cd387b093b595920fba6">vertex_buffer_layout_type</a> =  TVertexBufferLayout</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -202,19 +186,19 @@ template&lt;typename TDerived , typename TVertexBufferLayout , typename TCommand
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a8bab74a746f767729b5b81ec1b38c5e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8bab74a746f767729b5b81ec1b38c5e8">&#9670;&nbsp;</a></span>~IVertexBuffer()</h2>
+<a id="a76837c1100479851d187ffca44e5aa3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76837c1100479851d187ffca44e5aa3e">&#9670;&nbsp;</a></span>~IVertexBuffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TVertexBufferLayout , typename TCommandBuffer &gt; </div>
+template&lt;typename TVertexBufferLayout &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html">LiteFX::Rendering::IVertexBuffer</a>&lt; TDerived, TVertexBufferLayout, TCommandBuffer &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html">IVertexBuffer</a> </td>
+          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html">LiteFX::Rendering::IVertexBuffer</a>&lt; TVertexBufferLayout &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html">IVertexBuffer</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -230,19 +214,19 @@ template&lt;typename TDerived , typename TVertexBufferLayout , typename TCommand
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aeee2067c3b8ac03f8fa06a6a787fe95e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeee2067c3b8ac03f8fa06a6a787fe95e">&#9670;&nbsp;</a></span>layout()</h2>
+<a id="a0fa9cc61b831eceb80f529405ed413f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fa9cc61b831eceb80f529405ed413f0">&#9670;&nbsp;</a></span>layout()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TVertexBufferLayout , typename TCommandBuffer &gt; </div>
+template&lt;typename TVertexBufferLayout &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TVertexBufferLayout&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html">LiteFX::Rendering::IVertexBuffer</a>&lt; TDerived, TVertexBufferLayout, TCommandBuffer &gt;::layout </td>
+          <td class="memname">virtual const TVertexBufferLayout&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html">LiteFX::Rendering::IVertexBuffer</a>&lt; TVertexBufferLayout &gt;::layout </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>

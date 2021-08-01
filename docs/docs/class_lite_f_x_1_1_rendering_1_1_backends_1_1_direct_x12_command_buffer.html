@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backe
 
 <p><code>#include &lt;<a class="el" href="dx12_8hpp_source.html">dx12.hpp</a>&gt;</code></p>
 
-<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html">LiteFX::Rendering::Backends::DirectX12RuntimeObject&lt; DirectX12Queue &gt;</a>, and <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; THandle &gt;</a>.</p>
+<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer&lt; IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html">LiteFX::Rendering::Backends::DirectX12RuntimeObject&lt; DirectX12Queue &gt;</a>, and <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; THandle &gt;</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -118,21 +118,88 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a3ba731a81083dacb653af9b5ac5fe0ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3949346a03f33c33bc806abb409a8665"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a3949346a03f33c33bc806abb409a8665">~DirectX12CommandBuffer</a> () noexcept</td></tr>
 <tr class="separator:a3949346a03f33c33bc806abb409a8665"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0abe72ed4937140ca6d665fa088f35ee"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a0abe72ed4937140ca6d665fa088f35ee">wait</a> () const override</td></tr>
-<tr class="memdesc:a0abe72ed4937140ca6d665fa088f35ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits for the command buffer to be executed.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a0abe72ed4937140ca6d665fa088f35ee">More...</a><br /></td></tr>
-<tr class="separator:a0abe72ed4937140ca6d665fa088f35ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52eb140093df379bc743c18025869ab2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a52eb140093df379bc743c18025869ab2">begin</a> () const override</td></tr>
-<tr class="memdesc:a52eb140093df379bc743c18025869ab2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a52eb140093df379bc743c18025869ab2">More...</a><br /></td></tr>
+<tr class="memdesc:a52eb140093df379bc743c18025869ab2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent ICommandQueue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a52eb140093df379bc743c18025869ab2">More...</a><br /></td></tr>
 <tr class="separator:a52eb140093df379bc743c18025869ab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c1c15f36042c374ac5f53149d87e4a9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a8c1c15f36042c374ac5f53149d87e4a9">end</a> (const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aa1f0513a12deff2a900bc6c7d4fd4deb">submit</a>=true, const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a0abe72ed4937140ca6d665fa088f35ee">wait</a>=false) const override</td></tr>
-<tr class="memdesc:a8c1c15f36042c374ac5f53149d87e4a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends recording commands on the command buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a8c1c15f36042c374ac5f53149d87e4a9">More...</a><br /></td></tr>
-<tr class="separator:a8c1c15f36042c374ac5f53149d87e4a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1f0513a12deff2a900bc6c7d4fd4deb"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aa1f0513a12deff2a900bc6c7d4fd4deb">submit</a> (const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a0abe72ed4937140ca6d665fa088f35ee">wait</a>=false) const override</td></tr>
-<tr class="memdesc:aa1f0513a12deff2a900bc6c7d4fd4deb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits the command buffer to the parent command queue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aa1f0513a12deff2a900bc6c7d4fd4deb">More...</a><br /></td></tr>
-<tr class="separator:aa1f0513a12deff2a900bc6c7d4fd4deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a></td></tr>
-<tr class="memitem:ac37242e5c15a3a6c0e74ad56b46e4aa2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ac37242e5c15a3a6c0e74ad56b46e4aa2">~ICommandBuffer</a> () noexcept=default</td></tr>
-<tr class="separator:ac37242e5c15a3a6c0e74ad56b46e4aa2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a862deed4385cf89496cc8e9c2ddde70f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a862deed4385cf89496cc8e9c2ddde70f">end</a> () const override</td></tr>
+<tr class="memdesc:a862deed4385cf89496cc8e9c2ddde70f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends recording commands on the command buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a862deed4385cf89496cc8e9c2ddde70f">More...</a><br /></td></tr>
+<tr class="separator:a862deed4385cf89496cc8e9c2ddde70f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a669c8d4f8b0fe1aa221df694508943ec"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a669c8d4f8b0fe1aa221df694508943ec">generateMipMaps</a> (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;image) noexcept override</td></tr>
+<tr class="separator:a669c8d4f8b0fe1aa221df694508943ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea82ea0f53d76d49e4e91b89d4fae0e9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aea82ea0f53d76d49e4e91b89d4fae0e9">barrier</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html">DirectX12Barrier</a> &amp;barrier, const bool &amp;invert=false) const noexcept override</td></tr>
+<tr class="separator:aea82ea0f53d76d49e4e91b89d4fae0e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77ee65e96f1c04eb377863fe8657d6c1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a77ee65e96f1c04eb377863fe8657d6c1">transfer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;source, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const override</td></tr>
+<tr class="separator:a77ee65e96f1c04eb377863fe8657d6c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac95efd3a7e0b468e67f7465f153593a0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#ac95efd3a7e0b468e67f7465f153593a0">transfer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;source, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const override</td></tr>
+<tr class="separator:ac95efd3a7e0b468e67f7465f153593a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebe3dcfd48eb9bee235a061ee0981235"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aebe3dcfd48eb9bee235a061ee0981235">transfer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;source, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const override</td></tr>
+<tr class="separator:aebe3dcfd48eb9bee235a061ee0981235"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b22d46e9f6d09b45d72cbe309c0d82f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a9b22d46e9f6d09b45d72cbe309c0d82f">transfer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;source, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const override</td></tr>
+<tr class="separator:a9b22d46e9f6d09b45d72cbe309c0d82f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e2da3016c86df8b4e17bca9de552d0a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a5e2da3016c86df8b4e17bca9de552d0a">use</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_pipeline_state.html">DirectX12PipelineState</a> &amp;pipeline) const noexcept override</td></tr>
+<tr class="separator:a5e2da3016c86df8b4e17bca9de552d0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c69d92ff0780afae5ac19e68437f4ef"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a9c69d92ff0780afae5ac19e68437f4ef">bind</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html">DirectX12DescriptorSet</a> &amp;descriptorSet) const noexcept override</td></tr>
+<tr class="separator:a9c69d92ff0780afae5ac19e68437f4ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4908a75811b9238c7837fbd385f08587"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a4908a75811b9238c7837fbd385f08587">bind</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_vertex_buffer.html">IDirectX12VertexBuffer</a> &amp;buffer) const noexcept override</td></tr>
+<tr class="separator:a4908a75811b9238c7837fbd385f08587"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b675e287b5e0487f0c6f24d5e73a978"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a8b675e287b5e0487f0c6f24d5e73a978">bind</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_index_buffer.html">IDirectX12IndexBuffer</a> &amp;buffer) const noexcept override</td></tr>
+<tr class="separator:a8b675e287b5e0487f0c6f24d5e73a978"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a595df75528e08d2771a1a14fd08375"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a5a595df75528e08d2771a1a14fd08375">dispatch</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html">Vector3u</a> &amp;threadCount) const noexcept override</td></tr>
+<tr class="memdesc:a5a595df75528e08d2771a1a14fd08375"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a compute shader.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a5a595df75528e08d2771a1a14fd08375">More...</a><br /></td></tr>
+<tr class="separator:a5a595df75528e08d2771a1a14fd08375"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78f64ae040d4d33af6538d10979bfb80"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a78f64ae040d4d33af6538d10979bfb80">draw</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;vertices, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstVertex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const noexcept override</td></tr>
+<tr class="memdesc:a78f64ae040d4d33af6538d10979bfb80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws a number of vertices from the currently bound vertex buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a78f64ae040d4d33af6538d10979bfb80">More...</a><br /></td></tr>
+<tr class="separator:a78f64ae040d4d33af6538d10979bfb80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00c6592fceb092789bc6199742e73906"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a00c6592fceb092789bc6199742e73906">drawIndexed</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;indices, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const noexcept override</td></tr>
+<tr class="memdesc:a00c6592fceb092789bc6199742e73906"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a00c6592fceb092789bc6199742e73906">More...</a><br /></td></tr>
+<tr class="separator:a00c6592fceb092789bc6199742e73906"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90a9c04899b0df3707c8dfebf7bc5747"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a90a9c04899b0df3707c8dfebf7bc5747">pushConstants</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_layout.html">DirectX12PushConstantsLayout</a> &amp;layout, const void *const memory) const noexcept override</td></tr>
+<tr class="separator:a90a9c04899b0df3707c8dfebf7bc5747"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer&lt; IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState &gt;</a></td></tr>
+<tr class="memitem:ae7cc16e5d88a7d52cf3904a8e646d937 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae7cc16e5d88a7d52cf3904a8e646d937">~ICommandBuffer</a> () noexcept=default</td></tr>
+<tr class="separator:ae7cc16e5d88a7d52cf3904a8e646d937 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ad800b489b90f99e21b8ae2777ead96 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7ad800b489b90f99e21b8ae2777ead96">barrier</a> (const DirectX12Barrier &amp;barrier, const bool &amp;invert=false) const noexcept=0</td></tr>
+<tr class="memdesc:a7ad800b489b90f99e21b8ae2777ead96 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the transitions that have been added to <em>barrier</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7ad800b489b90f99e21b8ae2777ead96">More...</a><br /></td></tr>
+<tr class="separator:a7ad800b489b90f99e21b8ae2777ead96 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25ace4329d10a63f9e1a7a5e87f0a38a inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a25ace4329d10a63f9e1a7a5e87f0a38a">generateMipMaps</a> (IDirectX12Image &amp;image) noexcept=0</td></tr>
+<tr class="memdesc:a25ace4329d10a63f9e1a7a5e87f0a38a inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the image at level <em>0</em> to generate mip-maps for the remaining levels.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a25ace4329d10a63f9e1a7a5e87f0a38a">More...</a><br /></td></tr>
+<tr class="separator:a25ace4329d10a63f9e1a7a5e87f0a38a inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a419205a2a11e60f1990c4260335c717f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a419205a2a11e60f1990c4260335c717f">transfer</a> (const IDirectX12Buffer &amp;source, const IDirectX12Buffer &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const=0</td></tr>
+<tr class="memdesc:a419205a2a11e60f1990c4260335c717f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a buffer-to-buffer transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a419205a2a11e60f1990c4260335c717f">More...</a><br /></td></tr>
+<tr class="separator:a419205a2a11e60f1990c4260335c717f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d06cfe503ea6090367ce946bc09e427 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7d06cfe503ea6090367ce946bc09e427">transfer</a> (const IDirectX12Buffer &amp;source, const IDirectX12Image &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const=0</td></tr>
+<tr class="memdesc:a7d06cfe503ea6090367ce946bc09e427 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a buffer-to-image transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7d06cfe503ea6090367ce946bc09e427">More...</a><br /></td></tr>
+<tr class="separator:a7d06cfe503ea6090367ce946bc09e427 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad70520925e673cb48a9cded7b65d9f59 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad70520925e673cb48a9cded7b65d9f59">transfer</a> (const IDirectX12Image &amp;source, const IDirectX12Image &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const=0</td></tr>
+<tr class="memdesc:ad70520925e673cb48a9cded7b65d9f59 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs an image-to-image transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad70520925e673cb48a9cded7b65d9f59">More...</a><br /></td></tr>
+<tr class="separator:ad70520925e673cb48a9cded7b65d9f59 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6b64953279ef961b8f44514afa2ba11 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae6b64953279ef961b8f44514afa2ba11">transfer</a> (const IDirectX12Image &amp;source, const IDirectX12Buffer &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const=0</td></tr>
+<tr class="memdesc:ae6b64953279ef961b8f44514afa2ba11 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs an image-to-buffer transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae6b64953279ef961b8f44514afa2ba11">More...</a><br /></td></tr>
+<tr class="separator:ae6b64953279ef961b8f44514afa2ba11 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71a0b305306805417934bab14fa60882 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a71a0b305306805417934bab14fa60882">use</a> (const DirectX12PipelineState &amp;pipeline) const noexcept=0</td></tr>
+<tr class="memdesc:a71a0b305306805417934bab14fa60882 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the active pipeline state.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a71a0b305306805417934bab14fa60882">More...</a><br /></td></tr>
+<tr class="separator:a71a0b305306805417934bab14fa60882 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a464762b4406d7f7598a594cb1e72a280 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a464762b4406d7f7598a594cb1e72a280">bind</a> (const TPipelineLayout::descriptor_set_type &amp;descriptorSet) const noexcept=0</td></tr>
+<tr class="memdesc:a464762b4406d7f7598a594cb1e72a280 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the provided descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a464762b4406d7f7598a594cb1e72a280">More...</a><br /></td></tr>
+<tr class="separator:a464762b4406d7f7598a594cb1e72a280 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72cb834d8ae7e5a2d5142658b5bf2dc0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a72cb834d8ae7e5a2d5142658b5bf2dc0">bind</a> (const IDirectX12VertexBuffer &amp;buffer) const noexcept=0</td></tr>
+<tr class="memdesc:a72cb834d8ae7e5a2d5142658b5bf2dc0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a vertex buffer to the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a72cb834d8ae7e5a2d5142658b5bf2dc0">More...</a><br /></td></tr>
+<tr class="separator:a72cb834d8ae7e5a2d5142658b5bf2dc0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8062d9e350fde81309bac342b3c7a326 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a8062d9e350fde81309bac342b3c7a326">bind</a> (const IDirectX12IndexBuffer &amp;buffer) const noexcept=0</td></tr>
+<tr class="memdesc:a8062d9e350fde81309bac342b3c7a326 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a index buffer to the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a8062d9e350fde81309bac342b3c7a326">More...</a><br /></td></tr>
+<tr class="separator:a8062d9e350fde81309bac342b3c7a326 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a441345e14aaecad85a465f22e932bbda inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a441345e14aaecad85a465f22e932bbda">draw</a> (const IDirectX12VertexBuffer &amp;vertexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstVertex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:a441345e14aaecad85a465f22e932bbda inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws all vertices from the vertex buffer provided in <em>vertexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a441345e14aaecad85a465f22e932bbda">More...</a><br /></td></tr>
+<tr class="separator:a441345e14aaecad85a465f22e932bbda inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd995367e0eaba32b5ce6ddb55c7a936 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#afd995367e0eaba32b5ce6ddb55c7a936">drawIndexed</a> (const IDirectX12IndexBuffer &amp;indexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:afd995367e0eaba32b5ce6ddb55c7a936 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the currently bound vertex buffer using the index buffer provided in <em>indexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#afd995367e0eaba32b5ce6ddb55c7a936">More...</a><br /></td></tr>
+<tr class="separator:afd995367e0eaba32b5ce6ddb55c7a936 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9a57f38a900189f9d2a6e8bb083f140 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aa9a57f38a900189f9d2a6e8bb083f140">drawIndexed</a> (const IDirectX12VertexBuffer &amp;vertexBuffer, const IDirectX12IndexBuffer &amp;indexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:aa9a57f38a900189f9d2a6e8bb083f140 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the vertex buffer provided by <em>vertexBuffer</em>  using the index buffer, provided by <em>indexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aa9a57f38a900189f9d2a6e8bb083f140">More...</a><br /></td></tr>
+<tr class="separator:aa9a57f38a900189f9d2a6e8bb083f140 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada88e34f3d4ba97f8c6746906a4a38a8 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ada88e34f3d4ba97f8c6746906a4a38a8">pushConstants</a> (const TPipelineLayout::push_constants_layout_type &amp;layout, const void *const memory) const noexcept=0</td></tr>
+<tr class="memdesc:ada88e34f3d4ba97f8c6746906a4a38a8 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pushes a block of memory into the push constants backing memory.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ada88e34f3d4ba97f8c6746906a4a38a8">More...</a><br /></td></tr>
+<tr class="separator:ada88e34f3d4ba97f8c6746906a4a38a8 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html">LiteFX::Rendering::Backends::DirectX12RuntimeObject&lt; DirectX12Queue &gt;</a></td></tr>
 <tr class="memitem:aa1c007663fac2cd1bcd01ccccd4383b2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html#aa1c007663fac2cd1bcd01ccccd4383b2">DirectX12RuntimeObject</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html">DirectX12Queue</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html#a170397f1989bda2cca4f3e95e3e3fdab">parent</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> *device)</td></tr>
 <tr class="separator:aa1c007663fac2cd1bcd01ccccd4383b2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -161,6 +228,19 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer&lt; IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState &gt;</a></td></tr>
+<tr class="memitem:a7c82d316238b25d81ebb5c19fc8ce51d inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7c82d316238b25d81ebb5c19fc8ce51d">buffer_type</a> = IDirectX12Buffer</td></tr>
+<tr class="separator:a7c82d316238b25d81ebb5c19fc8ce51d inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae61e10f31173d8972fca66381bab5386 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae61e10f31173d8972fca66381bab5386">vertex_buffer_type</a> = IDirectX12VertexBuffer</td></tr>
+<tr class="separator:ae61e10f31173d8972fca66381bab5386 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d977137803b62cedb6ef046c67a260e inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a0d977137803b62cedb6ef046c67a260e">index_buffer_type</a> = IDirectX12IndexBuffer</td></tr>
+<tr class="separator:a0d977137803b62cedb6ef046c67a260e inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae316235dd7c3ee4dfcee5b36ed70e4ed inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae316235dd7c3ee4dfcee5b36ed70e4ed">image_type</a> = IDirectX12Image</td></tr>
+<tr class="separator:ae316235dd7c3ee4dfcee5b36ed70e4ed inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abef22a0568619462d5798ebc56ae43fb inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#abef22a0568619462d5798ebc56ae43fb">barrier_type</a> = DirectX12Barrier</td></tr>
+<tr class="separator:abef22a0568619462d5798ebc56ae43fb inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab18707464c1c953935074b8a1f18f7fe inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ab18707464c1c953935074b8a1f18f7fe">pipeline_type</a> = DirectX12PipelineState</td></tr>
+<tr class="separator:ab18707464c1c953935074b8a1f18f7fe inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_class_lite_f_x_1_1_resource"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_lite_f_x_1_1_resource')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; THandle &gt;</a></td></tr>
 <tr class="memitem:a5fd18a4f5cd5736df4f6e2cfa4442cc8 inherit pro_methods_class_lite_f_x_1_1_resource"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_resource.html#a5fd18a4f5cd5736df4f6e2cfa4442cc8">Resource</a> (const THandle <a class="el" href="class_lite_f_x_1_1_resource.html#a60ee7bcf22a9ce84dc61710dcd40cb93">handle</a>) noexcept</td></tr>
 <tr class="separator:a5fd18a4f5cd5736df4f6e2cfa4442cc8 inherit pro_methods_class_lite_f_x_1_1_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -294,6 +374,44 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="aea82ea0f53d76d49e4e91b89d4fae0e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea82ea0f53d76d49e4e91b89d4fae0e9">&#9670;&nbsp;</a></span>barrier()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::barrier </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_barrier.html">DirectX12Barrier</a> &amp;&#160;</td>
+          <td class="paramname"><em>barrier</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>invert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
 <a id="a52eb140093df379bc743c18025869ab2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a52eb140093df379bc743c18025869ab2">&#9670;&nbsp;</a></span>begin()</h2>
 
@@ -317,14 +435,238 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>. </p>
+<p>Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent ICommandQueue. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad08533dccdc780f870b9a5895aa3633b">LiteFX::Rendering::ICommandBuffer</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f9c3c026d9994e4c3a058af947168f6">LiteFX::Rendering::ICommandBuffer&lt; IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState &gt;</a>.</p>
 
 </div>
 </div>
-<a id="a8c1c15f36042c374ac5f53149d87e4a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c1c15f36042c374ac5f53149d87e4a9">&#9670;&nbsp;</a></span>end()</h2>
+<a id="a9c69d92ff0780afae5ac19e68437f4ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c69d92ff0780afae5ac19e68437f4ef">&#9670;&nbsp;</a></span>bind() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::bind </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set.html">DirectX12DescriptorSet</a> &amp;&#160;</td>
+          <td class="paramname"><em>descriptorSet</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a8b675e287b5e0487f0c6f24d5e73a978"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b675e287b5e0487f0c6f24d5e73a978">&#9670;&nbsp;</a></span>bind() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::bind </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_index_buffer.html">IDirectX12IndexBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>buffer</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a4908a75811b9238c7837fbd385f08587"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4908a75811b9238c7837fbd385f08587">&#9670;&nbsp;</a></span>bind() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::bind </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_vertex_buffer.html">IDirectX12VertexBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>buffer</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a5a595df75528e08d2771a1a14fd08375"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a595df75528e08d2771a1a14fd08375">&#9670;&nbsp;</a></span>dispatch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::dispatch </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html">Vector3u</a> &amp;&#160;</td>
+          <td class="paramname"><em>threadCount</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Executes a compute shader. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a3e3148b31f9e057fec47fbb6d5807858">LiteFX::Rendering::ICommandBuffer&lt; IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a78f64ae040d4d33af6538d10979bfb80"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a78f64ae040d4d33af6538d10979bfb80">&#9670;&nbsp;</a></span>draw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::draw </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstVertex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws a number of vertices from the currently bound vertex buffer. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad77e9bba4e59697cccba83f18222354c">LiteFX::Rendering::ICommandBuffer&lt; IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a00c6592fceb092789bc6199742e73906"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a00c6592fceb092789bc6199742e73906">&#9670;&nbsp;</a></span>drawIndexed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::drawIndexed </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>indices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstIndex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertexOffset</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a356edf0074c348ed75ef40ccf68a5421">LiteFX::Rendering::ICommandBuffer&lt; IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a862deed4385cf89496cc8e9c2ddde70f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a862deed4385cf89496cc8e9c2ddde70f">&#9670;&nbsp;</a></span>end()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -335,14 +677,127 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void DirectX12CommandBuffer::end </td>
           <td>(</td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>submit</em> = <code>true</code>, </td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Ends recording commands on the command buffer. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aab3a09c85ed99d812572a3e60d9e985d">LiteFX::Rendering::ICommandBuffer&lt; IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a669c8d4f8b0fe1aa221df694508943ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a669c8d4f8b0fe1aa221df694508943ec">&#9670;&nbsp;</a></span>generateMipMaps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::generateMipMaps </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;&#160;</td>
+          <td class="paramname"><em>image</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a90a9c04899b0df3707c8dfebf7bc5747"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90a9c04899b0df3707c8dfebf7bc5747">&#9670;&nbsp;</a></span>pushConstants()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::pushConstants </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_layout.html">DirectX12PushConstantsLayout</a> &amp;&#160;</td>
+          <td class="paramname"><em>layout</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>wait</em> = <code>false</code>&#160;</td>
+          <td class="paramtype">const void *const&#160;</td>
+          <td class="paramname"><em>memory</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a77ee65e96f1c04eb377863fe8657d6c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77ee65e96f1c04eb377863fe8657d6c1">&#9670;&nbsp;</a></span>transfer() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::transfer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>elements</em> = <code>1</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -357,14 +812,12 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Ends recording commands on the command buffer. </p>
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a2bd065e6a6716d43d70e403325c3f9e9">LiteFX::Rendering::ICommandBuffer</a>.</p>
+<p></p>
 
 </div>
 </div>
-<a id="aa1f0513a12deff2a900bc6c7d4fd4deb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa1f0513a12deff2a900bc6c7d4fd4deb">&#9670;&nbsp;</a></span>submit()</h2>
+<a id="ac95efd3a7e0b468e67f7465f153593a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac95efd3a7e0b468e67f7465f153593a0">&#9670;&nbsp;</a></span>transfer() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -373,11 +826,39 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void DirectX12CommandBuffer::submit </td>
+          <td class="memname">void DirectX12CommandBuffer::transfer </td>
           <td>(</td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>wait</em> = <code>false</code></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>elements</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
   </td>
@@ -387,14 +868,12 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Submits the command buffer to the parent command queue. </p>
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7a1fa26c50e98472e3e97b48f751ed37">LiteFX::Rendering::ICommandBuffer</a>.</p>
+<p></p>
 
 </div>
 </div>
-<a id="a0abe72ed4937140ca6d665fa088f35ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0abe72ed4937140ca6d665fa088f35ee">&#9670;&nbsp;</a></span>wait()</h2>
+<a id="a9b22d46e9f6d09b45d72cbe309c0d82f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b22d46e9f6d09b45d72cbe309c0d82f">&#9670;&nbsp;</a></span>transfer() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -403,10 +882,39 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void DirectX12CommandBuffer::wait </td>
+          <td class="memname">void DirectX12CommandBuffer::transfer </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html">IDirectX12Buffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresources</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
   </td>
@@ -416,9 +924,91 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Waits for the command buffer to be executed. </p>
+<p></p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af7365086cfd654043ed6590ff1ac90d5">LiteFX::Rendering::ICommandBuffer</a>.</p>
+</div>
+</div>
+<a id="aebe3dcfd48eb9bee235a061ee0981235"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebe3dcfd48eb9bee235a061ee0981235">&#9670;&nbsp;</a></span>transfer() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::transfer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">IDirectX12Image</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresources</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a5e2da3016c86df8b4e17bca9de552d0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e2da3016c86df8b4e17bca9de552d0a">&#9670;&nbsp;</a></span>use()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DirectX12CommandBuffer::use </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_pipeline_state.html">DirectX12PipelineState</a> &amp;&#160;</td>
+          <td class="paramname"><em>pipeline</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
 
 </div>
 </div>

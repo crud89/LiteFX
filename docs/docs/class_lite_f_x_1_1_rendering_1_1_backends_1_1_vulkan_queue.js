@@ -8,10 +8,18 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue =
     [ "bind", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a54263aad570bf5de59a2bd9ffaa1283c", null ],
     [ "commandPool", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a9e01ed4f28357804103e745cf90c0f9c", null ],
     [ "createCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a910333138e1b2bc7183e14a793b2ae28", null ],
+    [ "createCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a42d6961404d3cb78308a4f16f161fe92", null ],
+    [ "currentFence", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ad308995a0783ad3639e84505fb5304ba", null ],
     [ "familyId", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a8dd4d1f7add080086c786dbb4ca81ad0", null ],
     [ "isBound", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ad17264b41ef5672143fe673c63000b93", null ],
     [ "priority", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a94344091ff9f60576f6d7eef059f1f3a", null ],
     [ "queueId", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a5bfe0e4700b51a8c876a96ceb4c598c6", null ],
     [ "release", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a7b79ca8ea1e82cc71f19ac96e4194532", null ],
-    [ "type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ae9f1a34a2329c47456b5a593983b6c4e", null ]
+    [ "submit", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a058eb124e77db49926ab5e5ee91abbe4", null ],
+    [ "submit", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a99311493cd5c805c589bd5861f4afa1a", null ],
+    [ "submit", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a78eade774cde27d96fc5d55c365909e5", null ],
+    [ "submit", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#af0a4c3ac7772e2aa376e696941fc2703", null ],
+    [ "timelineSemaphore", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ab8ac20506eec957a82dd3c7cd1d72453", null ],
+    [ "type", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ae9f1a34a2329c47456b5a593983b6c4e", null ],
+    [ "waitFor", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ae6382b9f2ed01615b303d6829d9772e7", null ]
 ];

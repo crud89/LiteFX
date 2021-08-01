@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -107,19 +107,23 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6b8eb47a778836457616ed3de4ae37c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9114ab709b2f78cf81093fa31a92f21e"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a9114ab709b2f78cf81093fa31a92f21e">use</a> (TInputAttachmentMapping &amp;&amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#adc4beea98ae0e42971f4e76020eda761">inputAttachment</a>)=0</td></tr>
 <tr class="separator:a9114ab709b2f78cf81093fa31a92f21e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b3ed9bd9d696da81eb06d59229585ad"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a4b3ed9bd9d696da81eb06d59229585ad">renderTarget</a> (const RenderTargetType &amp;type, const Format &amp;format, const MultiSamplingLevel &amp;samples, const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;clearValues={ 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor=true, bool clearStencil=true, bool isVolatile=false)=0</td></tr>
-<tr class="separator:a4b3ed9bd9d696da81eb06d59229585ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a33b9ab3aa3a84a05ab31435ded114992"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a33b9ab3aa3a84a05ab31435ded114992">renderTarget</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;location, const RenderTargetType &amp;type, const Format &amp;format, const MultiSamplingLevel &amp;samples, const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;clearValues={ 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor=true, bool clearStencil=true, bool isVolatile=false)=0</td></tr>
-<tr class="separator:a33b9ab3aa3a84a05ab31435ded114992"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2993fd4c205e05905e5214d6bdaf25d1"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a2993fd4c205e05905e5214d6bdaf25d1">renderTarget</a> (TInputAttachmentMapping &amp;output, const RenderTargetType &amp;type, const Format &amp;format, const MultiSamplingLevel &amp;samples, const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;clearValues={ 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor=true, bool clearStencil=true, bool isVolatile=false)=0</td></tr>
-<tr class="separator:a2993fd4c205e05905e5214d6bdaf25d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22e04348d67829ddcc197b0c4775ee57"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a22e04348d67829ddcc197b0c4775ee57">renderTarget</a> (TInputAttachmentMapping &amp;output, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;location, const RenderTargetType &amp;type, const Format &amp;format, const MultiSamplingLevel &amp;samples, const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;clearValues={ 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor=true, bool clearStencil=true, bool isVolatile=false)=0</td></tr>
-<tr class="separator:a22e04348d67829ddcc197b0c4775ee57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82222b57208f90a21b35d9ebd2ad0148"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a82222b57208f90a21b35d9ebd2ad0148">commandBuffers</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;count)=0</td></tr>
+<tr class="separator:a82222b57208f90a21b35d9ebd2ad0148"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e41fe826199075f9cd11bfbe1ffc956"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a5e41fe826199075f9cd11bfbe1ffc956">renderTarget</a> (const RenderTargetType &amp;type, const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;clearValues={ 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor=true, bool clearStencil=true, bool isVolatile=false)=0</td></tr>
+<tr class="separator:a5e41fe826199075f9cd11bfbe1ffc956"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa54294523edf6083fa7e6bdeb92c6999"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#aa54294523edf6083fa7e6bdeb92c6999">renderTarget</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;location, const RenderTargetType &amp;type, const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;clearValues={ 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor=true, bool clearStencil=true, bool isVolatile=false)=0</td></tr>
+<tr class="separator:aa54294523edf6083fa7e6bdeb92c6999"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a709de51cdf3571ab93e90037d6ea3600"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a709de51cdf3571ab93e90037d6ea3600">renderTarget</a> (TInputAttachmentMapping &amp;output, const RenderTargetType &amp;type, const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;clearValues={ 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor=true, bool clearStencil=true, bool isVolatile=false)=0</td></tr>
+<tr class="separator:a709de51cdf3571ab93e90037d6ea3600"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a113d185b6c784d653d58249439343567"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a113d185b6c784d653d58249439343567">renderTarget</a> (TInputAttachmentMapping &amp;output, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;location, const RenderTargetType &amp;type, const Format &amp;format, const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;clearValues={ 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor=true, bool clearStencil=true, bool isVolatile=false)=0</td></tr>
+<tr class="separator:a113d185b6c784d653d58249439343567"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99c26f1f392c8e05dd54058eab59d7a5"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a99c26f1f392c8e05dd54058eab59d7a5">setMultiSamplingLevel</a> (const MultiSamplingLevel &amp;samples=MultiSamplingLevel::x4)=0</td></tr>
+<tr class="separator:a99c26f1f392c8e05dd54058eab59d7a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc4beea98ae0e42971f4e76020eda761"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#adc4beea98ae0e42971f4e76020eda761">inputAttachment</a> (const TInputAttachmentMapping &amp;inputAttachment)=0</td></tr>
 <tr class="separator:adc4beea98ae0e42971f4e76020eda761"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbe907ac3ee54347add57c666e95c80b"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#acbe907ac3ee54347add57c666e95c80b">inputAttachment</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;inputLocation, const TRenderPass &amp;renderPass, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;outputLocation)=0</td></tr>
 <tr class="separator:acbe907ac3ee54347add57c666e95c80b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac8ad4c0f220f377729411fd977d111e7"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#ac8ad4c0f220f377729411fd977d111e7">inputAttachment</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;inputLocation, const TRenderPass &amp;renderPass, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a4b3ed9bd9d696da81eb06d59229585ad">renderTarget</a>)=0</td></tr>
+<tr class="memitem:ac8ad4c0f220f377729411fd977d111e7"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#ac8ad4c0f220f377729411fd977d111e7">inputAttachment</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;inputLocation, const TRenderPass &amp;renderPass, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html#a5e41fe826199075f9cd11bfbe1ffc956">renderTarget</a>)=0</td></tr>
 <tr class="separator:ac8ad4c0f220f377729411fd977d111e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_builder"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_builder')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_builder.html">LiteFX::Builder&lt; TDerived, TRenderPass &gt;</a></td></tr>
 <tr class="memitem:a9d36251fed9e742ad6261a66917e8bf7 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">const TRenderPass *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a9d36251fed9e742ad6261a66917e8bf7">instance</a> () const noexcept</td></tr>
@@ -136,10 +140,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9a467e50fc8f4db7e6d8ff5a2b54381c inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#ad97fa87a98bf3cdf3a4df27f910da56f">use</a> (<a class="el" href="class_lite_f_x_1_1_builder.html#a95ce991f0f204ba6133127b0a07cb6f9">pointer_type</a> &amp;&amp;)</td></tr>
 <tr class="separator:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename TBuilder::parent_type * &gt; &amp;&amp;rtti::is_explicitly_constructible_v&lt; TInstance, const TRenderPass &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename TBuilder::parent_type * &gt; &amp;&amp;rtti::is_explicitly_constructible_v&lt; TInstance, const TRenderPass &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4385222f548880c248995bba6f18980a inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">virtual TParent &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a4385222f548880c248995bba6f18980a">go</a> ()</td></tr>
 <tr class="separator:a4385222f548880c248995bba6f18980a inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -165,6 +165,36 @@ Additional Inherited Members</h2></td></tr>
 class LiteFX::Rendering::RenderPassBuilder&lt; TDerived, TRenderPass, TRenderPipeline, TFrameBuffer, TInputAttachmentMapping &gt;</h3>
 
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a82222b57208f90a21b35d9ebd2ad0148"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82222b57208f90a21b35d9ebd2ad0148">&#9670;&nbsp;</a></span>commandBuffers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TInputAttachmentMapping  = typename TRenderPass::input_attachment_mapping_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html">LiteFX::Rendering::RenderPassBuilder</a>&lt; TDerived, TRenderPass, TRenderPipeline, TFrameBuffer, TInputAttachmentMapping &gt;::commandBuffers </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>count</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass_builder.html#a9361903dd8718e0529571a33a5849607">LiteFX::Rendering::Backends::VulkanRenderPassBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass_builder.html#a026aa537208ac2407da96b1882386e10">LiteFX::Rendering::Backends::DirectX12RenderPassBuilder</a>.</p>
+
+</div>
+</div>
 <a id="adc4beea98ae0e42971f4e76020eda761"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adc4beea98ae0e42971f4e76020eda761">&#9670;&nbsp;</a></span>inputAttachment() <span class="overload">[1/3]</span></h2>
 
@@ -281,8 +311,8 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
 
 </div>
 </div>
-<a id="a4b3ed9bd9d696da81eb06d59229585ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b3ed9bd9d696da81eb06d59229585ad">&#9670;&nbsp;</a></span>renderTarget() <span class="overload">[1/4]</span></h2>
+<a id="a5e41fe826199075f9cd11bfbe1ffc956"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e41fe826199075f9cd11bfbe1ffc956">&#9670;&nbsp;</a></span>renderTarget() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -303,12 +333,6 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
           <td></td>
           <td class="paramtype">const Format &amp;&#160;</td>
           <td class="paramname"><em>format</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
-          <td class="paramname"><em>samples</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -347,12 +371,12 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
 </table>
 </div><div class="memdoc">
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass_builder.html#ad2431fe7109da0702ad2d0b2a26b8bab">LiteFX::Rendering::Backends::VulkanRenderPassBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass_builder.html#a7229b9719a2dbc15a0e1283c307f064a">LiteFX::Rendering::Backends::DirectX12RenderPassBuilder</a>.</p>
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass_builder.html#a473d22f5a8fd190a3c0fef32dbbb3b90">LiteFX::Rendering::Backends::VulkanRenderPassBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass_builder.html#acba0124b9f61479e8abbf9718606618e">LiteFX::Rendering::Backends::DirectX12RenderPassBuilder</a>.</p>
 
 </div>
 </div>
-<a id="a33b9ab3aa3a84a05ab31435ded114992"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a33b9ab3aa3a84a05ab31435ded114992">&#9670;&nbsp;</a></span>renderTarget() <span class="overload">[2/4]</span></h2>
+<a id="aa54294523edf6083fa7e6bdeb92c6999"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa54294523edf6083fa7e6bdeb92c6999">&#9670;&nbsp;</a></span>renderTarget() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -383,12 +407,6 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
-          <td class="paramname"><em>samples</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;&#160;</td>
           <td class="paramname"><em>clearValues</em> = <code>{&#160;0.0f,&#160;0.0f,&#160;0.0f,&#160;0.0f&#160;}</code>, </td>
         </tr>
@@ -423,12 +441,12 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
 </table>
 </div><div class="memdoc">
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass_builder.html#a4d52b01b383a57c76203bb34901daea7">LiteFX::Rendering::Backends::VulkanRenderPassBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass_builder.html#abcdab9538a986473bfa20789293b0c72">LiteFX::Rendering::Backends::DirectX12RenderPassBuilder</a>.</p>
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass_builder.html#a76e39d08359b9a15c711882d76efaeb1">LiteFX::Rendering::Backends::VulkanRenderPassBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass_builder.html#a23da3003bf904ecd70b6034784067f3e">LiteFX::Rendering::Backends::DirectX12RenderPassBuilder</a>.</p>
 
 </div>
 </div>
-<a id="a2993fd4c205e05905e5214d6bdaf25d1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2993fd4c205e05905e5214d6bdaf25d1">&#9670;&nbsp;</a></span>renderTarget() <span class="overload">[3/4]</span></h2>
+<a id="a709de51cdf3571ab93e90037d6ea3600"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a709de51cdf3571ab93e90037d6ea3600">&#9670;&nbsp;</a></span>renderTarget() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -459,12 +477,6 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
-          <td class="paramname"><em>samples</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;&#160;</td>
           <td class="paramname"><em>clearValues</em> = <code>{&#160;0.0f,&#160;0.0f,&#160;0.0f,&#160;0.0f&#160;}</code>, </td>
         </tr>
@@ -501,8 +513,8 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
 
 </div>
 </div>
-<a id="a22e04348d67829ddcc197b0c4775ee57"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a22e04348d67829ddcc197b0c4775ee57">&#9670;&nbsp;</a></span>renderTarget() <span class="overload">[4/4]</span></h2>
+<a id="a113d185b6c784d653d58249439343567"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a113d185b6c784d653d58249439343567">&#9670;&nbsp;</a></span>renderTarget() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -539,12 +551,6 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
-          <td class="paramname"><em>samples</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html">Vector4f</a> &amp;&#160;</td>
           <td class="paramname"><em>clearValues</em> = <code>{&#160;0.0f,&#160;0.0f,&#160;0.0f,&#160;0.0f&#160;}</code>, </td>
         </tr>
@@ -578,6 +584,36 @@ template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline 
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a99c26f1f392c8e05dd54058eab59d7a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99c26f1f392c8e05dd54058eab59d7a5">&#9670;&nbsp;</a></span>setMultiSamplingLevel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TDerived , typename TRenderPass , typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TInputAttachmentMapping  = typename TRenderPass::input_attachment_mapping_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html">LiteFX::Rendering::RenderPassBuilder</a>&lt; TDerived, TRenderPass, TRenderPipeline, TFrameBuffer, TInputAttachmentMapping &gt;::setMultiSamplingLevel </td>
+          <td>(</td>
+          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
+          <td class="paramname"><em>samples</em> = <code>MultiSamplingLevel::x4</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass_builder.html#a289aee1fe7988041d01c7674197bdf4d">LiteFX::Rendering::Backends::VulkanRenderPassBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass_builder.html#a007eda185ed7ed8aa46f5f6ed6dcfbbd">LiteFX::Rendering::Backends::DirectX12RenderPassBuilder</a>.</p>
 
 </div>
 </div>

@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -92,47 +92,64 @@ $(document).ready(function(){initNavTree('functions_func_b.html',''); initResiza
 <li>backend()
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a9bb5231540161f02c23b738e666e77b6">LiteFX::Rendering::Backends::DirectX12Device</a>
 </li>
+<li>barrier()
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aea82ea0f53d76d49e4e91b89d4fae0e9">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a099ebf1181bc3d51c962d455dd2f71e6">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7ad800b489b90f99e21b8ae2777ead96">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+</li>
 <li>begin()
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a52eb140093df379bc743c18025869ab2">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#ab1874f62b51fce3ef76875d08463d8aa">LiteFX::Rendering::Backends::DirectX12RenderPass</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a3d992e05fabf1c2791c8965c5faac382">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2ff5406374b025c28ef020c778f1b8b6">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a0b5e2d23a2099192df54e57ab33bd66e">LiteFX::Rendering::Backends::VulkanRenderPass</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad08533dccdc780f870b9a5895aa3633b">LiteFX::Rendering::ICommandBuffer</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a56ea0cbe1443fe612b01ad85e0b74444">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f9c3c026d9994e4c3a058af947168f6">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ac5934b9d2c0305381ca5cce00261fa2b">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;</a>
 </li>
 <li>bind()
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#a67a410ed3ebe8f4ebaa1e6d0b2439340">LiteFX::Rendering::Backends::DirectX12Queue</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a9c69d92ff0780afae5ac19e68437f4ef">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#a67a410ed3ebe8f4ebaa1e6d0b2439340">LiteFX::Rendering::Backends::DirectX12Queue</a>
 , <a class="el" href="class_direct_x12_queue_1_1_direct_x12_queue_impl.html#ac772c9020d0d59d6696aed5bd5e9d8b3">LiteFX::Rendering::Backends::DirectX12Queue::DirectX12QueueImpl</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#a08e6cc4d8c451bf203c92582ccffde4b">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#aa45931df5f2b9e18ff2b45abc33cb5d2">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline.html#a6726265726c7122243543614974588e5">LiteFX::Rendering::Backends::VulkanComputePipeline</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html#a659a4aff867c641979a2efd64aa0faaa">LiteFX::Rendering::Backends::VulkanPipelineState</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a54263aad570bf5de59a2bd9ffaa1283c">LiteFX::Rendering::Backends::VulkanQueue</a>
 , <a class="el" href="class_vulkan_queue_1_1_vulkan_queue_impl.html#a53c285d9bf38bc5ce12512c02be9ba7f">LiteFX::Rendering::Backends::VulkanQueue::VulkanQueueImpl</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#ae5f6bd45c45783dcc3a676f5690b9af0">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a75d534dda10594fb454b62ce052a7e80">LiteFX::Rendering::ICommandQueue&lt; TCommandBuffer &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a18157f57a29730368a2bce1bdc5ab0df">LiteFX::Rendering::IRenderPipeline&lt; TRenderPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TBufferInterface, TCommandBuffer, TVertexBufferLayout, TIndexBufferLayout, TDescriptorSetLayout, TShaderProgram, TDescriptorSet &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#aeaa3542da05b2bf66452f997288233fc">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a464762b4406d7f7598a594cb1e72a280">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#afc8e45ebf000946858082349abbb8c6b">LiteFX::Rendering::ICommandQueue&lt; TCommandBuffer, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline &gt;</a>
+</li>
+<li>bindDescriptorHeaps()
+: <a class="el" href="class_direct_x12_command_buffer_1_1_direct_x12_command_buffer_impl.html#ad8ed2c90b2ee6fea96e7c2b9f1094dda">LiteFX::Rendering::Backends::DirectX12CommandBuffer::DirectX12CommandBufferImpl</a>
 </li>
 <li>bindGlobalDescriptorHeaps()
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a065a549d6d2713762c4c14418deb031d">LiteFX::Rendering::Backends::DirectX12Device</a>
 </li>
 <li>binding()
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_constant_buffer.html#ac18f56ba57b6cbc10a3a5afaca159e41">LiteFX::Rendering::Backends::DirectX12ConstantBuffer</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#adb8c3b9ad36ef86fa7f783ef60fba75e">LiteFX::Rendering::Backends::DirectX12DescriptorLayout</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_layout.html#adb8c3b9ad36ef86fa7f783ef60fba75e">LiteFX::Rendering::Backends::DirectX12DescriptorLayout</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer_layout.html#af3a7fa0a163a1a67a15c7e645a43277b">LiteFX::Rendering::Backends::DirectX12IndexBufferLayout</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#aaacabdea08cadd632e6c0e764c71eba7">LiteFX::Rendering::Backends::DirectX12Sampler</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_texture.html#ac39f8efc35cf796cda3a37b82a1e8490">LiteFX::Rendering::Backends::DirectX12Texture</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_vertex_buffer.html#ac8e58a5762fac1ad9bac0a146ac3456b">LiteFX::Rendering::Backends::DirectX12VertexBuffer</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html#a81a018630e70d3df33927e8902741f8e">LiteFX::Rendering::Backends::DirectX12PushConstantsRange</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_vertex_buffer_layout.html#af0ee236d4263a7fa58a9b518559c2173">LiteFX::Rendering::Backends::DirectX12VertexBufferLayout</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_constant_buffer.html#a5a02daf9762bc3cba1377e4899778fe4">LiteFX::Rendering::Backends::VulkanConstantBuffer</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_layout.html#a1219521ccea04fddda2e46991618a49d">LiteFX::Rendering::Backends::VulkanDescriptorLayout</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_index_buffer_layout.html#a3adfc43a97dc69ad592a89eb0c964059">LiteFX::Rendering::Backends::VulkanIndexBufferLayout</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_sampler.html#a800f3eb38235f2260405243e16c9b6c3">LiteFX::Rendering::Backends::VulkanSampler</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_texture.html#a616aa4e635f12b5e2f9fcc36b68484f2">LiteFX::Rendering::Backends::VulkanTexture</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer.html#a4950763ebe5f83a8373de49cab27ea27">LiteFX::Rendering::Backends::VulkanVertexBuffer</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_push_constants_range.html#a26adbf01685748fd31726625dee797f5">LiteFX::Rendering::Backends::VulkanPushConstantsRange</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer_layout.html#ac505aa6debea7235ecee323b4b6edf64">LiteFX::Rendering::Backends::VulkanVertexBufferLayout</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_bindable.html#a5f971b00495613d814b48919014c3552">LiteFX::Rendering::IBindable</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer_layout.html#aa89f9b4a4e4ef9da1b1428c2993c6c40">LiteFX::Rendering::IBufferLayout</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_push_constants_range.html#a647b67ee75c0d358ba63d064b9cc8669">LiteFX::Rendering::IPushConstantsRange</a>
+</li>
+<li>blendFactors()
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline.html#aa62c18452c4557dc01477c7399875b31">LiteFX::Rendering::Backends::DirectX12RenderPipeline</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline.html#a9198572c0682747a55356e6429fd5015">LiteFX::Rendering::Backends::VulkanRenderPipeline</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a796d769d5a196a5a2a2c029d42be6aea">LiteFX::Rendering::IRenderPipeline&lt; TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface, TVertexBufferLayout, TIndexBufferLayout &gt;</a>
+</li>
+<li>blendState()
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a0aa497eacfbabde367adbfb54b575520">LiteFX::Rendering::IRenderTarget</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html#a6e0740dc7dcb6dd181def6eeef6d3eb5">LiteFX::Rendering::RenderTarget</a>
+</li>
+<li>blitPipeline()
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a534a11fc9cb7e9cc7e6254615ea46050">LiteFX::Rendering::Backends::DirectX12Device</a>
 </li>
 <li>BufferAttribute()
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_buffer_attribute.html#ac02a2de81d68583839283b4e73304aae">LiteFX::Rendering::BufferAttribute</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_buffer_attribute.html#a56d885764cf4d26ae70f42c717cf049b">LiteFX::Rendering::BufferAttribute</a>
 </li>
 <li>BufferAttributeImpl()
 : <a class="el" href="class_buffer_attribute_1_1_buffer_attribute_impl.html#a7a4074d62d36664032bac257dd8b9beb">LiteFX::Rendering::BufferAttribute::BufferAttributeImpl</a>
@@ -143,28 +160,35 @@ $(document).ready(function(){initNavTree('functions_func_b.html',''); initResiza
 <li>bufferIndex()
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_frame_buffer.html#a9cf55527a12bd9edb56c5c00a0a45e01">LiteFX::Rendering::Backends::DirectX12FrameBuffer</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html#a0bca7a74c4562ee3a9677b5e15a9a442">LiteFX::Rendering::Backends::VulkanFrameBuffer</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#adfc7ea113d9fa3df6fa0ffe9735e3c03">LiteFX::Rendering::IFrameBuffer&lt; TCommandBuffer, TImageInterface &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a90a7df253651386c545e581d4ebdd6c0">LiteFX::Rendering::IFrameBuffer&lt; TCommandBuffer, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline &gt;</a>
 </li>
 <li>bufferQueue()
 : <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#aac05aed33372c6cc7ea7cb248cccf15e">LiteFX::Rendering::Backends::DirectX12Device</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a75322981b05e0cdd7e85944f61a5575d">LiteFX::Rendering::Backends::VulkanDevice</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a27465a28faa8ac8d37652c00d203487a">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a30445acf068a0999eb5e7ad69d1e494e">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</a>
 </li>
 <li>buffers()
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a1fbd2639c1b92e35c9cbb43d5d8cfee5">LiteFX::Rendering::Backends::DirectX12SwapChain</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_descriptor_set_layout.html#ac0300c4af3262e329073147717eb6faa">LiteFX::Rendering::Backends::DirectX12DescriptorSetLayout</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a1fbd2639c1b92e35c9cbb43d5d8cfee5">LiteFX::Rendering::Backends::DirectX12SwapChain</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a128dd2a8c723b9b117915c8a88858502">LiteFX::Rendering::Backends::VulkanDescriptorSetLayout</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html#a1ba2e2b25b82931382d50b90eda096f7">LiteFX::Rendering::Backends::VulkanSwapChain</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_descriptor_set_layout.html#a80ab11c574e0802da679b9cc8127daa1">LiteFX::Rendering::IDescriptorSetLayout&lt; TDescriptorLayout, TDescriptorSet, TBuffer, TSampler, TImage &gt;</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a1b02aae7d6966efeadc39f5f77bb6963">LiteFX::Rendering::ISwapChain&lt; TImageInterface &gt;</a>
 </li>
 <li>build()
 : <a class="el" href="class_lite_f_x_1_1_app.html#a377b65a49746db2d0f8d1d991eaa7930">LiteFX::App</a>
+</li>
+<li>buildComputePipeline()
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a2c977b93e20985bd5f533b41c7ce158f">LiteFX::Rendering::Backends::DirectX12Device</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#af85d3102a2089500cf255a91339d44ac">LiteFX::Rendering::Backends::VulkanDevice</a>
 </li>
 <li>Builder()
 : <a class="el" href="class_lite_f_x_1_1_builder.html#aa1c2dd8d8ea6696fca827657bea81890">LiteFX::Builder&lt; TDerived, T, TParent, TPointer &gt;</a>
 , <a class="el" href="class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a5040c090554a45a32e45b1b538ecc7c4">LiteFX::Builder&lt; TDerived, T, std::nullptr_t, typename TPointer &gt;</a>
 </li>
 <li>buildRenderPass()
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a7825c859197c327efb5fa3b9ecc75f6b">LiteFX::Rendering::Backends::DirectX12Device</a>
-, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a0515caf71d98649d727d6e1ebea72031">LiteFX::Rendering::Backends::VulkanDevice</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a8fa156d0cb69e450ab134c94b5d02f88">LiteFX::Rendering::Backends::DirectX12Device</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a10d36a19afadc80074f72a32d09594d2">LiteFX::Rendering::Backends::VulkanDevice</a>
 </li>
 </ul>
 </div><!-- contents -->

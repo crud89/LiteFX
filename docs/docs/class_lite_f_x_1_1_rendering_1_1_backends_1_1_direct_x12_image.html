@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -90,7 +90,6 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backe
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
-<a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">LiteFX::Rendering::Backends::DirectX12Image Class Reference</div>  </div>
@@ -103,8 +102,6 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backe
 <p><code>#include &lt;<a class="el" href="_direct_x12_2src_2image_8h_source.html">image.h</a>&gt;</code></p>
 
 <p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html">LiteFX::Rendering::Backends::DirectX12RuntimeObject&lt; DirectX12Device &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html">LiteFX::Rendering::Backends::IDirectX12Image</a>, and <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; THandle &gt;</a>.</p>
-
-<p>Inherited by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_texture.html">LiteFX::Rendering::Backends::DirectX12Texture</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -113,8 +110,8 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa74bc79a4865d8bae097fe7ad60d5f6c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#aa74bc79a4865d8bae097fe7ad60d5f6c">DirectX12Image</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;device, ComPtr&lt; ID3D12Resource &gt; &amp;&amp;image, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a9d436638a15a72874d596ab69b2db705">extent</a>, const Format &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a56b6bc75dca0b50fc90b26634571fcf0">format</a>, const D3D12_RESOURCE_STATES &amp;initialState, <a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html#ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab">AllocatorPtr</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a0bffc8faba15270f8a00acdac3ac912b">allocator</a>=nullptr, <a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html#adf107f7cea3eaf178abd13c713f9a7cd">AllocationPtr</a> &amp;&amp;allocation=nullptr)</td></tr>
-<tr class="separator:aa74bc79a4865d8bae097fe7ad60d5f6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a510eb0e7e92d588bd7bd3899492cd6e0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a510eb0e7e92d588bd7bd3899492cd6e0">DirectX12Image</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;device, ComPtr&lt; ID3D12Resource &gt; &amp;&amp;image, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ae05d49436568babc87be61301b18128f">extent</a>, const Format &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a56b6bc75dca0b50fc90b26634571fcf0">format</a>, const ImageDimensions &amp;dimension, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a5009272e684e2461a249de73b38a8842">levels</a>, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a9f690c948a975b6fde266ea54eb33540">layers</a>, const MultiSamplingLevel &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a865ed93e7a9d65f44879b34f273eb590">samples</a>, const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#aba8d144476f95936da2c6014083e4652">writable</a>, const ResourceState &amp;initialState, <a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html#ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab">AllocatorPtr</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a0bffc8faba15270f8a00acdac3ac912b">allocator</a>=nullptr, <a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html#adf107f7cea3eaf178abd13c713f9a7cd">AllocationPtr</a> &amp;&amp;allocation=nullptr)</td></tr>
+<tr class="separator:a510eb0e7e92d588bd7bd3899492cd6e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32affd55c00fb65a7c41f1238601d062"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a32affd55c00fb65a7c41f1238601d062">DirectX12Image</a> (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html">DirectX12Image</a> &amp;&amp;)=delete</td></tr>
 <tr class="separator:a32affd55c00fb65a7c41f1238601d062"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a156b6a98c27284e751fdfac7529c6249"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a156b6a98c27284e751fdfac7529c6249">DirectX12Image</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html">DirectX12Image</a> &amp;)=delete</td></tr>
@@ -122,7 +119,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac4ec92872ec68f3d73d643582e0d42f7"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ac4ec92872ec68f3d73d643582e0d42f7">~DirectX12Image</a> () noexcept</td></tr>
 <tr class="separator:ac4ec92872ec68f3d73d643582e0d42f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af87729555023b1f4cd7dec019ac59c4e"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#af87729555023b1f4cd7dec019ac59c4e">elements</a> () const noexcept override</td></tr>
-<tr class="memdesc:af87729555023b1f4cd7dec019ac59c4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of array elements inside the memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#af87729555023b1f4cd7dec019ac59c4e">More...</a><br /></td></tr>
+<tr class="memdesc:af87729555023b1f4cd7dec019ac59c4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of sub-resources inside the memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#af87729555023b1f4cd7dec019ac59c4e">More...</a><br /></td></tr>
 <tr class="separator:af87729555023b1f4cd7dec019ac59c4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33978ac1c6a226d57e3f9aa9aa3680df"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a33978ac1c6a226d57e3f9aa9aa3680df">size</a> () const noexcept override</td></tr>
 <tr class="memdesc:a33978ac1c6a226d57e3f9aa9aa3680df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the size (in bytes) of the aligned memory chunk.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a33978ac1c6a226d57e3f9aa9aa3680df">More...</a><br /></td></tr>
@@ -136,20 +133,43 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a19046e51bf0ac343842590f9dcabb808"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a19046e51bf0ac343842590f9dcabb808">alignedElementSize</a> () const noexcept override</td></tr>
 <tr class="memdesc:a19046e51bf0ac343842590f9dcabb808"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the actual size of the element in device memory.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a19046e51bf0ac343842590f9dcabb808">More...</a><br /></td></tr>
 <tr class="separator:a19046e51bf0ac343842590f9dcabb808"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9d436638a15a72874d596ab69b2db705"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a9d436638a15a72874d596ab69b2db705">extent</a> () const noexcept override</td></tr>
-<tr class="memdesc:a9d436638a15a72874d596ab69b2db705"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the extent of the image.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a9d436638a15a72874d596ab69b2db705">More...</a><br /></td></tr>
-<tr class="separator:a9d436638a15a72874d596ab69b2db705"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba8d144476f95936da2c6014083e4652"><td class="memItemLeft" align="right" valign="top">virtual const bool &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#aba8d144476f95936da2c6014083e4652">writable</a> () const noexcept override</td></tr>
+<tr class="memdesc:aba8d144476f95936da2c6014083e4652"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the resource can be bound to a read/write descriptor.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#aba8d144476f95936da2c6014083e4652">More...</a><br /></td></tr>
+<tr class="separator:aba8d144476f95936da2c6014083e4652"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae18f4fb9f6ec19d5d9e491c24c94678b"><td class="memItemLeft" align="right" valign="top">virtual const ResourceState &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ae18f4fb9f6ec19d5d9e491c24c94678b">state</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresource=0) const override</td></tr>
+<tr class="memdesc:ae18f4fb9f6ec19d5d9e491c24c94678b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current state of the resource.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ae18f4fb9f6ec19d5d9e491c24c94678b">More...</a><br /></td></tr>
+<tr class="separator:ae18f4fb9f6ec19d5d9e491c24c94678b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a092f82e67d6a271b9215b7610e922e42"><td class="memItemLeft" align="right" valign="top">virtual ResourceState &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a092f82e67d6a271b9215b7610e922e42">state</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresource=0) override</td></tr>
+<tr class="memdesc:a092f82e67d6a271b9215b7610e922e42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a reference of the current state of the resource.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a092f82e67d6a271b9215b7610e922e42">More...</a><br /></td></tr>
+<tr class="separator:a092f82e67d6a271b9215b7610e922e42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a956a2c9789c4d1339223d38af676e612"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a956a2c9789c4d1339223d38af676e612">size</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;level) const noexcept override</td></tr>
+<tr class="memdesc:a956a2c9789c4d1339223d38af676e612"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the size (in bytes) of an image at a specified mip map level. If the image does not contain the provided mip map level, the method returns <code>0</code>.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a956a2c9789c4d1339223d38af676e612">More...</a><br /></td></tr>
+<tr class="separator:a956a2c9789c4d1339223d38af676e612"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae05d49436568babc87be61301b18128f"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ae05d49436568babc87be61301b18128f">extent</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;level=0) const noexcept override</td></tr>
+<tr class="memdesc:ae05d49436568babc87be61301b18128f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the extent of the image at a certain mip-map level.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ae05d49436568babc87be61301b18128f">More...</a><br /></td></tr>
+<tr class="separator:ae05d49436568babc87be61301b18128f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56b6bc75dca0b50fc90b26634571fcf0"><td class="memItemLeft" align="right" valign="top">virtual const Format &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a56b6bc75dca0b50fc90b26634571fcf0">format</a> () const noexcept override</td></tr>
 <tr class="memdesc:a56b6bc75dca0b50fc90b26634571fcf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the internal format of the image.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a56b6bc75dca0b50fc90b26634571fcf0">More...</a><br /></td></tr>
 <tr class="separator:a56b6bc75dca0b50fc90b26634571fcf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb6d637f7cf9915185a5ca292208c7a8"><td class="memItemLeft" align="right" valign="top">virtual const D3D12_RESOURCE_STATES &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#abb6d637f7cf9915185a5ca292208c7a8">state</a> () const noexcept override</td></tr>
-<tr class="separator:abb6d637f7cf9915185a5ca292208c7a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a028d5ba5e8b98b9e3df20b69c7bb8745"><td class="memItemLeft" align="right" valign="top">virtual D3D12_RESOURCE_STATES &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a028d5ba5e8b98b9e3df20b69c7bb8745">state</a> () noexcept override</td></tr>
-<tr class="separator:a028d5ba5e8b98b9e3df20b69c7bb8745"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab5cef9d97810889eb60bba82221e975"><td class="memItemLeft" align="right" valign="top">virtual D3D12_RESOURCE_BARRIER&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#aab5cef9d97810889eb60bba82221e975">transitionTo</a> (const D3D12_RESOURCE_STATES &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#abb6d637f7cf9915185a5ca292208c7a8">state</a>, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;element=D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS &amp;flags=D3D12_RESOURCE_BARRIER_FLAG_NONE) const override</td></tr>
-<tr class="separator:aab5cef9d97810889eb60bba82221e975"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e84f44f2b61b9855405340a9a11ca78"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a1e84f44f2b61b9855405340a9a11ca78">transitionTo</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html">DirectX12CommandBuffer</a> &amp;commandBuffer, const D3D12_RESOURCE_STATES &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#abb6d637f7cf9915185a5ca292208c7a8">state</a>, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;element=D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, const D3D12_RESOURCE_BARRIER_FLAGS &amp;flags=D3D12_RESOURCE_BARRIER_FLAG_NONE) const override</td></tr>
-<tr class="separator:a1e84f44f2b61b9855405340a9a11ca78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a331d0c37b9a6d9e69551189268171a69"><td class="memItemLeft" align="right" valign="top">virtual const ImageDimensions &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a331d0c37b9a6d9e69551189268171a69">dimensions</a> () const noexcept override</td></tr>
+<tr class="memdesc:a331d0c37b9a6d9e69551189268171a69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the images dimensionality.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a331d0c37b9a6d9e69551189268171a69">More...</a><br /></td></tr>
+<tr class="separator:a331d0c37b9a6d9e69551189268171a69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5009272e684e2461a249de73b38a8842"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a5009272e684e2461a249de73b38a8842">levels</a> () const noexcept override</td></tr>
+<tr class="memdesc:a5009272e684e2461a249de73b38a8842"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of mip-map levels of the image.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a5009272e684e2461a249de73b38a8842">More...</a><br /></td></tr>
+<tr class="separator:a5009272e684e2461a249de73b38a8842"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f690c948a975b6fde266ea54eb33540"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a9f690c948a975b6fde266ea54eb33540">layers</a> () const noexcept override</td></tr>
+<tr class="memdesc:a9f690c948a975b6fde266ea54eb33540"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of layers (slices) of the image.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a9f690c948a975b6fde266ea54eb33540">More...</a><br /></td></tr>
+<tr class="separator:a9f690c948a975b6fde266ea54eb33540"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83216dc6783642a392358cede63068e4"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a83216dc6783642a392358cede63068e4">planes</a> () const noexcept override</td></tr>
+<tr class="memdesc:a83216dc6783642a392358cede63068e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of planes of the image resource.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a83216dc6783642a392358cede63068e4">More...</a><br /></td></tr>
+<tr class="separator:a83216dc6783642a392358cede63068e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a865ed93e7a9d65f44879b34f273eb590"><td class="memItemLeft" align="right" valign="top">virtual const MultiSamplingLevel &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a865ed93e7a9d65f44879b34f273eb590">samples</a> () const noexcept override</td></tr>
+<tr class="memdesc:a865ed93e7a9d65f44879b34f273eb590"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of samples of the texture.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a865ed93e7a9d65f44879b34f273eb590">More...</a><br /></td></tr>
+<tr class="separator:a865ed93e7a9d65f44879b34f273eb590"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bffc8faba15270f8a00acdac3ac912b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html#ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab">AllocatorPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a0bffc8faba15270f8a00acdac3ac912b">allocator</a> () const noexcept</td></tr>
+<tr class="separator:a0bffc8faba15270f8a00acdac3ac912b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fde08819870b78dffe835abd1544105"><td class="memItemLeft" align="right" valign="top">virtual const D3D12MA::Allocation *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a6fde08819870b78dffe835abd1544105">allocationInfo</a> () const noexcept</td></tr>
+<tr class="separator:a6fde08819870b78dffe835abd1544105"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html">LiteFX::Rendering::Backends::DirectX12RuntimeObject&lt; DirectX12Device &gt;</a></td></tr>
 <tr class="memitem:aa1c007663fac2cd1bcd01ccccd4383b2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html#aa1c007663fac2cd1bcd01ccccd4383b2">DirectX12RuntimeObject</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object.html#a170397f1989bda2cca4f3e95e3e3fdab">parent</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> *device)</td></tr>
 <tr class="separator:aa1c007663fac2cd1bcd01ccccd4383b2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_runtime_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -169,6 +189,8 @@ Public Member Functions</h2></td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_image"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_image')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html">LiteFX::Rendering::IImage</a></td></tr>
 <tr class="memitem:adb1660e306a4baf86d6ba9862a0ec612 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_image"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#adb1660e306a4baf86d6ba9862a0ec612">~IImage</a> () noexcept=default</td></tr>
 <tr class="separator:adb1660e306a4baf86d6ba9862a0ec612 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_image"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b9e3a8daf1c0feca8f22b5109d7fdac inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_image"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#a4b9e3a8daf1c0feca8f22b5109d7fdac">subresourceId</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;level, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;layer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;plane) const noexcept</td></tr>
+<tr class="separator:a4b9e3a8daf1c0feca8f22b5109d7fdac inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_image"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html">LiteFX::Rendering::IDeviceMemory</a></td></tr>
 <tr class="memitem:a1899194e7d61373406c922cc5b336007 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a1899194e7d61373406c922cc5b336007">~IDeviceMemory</a> () noexcept=default</td></tr>
 <tr class="separator:a1899194e7d61373406c922cc5b336007 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_device_memory"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,9 +199,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac5bb8c6592b9b56d487d4851e213668d inherit pub_methods_class_lite_f_x_1_1_i_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad4cf745232df911efc4211dc23f8cc8 inherit pub_methods_class_lite_f_x_1_1_i_resource"><td class="memItemLeft" align="right" valign="top">virtual const ComPtr&lt; ID3D12Resource &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_i_resource.html#aad4cf745232df911efc4211dc23f8cc8">handle</a> () const noexcept=0</td></tr>
 <tr class="separator:aad4cf745232df911efc4211dc23f8cc8 inherit pub_methods_class_lite_f_x_1_1_i_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource.html">LiteFX::Rendering::Backends::IDirectX12Resource</a></td></tr>
-<tr class="memitem:a7bf90fc86520919e3f8b551486e18892 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource.html#a7bf90fc86520919e3f8b551486e18892">~IDirectX12Resource</a> () noexcept=default</td></tr>
-<tr class="separator:a7bf90fc86520919e3f8b551486e18892 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_resource"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_resource')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; THandle &gt;</a></td></tr>
 <tr class="memitem:a9413559dfee29e4b480d877474014418 inherit pub_methods_class_lite_f_x_1_1_resource"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_resource.html#a9413559dfee29e4b480d877474014418">Resource</a> (const <a class="el" href="class_lite_f_x_1_1_resource.html">Resource</a> &amp;)=delete</td></tr>
 <tr class="separator:a9413559dfee29e4b480d877474014418 inherit pub_methods_class_lite_f_x_1_1_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -195,15 +214,11 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a99b916a4519c3390e1d8ce1e8e04dd09"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html">DirectX12Image</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a99b916a4519c3390e1d8ce1e8e04dd09">allocate</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;device, <a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html#ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab">AllocatorPtr</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a0bffc8faba15270f8a00acdac3ac912b">allocator</a>, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a9d436638a15a72874d596ab69b2db705">extent</a>, const Format &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a56b6bc75dca0b50fc90b26634571fcf0">format</a>, const D3D12_RESOURCE_STATES &amp;initialState, const D3D12_RESOURCE_DESC &amp;resourceDesc, const D3D12MA::ALLOCATION_DESC &amp;allocationDesc)</td></tr>
-<tr class="separator:a99b916a4519c3390e1d8ce1e8e04dd09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa53b2cc066e1443b85b3d53856d6891"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html">DirectX12Image</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#afa53b2cc066e1443b85b3d53856d6891">allocate</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html">DirectX12Device</a> &amp;device, <a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html#ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab">AllocatorPtr</a> <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a0bffc8faba15270f8a00acdac3ac912b">allocator</a>, const <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ae05d49436568babc87be61301b18128f">extent</a>, const Format &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a56b6bc75dca0b50fc90b26634571fcf0">format</a>, const ImageDimensions &amp;dimension, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a5009272e684e2461a249de73b38a8842">levels</a>, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a9f690c948a975b6fde266ea54eb33540">layers</a>, const MultiSamplingLevel &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a865ed93e7a9d65f44879b34f273eb590">samples</a>, const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#aba8d144476f95936da2c6014083e4652">writable</a>, const ResourceState &amp;initialState, const D3D12_RESOURCE_DESC &amp;resourceDesc, const D3D12MA::ALLOCATION_DESC &amp;allocationDesc)</td></tr>
+<tr class="separator:afa53b2cc066e1443b85b3d53856d6891"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
-Protected Member Functions</h2></td></tr>
-<tr class="memitem:a0bffc8faba15270f8a00acdac3ac912b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_rendering_1_1_backends.html#ac34dee4e7ac9fd7f4fb9c2f3a3a7dbab">AllocatorPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a0bffc8faba15270f8a00acdac3ac912b">allocator</a> () const noexcept</td></tr>
-<tr class="separator:a0bffc8faba15270f8a00acdac3ac912b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fde08819870b78dffe835abd1544105"><td class="memItemLeft" align="right" valign="top">virtual const D3D12MA::Allocation *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a6fde08819870b78dffe835abd1544105">allocationInfo</a> () const noexcept</td></tr>
-<tr class="separator:a6fde08819870b78dffe835abd1544105"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_class_lite_f_x_1_1_i_resource"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_lite_f_x_1_1_i_resource')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_i_resource.html">LiteFX::IResource&lt; ComPtr&lt; ID3D12Resource &gt; &gt;</a></td></tr>
 <tr class="memitem:aa6a9564baa86527497e384198badab05 inherit pro_methods_class_lite_f_x_1_1_i_resource"><td class="memItemLeft" align="right" valign="top">virtual ComPtr&lt; ID3D12Resource &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_i_resource.html#aa6a9564baa86527497e384198badab05">handle</a> () noexcept=0</td></tr>
 <tr class="separator:aa6a9564baa86527497e384198badab05 inherit pro_methods_class_lite_f_x_1_1_i_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -216,8 +231,8 @@ Protected Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Implements a DirectX12 <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html" title="Describes a generic image.">IImage</a>. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aa74bc79a4865d8bae097fe7ad60d5f6c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa74bc79a4865d8bae097fe7ad60d5f6c">&#9670;&nbsp;</a></span>DirectX12Image() <span class="overload">[1/3]</span></h2>
+<a id="a510eb0e7e92d588bd7bd3899492cd6e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a510eb0e7e92d588bd7bd3899492cd6e0">&#9670;&nbsp;</a></span>DirectX12Image() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -240,7 +255,7 @@ Protected Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> &amp;&#160;</td>
           <td class="paramname"><em>extent</em>, </td>
         </tr>
         <tr>
@@ -252,7 +267,37 @@ Protected Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const D3D12_RESOURCE_STATES &amp;&#160;</td>
+          <td class="paramtype">const ImageDimensions &amp;&#160;</td>
+          <td class="paramname"><em>dimension</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>levels</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>layers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
+          <td class="paramname"><em>samples</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>writable</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ResourceState &amp;&#160;</td>
           <td class="paramname"><em>initialState</em>, </td>
         </tr>
         <tr>
@@ -279,19 +324,6 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p></p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">device</td><td></td></tr>
-    <tr><td class="paramname">image</td><td></td></tr>
-    <tr><td class="paramname">extent</td><td></td></tr>
-    <tr><td class="paramname">format</td><td></td></tr>
-    <tr><td class="paramname">allocator</td><td></td></tr>
-    <tr><td class="paramname">allocation</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
@@ -402,8 +434,8 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a99b916a4519c3390e1d8ce1e8e04dd09"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a99b916a4519c3390e1d8ce1e8e04dd09">&#9670;&nbsp;</a></span>allocate()</h2>
+<a id="afa53b2cc066e1443b85b3d53856d6891"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa53b2cc066e1443b85b3d53856d6891">&#9670;&nbsp;</a></span>allocate()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -426,7 +458,7 @@ Protected Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> &amp;&#160;</td>
           <td class="paramname"><em>extent</em>, </td>
         </tr>
         <tr>
@@ -438,7 +470,37 @@ Protected Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const D3D12_RESOURCE_STATES &amp;&#160;</td>
+          <td class="paramtype">const ImageDimensions &amp;&#160;</td>
+          <td class="paramname"><em>dimension</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>levels</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>layers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
+          <td class="paramname"><em>samples</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>writable</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ResourceState &amp;&#160;</td>
           <td class="paramname"><em>initialState</em>, </td>
         </tr>
         <tr>
@@ -466,22 +528,6 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p></p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">device</td><td></td></tr>
-    <tr><td class="paramname">elements</td><td></td></tr>
-    <tr><td class="paramname">extent</td><td></td></tr>
-    <tr><td class="paramname">format</td><td></td></tr>
-    <tr><td class="paramname">allocator</td><td></td></tr>
-    <tr><td class="paramname">createInfo</td><td></td></tr>
-    <tr><td class="paramname">allocationInfo</td><td></td></tr>
-    <tr><td class="paramname">allocationResult</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd></dd></dl>
-
 </div>
 </div>
 <a id="a6fde08819870b78dffe835abd1544105"></a>
@@ -502,7 +548,7 @@ Protected Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -527,10 +573,39 @@ Protected Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a331d0c37b9a6d9e69551189268171a69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a331d0c37b9a6d9e69551189268171a69">&#9670;&nbsp;</a></span>dimensions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const ImageDimensions &amp; DirectX12Image::dimensions </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the images dimensionality. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#a797dde04961dc88765b79363276b9ed1">LiteFX::Rendering::IImage</a>.</p>
 
 </div>
 </div>
@@ -586,7 +661,7 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Gets the number of array elements inside the memory chunk. </p>
+<p>Gets the number of sub-resources inside the memory chunk. </p>
 
 <p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0">LiteFX::Rendering::IDeviceMemory</a>.</p>
 
@@ -621,8 +696,8 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a9d436638a15a72874d596ab69b2db705"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9d436638a15a72874d596ab69b2db705">&#9670;&nbsp;</a></span>extent()</h2>
+<a id="ae05d49436568babc87be61301b18128f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae05d49436568babc87be61301b18128f">&#9670;&nbsp;</a></span>extent()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -631,9 +706,10 @@ Protected Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp; DirectX12Image::extent </td>
+          <td class="memname"><a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html">Size3d</a> DirectX12Image::extent </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>level</em> = <code>0</code></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -644,9 +720,9 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Gets the extent of the image. </p>
+<p>Gets the extent of the image at a certain mip-map level. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#a2dacb0ac99191da7bbdf5940171f0f44">LiteFX::Rendering::IImage</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#ad17817ec7f3f45f3fe0ed88e93b99f14">LiteFX::Rendering::IImage</a>.</p>
 
 </div>
 </div>
@@ -679,8 +755,124 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a9f690c948a975b6fde266ea54eb33540"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f690c948a975b6fde266ea54eb33540">&#9670;&nbsp;</a></span>layers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp; DirectX12Image::layers </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the number of layers (slices) of the image. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#ab16bf4d4b002f043fe3fe95c0bf4fac3">LiteFX::Rendering::IImage</a>.</p>
+
+</div>
+</div>
+<a id="a5009272e684e2461a249de73b38a8842"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5009272e684e2461a249de73b38a8842">&#9670;&nbsp;</a></span>levels()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp; DirectX12Image::levels </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the number of mip-map levels of the image. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#ac477652b667235eca237f08cb7362dff">LiteFX::Rendering::IImage</a>.</p>
+
+</div>
+</div>
+<a id="a83216dc6783642a392358cede63068e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a83216dc6783642a392358cede63068e4">&#9670;&nbsp;</a></span>planes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp; DirectX12Image::planes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the number of planes of the image resource. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#a21bd6307254f96a81806e03a7f2ea6cc">LiteFX::Rendering::IImage</a>.</p>
+
+</div>
+</div>
+<a id="a865ed93e7a9d65f44879b34f273eb590"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a865ed93e7a9d65f44879b34f273eb590">&#9670;&nbsp;</a></span>samples()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const MultiSamplingLevel &amp; DirectX12Image::samples </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the number of samples of the texture. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#a9b8a3f1dc3081a802bedcea95933c992">LiteFX::Rendering::IImage</a>.</p>
+
+</div>
+</div>
 <a id="a33978ac1c6a226d57e3f9aa9aa3680df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a33978ac1c6a226d57e3f9aa9aa3680df">&#9670;&nbsp;</a></span>size()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a33978ac1c6a226d57e3f9aa9aa3680df">&#9670;&nbsp;</a></span>size() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -708,8 +900,8 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="abb6d637f7cf9915185a5ca292208c7a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abb6d637f7cf9915185a5ca292208c7a8">&#9670;&nbsp;</a></span>state() <span class="overload">[1/2]</span></h2>
+<a id="a956a2c9789c4d1339223d38af676e612"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a956a2c9789c4d1339223d38af676e612">&#9670;&nbsp;</a></span>size() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -718,7 +910,97 @@ Protected Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const D3D12_RESOURCE_STATES &amp; DirectX12Image::state </td>
+          <td class="memname">size_t DirectX12Image::size </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>level</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the size (in bytes) of an image at a specified mip map level. If the image does not contain the provided mip map level, the method returns <code>0</code>. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html#a6375efdd68aa0986f33e4de406d1dee1">LiteFX::Rendering::IImage</a>.</p>
+
+</div>
+</div>
+<a id="ae18f4fb9f6ec19d5d9e491c24c94678b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae18f4fb9f6ec19d5d9e491c24c94678b">&#9670;&nbsp;</a></span>state() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const ResourceState &amp; DirectX12Image::state </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresource</em> = <code>0</code></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the current state of the resource. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a62dc9b0459919621c174ad7120707322">LiteFX::Rendering::IDeviceMemory</a>.</p>
+
+</div>
+</div>
+<a id="a092f82e67d6a271b9215b7610e922e42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a092f82e67d6a271b9215b7610e922e42">&#9670;&nbsp;</a></span>state() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ResourceState &amp; DirectX12Image::state </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresource</em> = <code>0</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns a reference of the current state of the resource. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#ae8bee9655b76b061f9750b82b913ded0">LiteFX::Rendering::IDeviceMemory</a>.</p>
+
+</div>
+</div>
+<a id="aba8d144476f95936da2c6014083e4652"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba8d144476f95936da2c6014083e4652">&#9670;&nbsp;</a></span>writable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const bool &amp; DirectX12Image::writable </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -731,128 +1013,9 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource.html#a19f36f115edbfddbb432c3e3e8a5c93a">LiteFX::Rendering::Backends::IDirectX12Resource</a>.</p>
+<p>Returns <code>true</code>, if the resource can be bound to a read/write descriptor. </p>
 
-</div>
-</div>
-<a id="a028d5ba5e8b98b9e3df20b69c7bb8745"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a028d5ba5e8b98b9e3df20b69c7bb8745">&#9670;&nbsp;</a></span>state() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">D3D12_RESOURCE_STATES &amp; DirectX12Image::state </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource.html#acc88668a4f11abe91433dd45faaca56b">LiteFX::Rendering::Backends::IDirectX12Resource</a>.</p>
-
-</div>
-</div>
-<a id="aab5cef9d97810889eb60bba82221e975"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab5cef9d97810889eb60bba82221e975">&#9670;&nbsp;</a></span>transitionTo() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">D3D12_RESOURCE_BARRIER DirectX12Image::transitionTo </td>
-          <td>(</td>
-          <td class="paramtype">const D3D12_RESOURCE_STATES &amp;&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>element</em> = <code>D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const D3D12_RESOURCE_BARRIER_FLAGS &amp;&#160;</td>
-          <td class="paramname"><em>flags</em> = <code>D3D12_RESOURCE_BARRIER_FLAG_NONE</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource.html#a0ded3df1d4538eb697e76f63aa005f2f">LiteFX::Rendering::Backends::IDirectX12Resource</a>.</p>
-
-</div>
-</div>
-<a id="a1e84f44f2b61b9855405340a9a11ca78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1e84f44f2b61b9855405340a9a11ca78">&#9670;&nbsp;</a></span>transitionTo() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DirectX12Image::transitionTo </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html">DirectX12CommandBuffer</a> &amp;&#160;</td>
-          <td class="paramname"><em>commandBuffer</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const D3D12_RESOURCE_STATES &amp;&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
-          <td class="paramname"><em>element</em> = <code>D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const D3D12_RESOURCE_BARRIER_FLAGS &amp;&#160;</td>
-          <td class="paramname"><em>flags</em> = <code>D3D12_RESOURCE_BARRIER_FLAG_NONE</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_resource.html#a4d27872364f9e5cef1b3bae9cf11842b">LiteFX::Rendering::Backends::IDirectX12Resource</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a6417097f66bdcbf22bc84970d2c38163">LiteFX::Rendering::IDeviceMemory</a>.</p>
 
 </div>
 </div>

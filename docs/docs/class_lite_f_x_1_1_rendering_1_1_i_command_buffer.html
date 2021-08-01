@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::ICommandBuffer Class Reference</title>
+<title>LiteFX: LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -87,51 +87,223 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_com
 
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LiteFX::Rendering::ICommandBuffer Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
 <p>Represents a command buffer, that buffers commands that should be submitted to a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>.  
  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="rendering__api_8hpp_source.html">rendering_api.hpp</a>&gt;</code></p>
-
-<p>Inherited by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>.</p>
+<p><code>#include &lt;<a class="el" href="rendering_8hpp_source.html">rendering.hpp</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a7c82d316238b25d81ebb5c19fc8ce51d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7c82d316238b25d81ebb5c19fc8ce51d">buffer_type</a> = TBuffer</td></tr>
+<tr class="separator:a7c82d316238b25d81ebb5c19fc8ce51d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae61e10f31173d8972fca66381bab5386"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae61e10f31173d8972fca66381bab5386">vertex_buffer_type</a> = TVertexBuffer</td></tr>
+<tr class="separator:ae61e10f31173d8972fca66381bab5386"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d977137803b62cedb6ef046c67a260e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a0d977137803b62cedb6ef046c67a260e">index_buffer_type</a> = TIndexBuffer</td></tr>
+<tr class="separator:a0d977137803b62cedb6ef046c67a260e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae316235dd7c3ee4dfcee5b36ed70e4ed"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae316235dd7c3ee4dfcee5b36ed70e4ed">image_type</a> = TImage</td></tr>
+<tr class="separator:ae316235dd7c3ee4dfcee5b36ed70e4ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abef22a0568619462d5798ebc56ae43fb"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#abef22a0568619462d5798ebc56ae43fb">barrier_type</a> = TBarrier</td></tr>
+<tr class="separator:abef22a0568619462d5798ebc56ae43fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab18707464c1c953935074b8a1f18f7fe"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ab18707464c1c953935074b8a1f18f7fe">pipeline_type</a> = TPipeline</td></tr>
+<tr class="separator:ab18707464c1c953935074b8a1f18f7fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac37242e5c15a3a6c0e74ad56b46e4aa2"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ac37242e5c15a3a6c0e74ad56b46e4aa2">~ICommandBuffer</a> () noexcept=default</td></tr>
-<tr class="separator:ac37242e5c15a3a6c0e74ad56b46e4aa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7365086cfd654043ed6590ff1ac90d5"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af7365086cfd654043ed6590ff1ac90d5">wait</a> () const =0</td></tr>
-<tr class="memdesc:af7365086cfd654043ed6590ff1ac90d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits for the command buffer to be executed.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af7365086cfd654043ed6590ff1ac90d5">More...</a><br /></td></tr>
-<tr class="separator:af7365086cfd654043ed6590ff1ac90d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad08533dccdc780f870b9a5895aa3633b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad08533dccdc780f870b9a5895aa3633b">begin</a> () const =0</td></tr>
-<tr class="memdesc:ad08533dccdc780f870b9a5895aa3633b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad08533dccdc780f870b9a5895aa3633b">More...</a><br /></td></tr>
-<tr class="separator:ad08533dccdc780f870b9a5895aa3633b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2bd065e6a6716d43d70e403325c3f9e9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a2bd065e6a6716d43d70e403325c3f9e9">end</a> (const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7a1fa26c50e98472e3e97b48f751ed37">submit</a>=true, const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af7365086cfd654043ed6590ff1ac90d5">wait</a>=false) const =0</td></tr>
-<tr class="memdesc:a2bd065e6a6716d43d70e403325c3f9e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends recording commands on the command buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a2bd065e6a6716d43d70e403325c3f9e9">More...</a><br /></td></tr>
-<tr class="separator:a2bd065e6a6716d43d70e403325c3f9e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a1fa26c50e98472e3e97b48f751ed37"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7a1fa26c50e98472e3e97b48f751ed37">submit</a> (const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af7365086cfd654043ed6590ff1ac90d5">wait</a>=false) const =0</td></tr>
-<tr class="memdesc:a7a1fa26c50e98472e3e97b48f751ed37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits the command buffer to the parent command queue.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7a1fa26c50e98472e3e97b48f751ed37">More...</a><br /></td></tr>
-<tr class="separator:a7a1fa26c50e98472e3e97b48f751ed37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7cc16e5d88a7d52cf3904a8e646d937"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae7cc16e5d88a7d52cf3904a8e646d937">~ICommandBuffer</a> () noexcept=default</td></tr>
+<tr class="separator:ae7cc16e5d88a7d52cf3904a8e646d937"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f9c3c026d9994e4c3a058af947168f6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f9c3c026d9994e4c3a058af947168f6">begin</a> () const =0</td></tr>
+<tr class="memdesc:a4f9c3c026d9994e4c3a058af947168f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f9c3c026d9994e4c3a058af947168f6">More...</a><br /></td></tr>
+<tr class="separator:a4f9c3c026d9994e4c3a058af947168f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab3a09c85ed99d812572a3e60d9e985d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aab3a09c85ed99d812572a3e60d9e985d">end</a> () const =0</td></tr>
+<tr class="memdesc:aab3a09c85ed99d812572a3e60d9e985d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends recording commands on the command buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aab3a09c85ed99d812572a3e60d9e985d">More...</a><br /></td></tr>
+<tr class="separator:aab3a09c85ed99d812572a3e60d9e985d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ad800b489b90f99e21b8ae2777ead96"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7ad800b489b90f99e21b8ae2777ead96">barrier</a> (const TBarrier &amp;barrier, const bool &amp;invert=false) const noexcept=0</td></tr>
+<tr class="memdesc:a7ad800b489b90f99e21b8ae2777ead96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the transitions that have been added to <em>barrier</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7ad800b489b90f99e21b8ae2777ead96">More...</a><br /></td></tr>
+<tr class="separator:a7ad800b489b90f99e21b8ae2777ead96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25ace4329d10a63f9e1a7a5e87f0a38a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a25ace4329d10a63f9e1a7a5e87f0a38a">generateMipMaps</a> (TImage &amp;image) noexcept=0</td></tr>
+<tr class="memdesc:a25ace4329d10a63f9e1a7a5e87f0a38a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the image at level <em>0</em> to generate mip-maps for the remaining levels.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a25ace4329d10a63f9e1a7a5e87f0a38a">More...</a><br /></td></tr>
+<tr class="separator:a25ace4329d10a63f9e1a7a5e87f0a38a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a419205a2a11e60f1990c4260335c717f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a419205a2a11e60f1990c4260335c717f">transfer</a> (const TBuffer &amp;source, const TBuffer &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const =0</td></tr>
+<tr class="memdesc:a419205a2a11e60f1990c4260335c717f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a buffer-to-buffer transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a419205a2a11e60f1990c4260335c717f">More...</a><br /></td></tr>
+<tr class="separator:a419205a2a11e60f1990c4260335c717f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d06cfe503ea6090367ce946bc09e427"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7d06cfe503ea6090367ce946bc09e427">transfer</a> (const TBuffer &amp;source, const TImage &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const =0</td></tr>
+<tr class="memdesc:a7d06cfe503ea6090367ce946bc09e427"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a buffer-to-image transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7d06cfe503ea6090367ce946bc09e427">More...</a><br /></td></tr>
+<tr class="separator:a7d06cfe503ea6090367ce946bc09e427"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad70520925e673cb48a9cded7b65d9f59"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad70520925e673cb48a9cded7b65d9f59">transfer</a> (const TImage &amp;source, const TImage &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const =0</td></tr>
+<tr class="memdesc:ad70520925e673cb48a9cded7b65d9f59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs an image-to-image transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad70520925e673cb48a9cded7b65d9f59">More...</a><br /></td></tr>
+<tr class="separator:ad70520925e673cb48a9cded7b65d9f59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6b64953279ef961b8f44514afa2ba11"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae6b64953279ef961b8f44514afa2ba11">transfer</a> (const TImage &amp;source, const TBuffer &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const =0</td></tr>
+<tr class="memdesc:ae6b64953279ef961b8f44514afa2ba11"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs an image-to-buffer transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae6b64953279ef961b8f44514afa2ba11">More...</a><br /></td></tr>
+<tr class="separator:ae6b64953279ef961b8f44514afa2ba11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71a0b305306805417934bab14fa60882"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a71a0b305306805417934bab14fa60882">use</a> (const TPipeline &amp;pipeline) const noexcept=0</td></tr>
+<tr class="memdesc:a71a0b305306805417934bab14fa60882"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the active pipeline state.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a71a0b305306805417934bab14fa60882">More...</a><br /></td></tr>
+<tr class="separator:a71a0b305306805417934bab14fa60882"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a464762b4406d7f7598a594cb1e72a280"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a464762b4406d7f7598a594cb1e72a280">bind</a> (const TDescriptorSet &amp;descriptorSet) const noexcept=0</td></tr>
+<tr class="memdesc:a464762b4406d7f7598a594cb1e72a280"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the provided descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a464762b4406d7f7598a594cb1e72a280">More...</a><br /></td></tr>
+<tr class="separator:a464762b4406d7f7598a594cb1e72a280"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72cb834d8ae7e5a2d5142658b5bf2dc0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a72cb834d8ae7e5a2d5142658b5bf2dc0">bind</a> (const TVertexBuffer &amp;buffer) const noexcept=0</td></tr>
+<tr class="memdesc:a72cb834d8ae7e5a2d5142658b5bf2dc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a vertex buffer to the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a72cb834d8ae7e5a2d5142658b5bf2dc0">More...</a><br /></td></tr>
+<tr class="separator:a72cb834d8ae7e5a2d5142658b5bf2dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8062d9e350fde81309bac342b3c7a326"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a8062d9e350fde81309bac342b3c7a326">bind</a> (const TIndexBuffer &amp;buffer) const noexcept=0</td></tr>
+<tr class="memdesc:a8062d9e350fde81309bac342b3c7a326"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a index buffer to the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a8062d9e350fde81309bac342b3c7a326">More...</a><br /></td></tr>
+<tr class="separator:a8062d9e350fde81309bac342b3c7a326"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e3148b31f9e057fec47fbb6d5807858"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a3e3148b31f9e057fec47fbb6d5807858">dispatch</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html">Vector3u</a> &amp;threadCount) const noexcept=0</td></tr>
+<tr class="memdesc:a3e3148b31f9e057fec47fbb6d5807858"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a compute shader.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a3e3148b31f9e057fec47fbb6d5807858">More...</a><br /></td></tr>
+<tr class="separator:a3e3148b31f9e057fec47fbb6d5807858"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad77e9bba4e59697cccba83f18222354c"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad77e9bba4e59697cccba83f18222354c">draw</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;vertices, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstVertex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const noexcept=0</td></tr>
+<tr class="memdesc:ad77e9bba4e59697cccba83f18222354c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws a number of vertices from the currently bound vertex buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad77e9bba4e59697cccba83f18222354c">More...</a><br /></td></tr>
+<tr class="separator:ad77e9bba4e59697cccba83f18222354c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a356edf0074c348ed75ef40ccf68a5421"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a356edf0074c348ed75ef40ccf68a5421">drawIndexed</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;indices, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const noexcept=0</td></tr>
+<tr class="memdesc:a356edf0074c348ed75ef40ccf68a5421"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a356edf0074c348ed75ef40ccf68a5421">More...</a><br /></td></tr>
+<tr class="separator:a356edf0074c348ed75ef40ccf68a5421"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada88e34f3d4ba97f8c6746906a4a38a8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ada88e34f3d4ba97f8c6746906a4a38a8">pushConstants</a> (const TPushConstantsLayout &amp;layout, const void *const memory) const noexcept=0</td></tr>
+<tr class="memdesc:ada88e34f3d4ba97f8c6746906a4a38a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pushes a block of memory into the push constants backing memory.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ada88e34f3d4ba97f8c6746906a4a38a8">More...</a><br /></td></tr>
+<tr class="separator:ada88e34f3d4ba97f8c6746906a4a38a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a441345e14aaecad85a465f22e932bbda"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a441345e14aaecad85a465f22e932bbda">draw</a> (const TVertexBuffer &amp;vertexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstVertex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:a441345e14aaecad85a465f22e932bbda"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws all vertices from the vertex buffer provided in <em>vertexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a441345e14aaecad85a465f22e932bbda">More...</a><br /></td></tr>
+<tr class="separator:a441345e14aaecad85a465f22e932bbda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd995367e0eaba32b5ce6ddb55c7a936"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#afd995367e0eaba32b5ce6ddb55c7a936">drawIndexed</a> (const TIndexBuffer &amp;indexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:afd995367e0eaba32b5ce6ddb55c7a936"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the currently bound vertex buffer using the index buffer provided in <em>indexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#afd995367e0eaba32b5ce6ddb55c7a936">More...</a><br /></td></tr>
+<tr class="separator:afd995367e0eaba32b5ce6ddb55c7a936"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9a57f38a900189f9d2a6e8bb083f140"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aa9a57f38a900189f9d2a6e8bb083f140">drawIndexed</a> (const TVertexBuffer &amp;vertexBuffer, const TIndexBuffer &amp;indexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:aa9a57f38a900189f9d2a6e8bb083f140"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the vertex buffer provided by <em>vertexBuffer</em>  using the index buffer, provided by <em>indexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aa9a57f38a900189f9d2a6e8bb083f140">More...</a><br /></td></tr>
+<tr class="separator:aa9a57f38a900189f9d2a6e8bb083f140"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Represents a command buffer, that buffers commands that should be submitted to a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ac37242e5c15a3a6c0e74ad56b46e4aa2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac37242e5c15a3a6c0e74ad56b46e4aa2">&#9670;&nbsp;</a></span>~ICommandBuffer()</h2>
+<div class="textblock"><h3>template&lt;typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type&gt;<br />
+class LiteFX::Rendering::ICommandBuffer&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;</h3>
+
+<p>Represents a command buffer, that buffers commands that should be submitted to a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TBuffer</td><td>The generic buffer type. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_buffer.html" title="Base interface for buffer objects.">IBuffer</a>.</td></tr>
+    <tr><td class="paramname">TVertexBuffer</td><td>The vertex buffer type. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html" title="Describes a vertex buffer.">IVertexBuffer</a>.</td></tr>
+    <tr><td class="paramname">TIndexBuffer</td><td>The index buffer type. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html" title="Describes an index buffer.">IIndexBuffer</a>.</td></tr>
+    <tr><td class="paramname">TImage</td><td>The generic image type. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html" title="Describes a generic image.">IImage</a>.</td></tr>
+    <tr><td class="paramname">TBarrier</td><td>The barrier type. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_barrier.html" title="A barrier that transitions a set of resources backed by IDeviceMemory into different ResourceState.">IBarrier</a>.</td></tr>
+    <tr><td class="paramname">TPipeline</td><td>The common pipeline interface type. Must be derived from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline.html" title="Represents a pipeline state.">IPipeline</a>.</td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="abef22a0568619462d5798ebc56ae43fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abef22a0568619462d5798ebc56ae43fb">&#9670;&nbsp;</a></span>barrier_type</h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#abef22a0568619462d5798ebc56ae43fb">barrier_type</a> =  TBarrier</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7c82d316238b25d81ebb5c19fc8ce51d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c82d316238b25d81ebb5c19fc8ce51d">&#9670;&nbsp;</a></span>buffer_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7c82d316238b25d81ebb5c19fc8ce51d">buffer_type</a> =  TBuffer</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae316235dd7c3ee4dfcee5b36ed70e4ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae316235dd7c3ee4dfcee5b36ed70e4ed">&#9670;&nbsp;</a></span>image_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae316235dd7c3ee4dfcee5b36ed70e4ed">image_type</a> =  TImage</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0d977137803b62cedb6ef046c67a260e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d977137803b62cedb6ef046c67a260e">&#9670;&nbsp;</a></span>index_buffer_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a0d977137803b62cedb6ef046c67a260e">index_buffer_type</a> =  TIndexBuffer</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab18707464c1c953935074b8a1f18f7fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab18707464c1c953935074b8a1f18f7fe">&#9670;&nbsp;</a></span>pipeline_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ab18707464c1c953935074b8a1f18f7fe">pipeline_type</a> =  TPipeline</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae61e10f31173d8972fca66381bab5386"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae61e10f31173d8972fca66381bab5386">&#9670;&nbsp;</a></span>vertex_buffer_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae61e10f31173d8972fca66381bab5386">vertex_buffer_type</a> =  TVertexBuffer</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="ae7cc16e5d88a7d52cf3904a8e646d937"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7cc16e5d88a7d52cf3904a8e646d937">&#9670;&nbsp;</a></span>~ICommandBuffer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual LiteFX::Rendering::ICommandBuffer::~ICommandBuffer </td>
+          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">ICommandBuffer</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -147,17 +319,67 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ad08533dccdc780f870b9a5895aa3633b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad08533dccdc780f870b9a5895aa3633b">&#9670;&nbsp;</a></span>begin()</h2>
+<a id="a7ad800b489b90f99e21b8ae2777ead96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ad800b489b90f99e21b8ae2777ead96">&#9670;&nbsp;</a></span>barrier()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void LiteFX::Rendering::ICommandBuffer::begin </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::barrier </td>
+          <td>(</td>
+          <td class="paramtype">const TBarrier &amp;&#160;</td>
+          <td class="paramname"><em>barrier</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>invert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Executes the transitions that have been added to <em>barrier</em> . </p>
+<p>Calling this method will also update the resource states of each resource within the barrier. However, the actual state of the resource does not change until the barrier is executed on the command queue. Keep this in mind when inserting multiple barriers from different threads or in different command buffers, which may not be executed in order. You might have to manually synchronize barrier execution. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">barrier</td><td>The barrier containing the transitions to perform.</td></tr>
+    <tr><td class="paramname">invert</td><td>If set to <code>true</code>, the barrier will perform a transition back to the original resource states.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a4f9c3c026d9994e4c3a058af947168f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f9c3c026d9994e4c3a058af947168f6">&#9670;&nbsp;</a></span>begin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::begin </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -171,32 +393,668 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>. </p>
-<p>Note that, if a command buffer has been submitted before, this method waits for the earlier commands to be executed by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af7365086cfd654043ed6590ff1ac90d5" title="Waits for the command buffer to be executed.">wait</a>. </p>
+<p>Note that you have to wait for a command buffer to be executed on the parent <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a> before you can begin recording on it again. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">RuntimeException</td><td>Thrown, if the command buffer is already recording.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aab3a09c85ed99d812572a3e60d9e985d" title="Ends recording commands on the command buffer.">end</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a3d992e05fabf1c2791c8965c5faac382">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a52eb140093df379bc743c18025869ab2">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>.</p>
 
 </div>
 </div>
-<a id="a2bd065e6a6716d43d70e403325c3f9e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2bd065e6a6716d43d70e403325c3f9e9">&#9670;&nbsp;</a></span>end()</h2>
+<a id="a464762b4406d7f7598a594cb1e72a280"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a464762b4406d7f7598a594cb1e72a280">&#9670;&nbsp;</a></span>bind() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void LiteFX::Rendering::ICommandBuffer::end </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::bind </td>
           <td>(</td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>submit</em> = <code>true</code>, </td>
+          <td class="paramtype">const TDescriptorSet &amp;&#160;</td>
+          <td class="paramname"><em>descriptorSet</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Binds the provided descriptor set. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">descriptorSet</td><td>The descriptor set to bind.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a8062d9e350fde81309bac342b3c7a326"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8062d9e350fde81309bac342b3c7a326">&#9670;&nbsp;</a></span>bind() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::bind </td>
+          <td>(</td>
+          <td class="paramtype">const TIndexBuffer &amp;&#160;</td>
+          <td class="paramname"><em>buffer</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Binds a index buffer to the pipeline. </p>
+<p>After binding the index buffer, the next call to <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a356edf0074c348ed75ef40ccf68a5421" title="Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.">drawIndexed</a> will read from it, until another index buffer is bound. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buffer</td><td>The index buffer to bind to the pipeline.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html" title="Describes an index buffer.">IIndexBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a356edf0074c348ed75ef40ccf68a5421" title="Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.">drawIndexed</a></dd></dl>
+
+</div>
+</div>
+<a id="a72cb834d8ae7e5a2d5142658b5bf2dc0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72cb834d8ae7e5a2d5142658b5bf2dc0">&#9670;&nbsp;</a></span>bind() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::bind </td>
+          <td>(</td>
+          <td class="paramtype">const TVertexBuffer &amp;&#160;</td>
+          <td class="paramname"><em>buffer</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Binds a vertex buffer to the pipeline. </p>
+<p>After binding the vertex buffer, the next call to <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad77e9bba4e59697cccba83f18222354c" title="Draws a number of vertices from the currently bound vertex buffer.">draw</a> or <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a356edf0074c348ed75ef40ccf68a5421" title="Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.">drawIndexed</a> will read from it, until another vertex buffer is bound. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buffer</td><td>The vertex buffer to bind to the pipeline.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html" title="Describes a vertex buffer.">IVertexBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad77e9bba4e59697cccba83f18222354c" title="Draws a number of vertices from the currently bound vertex buffer.">draw</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a356edf0074c348ed75ef40ccf68a5421" title="Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.">drawIndexed</a></dd></dl>
+
+</div>
+</div>
+<a id="a3e3148b31f9e057fec47fbb6d5807858"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e3148b31f9e057fec47fbb6d5807858">&#9670;&nbsp;</a></span>dispatch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::dispatch </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html">Vector3u</a> &amp;&#160;</td>
+          <td class="paramname"><em>threadCount</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Executes a compute shader. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">threadCount</td><td>The number of thread groups per axis.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#acf9b4596f4bc07fd90ce01e6b1585b5e">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a5a595df75528e08d2771a1a14fd08375">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>.</p>
+
+</div>
+</div>
+<a id="a441345e14aaecad85a465f22e932bbda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a441345e14aaecad85a465f22e932bbda">&#9670;&nbsp;</a></span>draw() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::draw </td>
+          <td>(</td>
+          <td class="paramtype">const TVertexBuffer &amp;&#160;</td>
+          <td class="paramname"><em>vertexBuffer</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>wait</em> = <code>false</code>&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstVertex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws all vertices from the vertex buffer provided in <em>vertexBuffer</em> . </p>
+<p>This helper method binds the vertex buffer and issues a draw command for all vertices. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vertexBuffer</td><td>The vertex buffer to draw from.</td></tr>
+    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
+    <tr><td class="paramname">firstVertex</td><td>The index of the first vertex to start drawing from.</td></tr>
+    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ad77e9bba4e59697cccba83f18222354c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad77e9bba4e59697cccba83f18222354c">&#9670;&nbsp;</a></span>draw() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::draw </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstVertex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws a number of vertices from the currently bound vertex buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vertices</td><td>The number of vertices to draw.</td></tr>
+    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
+    <tr><td class="paramname">firstVertex</td><td>The index of the first vertex to start drawing from.</td></tr>
+    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#aebd143cbcfefe3fef5d79f4030158ef0">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a78f64ae040d4d33af6538d10979bfb80">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>.</p>
+
+</div>
+</div>
+<a id="afd995367e0eaba32b5ce6ddb55c7a936"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd995367e0eaba32b5ce6ddb55c7a936">&#9670;&nbsp;</a></span>drawIndexed() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::drawIndexed </td>
+          <td>(</td>
+          <td class="paramtype">const TIndexBuffer &amp;&#160;</td>
+          <td class="paramname"><em>indexBuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstIndex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertexOffset</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws the currently bound vertex buffer using the index buffer provided in <em>indexBuffer</em> . </p>
+<p>This helper method binds the index buffer and issues a draw command for all indices. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">indexBuffer</td><td>The index buffer to draw with.</td></tr>
+    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
+    <tr><td class="paramname">firstIndex</td><td>The index of the first element of the index buffer to start drawing from.</td></tr>
+    <tr><td class="paramname">vertexOffset</td><td>The offset added to each index to find the corresponding vertex.</td></tr>
+    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aa9a57f38a900189f9d2a6e8bb083f140"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9a57f38a900189f9d2a6e8bb083f140">&#9670;&nbsp;</a></span>drawIndexed() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::drawIndexed </td>
+          <td>(</td>
+          <td class="paramtype">const TVertexBuffer &amp;&#160;</td>
+          <td class="paramname"><em>vertexBuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TIndexBuffer &amp;&#160;</td>
+          <td class="paramname"><em>indexBuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstIndex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertexOffset</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws the vertex buffer provided by <em>vertexBuffer</em>  using the index buffer, provided by <em>indexBuffer</em> . </p>
+<p>This helper method binds the provided vertex and index buffers and issues a draw command for all indices. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vertexBuffer</td><td>The vertex buffer to draw from.</td></tr>
+    <tr><td class="paramname">indexBuffer</td><td>The index buffer to draw with.</td></tr>
+    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
+    <tr><td class="paramname">firstIndex</td><td>The index of the first element of the index buffer to start drawing from.</td></tr>
+    <tr><td class="paramname">vertexOffset</td><td>The offset added to each index to find the corresponding vertex.</td></tr>
+    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a356edf0074c348ed75ef40ccf68a5421"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a356edf0074c348ed75ef40ccf68a5421">&#9670;&nbsp;</a></span>drawIndexed() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::drawIndexed </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>indices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstIndex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertexOffset</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">indices</td><td>The number of indices to draw.</td></tr>
+    <tr><td class="paramname">instances</td><td>The number of instances to draw.</td></tr>
+    <tr><td class="paramname">firstIndex</td><td>The index of the first element of the index buffer to start drawing from.</td></tr>
+    <tr><td class="paramname">vertexOffset</td><td>The offset added to each index to find the corresponding vertex.</td></tr>
+    <tr><td class="paramname">firstInstance</td><td>The index of the first instance to draw.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#af0c65f86c927d7596c60ea8689ce06b1">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a00c6592fceb092789bc6199742e73906">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>.</p>
+
+</div>
+</div>
+<a id="aab3a09c85ed99d812572a3e60d9e985d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab3a09c85ed99d812572a3e60d9e985d">&#9670;&nbsp;</a></span>end()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::end </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Ends recording commands on the command buffer. </p>
+<p>It is valid to call this method multiple times. If a command buffer is already closed, nothing will happen. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f9c3c026d9994e4c3a058af947168f6" title="Sets the command buffer into recording state, so that it can receive command that should be submitted...">begin</a></dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2db74c40d8532bdf9eeec8debe134d3a">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a862deed4385cf89496cc8e9c2ddde70f">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>.</p>
+
+</div>
+</div>
+<a id="a25ace4329d10a63f9e1a7a5e87f0a38a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25ace4329d10a63f9e1a7a5e87f0a38a">&#9670;&nbsp;</a></span>generateMipMaps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::generateMipMaps </td>
+          <td>(</td>
+          <td class="paramtype">TImage &amp;&#160;</td>
+          <td class="paramname"><em>image</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Uses the image at level <em>0</em> to generate mip-maps for the remaining levels. </p>
+<p>It is strongly advised, not to generate mip maps at runtime. Instead, prefer using a format that supports pre-computed mip maps. If you have to, prefer computing mip maps in a pre-process.</p>
+<p>Note that not all texture formats and sizes are supported for mip map generation and the result might not be satisfactory. For example, it is not possible to compute proper mip maps for pre-compressed formats. Textures should have power of two sizes in order to not appear under-sampled.</p>
+<p>Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">commandBuffer</td><td>The command buffer used to issue the transition and transfer operations.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ada88e34f3d4ba97f8c6746906a4a38a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada88e34f3d4ba97f8c6746906a4a38a8">&#9670;&nbsp;</a></span>pushConstants()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::pushConstants </td>
+          <td>(</td>
+          <td class="paramtype">const TPushConstantsLayout &amp;&#160;</td>
+          <td class="paramname"><em>layout</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *const&#160;</td>
+          <td class="paramname"><em>memory</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Pushes a block of memory into the push constants backing memory. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">layout</td><td>The layout of the push constants to update.</td></tr>
+    <tr><td class="paramname">memory</td><td>A pointer to the source memory.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a419205a2a11e60f1990c4260335c717f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a419205a2a11e60f1990c4260335c717f">&#9670;&nbsp;</a></span>transfer() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::transfer </td>
+          <td>(</td>
+          <td class="paramtype">const TBuffer &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TBuffer &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>elements</em> = <code>1</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -211,35 +1069,71 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Ends recording commands on the command buffer. </p>
+<p>Performs a buffer-to-buffer transfer from <em>source</em>  to <em>target</em> . </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">submit</td><td>If set to <code>true</code>, the command buffer is automatically submitted by calling the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7a1fa26c50e98472e3e97b48f751ed37" title="Submits the command buffer to the parent command queue.">submit</a> method.</td></tr>
-    <tr><td class="paramname">wait</td><td>If <em>submit</em>  is set to <code>true</code>, this parameter gets passed to the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7a1fa26c50e98472e3e97b48f751ed37" title="Submits the command buffer to the parent command queue.">submit</a> method.</td></tr>
+    <tr><td class="paramname">source</td><td>The source buffer to transfer data from.</td></tr>
+    <tr><td class="paramname">target</td><td>The target buffer to transfer data to.</td></tr>
+    <tr><td class="paramname">sourceElement</td><td>The index of the first element in the source buffer to copy.</td></tr>
+    <tr><td class="paramname">targetElement</td><td>The index of the first element in the target buffer to copy to.</td></tr>
+    <tr><td class="paramname">elements</td><td>The number of elements to copy from the source buffer into the target buffer.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7a1fa26c50e98472e3e97b48f751ed37" title="Submits the command buffer to the parent command queue.">submit</a></dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a02a662e37f66f56557044bd2ac732528">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a8c1c15f36042c374ac5f53149d87e4a9">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">ArgumentOutOfRangeException</td><td>Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <em>elements</em>  parameter.</td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a id="a7a1fa26c50e98472e3e97b48f751ed37"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a1fa26c50e98472e3e97b48f751ed37">&#9670;&nbsp;</a></span>submit()</h2>
+<a id="a7d06cfe503ea6090367ce946bc09e427"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d06cfe503ea6090367ce946bc09e427">&#9670;&nbsp;</a></span>transfer() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void LiteFX::Rendering::ICommandBuffer::submit </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::transfer </td>
           <td>(</td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>wait</em> = <code>false</code></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype">const TBuffer &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TImage &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>elements</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
   </td>
@@ -249,33 +1143,81 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Submits the command buffer to the parent command queue. </p>
+<p>Performs a buffer-to-image transfer from <em>source</em>  to <em>target</em> . </p>
+<p>The <em>subresource</em>  parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where resources are counted in the following order:</p>
+<ul>
+<li>
+Level Contains the mip-map levels.  </li>
+<li>
+Layer Contains the array slices.  </li>
+<li>
+Plane Contains planes for multi-planar formats.  </li>
+</ul>
+<p>E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure would be repeated for each plane, however one buffer element only maps to one sub-resource. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">wait</td><td>If set to <code>true</code>, the command buffer blocks, until the submitted commands have been executed.</td></tr>
+    <tr><td class="paramname">source</td><td>The source buffer to transfer data from.</td></tr>
+    <tr><td class="paramname">target</td><td>The target image to transfer data to.</td></tr>
+    <tr><td class="paramname">sourceElement</td><td>The index of the first element in the source buffer to copy.</td></tr>
+    <tr><td class="paramname">firstSubresource</td><td>The index of the first sub-resource of the target image to receive data.</td></tr>
+    <tr><td class="paramname">elements</td><td>The number of elements to copy from the source buffer into the target image sub-resources.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af7365086cfd654043ed6590ff1ac90d5" title="Waits for the command buffer to be executed.">wait</a></dd></dl>
-
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a7269395eb90a37074089e697b2fb635a">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aa1f0513a12deff2a900bc6c7d4fd4deb">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">ArgumentOutOfRangeException</td><td>Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <em>elements</em>  parameter.</td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a id="af7365086cfd654043ed6590ff1ac90d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7365086cfd654043ed6590ff1ac90d5">&#9670;&nbsp;</a></span>wait()</h2>
+<a id="ae6b64953279ef961b8f44514afa2ba11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6b64953279ef961b8f44514afa2ba11">&#9670;&nbsp;</a></span>transfer() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void LiteFX::Rendering::ICommandBuffer::wait </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::transfer </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype">const TImage &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TBuffer &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresources</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
   </td>
@@ -285,10 +1227,137 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Waits for the command buffer to be executed. </p>
-<p>If the command buffer gets submitted, it does not necessarily get executed straight away. If you depend on a command buffer to be finished, you can call this method. </p>
+<p>Performs an image-to-buffer transfer from <em>source</em>  to <em>target</em> . </p>
+<p>The <em>firstSubresource</em>  parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where resources are counted in the following order:</p>
+<ul>
+<li>
+Level Contains the mip-map levels.  </li>
+<li>
+Layer Contains the array slices.  </li>
+<li>
+Plane Contains planes for multi-planar formats.  </li>
+</ul>
+<p>E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure would be repeated for each plane, however one buffer element only maps to one sub-resource. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">source</td><td>The source image to transfer data from.</td></tr>
+    <tr><td class="paramname">target</td><td>The target buffer to transfer data to.</td></tr>
+    <tr><td class="paramname">firstSubresource</td><td>The index of the first sub-resource to copy from the source image.</td></tr>
+    <tr><td class="paramname">targetElement</td><td>The index of the first target element to receive data.</td></tr>
+    <tr><td class="paramname">subresources</td><td>The number of sub-resources to copy.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">ArgumentOutOfRangeException</td><td>Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <em>elements</em>  parameter.</td></tr>
+  </table>
+  </dd>
+</dl>
 
-<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a29dfebeee0f1e5d7232e231fa531fe1c">LiteFX::Rendering::Backends::VulkanCommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a0abe72ed4937140ca6d665fa088f35ee">LiteFX::Rendering::Backends::DirectX12CommandBuffer</a>.</p>
+</div>
+</div>
+<a id="ad70520925e673cb48a9cded7b65d9f59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad70520925e673cb48a9cded7b65d9f59">&#9670;&nbsp;</a></span>transfer() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::transfer </td>
+          <td>(</td>
+          <td class="paramtype">const TImage &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TImage &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresources</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Performs an image-to-image transfer from <em>source</em>  to <em>target</em> . </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">source</td><td>The source image to transfer data from.</td></tr>
+    <tr><td class="paramname">target</td><td>The target image to transfer data to.</td></tr>
+    <tr><td class="paramname">sourceSubresource</td><td>The index of the first sub-resource to copy from the source image.</td></tr>
+    <tr><td class="paramname">targetSubresource</td><td>The image of the first sub-resource in the target image to receive data.</td></tr>
+    <tr><td class="paramname">subresources</td><td>The number of sub-resources to copy between the images.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">ArgumentOutOfRangeException</td><td>Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <em>elements</em>  parameter.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a71a0b305306805417934bab14fa60882"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71a0b305306805417934bab14fa60882">&#9670;&nbsp;</a></span>use()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TBuffer , typename TVertexBuffer , typename TIndexBuffer , typename TImage , typename TBarrier , typename TPipeline , typename TPipelineLayout  = TPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout  = TPipelineLayout::push_constants_layout_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>&lt; TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline, TPipelineLayout, TDescriptorSet, TPushConstantsLayout &gt;::use </td>
+          <td>(</td>
+          <td class="paramtype">const TPipeline &amp;&#160;</td>
+          <td class="paramname"><em>pipeline</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the active pipeline state. </p>
 
 </div>
 </div>

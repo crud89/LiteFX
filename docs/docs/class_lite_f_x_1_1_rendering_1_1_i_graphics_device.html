@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt; Class Template Reference</title>
+<title>LiteFX: LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -91,7 +91,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_gra
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -102,53 +102,59 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_gra
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a06636bce4b03d0328d2014c2959cfd73"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a06636bce4b03d0328d2014c2959cfd73">surface_type</a> = TSurface</td></tr>
-<tr class="separator:a06636bce4b03d0328d2014c2959cfd73"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe8638e26a22a82262eee57900d952f8"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#abe8638e26a22a82262eee57900d952f8">adapter_type</a> = TGraphicsAdapter</td></tr>
-<tr class="separator:abe8638e26a22a82262eee57900d952f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5dee77351b62298181a9722d72e1550f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5dee77351b62298181a9722d72e1550f">swap_chain_type</a> = TSwapChain</td></tr>
-<tr class="separator:a5dee77351b62298181a9722d72e1550f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af16a236298fd6b21d83ef0aaa866cdd9"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#af16a236298fd6b21d83ef0aaa866cdd9">command_queue_type</a> = TCommandQueue</td></tr>
-<tr class="separator:af16a236298fd6b21d83ef0aaa866cdd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f525feb7e2c9ab9a94b4b00d254339f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a9f525feb7e2c9ab9a94b4b00d254339f">factory_type</a> = TFactory</td></tr>
-<tr class="separator:a9f525feb7e2c9ab9a94b4b00d254339f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a5d03c4cd2fcd534159b94322a754eb"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a4a5d03c4cd2fcd534159b94322a754eb">frame_buffer_type</a> = TFrameBuffer</td></tr>
-<tr class="separator:a4a5d03c4cd2fcd534159b94322a754eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a279d42ae6dc68ab0f0fae6f1ea4740bf"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a279d42ae6dc68ab0f0fae6f1ea4740bf">render_pass_type</a> = TRenderPass</td></tr>
-<tr class="separator:a279d42ae6dc68ab0f0fae6f1ea4740bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a288de2c6866a8454fca7288e956c11e5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a288de2c6866a8454fca7288e956c11e5">surface_type</a> = TSurface</td></tr>
+<tr class="separator:a288de2c6866a8454fca7288e956c11e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3eb3af62cc8abfa65bd47ce2d84426dc"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a3eb3af62cc8abfa65bd47ce2d84426dc">adapter_type</a> = TGraphicsAdapter</td></tr>
+<tr class="separator:a3eb3af62cc8abfa65bd47ce2d84426dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90a82c8adc3ec9c4be8f04eb193e8e18"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a90a82c8adc3ec9c4be8f04eb193e8e18">swap_chain_type</a> = TSwapChain</td></tr>
+<tr class="separator:a90a82c8adc3ec9c4be8f04eb193e8e18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5efb713c0ca150b96e2bfce34947182"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ae5efb713c0ca150b96e2bfce34947182">command_queue_type</a> = TCommandQueue</td></tr>
+<tr class="separator:ae5efb713c0ca150b96e2bfce34947182"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f392e68754bda10a6ca624bcdc6a582"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a1f392e68754bda10a6ca624bcdc6a582">factory_type</a> = TFactory</td></tr>
+<tr class="separator:a1f392e68754bda10a6ca624bcdc6a582"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b90ca546805019998f7b66e3e26cd4a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8b90ca546805019998f7b66e3e26cd4a">frame_buffer_type</a> = TFrameBuffer</td></tr>
+<tr class="separator:a8b90ca546805019998f7b66e3e26cd4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad99053aebdf926a39b013ccc1d7d8501"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad99053aebdf926a39b013ccc1d7d8501">render_pass_type</a> = TRenderPass</td></tr>
+<tr class="separator:ad99053aebdf926a39b013ccc1d7d8501"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a10fd436b26a17f667ce94aa3e05a6974"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a10fd436b26a17f667ce94aa3e05a6974">~IGraphicsDevice</a> () noexcept=default</td></tr>
-<tr class="separator:a10fd436b26a17f667ce94aa3e05a6974"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3f04a29ff1ed255231cd4b937c9afb7"><td class="memItemLeft" align="right" valign="top">virtual const TSurface &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab3f04a29ff1ed255231cd4b937c9afb7">surface</a> () const noexcept=0</td></tr>
-<tr class="memdesc:ab3f04a29ff1ed255231cd4b937c9afb7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the surface, the device draws to.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab3f04a29ff1ed255231cd4b937c9afb7">More...</a><br /></td></tr>
-<tr class="separator:ab3f04a29ff1ed255231cd4b937c9afb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c73c30de3af985a55bbc241da0eedc7"><td class="memItemLeft" align="right" valign="top">virtual const TGraphicsAdapter &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7c73c30de3af985a55bbc241da0eedc7">adapter</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a7c73c30de3af985a55bbc241da0eedc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the graphics adapter, the device uses for drawing.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7c73c30de3af985a55bbc241da0eedc7">More...</a><br /></td></tr>
-<tr class="separator:a7c73c30de3af985a55bbc241da0eedc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab09a44cbfb5edecf01c7a75d71532fad"><td class="memItemLeft" align="right" valign="top">virtual const TSwapChain &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab09a44cbfb5edecf01c7a75d71532fad">swapChain</a> () const noexcept=0</td></tr>
-<tr class="memdesc:ab09a44cbfb5edecf01c7a75d71532fad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the swap chain, that contains the back and front buffers used for presentation.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab09a44cbfb5edecf01c7a75d71532fad">More...</a><br /></td></tr>
-<tr class="separator:ab09a44cbfb5edecf01c7a75d71532fad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae345dc7ffc47bd8bbf907fbc11e3730a"><td class="memItemLeft" align="right" valign="top">virtual const TFactory &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ae345dc7ffc47bd8bbf907fbc11e3730a">factory</a> () const noexcept=0</td></tr>
-<tr class="memdesc:ae345dc7ffc47bd8bbf907fbc11e3730a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the factory instance, used to create instances from the device.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ae345dc7ffc47bd8bbf907fbc11e3730a">More...</a><br /></td></tr>
-<tr class="separator:ae345dc7ffc47bd8bbf907fbc11e3730a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5dbba2c2eeef468d4ef4893fcfbbbbf4"><td class="memItemLeft" align="right" valign="top">virtual const TCommandQueue &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5dbba2c2eeef468d4ef4893fcfbbbbf4">graphicsQueue</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a5dbba2c2eeef468d4ef4893fcfbbbbf4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the instance of the queue, used to process draw calls.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5dbba2c2eeef468d4ef4893fcfbbbbf4">More...</a><br /></td></tr>
-<tr class="separator:a5dbba2c2eeef468d4ef4893fcfbbbbf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5dbff856509dacb258a043becfe6c40"><td class="memItemLeft" align="right" valign="top">virtual const TCommandQueue &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab5dbff856509dacb258a043becfe6c40">transferQueue</a> () const noexcept=0</td></tr>
-<tr class="memdesc:ab5dbff856509dacb258a043becfe6c40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the instance of the queue used for device-device transfers (e.g. between render-passes).  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab5dbff856509dacb258a043becfe6c40">More...</a><br /></td></tr>
-<tr class="separator:ab5dbff856509dacb258a043becfe6c40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27465a28faa8ac8d37652c00d203487a"><td class="memItemLeft" align="right" valign="top">virtual const TCommandQueue &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a27465a28faa8ac8d37652c00d203487a">bufferQueue</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a27465a28faa8ac8d37652c00d203487a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the instance of the queue used for host-device transfers.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a27465a28faa8ac8d37652c00d203487a">More...</a><br /></td></tr>
-<tr class="separator:a27465a28faa8ac8d37652c00d203487a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c7a56c2edd22f3d3724b25350db9a26"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8c7a56c2edd22f3d3724b25350db9a26">wait</a> () const =0</td></tr>
-<tr class="memdesc:a8c7a56c2edd22f3d3724b25350db9a26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits until the device is idle.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8c7a56c2edd22f3d3724b25350db9a26">More...</a><br /></td></tr>
-<tr class="separator:a8c7a56c2edd22f3d3724b25350db9a26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59698c19d501cb3cd3638d83472fa23b"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a59698c19d501cb3cd3638d83472fa23b">~IGraphicsDevice</a> () noexcept=default</td></tr>
+<tr class="separator:a59698c19d501cb3cd3638d83472fa23b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac45b6607a79cf47429a390e84e53e5a9"><td class="memItemLeft" align="right" valign="top">virtual const TSurface &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ac45b6607a79cf47429a390e84e53e5a9">surface</a> () const noexcept=0</td></tr>
+<tr class="memdesc:ac45b6607a79cf47429a390e84e53e5a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the surface, the device draws to.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ac45b6607a79cf47429a390e84e53e5a9">More...</a><br /></td></tr>
+<tr class="separator:ac45b6607a79cf47429a390e84e53e5a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c7e9f991f97798fdeedd7153311b7e0"><td class="memItemLeft" align="right" valign="top">virtual const TGraphicsAdapter &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8c7e9f991f97798fdeedd7153311b7e0">adapter</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a8c7e9f991f97798fdeedd7153311b7e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the graphics adapter, the device uses for drawing.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8c7e9f991f97798fdeedd7153311b7e0">More...</a><br /></td></tr>
+<tr class="separator:a8c7e9f991f97798fdeedd7153311b7e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ef91d9755559214e6835f4fd0433c22"><td class="memItemLeft" align="right" valign="top">virtual const TSwapChain &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a3ef91d9755559214e6835f4fd0433c22">swapChain</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a3ef91d9755559214e6835f4fd0433c22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the swap chain, that contains the back and front buffers used for presentation.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a3ef91d9755559214e6835f4fd0433c22">More...</a><br /></td></tr>
+<tr class="separator:a3ef91d9755559214e6835f4fd0433c22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab17d8ab10dc20b1cc831f842d6e102e2"><td class="memItemLeft" align="right" valign="top">virtual const TFactory &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab17d8ab10dc20b1cc831f842d6e102e2">factory</a> () const noexcept=0</td></tr>
+<tr class="memdesc:ab17d8ab10dc20b1cc831f842d6e102e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the factory instance, used to create instances from the device.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ab17d8ab10dc20b1cc831f842d6e102e2">More...</a><br /></td></tr>
+<tr class="separator:ab17d8ab10dc20b1cc831f842d6e102e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7600be99571ca0198eb30319ff8a0631"><td class="memItemLeft" align="right" valign="top">virtual const TCommandQueue &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7600be99571ca0198eb30319ff8a0631">graphicsQueue</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a7600be99571ca0198eb30319ff8a0631"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the instance of the queue, used to process draw calls.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7600be99571ca0198eb30319ff8a0631">More...</a><br /></td></tr>
+<tr class="separator:a7600be99571ca0198eb30319ff8a0631"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4771e2deeb71ebe147ed788eae67790"><td class="memItemLeft" align="right" valign="top">virtual const TCommandQueue &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad4771e2deeb71ebe147ed788eae67790">transferQueue</a> () const noexcept=0</td></tr>
+<tr class="memdesc:ad4771e2deeb71ebe147ed788eae67790"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the instance of the queue used for device-device transfers (e.g. between render-passes).  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad4771e2deeb71ebe147ed788eae67790">More...</a><br /></td></tr>
+<tr class="separator:ad4771e2deeb71ebe147ed788eae67790"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30445acf068a0999eb5e7ad69d1e494e"><td class="memItemLeft" align="right" valign="top">virtual const TCommandQueue &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a30445acf068a0999eb5e7ad69d1e494e">bufferQueue</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a30445acf068a0999eb5e7ad69d1e494e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the instance of the queue used for host-device transfers.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a30445acf068a0999eb5e7ad69d1e494e">More...</a><br /></td></tr>
+<tr class="separator:a30445acf068a0999eb5e7ad69d1e494e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ea30098f46f7bfff74d9aa69bb1ab17"><td class="memItemLeft" align="right" valign="top">virtual const TCommandQueue &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5ea30098f46f7bfff74d9aa69bb1ab17">computeQueue</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a5ea30098f46f7bfff74d9aa69bb1ab17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the instance of the queue used for compute calls.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5ea30098f46f7bfff74d9aa69bb1ab17">More...</a><br /></td></tr>
+<tr class="separator:a5ea30098f46f7bfff74d9aa69bb1ab17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29cfb8f4df1969b816781a2a1ccf9675"><td class="memItemLeft" align="right" valign="top">virtual MultiSamplingLevel&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a29cfb8f4df1969b816781a2a1ccf9675">maximumMultiSamplingLevel</a> (const Format &amp;format) const noexcept=0</td></tr>
+<tr class="memdesc:a29cfb8f4df1969b816781a2a1ccf9675"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries the device for the maximum supported number of multi-sampling levels.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a29cfb8f4df1969b816781a2a1ccf9675">More...</a><br /></td></tr>
+<tr class="separator:a29cfb8f4df1969b816781a2a1ccf9675"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cc74be39636c093c3db1d45e3d0e28d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a1cc74be39636c093c3db1d45e3d0e28d">wait</a> () const =0</td></tr>
+<tr class="memdesc:a1cc74be39636c093c3db1d45e3d0e28d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits until the device is idle.  <a href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a1cc74be39636c093c3db1d45e3d0e28d">More...</a><br /></td></tr>
+<tr class="separator:a1cc74be39636c093c3db1d45e3d0e28d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping = TRenderPass::input_attachment_mapping_type, typename TImageInterface = TSwapChain::image_interface_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TVertexBufferInterface = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface = TFactory::index_buffer_interface_type, typename TDescriptorLayout = TFactory::descriptor_layout_type, typename TConstantBufferInterface = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface = TFactory::generic_buffer_interface_type, typename TTextureInterface = TFactory::texture_interface_type, typename TSamplerInterface = TFactory::sampler_interface_type&gt;<br />
-class LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;</h3>
+<div class="textblock"><h3>template&lt;typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TImage = TFactory::image_type, typename TVertexBuffer = TFactory::vertex_buffer_type, typename TIndexBuffer = TFactory::index_buffer_type, typename TDescriptorLayout = TFactory::descriptor_layout_type, typename TBuffer = TFactory::buffer_type, typename TSampler = TFactory::sampler_type&gt;<br />
+class LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;</h3>
 
 <p>Represents the graphics device that a rendering back-end is doing work on. </p>
 <p>The graphics device is the central instance of a renderer. It has two major roles. First, it maintains the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_factory.html" title="Describes a factory that creates objects for a IGraphicsDevice.">IGraphicsFactory</a> instance, that is used to facilitate common objects. Second, it owns the device state, which contains objects required for communication between your application and the graphics driver. Most notably, those objects contain the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html" title="Represents a swap chain, i.e. a chain of multiple IImage instances, that can be presented to a ISurfa...">ISwapChain</a> instance and the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a> instances used for data and command transfer. </p>
@@ -160,8 +166,8 @@ class LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapte
     <tr><td class="paramname">TSwapChain</td><td>The type of the swap chain. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html" title="Represents a swap chain, i.e. a chain of multiple IImage instances, that can be presented to a ISurfa...">ISwapChain</a>.</td></tr>
     <tr><td class="paramname">TCommandQueue</td><td>The type of the command queue. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>.</td></tr>
     <tr><td class="paramname">TRenderPass</td><td>The type of the render pass. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html" title="Represents a render pass.">IRenderPass</a>.</td></tr>
-    <tr><td class="paramname">TRenderPipeline</td><td>The type of the render pipeline. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a render pipeline state.">IRenderPipeline</a>.</td></tr>
-    <tr><td class="paramname">TImageInterface</td><td>The type of the swap chain image interface. Must inherit from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html" title="Describes a generic image.">IImage</a>.</td></tr>
+    <tr><td class="paramname">TRenderPipeline</td><td>The type of the render pipeline. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a graphics IPipeline.">IRenderPipeline</a>.</td></tr>
+    <tr><td class="paramname">TImage</td><td>The type of the swap chain image. Must inherit from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html" title="Describes a generic image.">IImage</a>.</td></tr>
     <tr><td class="paramname">TFrameBuffer</td><td>The type of the frame buffer. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="Stores the images for the output attachments for a back buffer of a IRenderPass, as well as a IComman...">IFrameBuffer</a>.</td></tr>
     <tr><td class="paramname">TInputAttachmentMapping</td><td>The type of the input attachment mapping. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping.html" title="Represents a mapping between a set of IRenderTarget instances and the input attachments of a IRenderP...">IInputAttachmentMapping</a>.</td></tr>
     <tr><td class="paramname">TCommandBuffer</td><td>The type of the command buffer. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html" title="Represents a command buffer, that buffers commands that should be submitted to a ICommandQueue.">ICommandBuffer</a>.</td></tr>
@@ -172,112 +178,112 @@ class LiteFX::Rendering::IGraphicsDevice&lt; TFactory, TSurface, TGraphicsAdapte
   </dd>
 </dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="abe8638e26a22a82262eee57900d952f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abe8638e26a22a82262eee57900d952f8">&#9670;&nbsp;</a></span>adapter_type</h2>
+<a id="a3eb3af62cc8abfa65bd47ce2d84426dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3eb3af62cc8abfa65bd47ce2d84426dc">&#9670;&nbsp;</a></span>adapter_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#abe8638e26a22a82262eee57900d952f8">adapter_type</a> =  TGraphicsAdapter</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a3eb3af62cc8abfa65bd47ce2d84426dc">adapter_type</a> =  TGraphicsAdapter</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="af16a236298fd6b21d83ef0aaa866cdd9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af16a236298fd6b21d83ef0aaa866cdd9">&#9670;&nbsp;</a></span>command_queue_type</h2>
+<a id="ae5efb713c0ca150b96e2bfce34947182"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5efb713c0ca150b96e2bfce34947182">&#9670;&nbsp;</a></span>command_queue_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#af16a236298fd6b21d83ef0aaa866cdd9">command_queue_type</a> =  TCommandQueue</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ae5efb713c0ca150b96e2bfce34947182">command_queue_type</a> =  TCommandQueue</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a9f525feb7e2c9ab9a94b4b00d254339f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f525feb7e2c9ab9a94b4b00d254339f">&#9670;&nbsp;</a></span>factory_type</h2>
+<a id="a1f392e68754bda10a6ca624bcdc6a582"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f392e68754bda10a6ca624bcdc6a582">&#9670;&nbsp;</a></span>factory_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a9f525feb7e2c9ab9a94b4b00d254339f">factory_type</a> =  TFactory</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a1f392e68754bda10a6ca624bcdc6a582">factory_type</a> =  TFactory</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a4a5d03c4cd2fcd534159b94322a754eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a5d03c4cd2fcd534159b94322a754eb">&#9670;&nbsp;</a></span>frame_buffer_type</h2>
+<a id="a8b90ca546805019998f7b66e3e26cd4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b90ca546805019998f7b66e3e26cd4a">&#9670;&nbsp;</a></span>frame_buffer_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a4a5d03c4cd2fcd534159b94322a754eb">frame_buffer_type</a> =  TFrameBuffer</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a8b90ca546805019998f7b66e3e26cd4a">frame_buffer_type</a> =  TFrameBuffer</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a279d42ae6dc68ab0f0fae6f1ea4740bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a279d42ae6dc68ab0f0fae6f1ea4740bf">&#9670;&nbsp;</a></span>render_pass_type</h2>
+<a id="ad99053aebdf926a39b013ccc1d7d8501"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad99053aebdf926a39b013ccc1d7d8501">&#9670;&nbsp;</a></span>render_pass_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a279d42ae6dc68ab0f0fae6f1ea4740bf">render_pass_type</a> =  TRenderPass</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#ad99053aebdf926a39b013ccc1d7d8501">render_pass_type</a> =  TRenderPass</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a06636bce4b03d0328d2014c2959cfd73"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a06636bce4b03d0328d2014c2959cfd73">&#9670;&nbsp;</a></span>surface_type</h2>
+<a id="a288de2c6866a8454fca7288e956c11e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a288de2c6866a8454fca7288e956c11e5">&#9670;&nbsp;</a></span>surface_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a06636bce4b03d0328d2014c2959cfd73">surface_type</a> =  TSurface</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a288de2c6866a8454fca7288e956c11e5">surface_type</a> =  TSurface</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a5dee77351b62298181a9722d72e1550f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5dee77351b62298181a9722d72e1550f">&#9670;&nbsp;</a></span>swap_chain_type</h2>
+<a id="a90a82c8adc3ec9c4be8f04eb193e8e18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90a82c8adc3ec9c4be8f04eb193e8e18">&#9670;&nbsp;</a></span>swap_chain_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5dee77351b62298181a9722d72e1550f">swap_chain_type</a> =  TSwapChain</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a90a82c8adc3ec9c4be8f04eb193e8e18">swap_chain_type</a> =  TSwapChain</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -285,19 +291,19 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a10fd436b26a17f667ce94aa3e05a6974"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a10fd436b26a17f667ce94aa3e05a6974">&#9670;&nbsp;</a></span>~IGraphicsDevice()</h2>
+<a id="a59698c19d501cb3cd3638d83472fa23b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59698c19d501cb3cd3638d83472fa23b">&#9670;&nbsp;</a></span>~IGraphicsDevice()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">IGraphicsDevice</a> </td>
+          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">IGraphicsDevice</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -313,19 +319,19 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a7c73c30de3af985a55bbc241da0eedc7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7c73c30de3af985a55bbc241da0eedc7">&#9670;&nbsp;</a></span>adapter()</h2>
+<a id="a8c7e9f991f97798fdeedd7153311b7e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c7e9f991f97798fdeedd7153311b7e0">&#9670;&nbsp;</a></span>adapter()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TGraphicsAdapter&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::adapter </td>
+          <td class="memname">virtual const TGraphicsAdapter&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::adapter </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -345,19 +351,19 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 
 </div>
 </div>
-<a id="a27465a28faa8ac8d37652c00d203487a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a27465a28faa8ac8d37652c00d203487a">&#9670;&nbsp;</a></span>bufferQueue()</h2>
+<a id="a30445acf068a0999eb5e7ad69d1e494e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30445acf068a0999eb5e7ad69d1e494e">&#9670;&nbsp;</a></span>bufferQueue()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TCommandQueue&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::bufferQueue </td>
+          <td class="memname">virtual const TCommandQueue&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::bufferQueue </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -371,26 +377,59 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 </div><div class="memdoc">
 
 <p>Returns the instance of the queue used for host-device transfers. </p>
-<p>Note that this can be the same as <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5dbba2c2eeef468d4ef4893fcfbbbbf4" title="Returns the instance of the queue, used to process draw calls.">graphicsQueue</a>, if no dedicated transfer queues are supported on the device. </p>
+<p>Note that this can be the same as <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7600be99571ca0198eb30319ff8a0631" title="Returns the instance of the queue, used to process draw calls.">graphicsQueue</a>, if no dedicated transfer queues are supported on the device. </p>
 <dl class="section return"><dt>Returns</dt><dd>The instance of the queue used for host-device transfers.</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a75322981b05e0cdd7e85944f61a5575d">LiteFX::Rendering::Backends::VulkanDevice</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#aac05aed33372c6cc7ea7cb248cccf15e">LiteFX::Rendering::Backends::DirectX12Device</a>.</p>
 
 </div>
 </div>
-<a id="ae345dc7ffc47bd8bbf907fbc11e3730a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae345dc7ffc47bd8bbf907fbc11e3730a">&#9670;&nbsp;</a></span>factory()</h2>
+<a id="a5ea30098f46f7bfff74d9aa69bb1ab17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ea30098f46f7bfff74d9aa69bb1ab17">&#9670;&nbsp;</a></span>computeQueue()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TFactory&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::factory </td>
+          <td class="memname">virtual const TCommandQueue&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::computeQueue </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the instance of the queue used for compute calls. </p>
+<p>Note that this can be the same as <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7600be99571ca0198eb30319ff8a0631" title="Returns the instance of the queue, used to process draw calls.">graphicsQueue</a>, if no dedicated compute queues are supported on the device. </p>
+<dl class="section return"><dt>Returns</dt><dd>The instance of the queue used for compute calls.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#aacb8958e48cc952538aebf220c8bb68e">LiteFX::Rendering::Backends::VulkanDevice</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a78c054650aed8405e24ef468b7741874">LiteFX::Rendering::Backends::DirectX12Device</a>.</p>
+
+</div>
+</div>
+<a id="ab17d8ab10dc20b1cc831f842d6e102e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab17d8ab10dc20b1cc831f842d6e102e2">&#9670;&nbsp;</a></span>factory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const TFactory&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::factory </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -410,19 +449,19 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 
 </div>
 </div>
-<a id="a5dbba2c2eeef468d4ef4893fcfbbbbf4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5dbba2c2eeef468d4ef4893fcfbbbbf4">&#9670;&nbsp;</a></span>graphicsQueue()</h2>
+<a id="a7600be99571ca0198eb30319ff8a0631"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7600be99571ca0198eb30319ff8a0631">&#9670;&nbsp;</a></span>graphicsQueue()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TCommandQueue&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::graphicsQueue </td>
+          <td class="memname">virtual const TCommandQueue&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::graphicsQueue </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -442,19 +481,59 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 
 </div>
 </div>
-<a id="ab3f04a29ff1ed255231cd4b937c9afb7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab3f04a29ff1ed255231cd4b937c9afb7">&#9670;&nbsp;</a></span>surface()</h2>
+<a id="a29cfb8f4df1969b816781a2a1ccf9675"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a29cfb8f4df1969b816781a2a1ccf9675">&#9670;&nbsp;</a></span>maximumMultiSamplingLevel()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TSurface&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::surface </td>
+          <td class="memname">virtual MultiSamplingLevel <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::maximumMultiSamplingLevel </td>
+          <td>(</td>
+          <td class="paramtype">const Format &amp;&#160;</td>
+          <td class="paramname"><em>format</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Queries the device for the maximum supported number of multi-sampling levels. </p>
+<p>This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower multi-sampling levels are implicitly supported for this format. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">format</td><td>The target (i.e. back-buffer) format.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The maximum multi-sampling level.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a3d40489b413a5c6c7d16bf7e7352b229">LiteFX::Rendering::Backends::VulkanDevice</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#a3d79e7d0bd4ee634cb1ff95d43b8519d">LiteFX::Rendering::Backends::DirectX12Device</a>.</p>
+
+</div>
+</div>
+<a id="ac45b6607a79cf47429a390e84e53e5a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac45b6607a79cf47429a390e84e53e5a9">&#9670;&nbsp;</a></span>surface()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const TSurface&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::surface </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -474,19 +553,19 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 
 </div>
 </div>
-<a id="ab09a44cbfb5edecf01c7a75d71532fad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab09a44cbfb5edecf01c7a75d71532fad">&#9670;&nbsp;</a></span>swapChain()</h2>
+<a id="a3ef91d9755559214e6835f4fd0433c22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ef91d9755559214e6835f4fd0433c22">&#9670;&nbsp;</a></span>swapChain()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TSwapChain&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::swapChain </td>
+          <td class="memname">virtual const TSwapChain&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::swapChain </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -506,19 +585,19 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 
 </div>
 </div>
-<a id="ab5dbff856509dacb258a043becfe6c40"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5dbff856509dacb258a043becfe6c40">&#9670;&nbsp;</a></span>transferQueue()</h2>
+<a id="ad4771e2deeb71ebe147ed788eae67790"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4771e2deeb71ebe147ed788eae67790">&#9670;&nbsp;</a></span>transferQueue()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TCommandQueue&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::transferQueue </td>
+          <td class="memname">virtual const TCommandQueue&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::transferQueue </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -532,26 +611,26 @@ template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , 
 </div><div class="memdoc">
 
 <p>Returns the instance of the queue used for device-device transfers (e.g. between render-passes). </p>
-<p>Note that this can be the same as <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a5dbba2c2eeef468d4ef4893fcfbbbbf4" title="Returns the instance of the queue, used to process draw calls.">graphicsQueue</a>, if no dedicated transfer queues are supported on the device. </p>
+<p>Note that this can be the same as <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a7600be99571ca0198eb30319ff8a0631" title="Returns the instance of the queue, used to process draw calls.">graphicsQueue</a>, if no dedicated transfer queues are supported on the device. </p>
 <dl class="section return"><dt>Returns</dt><dd>The instance of the queue used for device-device transfers (e.g. between render-passes).</dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html#a3c3f40b6b913e47c2644e8ef0a9cd2ea">LiteFX::Rendering::Backends::VulkanDevice</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_device.html#ab02c3544c77f320ba863df8d4eae6719">LiteFX::Rendering::Backends::DirectX12Device</a>.</p>
 
 </div>
 </div>
-<a id="a8c7a56c2edd22f3d3724b25350db9a26"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c7a56c2edd22f3d3724b25350db9a26">&#9670;&nbsp;</a></span>wait()</h2>
+<a id="a1cc74be39636c093c3db1d45e3d0e28d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cc74be39636c093c3db1d45e3d0e28d">&#9670;&nbsp;</a></span>wait()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TImageInterface  = TSwapChain::image_interface_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TVertexBufferInterface  = TFactory::vertex_buffer_interface_type, typename TIndexBufferInterface  = TFactory::index_buffer_interface_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TConstantBufferInterface  = TFactory::constant_buffer_interface_type, typename TGenericBufferInterface  = TFactory::generic_buffer_interface_type, typename TTextureInterface  = TFactory::texture_interface_type, typename TSamplerInterface  = TFactory::sampler_interface_type&gt; </div>
+template&lt;typename TFactory , typename TSurface , typename TGraphicsAdapter , typename TSwapChain , typename TCommandQueue , typename TRenderPass , typename TFrameBuffer  = TRenderPass::frame_buffer_type, typename TRenderPipeline  = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping  = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer  = TCommandQueue::command_buffer_type, typename TImage  = TFactory::image_type, typename TVertexBuffer  = TFactory::vertex_buffer_type, typename TIndexBuffer  = TFactory::index_buffer_type, typename TDescriptorLayout  = TFactory::descriptor_layout_type, typename TBuffer  = TFactory::buffer_type, typename TSampler  = TFactory::sampler_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TImageInterface, TCommandBuffer, TVertexBufferInterface, TIndexBufferInterface, TDescriptorLayout, TConstantBufferInterface, TGenericBufferInterface, TTextureInterface, TSamplerInterface &gt;::wait </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html">LiteFX::Rendering::IGraphicsDevice</a>&lt; TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TFrameBuffer, TRenderPipeline, TInputAttachmentMapping, TCommandBuffer, TImage, TVertexBuffer, TIndexBuffer, TDescriptorLayout, TBuffer, TSampler &gt;::wait </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::RenderPipelineBuilder&lt; TDerived, TRenderPipeline, TBufferInterface, TInputAssembler, TRenderPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt; Class Template Reference</title>
+<title>LiteFX: LiteFX::Rendering::RenderPipelineBuilder&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -90,7 +90,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_rende
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LiteFX::Rendering::RenderPipelineBuilder&lt; TDerived, TRenderPipeline, TBufferInterface, TInputAssembler, TRenderPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">LiteFX::Rendering::RenderPipelineBuilder&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -103,21 +103,24 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_rende
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac2afec2e4b88a9ea7a8b2823cc74040f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ac2afec2e4b88a9ea7a8b2823cc74040f">use</a> (<a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; TRenderPipelineLayout &gt; &amp;&amp;layout)=0</td></tr>
-<tr class="memdesc:ac2afec2e4b88a9ea7a8b2823cc74040f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided render pipeline layout to initialize the render pipeline. Can be invoked only once.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ac2afec2e4b88a9ea7a8b2823cc74040f">More...</a><br /></td></tr>
-<tr class="separator:ac2afec2e4b88a9ea7a8b2823cc74040f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af5bce134b3c0e977e5dbf89e657f5814"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#af5bce134b3c0e977e5dbf89e657f5814">use</a> (<a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html">IRasterizer</a> &gt; rasterizer)=0</td></tr>
-<tr class="memdesc:af5bce134b3c0e977e5dbf89e657f5814"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#af5bce134b3c0e977e5dbf89e657f5814">More...</a><br /></td></tr>
-<tr class="separator:af5bce134b3c0e977e5dbf89e657f5814"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9b04e2297581ad6f6dfc42f090e805c3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a9b04e2297581ad6f6dfc42f090e805c3">use</a> (<a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; TInputAssembler &gt; inputAssembler)=0</td></tr>
-<tr class="memdesc:a9b04e2297581ad6f6dfc42f090e805c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a9b04e2297581ad6f6dfc42f090e805c3">More...</a><br /></td></tr>
-<tr class="separator:a9b04e2297581ad6f6dfc42f090e805c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad957e6e984b5e75b502372d865fe6ba3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ad957e6e984b5e75b502372d865fe6ba3">use</a> (<a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html">IViewport</a> &gt; viewport)=0</td></tr>
-<tr class="memdesc:ad957e6e984b5e75b502372d865fe6ba3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided viewport to initialize the render pipeline. Can be invoked multiple times.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ad957e6e984b5e75b502372d865fe6ba3">More...</a><br /></td></tr>
-<tr class="separator:ad957e6e984b5e75b502372d865fe6ba3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a403fc166a1fc6a3edc774335d83edf4d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a403fc166a1fc6a3edc774335d83edf4d">use</a> (<a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_scissor.html">IScissor</a> &gt; scissor)=0</td></tr>
-<tr class="memdesc:a403fc166a1fc6a3edc774335d83edf4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided scissor to initialize the render pipeline. Can be invoked multiple times.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a403fc166a1fc6a3edc774335d83edf4d">More...</a><br /></td></tr>
-<tr class="separator:a403fc166a1fc6a3edc774335d83edf4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad79104e1c1124a073d23ad77273c234c"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ad79104e1c1124a073d23ad77273c234c">use</a> (<a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; TPipelineLayout &gt; &amp;&amp;layout)=0</td></tr>
+<tr class="memdesc:ad79104e1c1124a073d23ad77273c234c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided pipeline layout to initialize the render pipeline. Can be invoked only once.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#ad79104e1c1124a073d23ad77273c234c">More...</a><br /></td></tr>
+<tr class="separator:ad79104e1c1124a073d23ad77273c234c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad037447def55a77a45769f2843125f3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#aad037447def55a77a45769f2843125f3">use</a> (<a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html">IRasterizer</a> &gt; rasterizer)=0</td></tr>
+<tr class="memdesc:aad037447def55a77a45769f2843125f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#aad037447def55a77a45769f2843125f3">More...</a><br /></td></tr>
+<tr class="separator:aad037447def55a77a45769f2843125f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a8428e62fd726da30b0e58d9a41177f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a8a8428e62fd726da30b0e58d9a41177f">use</a> (<a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; TInputAssembler &gt; inputAssembler)=0</td></tr>
+<tr class="memdesc:a8a8428e62fd726da30b0e58d9a41177f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a8a8428e62fd726da30b0e58d9a41177f">More...</a><br /></td></tr>
+<tr class="separator:a8a8428e62fd726da30b0e58d9a41177f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fbad2094d4172a6af421f1f9a72c7c5"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a6fbad2094d4172a6af421f1f9a72c7c5">use</a> (<a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html">IViewport</a> &gt; viewport)=0</td></tr>
+<tr class="memdesc:a6fbad2094d4172a6af421f1f9a72c7c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided viewport to initialize the render pipeline. Can be invoked multiple times.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a6fbad2094d4172a6af421f1f9a72c7c5">More...</a><br /></td></tr>
+<tr class="separator:a6fbad2094d4172a6af421f1f9a72c7c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4be28eb23cf949dd645a2c0812c93496"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a4be28eb23cf949dd645a2c0812c93496">use</a> (<a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_scissor.html">IScissor</a> &gt; scissor)=0</td></tr>
+<tr class="memdesc:a4be28eb23cf949dd645a2c0812c93496"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the provided scissor to initialize the render pipeline. Can be invoked multiple times.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a4be28eb23cf949dd645a2c0812c93496">More...</a><br /></td></tr>
+<tr class="separator:a4be28eb23cf949dd645a2c0812c93496"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f810ca1b4936b9b84a11e37b00249b5"><td class="memItemLeft" align="right" valign="top">virtual TDerived &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a3f810ca1b4936b9b84a11e37b00249b5">enableAlphaToCoverage</a> (const bool &amp;enable=true)=0</td></tr>
+<tr class="memdesc:a3f810ca1b4936b9b84a11e37b00249b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables <em>Alpha-to-Coverage</em> multi-sampling on the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html#a3f810ca1b4936b9b84a11e37b00249b5">More...</a><br /></td></tr>
+<tr class="separator:a3f810ca1b4936b9b84a11e37b00249b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_builder"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_builder')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_builder.html">LiteFX::Builder&lt; TDerived, TRenderPipeline &gt;</a></td></tr>
 <tr class="memitem:a9d36251fed9e742ad6261a66917e8bf7 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">const TRenderPipeline *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a9d36251fed9e742ad6261a66917e8bf7">instance</a> () const noexcept</td></tr>
 <tr class="separator:a9d36251fed9e742ad6261a66917e8bf7 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -133,10 +136,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9a467e50fc8f4db7e6d8ff5a2b54381c inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#ad97fa87a98bf3cdf3a4df27f910da56f">use</a> (<a class="el" href="class_lite_f_x_1_1_builder.html#a95ce991f0f204ba6133127b0a07cb6f9">pointer_type</a> &amp;&amp;)</td></tr>
 <tr class="separator:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename TBuilder::parent_type * &gt; &amp;&amp;rtti::is_explicitly_constructible_v&lt; TInstance, const TRenderPipeline &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename TBuilder::parent_type * &gt; &amp;&amp;rtti::is_explicitly_constructible_v&lt; TInstance, const TRenderPipeline &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4385222f548880c248995bba6f18980a inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memItemLeft" align="right" valign="top">virtual TParent &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a4385222f548880c248995bba6f18980a">go</a> ()</td></tr>
 <tr class="separator:a4385222f548880c248995bba6f18980a inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -158,25 +157,64 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:aa31367e19593bc00b752aceaa531bb5e inherit pro_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TDerived, typename TRenderPipeline, typename TBufferInterface = TRenderPipeline::buffer_interface_type, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TRenderPipelineLayout = TRenderPipeline::render_pipeline_layout_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type&gt;<br />
-class LiteFX::Rendering::RenderPipelineBuilder&lt; TDerived, TRenderPipeline, TBufferInterface, TInputAssembler, TRenderPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;</h3>
+<div class="textblock"><h3>template&lt;typename TDerived, typename TRenderPipeline, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type&gt;<br />
+class LiteFX::Rendering::RenderPipelineBuilder&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;</h3>
 
 <p>Describes the interface of a render pipeline builder. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a render pipeline state.">IRenderPipeline</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a graphics IPipeline.">IRenderPipeline</a></dd></dl>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="af5bce134b3c0e977e5dbf89e657f5814"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af5bce134b3c0e977e5dbf89e657f5814">&#9670;&nbsp;</a></span>use() <span class="overload">[1/5]</span></h2>
+<a id="a3f810ca1b4936b9b84a11e37b00249b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f810ca1b4936b9b84a11e37b00249b5">&#9670;&nbsp;</a></span>enableAlphaToCoverage()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInterface  = TRenderPipeline::buffer_interface_type, typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
+template&lt;typename TDerived , typename TRenderPipeline , typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TBufferInterface, TInputAssembler, TRenderPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
+          <td class="memname">virtual TDerived&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::enableAlphaToCoverage </td>
+          <td>(</td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>enable</em> = <code>true</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Enables <em>Alpha-to-Coverage</em> multi-sampling on the pipeline. </p>
+<p>For more information on <em>Alpha-to-Coverage</em> multi-sampling see the remarks of <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a51da225f2eec6cce993950fec1ed339c" title="Returns true, if the pipeline uses Alpha-to-Coverage multi-sampling.">IRenderPipeline::alphaToCoverage</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">enable</td><td>Whether or not to use <em>Alpha-to-Coverage</em> multi-sampling.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_builder.html#a9bbf443749f2f9016b4d077e7ddbebac">LiteFX::Rendering::Backends::VulkanRenderPipelineBuilder</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_builder.html#a8213e7974259f5ac5c13cc9d2b0c53b6">LiteFX::Rendering::Backends::DirectX12RenderPipelineBuilder</a>.</p>
+
+</div>
+</div>
+<a id="aad037447def55a77a45769f2843125f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad037447def55a77a45769f2843125f3">&#9670;&nbsp;</a></span>use() <span class="overload">[1/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TDerived , typename TRenderPipeline , typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_rasterizer.html">IRasterizer</a> &gt;&#160;</td>
           <td class="paramname"><em>rasterizer</em></td><td>)</td>
@@ -202,19 +240,19 @@ template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInter
 
 </div>
 </div>
-<a id="a403fc166a1fc6a3edc774335d83edf4d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a403fc166a1fc6a3edc774335d83edf4d">&#9670;&nbsp;</a></span>use() <span class="overload">[2/5]</span></h2>
+<a id="a4be28eb23cf949dd645a2c0812c93496"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4be28eb23cf949dd645a2c0812c93496">&#9670;&nbsp;</a></span>use() <span class="overload">[2/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInterface  = TRenderPipeline::buffer_interface_type, typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
+template&lt;typename TDerived , typename TRenderPipeline , typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TBufferInterface, TInputAssembler, TRenderPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_scissor.html">IScissor</a> &gt;&#160;</td>
           <td class="paramname"><em>scissor</em></td><td>)</td>
@@ -240,19 +278,19 @@ template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInter
 
 </div>
 </div>
-<a id="ad957e6e984b5e75b502372d865fe6ba3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad957e6e984b5e75b502372d865fe6ba3">&#9670;&nbsp;</a></span>use() <span class="overload">[3/5]</span></h2>
+<a id="a6fbad2094d4172a6af421f1f9a72c7c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6fbad2094d4172a6af421f1f9a72c7c5">&#9670;&nbsp;</a></span>use() <span class="overload">[3/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInterface  = TRenderPipeline::buffer_interface_type, typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
+template&lt;typename TDerived , typename TRenderPipeline , typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TBufferInterface, TInputAssembler, TRenderPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_viewport.html">IViewport</a> &gt;&#160;</td>
           <td class="paramname"><em>viewport</em></td><td>)</td>
@@ -278,19 +316,19 @@ template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInter
 
 </div>
 </div>
-<a id="a9b04e2297581ad6f6dfc42f090e805c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9b04e2297581ad6f6dfc42f090e805c3">&#9670;&nbsp;</a></span>use() <span class="overload">[4/5]</span></h2>
+<a id="a8a8428e62fd726da30b0e58d9a41177f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a8428e62fd726da30b0e58d9a41177f">&#9670;&nbsp;</a></span>use() <span class="overload">[4/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInterface  = TRenderPipeline::buffer_interface_type, typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
+template&lt;typename TDerived , typename TRenderPipeline , typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TBufferInterface, TInputAssembler, TRenderPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1">SharedPtr</a>&lt; TInputAssembler &gt;&#160;</td>
           <td class="paramname"><em>inputAssembler</em></td><td>)</td>
@@ -314,21 +352,21 @@ template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInter
 
 </div>
 </div>
-<a id="ac2afec2e4b88a9ea7a8b2823cc74040f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac2afec2e4b88a9ea7a8b2823cc74040f">&#9670;&nbsp;</a></span>use() <span class="overload">[5/5]</span></h2>
+<a id="ad79104e1c1124a073d23ad77273c234c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad79104e1c1124a073d23ad77273c234c">&#9670;&nbsp;</a></span>use() <span class="overload">[5/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInterface  = TRenderPipeline::buffer_interface_type, typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
+template&lt;typename TDerived , typename TRenderPipeline , typename TInputAssembler  = TRenderPipeline::input_assembler_type, typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface  = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface  = TRenderPipeline::index_buffer_interface_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TBufferInterface, TInputAssembler, TRenderPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html">LiteFX::Rendering::RenderPipelineBuilder</a>&lt; TDerived, TRenderPipeline, TInputAssembler, TPipelineLayout, TVertexBufferInterface, TIndexBufferInterface &gt;::use </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; TRenderPipelineLayout &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; TPipelineLayout &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>layout</em></td><td>)</td>
           <td></td>
         </tr>
@@ -340,10 +378,10 @@ template&lt;typename TDerived , typename TRenderPipeline , typename TBufferInter
 </table>
 </div><div class="memdoc">
 
-<p>Uses the provided render pipeline layout to initialize the render pipeline. Can be invoked only once. </p>
+<p>Uses the provided pipeline layout to initialize the render pipeline. Can be invoked only once. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">layout</td><td>The render pipeline layout to initialize the render pipeline with.</td></tr>
+    <tr><td class="paramname">layout</td><td>The pipeline layout to initialize the render pipeline with.</td></tr>
   </table>
   </dd>
 </dl>

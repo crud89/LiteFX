@@ -12,7 +12,5 @@ var class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_
     [ "go", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a83f2c3cd787e21340818a6662258c727", null ],
     [ "instance", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a07793bc17b147b0ea68e68d2265d25d5", null ],
     [ "instance", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#abadd7e6e342d926ac8dbccdc8152b051", null ],
-    [ "make", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#adddeb3cb563c936e7f20acc239928940", null ],
-    [ "make", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#aea295aac0c66019cf739c573c13c833c", null ],
     [ "use", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a06da6c920625d057da88eedd7faa242b", null ]
 ];

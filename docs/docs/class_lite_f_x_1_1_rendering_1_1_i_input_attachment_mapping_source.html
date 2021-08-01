@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt; Class Template Reference</title>
+<title>LiteFX: LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -91,7 +91,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_inp
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -100,24 +100,24 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_inp
 
 <p><code>#include &lt;<a class="el" href="rendering_8hpp_source.html">rendering.hpp</a>&gt;</code></p>
 
-<p>Inherited by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass&lt; DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass&lt; VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping &gt;</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;</a>.</p>
+<p>Inherited by <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass&lt; DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass&lt; VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping &gt;</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a57304d875cc46863f36ef7277fc6a8d5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a57304d875cc46863f36ef7277fc6a8d5">frame_buffer_type</a> = TFrameBuffer</td></tr>
-<tr class="separator:a57304d875cc46863f36ef7277fc6a8d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a081698235eb5097f44379c27aecc0518"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a081698235eb5097f44379c27aecc0518">frame_buffer_type</a> = TFrameBuffer</td></tr>
+<tr class="separator:a081698235eb5097f44379c27aecc0518"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0f94e72442f7996d36aad2141f084cc9"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a0f94e72442f7996d36aad2141f084cc9">~IInputAttachmentMappingSource</a> () noexcept=default</td></tr>
-<tr class="separator:a0f94e72442f7996d36aad2141f084cc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a996e9dff68ce036792f4c83fb4963a7f"><td class="memItemLeft" align="right" valign="top">virtual const TFrameBuffer &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a996e9dff68ce036792f4c83fb4963a7f">frameBuffer</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;buffer) const =0</td></tr>
-<tr class="memdesc:a996e9dff68ce036792f4c83fb4963a7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the frame buffer with the index provided in <em>buffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a996e9dff68ce036792f4c83fb4963a7f">More...</a><br /></td></tr>
-<tr class="separator:a996e9dff68ce036792f4c83fb4963a7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0f12341844888fd48cfdb72eca1b249"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#ad0f12341844888fd48cfdb72eca1b249">~IInputAttachmentMappingSource</a> () noexcept=default</td></tr>
+<tr class="separator:ad0f12341844888fd48cfdb72eca1b249"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac29c0f32d41a640614fbe6a9e8ab5173"><td class="memItemLeft" align="right" valign="top">virtual const TFrameBuffer &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#ac29c0f32d41a640614fbe6a9e8ab5173">frameBuffer</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;buffer) const =0</td></tr>
+<tr class="memdesc:ac29c0f32d41a640614fbe6a9e8ab5173"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the frame buffer with the index provided in <em>buffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#ac29c0f32d41a640614fbe6a9e8ab5173">More...</a><br /></td></tr>
+<tr class="separator:ac29c0f32d41a640614fbe6a9e8ab5173"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type, typename TImageInterface = typename TFrameBuffer::image_interface_type&gt;<br />
-class LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt;</h3>
+<div class="textblock"><h3>template&lt;typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type&gt;<br />
+class LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer &gt;</h3>
 
 <p>Represents the source for an input attachment mapping. </p>
 <p>This interface is implemented by a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html" title="Represents a render pass.">IRenderPass</a> to return the frame buffer for a given back buffer. It is called by a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="Stores the images for the output attachments for a back buffer of a IRenderPass, as well as a IComman...">IFrameBuffer</a> during initialization or re-creation, in order to resolve input attachment dependencies. </p>
@@ -129,16 +129,16 @@ class LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TComman
   </dd>
 </dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a57304d875cc46863f36ef7277fc6a8d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57304d875cc46863f36ef7277fc6a8d5">&#9670;&nbsp;</a></span>frame_buffer_type</h2>
+<a id="a081698235eb5097f44379c27aecc0518"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a081698235eb5097f44379c27aecc0518">&#9670;&nbsp;</a></span>frame_buffer_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFrameBuffer , typename TCommandBuffer  = typename TFrameBuffer::command_buffer_type, typename TImageInterface  = typename TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TFrameBuffer , typename TCommandBuffer  = typename TFrameBuffer::command_buffer_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource</a>&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a57304d875cc46863f36ef7277fc6a8d5">frame_buffer_type</a> =  TFrameBuffer</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource</a>&lt; TFrameBuffer, TCommandBuffer &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a081698235eb5097f44379c27aecc0518">frame_buffer_type</a> =  TFrameBuffer</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -146,19 +146,19 @@ template&lt;typename TFrameBuffer , typename TCommandBuffer  = typename TFrameBu
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a0f94e72442f7996d36aad2141f084cc9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f94e72442f7996d36aad2141f084cc9">&#9670;&nbsp;</a></span>~IInputAttachmentMappingSource()</h2>
+<a id="ad0f12341844888fd48cfdb72eca1b249"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0f12341844888fd48cfdb72eca1b249">&#9670;&nbsp;</a></span>~IInputAttachmentMappingSource()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFrameBuffer , typename TCommandBuffer  = typename TFrameBuffer::command_buffer_type, typename TImageInterface  = typename TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TFrameBuffer , typename TCommandBuffer  = typename TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource</a>&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">IInputAttachmentMappingSource</a> </td>
+          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource</a>&lt; TFrameBuffer, TCommandBuffer &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">IInputAttachmentMappingSource</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -174,19 +174,19 @@ template&lt;typename TFrameBuffer , typename TCommandBuffer  = typename TFrameBu
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a996e9dff68ce036792f4c83fb4963a7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a996e9dff68ce036792f4c83fb4963a7f">&#9670;&nbsp;</a></span>frameBuffer()</h2>
+<a id="ac29c0f32d41a640614fbe6a9e8ab5173"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac29c0f32d41a640614fbe6a9e8ab5173">&#9670;&nbsp;</a></span>frameBuffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TFrameBuffer , typename TCommandBuffer  = typename TFrameBuffer::command_buffer_type, typename TImageInterface  = typename TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TFrameBuffer , typename TCommandBuffer  = typename TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TFrameBuffer&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource</a>&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt;::frameBuffer </td>
+          <td class="memname">virtual const TFrameBuffer&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource</a>&lt; TFrameBuffer, TCommandBuffer &gt;::frameBuffer </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
           <td class="paramname"><em>buffer</em></td><td>)</td>

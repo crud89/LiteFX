@@ -25,23 +25,26 @@
 var NAVTREE =
 [
   [ "LiteFX", "index.html", [
-    [ "About", "index.html#autotoc_md19", null ],
-    [ "Installation", "index.html#autotoc_md21", [
-      [ "Manual Builds", "index.html#autotoc_md22", [
-        [ "Prerequisites", "index.html#autotoc_md23", null ],
-        [ "Cloning the Repository", "index.html#autotoc_md24", null ],
-        [ "Performing a Build", "index.html#autotoc_md26", [
-          [ "From Command Line", "index.html#autotoc_md27", null ],
-          [ "Using Visual Studio", "index.html#autotoc_md28", null ]
-        ] ],
-        [ "Build Customization", "index.html#autotoc_md29", null ]
-      ] ],
-      [ "Dependencies", "index.html#autotoc_md31", null ]
+    [ "About", "index.html#autotoc_md10", [
+      [ "Key Features", "index.html#autotoc_md11", null ]
     ] ],
-    [ "Getting Started", "index.html#autotoc_md32", null ],
-    [ "Contribute", "index.html#autotoc_md33", null ],
-    [ "Projects using LiteFX", "index.html#autotoc_md34", null ],
-    [ "License", "index.html#autotoc_md35", null ],
+    [ "Installation", "index.html#autotoc_md12", [
+      [ "Using <tt>vcpkg</tt>", "index.html#autotoc_md13", null ],
+      [ "Manual Builds", "index.html#autotoc_md14", [
+        [ "Prerequisites", "index.html#autotoc_md15", null ],
+        [ "Cloning the Repository", "index.html#autotoc_md16", null ],
+        [ "Performing a Build", "index.html#autotoc_md17", [
+          [ "From Command Line", "index.html#autotoc_md18", null ],
+          [ "Using Visual Studio", "index.html#autotoc_md19", null ]
+        ] ],
+        [ "Build Customization", "index.html#autotoc_md20", null ]
+      ] ],
+      [ "Dependencies", "index.html#autotoc_md21", null ]
+    ] ],
+    [ "Getting Started", "index.html#autotoc_md22", null ],
+    [ "Contribute", "index.html#autotoc_md23", null ],
+    [ "Projects using LiteFX", "index.html#autotoc_md24", null ],
+    [ "License", "index.html#autotoc_md25", null ],
     [ "Project Setup", "md_docs_tutorials_project_setup.html", [
       [ "Runtime and Dependency Installation", "md_docs_tutorials_project_setup.html#autotoc_md1", null ],
       [ "Setup Project using CMake", "md_docs_tutorials_project_setup.html#autotoc_md2", [
@@ -53,28 +56,28 @@ var NAVTREE =
       ] ]
     ] ],
     [ "Quick Start", "md_docs_tutorials_quick_start.html", [
-      [ "Defining an Application", "md_docs_tutorials_quick_start.html#autotoc_md9", [
-        [ "Running the Application", "md_docs_tutorials_quick_start.html#autotoc_md10", [
-          [ "Creating a Device", "md_docs_tutorials_quick_start.html#autotoc_md11", null ],
-          [ "Creating a Render Pass", "md_docs_tutorials_quick_start.html#autotoc_md12", null ],
-          [ "Creating a Render Pipeline", "md_docs_tutorials_quick_start.html#autotoc_md14", [
-            [ "Input Assembler State", "md_docs_tutorials_quick_start.html#autotoc_md15", null ],
-            [ "Rasterizer State", "md_docs_tutorials_quick_start.html#autotoc_md16", null ],
-            [ "Render Pipeline Layout", "md_docs_tutorials_quick_start.html#autotoc_md17", null ]
+      [ "Defining an Application", "md_docs_tutorials_quick_start.html#autotoc_md26", [
+        [ "Running the Application", "md_docs_tutorials_quick_start.html#autotoc_md27", [
+          [ "Creating a Device", "md_docs_tutorials_quick_start.html#autotoc_md28", null ],
+          [ "Creating a Render Pass", "md_docs_tutorials_quick_start.html#autotoc_md29", null ],
+          [ "Creating a Render Pipeline", "md_docs_tutorials_quick_start.html#autotoc_md30", [
+            [ "Input Assembler State", "md_docs_tutorials_quick_start.html#autotoc_md31", null ],
+            [ "Rasterizer State", "md_docs_tutorials_quick_start.html#autotoc_md32", null ],
+            [ "Render Pipeline Layout", "md_docs_tutorials_quick_start.html#autotoc_md33", null ]
           ] ]
         ] ],
-        [ "Creating and Managing Buffers", "md_docs_tutorials_quick_start.html#autotoc_md18", [
-          [ "Vertex- and Index Buffers", "md_docs_tutorials_quick_start.html#autotoc_md20", null ],
-          [ "Constant/Uniform Buffers", "md_docs_tutorials_quick_start.html#autotoc_md25", [
-            [ "Static Buffers", "md_docs_tutorials_quick_start.html#autotoc_md30", null ],
-            [ "Dynamic Buffers", "md_docs_tutorials_quick_start.html#autotoc_md36", null ]
+        [ "Creating and Managing Buffers", "md_docs_tutorials_quick_start.html#autotoc_md34", [
+          [ "Vertex- and Index Buffers", "md_docs_tutorials_quick_start.html#autotoc_md35", null ],
+          [ "Constant/Uniform Buffers", "md_docs_tutorials_quick_start.html#autotoc_md36", [
+            [ "Static Buffers", "md_docs_tutorials_quick_start.html#autotoc_md37", null ],
+            [ "Dynamic Buffers", "md_docs_tutorials_quick_start.html#autotoc_md38", null ]
           ] ]
         ] ],
-        [ "Drawing Frames", "md_docs_tutorials_quick_start.html#autotoc_md37", null ],
-        [ "Cleanup", "md_docs_tutorials_quick_start.html#autotoc_md38", null ],
-        [ "Handling Resize-Events", "md_docs_tutorials_quick_start.html#autotoc_md39", null ]
+        [ "Drawing Frames", "md_docs_tutorials_quick_start.html#autotoc_md39", null ],
+        [ "Cleanup", "md_docs_tutorials_quick_start.html#autotoc_md40", null ],
+        [ "Handling Resize-Events", "md_docs_tutorials_quick_start.html#autotoc_md41", null ]
       ] ],
-      [ "Final Thoughts", "md_docs_tutorials_quick_start.html#autotoc_md40", null ]
+      [ "Final Thoughts", "md_docs_tutorials_quick_start.html#autotoc_md42", null ]
     ] ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
@@ -103,15 +106,17 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"class_lite_f_x_1_1_i_resource.html#aad4cf745232df911efc4211dc23f8cc8",
-"class_lite_f_x_1_1_math_1_1_vector3i.html#a81126853fa7f26a08d50a3d8d6267920",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a32affd55c00fb65a7c41f1238601d062",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_texture.html#a5d5722f7bbff886be5e29436f2d09d54",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_index_buffer_layout.html#abfc9763372d7048e93b74668312d0252",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer_layout.html#aaf209783aef9b07e420b5ed80e9c191c",
-"class_lite_f_x_1_1_rendering_1_1_i_render_pipeline_layout.html#aba64a3b45e79379c2a8fe564c576d03c",
-"class_vulkan_backend_1_1_vulkan_backend_impl.html#a4e945b2d63222fc2dbe607074d686e5f",
-"md_docs_tutorials_quick_start.html#autotoc_md9"
+"class_lite_f_x_1_1_builder.html#ab8028b7112e72fcf58c9660621b008bb",
+"class_lite_f_x_1_1_math_1_1_vector2f.html#aac49495c2c98389f8ed2c69083e6d5b1",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_push_constants_layout_builder.html#a6d0a873985b23c43348b19f72b1afd1b",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#a84c29c4f51741f5b46582cfdb4ac090a",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_barrier.html#ae116bf371bc6065e3916fe409bd8570c",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_index_buffer_layout.html#a3adfc43a97dc69ad592a89eb0c964059",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program.html#a7a273fa4c3299cd41f151110154e67d7",
+"class_lite_f_x_1_1_rendering_1_1_i_image.html#ab16bf4d4b002f043fe3fe95c0bf4fac3",
+"class_lite_f_x_1_1_rendering_1_1_viewport.html#a838bf699f3cd785f875a133cf42181d6",
+"class_vulkan_input_attachment_mapping_1_1_vulkan_input_attachment_mapping_impl.html#a0be617a30ca635365d998201e1fda28c",
+"namespace_lite_f_x_1_1_math_1_1_vectors.html#a75b41b808736cf84370da42de2b9bb66"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

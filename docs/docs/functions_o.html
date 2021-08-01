@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -90,7 +90,14 @@ $(document).ready(function(){initNavTree('functions_o.html',''); initResizable()
 
 <h3><a id="index_o"></a>- o -</h3><ul>
 <li>offset()
-: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_buffer_attribute.html#a7d5ad234f7ff00b61e2f18503b3445f0">LiteFX::Rendering::BufferAttribute</a>
+: <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html#a3bb390cbce75eb22670d604fa0625897">LiteFX::Rendering::Backends::DirectX12PushConstantsRange</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_push_constants_range.html#ab230a52e4b8ca865bf3eb50f394efa59">LiteFX::Rendering::Backends::VulkanPushConstantsRange</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_buffer_attribute.html#a7d5ad234f7ff00b61e2f18503b3445f0">LiteFX::Rendering::BufferAttribute</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_push_constants_range.html#ae6bd0a33b66e0cf2e1bc4d277e8a6cfb">LiteFX::Rendering::IPushConstantsRange</a>
+</li>
+<li>Operation
+: <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_depth_state.html#a753f47d13c87eae6e07ef932a9c3670c">LiteFX::Rendering::DepthStencilState::DepthState</a>
+, <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_stencil_test.html#a6379761ff3bba8d375a87eaf5cd0539e">LiteFX::Rendering::DepthStencilState::StencilTest</a>
 </li>
 <li>operator Array&lt; Float &gt;()
 : <a class="el" href="class_lite_f_x_1_1_math_1_1_vector1f.html#a7b3e58ee377025ba8583372cc9527fae">LiteFX::Math::Vector1f</a>
@@ -109,6 +116,13 @@ $(document).ready(function(){initNavTree('functions_o.html',''); initResizable()
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html#a43cdf9f2c27d8f99835dc4ad0e455acf">LiteFX::Math::Vector3u</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4u.html#a58e195562df2e326719a78788d0a9f58">LiteFX::Math::Vector4u</a>
 </li>
+<li>operator Size3d()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#abed32cf60d51374f3625b799c3cd7e33">LiteFX::Math::Size2d</a>
+</li>
+<li>operator Size4d()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#a374d8874f1fc8441afcac3b2479d2ce9">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#a7adb124e525018a32e62aeeeec214775">LiteFX::Math::Size3d</a>
+</li>
 <li>operator UInt32()
 : <a class="el" href="class_lite_f_x_1_1_math_1_1_vector1u.html#a1fbb98d78215ca1b2bb6009cc11fb8d3">LiteFX::Math::Vector1u</a>
 </li>
@@ -117,33 +131,72 @@ $(document).ready(function(){initNavTree('functions_o.html',''); initResizable()
 , <a class="el" href="struct_lite_f_x_1_1_rendering_1_1_backends_1_1_d3_d12_m_a_deleter.html#aecee2aef6cc3a4390803e30b1860af35">LiteFX::Rendering::Backends::D3D12MADeleter</a>
 </li>
 <li>operator*()
-: <a class="el" href="class_lite_f_x_1_1_pimpl_ptr.html#a02ecc6344850ff663a58149f618f9167">LiteFX::PimplPtr&lt; pImpl &gt;</a>
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#a9211ff4093e79fa4ed7ed62e62530f9c">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#a72a3d4e8e4e6aa305c507b5435385dd1">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#a01d41f0a1d534f3a4d32962301d57339">LiteFX::Math::Size4d</a>
+, <a class="el" href="class_lite_f_x_1_1_pimpl_ptr.html#a02ecc6344850ff663a58149f618f9167">LiteFX::PimplPtr&lt; pImpl &gt;</a>
+</li>
+<li>operator*=()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#af2c4e1f498cfdc91782167cc298ff5e9">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#ab78f45f6128755eb08eb61595ba207ce">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#ae04fa8e17049bc045a6b46fb13e1d9b2">LiteFX::Math::Size4d</a>
+</li>
+<li>operator+()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#a1777e68cdd8dc3de4e2141e1f9abcc50">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#a0888cd8e2797777b02dc845e982718ae">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#aa8e2e7dbc06f7506a4bf9f442cdc50af">LiteFX::Math::Size4d</a>
+</li>
+<li>operator+=()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#a1b3f733c15d13677a08aee9044d84ebc">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#a55a5add28f5c57cb80d77597529b449b">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#af278c50097dafb82626f93cfda6efc67">LiteFX::Math::Size4d</a>
+</li>
+<li>operator-()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#ae6e41000eb16930e68337fa84d347635">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#a8e7a2152a8242f046aa5daeac51866bb">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#a47c9dfd11bc430073b2e1744f840d14a">LiteFX::Math::Size4d</a>
+</li>
+<li>operator-=()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#a4f1ad1820e8cf288dbd19a4498503034">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#a809a76db5e5869677ede99903c223af5">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#ac09b615b1f9754cdf83cb14688c8cc71">LiteFX::Math::Size4d</a>
 </li>
 <li>operator-&gt;()
 : <a class="el" href="class_lite_f_x_1_1_pimpl_ptr.html#a0f6d4962ec983cb770f95b80e6a15dac">LiteFX::PimplPtr&lt; pImpl &gt;</a>
+</li>
+<li>operator/()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#add8c43b1bd998b2eb26f4530812edae9">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#a7c46dffca94b00aca83c13101937cd1c">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#aea9c8af6d3827b531e62c8f8241accb6">LiteFX::Math::Size4d</a>
+</li>
+<li>operator/=()
+: <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#aa2243ff46bdf0509d2e6e8a4cd163934">LiteFX::Math::Size2d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#af09bddabcc1c96b8cdf5f25ddf3d2f2e">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#a94e65d0f7ba3954a6d799691de12652f">LiteFX::Math::Size4d</a>
 </li>
 <li>operator=()
 : <a class="el" href="class_lite_f_x_1_1_logging_1_1_logger.html#a297eb24e026c3cde7749e3ad36d3ddc5">LiteFX::Logging::Logger</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_rect.html#af5f443ec1f677a6c3c95bea78facd75a">LiteFX::Math::Rect</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_rect_f.html#ac08d772fccff0932d2848789da2d3d48">LiteFX::Math::RectF</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html#a2feca89e5891deca707fadc0ce4fccce">LiteFX::Math::Size2d</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#af0ff2df72da3706a06bf9800b5fb5d5a">LiteFX::Math::Size3d</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_size3d.html#af0df7debffc605d7fd996f4286d2bc07">LiteFX::Math::Size3d</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_size4d.html#af8009c1b02ac43de67ee91b1ddd1c563">LiteFX::Math::Size4d</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector1f.html#a786ad0daffaffef0ea8de294644f192b">LiteFX::Math::Vector1f</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector1f.html#a1559e626a65952488e695d84cfee5a62">LiteFX::Math::Vector1f</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector1u.html#a38511813145b431a0f82cb143be7babe">LiteFX::Math::Vector1u</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2f.html#aa5fc500fc5b98e5ce6fa09f8fb30c612">LiteFX::Math::Vector2f</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2f.html#afc2d22eb572f4bf0896b9b52a9734a68">LiteFX::Math::Vector2f</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2i.html#af43a08da4630d37a2dd6005ed63d148b">LiteFX::Math::Vector2i</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2u.html#afe56260cfc0b14944a3e36975c50c536">LiteFX::Math::Vector2u</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3f.html#a52cd75d1f36ca1a1990905e462daf478">LiteFX::Math::Vector3f</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3f.html#a2b1ce37f778b3b114601acd104be9944">LiteFX::Math::Vector3f</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3i.html#a81126853fa7f26a08d50a3d8d6267920">LiteFX::Math::Vector3i</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html#a37ef432470b17be43a71bcc3b56cb0f3">LiteFX::Math::Vector3u</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html#a096fd14d7e74ae21f3920f27dc7ed901">LiteFX::Math::Vector4f</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html#a2ad6ae1a53b3a73ea84fe101e3bdb939">LiteFX::Math::Vector3u</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html#a74393a44827e433e50d453c39260e21e">LiteFX::Math::Vector4f</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4i.html#af6729e506c50c71d387d5f5338e997aa">LiteFX::Math::Vector4i</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4u.html#a1720b1f11dc304a901358d403f132ce5">LiteFX::Math::Vector4u</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector.html#a1fde4e7dcf0450d071f6fb39f24c544e">LiteFX::Math::Vector&lt; T, DIM &gt;</a>
-, <a class="el" href="class_lite_f_x_1_1_pimpl_ptr.html#a0efc3deab83d713a63fd99e286b38f45">LiteFX::PimplPtr&lt; pImpl &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4u.html#a4822dd566554304a793e7f1dfe93de77">LiteFX::Math::Vector4u</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector.html#af19576a53c5f59cb4297f72c8abaec49">LiteFX::Math::Vector&lt; T, DIM &gt;</a>
+, <a class="el" href="class_lite_f_x_1_1_pimpl_ptr.html#a7b2a14c288cfc7e9ea5a54b728103be6">LiteFX::PimplPtr&lt; pImpl &gt;</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_attachment_mapping.html#aeb64d56e7fce15fb65a234b71108309e">LiteFX::Rendering::Backends::DirectX12InputAttachmentMapping</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_input_attachment_mapping.html#afa3b004ea1a2138ae3a81c7393d12ae4">LiteFX::Rendering::Backends::VulkanInputAttachmentMapping</a>
+, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_depth_stencil_state.html#a93e9cfe8f1d5ba0bff149abd448c668d">LiteFX::Rendering::DepthStencilState</a>
 , <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html#ab18106a79a3f8ac61c827e5175999c87">LiteFX::Rendering::RenderTarget</a>
 </li>
 <li>operator[]()
@@ -151,9 +204,9 @@ $(document).ready(function(){initNavTree('functions_o.html',''); initResizable()
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector1f.html#a5e0e68597659d85f58fd26d4982b78e6">LiteFX::Math::Vector1f</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector1u.html#aa7a50e5461aed886c159f87f89dbedcc">LiteFX::Math::Vector1u</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2f.html#acf2f8d14ce4dfef75e35a6324ec5d950">LiteFX::Math::Vector2f</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2i.html#a53d572e00f8269a6ad2c9e5b811b2c4d">LiteFX::Math::Vector2i</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2u.html#a27cb901e9c153b6ae11141a7d5b6bb43">LiteFX::Math::Vector2u</a>
-, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3f.html#a168c8183a7f6ac35e585c3897fe135b0">LiteFX::Math::Vector3f</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2i.html#a81298315094fad53e347ba67fa649bb7">LiteFX::Math::Vector2i</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector2u.html#a13915095064e9044021f8654d7d28ab6">LiteFX::Math::Vector2u</a>
+, <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3f.html#a7adf33de5462231feb187f45fe7bcf78">LiteFX::Math::Vector3f</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3i.html#a86eb4cac7c5e0b38e4a44741c82eb221">LiteFX::Math::Vector3i</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html#ab7680955b42f327cab4f42a697c15b4d">LiteFX::Math::Vector3u</a>
 , <a class="el" href="class_lite_f_x_1_1_math_1_1_vector4f.html#ad59dbe1e69d0372ea82f4df4b1a13f1c">LiteFX::Math::Vector4f</a>

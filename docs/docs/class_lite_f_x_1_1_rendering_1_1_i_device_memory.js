@@ -5,5 +5,8 @@ var class_lite_f_x_1_1_rendering_1_1_i_device_memory =
     [ "elementAlignment", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a992a32832746ca4f328711e9c924a5bd", null ],
     [ "elements", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a50f35d6ae5d631be285fc87c7fdf18b0", null ],
     [ "elementSize", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a0f5bc5ff213aca68d049a18c995d3ef5", null ],
-    [ "size", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53", null ]
+    [ "size", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a66f85883ca87702a04035e1e51af0e53", null ],
+    [ "state", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a62dc9b0459919621c174ad7120707322", null ],
+    [ "state", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#ae8bee9655b76b061f9750b82b913ded0", null ],
+    [ "writable", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html#a6417097f66bdcbf22bc84970d2c38163", null ]
 ];

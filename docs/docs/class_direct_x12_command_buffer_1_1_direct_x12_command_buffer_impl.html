@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -103,12 +103,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a32a79809f65b10cd12bbecabe0cd4699"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9fdb80d06586f15fd8741da345d1c7d"><td class="memItemLeft" align="right" valign="top">ComPtr&lt; ID3D12GraphicsCommandList4 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_direct_x12_command_buffer_1_1_direct_x12_command_buffer_impl.html#ad9fdb80d06586f15fd8741da345d1c7d">initialize</a> (const bool &amp;begin)</td></tr>
 <tr class="separator:ad9fdb80d06586f15fd8741da345d1c7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4189d5ba96ab89690b0bf1fcdf662e83"><td class="memItemLeft" align="right" valign="top">HRESULT&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_direct_x12_command_buffer_1_1_direct_x12_command_buffer_impl.html#a4189d5ba96ab89690b0bf1fcdf662e83">queueSignal</a> ()</td></tr>
-<tr class="separator:a4189d5ba96ab89690b0bf1fcdf662e83"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42092be1cf40a499625640ffeacd4b52"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_direct_x12_command_buffer_1_1_direct_x12_command_buffer_impl.html#a42092be1cf40a499625640ffeacd4b52">waitForSignal</a> ()</td></tr>
-<tr class="separator:a42092be1cf40a499625640ffeacd4b52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f8b171babb276775510ebd148c70704"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_direct_x12_command_buffer_1_1_direct_x12_command_buffer_impl.html#a5f8b171babb276775510ebd148c70704">reset</a> ()</td></tr>
 <tr class="separator:a5f8b171babb276775510ebd148c70704"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8ed2c90b2ee6fea96e7c2b9f1094dda"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_direct_x12_command_buffer_1_1_direct_x12_command_buffer_impl.html#ad8ed2c90b2ee6fea96e7c2b9f1094dda">bindDescriptorHeaps</a> ()</td></tr>
+<tr class="separator:ad8ed2c90b2ee6fea96e7c2b9f1094dda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_implement"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_implement')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_implement.html">LiteFX::Implement&lt; DirectX12CommandBuffer &gt;</a></td></tr>
 <tr class="memitem:a32a5f972b9980dcbd8551571de9f46ed inherit pub_methods_class_lite_f_x_1_1_implement"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_implement.html#a32a5f972b9980dcbd8551571de9f46ed">Implement</a> (DirectX12CommandBuffer *parent)</td></tr>
 <tr class="separator:a32a5f972b9980dcbd8551571de9f46ed inherit pub_methods_class_lite_f_x_1_1_implement"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -163,6 +161,31 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ad8ed2c90b2ee6fea96e7c2b9f1094dda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8ed2c90b2ee6fea96e7c2b9f1094dda">&#9670;&nbsp;</a></span>bindDescriptorHeaps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void LiteFX::Rendering::Backends::DirectX12CommandBuffer::DirectX12CommandBufferImpl::bindDescriptorHeaps </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad9fdb80d06586f15fd8741da345d1c7d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad9fdb80d06586f15fd8741da345d1c7d">&#9670;&nbsp;</a></span>initialize()</h2>
 
@@ -189,31 +212,6 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a4189d5ba96ab89690b0bf1fcdf662e83"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4189d5ba96ab89690b0bf1fcdf662e83">&#9670;&nbsp;</a></span>queueSignal()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">HRESULT LiteFX::Rendering::Backends::DirectX12CommandBuffer::DirectX12CommandBufferImpl::queueSignal </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a5f8b171babb276775510ebd148c70704"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5f8b171babb276775510ebd148c70704">&#9670;&nbsp;</a></span>reset()</h2>
 
@@ -225,31 +223,6 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">void LiteFX::Rendering::Backends::DirectX12CommandBuffer::DirectX12CommandBufferImpl::reset </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a42092be1cf40a499625640ffeacd4b52"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a42092be1cf40a499625640ffeacd4b52">&#9670;&nbsp;</a></span>waitForSignal()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void LiteFX::Rendering::Backends::DirectX12CommandBuffer::DirectX12CommandBufferImpl::waitForSignal </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>

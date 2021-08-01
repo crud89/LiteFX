@@ -12,8 +12,6 @@ var class_lite_f_x_1_1_builder =
     [ "go", "class_lite_f_x_1_1_builder.html#a4385222f548880c248995bba6f18980a", null ],
     [ "instance", "class_lite_f_x_1_1_builder.html#a9d36251fed9e742ad6261a66917e8bf7", null ],
     [ "instance", "class_lite_f_x_1_1_builder.html#aa31367e19593bc00b752aceaa531bb5e", null ],
-    [ "make", "class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93", null ],
-    [ "make", "class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93", null ],
     [ "parent", "class_lite_f_x_1_1_builder.html#a1bd00d62664f44ed26e0d75e79893fec", null ],
     [ "use", "class_lite_f_x_1_1_builder.html#ad97fa87a98bf3cdf3a4df27f910da56f", null ]
 ];

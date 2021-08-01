@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -127,6 +127,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5bfe0e4700b51a8c876a96ceb4c598c6"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a5bfe0e4700b51a8c876a96ceb4c598c6">queueId</a> () const noexcept</td></tr>
 <tr class="memdesc:a5bfe0e4700b51a8c876a96ceb4c598c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the queue ID.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a5bfe0e4700b51a8c876a96ceb4c598c6">More...</a><br /></td></tr>
 <tr class="separator:a5bfe0e4700b51a8c876a96ceb4c598c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8ac20506eec957a82dd3c7cd1d72453"><td class="memItemLeft" align="right" valign="top">virtual const VkSemaphore &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ab8ac20506eec957a82dd3c7cd1d72453">timelineSemaphore</a> () const noexcept</td></tr>
+<tr class="memdesc:ab8ac20506eec957a82dd3c7cd1d72453"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the internal timeline semaphore used to synchronize the queue execution.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ab8ac20506eec957a82dd3c7cd1d72453">More...</a><br /></td></tr>
+<tr class="separator:ab8ac20506eec957a82dd3c7cd1d72453"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0a4c3ac7772e2aa376e696941fc2703"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#af0a4c3ac7772e2aa376e696941fc2703">submit</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;commandBuffer, <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkSemaphore &gt; waitForSemaphores, <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkPipelineStageFlags &gt; waitForStages, <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkSemaphore &gt; signalSemaphores={ }) const</td></tr>
+<tr class="memdesc:af0a4c3ac7772e2aa376e696941fc2703"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits a single command buffer and inserts a fence to wait for it.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#af0a4c3ac7772e2aa376e696941fc2703">More...</a><br /></td></tr>
+<tr class="separator:af0a4c3ac7772e2aa376e696941fc2703"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99311493cd5c805c589bd5861f4afa1a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a99311493cd5c805c589bd5861f4afa1a">submit</a> (const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> * &gt; &amp;commandBuffers, <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkSemaphore &gt; waitForSemaphores, <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkPipelineStageFlags &gt; waitForStages, <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkSemaphore &gt; signalSemaphores={ }) const</td></tr>
+<tr class="memdesc:a99311493cd5c805c589bd5861f4afa1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits a set of command buffers and inserts a fence to wait for them.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a99311493cd5c805c589bd5861f4afa1a">More...</a><br /></td></tr>
+<tr class="separator:a99311493cd5c805c589bd5861f4afa1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42d6961404d3cb78308a4f16f161fe92"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a42d6961404d3cb78308a4f16f161fe92">createCommandBuffer</a> (const bool &amp;secondary, const bool &amp;beginRecording) const</td></tr>
+<tr class="memdesc:a42d6961404d3cb78308a4f16f161fe92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a command buffer that can be used to allocate commands on the queue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a42d6961404d3cb78308a4f16f161fe92">More...</a><br /></td></tr>
+<tr class="separator:a42d6961404d3cb78308a4f16f161fe92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad17264b41ef5672143fe673c63000b93"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ad17264b41ef5672143fe673c63000b93">isBound</a> () const noexcept override</td></tr>
 <tr class="memdesc:ad17264b41ef5672143fe673c63000b93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if the command queue is bound on the parent device.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ad17264b41ef5672143fe673c63000b93">More...</a><br /></td></tr>
 <tr class="separator:ad17264b41ef5672143fe673c63000b93"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -145,6 +157,16 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a910333138e1b2bc7183e14a793b2ae28"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a910333138e1b2bc7183e14a793b2ae28">createCommandBuffer</a> (const bool &amp;beginRecording=false) const override</td></tr>
 <tr class="memdesc:a910333138e1b2bc7183e14a793b2ae28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a command buffer that can be used to allocate commands on the queue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a910333138e1b2bc7183e14a793b2ae28">More...</a><br /></td></tr>
 <tr class="separator:a910333138e1b2bc7183e14a793b2ae28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78eade774cde27d96fc5d55c365909e5"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a78eade774cde27d96fc5d55c365909e5">submit</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;commandBuffer) const override</td></tr>
+<tr class="separator:a78eade774cde27d96fc5d55c365909e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a058eb124e77db49926ab5e5ee91abbe4"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a058eb124e77db49926ab5e5ee91abbe4">submit</a> (const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> * &gt; &amp;commandBuffers) const override</td></tr>
+<tr class="separator:a058eb124e77db49926ab5e5ee91abbe4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6382b9f2ed01615b303d6829d9772e7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ae6382b9f2ed01615b303d6829d9772e7">waitFor</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a> &amp;fence) const noexcept override</td></tr>
+<tr class="memdesc:ae6382b9f2ed01615b303d6829d9772e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits for a certain fence value to complete on the command queue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ae6382b9f2ed01615b303d6829d9772e7">More...</a><br /></td></tr>
+<tr class="separator:ae6382b9f2ed01615b303d6829d9772e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad308995a0783ad3639e84505fb5304ba"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ad308995a0783ad3639e84505fb5304ba">currentFence</a> () const noexcept override</td></tr>
+<tr class="memdesc:ad308995a0783ad3639e84505fb5304ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the value of the latest fence inserted into the queue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ad308995a0783ad3639e84505fb5304ba">More...</a><br /></td></tr>
+<tr class="separator:ad308995a0783ad3639e84505fb5304ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html">LiteFX::Rendering::Backends::VulkanRuntimeObject&lt; VulkanDevice &gt;</a></td></tr>
 <tr class="memitem:a34b61edb9992e4e105325873a47f3cd7 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html#a34b61edb9992e4e105325873a47f3cd7">VulkanRuntimeObject</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html#ac758ae0189c6dc37dff635214c833593">parent</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> *device)</td></tr>
 <tr class="separator:a34b61edb9992e4e105325873a47f3cd7 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -159,8 +181,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a947ba4d7b4d0dcbebea6a105482a41fc inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html#a947ba4d7b4d0dcbebea6a105482a41fc">getDevice</a> () const noexcept</td></tr>
 <tr class="separator:a947ba4d7b4d0dcbebea6a105482a41fc inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a></td></tr>
-<tr class="memitem:ac23f32fad0793fae3c0ec7048dd5238e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ac23f32fad0793fae3c0ec7048dd5238e">~ICommandQueue</a> () noexcept=default</td></tr>
-<tr class="separator:ac23f32fad0793fae3c0ec7048dd5238e inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a8156e016a24f6c5505a7a43e4f8b3a inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a5a8156e016a24f6c5505a7a43e4f8b3a">~ICommandQueue</a> () noexcept=default</td></tr>
+<tr class="separator:a5a8156e016a24f6c5505a7a43e4f8b3a inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a398903b1e09a24cc7dc6af79b2f75a97 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a398903b1e09a24cc7dc6af79b2f75a97">submit</a> (const VulkanCommandBuffer &amp;commandBuffer) const=0</td></tr>
+<tr class="memdesc:a398903b1e09a24cc7dc6af79b2f75a97 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits a single command buffer and inserts a fence to wait for it.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a398903b1e09a24cc7dc6af79b2f75a97">More...</a><br /></td></tr>
+<tr class="separator:a398903b1e09a24cc7dc6af79b2f75a97 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c843f4b558ac3a401e1ab73e7a4be61 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a2c843f4b558ac3a401e1ab73e7a4be61">submit</a> (const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const VulkanCommandBuffer * &gt; &amp;commandBuffers) const=0</td></tr>
+<tr class="memdesc:a2c843f4b558ac3a401e1ab73e7a4be61 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits a set of command buffers and inserts a fence to wait for them.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a2c843f4b558ac3a401e1ab73e7a4be61">More...</a><br /></td></tr>
+<tr class="separator:a2c843f4b558ac3a401e1ab73e7a4be61 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_resource"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_resource')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; VkQueue &gt;</a></td></tr>
 <tr class="memitem:a9413559dfee29e4b480d877474014418 inherit pub_methods_class_lite_f_x_1_1_resource"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_resource.html#a9413559dfee29e4b480d877474014418">Resource</a> (const <a class="el" href="class_lite_f_x_1_1_resource.html">Resource</a> &amp;)=delete</td></tr>
 <tr class="separator:a9413559dfee29e4b480d877474014418 inherit pub_methods_class_lite_f_x_1_1_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,8 +205,8 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_queue')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a></td></tr>
-<tr class="memitem:a20ffe08a9e5370c47c04bca6ca32bf90 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a20ffe08a9e5370c47c04bca6ca32bf90">command_buffer_type</a> = VulkanCommandBuffer</td></tr>
-<tr class="separator:a20ffe08a9e5370c47c04bca6ca32bf90 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa5aedea7a89994c7c4db7025406d66e inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#aaa5aedea7a89994c7c4db7025406d66e">command_buffer_type</a> = VulkanCommandBuffer</td></tr>
+<tr class="separator:aaa5aedea7a89994c7c4db7025406d66e inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_class_lite_f_x_1_1_resource"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_lite_f_x_1_1_resource')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; VkQueue &gt;</a></td></tr>
 <tr class="memitem:a5fd18a4f5cd5736df4f6e2cfa4442cc8 inherit pro_methods_class_lite_f_x_1_1_resource"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_resource.html#a5fd18a4f5cd5736df4f6e2cfa4442cc8">Resource</a> (const VkQueue <a class="el" href="class_lite_f_x_1_1_resource.html#a60ee7bcf22a9ce84dc61710dcd40cb93">handle</a>) noexcept</td></tr>
 <tr class="separator:a5fd18a4f5cd5736df4f6e2cfa4442cc8 inherit pro_methods_class_lite_f_x_1_1_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -358,7 +386,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Binds the queue on the parent device. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a75d534dda10594fb454b62ce052a7e80">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#afc8e45ebf000946858082349abbb8c6b">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
 
 </div>
 </div>
@@ -393,7 +421,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <a id="a910333138e1b2bc7183e14a793b2ae28"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a910333138e1b2bc7183e14a793b2ae28">&#9670;&nbsp;</a></span>createCommandBuffer()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a910333138e1b2bc7183e14a793b2ae28">&#9670;&nbsp;</a></span>createCommandBuffer() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -418,7 +446,82 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Creates a command buffer that can be used to allocate commands on the queue. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ad47876b5e566fe064b3026ae7a0abe26">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a7d73cdfa57fbf2ce533f0b5cc2c9b330">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a42d6961404d3cb78308a4f16f161fe92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42d6961404d3cb78308a4f16f161fe92">&#9670;&nbsp;</a></span>createCommandBuffer() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4">UniquePtr</a>&lt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &gt; VulkanQueue::createCommandBuffer </td>
+          <td>(</td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>secondary</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>beginRecording</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates a command buffer that can be used to allocate commands on the queue. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">secondary</td><td>If set to <code>true</code>, the queue will create a secondary command buffer instance.</td></tr>
+    <tr><td class="paramname">beginRecording</td><td>If set to <code>true</code>, the command buffer will be initialized in recording state and can receive commands straight away.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The instance of the command buffer.</dd></dl>
+
+</div>
+</div>
+<a id="ad308995a0783ad3639e84505fb5304ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad308995a0783ad3639e84505fb5304ba">&#9670;&nbsp;</a></span>currentFence()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a> VulkanQueue::currentFence </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the value of the latest fence inserted into the queue. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ae34c25a906f202b1e86c65e4df447d7f">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
 
 </div>
 </div>
@@ -475,7 +578,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Returns <code>true</code>, if the command queue is bound on the parent device. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#aced19481861efd079ffe9cb1683fa1d9">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a5a5394da7aa1543bca98f04a94a22fae">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
 
 </div>
 </div>
@@ -504,7 +607,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Returns the priority of the queue. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#af130ca4f2cf12d2934eb0339951001fd">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ad340094508311515fb7f675bf1b05619">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
 
 </div>
 </div>
@@ -561,7 +664,215 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Releases the queue from the parent device. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a467361fb3de73ca7b9d65a87a94fd263">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a6b5acb1af675457537d69a9c8d08c81e">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a058eb124e77db49926ab5e5ee91abbe4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a058eb124e77db49926ab5e5ee91abbe4">&#9670;&nbsp;</a></span>submit() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a> VulkanQueue::submit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> * &gt; &amp;&#160;</td>
+          <td class="paramname"><em>commandBuffers</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a99311493cd5c805c589bd5861f4afa1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99311493cd5c805c589bd5861f4afa1a">&#9670;&nbsp;</a></span>submit() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a> VulkanQueue::submit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> * &gt; &amp;&#160;</td>
+          <td class="paramname"><em>commandBuffers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkSemaphore &gt;&#160;</td>
+          <td class="paramname"><em>waitForSemaphores</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkPipelineStageFlags &gt;&#160;</td>
+          <td class="paramname"><em>waitForStages</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkSemaphore &gt;&#160;</td>
+          <td class="paramname"><em>signalSemaphores</em> = <code>{&#160;}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Submits a set of command buffers and inserts a fence to wait for them. </p>
+<p>Note that submitting a command buffer that is currently recording will implicitly close the command buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">commandBuffers</td><td>The command buffers to submit to the command queue.</td></tr>
+    <tr><td class="paramname">waitForSemaphores</td><td>The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the waitForStages array.</td></tr>
+    <tr><td class="paramname">waitForStages</td><td>The pipeline stages of the current render pass to wait for before submitting the command buffer.</td></tr>
+    <tr><td class="paramname">signalSemaphores</td><td>The semaphores to signal, when the command buffer is executed.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The value of the fence, inserted after the command buffers.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ae6382b9f2ed01615b303d6829d9772e7" title="Waits for a certain fence value to complete on the command queue.">waitFor</a></dd></dl>
+
+</div>
+</div>
+<a id="a78eade774cde27d96fc5d55c365909e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a78eade774cde27d96fc5d55c365909e5">&#9670;&nbsp;</a></span>submit() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a> VulkanQueue::submit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>commandBuffer</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="af0a4c3ac7772e2aa376e696941fc2703"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0a4c3ac7772e2aa376e696941fc2703">&#9670;&nbsp;</a></span>submit() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a> VulkanQueue::submit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>commandBuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkSemaphore &gt;&#160;</td>
+          <td class="paramname"><em>waitForSemaphores</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkPipelineStageFlags &gt;&#160;</td>
+          <td class="paramname"><em>waitForStages</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; VkSemaphore &gt;&#160;</td>
+          <td class="paramname"><em>signalSemaphores</em> = <code>{&#160;}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Submits a single command buffer and inserts a fence to wait for it. </p>
+<p>Note that submitting a command buffer that is currently recording will implicitly close the command buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">commandBuffer</td><td>The command buffer to submit to the command queue.</td></tr>
+    <tr><td class="paramname">waitForSemaphores</td><td>The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the waitForStages array.</td></tr>
+    <tr><td class="paramname">waitForStages</td><td>The pipeline stages of the current render pass to wait for before submitting the command buffer.</td></tr>
+    <tr><td class="paramname">signalSemaphores</td><td>The semaphores to signal, when the command buffer is executed.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The value of the fence, inserted after the command buffer.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ae6382b9f2ed01615b303d6829d9772e7" title="Waits for a certain fence value to complete on the command queue.">waitFor</a></dd></dl>
+
+</div>
+</div>
+<a id="ab8ac20506eec957a82dd3c7cd1d72453"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8ac20506eec957a82dd3c7cd1d72453">&#9670;&nbsp;</a></span>timelineSemaphore()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const VkSemaphore &amp; VulkanQueue::timelineSemaphore </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the internal timeline semaphore used to synchronize the queue execution. </p>
+<dl class="section return"><dt>Returns</dt><dd>The internal timeline semaphore.</dd></dl>
 
 </div>
 </div>
@@ -590,7 +901,37 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Returns the type of the queue. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a1d7989b4baab7b079a539a8cc6554bb3">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a8268fdae046ddd3f56a698f14ab67e7f">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
+
+</div>
+</div>
+<a id="ae6382b9f2ed01615b303d6829d9772e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6382b9f2ed01615b303d6829d9772e7">&#9670;&nbsp;</a></span>waitFor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanQueue::waitFor </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427">UInt64</a> &amp;&#160;</td>
+          <td class="paramname"><em>fence</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Waits for a certain fence value to complete on the command queue. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#aff1a27a568ec9ad4cab1fc6d08b22610">LiteFX::Rendering::ICommandQueue&lt; VulkanCommandBuffer &gt;</a>.</p>
 
 </div>
 </div>

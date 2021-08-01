@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -95,7 +95,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backe
 </div><!--header-->
 <div class="contents">
 
-<p>Builds a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler.html" title="Implements the DirectX12 input assembler state.">DirectX12InputAssembler</a>.  
+<p>Builds a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler.html" title="Implements the DirectX 12 input assembler state.">DirectX12InputAssembler</a>.  
  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler_builder.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="dx12_8hpp_source.html">dx12.hpp</a>&gt;</code></p>
@@ -110,7 +110,7 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a6d73bda897c48bdaf8c777edfa693d40"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler_builder.html#a6d73bda897c48bdaf8c777edfa693d40">DirectX12InputAssemblerBuilder</a> (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_builder.html">DirectX12RenderPipelineBuilder</a> &amp;<a class="el" href="class_lite_f_x_1_1_builder.html#a1bd00d62664f44ed26e0d75e79893fec">parent</a>) noexcept</td></tr>
-<tr class="memdesc:a6d73bda897c48bdaf8c777edfa693d40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a DirectX12 input assembler builder.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler_builder.html#a6d73bda897c48bdaf8c777edfa693d40">More...</a><br /></td></tr>
+<tr class="memdesc:a6d73bda897c48bdaf8c777edfa693d40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a DirectX 12 input assembler builder.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler_builder.html#a6d73bda897c48bdaf8c777edfa693d40">More...</a><br /></td></tr>
 <tr class="separator:a6d73bda897c48bdaf8c777edfa693d40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2431c9b4b2ea66abf626b4be6b4d360"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler_builder.html#ae2431c9b4b2ea66abf626b4be6b4d360">DirectX12InputAssemblerBuilder</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler_builder.html">DirectX12InputAssemblerBuilder</a> &amp;) noexcept=delete</td></tr>
 <tr class="separator:ae2431c9b4b2ea66abf626b4be6b4d360"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -156,12 +156,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memTemplParams" colspan="2">template&lt;typename TInstance &gt; </td></tr>
 <tr class="memitem:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#ad97fa87a98bf3cdf3a4df27f910da56f">use</a> (<a class="el" href="class_lite_f_x_1_1_builder.html#a95ce991f0f204ba6133127b0a07cb6f9">pointer_type</a> &amp;&amp;)</td></tr>
 <tr class="separator:ad97fa87a98bf3cdf3a4df27f910da56f inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memTemplParams" colspan="2">template&lt;rtti::has_builder TInstance, typename ... TArgs, std::enable_if_t&lt; std::is_same_v&lt; typename TInstance::builder::pointer_type, UniquePtr&lt; TInstance &gt;&gt;, int &gt;  = 0, typename TBuilder  = TInstance::builder&gt; </td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memTemplItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename TBuilder::parent_type * &gt; &amp;&amp;<a class="el" href="namespace_lite_f_x_1_1rtti.html#a2ecab3774466df5786e3bcc827aff3d1">rtti::is_explicitly_constructible_v</a>&lt; TInstance, const T &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memTemplParams" colspan="2">template&lt;rtti::has_builder TInstance, typename ... TArgs, std::enable_if_t&lt; std::is_same_v&lt; typename TInstance::builder::pointer_type, SharedPtr&lt; TInstance &gt;&gt;, int &gt;  = 0, typename TBuilder  = TInstance::builder&gt; </td></tr>
-<tr class="memitem:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memTemplItemLeft" align="right" valign="top">requires std::is_convertible_v&lt; TDerived *, typename TBuilder::parent_type * &gt; &amp;&amp;<a class="el" href="namespace_lite_f_x_1_1rtti.html#a2ecab3774466df5786e3bcc827aff3d1">rtti::is_explicitly_constructible_v</a>&lt; TInstance, const T &amp;, TArgs... &gt; TBuilder&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_builder.html#a78313cd171e0599fff5e935d3416bc93">make</a> (TArgs &amp;&amp;... _args)</td></tr>
-<tr class="separator:a78313cd171e0599fff5e935d3416bc93 inherit pub_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -181,8 +175,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:aa31367e19593bc00b752aceaa531bb5e inherit pro_methods_class_lite_f_x_1_1_builder"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Builds a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler.html" title="Implements the DirectX12 input assembler state.">DirectX12InputAssembler</a>. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler.html" title="Implements the DirectX12 input assembler state.">DirectX12InputAssembler</a></dd></dl>
+<div class="textblock"><p>Builds a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler.html" title="Implements the DirectX 12 input assembler state.">DirectX12InputAssembler</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler.html" title="Implements the DirectX 12 input assembler state.">DirectX12InputAssembler</a></dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a6d73bda897c48bdaf8c777edfa693d40"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6d73bda897c48bdaf8c777edfa693d40">&#9670;&nbsp;</a></span>DirectX12InputAssemblerBuilder() <span class="overload">[1/3]</span></h2>
@@ -208,7 +202,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Initializes a DirectX12 input assembler builder. </p>
+<p>Initializes a DirectX 12 input assembler builder. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">parent</td><td>The parent render pipeline builder.</td></tr>

@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_backe
 
 <p><code>#include &lt;<a class="el" href="vulkan_8hpp_source.html">vulkan.hpp</a>&gt;</code></p>
 
-<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html">LiteFX::Rendering::Backends::VulkanRuntimeObject&lt; VulkanQueue &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a>, and <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; VkCommandBuffer &gt;</a>.</p>
+<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html">LiteFX::Rendering::Backends::VulkanRuntimeObject&lt; VulkanQueue &gt;</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer&lt; IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState &gt;</a>, and <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; VkCommandBuffer &gt;</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -109,30 +109,55 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a2b27fba3f2d5b5625f304ec1aa21a4c6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2b27fba3f2d5b5625f304ec1aa21a4c6">VulkanCommandBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html">VulkanQueue</a> &amp;queue, const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a3d992e05fabf1c2791c8965c5faac382">begin</a>=false)</td></tr>
-<tr class="memdesc:a2b27fba3f2d5b5625f304ec1aa21a4c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the command buffer from a command queue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2b27fba3f2d5b5625f304ec1aa21a4c6">More...</a><br /></td></tr>
-<tr class="separator:a2b27fba3f2d5b5625f304ec1aa21a4c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d1f9f3bf72ff4d590b2a67413f840b6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a5d1f9f3bf72ff4d590b2a67413f840b6">VulkanCommandBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html">VulkanQueue</a> &amp;queue, const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2ff5406374b025c28ef020c778f1b8b6">begin</a>=false, const bool &amp;primary=true)</td></tr>
+<tr class="memdesc:a5d1f9f3bf72ff4d590b2a67413f840b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a command buffer from a command queue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a5d1f9f3bf72ff4d590b2a67413f840b6">More...</a><br /></td></tr>
+<tr class="separator:a5d1f9f3bf72ff4d590b2a67413f840b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a509318cb573cca0b0fc6bd5b866c4918"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a509318cb573cca0b0fc6bd5b866c4918">VulkanCommandBuffer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;)=delete</td></tr>
 <tr class="separator:a509318cb573cca0b0fc6bd5b866c4918"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae027de7ab6e8f327b7de49ec4b56167e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#ae027de7ab6e8f327b7de49ec4b56167e">VulkanCommandBuffer</a> (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html">VulkanCommandBuffer</a> &amp;&amp;)=delete</td></tr>
 <tr class="separator:ae027de7ab6e8f327b7de49ec4b56167e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf6bce275854d8cd702ea7c35c4bc0f2"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#acf6bce275854d8cd702ea7c35c4bc0f2">~VulkanCommandBuffer</a> () noexcept</td></tr>
 <tr class="separator:acf6bce275854d8cd702ea7c35c4bc0f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad03469b2e3024b4fafd3b89684643491"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#ad03469b2e3024b4fafd3b89684643491">submit</a> (const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; VkSemaphore &gt; &amp;waitForSemaphores, const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; VkPipelineStageFlags &gt; &amp;waitForStages, const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; VkSemaphore &gt; &amp;signalSemaphores={ }, const bool &amp;waitForQueue=false) const</td></tr>
-<tr class="memdesc:ad03469b2e3024b4fafd3b89684643491"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits the command buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#ad03469b2e3024b4fafd3b89684643491">More...</a><br /></td></tr>
-<tr class="separator:ad03469b2e3024b4fafd3b89684643491"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29dfebeee0f1e5d7232e231fa531fe1c"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a29dfebeee0f1e5d7232e231fa531fe1c">wait</a> () const override</td></tr>
-<tr class="memdesc:a29dfebeee0f1e5d7232e231fa531fe1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits for the command buffer to be executed.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a29dfebeee0f1e5d7232e231fa531fe1c">More...</a><br /></td></tr>
-<tr class="separator:a29dfebeee0f1e5d7232e231fa531fe1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ff5406374b025c28ef020c778f1b8b6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2ff5406374b025c28ef020c778f1b8b6">begin</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &amp;renderPass) const noexcept</td></tr>
+<tr class="memdesc:a2ff5406374b025c28ef020c778f1b8b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Begins the command buffer as a secondary command buffer that inherits the state of <em>renderPass</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2ff5406374b025c28ef020c778f1b8b6">More...</a><br /></td></tr>
+<tr class="separator:a2ff5406374b025c28ef020c778f1b8b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d992e05fabf1c2791c8965c5faac382"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a3d992e05fabf1c2791c8965c5faac382">begin</a> () const override</td></tr>
-<tr class="memdesc:a3d992e05fabf1c2791c8965c5faac382"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a3d992e05fabf1c2791c8965c5faac382">More...</a><br /></td></tr>
+<tr class="memdesc:a3d992e05fabf1c2791c8965c5faac382"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent ICommandQueue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a3d992e05fabf1c2791c8965c5faac382">More...</a><br /></td></tr>
 <tr class="separator:a3d992e05fabf1c2791c8965c5faac382"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a02a662e37f66f56557044bd2ac732528"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a02a662e37f66f56557044bd2ac732528">end</a> (const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#ad03469b2e3024b4fafd3b89684643491">submit</a>=true, const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a29dfebeee0f1e5d7232e231fa531fe1c">wait</a>=false) const override</td></tr>
-<tr class="memdesc:a02a662e37f66f56557044bd2ac732528"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends recording commands on the command buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a02a662e37f66f56557044bd2ac732528">More...</a><br /></td></tr>
-<tr class="separator:a02a662e37f66f56557044bd2ac732528"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7269395eb90a37074089e697b2fb635a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a7269395eb90a37074089e697b2fb635a">submit</a> (const bool &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a29dfebeee0f1e5d7232e231fa531fe1c">wait</a>=false) const override</td></tr>
-<tr class="memdesc:a7269395eb90a37074089e697b2fb635a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Submits the command buffer to the parent command queue.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a7269395eb90a37074089e697b2fb635a">More...</a><br /></td></tr>
-<tr class="separator:a7269395eb90a37074089e697b2fb635a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2db74c40d8532bdf9eeec8debe134d3a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2db74c40d8532bdf9eeec8debe134d3a">end</a> () const override</td></tr>
+<tr class="memdesc:a2db74c40d8532bdf9eeec8debe134d3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends recording commands on the command buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2db74c40d8532bdf9eeec8debe134d3a">More...</a><br /></td></tr>
+<tr class="separator:a2db74c40d8532bdf9eeec8debe134d3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a975421f3dfa2a35d6352dfbbe47ed3de"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a975421f3dfa2a35d6352dfbbe47ed3de">generateMipMaps</a> (<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;image) noexcept override</td></tr>
+<tr class="separator:a975421f3dfa2a35d6352dfbbe47ed3de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a099ebf1181bc3d51c962d455dd2f71e6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a099ebf1181bc3d51c962d455dd2f71e6">barrier</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_barrier.html">VulkanBarrier</a> &amp;barrier, const bool &amp;invert=false) const noexcept override</td></tr>
+<tr class="separator:a099ebf1181bc3d51c962d455dd2f71e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a827491ba10e1e1e536c7f02e9ae2f128"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a827491ba10e1e1e536c7f02e9ae2f128">transfer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html">IVulkanBuffer</a> &amp;source, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html">IVulkanBuffer</a> &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const override</td></tr>
+<tr class="separator:a827491ba10e1e1e536c7f02e9ae2f128"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5b519604aa1c1349ea9c12ab5a81289"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#af5b519604aa1c1349ea9c12ab5a81289">transfer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html">IVulkanBuffer</a> &amp;source, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const override</td></tr>
+<tr class="separator:af5b519604aa1c1349ea9c12ab5a81289"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2efa43579f7692a59a435cd9eae97e05"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2efa43579f7692a59a435cd9eae97e05">transfer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;source, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const override</td></tr>
+<tr class="separator:a2efa43579f7692a59a435cd9eae97e05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49b5e49b95b91ffb3d10be5c7049fcff"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a49b5e49b95b91ffb3d10be5c7049fcff">transfer</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;source, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html">IVulkanBuffer</a> &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const override</td></tr>
+<tr class="separator:a49b5e49b95b91ffb3d10be5c7049fcff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a530e4d52b2926f26b58e868af5993c"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a4a530e4d52b2926f26b58e868af5993c">use</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html">VulkanPipelineState</a> &amp;pipeline) const noexcept override</td></tr>
+<tr class="separator:a4a530e4d52b2926f26b58e868af5993c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a601b8fb582a661ac53133403276b2081"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a601b8fb582a661ac53133403276b2081">bind</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;descriptorSet) const noexcept override</td></tr>
+<tr class="separator:a601b8fb582a661ac53133403276b2081"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa45931df5f2b9e18ff2b45abc33cb5d2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#aa45931df5f2b9e18ff2b45abc33cb5d2">bind</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_vertex_buffer.html">IVulkanVertexBuffer</a> &amp;buffer) const noexcept override</td></tr>
+<tr class="separator:aa45931df5f2b9e18ff2b45abc33cb5d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07513fa9db865afb2ae3f15a6db5cec2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a07513fa9db865afb2ae3f15a6db5cec2">bind</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_index_buffer.html">IVulkanIndexBuffer</a> &amp;buffer) const noexcept override</td></tr>
+<tr class="separator:a07513fa9db865afb2ae3f15a6db5cec2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf9b4596f4bc07fd90ce01e6b1585b5e"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#acf9b4596f4bc07fd90ce01e6b1585b5e">dispatch</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html">Vector3u</a> &amp;threadCount) const noexcept override</td></tr>
+<tr class="memdesc:acf9b4596f4bc07fd90ce01e6b1585b5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a compute shader.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#acf9b4596f4bc07fd90ce01e6b1585b5e">More...</a><br /></td></tr>
+<tr class="separator:acf9b4596f4bc07fd90ce01e6b1585b5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebd143cbcfefe3fef5d79f4030158ef0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#aebd143cbcfefe3fef5d79f4030158ef0">draw</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;vertices, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstVertex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const noexcept override</td></tr>
+<tr class="memdesc:aebd143cbcfefe3fef5d79f4030158ef0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws a number of vertices from the currently bound vertex buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#aebd143cbcfefe3fef5d79f4030158ef0">More...</a><br /></td></tr>
+<tr class="separator:aebd143cbcfefe3fef5d79f4030158ef0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0c65f86c927d7596c60ea8689ce06b1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#af0c65f86c927d7596c60ea8689ce06b1">drawIndexed</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;indices, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const noexcept override</td></tr>
+<tr class="memdesc:af0c65f86c927d7596c60ea8689ce06b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.  <a href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#af0c65f86c927d7596c60ea8689ce06b1">More...</a><br /></td></tr>
+<tr class="separator:af0c65f86c927d7596c60ea8689ce06b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af00cd8c171eac294af6ba3af6642505a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#af00cd8c171eac294af6ba3af6642505a">pushConstants</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_push_constants_layout.html">VulkanPushConstantsLayout</a> &amp;layout, const void *const memory) const noexcept override</td></tr>
+<tr class="separator:af00cd8c171eac294af6ba3af6642505a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html">LiteFX::Rendering::Backends::VulkanRuntimeObject&lt; VulkanQueue &gt;</a></td></tr>
 <tr class="memitem:a34b61edb9992e4e105325873a47f3cd7 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html#a34b61edb9992e4e105325873a47f3cd7">VulkanRuntimeObject</a> (const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html">VulkanQueue</a> &amp;<a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html#ac758ae0189c6dc37dff635214c833593">parent</a>, const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> *device)</td></tr>
 <tr class="separator:a34b61edb9992e4e105325873a47f3cd7 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -146,9 +171,51 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac758ae0189c6dc37dff635214c833593 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a947ba4d7b4d0dcbebea6a105482a41fc inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html">VulkanDevice</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object.html#a947ba4d7b4d0dcbebea6a105482a41fc">getDevice</a> () const noexcept</td></tr>
 <tr class="separator:a947ba4d7b4d0dcbebea6a105482a41fc inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_runtime_object"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer</a></td></tr>
-<tr class="memitem:ac37242e5c15a3a6c0e74ad56b46e4aa2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ac37242e5c15a3a6c0e74ad56b46e4aa2">~ICommandBuffer</a> () noexcept=default</td></tr>
-<tr class="separator:ac37242e5c15a3a6c0e74ad56b46e4aa2 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer&lt; IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState &gt;</a></td></tr>
+<tr class="memitem:ae7cc16e5d88a7d52cf3904a8e646d937 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae7cc16e5d88a7d52cf3904a8e646d937">~ICommandBuffer</a> () noexcept=default</td></tr>
+<tr class="separator:ae7cc16e5d88a7d52cf3904a8e646d937 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ad800b489b90f99e21b8ae2777ead96 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7ad800b489b90f99e21b8ae2777ead96">barrier</a> (const VulkanBarrier &amp;barrier, const bool &amp;invert=false) const noexcept=0</td></tr>
+<tr class="memdesc:a7ad800b489b90f99e21b8ae2777ead96 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the transitions that have been added to <em>barrier</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7ad800b489b90f99e21b8ae2777ead96">More...</a><br /></td></tr>
+<tr class="separator:a7ad800b489b90f99e21b8ae2777ead96 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25ace4329d10a63f9e1a7a5e87f0a38a inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a25ace4329d10a63f9e1a7a5e87f0a38a">generateMipMaps</a> (IVulkanImage &amp;image) noexcept=0</td></tr>
+<tr class="memdesc:a25ace4329d10a63f9e1a7a5e87f0a38a inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the image at level <em>0</em> to generate mip-maps for the remaining levels.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a25ace4329d10a63f9e1a7a5e87f0a38a">More...</a><br /></td></tr>
+<tr class="separator:a25ace4329d10a63f9e1a7a5e87f0a38a inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a419205a2a11e60f1990c4260335c717f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a419205a2a11e60f1990c4260335c717f">transfer</a> (const IVulkanBuffer &amp;source, const IVulkanBuffer &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const=0</td></tr>
+<tr class="memdesc:a419205a2a11e60f1990c4260335c717f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a buffer-to-buffer transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a419205a2a11e60f1990c4260335c717f">More...</a><br /></td></tr>
+<tr class="separator:a419205a2a11e60f1990c4260335c717f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d06cfe503ea6090367ce946bc09e427 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7d06cfe503ea6090367ce946bc09e427">transfer</a> (const IVulkanBuffer &amp;source, const IVulkanImage &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;elements=1) const=0</td></tr>
+<tr class="memdesc:a7d06cfe503ea6090367ce946bc09e427 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a buffer-to-image transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7d06cfe503ea6090367ce946bc09e427">More...</a><br /></td></tr>
+<tr class="separator:a7d06cfe503ea6090367ce946bc09e427 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad70520925e673cb48a9cded7b65d9f59 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad70520925e673cb48a9cded7b65d9f59">transfer</a> (const IVulkanImage &amp;source, const IVulkanImage &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;sourceSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const=0</td></tr>
+<tr class="memdesc:ad70520925e673cb48a9cded7b65d9f59 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs an image-to-image transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad70520925e673cb48a9cded7b65d9f59">More...</a><br /></td></tr>
+<tr class="separator:ad70520925e673cb48a9cded7b65d9f59 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6b64953279ef961b8f44514afa2ba11 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae6b64953279ef961b8f44514afa2ba11">transfer</a> (const IVulkanImage &amp;source, const IVulkanBuffer &amp;target, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstSubresource=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;targetElement=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;subresources=1) const=0</td></tr>
+<tr class="memdesc:ae6b64953279ef961b8f44514afa2ba11 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs an image-to-buffer transfer from <em>source</em>  to <em>target</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae6b64953279ef961b8f44514afa2ba11">More...</a><br /></td></tr>
+<tr class="separator:ae6b64953279ef961b8f44514afa2ba11 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71a0b305306805417934bab14fa60882 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a71a0b305306805417934bab14fa60882">use</a> (const VulkanPipelineState &amp;pipeline) const noexcept=0</td></tr>
+<tr class="memdesc:a71a0b305306805417934bab14fa60882 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the active pipeline state.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a71a0b305306805417934bab14fa60882">More...</a><br /></td></tr>
+<tr class="separator:a71a0b305306805417934bab14fa60882 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a464762b4406d7f7598a594cb1e72a280 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a464762b4406d7f7598a594cb1e72a280">bind</a> (const TPipelineLayout::descriptor_set_type &amp;descriptorSet) const noexcept=0</td></tr>
+<tr class="memdesc:a464762b4406d7f7598a594cb1e72a280 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds the provided descriptor set.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a464762b4406d7f7598a594cb1e72a280">More...</a><br /></td></tr>
+<tr class="separator:a464762b4406d7f7598a594cb1e72a280 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72cb834d8ae7e5a2d5142658b5bf2dc0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a72cb834d8ae7e5a2d5142658b5bf2dc0">bind</a> (const IVulkanVertexBuffer &amp;buffer) const noexcept=0</td></tr>
+<tr class="memdesc:a72cb834d8ae7e5a2d5142658b5bf2dc0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a vertex buffer to the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a72cb834d8ae7e5a2d5142658b5bf2dc0">More...</a><br /></td></tr>
+<tr class="separator:a72cb834d8ae7e5a2d5142658b5bf2dc0 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8062d9e350fde81309bac342b3c7a326 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a8062d9e350fde81309bac342b3c7a326">bind</a> (const IVulkanIndexBuffer &amp;buffer) const noexcept=0</td></tr>
+<tr class="memdesc:a8062d9e350fde81309bac342b3c7a326 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds a index buffer to the pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a8062d9e350fde81309bac342b3c7a326">More...</a><br /></td></tr>
+<tr class="separator:a8062d9e350fde81309bac342b3c7a326 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a441345e14aaecad85a465f22e932bbda inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a441345e14aaecad85a465f22e932bbda">draw</a> (const IVulkanVertexBuffer &amp;vertexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstVertex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:a441345e14aaecad85a465f22e932bbda inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws all vertices from the vertex buffer provided in <em>vertexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a441345e14aaecad85a465f22e932bbda">More...</a><br /></td></tr>
+<tr class="separator:a441345e14aaecad85a465f22e932bbda inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd995367e0eaba32b5ce6ddb55c7a936 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#afd995367e0eaba32b5ce6ddb55c7a936">drawIndexed</a> (const IVulkanIndexBuffer &amp;indexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:afd995367e0eaba32b5ce6ddb55c7a936 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the currently bound vertex buffer using the index buffer provided in <em>indexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#afd995367e0eaba32b5ce6ddb55c7a936">More...</a><br /></td></tr>
+<tr class="separator:afd995367e0eaba32b5ce6ddb55c7a936 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9a57f38a900189f9d2a6e8bb083f140 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aa9a57f38a900189f9d2a6e8bb083f140">drawIndexed</a> (const IVulkanVertexBuffer &amp;vertexBuffer, const IVulkanIndexBuffer &amp;indexBuffer, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;instances=1, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstIndex=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;vertexOffset=0, const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;firstInstance=0) const</td></tr>
+<tr class="memdesc:aa9a57f38a900189f9d2a6e8bb083f140 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the vertex buffer provided by <em>vertexBuffer</em>  using the index buffer, provided by <em>indexBuffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aa9a57f38a900189f9d2a6e8bb083f140">More...</a><br /></td></tr>
+<tr class="separator:aa9a57f38a900189f9d2a6e8bb083f140 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada88e34f3d4ba97f8c6746906a4a38a8 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ada88e34f3d4ba97f8c6746906a4a38a8">pushConstants</a> (const TPipelineLayout::push_constants_layout_type &amp;layout, const void *const memory) const noexcept=0</td></tr>
+<tr class="memdesc:ada88e34f3d4ba97f8c6746906a4a38a8 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pushes a block of memory into the push constants backing memory.  <a href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ada88e34f3d4ba97f8c6746906a4a38a8">More...</a><br /></td></tr>
+<tr class="separator:ada88e34f3d4ba97f8c6746906a4a38a8 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_lite_f_x_1_1_resource"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_resource')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; VkCommandBuffer &gt;</a></td></tr>
 <tr class="memitem:a9413559dfee29e4b480d877474014418 inherit pub_methods_class_lite_f_x_1_1_resource"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_resource.html#a9413559dfee29e4b480d877474014418">Resource</a> (const <a class="el" href="class_lite_f_x_1_1_resource.html">Resource</a> &amp;)=delete</td></tr>
 <tr class="separator:a9413559dfee29e4b480d877474014418 inherit pub_methods_class_lite_f_x_1_1_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -164,6 +231,19 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html">LiteFX::Rendering::ICommandBuffer&lt; IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState &gt;</a></td></tr>
+<tr class="memitem:a7c82d316238b25d81ebb5c19fc8ce51d inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7c82d316238b25d81ebb5c19fc8ce51d">buffer_type</a> = IVulkanBuffer</td></tr>
+<tr class="separator:a7c82d316238b25d81ebb5c19fc8ce51d inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae61e10f31173d8972fca66381bab5386 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae61e10f31173d8972fca66381bab5386">vertex_buffer_type</a> = IVulkanVertexBuffer</td></tr>
+<tr class="separator:ae61e10f31173d8972fca66381bab5386 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d977137803b62cedb6ef046c67a260e inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a0d977137803b62cedb6ef046c67a260e">index_buffer_type</a> = IVulkanIndexBuffer</td></tr>
+<tr class="separator:a0d977137803b62cedb6ef046c67a260e inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae316235dd7c3ee4dfcee5b36ed70e4ed inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ae316235dd7c3ee4dfcee5b36ed70e4ed">image_type</a> = IVulkanImage</td></tr>
+<tr class="separator:ae316235dd7c3ee4dfcee5b36ed70e4ed inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abef22a0568619462d5798ebc56ae43fb inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#abef22a0568619462d5798ebc56ae43fb">barrier_type</a> = VulkanBarrier</td></tr>
+<tr class="separator:abef22a0568619462d5798ebc56ae43fb inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab18707464c1c953935074b8a1f18f7fe inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ab18707464c1c953935074b8a1f18f7fe">pipeline_type</a> = VulkanPipelineState</td></tr>
+<tr class="separator:ab18707464c1c953935074b8a1f18f7fe inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_command_buffer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_class_lite_f_x_1_1_resource"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_lite_f_x_1_1_resource')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_resource.html">LiteFX::Resource&lt; VkCommandBuffer &gt;</a></td></tr>
 <tr class="memitem:a5fd18a4f5cd5736df4f6e2cfa4442cc8 inherit pro_methods_class_lite_f_x_1_1_resource"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_resource.html#a5fd18a4f5cd5736df4f6e2cfa4442cc8">Resource</a> (const VkCommandBuffer <a class="el" href="class_lite_f_x_1_1_resource.html#a60ee7bcf22a9ce84dc61710dcd40cb93">handle</a>) noexcept</td></tr>
 <tr class="separator:a5fd18a4f5cd5736df4f6e2cfa4442cc8 inherit pro_methods_class_lite_f_x_1_1_resource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -174,8 +254,8 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>Records commands for a VulkanCommandQueue </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html" title="Implements a Vulkan command queue.">VulkanQueue</a></dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a2b27fba3f2d5b5625f304ec1aa21a4c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2b27fba3f2d5b5625f304ec1aa21a4c6">&#9670;&nbsp;</a></span>VulkanCommandBuffer() <span class="overload">[1/3]</span></h2>
+<a id="a5d1f9f3bf72ff4d590b2a67413f840b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d1f9f3bf72ff4d590b2a67413f840b6">&#9670;&nbsp;</a></span>VulkanCommandBuffer() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -193,7 +273,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>begin</em> = <code>false</code>&#160;</td>
+          <td class="paramname"><em>begin</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>primary</em> = <code>true</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -208,11 +294,12 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Initializes the command buffer from a command queue. </p>
+<p>Initializes a command buffer from a command queue. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">queue</td><td>The parent command queue, the buffer gets submitted to.</td></tr>
-    <tr><td class="paramname">begin</td><td>If set to <code>true</code>, the command buffer automatically starts recording by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a3d992e05fabf1c2791c8965c5faac382" title="Sets the command buffer into recording state, so that it can receive command that should be submitted...">begin</a>.</td></tr>
+    <tr><td class="paramname">begin</td><td>If set to <code>true</code>, the command buffer automatically starts recording by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html#a2ff5406374b025c28ef020c778f1b8b6" title="Begins the command buffer as a secondary command buffer that inherits the state of renderPass .">begin</a>.</td></tr>
+    <tr><td class="paramname">primary</td><td><code>true</code>, if the command buffer is a primary command buffer.</td></tr>
   </table>
   </dd>
 </dl>
@@ -297,8 +384,46 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a099ebf1181bc3d51c962d455dd2f71e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a099ebf1181bc3d51c962d455dd2f71e6">&#9670;&nbsp;</a></span>barrier()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::barrier </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_barrier.html">VulkanBarrier</a> &amp;&#160;</td>
+          <td class="paramname"><em>barrier</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>invert</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
 <a id="a3d992e05fabf1c2791c8965c5faac382"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d992e05fabf1c2791c8965c5faac382">&#9670;&nbsp;</a></span>begin()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d992e05fabf1c2791c8965c5faac382">&#9670;&nbsp;</a></span>begin() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -320,14 +445,272 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_queue.html" title="Represents a command queue.">ICommandQueue</a>. </p>
+<p>Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent ICommandQueue. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad08533dccdc780f870b9a5895aa3633b">LiteFX::Rendering::ICommandBuffer</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a4f9c3c026d9994e4c3a058af947168f6">LiteFX::Rendering::ICommandBuffer&lt; IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState &gt;</a>.</p>
 
 </div>
 </div>
-<a id="a02a662e37f66f56557044bd2ac732528"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a02a662e37f66f56557044bd2ac732528">&#9670;&nbsp;</a></span>end()</h2>
+<a id="a2ff5406374b025c28ef020c778f1b8b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ff5406374b025c28ef020c778f1b8b6">&#9670;&nbsp;</a></span>begin() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::begin </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html">VulkanRenderPass</a> &amp;&#160;</td>
+          <td class="paramname"><em>renderPass</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Begins the command buffer as a secondary command buffer that inherits the state of <em>renderPass</em> . </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">renderPass</td><td>The render pass state to inherit.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a07513fa9db865afb2ae3f15a6db5cec2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07513fa9db865afb2ae3f15a6db5cec2">&#9670;&nbsp;</a></span>bind() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::bind </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_index_buffer.html">IVulkanIndexBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>buffer</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="aa45931df5f2b9e18ff2b45abc33cb5d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa45931df5f2b9e18ff2b45abc33cb5d2">&#9670;&nbsp;</a></span>bind() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::bind </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_vertex_buffer.html">IVulkanVertexBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>buffer</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a601b8fb582a661ac53133403276b2081"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a601b8fb582a661ac53133403276b2081">&#9670;&nbsp;</a></span>bind() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::bind </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html">VulkanDescriptorSet</a> &amp;&#160;</td>
+          <td class="paramname"><em>descriptorSet</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="acf9b4596f4bc07fd90ce01e6b1585b5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf9b4596f4bc07fd90ce01e6b1585b5e">&#9670;&nbsp;</a></span>dispatch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::dispatch </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_vector3u.html">Vector3u</a> &amp;&#160;</td>
+          <td class="paramname"><em>threadCount</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Executes a compute shader. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a3e3148b31f9e057fec47fbb6d5807858">LiteFX::Rendering::ICommandBuffer&lt; IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState &gt;</a>.</p>
+
+</div>
+</div>
+<a id="aebd143cbcfefe3fef5d79f4030158ef0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebd143cbcfefe3fef5d79f4030158ef0">&#9670;&nbsp;</a></span>draw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::draw </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstVertex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws a number of vertices from the currently bound vertex buffer. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad77e9bba4e59697cccba83f18222354c">LiteFX::Rendering::ICommandBuffer&lt; IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState &gt;</a>.</p>
+
+</div>
+</div>
+<a id="af0c65f86c927d7596c60ea8689ce06b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0c65f86c927d7596c60ea8689ce06b1">&#9670;&nbsp;</a></span>drawIndexed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::drawIndexed </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>indices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>instances</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstIndex</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a9f4ffb05daa7d2dd0a2a68c5b9971133">Int32</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertexOffset</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstInstance</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer. </p>
+
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a356edf0074c348ed75ef40ccf68a5421">LiteFX::Rendering::ICommandBuffer&lt; IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a2db74c40d8532bdf9eeec8debe134d3a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2db74c40d8532bdf9eeec8debe134d3a">&#9670;&nbsp;</a></span>end()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -337,135 +720,6 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">void VulkanCommandBuffer::end </td>
-          <td>(</td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>submit</em> = <code>true</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>wait</em> = <code>false</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Ends recording commands on the command buffer. </p>
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a2bd065e6a6716d43d70e403325c3f9e9">LiteFX::Rendering::ICommandBuffer</a>.</p>
-
-</div>
-</div>
-<a id="ad03469b2e3024b4fafd3b89684643491"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad03469b2e3024b4fafd3b89684643491">&#9670;&nbsp;</a></span>submit() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void VulkanCommandBuffer::submit </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; VkSemaphore &gt; &amp;&#160;</td>
-          <td class="paramname"><em>waitForSemaphores</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; VkPipelineStageFlags &gt; &amp;&#160;</td>
-          <td class="paramname"><em>waitForStages</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; VkSemaphore &gt; &amp;&#160;</td>
-          <td class="paramname"><em>signalSemaphores</em> = <code>{&#160;}</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>waitForQueue</em> = <code>false</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Submits the command buffer. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">waitForSemaphores</td><td>The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the waitForStages array.</td></tr>
-    <tr><td class="paramname">waitForStages</td><td>The pipeline stages of the current render pass to wait for before submitting the command buffer.</td></tr>
-    <tr><td class="paramname">signalSemaphores</td><td>The semaphores to signal, when the command buffer is executed.</td></tr>
-    <tr><td class="paramname">waitForQueue</td><td><code>true</code> to wait for the command queue to be idle.</td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a7269395eb90a37074089e697b2fb635a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7269395eb90a37074089e697b2fb635a">&#9670;&nbsp;</a></span>submit() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void VulkanCommandBuffer::submit </td>
-          <td>(</td>
-          <td class="paramtype">const bool &amp;&#160;</td>
-          <td class="paramname"><em>wait</em> = <code>false</code></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Submits the command buffer to the parent command queue. </p>
-
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#a7a1fa26c50e98472e3e97b48f751ed37">LiteFX::Rendering::ICommandBuffer</a>.</p>
-
-</div>
-</div>
-<a id="a29dfebeee0f1e5d7232e231fa531fe1c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a29dfebeee0f1e5d7232e231fa531fe1c">&#9670;&nbsp;</a></span>wait()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void VulkanCommandBuffer::wait </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -478,9 +732,327 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Waits for the command buffer to be executed. </p>
+<p>Ends recording commands on the command buffer. </p>
 
-<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#af7365086cfd654043ed6590ff1ac90d5">LiteFX::Rendering::ICommandBuffer</a>.</p>
+<p>Implements <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#aab3a09c85ed99d812572a3e60d9e985d">LiteFX::Rendering::ICommandBuffer&lt; IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a975421f3dfa2a35d6352dfbbe47ed3de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a975421f3dfa2a35d6352dfbbe47ed3de">&#9670;&nbsp;</a></span>generateMipMaps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::generateMipMaps </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;&#160;</td>
+          <td class="paramname"><em>image</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="af00cd8c171eac294af6ba3af6642505a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af00cd8c171eac294af6ba3af6642505a">&#9670;&nbsp;</a></span>pushConstants()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::pushConstants </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_push_constants_layout.html">VulkanPushConstantsLayout</a> &amp;&#160;</td>
+          <td class="paramname"><em>layout</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *const&#160;</td>
+          <td class="paramname"><em>memory</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a827491ba10e1e1e536c7f02e9ae2f128"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a827491ba10e1e1e536c7f02e9ae2f128">&#9670;&nbsp;</a></span>transfer() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::transfer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html">IVulkanBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html">IVulkanBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>elements</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="af5b519604aa1c1349ea9c12ab5a81289"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5b519604aa1c1349ea9c12ab5a81289">&#9670;&nbsp;</a></span>transfer() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::transfer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html">IVulkanBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>elements</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a49b5e49b95b91ffb3d10be5c7049fcff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49b5e49b95b91ffb3d10be5c7049fcff">&#9670;&nbsp;</a></span>transfer() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::transfer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html">IVulkanBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>firstSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetElement</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresources</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a2efa43579f7692a59a435cd9eae97e05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2efa43579f7692a59a435cd9eae97e05">&#9670;&nbsp;</a></span>transfer() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::transfer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html">IVulkanImage</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>sourceSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetSubresource</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
+          <td class="paramname"><em>subresources</em> = <code>1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
+
+</div>
+</div>
+<a id="a4a530e4d52b2926f26b58e868af5993c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a530e4d52b2926f26b58e868af5993c">&#9670;&nbsp;</a></span>use()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void VulkanCommandBuffer::use </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html">VulkanPipelineState</a> &amp;&#160;</td>
+          <td class="paramname"><em>pipeline</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p></p>
 
 </div>
 </div>

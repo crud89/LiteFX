@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LiteFX: LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt; Class Template Reference</title>
+<title>LiteFX: LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
   <td id="projectlogo"><img alt="Logo" src="logo_xs.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">LiteFX
-   &#160;<span id="projectnumber">0.1.1.2021</span>
+   &#160;<span id="projectnumber">0.2.1.2021</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -91,7 +91,7 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_ren
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -100,127 +100,132 @@ $(document).ready(function(){initNavTree('class_lite_f_x_1_1_rendering_1_1_i_ren
 
 <p><code>#include &lt;<a class="el" href="rendering_8hpp_source.html">rendering.hpp</a>&gt;</code></p>
 
-<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt;</a>.</p>
+<p>Inherits <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer &gt;</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:aa4f0bf6e12fffe5f9d7805b417b09bad"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa4f0bf6e12fffe5f9d7805b417b09bad">frame_buffer_type</a> = TFrameBuffer</td></tr>
-<tr class="separator:aa4f0bf6e12fffe5f9d7805b417b09bad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53d11ee69d0cbacb0061cffffa6b57c1"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a53d11ee69d0cbacb0061cffffa6b57c1">render_pipeline_type</a> = TRenderPipeline</td></tr>
-<tr class="separator:a53d11ee69d0cbacb0061cffffa6b57c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e981252b5528efd8978e38e1df1fc94"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a5e981252b5528efd8978e38e1df1fc94">input_attachment_mapping_type</a> = TInputAttachmentMapping</td></tr>
-<tr class="separator:a5e981252b5528efd8978e38e1df1fc94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt;</a></td></tr>
-<tr class="memitem:a57304d875cc46863f36ef7277fc6a8d5 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a57304d875cc46863f36ef7277fc6a8d5">frame_buffer_type</a> = TFrameBuffer</td></tr>
-<tr class="separator:a57304d875cc46863f36ef7277fc6a8d5 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc36965075ea95a6b5adcb57d81700db"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#adc36965075ea95a6b5adcb57d81700db">frame_buffer_type</a> = TFrameBuffer</td></tr>
+<tr class="separator:adc36965075ea95a6b5adcb57d81700db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5faead0ec082bed116297299ba06932b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a5faead0ec082bed116297299ba06932b">render_pipeline_type</a> = TRenderPipeline</td></tr>
+<tr class="separator:a5faead0ec082bed116297299ba06932b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae43a7512c3c150e20fc5e80d2b3953d6"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ae43a7512c3c150e20fc5e80d2b3953d6">input_attachment_mapping_type</a> = TInputAttachmentMapping</td></tr>
+<tr class="separator:ae43a7512c3c150e20fc5e80d2b3953d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer &gt;</a></td></tr>
+<tr class="memitem:a081698235eb5097f44379c27aecc0518 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a081698235eb5097f44379c27aecc0518">frame_buffer_type</a> = TFrameBuffer</td></tr>
+<tr class="separator:a081698235eb5097f44379c27aecc0518 inherit pub_types_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a99e53175fa914e067dade2d59f36941c"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a99e53175fa914e067dade2d59f36941c">~IRenderPass</a> () noexcept=default</td></tr>
-<tr class="separator:a99e53175fa914e067dade2d59f36941c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab86ca9165ba514b5279eeae3f5050af0"><td class="memItemLeft" align="right" valign="top">virtual const TFrameBuffer &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ab86ca9165ba514b5279eeae3f5050af0">activeFrameBuffer</a> () const =0</td></tr>
-<tr class="memdesc:ab86ca9165ba514b5279eeae3f5050af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current frame buffer from of the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ab86ca9165ba514b5279eeae3f5050af0">More...</a><br /></td></tr>
-<tr class="separator:ab86ca9165ba514b5279eeae3f5050af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0747903c312d9a38f1ade9f7b93a8926"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const TFrameBuffer * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0747903c312d9a38f1ade9f7b93a8926">frameBuffers</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a0747903c312d9a38f1ade9f7b93a8926"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a list of all frame buffers.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0747903c312d9a38f1ade9f7b93a8926">More...</a><br /></td></tr>
-<tr class="separator:a0747903c312d9a38f1ade9f7b93a8926"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad89ff56850c3a112d2b32d1a74e3e61a"><td class="memItemLeft" align="right" valign="top">virtual const TRenderPipeline &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ad89ff56850c3a112d2b32d1a74e3e61a">pipeline</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;id) const =0</td></tr>
-<tr class="memdesc:ad89ff56850c3a112d2b32d1a74e3e61a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the render pipeline with the <em>id</em> , or <code>nullptr</code>, if the render pass does not contain a matching pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ad89ff56850c3a112d2b32d1a74e3e61a">More...</a><br /></td></tr>
-<tr class="separator:ad89ff56850c3a112d2b32d1a74e3e61a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0dfa133b1c053f7ebe4825c5df25c9b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const TRenderPipeline * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#af0dfa133b1c053f7ebe4825c5df25c9b">pipelines</a> () const noexcept=0</td></tr>
-<tr class="memdesc:af0dfa133b1c053f7ebe4825c5df25c9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns an array of all render pipelines, owned by the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#af0dfa133b1c053f7ebe4825c5df25c9b">More...</a><br /></td></tr>
-<tr class="separator:af0dfa133b1c053f7ebe4825c5df25c9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55f0298b6d06d32831e3d774edfacb7a"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a55f0298b6d06d32831e3d774edfacb7a">renderTarget</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;location) const =0</td></tr>
-<tr class="memdesc:a55f0298b6d06d32831e3d774edfacb7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the render target mapped to the location provided by <em>location</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a55f0298b6d06d32831e3d774edfacb7a">More...</a><br /></td></tr>
-<tr class="separator:a55f0298b6d06d32831e3d774edfacb7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afac57cc3a4f1362656fb19834264a0b4"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#afac57cc3a4f1362656fb19834264a0b4">renderTargets</a> () const noexcept=0</td></tr>
-<tr class="memdesc:afac57cc3a4f1362656fb19834264a0b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the list of render targets, the render pass renders into.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#afac57cc3a4f1362656fb19834264a0b4">More...</a><br /></td></tr>
-<tr class="separator:afac57cc3a4f1362656fb19834264a0b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a426d625336bb9c63ab4889c0a4a562c3"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a426d625336bb9c63ab4889c0a4a562c3">hasPresentTarget</a> () const noexcept=0</td></tr>
-<tr class="memdesc:a426d625336bb9c63ab4889c0a4a562c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if one of the render targets is used for presentation on a swap chain.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a426d625336bb9c63ab4889c0a4a562c3">More...</a><br /></td></tr>
-<tr class="separator:a426d625336bb9c63ab4889c0a4a562c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa270d806fa287b0958363d98c7967f8b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; const TInputAttachmentMapping &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa270d806fa287b0958363d98c7967f8b">inputAttachments</a> () const noexcept=0</td></tr>
-<tr class="memdesc:aa270d806fa287b0958363d98c7967f8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the input attachment the render pass is consuming.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa270d806fa287b0958363d98c7967f8b">More...</a><br /></td></tr>
-<tr class="separator:aa270d806fa287b0958363d98c7967f8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56ea0cbe1443fe612b01ad85e0b74444"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a56ea0cbe1443fe612b01ad85e0b74444">begin</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;buffer)=0</td></tr>
-<tr class="memdesc:a56ea0cbe1443fe612b01ad85e0b74444"><td class="mdescLeft">&#160;</td><td class="mdescRight">Begins the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a56ea0cbe1443fe612b01ad85e0b74444">More...</a><br /></td></tr>
-<tr class="separator:a56ea0cbe1443fe612b01ad85e0b74444"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9ecb80ac60304fd3a2bf23d4a591194"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ad9ecb80ac60304fd3a2bf23d4a591194">end</a> () const =0</td></tr>
-<tr class="memdesc:ad9ecb80ac60304fd3a2bf23d4a591194"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ad9ecb80ac60304fd3a2bf23d4a591194">More...</a><br /></td></tr>
-<tr class="separator:ad9ecb80ac60304fd3a2bf23d4a591194"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b78e12086b3d8dc40a4e81d600e1d1d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0b78e12086b3d8dc40a4e81d600e1d1d">resizeFrameBuffers</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea)=0</td></tr>
-<tr class="memdesc:a0b78e12086b3d8dc40a4e81d600e1d1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets the frame buffers of the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0b78e12086b3d8dc40a4e81d600e1d1d">More...</a><br /></td></tr>
-<tr class="separator:a0b78e12086b3d8dc40a4e81d600e1d1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ebb0f1a23dce0b3c96cad8124be57ad"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0ebb0f1a23dce0b3c96cad8124be57ad">updateAttachments</a> (const TDescriptorSet &amp;descriptorSet) const =0</td></tr>
-<tr class="memdesc:a0ebb0f1a23dce0b3c96cad8124be57ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with descriptorSet.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0ebb0f1a23dce0b3c96cad8124be57ad">More...</a><br /></td></tr>
-<tr class="separator:a0ebb0f1a23dce0b3c96cad8124be57ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer, TImageInterface &gt;</a></td></tr>
-<tr class="memitem:a0f94e72442f7996d36aad2141f084cc9 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a0f94e72442f7996d36aad2141f084cc9">~IInputAttachmentMappingSource</a> () noexcept=default</td></tr>
-<tr class="separator:a0f94e72442f7996d36aad2141f084cc9 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a996e9dff68ce036792f4c83fb4963a7f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memItemLeft" align="right" valign="top">virtual const TFrameBuffer &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a996e9dff68ce036792f4c83fb4963a7f">frameBuffer</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;buffer) const =0</td></tr>
-<tr class="memdesc:a996e9dff68ce036792f4c83fb4963a7f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the frame buffer with the index provided in <em>buffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a996e9dff68ce036792f4c83fb4963a7f">More...</a><br /></td></tr>
-<tr class="separator:a996e9dff68ce036792f4c83fb4963a7f inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9893c13b9c4a1834d6fb5abbe7a4520e"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a9893c13b9c4a1834d6fb5abbe7a4520e">~IRenderPass</a> () noexcept=default</td></tr>
+<tr class="separator:a9893c13b9c4a1834d6fb5abbe7a4520e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bdeeeb518f8e70907181d935357609a"><td class="memItemLeft" align="right" valign="top">virtual const TFrameBuffer &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a2bdeeeb518f8e70907181d935357609a">activeFrameBuffer</a> () const =0</td></tr>
+<tr class="memdesc:a2bdeeeb518f8e70907181d935357609a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current frame buffer from of the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a2bdeeeb518f8e70907181d935357609a">More...</a><br /></td></tr>
+<tr class="separator:a2bdeeeb518f8e70907181d935357609a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9e6871fe9719e886ea89d4ce6e5f577"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const TFrameBuffer * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa9e6871fe9719e886ea89d4ce6e5f577">frameBuffers</a> () const noexcept=0</td></tr>
+<tr class="memdesc:aa9e6871fe9719e886ea89d4ce6e5f577"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a list of all frame buffers.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa9e6871fe9719e886ea89d4ce6e5f577">More...</a><br /></td></tr>
+<tr class="separator:aa9e6871fe9719e886ea89d4ce6e5f577"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e0d737ad2da9373870a94691176d9cf"><td class="memItemLeft" align="right" valign="top">virtual const TRenderPipeline &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a4e0d737ad2da9373870a94691176d9cf">pipeline</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;id) const =0</td></tr>
+<tr class="memdesc:a4e0d737ad2da9373870a94691176d9cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the render pipeline with the <em>id</em> , or <code>nullptr</code>, if the render pass does not contain a matching pipeline.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a4e0d737ad2da9373870a94691176d9cf">More...</a><br /></td></tr>
+<tr class="separator:a4e0d737ad2da9373870a94691176d9cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd6e8d034eb969e620249c0e9d0d2b60"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt; const TRenderPipeline * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#abd6e8d034eb969e620249c0e9d0d2b60">pipelines</a> () const noexcept=0</td></tr>
+<tr class="memdesc:abd6e8d034eb969e620249c0e9d0d2b60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns an array of all render pipelines, owned by the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#abd6e8d034eb969e620249c0e9d0d2b60">More...</a><br /></td></tr>
+<tr class="separator:abd6e8d034eb969e620249c0e9d0d2b60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bb0acd080a4f2a1a575d4c97ec58873"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0bb0acd080a4f2a1a575d4c97ec58873">renderTarget</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;location) const =0</td></tr>
+<tr class="memdesc:a0bb0acd080a4f2a1a575d4c97ec58873"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the render target mapped to the location provided by <em>location</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0bb0acd080a4f2a1a575d4c97ec58873">More...</a><br /></td></tr>
+<tr class="separator:a0bb0acd080a4f2a1a575d4c97ec58873"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7ba32522888fd9cd10480bc781a51a5"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa7ba32522888fd9cd10480bc781a51a5">renderTargets</a> () const noexcept=0</td></tr>
+<tr class="memdesc:aa7ba32522888fd9cd10480bc781a51a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the list of render targets, the render pass renders into.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa7ba32522888fd9cd10480bc781a51a5">More...</a><br /></td></tr>
+<tr class="separator:aa7ba32522888fd9cd10480bc781a51a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0356e105b157537c49d1815a49e104b0"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0356e105b157537c49d1815a49e104b0">hasPresentTarget</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a0356e105b157537c49d1815a49e104b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code>, if one of the render targets is used for presentation on a swap chain.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a0356e105b157537c49d1815a49e104b0">More...</a><br /></td></tr>
+<tr class="separator:a0356e105b157537c49d1815a49e104b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d36b8bee7d1d38d812322dcab4ad357"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt; const TInputAttachmentMapping &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a5d36b8bee7d1d38d812322dcab4ad357">inputAttachments</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a5d36b8bee7d1d38d812322dcab4ad357"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the input attachment the render pass is consuming.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a5d36b8bee7d1d38d812322dcab4ad357">More...</a><br /></td></tr>
+<tr class="separator:a5d36b8bee7d1d38d812322dcab4ad357"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23129f43ffac7c005dec5af0a789c3ef"><td class="memItemLeft" align="right" valign="top">virtual const MultiSamplingLevel &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a23129f43ffac7c005dec5af0a789c3ef">multiSamplingLevel</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a23129f43ffac7c005dec5af0a789c3ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of samples, the render targets are sampled with.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a23129f43ffac7c005dec5af0a789c3ef">More...</a><br /></td></tr>
+<tr class="separator:a23129f43ffac7c005dec5af0a789c3ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5934b9d2c0305381ca5cce00261fa2b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ac5934b9d2c0305381ca5cce00261fa2b">begin</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;buffer)=0</td></tr>
+<tr class="memdesc:ac5934b9d2c0305381ca5cce00261fa2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Begins the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ac5934b9d2c0305381ca5cce00261fa2b">More...</a><br /></td></tr>
+<tr class="separator:ac5934b9d2c0305381ca5cce00261fa2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2251d320b4fa79981540088e119e373"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ab2251d320b4fa79981540088e119e373">end</a> () const =0</td></tr>
+<tr class="memdesc:ab2251d320b4fa79981540088e119e373"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ab2251d320b4fa79981540088e119e373">More...</a><br /></td></tr>
+<tr class="separator:ab2251d320b4fa79981540088e119e373"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa241c07724da20367785ce89655f08a3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa241c07724da20367785ce89655f08a3">resizeFrameBuffers</a> (const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;renderArea)=0</td></tr>
+<tr class="memdesc:aa241c07724da20367785ce89655f08a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets the frame buffers of the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa241c07724da20367785ce89655f08a3">More...</a><br /></td></tr>
+<tr class="separator:aa241c07724da20367785ce89655f08a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb456b85744d381ea8048a4de6aa32ae"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#adb456b85744d381ea8048a4de6aa32ae">changeMultiSamplingLevel</a> (const MultiSamplingLevel &amp;samples)=0</td></tr>
+<tr class="memdesc:adb456b85744d381ea8048a4de6aa32ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Changes the multi sampling level of the render pass.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#adb456b85744d381ea8048a4de6aa32ae">More...</a><br /></td></tr>
+<tr class="separator:adb456b85744d381ea8048a4de6aa32ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdb257703b0d37a73062f5c12b0f3925"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#afdb257703b0d37a73062f5c12b0f3925">updateAttachments</a> (const TDescriptorSet &amp;descriptorSet) const =0</td></tr>
+<tr class="memdesc:afdb257703b0d37a73062f5c12b0f3925"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with descriptorSet.  <a href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#afdb257703b0d37a73062f5c12b0f3925">More...</a><br /></td></tr>
+<tr class="separator:afdb257703b0d37a73062f5c12b0f3925"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html">LiteFX::Rendering::IInputAttachmentMappingSource&lt; TFrameBuffer, TCommandBuffer &gt;</a></td></tr>
+<tr class="memitem:ad0f12341844888fd48cfdb72eca1b249 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#ad0f12341844888fd48cfdb72eca1b249">~IInputAttachmentMappingSource</a> () noexcept=default</td></tr>
+<tr class="separator:ad0f12341844888fd48cfdb72eca1b249 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac29c0f32d41a640614fbe6a9e8ab5173 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memItemLeft" align="right" valign="top">virtual const TFrameBuffer &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#ac29c0f32d41a640614fbe6a9e8ab5173">frameBuffer</a> (const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;buffer) const =0</td></tr>
+<tr class="memdesc:ac29c0f32d41a640614fbe6a9e8ab5173 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the frame buffer with the index provided in <em>buffer</em> .  <a href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#ac29c0f32d41a640614fbe6a9e8ab5173">More...</a><br /></td></tr>
+<tr class="separator:ac29c0f32d41a640614fbe6a9e8ab5173 inherit pub_methods_class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TRenderPipelineLayout = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type, typename TImageInterface = TFrameBuffer::image_interface_type&gt;<br />
-class LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;</h3>
+<div class="textblock"><h3>template&lt;typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type&gt;<br />
+class LiteFX::Rendering::IRenderPass&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;</h3>
 
 <p>Represents a render pass. </p>
-<p>A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the GPU, that processes data using different <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a render pipeline state.">IRenderPipeline</a>s and stores the outputs in the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html" title="Represents a render target, i.e. an abstract view of the output of an IRenderPass.">IRenderTarget</a>s of a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="Stores the images for the output attachments for a back buffer of a IRenderPass, as well as a IComman...">IFrameBuffer</a>. </p>
+<p>A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the GPU, that processes data using different <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a graphics IPipeline.">IRenderPipeline</a>s and stores the outputs in the <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_target.html" title="Represents a render target, i.e. an abstract view of the output of an IRenderPass.">IRenderTarget</a>s of a <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="Stores the images for the output attachments for a back buffer of a IRenderPass, as well as a IComman...">IFrameBuffer</a>. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">TRenderPipeline</td><td>The type of the render pipeline. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a render pipeline state.">IRenderPipeline</a>.</td></tr>
-    <tr><td class="paramname">TRenderPipelineLayout</td><td>The type of the render pipeline layout. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline_layout.html" title="Represents a the layout of a IRenderPipeline.">IRenderPipelineLayout</a>.</td></tr>
+    <tr><td class="paramname">TRenderPipeline</td><td>The type of the render pipeline. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a graphics IPipeline.">IRenderPipeline</a>.</td></tr>
+    <tr><td class="paramname">TPipelineLayout</td><td>The type of the render pipeline layout. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_pipeline_layout.html" title="Represents a the layout of a IRenderPipeline.">IPipelineLayout</a>.</td></tr>
     <tr><td class="paramname">TFrameBuffer</td><td>The type of the frame buffer. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="Stores the images for the output attachments for a back buffer of a IRenderPass, as well as a IComman...">IFrameBuffer</a>.</td></tr>
     <tr><td class="paramname">TInputAttachmentMapping</td><td>The type of the input attachment mapping. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping.html" title="Represents a mapping between a set of IRenderTarget instances and the input attachments of a IRenderP...">IInputAttachmentMapping</a>.</td></tr>
     <tr><td class="paramname">TCommandBuffer</td><td>The type of the command buffer. Must implement <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html" title="Represents a command buffer, that buffers commands that should be submitted to a ICommandQueue.">ICommandBuffer</a>.</td></tr>
-    <tr><td class="paramname">TImageInterface</td><td>The type of the image interface. Must inherit from <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_image.html" title="Describes a generic image.">IImage</a>.</td></tr>
   </table>
   </dd>
 </dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="aa4f0bf6e12fffe5f9d7805b417b09bad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa4f0bf6e12fffe5f9d7805b417b09bad">&#9670;&nbsp;</a></span>frame_buffer_type</h2>
+<a id="adc36965075ea95a6b5adcb57d81700db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc36965075ea95a6b5adcb57d81700db">&#9670;&nbsp;</a></span>frame_buffer_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a57304d875cc46863f36ef7277fc6a8d5">frame_buffer_type</a> =  TFrameBuffer</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a081698235eb5097f44379c27aecc0518">frame_buffer_type</a> =  TFrameBuffer</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a5e981252b5528efd8978e38e1df1fc94"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5e981252b5528efd8978e38e1df1fc94">&#9670;&nbsp;</a></span>input_attachment_mapping_type</h2>
+<a id="ae43a7512c3c150e20fc5e80d2b3953d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae43a7512c3c150e20fc5e80d2b3953d6">&#9670;&nbsp;</a></span>input_attachment_mapping_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a5e981252b5528efd8978e38e1df1fc94">input_attachment_mapping_type</a> =  TInputAttachmentMapping</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ae43a7512c3c150e20fc5e80d2b3953d6">input_attachment_mapping_type</a> =  TInputAttachmentMapping</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a53d11ee69d0cbacb0061cffffa6b57c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53d11ee69d0cbacb0061cffffa6b57c1">&#9670;&nbsp;</a></span>render_pipeline_type</h2>
+<a id="a5faead0ec082bed116297299ba06932b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5faead0ec082bed116297299ba06932b">&#9670;&nbsp;</a></span>render_pipeline_type</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a53d11ee69d0cbacb0061cffffa6b57c1">render_pipeline_type</a> =  TRenderPipeline</td>
+          <td class="memname">using <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a5faead0ec082bed116297299ba06932b">render_pipeline_type</a> =  TRenderPipeline</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -228,19 +233,19 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a99e53175fa914e067dade2d59f36941c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a99e53175fa914e067dade2d59f36941c">&#9670;&nbsp;</a></span>~IRenderPass()</h2>
+<a id="a9893c13b9c4a1834d6fb5abbe7a4520e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9893c13b9c4a1834d6fb5abbe7a4520e">&#9670;&nbsp;</a></span>~IRenderPass()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">IRenderPass</a> </td>
+          <td class="memname">virtual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::~<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">IRenderPass</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -256,19 +261,19 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ab86ca9165ba514b5279eeae3f5050af0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab86ca9165ba514b5279eeae3f5050af0">&#9670;&nbsp;</a></span>activeFrameBuffer()</h2>
+<a id="a2bdeeeb518f8e70907181d935357609a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bdeeeb518f8e70907181d935357609a">&#9670;&nbsp;</a></span>activeFrameBuffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TFrameBuffer&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::activeFrameBuffer </td>
+          <td class="memname">virtual const TFrameBuffer&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::activeFrameBuffer </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -282,7 +287,7 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 </div><div class="memdoc">
 
 <p>Returns the current frame buffer from of the render pass. </p>
-<p>The frame buffer can only be obtained, if the render pass has been started by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#a56ea0cbe1443fe612b01ad85e0b74444" title="Begins the render pass.">begin</a>. If the render pass has ended or not yet started, the method will instead raise an exception. </p>
+<p>The frame buffer can only be obtained, if the render pass has been started by calling <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#ac5934b9d2c0305381ca5cce00261fa2b" title="Begins the render pass.">begin</a>. If the render pass has ended or not yet started, the method will instead raise an exception. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">buffer</td><td>The index of the frame buffer.</td></tr>
@@ -295,19 +300,19 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 </div>
 </div>
-<a id="a56ea0cbe1443fe612b01ad85e0b74444"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a56ea0cbe1443fe612b01ad85e0b74444">&#9670;&nbsp;</a></span>begin()</h2>
+<a id="ac5934b9d2c0305381ca5cce00261fa2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5934b9d2c0305381ca5cce00261fa2b">&#9670;&nbsp;</a></span>begin()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::begin </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::begin </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
           <td class="paramname"><em>buffer</em></td><td>)</td>
@@ -333,19 +338,64 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 </div>
 </div>
-<a id="ad9ecb80ac60304fd3a2bf23d4a591194"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad9ecb80ac60304fd3a2bf23d4a591194">&#9670;&nbsp;</a></span>end()</h2>
+<a id="adb456b85744d381ea8048a4de6aa32ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb456b85744d381ea8048a4de6aa32ae">&#9670;&nbsp;</a></span>changeMultiSamplingLevel()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::end </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::changeMultiSamplingLevel </td>
+          <td>(</td>
+          <td class="paramtype">const MultiSamplingLevel &amp;&#160;</td>
+          <td class="paramname"><em>samples</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Changes the multi sampling level of the render pass. </p>
+<p>The method causes the frame buffers to be re-created. It checks, if the <em>samples</em>  are supported by the device for each render target format. If not, an exception will be thrown. To prevent this, call &lt;see cref=<a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_graphics_device.html#a29cfb8f4df1969b816781a2a1ccf9675" title="Queries the device for the maximum supported number of multi-sampling levels.">IGraphicsDevice::maximumMultiSamplingLevel</a>" /&gt; for each render target format on your own, in order to request the maximum number of samples supported. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">samples</td><td>The number of samples per edge pixel.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">InvalidArgumentException</td><td>Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#abfc40c1c6c69738374995ca26d251b0c">LiteFX::Rendering::Backends::VulkanRenderPass</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#a25e9e9f63ba4551e2eb49a545c93e6e4">LiteFX::Rendering::Backends::DirectX12RenderPass</a>.</p>
+
+</div>
+</div>
+<a id="ab2251d320b4fa79981540088e119e373"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2251d320b4fa79981540088e119e373">&#9670;&nbsp;</a></span>end()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::end </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -371,19 +421,19 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 </div>
 </div>
-<a id="a0747903c312d9a38f1ade9f7b93a8926"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0747903c312d9a38f1ade9f7b93a8926">&#9670;&nbsp;</a></span>frameBuffers()</h2>
+<a id="aa9e6871fe9719e886ea89d4ce6e5f577"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9e6871fe9719e886ea89d4ce6e5f577">&#9670;&nbsp;</a></span>frameBuffers()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const TFrameBuffer*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::frameBuffers </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const TFrameBuffer*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::frameBuffers </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -403,19 +453,19 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 </div>
 </div>
-<a id="a426d625336bb9c63ab4889c0a4a562c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a426d625336bb9c63ab4889c0a4a562c3">&#9670;&nbsp;</a></span>hasPresentTarget()</h2>
+<a id="a0356e105b157537c49d1815a49e104b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0356e105b157537c49d1815a49e104b0">&#9670;&nbsp;</a></span>hasPresentTarget()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual bool <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::hasPresentTarget </td>
+          <td class="memname">virtual bool <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::hasPresentTarget </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -430,25 +480,25 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 <p>Returns <code>true</code>, if one of the render targets is used for presentation on a swap chain. </p>
 <dl class="section return"><dt>Returns</dt><dd><code>true</code>, if one of the render targets is used for presentation on a swap chain.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#afac57cc3a4f1362656fb19834264a0b4" title="Returns the list of render targets, the render pass renders into.">renderTargets</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html#aa7ba32522888fd9cd10480bc781a51a5" title="Returns the list of render targets, the render pass renders into.">renderTargets</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a39a8c60f3b6b64cf2842fb393bf07b4e">LiteFX::Rendering::Backends::VulkanRenderPass</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#a5d30c0ba84c35c477366d0d5fe174f3f">LiteFX::Rendering::Backends::DirectX12RenderPass</a>.</p>
 
 </div>
 </div>
-<a id="aa270d806fa287b0958363d98c7967f8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa270d806fa287b0958363d98c7967f8b">&#9670;&nbsp;</a></span>inputAttachments()</h2>
+<a id="a5d36b8bee7d1d38d812322dcab4ad357"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d36b8bee7d1d38d812322dcab4ad357">&#9670;&nbsp;</a></span>inputAttachments()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt;const TInputAttachmentMapping&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::inputAttachments </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt;const TInputAttachmentMapping&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::inputAttachments </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -468,19 +518,51 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 </div>
 </div>
-<a id="ad89ff56850c3a112d2b32d1a74e3e61a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad89ff56850c3a112d2b32d1a74e3e61a">&#9670;&nbsp;</a></span>pipeline()</h2>
+<a id="a23129f43ffac7c005dec5af0a789c3ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23129f43ffac7c005dec5af0a789c3ef">&#9670;&nbsp;</a></span>multiSamplingLevel()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const TRenderPipeline&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::pipeline </td>
+          <td class="memname">virtual const MultiSamplingLevel&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::multiSamplingLevel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the number of samples, the render targets are sampled with. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of samples, the render targets are sampled with.</dd></dl>
+
+<p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#ab3b733daa02274a4974e598187e605bf">LiteFX::Rendering::Backends::VulkanRenderPass</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#ae107c03756d29d9fe59e7ad97e403ece">LiteFX::Rendering::Backends::DirectX12RenderPass</a>.</p>
+
+</div>
+</div>
+<a id="a4e0d737ad2da9373870a94691176d9cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e0d737ad2da9373870a94691176d9cf">&#9670;&nbsp;</a></span>pipeline()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const TRenderPipeline&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::pipeline </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
           <td class="paramname"><em>id</em></td><td>)</td>
@@ -502,25 +584,25 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The render pipeline with the <em>id</em> , or <code>nullptr</code>, if the render pass does not contain a matching pipeline.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a render pipeline state.">IRenderPipeline</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a graphics IPipeline.">IRenderPipeline</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a90b6a0b973453d98cc9ae8087db4079f">LiteFX::Rendering::Backends::VulkanRenderPass</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#a2ed6ef9ceb964b1f6ffb3a16108b276a">LiteFX::Rendering::Backends::DirectX12RenderPass</a>.</p>
 
 </div>
 </div>
-<a id="af0dfa133b1c053f7ebe4825c5df25c9b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af0dfa133b1c053f7ebe4825c5df25c9b">&#9670;&nbsp;</a></span>pipelines()</h2>
+<a id="abd6e8d034eb969e620249c0e9d0d2b60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd6e8d034eb969e620249c0e9d0d2b60">&#9670;&nbsp;</a></span>pipelines()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const TRenderPipeline*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::pipelines </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe">Array</a>&lt;const TRenderPipeline*&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::pipelines </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -535,25 +617,25 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 <p>Returns an array of all render pipelines, owned by the render pass. </p>
 <dl class="section return"><dt>Returns</dt><dd>An array of all render pipelines, owned by the render pass.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a render pipeline state.">IRenderPipeline</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html" title="Represents a graphics IPipeline.">IRenderPipeline</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a256d6a62d788040ced56d491cff8f018">LiteFX::Rendering::Backends::VulkanRenderPass</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#af02f63cc86a26261d6175c8438dfd536">LiteFX::Rendering::Backends::DirectX12RenderPass</a>.</p>
 
 </div>
 </div>
-<a id="a55f0298b6d06d32831e3d774edfacb7a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a55f0298b6d06d32831e3d774edfacb7a">&#9670;&nbsp;</a></span>renderTarget()</h2>
+<a id="a0bb0acd080a4f2a1a575d4c97ec58873"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0bb0acd080a4f2a1a575d4c97ec58873">&#9670;&nbsp;</a></span>renderTarget()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::renderTarget </td>
+          <td class="memname">virtual const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a>&amp; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::renderTarget </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245">UInt32</a> &amp;&#160;</td>
           <td class="paramname"><em>location</em></td><td>)</td>
@@ -580,19 +662,19 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 </div>
 </div>
-<a id="afac57cc3a4f1362656fb19834264a0b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afac57cc3a4f1362656fb19834264a0b4">&#9670;&nbsp;</a></span>renderTargets()</h2>
+<a id="aa7ba32522888fd9cd10480bc781a51a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7ba32522888fd9cd10480bc781a51a5">&#9670;&nbsp;</a></span>renderTargets()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt;const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a>&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::renderTargets </td>
+          <td class="memname">virtual <a class="el" href="namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364">Span</a>&lt;const <a class="el" href="class_lite_f_x_1_1_rendering_1_1_render_target.html">RenderTarget</a>&gt; <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::renderTargets </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -608,25 +690,25 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 <p>Returns the list of render targets, the render pass renders into. </p>
 <p>Note that the actual render target image resources are stored within the individual <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="Stores the images for the output attachments for a back buffer of a IRenderPass, as well as a IComman...">IFrameBuffer</a>s of the render pass. </p>
 <dl class="section return"><dt>Returns</dt><dd>A list of render targets, the render pass renders into.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="Stores the images for the output attachments for a back buffer of a IRenderPass, as well as a IComman...">IFrameBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#a996e9dff68ce036792f4c83fb4963a7f" title="Returns the frame buffer with the index provided in buffer .">frameBuffer</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html" title="Stores the images for the output attachments for a back buffer of a IRenderPass, as well as a IComman...">IFrameBuffer</a>, <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html#ac29c0f32d41a640614fbe6a9e8ab5173" title="Returns the frame buffer with the index provided in buffer .">frameBuffer</a></dd></dl>
 
 <p>Implemented in <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#a91b9ad85cd451358ebe8eb29fa4a41d9">LiteFX::Rendering::Backends::VulkanRenderPass</a>, and <a class="el" href="class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html#a3a4508674f6f895cdb7a9bf154565977">LiteFX::Rendering::Backends::DirectX12RenderPass</a>.</p>
 
 </div>
 </div>
-<a id="a0b78e12086b3d8dc40a4e81d600e1d1d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0b78e12086b3d8dc40a4e81d600e1d1d">&#9670;&nbsp;</a></span>resizeFrameBuffers()</h2>
+<a id="aa241c07724da20367785ce89655f08a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa241c07724da20367785ce89655f08a3">&#9670;&nbsp;</a></span>resizeFrameBuffers()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::resizeFrameBuffers </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::resizeFrameBuffers </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="class_lite_f_x_1_1_math_1_1_size2d.html">Size2d</a> &amp;&#160;</td>
           <td class="paramname"><em>renderArea</em></td><td>)</td>
@@ -652,19 +734,19 @@ template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAt
 
 </div>
 </div>
-<a id="a0ebb0f1a23dce0b3c96cad8124be57ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0ebb0f1a23dce0b3c96cad8124be57ad">&#9670;&nbsp;</a></span>updateAttachments()</h2>
+<a id="afdb257703b0d37a73062f5c12b0f3925"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdb257703b0d37a73062f5c12b0f3925">&#9670;&nbsp;</a></span>updateAttachments()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TRenderPipelineLayout  = TRenderPipeline::render_pipeline_layout_type, typename TDescriptorSet  = TRenderPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type, typename TImageInterface  = TFrameBuffer::image_interface_type&gt; </div>
+template&lt;typename TRenderPipeline , typename TFrameBuffer , typename TInputAttachmentMapping , typename TPipelineLayout  = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet  = TPipelineLayout::descriptor_set_type, typename TCommandBuffer  = TFrameBuffer::command_buffer_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TRenderPipelineLayout, TDescriptorSet, TCommandBuffer, TImageInterface &gt;::updateAttachments </td>
+          <td class="memname">virtual void <a class="el" href="class_lite_f_x_1_1_rendering_1_1_i_render_pass.html">LiteFX::Rendering::IRenderPass</a>&lt; TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer &gt;::updateAttachments </td>
           <td>(</td>
           <td class="paramtype">const TDescriptorSet &amp;&#160;</td>
           <td class="paramname"><em>descriptorSet</em></td><td>)</td>

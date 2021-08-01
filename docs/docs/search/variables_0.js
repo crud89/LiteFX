@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['color_2211',['Color',['../struct_lite_f_x_1_1_graphics_1_1_vertex.html#af8444a4d0bee401a633fbd5cc87215c3',1,'LiteFX::Graphics::Vertex']]]
+  ['alphaoperation_2562',['AlphaOperation',['../struct_lite_f_x_1_1_rendering_1_1_i_render_target_1_1_blend_state.html#ad0a0d2c8794c4087efc31d6b26bb041a',1,'LiteFX::Rendering::IRenderTarget::BlendState']]]
 ];
