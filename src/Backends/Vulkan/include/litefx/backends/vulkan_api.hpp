@@ -35,6 +35,8 @@ namespace LiteFX::Rendering::Backends {
     class VulkanDescriptorLayout;
     class VulkanDescriptorSetLayout;
     class VulkanDescriptorSet;
+    class VulkanPushConstantsRange;
+    class VulkanPushConstantsLayout;
     class VulkanPipelineLayout;
     class VulkanShaderModule;
     class VulkanShaderProgram;
@@ -64,6 +66,8 @@ namespace LiteFX::Rendering::Backends {
     class VulkanVertexBufferLayoutBuilder;
     class VulkanRenderPipelineDescriptorSetLayoutBuilder;
     class VulkanComputePipelineDescriptorSetLayoutBuilder;
+    class VulkanRenderPipelinePushConstantsLayoutBuilder;
+    class VulkanComputePipelinePushConstantsLayoutBuilder;
     class VulkanRenderPipelineLayoutBuilder;
     class VulkanComputePipelineLayoutBuilder;
     class VulkanGraphicsShaderProgramBuilder;

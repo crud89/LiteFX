@@ -529,6 +529,137 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Implements the Vulkan <see cref="IPushConstantsRange" />.
+	/// </summary>
+	/// <seealso cref="VulkanPushConstantsLayout" />
+	class LITEFX_VULKAN_API VulkanPushConstantsRange : public IPushConstantsRange {
+		LITEFX_IMPLEMENTATION(VulkanPushConstantsRangeImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new push constants range.
+		/// </summary>
+		/// <param name="shaderStage">The shader stage, that access the push constants from the range.</param>
+		/// <param name="offset">The offset relative to the parent push constants backing memory that marks the beginning of the range.</param>
+		/// <param name="size">The size of the push constants range.</param>
+		/// <param name="space">The space from which the push constants of the range will be accessible in the shader.</param>
+		/// <param name="binding">The register from which the push constants of the range will be accessible in the shader.</param>
+		explicit VulkanPushConstantsRange(const ShaderStage& shaderStage, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding);
+		VulkanPushConstantsRange(const VulkanPushConstantsRange&) = delete;
+		VulkanPushConstantsRange(VulkanPushConstantsRange&&) = delete;
+		virtual ~VulkanPushConstantsRange() noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& space() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& offset() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& size() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const ShaderStage& stage() const noexcept override;
+	};
+
+	/// <summary>
+	/// Implements the Vulkan <see cref="IPushConstantsLayout" />.
+	/// </summary>
+	/// <seealso cref="VulkanPushConstantsRange" />
+	/// <seealso cref="VulkanRenderPipelinePushConstantsLayoutBuilder" />
+	/// <seealso cref="VulkanComputePipelinePushConstantsLayoutBuilder" />
+	class LITEFX_VULKAN_API VulkanPushConstantsLayout : public virtual VulkanRuntimeObject<VulkanPipelineLayout>, public IPushConstantsLayout<VulkanPushConstantsRange> {
+		LITEFX_IMPLEMENTATION(VulkanPushConstantsLayoutImpl);
+		LITEFX_BUILDER(VulkanRenderPipelinePushConstantsLayoutBuilder);
+		LITEFX_BUILDER(VulkanComputePipelinePushConstantsLayoutBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a new push constants layout.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout.</param>
+		/// <param name="ranges">The ranges contained by the layout.</param>
+		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
+		explicit VulkanPushConstantsLayout(const VulkanPipelineLayout& parent, Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size);
+		VulkanPushConstantsLayout(const VulkanPushConstantsLayout&) = delete;
+		VulkanPushConstantsLayout(VulkanPushConstantsLayout&&) = delete;
+		virtual ~VulkanPushConstantsLayout() noexcept;
+
+	private:
+		explicit VulkanPushConstantsLayout(const VulkanPipelineLayout& parent, const UInt32& size);
+
+	public:
+		/// <inheritdoc />
+		virtual const UInt32& size() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const VulkanPushConstantsRange& range(const ShaderStage& stage) const override;
+
+		/// <inheritdoc />
+		virtual Array<const VulkanPushConstantsRange*> ranges() const noexcept override;
+	};
+
+	/// <summary>
+	/// Builds a Vulkan <see cref="IPushConstantsLayout" /> for a <see cref="IRenderPipeline" />.
+	/// </summary>
+	/// <seealso cref="VulkanPushConstantsLayout" />
+	class LITEFX_VULKAN_API VulkanRenderPipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<VulkanRenderPipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanRenderPipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelinePushConstantsLayoutBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a Vulkan render pipeline push constants layout builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		explicit VulkanRenderPipelinePushConstantsLayoutBuilder(VulkanRenderPipelineLayoutBuilder& parent, const UInt32& size);
+		VulkanRenderPipelinePushConstantsLayoutBuilder(const VulkanRenderPipelinePushConstantsLayoutBuilder&) = delete;
+		VulkanRenderPipelinePushConstantsLayoutBuilder(VulkanRenderPipelinePushConstantsLayoutBuilder&&) = delete;
+		virtual ~VulkanRenderPipelinePushConstantsLayoutBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineLayoutBuilder& go() override;
+
+		// PushConstantsLayoutBuilder interface.
+	public:
+		virtual VulkanRenderPipelinePushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
+	};
+
+	/// <summary>
+	/// Builds a Vulkan <see cref="IPushConstantsLayout" /> for a <see cref="IComputePipeline" />.
+	/// </summary>
+	/// <seealso cref="VulkanPushConstantsLayout" />
+	class LITEFX_VULKAN_API VulkanComputePipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<VulkanComputePipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanComputePipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(VulkanComputePipelinePushConstantsLayoutBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a Vulkan compute pipeline push constants layout builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		explicit VulkanComputePipelinePushConstantsLayoutBuilder(VulkanComputePipelineLayoutBuilder& parent, const UInt32& size);
+		VulkanComputePipelinePushConstantsLayoutBuilder(const VulkanComputePipelinePushConstantsLayoutBuilder&) = delete;
+		VulkanComputePipelinePushConstantsLayoutBuilder(VulkanComputePipelinePushConstantsLayoutBuilder&&) = delete;
+		virtual ~VulkanComputePipelinePushConstantsLayoutBuilder() noexcept;
+
+		// IBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanComputePipelineLayoutBuilder& go() override;
+
+		// PushConstantsLayoutBuilder interface.
+	public:
+		virtual VulkanComputePipelinePushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
+	};
+
+	/// <summary>
 	/// Implements a Vulkan <see cref="IShaderModule" />.
 	/// </summary>
 	/// <seealso cref="VulkanShaderProgram" />
@@ -677,7 +808,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="IPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanPipelineLayout : public virtual VulkanRuntimeObject<VulkanPipelineState>, public IPipelineLayout<VulkanDescriptorSetLayout, VulkanShaderProgram>, public Resource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanPipelineLayout : public virtual VulkanRuntimeObject<VulkanPipelineState>, public IPipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout, VulkanShaderProgram>, public Resource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 		LITEFX_BUILDER(VulkanComputePipelineLayoutBuilder);
@@ -689,7 +820,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="pipeline">The parent pipeline state the layout describes.</param>
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
-		explicit VulkanPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts);
+		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
+		explicit VulkanPipelineLayout(const VulkanRenderPipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
 
 		/// <summary>
 		/// Initializes a new Vulkan compute pipeline layout.
@@ -697,7 +829,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="pipeline">The parent pipeline state the layout describes.</param>
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
-		explicit VulkanPipelineLayout(const VulkanComputePipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts);
+		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
+		explicit VulkanPipelineLayout(const VulkanComputePipeline& pipeline, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
 
 		VulkanPipelineLayout(VulkanPipelineLayout&&) noexcept = delete;
 		VulkanPipelineLayout(const VulkanPipelineLayout&) noexcept = delete;
@@ -717,6 +850,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const VulkanDescriptorSetLayout*> descriptorSets() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const VulkanPushConstantsLayout* pushConstants() const noexcept override;
 	};
 
 	/// <summary>
@@ -749,6 +885,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void use(UniquePtr<VulkanDescriptorSetLayout>&& layout) override;
 
+		/// <inheritdoc />
+		virtual void use(UniquePtr<VulkanPushConstantsLayout>&& layout) override;
+
 		// VulkanRenderPipelineBuilder.
 	public:
 		/// <summary>
@@ -763,6 +902,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
 		/// <param name="poolSize">The size of the descriptor pools used for descriptor set allocation.</param>
 		virtual VulkanRenderPipelineDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 1024);
+
+		/// <summary>
+		/// Builds a new push constants layout for the render pipeline layout.
+		/// </summary>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		virtual VulkanRenderPipelinePushConstantsLayoutBuilder addPushConstants(const UInt32& size);
 	};
 
 	/// <summary>
@@ -795,6 +940,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void use(UniquePtr<VulkanDescriptorSetLayout>&& layout) override;
 
+		/// <inheritdoc />
+		virtual void use(UniquePtr<VulkanPushConstantsLayout>&& layout) override;
+
 		// VulkanComputePipelineBuilder.
 	public:
 		/// <summary>
@@ -808,6 +956,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="space">The space, the descriptor set is bound to.</param>
 		/// <param name="poolSize">The size of the descriptor pools used for descriptor set allocation.</param>
 		virtual VulkanComputePipelineDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& space = 0, const UInt32& poolSize = 1024);
+
+		/// <summary>
+		/// Builds a new push constants layout for the render pipeline layout.
+		/// </summary>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		virtual VulkanComputePipelinePushConstantsLayoutBuilder addPushConstants(const UInt32& size);
 	};
 
 	/// <summary>
@@ -1079,6 +1233,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
 	};
 
 	/// <summary>
@@ -1282,7 +1439,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <summary>
-		/// Initializes a DirectX 12 compute pipeline builder.
+		/// Initializes a Vulkan compute pipeline builder.
 		/// </summary>
 		/// <param name="device">The parent device</param>
 		/// <param name="name">A debug name for the compute pipeline.</param>

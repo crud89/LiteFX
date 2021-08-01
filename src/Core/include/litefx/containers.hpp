@@ -31,7 +31,7 @@
 #endif
 
 #ifndef LITEFX_FLAG_IS_SET
-#  define LITEFX_FLAG_IS_SET(val, flag) static_cast<UInt32>(val & flag) == static_cast<UInt32>(flag)
+#  define LITEFX_FLAG_IS_SET(val, flag) (static_cast<UInt32>(val) & static_cast<UInt32>(flag)) == static_cast<UInt32>(flag)
 #endif
 
 namespace LiteFX {
