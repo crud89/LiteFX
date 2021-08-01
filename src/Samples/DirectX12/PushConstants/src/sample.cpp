@@ -4,6 +4,7 @@
 enum DescriptorSets : UInt32
 {
     Constant = 0,                                       // All buffers that are immutable.
+    PerFrame = 1,                                       // All buffers that are updated each frame.
 };
 
 enum Pipelines : UInt32
@@ -64,7 +65,7 @@ static void onResize(GLFWwindow* window, int width, int height)
 
 void SampleApp::initRenderGraph()
 {
-    m_renderPass = m_device->buildRenderPass(MultiSamplingLevel::x1)
+    m_renderPass = m_device->buildRenderPass(MultiSamplingLevel::x1, NUM_WORKERS)
         .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
         .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false)
         .go();
@@ -77,8 +78,8 @@ void SampleApp::initPipelines()
         .withScissor(m_scissor)
         .layout()
             .shaderProgram()
-                .addVertexShaderModule("shaders/push_constants_vs.spv")
-                .addFragmentShaderModule("shaders/push_constants_fs.spv")
+                .addVertexShaderModule("shaders/multithreading_vs.dxi")
+                .addFragmentShaderModule("shaders/multithreading_ps.dxi")
                 .go()
             .addDescriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
                 .addUniform(0, sizeof(CameraBuffer))
@@ -99,6 +100,7 @@ void SampleApp::initPipelines()
             .withIndexType(IndexType::UInt16)
             .addVertexBuffer(sizeof(Vertex), 0)
                 .addAttribute(BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+                .addAttribute(BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
                 .go()
             .go()
         .go();
@@ -148,7 +150,7 @@ void SampleApp::initBuffers()
     m_device->bufferQueue().waitFor(fence);
 }
 
-void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
+void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
@@ -161,22 +163,14 @@ void SampleApp::updateCamera(const VulkanCommandBuffer& commandBuffer)
 
 void SampleApp::run() 
 {
-    // Store the window handle.
-    auto window = m_window.get();
-
     // Start by creating the surface and selecting the adapter.
-    auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
+    auto backend = this->findBackend<DirectX12Backend>(BackendType::Rendering);
     auto adapter = backend->findAdapter(m_adapterId);
 
     if (adapter == nullptr)
         adapter = backend->findAdapter(std::nullopt);
 
-    auto surface = backend->createSurface([&window](const VkInstance& instance) {
-        VkSurfaceKHR surface;
-        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
-
-        return surface;
-    });
+    auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(m_window.get()));
 
     // Get the proper frame buffer size.
     int width, height;
@@ -187,7 +181,7 @@ void SampleApp::run()
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_UNORM, Size2d(width, height), 3);
+    m_device = backend->createDevice(*adapter, *surface, *backend, Format::B8G8R8A8_UNORM, Size2d(width, height), 3);
 
     // Initialize resources.
     this->initRenderGraph();
@@ -291,7 +285,7 @@ void SampleApp::drawFrame()
     for (int i(0); i < 9; ++i)
     {
         // Initialize the object buffer and push it to the command buffer.
-        ObjectBuffer buffer {
+        ObjectBuffer buffer{
             .World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[i]),
             .Color = colors[i]
         };
