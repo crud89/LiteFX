@@ -21,13 +21,13 @@ private:
     mutable std::mutex m_mutex;
 
 public:
-    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& rootParameterIndex) :
-        base(parent), m_layouts(std::move(descriptorLayouts)), m_space(space), m_stages(stages), m_rootParameterIndex(rootParameterIndex)
+    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
+        base(parent), m_layouts(std::move(descriptorLayouts)), m_space(space), m_stages(stages)
     {
     }
 
-    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const UInt32& rootParameterIndex) :
-        base(parent), m_rootParameterIndex(rootParameterIndex)
+    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent) :
+        base(parent)
     {
     }
 
@@ -101,14 +101,14 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& rootParameterIndex) :
-    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, std::move(descriptorLayouts), space, stages, rootParameterIndex)), DirectX12RuntimeObject(pipelineLayout, pipelineLayout.getDevice())
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
+    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, std::move(descriptorLayouts), space, stages)), DirectX12RuntimeObject(pipelineLayout, pipelineLayout.getDevice())
 {
     m_impl->initialize();
 }
 
-DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, const UInt32& rootParameterIndex) noexcept :
-    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, rootParameterIndex)), DirectX12RuntimeObject<DirectX12PipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout) noexcept :
+    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this)), DirectX12RuntimeObject<DirectX12PipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
 {
 }
 
@@ -125,6 +125,11 @@ UInt32 DirectX12DescriptorSetLayout::descriptorOffsetForBinding(const UInt32& bi
         throw ArgumentOutOfRangeException("The descriptor set does not contain a descriptor at binding {0}.", binding);
 
     return m_impl->m_bindingToDescriptor[binding];
+}
+
+UInt32& DirectX12DescriptorSetLayout::rootParameterIndex() noexcept
+{
+    return m_impl->m_rootParameterIndex;
 }
 
 Array<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descriptors() const noexcept
@@ -229,8 +234,8 @@ public:
 // Render pipeline descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipelineDescriptorSetLayoutBuilder::DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space, const ShaderStage& stages) :
-    m_impl(makePimpl<DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*std::as_const(parent).instance(), rootParameterIndex)))
+DirectX12RenderPipelineDescriptorSetLayoutBuilder::DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages) :
+    m_impl(makePimpl<DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*std::as_const(parent).instance())))
 {
 }
 
@@ -293,8 +298,8 @@ public:
 // Compute pipeline descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ComputePipelineDescriptorSetLayoutBuilder::DirectX12ComputePipelineDescriptorSetLayoutBuilder(DirectX12ComputePipelineLayoutBuilder& parent, const UInt32& rootParameterIndex, const UInt32& space) :
-    m_impl(makePimpl<DirectX12ComputePipelineDescriptorSetLayoutBuilderImpl>(this, space)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*std::as_const(parent).instance(), rootParameterIndex)))
+DirectX12ComputePipelineDescriptorSetLayoutBuilder::DirectX12ComputePipelineDescriptorSetLayoutBuilder(DirectX12ComputePipelineLayoutBuilder& parent, const UInt32& space) :
+    m_impl(makePimpl<DirectX12ComputePipelineDescriptorSetLayoutBuilderImpl>(this, space)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*std::as_const(parent).instance())))
 {
 }
 

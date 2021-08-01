@@ -832,6 +832,117 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes a range within a <see cref="IPushConstantsLayout" />.
+    /// </summary>
+    class IPushConstantsRange {
+    public:
+        virtual ~IPushConstantsRange() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the shader space the push constants can be accessed from.
+        /// </summary>
+        /// <returns>The shader space the push constants can be accessed from.</returns>
+        virtual const UInt32& space() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the binding point or register, the push constants are made available at.
+        /// </summary>
+        /// <returns>The binding point or register, the push constants are made available at.</returns>
+        virtual const UInt32& binding() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the offset from the push constants backing memory block, the range starts at.
+        /// </summary>
+        /// <returns>The offset from the push constants backing memory block, the range starts at.</returns>
+        /// <seealso cref="size" />
+        virtual const UInt32& offset() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the size (in bytes) of the range.
+        /// </summary>
+        /// <returns>The size (in bytes) of the range.</returns>
+        /// <seealso cref="offset" />
+        virtual const UInt32& size() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the shader stage(s), the range is accessible from.
+        /// </summary>
+        /// <returns>The shader stage(s), the range is accessible from.</returns>
+        virtual const ShaderStage& stage() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Describes the layout of the pipelines push constant ranges.
+    /// </summary>
+    /// <remarks>
+    /// Push constants are very efficient, yet quite limited ways of passing per-draw data to shaders. They are mapped directly, so no buffer must be created or transitioned in order to 
+    /// use them. Conceptually a push constant is a single piece of memory that gets transferred to a command buffer directly. Each shader stage has a view into this piece of memory, 
+    /// described by an offset and a size. Since the memory is directly dumped in the command buffer, the backing memory can be incrementally updated and there is no need to store an
+    /// array of buffers, as long as updates happen sequentially from the same thread. However,  there are certain restrictions when using push constants:
+    /// 
+    /// <list type="bullet">
+    ///     <item>Only one push constant layout per pipeline layout is supported.</item>
+    ///     <item>A push constant layout may not define a overall memory size larger than 128 bytes. This is a soft restriction that will issue a warning, however it might be supported on some hardware or for some back-ends.</item>
+    ///     <item>The elements and offsets of a push constant memory block must be aligned to 4 bytes.</item>
+    ///     <item>Accordingly, the size of a push constant layout must align to 4 bytes.</item>
+    ///     <item>Only one <see cref="IPushConstantsRange" /> per shader stage is permitted. Shader stages can be combined together, however in this case, no other ranges must be defined for the stages.</item>
+    /// </list>
+    /// 
+    /// Push constants can be updated by calling <see cref="ICommandBuffer::PushConstants" /> and are visible to subsequent draw calls immediately, until another update is performed or
+    /// the command buffer is ended.
+    /// </remarks>
+    /// <typeparam name="TPushConstantsRange">The type of the push constant range. Must implement <see cref="IPushConstantsRange" />.</typeparam>
+    /// <seealso cref="IPushConstantsRange" />
+    /// <seealso cref="IDescriptorSetLayout" />
+    template <typename TPushConstantsRange> requires
+        rtti::implements<TPushConstantsRange, IPushConstantsRange>
+    class IPushConstantsLayout {
+    public:
+        using push_constants_range_type = TPushConstantsRange;
+
+    public:
+        virtual ~IPushConstantsLayout() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the size (in bytes) of the push constants backing memory.
+        /// </summary>
+        /// <returns>The size (in bytes) of the push constants backing memory.</returns>
+        virtual const UInt32& size() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the push constant range associated with the shader stage provided in <paramref name="stage" />.
+        /// </summary>
+        /// <param name="stage">The shader stage to request the associated push constant range for. Specifying multiple stages is not supported and will raise an exception.</param>
+        /// <returns>The push constant range associated with the provided shader stage.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no range is mapped to the provided shader stage.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="stage" /> contains multiple shader stages.</exception>
+        /// <seealso cref="ranges" />
+        virtual const TPushConstantsRange& range(const ShaderStage& stage) const = 0;
+
+        /// <summary>
+        /// Returns all push constant ranges.
+        /// </summary>
+        /// <returns>All push constant ranges.</returns>
+        /// <seealso cref="range" />
+        virtual Array<const TPushConstantsRange*> ranges() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TPushConstantsLayout, typename TParent, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type> requires
+        rtti::implements<TPushConstantsLayout, IPushConstantsLayout<TPushConstantsRange>>
+    class PushConstantsLayoutBuilder : public Builder<TDerived, TPushConstantsLayout, TParent> {
+    public:
+        using Builder<TDerived, TPushConstantsLayout, TParent>::Builder;
+
+    public:
+        virtual TDerived& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) = 0;
+    };
+
+    /// <summary>
     /// Represents a shader program, consisting of multiple <see cref="IShaderModule" />s.
     /// </summary>
     /// <typeparam name="TShaderModule">The type of the shader module. Must implement <see cref="IShaderModule"/>.</typeparam>
@@ -897,13 +1008,16 @@ namespace LiteFX::Rendering {
     /// Represents a the layout of a <see cref="IRenderPipeline" />.
     /// </summary>
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="IDescriptorSetLayout"/>.</typeparam>
+    /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="IPushConstantsLayout"/>.</typeparam>
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="IShaderProgram"/>.</typeparam>
-    template <typename TDescriptorSetLayout, typename TShaderProgram, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TShaderModule = TShaderProgram::shader_module_type> requires
+    template <typename TDescriptorSetLayout, typename TPushConstantsLayout, typename TShaderProgram, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type, typename TShaderModule = TShaderProgram::shader_module_type> requires
         rtti::implements<TDescriptorSetLayout, IDescriptorSetLayout<TDescriptorLayout, TDescriptorSet>> &&
+        rtti::implements<TPushConstantsLayout, IPushConstantsLayout<TPushConstantsRange>> &&
         rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
     class IPipelineLayout {
     public:
         using descriptor_set_layout_type = TDescriptorSetLayout;
+        using push_constants_layout_type = TPushConstantsLayout;
         using shader_program_type = TShaderProgram;
         using descriptor_set_type = TDescriptorSet;
 
@@ -929,13 +1043,19 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
         virtual Array<const TDescriptorSetLayout*> descriptorSets() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.
+        /// </summary>
+        /// <returns>The push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.</returns>
+        virtual const TPushConstantsLayout* pushConstants() const noexcept = 0;
     };
 
     /// <summary>
     /// 
     /// </summary>
-    template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
-        rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TShaderProgram>>
+    template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
+        rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
     class PipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
     public:
         using Builder<TDerived, TPipelineLayout, TParent>::Builder;
@@ -943,6 +1063,7 @@ namespace LiteFX::Rendering {
     public:
         virtual void use(UniquePtr<TShaderProgram>&& program) = 0;
         virtual void use(UniquePtr<TDescriptorSetLayout>&& layout) = 0;
+        virtual void use(UniquePtr<TPushConstantsLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -1069,8 +1190,8 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
     /// <seealso cref="IRenderPipeline" />
     /// <seealso cref="IComputePipeline" />
-    template <typename TPipelineLayout, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TShaderProgram = typename TPipelineLayout::shader_program_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type> requires 
-        rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TShaderProgram>>
+    template <typename TPipelineLayout, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = typename TPipelineLayout::push_constants_layout_type, typename TShaderProgram = typename TPipelineLayout::shader_program_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type> requires 
+        rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
     class IPipeline {
     public:
         using pipeline_layout_type = TPipelineLayout;
@@ -1101,7 +1222,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="IBarrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="IPipeline"/>.</typeparam>
-    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type> requires
+    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type> requires
         rtti::implements<TBarrier, IBarrier<TBuffer, TImage>> &&
         std::derived_from<TPipeline, IPipeline<TPipelineLayout>>
     class ICommandBuffer {
@@ -1312,6 +1433,13 @@ namespace LiteFX::Rendering {
         /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
         virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept = 0;
+
+        /// <summary>
+        /// Pushes a block of memory into the push constants backing memory.
+        /// </summary>
+        /// <param name="layout">The layout of the push constants to update.</param>
+        /// <param name="memory">A pointer to the source memory.</param>
+        virtual void pushConstants(const TPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
 
     public:
         /// <summary>
