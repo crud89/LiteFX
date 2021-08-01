@@ -39,6 +39,8 @@ public:
         Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         bool hasInputAttachments = false;
 
+        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
+
         if (m_pushConstantsLayout != nullptr)
         {
             std::ranges::for_each(m_pushConstantsLayout->ranges(), [&descriptorParameters, i = 0](DirectX12PushConstantsRange* range) mutable {
