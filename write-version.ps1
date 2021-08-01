@@ -33,13 +33,13 @@ $output = ""
 
 Get-Content .\src\vcpkg.json | ForEach-Object {
     if ($_.Trim().StartsWith("version-string")) {
-        $output += "  `"version-string`": `"{0}.{1}.{2}.{3}`"`n" -f $major, $minor, $build, $year
+        $output += "  `"version-string`": `"{0}.{1}.{2}.{3}`"`r`n" -f $major, $minor, $build, $year
     } else {
-        $output += "{0}`n" -f $_
+        $output += "{0}`r`n" -f $_
     }
 }
 
-$output.Substring(0, $output.Length - 1) | Out-File -Encoding "UTF8" -FilePath .\src\vcpkg.json
+$output.Substring(0, $output.Length - 1) | Out-File -Encoding "ASCII" -FilePath .\src\vcpkg.json
 
 # Write new version to console.
 $output = "Updated Version to {0}.{1}.{2}.{3}" -f $major, $minor, $build, $year
