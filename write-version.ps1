@@ -32,7 +32,7 @@ $output.Substring(0, $output.Length - 1) | Out-File -Encoding "UTF8" -FilePath .
 $output = ""
 
 Get-Content .\src\vcpkg.json | ForEach-Object {
-    if ($_.Trim().StartsWith("version-string") {
+    if ($_.Trim().StartsWith("version-string")) {
         $output += "  `"version-string`": `"{0}.{1}.{2}.{3}`"`n" -f $major, $minor, $build, $year
     } else {
         $output += "{0}`n" -f $_
