@@ -41,7 +41,7 @@ public:
 
         if (m_pushConstantsLayout != nullptr)
         {
-            std::ranges::for_each(m_pushConstantsLayout->ranges(), [&descriptorParameters](const DirectX12PushConstantsRange* range) {
+            std::ranges::for_each(m_pushConstantsLayout->ranges(), [&descriptorParameters, i = 0](DirectX12PushConstantsRange* range) mutable {
                 CD3DX12_ROOT_PARAMETER1 rootParameter = {};
 
                 switch (range->stage())
@@ -54,6 +54,7 @@ public:
                 default: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_ALL); break;
                 }
 
+                range->rootParameterIndex() = i++;
                 descriptorParameters.push_back(rootParameter);
             });
         }

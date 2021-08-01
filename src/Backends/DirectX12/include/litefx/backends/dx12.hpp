@@ -524,6 +524,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12PushConstantsLayout" />
 	class LITEFX_DIRECTX12_API DirectX12PushConstantsRange : public IPushConstantsRange {
 		LITEFX_IMPLEMENTATION(DirectX12PushConstantsRangeImpl);
+		friend DirectX12PipelineLayout;
 
 	public:
 		/// <summary>
@@ -554,6 +555,20 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const ShaderStage& stage() const noexcept override;
+
+	public:
+		/// <summary>
+		/// Returns the index of the root parameter, the range is bound to.
+		/// </summary>
+		/// <returns>The index of the root parameter, the range is bound to.</returns>
+		virtual const UInt32& rootParameterIndex() const noexcept;
+
+	protected:
+		/// <summary>
+		/// Returns a reference of the index of the root parameter, the range is bound to.
+		/// </summary>
+		/// <returns>A reference of the index of the root parameter, the range is bound to.</returns>
+		virtual UInt32& rootParameterIndex() noexcept;
 	};
 
 	/// <summary>
@@ -572,6 +587,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12PushConstantsLayoutImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelinePushConstantsLayoutBuilder);
 		LITEFX_BUILDER(DirectX12ComputePipelinePushConstantsLayoutBuilder);
+		friend DirectX12PipelineLayout;
 
 	public:
 		/// <summary>
@@ -597,6 +613,13 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const DirectX12PushConstantsRange*> ranges() const noexcept override;
+
+	protected:
+		/// <summary>
+		/// Returns an array of pointers to the push constant ranges of the layout.
+		/// </summary>
+		/// <returns>An array of pointers to the push constant ranges of the layout.</returns>
+		virtual Array<DirectX12PushConstantsRange*> ranges() noexcept;
 	};
 
 	/// <summary>
@@ -1190,6 +1213,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept override;
+		
+		/// <inheritdoc />
+		virtual void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
 	};
 
 	/// <summary>

@@ -85,6 +85,13 @@ Array<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges()
         ranges::to<Array<const DirectX12PushConstantsRange*>>();
 }
 
+Array<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() noexcept
+{
+    return m_impl->m_rangePointers |
+        std::views::transform([](UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); }) |
+        ranges::to<Array<DirectX12PushConstantsRange*>>();
+}
+
 // ------------------------------------------------------------------------------------------------
 // Render pipeline descriptor set layout builder implementation.
 // ------------------------------------------------------------------------------------------------
