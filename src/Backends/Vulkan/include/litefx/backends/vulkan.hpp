@@ -64,9 +64,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Adds an attribute to the vertex buffer layout.
 		/// </summary>
-		/// <reamrks>
+		/// <remarks>
 		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
-		/// </reamrks>
+		/// </remarks>
 		/// <param name="format">The format of the attribute.</param>
 		/// <param name="offset">The offset of the attribute within a buffer element.</param>
 		/// <param name="semantic">The semantic of the attribute.</param>
