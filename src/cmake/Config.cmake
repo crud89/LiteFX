@@ -5,7 +5,7 @@
 ###################################################################################################
 
 # C++ standard version.
-SET(CMAKE_CXX_STANDARD 20)
+SET(CMAKE_CXX_STANDARD 23)
 
 # Define C++ compile flags.
 IF(MSVC)
