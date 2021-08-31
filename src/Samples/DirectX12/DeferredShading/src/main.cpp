@@ -43,6 +43,17 @@ bool loadPixCapturer()
 
 int main(const int argc, const char** argv)
 {
+#if WIN32
+	// Enable console colors.
+	HANDLE console = ::GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD consoleMode = 0;
+
+	if (console == INVALID_HANDLE_VALUE || !::GetConsoleMode(console, &consoleMode))
+		return ::GetLastError();
+
+	::SetConsoleMode(console, consoleMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
+
 	// Parse the command line parameters.
 	const String appName = SampleApp::name();
 
