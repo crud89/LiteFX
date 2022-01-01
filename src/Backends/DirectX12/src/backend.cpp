@@ -14,10 +14,11 @@ private:
     Array<UniquePtr<DirectX12GraphicsAdapter>> m_adapters{ };
     ComPtr<ID3D12Debug> m_debugInterface;
     const App& m_app;
+    BackendState m_state;
 
 public:
     DirectX12BackendImpl(DirectX12Backend* parent, const App& app) :
-        base(parent), m_app(app)
+        base(parent), m_app(app), m_state(BackendState::Initialized)
     { 
     }
 
@@ -87,6 +88,11 @@ DirectX12Backend::~DirectX12Backend() noexcept = default;
 BackendType DirectX12Backend::type() const noexcept
 {
     return BackendType::Rendering;
+}
+
+BackendState DirectX12Backend::state() const noexcept
+{
+    return m_impl->m_state;
 }
 
 StringView DirectX12Backend::name() const noexcept

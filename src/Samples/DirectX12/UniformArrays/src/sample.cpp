@@ -206,7 +206,7 @@ void SampleApp::updateCamera(const DirectX12CommandBuffer& commandBuffer)
 void SampleApp::run() 
 {
     // Start by creating the surface and selecting the adapter.
-    auto backend = this->findBackend<DirectX12Backend>(BackendType::Rendering);
+    auto backend = this->findBackend<DirectX12Backend>("DirectX 12");
     auto adapter = backend->findAdapter(m_adapterId);
 
     if (adapter == nullptr)

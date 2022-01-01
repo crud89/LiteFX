@@ -148,7 +148,7 @@ void SampleApp::run()
     auto window = m_window.get();
 
     // Start by creating the surface and selecting the adapter.
-    auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
+    auto backend = this->findBackend<VulkanBackend>("Vulkan");
     auto adapter = backend->findAdapter(m_adapterId);
 
     if (adapter == nullptr)

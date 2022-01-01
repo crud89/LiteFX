@@ -2001,6 +2001,9 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		/// <inheritdoc />
 		virtual BackendType type() const noexcept override;
+
+		/// <inheritdoc />
+		virtual BackendState state() const noexcept override;
 		
 		/// <inheritdoc />
 		virtual StringView name() const noexcept override;

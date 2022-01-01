@@ -20,7 +20,7 @@ int main(const int argc, const char** argv)
 #endif
 
 	// Parse the command line parameters.
-	const String appName = SampleApp::name();
+	const String appName = SampleApp::Name();
 
 	CLI::App app{ "Demonstrates MSAA anti-aliasing techniques.", appName };
 	Optional<uint32_t> adapterId;

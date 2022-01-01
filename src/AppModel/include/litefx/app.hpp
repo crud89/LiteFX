@@ -16,9 +16,9 @@ namespace LiteFX {
 		virtual StringView name() const noexcept = 0;
 
 	public:
-		virtual void start() = 0;
-		virtual void stop(bool cleanup = true) = 0;
-		virtual void cleanup() = 0;
+		//virtual void start() = 0;
+		//virtual void stop(bool cleanup = true) = 0;
+		//virtual void cleanup() = 0;
 	};
 
 	class LITEFX_APPMODEL_API App {
@@ -45,6 +45,7 @@ namespace LiteFX {
 
 	public:
 		virtual void use(UniquePtr<IBackend>&& backend);
+		virtual void use(UniquePtr<IBackend>&& backend, StringView name);
 		virtual void run() = 0;
 		virtual void initialize() = 0;
 
@@ -64,6 +65,7 @@ namespace LiteFX {
 
 	public:
 		void use(UniquePtr<IBackend>&& backend);
+		void use(UniquePtr<IBackend>&& backend, StringView name);
 		virtual UniquePtr<App> go() override;
 
 		template <typename TSink, typename ...TArgs> requires

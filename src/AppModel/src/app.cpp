@@ -25,14 +25,9 @@ public:
 		return m_backends.contains(name) ? m_backends[name].get() : nullptr;
 	}
 
-	void useBackend(UniquePtr<IBackend>&& backend)
+	void useBackend(UniquePtr<IBackend>&& backend, StringView name)
 	{
-		//auto name = hash(backend->name());
-
-		//if (m_backends.contains(hash))
-
-
-		m_backends[backend->name()] = std::move(backend);
+		m_backends[name] = std::move(backend);
 	}
 };
 
@@ -63,8 +58,12 @@ const IBackend* App::operator[](StringView name) const
 
 void App::use(UniquePtr<IBackend>&& backend)
 {
-	Logger::get(this->name()).trace("Using backend {0} (current backend: {1})...", fmt::ptr(backend.get()), fmt::ptr(m_impl->findBackend(backend->name())));
-	return m_impl->useBackend(std::move(backend));
+	return this->use(std::move(backend), backend->name());
+}
+
+void App::use(UniquePtr<IBackend>&& backend, StringView name)
+{
+	return m_impl->useBackend(std::move(backend), name);
 }
 
 void App::resize(int width, int height)
@@ -79,6 +78,11 @@ void App::resize(int width, int height)
 void AppBuilder::use(UniquePtr<IBackend>&& backend)
 {
 	this->instance()->use(std::move(backend));
+}
+
+void AppBuilder::use(UniquePtr<IBackend>&& backend, StringView name)
+{
+	this->instance()->use(std::move(backend), name);
 }
 
 UniquePtr<App> AppBuilder::go()
