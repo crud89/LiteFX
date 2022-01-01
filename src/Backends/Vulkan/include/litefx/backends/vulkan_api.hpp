@@ -327,7 +327,7 @@ namespace LiteFX::Rendering::Backends {
     /// <param name="message"></param>
     /// <param name="...args"></param>
     template <typename TException, typename ...TArgs>
-    inline void raiseIfFailed(VkResult result, const std::string& message, TArgs&&... args) {
+    inline void raiseIfFailed(VkResult result, StringView message, TArgs&&... args) {
         if (result == VK_SUCCESS) [[likely]]
             return;
 

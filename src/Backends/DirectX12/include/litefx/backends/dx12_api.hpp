@@ -277,7 +277,7 @@ namespace LiteFX::Rendering::Backends {
     DEFINE_EXCEPTION(DX12PlatformException, std::runtime_error);
 
     template <typename TException, typename ...TArgs>
-    inline void raiseIfFailed(HRESULT hr, const std::string& message, TArgs&&... args) {
+    inline void raiseIfFailed(HRESULT hr, StringView message, TArgs&&... args) {
         if (SUCCEEDED(hr)) [[likely]]
             return;
 

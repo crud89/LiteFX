@@ -25,22 +25,17 @@ namespace LiteFX {
 			TBase(fmt::format("{0}", typeid(TException).name())) { }
 		explicit ExceptionBase(Exception&& inner) noexcept :
 			TBase(fmt::format("{0}\r\n\t{1}", typeid(TException).name(), inner.what())), m_inner(std::move(inner)) { }
-
-		explicit ExceptionBase(char const* const message) noexcept :
+		explicit ExceptionBase(std::string_view message) noexcept :
 			TBase(fmt::format("{0}: {1}", typeid(TException).name(), message)) { }
-		explicit ExceptionBase(Exception&& inner, char const* const message) noexcept :
-			TBase(fmt::format("{0}: {1}\r\n\t{2}", typeid(TException).name(), message, inner.what())), m_inner(std::move(inner)) { }
-		explicit ExceptionBase(const std::string& message) noexcept :
-			TBase(fmt::format("{0}: {1}", typeid(TException).name(), message)) { }
-		explicit ExceptionBase(Exception&& inner, const std::string& message) noexcept :
+		explicit ExceptionBase(Exception&& inner, std::string_view message) noexcept :
 			TBase(fmt::format("{0}: {1}\r\n\t{2}", typeid(TException).name(), message, inner.what())), m_inner(std::move(inner)) { }
 
 		template <typename ...TArgs>
-		explicit ExceptionBase(const std::string& format, TArgs&&... args) noexcept :
+		explicit ExceptionBase(std::string_view format, TArgs&&... args) noexcept :
 			TBase(fmt::format("{0}: {1}", typeid(TException).name(), fmt::format(format, std::forward<TArgs>(args)...))) { }
 
 		template <typename ...TArgs>
-		explicit ExceptionBase(Exception&& inner, const std::string& format, TArgs&&... args) noexcept :
+		explicit ExceptionBase(Exception&& inner, std::string_view format, TArgs&&... args) noexcept :
 			TBase(fmt::format("{0}: {1}\r\n\t{2}", typeid(TException).name(), fmt::format(format, std::forward<TArgs>(args)...), inner.what())) { }
 
 	public:
