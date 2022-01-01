@@ -18,6 +18,8 @@
 namespace LiteFX {
     using String = std::string;
     using WString = std::wstring;
+    using StringView = std::string_view;
+    using WStringView = std::wstring_view;
 
     // Based on: https://stackoverflow.com/a/5289170/1254352
     template <typename TStrings, typename Value = typename TStrings::value_type>
@@ -45,7 +47,7 @@ namespace LiteFX {
     /// </summary>
     /// <param name="utf8"></param>
     /// <returns></returns>
-    inline WString Widen(const String& utf8)
+    inline WString Widen(StringView utf8)
     {
 #if defined LITEFX_CODECVT_USE_WIN32
         if (utf8.empty())
@@ -71,7 +73,7 @@ namespace LiteFX {
     /// </summary>
     /// <param name="utf16"></param>
     /// <returns></returns>
-    inline String Narrow(const WString& utf16)
+    inline String Narrow(WStringView utf16)
     {
 #if defined LITEFX_CODECVT_USE_WIN32
         if (utf16.empty())
