@@ -2093,7 +2093,10 @@ namespace LiteFX::Rendering::Backends {
 		// IBackend interface.
 	public:
 		/// <inheritdoc />
-		virtual BackendType getType() const noexcept override;
+		virtual BackendType type() const noexcept override;
+
+		/// <inheritdoc />
+		virtual StringView name() const noexcept override;
 
 		// IRenderBackend interface.
 	public:

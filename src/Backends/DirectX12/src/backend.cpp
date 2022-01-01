@@ -84,9 +84,14 @@ DirectX12Backend::DirectX12Backend(const App& app, const bool& useAdvancedSoftwa
 
 DirectX12Backend::~DirectX12Backend() noexcept = default;
 
-BackendType DirectX12Backend::getType() const noexcept
+BackendType DirectX12Backend::type() const noexcept
 {
     return BackendType::Rendering;
+}
+
+StringView DirectX12Backend::name() const noexcept
+{
+    return "DirectX 12";
 }
 
 Array<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const

@@ -28,7 +28,7 @@ public:
 public:
 	void useBackend(UniquePtr<IBackend>&& backend)
 	{
-		auto type = backend->getType();
+		auto type = backend->type();
 		m_backends[type] = std::move(backend);
 	}
 };
@@ -60,7 +60,7 @@ const IBackend* App::operator[](const BackendType& type) const
 
 void App::use(UniquePtr<IBackend>&& backend)
 {
-	Logger::get(this->getName()).trace("Using backend {0} (current backend: {1})...", fmt::ptr(backend.get()), fmt::ptr(m_impl->findBackend(backend->getType())));
+	Logger::get(this->getName()).trace("Using backend {0} (current backend: {1})...", fmt::ptr(backend.get()), fmt::ptr(m_impl->findBackend(backend->type())));
 	return m_impl->useBackend(std::move(backend));
 }
 

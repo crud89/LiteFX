@@ -11,7 +11,8 @@ namespace LiteFX {
 		virtual ~IBackend() noexcept = default;
 
 	public:
-		virtual BackendType getType() const noexcept = 0;
+		virtual BackendType type() const noexcept = 0;
+		virtual StringView name() const noexcept = 0;
 	};
 
 	class LITEFX_APPMODEL_API App {

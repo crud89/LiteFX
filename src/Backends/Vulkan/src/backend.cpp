@@ -189,9 +189,14 @@ VulkanBackend::~VulkanBackend() noexcept
     ::vkDestroyInstance(this->handle(), nullptr);
 }
 
-BackendType VulkanBackend::getType() const noexcept
+BackendType VulkanBackend::type() const noexcept
 {
     return BackendType::Rendering;
+}
+
+StringView VulkanBackend::name() const noexcept
+{
+    return "Vulkan";
 }
 
 Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
