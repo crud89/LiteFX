@@ -63,9 +63,6 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
         $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
 
-# Ignore codecvt deprication warnings (as long as there is no replacement, the header will continue to work).
-TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
-
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC fmt::fmt)
 
