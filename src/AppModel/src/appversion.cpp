@@ -31,52 +31,52 @@ AppVersion::AppVersion(int major, int minor, int patch, int revision) noexcept :
 
 AppVersion::~AppVersion() noexcept = default;
 
-int AppVersion::getMajor() const noexcept
+int AppVersion::major() const noexcept
 {
 	return m_impl->m_major;
 }
 
-int AppVersion::getMinor() const noexcept
+int AppVersion::minor() const noexcept
 {
 	return m_impl->m_minor;
 }
 
-int AppVersion::getPatch() const noexcept
+int AppVersion::patch() const noexcept
 {
 	return m_impl->m_patch;
 }
 
-int AppVersion::getRevision() const noexcept
+int AppVersion::revision() const noexcept
 {
 	return m_impl->m_revision;
 }
 
-int AppVersion::getEngineMajor() const noexcept
+int AppVersion::engineMajor() const noexcept
 {
 	return LITEFX_MAJOR;
 }
 
-int AppVersion::getEngineMinor() const noexcept
+int AppVersion::engineMinor() const noexcept
 {
 	return LITEFX_MINOR;
 }
 
-int AppVersion::getEngineRevision() const noexcept
+int AppVersion::engineRevision() const noexcept
 {
 	return LITEFX_REV;
 }
 
-int AppVersion::getEngineStatus() const noexcept
+int AppVersion::engineStatus() const noexcept
 {
 	return LITEFX_STATUS;
 }
 
-String AppVersion::getEngineIdentifier() const noexcept
+String AppVersion::engineIdentifier() const noexcept
 {
 	return LITEFX_ENGINE_ID;
 }
 
-String AppVersion::getEngineVersion() const noexcept
+String AppVersion::engineVersion() const noexcept
 {
 	return LITEFX_VERSION;
 }

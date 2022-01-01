@@ -12,7 +12,13 @@ namespace LiteFX {
 
 	public:
 		virtual BackendType type() const noexcept = 0;
+		virtual BackendState state() const noexcept = 0;
 		virtual StringView name() const noexcept = 0;
+
+	public:
+		virtual void start() = 0;
+		virtual void stop(bool cleanup = true) = 0;
+		virtual void cleanup() = 0;
 	};
 
 	class LITEFX_APPMODEL_API App {
@@ -26,15 +32,15 @@ namespace LiteFX {
 		virtual ~App() noexcept;
 
 	public:
-		virtual String getName() const noexcept = 0;
-		virtual AppVersion getVersion() const noexcept = 0;
-		Platform getPlatform() const noexcept;
-		virtual const IBackend* operator[](const BackendType& type) const;
+		virtual StringView name() const noexcept = 0;
+		virtual AppVersion version() const noexcept = 0;
+		Platform platform() const noexcept;
+		virtual const IBackend* operator[](StringView name) const;
 
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
-		const TBackend* findBackend(const BackendType& type) const {
-			return dynamic_cast<const TBackend*>(this->operator[](type));
+		const TBackend* findBackend(StringView name) const {
+			return dynamic_cast<const TBackend*>(this->operator[](name));
 		}
 
 	public:
@@ -55,9 +61,6 @@ namespace LiteFX {
 	class LITEFX_APPMODEL_API AppBuilder : public Builder<AppBuilder, App> {
 	public:
 		using builder_type::Builder;
-
-	protected:
-		virtual const IBackend* findBackend(const BackendType& type) const noexcept;
 
 	public:
 		void use(UniquePtr<IBackend>&& backend);
@@ -89,16 +92,16 @@ namespace LiteFX {
 		virtual ~AppVersion() noexcept;
 
 	public:
-		int getMajor() const noexcept;
-		int getMinor() const noexcept;
-		int getPatch() const noexcept;
-		int getRevision() const noexcept;
-		int getEngineMajor() const noexcept;
-		int getEngineMinor() const noexcept;
-		int getEngineRevision() const noexcept;
-		int getEngineStatus() const noexcept;
-		String getEngineIdentifier() const noexcept;
-		String getEngineVersion() const noexcept;
+		int major() const noexcept;
+		int minor() const noexcept;
+		int patch() const noexcept;
+		int revision() const noexcept;
+		int engineMajor() const noexcept;
+		int engineMinor() const noexcept;
+		int engineRevision() const noexcept;
+		int engineStatus() const noexcept;
+		String engineIdentifier() const noexcept;
+		String engineVersion() const noexcept;
 	};
 
 }
@@ -125,7 +128,7 @@ struct fmt::formatter<LiteFX::AppVersion> {
 	template <typename FormatContext>
 	auto format(const LiteFX::AppVersion& app, FormatContext& ctx) {
 		return engineVersion ?
-			format_to(ctx.out(), "{} Version {}", app.getEngineIdentifier(), app.getEngineVersion()) :
-			format_to(ctx.out(), "{}.{}.{}.{}", app.getMajor(), app.getMinor(), app.getPatch(), app.getRevision());
+			format_to(ctx.out(), "{} Version {}", app.engineIdentifier(), app.engineVersion()) :
+			format_to(ctx.out(), "{}.{}.{}.{}", app.major(), app.minor(), app.patch(), app.revision());
 	}
 };

@@ -180,7 +180,7 @@ namespace LiteFX::Logging {
 
     public:
         // TODO: Cache logs by name and return them, instead of re-creating them with each call.
-        static Log get(const String& name);
+        static Log get(StringView name);
         static void sinkTo(const ISink* sink);
     };
 

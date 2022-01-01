@@ -47,7 +47,7 @@ namespace LiteFX {
 	/// <typeparam name="TKey">The type of the key.</typeparam>
 	/// <typeparam name="TVal">The type of the value.</typeparam>
 	template<class TKey, class TVal>
-	using Dictionary = std::map<TKey, TVal>;
+	using Dictionary = std::unordered_map<TKey, TVal>;
 
 	/// <summary>
 	/// Represents a dynamic array.

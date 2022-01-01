@@ -80,14 +80,14 @@ public:
         auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | ranges::to<Array<const char*>>();
 
         // Get the app instance.
-        auto appName = m_app.getName();
+        auto appName = String(m_app.name());
 
         // Define Vulkan app.
         VkApplicationInfo appInfo = {};
 
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         appInfo.pApplicationName = appName.c_str();
-        appInfo.applicationVersion = VK_MAKE_VERSION(m_app.getVersion().getMajor(), m_app.getVersion().getMinor(), m_app.getVersion().getPatch());
+        appInfo.applicationVersion = VK_MAKE_VERSION(m_app.version().major(), m_app.version().minor(), m_app.version().patch());
         appInfo.pEngineName = LITEFX_ENGINE_ID;
         appInfo.engineVersion = VK_MAKE_VERSION(LITEFX_MAJOR, LITEFX_MINOR, LITEFX_REV);
         appInfo.apiVersion = VK_API_VERSION_1_2;

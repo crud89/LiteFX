@@ -11,7 +11,7 @@ public:
 	friend class App;
 
 private:
-	Dictionary<BackendType, UniquePtr<IBackend>> m_backends;
+	Dictionary<StringView, UniquePtr<IBackend>> m_backends;
 
 public:
 	AppImpl(App* parent) : 
@@ -20,16 +20,19 @@ public:
 	}
 
 public:
-	const IBackend* findBackend(const BackendType& type)
+	const IBackend* findBackend(StringView name)
 	{
-		return m_backends.contains(type) ? m_backends[type].get() : nullptr;
+		return m_backends.contains(name) ? m_backends[name].get() : nullptr;
 	}
 
-public:
 	void useBackend(UniquePtr<IBackend>&& backend)
 	{
-		auto type = backend->type();
-		m_backends[type] = std::move(backend);
+		//auto name = hash(backend->name());
+
+		//if (m_backends.contains(hash))
+
+
+		m_backends[backend->name()] = std::move(backend);
 	}
 };
 
@@ -44,7 +47,7 @@ App::App() :
 
 App::~App() noexcept = default;
 
-Platform App::getPlatform() const noexcept
+Platform App::platform() const noexcept
 {
 #if defined(_WIN32) || defined(WINCE)
 	return Platform::Win32;
@@ -53,30 +56,25 @@ Platform App::getPlatform() const noexcept
 #endif
 }
 
-const IBackend* App::operator[](const BackendType& type) const
+const IBackend* App::operator[](StringView name) const
 {
-	return m_impl->findBackend(type);
+	return m_impl->findBackend(name);
 }
 
 void App::use(UniquePtr<IBackend>&& backend)
 {
-	Logger::get(this->getName()).trace("Using backend {0} (current backend: {1})...", fmt::ptr(backend.get()), fmt::ptr(m_impl->findBackend(backend->type())));
+	Logger::get(this->name()).trace("Using backend {0} (current backend: {1})...", fmt::ptr(backend.get()), fmt::ptr(m_impl->findBackend(backend->name())));
 	return m_impl->useBackend(std::move(backend));
 }
 
 void App::resize(int width, int height)
 {
-	Logger::get(this->getName()).trace("OnResize (width = {0}, height = {1}).", width, height);
+	Logger::get(this->name()).trace("OnResize (width = {0}, height = {1}).", width, height);
 }
 
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
-
-const IBackend* AppBuilder::findBackend(const BackendType& type) const noexcept
-{
-	return this->instance()->operator[](type);
-}
 
 void AppBuilder::use(UniquePtr<IBackend>&& backend)
 {
@@ -85,8 +83,8 @@ void AppBuilder::use(UniquePtr<IBackend>&& backend)
 
 UniquePtr<App> AppBuilder::go()
 {
-	Logger::get(this->instance()->getName()).info("Starting app (Version {1}) on platform {0}...", this->instance()->getPlatform(), this->instance()->getVersion());
-	Logger::get(this->instance()->getName()).debug("Using engine: {0:e}.", this->instance()->getVersion());
+	Logger::get(this->instance()->name()).info("Starting app (Version {1}) on platform {0}...", this->instance()->platform(), this->instance()->version());
+	Logger::get(this->instance()->name()).debug("Using engine: {0:e}.", this->instance()->version());
 
 	this->instance()->run();
 	return builder_type::go();
