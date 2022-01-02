@@ -15,11 +15,10 @@ private:
     Array<String> m_extensions;
     Array<String> m_layers;
     const App& m_app;
-    BackendState m_state;
 
 public:
     VulkanBackendImpl(VulkanBackend* parent, const App& app, Span<String> extensions, Span<String> validationLayers) :
-        base(parent), m_app(app), m_state(BackendState::Initialized)
+        base(parent), m_app(app)
     {
         m_extensions.assign(std::begin(extensions), std::end(extensions));
         m_layers.assign(std::begin(validationLayers), std::end(validationLayers));
@@ -193,11 +192,6 @@ VulkanBackend::~VulkanBackend() noexcept
 BackendType VulkanBackend::type() const noexcept
 {
     return BackendType::Rendering;
-}
-
-BackendState VulkanBackend::state() const noexcept
-{
-    return m_impl->m_state;
 }
 
 Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const

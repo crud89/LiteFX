@@ -9,17 +9,18 @@ namespace LiteFX {
 	class LITEFX_APPMODEL_API IBackend {
 		friend class App;
 
+	private:
+		BackendState m_state = BackendState::Uninitialized;
+
 	public:
 		virtual ~IBackend() noexcept = default;
 
 	public:
 		virtual BackendType type() const noexcept = 0;
-		virtual BackendState state() const noexcept = 0;
+		const BackendState& state() const noexcept { return m_state; }
 
 	private:
-		//virtual void start() = 0;
-		//virtual void stop(bool cleanup = true) = 0;
-		//virtual void cleanup() = 0;
+		BackendState& state() noexcept { return m_state; }
 		std::type_index typeId() const noexcept { return typeid(*this); }
 	};
 

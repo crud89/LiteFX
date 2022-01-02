@@ -2002,9 +2002,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual BackendType type() const noexcept override;
 
-		/// <inheritdoc />
-		virtual BackendState state() const noexcept override;
-
 		// IRenderBackend interface.
 	public:
 		/// <inheritdoc />
