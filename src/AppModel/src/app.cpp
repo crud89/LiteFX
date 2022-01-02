@@ -11,7 +11,7 @@ public:
 	friend class App;
 
 private:
-	Dictionary<StringView, UniquePtr<IBackend>> m_backends;
+	Dictionary<std::type_index, UniquePtr<IBackend>> m_backends;
 
 public:
 	AppImpl(App* parent) : 
@@ -20,14 +20,17 @@ public:
 	}
 
 public:
-	const IBackend* findBackend(StringView name)
+	const IBackend* findBackend(std::type_index type)
 	{
-		return m_backends.contains(name) ? m_backends[name].get() : nullptr;
+		return m_backends.contains(type) ? m_backends[type].get() : nullptr;
 	}
 
-	void useBackend(UniquePtr<IBackend>&& backend, StringView name)
+	void useBackend(UniquePtr<IBackend>&& backend, std::type_index type)
 	{
-		m_backends[name] = std::move(backend);
+		if (m_backends.contains(type))
+			throw InvalidArgumentException("Another backend of type {0} already has been registered. An application may only contain one backend of a certain type.", type.name());
+
+		m_backends[type] = std::move(backend);
 	}
 };
 
@@ -51,19 +54,15 @@ Platform App::platform() const noexcept
 #endif
 }
 
-const IBackend* App::operator[](StringView name) const
+const IBackend* App::operator[](std::type_index type) const
 {
-	return m_impl->findBackend(name);
+	return m_impl->findBackend(type);
 }
 
 void App::use(UniquePtr<IBackend>&& backend)
 {
-	return this->use(std::move(backend), backend->name());
-}
-
-void App::use(UniquePtr<IBackend>&& backend, StringView name)
-{
-	return m_impl->useBackend(std::move(backend), name);
+	Logger::get(this->name()).debug("Registered backend type {0}.", backend->typeId().name());
+	m_impl->useBackend(std::move(backend), backend->typeId());
 }
 
 void App::resize(int width, int height)
@@ -80,16 +79,11 @@ void AppBuilder::use(UniquePtr<IBackend>&& backend)
 	this->instance()->use(std::move(backend));
 }
 
-void AppBuilder::use(UniquePtr<IBackend>&& backend, StringView name)
-{
-	this->instance()->use(std::move(backend), name);
-}
-
 UniquePtr<App> AppBuilder::go()
 {
 	Logger::get(this->instance()->name()).info("Starting app (Version {1}) on platform {0}...", this->instance()->platform(), this->instance()->version());
 	Logger::get(this->instance()->name()).debug("Using engine: {0:e}.", this->instance()->version());
 
-	this->instance()->run();
+	this->instance()->initialize();
 	return builder_type::go();
 }

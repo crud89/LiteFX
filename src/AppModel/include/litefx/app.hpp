@@ -7,18 +7,20 @@ namespace LiteFX {
 	using namespace LiteFX::Logging;
 
 	class LITEFX_APPMODEL_API IBackend {
+		friend class App;
+
 	public:
 		virtual ~IBackend() noexcept = default;
 
 	public:
 		virtual BackendType type() const noexcept = 0;
 		virtual BackendState state() const noexcept = 0;
-		virtual StringView name() const noexcept = 0;
 
-	public:
+	private:
 		//virtual void start() = 0;
 		//virtual void stop(bool cleanup = true) = 0;
 		//virtual void cleanup() = 0;
+		std::type_index typeId() const noexcept { return typeid(*this); }
 	};
 
 	class LITEFX_APPMODEL_API App {
@@ -32,20 +34,31 @@ namespace LiteFX {
 		virtual ~App() noexcept;
 
 	public:
-		virtual StringView name() const noexcept = 0;
+		virtual String name() const noexcept = 0;
 		virtual AppVersion version() const noexcept = 0;
 		Platform platform() const noexcept;
-		virtual const IBackend* operator[](StringView name) const;
+		virtual const IBackend* operator[](std::type_index type) const;
 
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
-		const TBackend* findBackend(StringView name) const {
-			return dynamic_cast<const TBackend*>(this->operator[](name));
+		const TBackend* findBackend() const {
+			return dynamic_cast<const TBackend*>(this->operator[](typeid(TBackend)));
+		}
+
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		void startBackend(const std::function<bool(const TBackend*)>& initializer) {
+			const auto backend = this->findBackend<TBackend>();
+
+			if (backend == nullptr)
+				throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+
+			if (!initializer(backend))
+				throw RuntimeException("The backend of type {0} could not be initialized.", typeid(TBackend).name());
 		}
 
 	public:
 		virtual void use(UniquePtr<IBackend>&& backend);
-		virtual void use(UniquePtr<IBackend>&& backend, StringView name);
 		virtual void run() = 0;
 		virtual void initialize() = 0;
 
@@ -65,7 +78,6 @@ namespace LiteFX {
 
 	public:
 		void use(UniquePtr<IBackend>&& backend);
-		void use(UniquePtr<IBackend>&& backend, StringView name);
 		virtual UniquePtr<App> go() override;
 
 		template <typename TSink, typename ...TArgs> requires
