@@ -2098,9 +2098,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual BackendState state() const noexcept override;
 
-		/// <inheritdoc />
-		virtual StringView name() const noexcept override;
-
 		// IRenderBackend interface.
 	public:
 		/// <inheritdoc />

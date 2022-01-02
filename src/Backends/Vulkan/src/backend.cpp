@@ -200,11 +200,6 @@ BackendState VulkanBackend::state() const noexcept
     return m_impl->m_state;
 }
 
-StringView VulkanBackend::name() const noexcept
-{
-    return "Vulkan";
-}
-
 Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
     return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const VulkanGraphicsAdapter*>>();

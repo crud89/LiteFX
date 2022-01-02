@@ -95,11 +95,6 @@ BackendState DirectX12Backend::state() const noexcept
     return m_impl->m_state;
 }
 
-StringView DirectX12Backend::name() const noexcept
-{
-    return "DirectX 12";
-}
-
 Array<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
 {
     return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const DirectX12GraphicsAdapter*>>();
