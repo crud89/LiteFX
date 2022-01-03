@@ -78,11 +78,7 @@ const std::function<bool()>& App::getInitializer(std::type_index type) const
 
 void App::setInitializer(std::type_index type, const std::function<bool()>& initializer)
 {
-	if (m_impl->m_initializers.contains(type))
-		throw InvalidArgumentException("Another initializer for the type {0} already has been registered.", type.name());
-
 	m_impl->m_initializers[type] = initializer;
-
 	Logger::get(this->name()).debug("Registered backend initializer for type {0}.", type.name());
 }
 
