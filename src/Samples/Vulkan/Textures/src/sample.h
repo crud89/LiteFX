@@ -28,7 +28,7 @@ typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 class SampleApp : public LiteFX::App {
 public:
 	static String Name() noexcept { return "LiteFX Sample: Vulkan Texturing"; }
-	StringView name() const noexcept override { return Name(); }
+	String name() const noexcept override { return Name(); }
 
 	static AppVersion Version() noexcept { return AppVersion(1, 0, 0, 0); }
 	AppVersion version() const noexcept override { return Version(); }
@@ -114,11 +114,12 @@ private:
 	/// </summary>
 	UniquePtr<IVulkanSampler> m_sampler;
 
+	UniquePtr<VulkanSurface> m_surface;
+
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
 		App(), m_window(std::move(window)), m_adapterId(adapterId)
 	{
-		this->initialize();
 	}
 
 private:

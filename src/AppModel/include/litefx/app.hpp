@@ -39,22 +39,60 @@ namespace LiteFX {
 		virtual AppVersion version() const noexcept = 0;
 		Platform platform() const noexcept;
 		virtual const IBackend* operator[](std::type_index type) const;
+		virtual const IBackend* getBackend(std::type_index type) const;
 
+	protected:
+		virtual const std::function<bool()>& getInitializer(std::type_index type) const;
+		virtual void setInitializer(std::type_index type, const std::function<bool()>& initializer);
+		virtual IBackend* getBackend(std::type_index type);
+
+	private:
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
-		const TBackend* findBackend() const {
-			return dynamic_cast<const TBackend*>(this->operator[](typeid(TBackend)));
+		TBackend* findBackend() {
+			return dynamic_cast<TBackend*>(this->getBackend(typeid(TBackend)));
 		}
 
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
-		void startBackend(const std::function<bool(const TBackend*)>& initializer) {
-			const auto backend = this->findBackend<TBackend>();
+		const std::function<bool()>& getInitializer() const {
+			return this->getInitializer(typeid(TBackend));
+		}
 
-			if (backend == nullptr)
-				throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+	public:
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		const TBackend* findBackend() const {
+			return dynamic_cast<const TBackend*>(this->getBackend(typeid(TBackend)));
+		}
 
-			if (!initializer(backend))
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		void setInitializer(const std::function<bool(const TBackend*)>& initializer) {
+			this->setInitializer(typeid(TBackend), [this, initializer]() {
+				auto backend = this->findBackend<TBackend>();
+
+				if (backend->state() > BackendState::Uninitialized)
+					return true;
+
+				if (backend == nullptr)
+					throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+				
+				if (!initializer(backend))
+					return false;
+
+				backend->state() = BackendState::Initialized;
+				return true;
+			});
+		}
+
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		void startBackend() const
+		{
+			auto initializer = this->getInitializer<TBackend>();
+			
+			if (!initializer())
 				throw RuntimeException("The backend of type {0} could not be initialized.", typeid(TBackend).name());
 		}
 

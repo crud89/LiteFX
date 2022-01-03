@@ -65,14 +65,17 @@ int main(const int argc, const char** argv)
 	requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-	// Create the app.
+	// Create and run the app.
 	try 
 	{
-		App::build<SampleApp>(std::move(window), adapterId)
+		auto app = App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
 			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
 			.go();
+
+		app->startBackend<VulkanBackend>();
+		app->run();
 	}
 	catch (const LiteFX::Exception& ex)
 	{

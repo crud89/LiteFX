@@ -12,25 +12,12 @@ public:
 
 private:
 	Dictionary<std::type_index, UniquePtr<IBackend>> m_backends;
+	Dictionary<std::type_index, std::function<bool()>> m_initializers;
 
 public:
 	AppImpl(App* parent) : 
 		base(parent) 
 	{
-	}
-
-public:
-	const IBackend* findBackend(std::type_index type)
-	{
-		return m_backends.contains(type) ? m_backends[type].get() : nullptr;
-	}
-
-	void useBackend(UniquePtr<IBackend>&& backend, std::type_index type)
-	{
-		if (m_backends.contains(type))
-			throw InvalidArgumentException("Another backend of type {0} already has been registered. An application may only contain one backend of a certain type.", type.name());
-
-		m_backends[type] = std::move(backend);
 	}
 };
 
@@ -56,13 +43,47 @@ Platform App::platform() const noexcept
 
 const IBackend* App::operator[](std::type_index type) const
 {
-	return m_impl->findBackend(type);
+	return this->getBackend(type);
+}
+
+const IBackend* App::getBackend(std::type_index type) const
+{
+	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
+}
+
+IBackend* App::getBackend(std::type_index type)
+{
+	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
 }
 
 void App::use(UniquePtr<IBackend>&& backend)
 {
-	Logger::get(this->name()).debug("Registered backend type {0}.", backend->typeId().name());
-	m_impl->useBackend(std::move(backend), backend->typeId());
+	auto type = backend->typeId();
+
+	if (m_impl->m_backends.contains(type))
+		throw InvalidArgumentException("Another backend of type {0} already has been registered. An application may only contain one backend of a certain type.", type.name());
+
+	m_impl->m_backends[type] = std::move(backend);
+
+	Logger::get(this->name()).debug("Registered backend type {0}.", type.name());
+}
+
+const std::function<bool()>& App::getInitializer(std::type_index type) const
+{
+	if (!m_impl->m_initializers.contains(type))
+		throw InvalidArgumentException("No initializer has been registered for type {0}.", type.name());
+
+	return m_impl->m_initializers[type];
+}
+
+void App::setInitializer(std::type_index type, const std::function<bool()>& initializer)
+{
+	if (m_impl->m_initializers.contains(type))
+		throw InvalidArgumentException("Another initializer for the type {0} already has been registered.", type.name());
+
+	m_impl->m_initializers[type] = initializer;
+
+	Logger::get(this->name()).debug("Registered backend initializer for type {0}.", type.name());
 }
 
 void App::resize(int width, int height)

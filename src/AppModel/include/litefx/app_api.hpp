@@ -39,7 +39,6 @@ namespace LiteFX {
 		Uninitialized = 0x01,
 		Initialized = 0x02,
 		Running = 0x03,
-		Idle = 0x04,
-		Invalid = 0xFF
+		Idle = 0x04
 	};
 }
