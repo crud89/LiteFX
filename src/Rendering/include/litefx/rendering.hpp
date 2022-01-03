@@ -2475,11 +2475,11 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a new graphics device.
         /// </summary>
-        /// <param name="..._args">The arguments that are passed to the graphics device constructor.</param>
+        /// <param name="_args">The arguments that are passed to the graphics device constructor.</param>
         /// <returns>A pointer of the created graphics device instance.</returns>
         template <typename ...TArgs>
-        [[nodiscard]] UniquePtr<TGraphicsDevice> createDevice(const TGraphicsAdapter& adapter, const TSurface& surface, TArgs&&... _args) const {
-            return makeUnique<TGraphicsDevice>(adapter, surface, std::forward<TArgs>(_args)...);
+        [[nodiscard]] UniquePtr<TGraphicsDevice> createDevice(const TGraphicsAdapter& adapter, UniquePtr<TSurface>&& surface, TArgs&&... _args) const {
+            return makeUnique<TGraphicsDevice>(adapter, std::move(surface), std::forward<TArgs>(_args)...);
         }
     };
 }

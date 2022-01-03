@@ -62,13 +62,16 @@ private:
 	Array<String> m_extensions;
 
 	const VulkanGraphicsAdapter& m_adapter;
-	const VulkanSurface& m_surface;
+	UniquePtr<VulkanSurface> m_surface;
 	UniquePtr<VulkanGraphicsFactory> m_factory;
 
 public:
-	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, Span<String> extensions) :
-		base(parent), m_adapter(adapter), m_surface(surface)
+	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
+		base(parent), m_adapter(adapter), m_surface(std::move(surface))
 	{
+		if (surface == nullptr)
+			throw ArgumentNotInitializedException("The surface must be initialized.");
+
 		m_extensions.assign(std::begin(extensions), std::end(extensions));
 
 		this->defineMandatoryExtensions();
@@ -79,6 +82,9 @@ public:
 	{
 		// This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
 		m_families.clear();
+
+		// Destroy the surface.
+		m_surface = nullptr;
 	}
 
 private:
@@ -121,7 +127,7 @@ public:
 		auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | ranges::to<Array<const char*>>();
 
 		// Create graphics and transfer queue.
-		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, m_surface.handle());
+		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, std::as_const(*m_surface).handle());
 		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 		m_bufferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 		m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::Normal);
@@ -244,15 +250,15 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, Span<String> extensions) :
-	VulkanDevice(adapter, surface, Format::B8G8R8A8_SRGB, { 800, 600 }, 3, extensions)
+VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
+	VulkanDevice(adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, extensions)
 {
 }
 
-VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
-	Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, surface, extensions))
+VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
+	Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), extensions))
 {
-	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(&surface)), adapter.getDeviceId(), Join(this->enabledExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.getDeviceId(), Join(this->enabledExtensions(), ", "));
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
 	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
@@ -308,7 +314,7 @@ const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
 
 const VulkanSurface& VulkanDevice::surface() const noexcept
 {
-	return m_impl->m_surface;
+	return *m_impl->m_surface;
 }
 
 const VulkanGraphicsAdapter& VulkanDevice::adapter() const noexcept
