@@ -1367,6 +1367,30 @@ namespace LiteFX::Rendering {
     bool LITEFX_RENDERING_API hasStencil(const Format& format);
 
     /// <summary>
+    /// Base class for a resource that can be identified by a name string.
+    /// </summary>
+    class LITEFX_RENDERING_API StateResource {
+        LITEFX_IMPLEMENTATION(StateResourceImpl);
+
+    public:
+        /// <summary>
+        /// Initializes a new state resource instance.
+        /// </summary>
+        /// <param name="name">The name of the resource.</param>
+        explicit StateResource(StringView name);
+        StateResource(StateResource&&) = delete;
+        StateResource(const StateResource&) = delete;
+        virtual ~StateResource() noexcept;
+
+    public:
+        /// <summary>
+        /// Returns the name of the resource.
+        /// </summary>
+        /// <returns>The name of the resource.</returns>
+        const String& name() const noexcept;
+    };
+
+    /// <summary>
     /// Represents a physical graphics adapter.
     /// </summary>
     /// <remarks>

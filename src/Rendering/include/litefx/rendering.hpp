@@ -2437,6 +2437,44 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Provides convenient access to manage the state of a render backend.
+    /// </summary>
+    /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
+    /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
+    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
+    /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
+    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
+    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
+    template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
+        rtti::implements<TGraphicsDevice, IGraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
+    class IRenderBackendState {
+    public:
+        virtual ~IRenderBackendState() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Releases all managed resources.
+        /// </summary>
+        /// <remarks>
+        /// Releasing the managed resources ensures that the instances are destroyed in the correct order, so that no dangling reference is kept alive. Note, however, that this only works, 
+        /// if all references are managed by the state object. If you have a reference to a managed object within a object that is not managed by the state, you have to ensure, that it is 
+        /// released before cleaning up the state.
+        /// </remarks>
+        virtual void cleanup() = 0;
+
+        /// <summary>
+        /// Stores a graphics device in the state.
+        /// </summary>
+        /// <param name="device">The device to add to the state.</param>
+        virtual void storeDevice(UniquePtr<TGraphicsDevice>&& device) = 0;
+
+        virtual bool containsDevice(StringView deviceName) const noexcept = 0;
+
+        virtual TGraphicsDevice& device(StringView name) const = 0;
+
+    };
+
+    /// <summary>
     /// Defines a back-end, that provides a device instance for a certain surface and graphics adapter.
     /// </summary>
     /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
