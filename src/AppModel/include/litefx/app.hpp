@@ -6,11 +6,14 @@
 namespace LiteFX {
 	using namespace LiteFX::Logging;
 
+	/// <summary>
+	/// The base interface for an app backend.
+	/// </summary>
 	class LITEFX_APPMODEL_API IBackend {
 		friend class App;
 
 	private:
-		BackendState m_state = BackendState::Uninitialized;
+		BackendState m_state = BackendState::Inactive;
 
 	public:
 		virtual ~IBackend() noexcept = default;
@@ -19,8 +22,12 @@ namespace LiteFX {
 		virtual BackendType type() const noexcept = 0;
 		const BackendState& state() const noexcept { return m_state; }
 
-	private:
+	protected:
 		BackendState& state() noexcept { return m_state; }
+		virtual void activate() = 0;
+		virtual void deactivate() = 0;
+
+	private:
 		std::type_index typeId() const noexcept { return typeid(*this); }
 	};
 
@@ -42,21 +49,21 @@ namespace LiteFX {
 		virtual const IBackend* getBackend(std::type_index type) const;
 
 	protected:
-		virtual const std::function<bool()>& getInitializer(std::type_index type) const;
 		virtual void setInitializer(std::type_index type, const std::function<bool()>& initializer);
-		virtual IBackend* getBackend(std::type_index type);
-
-	private:
-		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
-		TBackend* findBackend() {
-			return dynamic_cast<TBackend*>(this->getBackend(typeid(TBackend)));
-		}
+		virtual const std::function<bool()>& getInitializer(std::type_index type) const;
 
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
 		const std::function<bool()>& getInitializer() const {
 			return this->getInitializer(typeid(TBackend));
+		}
+
+		virtual IBackend* getBackend(std::type_index type);
+
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		TBackend* findBackend() {
+			return dynamic_cast<TBackend*>(this->getBackend(typeid(TBackend)));
 		}
 
 	public:
@@ -72,7 +79,7 @@ namespace LiteFX {
 			this->setInitializer(typeid(TBackend), [this, initializer]() {
 				auto backend = this->findBackend<TBackend>();
 
-				if (backend->state() > BackendState::Uninitialized)
+				if (backend->state() == BackendState::Active)
 					return true;
 
 				if (backend == nullptr)
@@ -81,19 +88,27 @@ namespace LiteFX {
 				if (!initializer(backend))
 					return false;
 
-				backend->state() = BackendState::Initialized;
+				static_cast<IBackend*>(backend)->activate();
 				return true;
 			});
 		}
 
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
-		void startBackend() const
-		{
+		void startBackend() const {
 			auto initializer = this->getInitializer<TBackend>();
 			
 			if (!initializer())
 				throw RuntimeException("The backend of type {0} could not be initialized.", typeid(TBackend).name());
+		}
+
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		void stopBackend() const {
+			auto backend = this->findBackend<TBackend>();
+
+			if (backend->state() != BackendState::Active)
+				static_cast<IBackend*>(backend)->deactivate();
 		}
 
 	public:

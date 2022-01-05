@@ -69,7 +69,7 @@ public:
 	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
 		base(parent), m_adapter(adapter), m_surface(std::move(surface))
 	{
-		if (surface == nullptr)
+		if (m_surface == nullptr)
 			throw ArgumentNotInitializedException("The surface must be initialized.");
 
 		m_extensions.assign(std::begin(extensions), std::end(extensions));

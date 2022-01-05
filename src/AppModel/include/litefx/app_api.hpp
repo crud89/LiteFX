@@ -36,9 +36,7 @@ namespace LiteFX {
 	};
 
 	enum class LITEFX_APPMODEL_API BackendState {
-		Uninitialized = 0x01,
-		Initialized = 0x02,
-		Running = 0x03,
-		Idle = 0x04
+		Inactive = 0x01,
+		Active = 0x02
 	};
 }

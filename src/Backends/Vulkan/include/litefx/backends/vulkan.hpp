@@ -2095,6 +2095,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual BackendType type() const noexcept override;
 
+	protected:
+		/// <inheritdoc />
+		virtual void activate() override;
+
+		/// <inheritdoc />
+		virtual void deactivate() override;
+
 		// IRenderBackend interface.
 	public:
 		/// <inheritdoc />

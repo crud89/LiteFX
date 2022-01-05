@@ -221,7 +221,6 @@ void SampleApp::run()
     m_device = nullptr;
 
     // Destroy the window.
-    m_surface = nullptr;
     ::glfwDestroyWindow(m_window.get());
     ::glfwTerminate();
 }
@@ -235,30 +234,32 @@ void SampleApp::initialize()
     ::glfwSetWindowUserPointer(window, this);
     ::glfwSetFramebufferSizeCallback(window, ::onResize);
 
+    // Get the proper frame buffer size.
+    int width, height;
+    ::glfwGetFramebufferSize(window, &width, &height);
+
+    // Create viewport and scissors.
+    m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+
     // Setup backend initializers.
     this->setInitializer<VulkanBackend>([this, window](auto backend) {
+        // Find the physical adapter to create the logical device on.
         auto adapter = backend->findAdapter(m_adapterId);
 
         if (adapter == nullptr)
             adapter = backend->findAdapter(std::nullopt);
 
-        m_surface = backend->createSurface([window](const VkInstance& instance) {
+        // Create a surface.
+        auto surface = backend->createSurface([window](const VkInstance& instance) {
             VkSurfaceKHR surface;
             raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
 
             return surface;
         });
 
-        // Get the proper frame buffer size.
-        int width, height;
-        ::glfwGetFramebufferSize(window, &width, &height);
-
-        // Create viewport and scissors.
-        m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-        m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-
         // Create the device with the initial frame buffer size and triple buffering.
-        m_device = backend->createDevice(*adapter, *m_surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+        m_device = backend->createDevice(*adapter, std::move(surface), Format::B8G8R8A8_SRGB, m_viewport->getRectangle().extent(), 3);
 
         return true;
     });

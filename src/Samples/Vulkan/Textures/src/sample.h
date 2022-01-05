@@ -45,6 +45,16 @@ private:
 	Optional<UInt32> m_adapterId;
 
 	/// <summary>
+	/// Stores the viewport.
+	/// </summary>
+	SharedPtr<IViewport> m_viewport;
+
+	/// <summary>
+	/// Stores the scissor.
+	/// </summary>
+	SharedPtr<IScissor> m_scissor;
+
+	/// <summary>
 	/// Stores the main device instance.
 	/// </summary>
 	UniquePtr<VulkanDevice> m_device;
@@ -63,16 +73,6 @@ private:
 	/// Stores a reference of the input assembler state.
 	/// </summary>
 	SharedPtr<VulkanInputAssembler> m_inputAssembler;
-
-	/// <summary>
-	/// Stores the viewport.
-	/// </summary>
-	SharedPtr<IViewport> m_viewport;
-
-	/// <summary>
-	/// Stores the scissor.
-	/// </summary>
-	SharedPtr<IScissor> m_scissor;
 
 	/// <summary>
 	/// Stores the vertex buffer for the quad rendered in this sample.
@@ -113,8 +113,6 @@ private:
 	/// Stores the sampler state for <see cref="m_texture" />.
 	/// </summary>
 	UniquePtr<IVulkanSampler> m_sampler;
-
-	UniquePtr<VulkanSurface> m_surface;
 
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :

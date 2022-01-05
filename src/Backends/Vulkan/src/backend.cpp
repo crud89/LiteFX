@@ -194,6 +194,16 @@ BackendType VulkanBackend::type() const noexcept
     return BackendType::Rendering;
 }
 
+void VulkanBackend::activate()
+{
+    this->state() = BackendState::Active;
+}
+
+void VulkanBackend::deactivate()
+{
+    this->state() = BackendState::Inactive;
+}
+
 Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
     return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const VulkanGraphicsAdapter*>>();

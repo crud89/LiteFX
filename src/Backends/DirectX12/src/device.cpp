@@ -28,7 +28,7 @@ public:
 	DirectX12DeviceImpl(DirectX12Device* parent, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
 		base(parent), m_adapter(adapter), m_surface(std::move(surface)), m_backend(backend), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
 	{
-		if (surface == nullptr)
+		if (m_surface == nullptr)
 			throw ArgumentNotInitializedException("The surface must be initialized.");
 
 		if (globalSamplerHeapSize > 2048)
