@@ -4,6 +4,7 @@
 // See: https://stackoverflow.com/a/22054743/1254352
 #pragma warning(disable: 4251)
 
+#include <array>
 #include <cassert>
 #include <algorithm>
 #include <string>
