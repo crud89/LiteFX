@@ -8,6 +8,7 @@
   "configurePresets": [
     {
       "name": "windows",
+      "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/../out/build/${presetName}",
       "installDir": "${sourceDir}/../out/install/${presetName}",
@@ -25,6 +26,7 @@
     },
     {
       "name": "windows-x64",
+      "hidden": true,
       "inherits": "windows",
       "architecture": {
         "value": "x64",
@@ -33,6 +35,7 @@
     },
     {
       "name": "windows-x86",
+      "hidden": true,
       "inherits": "windows",
       "architecture": {
         "value": "x86",
