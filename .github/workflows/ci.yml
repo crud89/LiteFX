@@ -79,16 +79,15 @@ jobs:
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v10
         with:
-          setupOnly: true
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
-          vcpkgTriplet: ${{ matrix.triplet }}
-          additionalCachedPaths: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
+          vcpkgJsonGlob: '**/vcpkg.json'
+          binaryCachePath: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
         uses: lukka/run-cmake@v10
         with:
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: "windows-x64-release"
           buildPreset: "release"
       
