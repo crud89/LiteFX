@@ -70,23 +70,18 @@ jobs:
           arch: x64
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v6
+        uses: lukka/run-vcpkg@v10
         with:
-          setupOnly: true
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
-          vcpkgTriplet: ${{ matrix.triplet }}
-          additionalCachedPaths: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
+          vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@v10
         with:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          configurationRegexFilter: '${{ matrix.configuration }}'
-          useVcpkgToolchainFile: false
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: "windows-x64-release"
+          buildPreset: "release"
           
       - name: Upload build artifacts
         if: ${{ github.event.inputs.uploadBuildArtifacts == 'true' }}

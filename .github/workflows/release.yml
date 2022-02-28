@@ -83,23 +83,18 @@ jobs:
           arch: ${{ matrix.architecture }}
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v6
+        uses: lukka/run-vcpkg@v10
         with:
-          setupOnly: true
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
-          vcpkgTriplet: ${{ matrix.triplet }}
-          additionalCachedPaths: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
+          vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Build with CMake and Ninja (Debug)
         id: build-with-cmake-debug
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@v10
         with:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          configurationRegexFilter: '${{ matrix.architecture }}-Debug'
-          useVcpkgToolchainFile: false
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: "${{ matrix.profile }}-debug"
+          buildPreset: "debug"
           
       - name: Upload build artifacts (Debug)
         uses: actions/upload-artifact@v2
@@ -110,18 +105,16 @@ jobs:
 
       - name: Install with CMake (Debug)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Debug'
+          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.profile }}-debug'
           cmake --install .
           
       - name: Build with CMake and Ninja (Release)
         id: build-with-cmake-release
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@v10
         with:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          configurationRegexFilter: '${{ matrix.architecture }}-Release'
-          useVcpkgToolchainFile: false
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: "${{ matrix.profile }}-release"
+          buildPreset: "release"
 
       - name: Upload build artifacts (Release)
         uses: actions/upload-artifact@v2
@@ -132,7 +125,7 @@ jobs:
 
       - name: Install with CMake (Release)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Release'
+          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.profile }}-release'
           cmake --install .
           
       - name: Sign binaries
