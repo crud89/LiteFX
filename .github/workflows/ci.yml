@@ -33,7 +33,7 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
-            configuration: x64-Release
+            configuration: windows-x64-release
 
     steps:
       - name: Checking out sources
@@ -48,9 +48,9 @@ jobs:
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
-          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
+          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/out/build/')
           Write-Output "::set-output name=buildPath::$($buildPath)"
-          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
+          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/out/install/')
           Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
@@ -79,17 +79,15 @@ jobs:
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v10
         with:
-          setupOnly: true
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
-          vcpkgTriplet: ${{ matrix.triplet }}
-          additionalCachedPaths: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
+          vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: "windows-x64-release"
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: "${{ matrix.configuration }}"
           buildPreset: "release"
       
       - name: Install with CMake
