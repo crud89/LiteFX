@@ -10,7 +10,7 @@ var class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_
     [ "Builder", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#ab7b00a24e167d2107b7d51ec8dae680a", null ],
     [ "~Builder", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a722a78fcdf391ad6529820117b84fff5", null ],
     [ "go", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a83f2c3cd787e21340818a6662258c727", null ],
-    [ "instance", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a07793bc17b147b0ea68e68d2265d25d5", null ],
-    [ "instance", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#abadd7e6e342d926ac8dbccdc8152b051", null ],
-    [ "use", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a06da6c920625d057da88eedd7faa242b", null ]
+    [ "instance", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#ad2c3d6ce6c4e897e33d22c402ffa7cb6", null ],
+    [ "instance", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#ac4dde661828cdd797a12c8ea071191d2", null ],
+    [ "use", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html#a222ce790fad7bfe3dc54439f34f5cb65", null ]
 ];
