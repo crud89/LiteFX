@@ -131,12 +131,20 @@ jobs:
           Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.profile }}-release'
           cmake --install .
           
-      - name: Sign binaries
+      - name: Sign binaries (Debug)
         uses: DanaBear/code-sign-action@v4
         with:
           certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
           password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          folder: '${{ steps.setup-environment.outputs.installPath }}bin/'
+          folder: '${{ steps.setup-environment.outputs.installPath }}/${{ matrix.profile }}-debug/bin/'
+          recursive: true
+
+      - name: Sign binaries (Release)
+        uses: DanaBear/code-sign-action@v4
+        with:
+          certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
+          password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
+          folder: '${{ steps.setup-environment.outputs.installPath }}/${{ matrix.profile }}-release/bin/'
           recursive: true
 
       - name: Upload install artifacts
