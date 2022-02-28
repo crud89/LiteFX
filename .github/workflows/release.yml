@@ -136,16 +136,14 @@ jobs:
         with:
           certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
           password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          certificatesha1: '${{ secrets.SIGN_CERTIFICATE_SHA1 }}'
-          certificatename: '${{ secrets.SIGN_CERTIFICATE_NAME }}'
-          folder: '${{ steps.setup-environment.outputs.buildPath }}install/bin/'
+          folder: '${{ steps.setup-environment.outputs.installPath }}bin/'
           recursive: true
 
       - name: Upload install artifacts
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.buildPath }}/install'
+          path: '${{ steps.setup-environment.outputs.installPath }}'
           if-no-files-found: error 
           
   publish:
