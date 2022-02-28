@@ -77,7 +77,7 @@ jobs:
           arch: x64
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v6
+        uses: lukka/run-vcpkg@v10
         with:
           setupOnly: true
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
@@ -87,13 +87,10 @@ jobs:
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@v10
         with:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          configurationRegexFilter: '${{ matrix.configuration }}'
-          useVcpkgToolchainFile: false
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
+          configurePreset: "windows-x64-release"
+          buildPreset: "release"
       
       - name: Install with CMake
         run: |
