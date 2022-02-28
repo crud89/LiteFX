@@ -81,7 +81,6 @@ jobs:
         with:
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
           vcpkgJsonGlob: '**/vcpkg.json'
-          binaryCachePath: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
