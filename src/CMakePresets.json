@@ -7,7 +7,7 @@
   },
   "configurePresets": [
     {
-      "name": "windows-x64",
+      "name": "windows",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/../out/build/${presetName}",
       "installDir": "${sourceDir}/../out/install/${presetName}",
@@ -17,14 +17,26 @@
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
       },
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
           "hostOS": [ "Windows" ]
         }
+      }
+    },
+    {
+      "name": "windows-x64",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      }
+    },
+    {
+      "name": "windows-x86",
+      "inherits": "windows",
+      "architecture": {
+        "value": "Win32",
+        "strategy": "external"
       }
     },
     {
@@ -39,6 +51,22 @@
       "name": "windows-x64-release",
       "displayName": "Windows x64 (Release)",
       "inherits": "windows-x64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-x86-debug",
+      "displayName": "Windows x86 (Debug)",
+      "inherits": "windows-x86",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "windows-x86-release",
+      "displayName": "Windows x86 (Release)",
+      "inherits": "windows-x86",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -64,23 +92,32 @@
   ],
   "buildPresets": [
     {
-      "name": "debug",
+      "name": "debug-x64",
       "configurePreset": "windows-x64-debug",
       "nativeToolOptions": [ "-v" ]
     },
     {
-      "name": "debug-vk",
+      "name": "debug-x86",
+      "configurePreset": "windows-x86-debug",
+      "nativeToolOptions": [ "-v" ]
+    },
+    {
+      "name": "debug-x64-vk",
       "configurePreset": "windows-x64-debug-vk-only",
       "nativeToolOptions": [ "-v" ]
     },
     {
-      "name": "debug-dx12",
+      "name": "debug-x64-dx12",
       "configurePreset": "windows-x64-debug-dx12-only",
       "nativeToolOptions": [ "-v" ]
     },
     {
-      "name": "release",
+      "name": "release-x64",
       "configurePreset": "windows-x64-release"
+    },
+    {
+      "name": "release-x86",
+      "configurePreset": "windows-x86-release"
     }
   ]
 }

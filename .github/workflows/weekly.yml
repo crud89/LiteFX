@@ -27,6 +27,7 @@ jobs:
           - os: windows-latest
             triplet: x64-windows
             configuration: windows-x64-release
+            architecture: x64
 
     steps:
       - name: Checking out sources
@@ -81,7 +82,7 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: "${{ matrix.configuration }}"
-          buildPreset: "release"
+          buildPreset: "release-${{ matrix.architecture }}"
           
       - name: Upload build artifacts
         if: ${{ github.event.inputs.uploadBuildArtifacts == 'true' }}

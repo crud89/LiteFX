@@ -94,7 +94,7 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: "${{ matrix.profile }}-debug"
-          buildPreset: "debug"
+          buildPreset: "debug-${{ matrix.architecture }}"
           
       - name: Upload build artifacts (Debug)
         uses: actions/upload-artifact@v2
@@ -114,7 +114,7 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: "${{ matrix.profile }}-release"
-          buildPreset: "release"
+          buildPreset: "release-${{ matrix.architecture }}"
 
       - name: Upload build artifacts (Release)
         uses: actions/upload-artifact@v2
