@@ -48,9 +48,9 @@ jobs:
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
-          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
+          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/out/build/')
           Write-Output "::set-output name=buildPath::$($buildPath)"
-          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
+          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/out/install/')
           Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
