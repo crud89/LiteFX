@@ -106,17 +106,38 @@ There are multiple ways of creating a build from scratch. In general, all *CMake
 Building from command line is the most straightforward way and is typically sufficient, if you only want to consume a fresh build.
 
 ```sh
-cmake src/ -B out/build/
-cmake --build out/build/ --target install --config Release
+cmake src/ --preset windows-x64
+cmake --build out/build/windows-x64/ --target install --config Release
 ```
 
 ##### Using Visual Studio
 
-From Visual Studio open the folder where you just checked out the contents of the repository. In the *Project Explorer* change the view to *CMake Targets*. Right click *LiteFX* and select *Install*.
+From Visual Studio open the folder where you just checked out the contents of the repository. In the *Project Explorer* change the view to *CMake Targets*. Right click *LiteFX* and select *Install*. Note that by default, builds from Visual Studio builds are always configured in *Debug* mode. If you want to create *Release* builds from Visual Studio, create a user preset and overwrite the `CMAKE_BUILD_TYPE` cache variable as described below.
 
 #### Build Customization
 
-You can customize the engine build, according to your specific needs. From Visual Studio, you can simply edit the `src/CMakeSettings.json` file to do this. The usual CMake process is similar. All customizable options have the `BUILD_` prefix and are described in detail below:
+You can customize the engine build, according to your specific needs. The most straightforward way is to use [*CMake presets*](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html). Create a file called *CMakeUserPresets.json* inside the *src/* directory and add the following content to it:
+
+```json
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "win-x64-custom-preset",
+      "inherits": "windows-x64",
+      "cacheVariables": {
+      }
+    }
+  ]
+}
+```
+
+Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `BUILD_` prefix and are described in detail below:
 
 - `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later to be installed on your system).
 - `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
@@ -126,7 +147,59 @@ You can customize the engine build, according to your specific needs. From Visua
 - `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
 - `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
 
+For example, if you only want to build the Vulkan backend and samples and don't want to use DirectX Math, a preset would look like this:
+
+```json
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "win-x64-vulkan-only",
+      "inherits": "windows-x64",
+      "cacheVariables": {
+        "BUILD_DX12_BACKEND": "OFF",
+        "BUILD_WITH_DIRECTX_MATH": "OFF"
+      }
+    }
+  ]
+}
+```
+
+You can build using this preset from command line like so:
+
+```sh
+cmake src/ --preset win-x64-vulkan-only
+cmake --build out/build/win-x64-vulkan-only/ --target install --config Release
+```
+
 † Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported. Note that both can be used for DirectX 12 and Vulkan.
+
+##### Custom Build Presets
+
+If you want to create release builds from Visual Studio (or any other IDE), you want to use Visual Studio to create *Release* builds, you have to create a custom build preset. The following example explicitly sets the build configuration to *Release* mode:
+
+```json
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "buildPresets": [
+    {
+      "name": "win-x64-release",
+      "configurePreset": "windows-x64",
+      "configuration": "Release"
+    }
+  ]
+}
+```
 
 ### Dependencies
 

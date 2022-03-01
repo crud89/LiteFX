@@ -57,10 +57,6 @@ jobs:
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
-          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/out/build/')
-          Write-Output "::set-output name=buildPath::$($buildPath)"
-          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/out/install/')
-          Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
       - name: Setup Vulkan SDK cache
@@ -83,7 +79,7 @@ jobs:
       - name: Setup MSVC CLI
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: ${{ matrix.architecture }}
+          arch: '${{ matrix.architecture }}'
 
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v10
@@ -96,19 +92,19 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: "${{ matrix.profile }}-debug"
-          buildPreset: "debug-${{ matrix.architecture }}"
+          configurePreset: '${{ matrix.profile }}'
+          buildPreset: 'debug-${{ matrix.profile }}'
           
       - name: Upload build artifacts (Debug)
         uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-dbg
-          path: '${{ steps.setup-environment.outputs.buildPath }}'
+          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}'
 
       - name: Install with CMake (Debug)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.profile }}-debug'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}'
           cmake --install .
           
       - name: Build with CMake and Ninja (Release)
@@ -116,42 +112,35 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: "${{ matrix.profile }}-release"
-          buildPreset: "release-${{ matrix.architecture }}"
+          configurePreset: '${{ matrix.profile }}'
+          buildPreset: 'release-${{ matrix.profile }}'
 
       - name: Upload build artifacts (Release)
         uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-rel
-          path: '${{ steps.setup-environment.outputs.buildPath }}'
+          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}'
 
       - name: Install with CMake (Release)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.profile }}-release'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}'
           cmake --install .
           
-      - name: Sign binaries (Debug)
+      # TODO: Check this, since it does not appear to work properly.
+      - name: Sign binaries
         uses: DanaBear/code-sign-action@v4
         with:
           certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
           password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          folder: '${{ steps.setup-environment.outputs.installPath }}/${{ matrix.profile }}-debug/bin/'
-          recursive: true
-
-      - name: Sign binaries (Release)
-        uses: DanaBear/code-sign-action@v4
-        with:
-          certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
-          password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          folder: '${{ steps.setup-environment.outputs.installPath }}/${{ matrix.profile }}-release/bin/'
+          folder: '${{ github.workspace }}/out/install/'
           recursive: true
 
       - name: Upload install artifacts
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.installPath }}'
+          Set-Location '${{ github.workspace }}/out/install/${{ matrix.profile }}'
           if-no-files-found: error 
           
   publish:

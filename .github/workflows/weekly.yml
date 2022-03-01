@@ -26,7 +26,7 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
-            configuration: windows-x64-release
+            configuration: windows-x64
             architecture: x64
 
     steps:
@@ -42,10 +42,6 @@ jobs:
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
-          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/out/build/')
-          Write-Output "::set-output name=buildPath::$($buildPath)"
-          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/out/install/')
-          Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
       - name: Setup Vulkan SDK cache
@@ -68,7 +64,7 @@ jobs:
       - name: Setup MSVC CLI
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: x64
+          arch: '${{ matrix.architecture }}'
 
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v10
@@ -81,23 +77,23 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: "${{ matrix.configuration }}"
-          buildPreset: "release-${{ matrix.architecture }}"
+          configurePreset: '${{ matrix.configuration }}'
+          buildPreset: 'release-${{ matrix.configuration }}'
           
       - name: Upload build artifacts
         if: ${{ github.event.inputs.uploadBuildArtifacts == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-build
-          path: '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
+          path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
           
       - name: Install with CMake
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
           cmake --install .
 
       - name: Upload install artifacts
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.installPath }}'
+          path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'
