@@ -140,7 +140,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          Set-Location '${{ github.workspace }}/out/install/${{ matrix.profile }}'
+          path: '${{ github.workspace }}/out/install/${{ matrix.profile }}'
           if-no-files-found: error 
           
   publish:
