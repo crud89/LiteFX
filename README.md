@@ -82,12 +82,13 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
-- [CMake](https://cmake.org/download/) (version 3.16 or higher).
+- [CMake](https://cmake.org/download/) (version 3.20 or higher). †
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later (required to build the Vulkan backend).
-- Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). †
+- Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
+† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using older Visual Studio versions, consider installing CMake manually.
+‡ Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
 #### Cloning the Repository
 
