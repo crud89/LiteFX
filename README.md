@@ -113,7 +113,7 @@ cmake --build out/build/windows-x64/ --target install --config Release
 
 ##### Using Visual Studio
 
-From Visual Studio open the folder where you just checked out the contents of the repository. In the *Project Explorer* change the view to *CMake Targets*. Right click *LiteFX* and select *Install*. Note that by default, builds from Visual Studio builds are always configured in *Debug* mode. If you want to create *Release* builds from Visual Studio, create a user preset and overwrite the `CMAKE_BUILD_TYPE` cache variable as described below.
+From Visual Studio open the folder where you just checked out the contents of the repository. In the *Project Explorer* change the view to *CMake Targets*. Right click *LiteFX* and select *Install*. Note that by default, builds from Visual Studio builds are always configured in *Debug* mode. If you want to create *Release* builds from Visual Studio, create a custom configure preset and overwrite the `CMAKE_BUILD_TYPE` cache variable or create a custom build preset as described below.
 
 #### Build Customization
 
