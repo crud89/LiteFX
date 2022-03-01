@@ -354,3 +354,6 @@ out/
 
 # SourceTrail outputs
 *.srctrl*
+
+# CMake user presets
+CMakeUserPresets.json
