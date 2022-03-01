@@ -4,7 +4,7 @@
 #####                                                                                         #####
 ###################################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
 PROJECT(LiteFX LANGUAGES CXX)
 
 # Check if the build dir does not match the source dir (disallow in-source builds).
