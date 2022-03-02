@@ -123,45 +123,45 @@ namespace LiteFX::Logging {
         virtual inline const String& getName() const noexcept;
 
     protected:
-        virtual void log(const LogLevel& level, const String& message);
+        virtual void log(const LogLevel& level, const String& message) const noexcept;
 
     public:
         template<typename ...TArgs>
-        inline void log(const LogLevel& level, const String& format, TArgs&&... args) {
-            this->log(level, fmt::format(format, std::forward<TArgs>(args)...));
+        inline void log(const LogLevel& level, const String& format, TArgs&&... args) const noexcept {
+            this->log(level, fmt::format(fmt::runtime(format), std::forward<TArgs>(args)...));
         }
 
         template<typename ...TArgs>
-        inline void trace(const String& format, TArgs&&... args) {
+        inline void trace(const String& format, TArgs&&... args) const noexcept {
 #ifndef NDEBUG
             this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
 #endif
         }
 
         template<typename ...TArgs>
-        inline void debug(const String& format, TArgs&&... args) {
+        inline void debug(const String& format, TArgs&&... args) const noexcept {
 #ifndef NDEBUG
             this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
 #endif
         }
 
         template<typename ...TArgs>
-        inline void info(const String& format, TArgs&&... args) {
+        inline void info(const String& format, TArgs&&... args) const noexcept {
             this->log(LogLevel::Info, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void warning(const String& format, TArgs&&... args) {
+        inline void warning(const String& format, TArgs&&... args) const noexcept {
             this->log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void error(const String& format, TArgs&&... args) {
+        inline void error(const String& format, TArgs&&... args) const noexcept {
             this->log(LogLevel::Error, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void fatal(const String& format, TArgs&&... args) {
+        inline void fatal(const String& format, TArgs&&... args) const noexcept {
             this->log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
         }
     };

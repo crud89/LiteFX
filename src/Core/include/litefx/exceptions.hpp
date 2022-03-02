@@ -37,11 +37,11 @@ namespace LiteFX {
 
 		template <typename ...TArgs>
 		explicit ExceptionBase(const std::string& format, TArgs&&... args) noexcept :
-			TBase(fmt::format("{0}: {1}", typeid(TException).name(), fmt::format(format, std::forward<TArgs>(args)...))) { }
+			TBase(fmt::format("{0}: {1}", typeid(TException).name(), fmt::format(fmt::runtime(format), std::forward<TArgs>(args)...))) { }
 
 		template <typename ...TArgs>
 		explicit ExceptionBase(Exception&& inner, const std::string& format, TArgs&&... args) noexcept :
-			TBase(fmt::format("{0}: {1}\r\n\t{2}", typeid(TException).name(), fmt::format(format, std::forward<TArgs>(args)...), inner.what())) { }
+			TBase(fmt::format("{0}: {1}\r\n\t{2}", typeid(TException).name(), fmt::format(fmt::runtime(format), std::forward<TArgs>(args)...), inner.what())) { }
 
 	public:
 		[[nodiscard]]

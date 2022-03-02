@@ -5,7 +5,7 @@
 template <>
 struct LITEFX_APPMODEL_API fmt::formatter<LiteFX::Platform> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(LiteFX::Platform t, FormatContext& ctx) {
+	auto format(LiteFX::Platform t, FormatContext& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
 		case LiteFX::Platform::Win32: name = "Win32"; break;
@@ -19,7 +19,7 @@ struct LITEFX_APPMODEL_API fmt::formatter<LiteFX::Platform> : formatter<string_v
 template <>
 struct LITEFX_APPMODEL_API fmt::formatter<LiteFX::BackendType> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(LiteFX::BackendType t, FormatContext& ctx) {
+	auto format(LiteFX::BackendType t, FormatContext& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
 		case LiteFX::BackendType::Rendering: name = "Rendering"; break;
