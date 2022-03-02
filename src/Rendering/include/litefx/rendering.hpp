@@ -4,7 +4,6 @@
 #include <litefx/math.hpp>
 #include <litefx/rendering_api.hpp>
 #include <litefx/rendering_formatters.hpp>
-#include <litefx/rendering.hpp>
 
 namespace LiteFX::Rendering {
     using namespace LiteFX;

@@ -331,6 +331,6 @@ namespace LiteFX::Rendering::Backends {
         if (result == VK_SUCCESS) [[likely]]
             return;
 
-        throw TException(VulkanPlatformException("Result: {0}", result), fmt::format(message, std::forward<TArgs>(args)...));
+        throw TException(VulkanPlatformException("Result: {0}", result), fmt::format(fmt::runtime(message), std::forward<TArgs>(args)...));
     }
 }

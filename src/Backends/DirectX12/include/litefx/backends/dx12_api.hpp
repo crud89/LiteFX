@@ -286,6 +286,6 @@ namespace LiteFX::Rendering::Backends {
         if (message.empty())
             throw TException(DX12PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()));
         else
-            throw TException(DX12PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()), fmt::format(message, std::forward<TArgs>(args)...));
+            throw TException(DX12PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()), fmt::format(fmt::runtime(message), std::forward<TArgs>(args)...));
     }
 }
