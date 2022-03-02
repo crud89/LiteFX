@@ -113,7 +113,7 @@ cmake --build out/build/windows-x64/ --target install --config Release
 
 ##### Using Visual Studio
 
-From Visual Studio open the folder where you just checked out the contents of the repository. In the *Project Explorer* change the view to *CMake Targets*. Right click *LiteFX* and select *Install*. Note that by default, builds from Visual Studio builds are always configured in *Debug* mode. If you want to create *Release* builds from Visual Studio, create a custom configure preset and overwrite the `CMAKE_BUILD_TYPE` cache variable or create a custom build preset as described below.
+From Visual Studio open the folder where you just checked out the contents of the repository. In the *Project Explorer* change the view to *CMake Targets*. Right click *LiteFX* and select *Install*.
 
 #### Build Customization
 
@@ -179,28 +179,6 @@ cmake --build out/build/win-x64-vulkan-only/ --target install --config Release
 ```
 
 † Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported. Note that both can be used for DirectX 12 and Vulkan.
-
-##### Custom Build Presets
-
-If you want to create release builds from Visual Studio (or any other IDE), you want to use Visual Studio to create *Release* builds, you have to create a custom build preset. The following example explicitly sets the build configuration to *Release* mode:
-
-```json
-{
-  "version": 2,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 20,
-    "patch": 0
-  },
-  "buildPresets": [
-    {
-      "name": "win-x64-release",
-      "configurePreset": "windows-x64",
-      "configuration": "Release"
-    }
-  ]
-}
-```
 
 ### Dependencies
 
