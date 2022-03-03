@@ -180,6 +180,10 @@ cmake --build out/build/win-x64-vulkan-only/ --target install --config Release
 
 † Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported. Note that both can be used for DirectX 12 and Vulkan.
 
+#### Troubleshooting
+
+If you are having problems building the project, you may find answers [in the wiki](https://github.com/crud89/LiteFX/wiki/Troubleshooting). Otherwise, feel free to start a [discussion](https://github.com/crud89/LiteFX/discussions/categories/q-a) or open an [issue](https://github.com/crud89/LiteFX/issues).
+
 ### Dependencies
 
 All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine only has two hard dependencies:
