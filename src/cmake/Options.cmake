@@ -13,10 +13,8 @@ OPTION(BUILD_EXAMPLES_DX12_PIX_LOADER "Add code to DirectX12 samples to load PIX
 OPTION(BUILD_WITH_GLM "Enables glm converters for math types." ON)
 OPTION(BUILD_WITH_DIRECTX_MATH "Enables DirectXMath converters for math types." ON)
 
-SET(BUILD_GLSLC_DIR $ENV{VULKAN_SDK}/bin CACHE STRING "A directory that contains the `glslc.exe` file.")
-SET(BUILD_GLSLC_COMPILER ${BUILD_GLSLC_DIR}/glslc)
-SET(BUILD_DXC_DIR $ENV{VULKAN_SDK}/bin CACHE STRING "A directory that contains the `dxc.exe` file.")
-SET(BUILD_DXC_COMPILER ${BUILD_DXC_DIR}/dxc)
+FIND_PROGRAM(BUILD_GLSLC_COMPILER glslc HINTS ENV VULKAN_SDK PATH_SUFFIXES bin DOC "The full path to the `glslc.exe` shader compiler binary.")
+FIND_PROGRAM(BUILD_DXC_COMPILER dxc HINTS ENV VULKAN_SDK PATH_SUFFIXES bin DOC "The full path to the `dxc.exe` shader compiler binary.")
 
 SET(BUILD_HLSL_SHADER_MODEL "6_3" CACHE STRING "Shader model version used to compile HLSL shaders.")
 
