@@ -84,7 +84,7 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.configuration }}'
+          configurePreset: '${{ matrix.configuration }}-release'
           buildPreset: 'release-${{ matrix.configuration }}'
           
       - name: Install with CMake

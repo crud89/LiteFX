@@ -92,7 +92,7 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.profile }}'
+          configurePreset: '${{ matrix.profile }}-debug'
           buildPreset: 'debug-${{ matrix.profile }}'
           
       - name: Upload build artifacts (Debug)
@@ -112,7 +112,7 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.profile }}'
+          configurePreset: '${{ matrix.profile }}-release'
           buildPreset: 'release-${{ matrix.profile }}'
 
       - name: Upload build artifacts (Release)

@@ -70,8 +70,7 @@
   "buildPresets": [
     {
       "name": "release-windows-x64",
-      "configurePreset": "windows-x64-release",
-      "configuration": "Release"
+      "configurePreset": "windows-x64-release"
     },
     {
       "name": "debug-windows-x64",
