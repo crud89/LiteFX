@@ -26,7 +26,7 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
-            configuration: windows-x64
+            configuration: windows-x64-release
             architecture: x64
 
     steps:
@@ -77,8 +77,8 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.configuration }}-release'
-          buildPreset: 'release-${{ matrix.configuration }}'
+          configurePreset: '${{ matrix.configuration }}'
+          buildPreset: '${{ matrix.configuration }}'
           
       - name: Upload build artifacts
         if: ${{ github.event.inputs.uploadBuildArtifacts == 'true' }}

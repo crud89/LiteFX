@@ -93,18 +93,18 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.profile }}-debug'
-          buildPreset: 'debug-${{ matrix.profile }}'
+          buildPreset: '{{ matrix.profile }}-debug'
           
       - name: Upload build artifacts (Debug)
         uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-dbg
-          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}'
+          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-debug'
 
       - name: Install with CMake (Debug)
         run: |
-          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-debug'
           cmake --install .
           
       - name: Build with CMake and Ninja (Release)
@@ -113,18 +113,18 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.profile }}-release'
-          buildPreset: 'release-${{ matrix.profile }}'
+          buildPreset: '${{ matrix.profile }}-release'
 
       - name: Upload build artifacts (Release)
         uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-rel
-          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}'
+          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
 
       - name: Install with CMake (Release)
         run: |
-          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
           cmake --install .
           
       # TODO: Check this, since it does not appear to work properly.
@@ -140,7 +140,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ github.workspace }}/out/install/${{ matrix.profile }}'
+          path: '${{ github.workspace }}/out/install/${{ matrix.profile }}-release'
           if-no-files-found: error 
           
   publish:
