@@ -9,7 +9,7 @@
     {
       "name": "windows",
       "hidden": true,
-      "generator": "Ninja Multi-Config",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/../out/build/${presetName}",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/../out/install/${presetName}",
@@ -23,42 +23,67 @@
       }
     },
     {
-      "name": "windows-x64",
+      "name": "windows-x64-debug",
       "inherits": "windows",
       "architecture": {
         "value": "x64",
         "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "windows-x86",
+      "name": "windows-x64-release",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-x86-debug",
       "inherits": "windows",
       "architecture": {
         "value": "x86",
         "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "windows-x86-release",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ],
   "buildPresets": [
     {
       "name": "release-windows-x64",
-      "configurePreset": "windows-x64",
+      "configurePreset": "windows-x64-release",
       "configuration": "Release"
     },
     {
       "name": "debug-windows-x64",
-      "configurePreset": "windows-x64",
-      "configuration": "Debug"
+      "configurePreset": "windows-x64-debug"
     },
     {
       "name": "release-windows-x86",
-      "configurePreset": "windows-x86",
-      "configuration": "Release"
+      "configurePreset": "windows-x86-release"
     },
     {
       "name": "debug-windows-x86",
-      "configurePreset": "windows-x86",
-      "configuration": "Debug"
+      "configurePreset": "windows-x86-debug"
     }
   ]
 }
