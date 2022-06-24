@@ -10,7 +10,7 @@ An extensible, descriptive, modern computer graphics and rendering engine, writt
 
 ## About
 
-LiteFX is a computer graphics engine, that can be used to quick-start developing applications using Vulkan 🌋 and/or DirectX 12 ❎ rendering APIs. It provides a flexible abstraction layer over modern graphics pipelines. Furthermore, it can easily be build and integrated using CMake. It naturally extents build scripts with functions that can be used to handle assets and compile shaders † and model dependencies to both.
+[LiteFX](https://litefx.crudolph.io) is a computer graphics engine, that can be used to quick-start developing applications using Vulkan 🌋 and/or DirectX 12 ❎ rendering APIs. It provides a flexible abstraction layer over modern graphics pipelines. Furthermore, it can easily be build and integrated using CMake. It naturally extents build scripts with functions that can be used to handle assets and compile shaders † and model dependencies to both.
 
 The engine design follows an descriptive approach, which means that an application focuses on configuring what it needs and the engine then takes care of handling those requirements. To support this, the API also provides a fluent interface. Here is an example of how to easily setup a render pass graphics pipeline with a few lines of code:
 
@@ -82,12 +82,13 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
-- [CMake](https://cmake.org/download/) (version 3.16 or higher).
+- [CMake](https://cmake.org/download/) (version 3.20 or higher). †
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later (required to build the Vulkan backend).
-- Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). †
+- Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-† Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
+† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using older Visual Studio versions, consider installing CMake manually.
+‡ Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
 #### Cloning the Repository
 
@@ -106,8 +107,8 @@ There are multiple ways of creating a build from scratch. In general, all *CMake
 Building from command line is the most straightforward way and is typically sufficient, if you only want to consume a fresh build.
 
 ```sh
-cmake src/ -B out/build/
-cmake --build out/build/ --target install --config Release
+cmake src/ --preset windows-x64
+cmake --build out/build/windows-x64/ --target install --config Release
 ```
 
 ##### Using Visual Studio
@@ -116,7 +117,28 @@ From Visual Studio open the folder where you just checked out the contents of th
 
 #### Build Customization
 
-You can customize the engine build, according to your specific needs. From Visual Studio, you can simply edit the `src/CMakeSettings.json` file to do this. The usual CMake process is similar. All customizable options have the `BUILD_` prefix and are described in detail below:
+You can customize the engine build, according to your specific needs. The most straightforward way is to use [*CMake presets*](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html). Create a file called *CMakeUserPresets.json* inside the *src/* directory and add the following content to it:
+
+```json
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "win-x64-custom-preset",
+      "inherits": "windows-x64",
+      "cacheVariables": {
+      }
+    }
+  ]
+}
+```
+
+Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `BUILD_` prefix and are described in detail below:
 
 - `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later to be installed on your system).
 - `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
@@ -126,7 +148,41 @@ You can customize the engine build, according to your specific needs. From Visua
 - `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
 - `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
 
+For example, if you only want to build the Vulkan backend and samples and don't want to use DirectX Math, a preset would look like this:
+
+```json
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "win-x64-vulkan-only",
+      "inherits": "windows-x64",
+      "cacheVariables": {
+        "BUILD_DX12_BACKEND": "OFF",
+        "BUILD_WITH_DIRECTX_MATH": "OFF"
+      }
+    }
+  ]
+}
+```
+
+You can build using this preset from command line like so:
+
+```sh
+cmake src/ --preset win-x64-vulkan-only
+cmake --build out/build/win-x64-vulkan-only/ --target install --config Release
+```
+
 † Note that *glm* and *DirectX Math* are installed using *vcpkg* automatically. If one of those options gets disabled, no converters will be generated and the dependency will not be exported. Note that both can be used for DirectX 12 and Vulkan.
+
+#### Troubleshooting
+
+If you are having problems building the project, you may find answers [in the wiki](https://github.com/crud89/LiteFX/wiki/Troubleshooting). Otherwise, feel free to start a [discussion](https://github.com/crud89/LiteFX/discussions/categories/q-a) or open an [issue](https://github.com/crud89/LiteFX/issues).
 
 ### Dependencies
 

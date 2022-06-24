@@ -4,6 +4,7 @@
 // See: https://stackoverflow.com/a/22054743/1254352
 #pragma warning(disable: 4251)
 
+#include <array>
 #include <cassert>
 #include <algorithm>
 #include <string>
@@ -315,7 +316,7 @@ namespace LiteFX {
 	public:
 		// TODO: Provide concept (`is_buildable<TBuilder>`)
 		template <typename TInstance>
-		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
+		void use(pointer_type&&) = delete;
 
 		//template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
 		//	std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible<TInstance, const T&, TArgs...>
@@ -364,7 +365,7 @@ namespace LiteFX {
 	public:
 		// TODO: Provide concept (`is_buildable<TBuilder>`)
 		template <typename TInstance>
-		void use(pointer_type&&) { static_assert(false, "The current builder does not provide an suitable overload of the `use` method for the type `TInstance`."); }
+		void use(pointer_type&&) = delete;
 
 		//template <rtti::has_builder TInstance, typename ...TArgs, std::enable_if_t<std::is_same_v<typename TInstance::builder::pointer_type, UniquePtr<TInstance>>, int> = 0, typename TBuilder = TInstance::builder> requires 
 		//	std::is_convertible_v<TDerived*, typename TBuilder::parent_type*> && rtti::is_explicitly_constructible_v<TInstance, const T&, TArgs...>

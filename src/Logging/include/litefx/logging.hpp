@@ -128,7 +128,7 @@ namespace LiteFX::Logging {
     public:
         template<typename ...TArgs>
         inline void log(const LogLevel& level, StringView format, TArgs&&... args) {
-            this->log(level, fmt::format(format, std::forward<TArgs>(args)...));
+            this->log(level, fmt::format(fmt::runtime(format), std::forward<TArgs>(args)...));
         }
 
         template<typename ...TArgs>

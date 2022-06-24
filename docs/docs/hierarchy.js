@@ -23,82 +23,83 @@ var hierarchy =
       [ "LiteFX::rtti::is_implicitly_constructible_t< T, TArg, TArgs >", "struct_lite_f_x_1_1rtti_1_1is__implicitly__constructible__t.html", null ]
     ] ],
     [ "LiteFX::Rendering::BufferAttribute", "class_lite_f_x_1_1_rendering_1_1_buffer_attribute.html", null ],
-    [ "LiteFX::Builder< TDerived, T, TParent, TPointer >", "class_lite_f_x_1_1_builder.html", [
-      [ "LiteFX::Rendering::ComputePipelineBuilder< VulkanComputePipelineBuilder, VulkanComputePipeline >", "class_lite_f_x_1_1_rendering_1_1_compute_pipeline_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanComputePipelineBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::ComputePipelineBuilder< DirectX12ComputePipelineBuilder, DirectX12ComputePipeline >", "class_lite_f_x_1_1_rendering_1_1_compute_pipeline_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12ComputePipelineBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::DescriptorSetLayoutBuilder< DirectX12RenderPipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12RenderPipelineDescriptorSetLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_descriptor_set_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::DescriptorSetLayoutBuilder< VulkanComputePipelineDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanComputePipelineDescriptorSetLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline_descriptor_set_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::DescriptorSetLayoutBuilder< VulkanRenderPipelineDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanRenderPipelineDescriptorSetLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_descriptor_set_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::DescriptorSetLayoutBuilder< DirectX12ComputePipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12ComputePipelineDescriptorSetLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_descriptor_set_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::InputAssemblerBuilder< VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_input_assembler_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanInputAssemblerBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_input_assembler_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::InputAssemblerBuilder< DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_input_assembler_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12InputAssemblerBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::PipelineLayoutBuilder< VulkanComputePipelineLayoutBuilder, VulkanPipelineLayout, VulkanComputePipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanComputePipelineLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::PipelineLayoutBuilder< VulkanRenderPipelineLayoutBuilder, VulkanPipelineLayout, VulkanRenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanRenderPipelineLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::PipelineLayoutBuilder< DirectX12RenderPipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12RenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12RenderPipelineLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::PipelineLayoutBuilder< DirectX12ComputePipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12ComputePipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12ComputePipelineLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::PushConstantsLayoutBuilder< DirectX12RenderPipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12RenderPipelinePushConstantsLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_push_constants_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::PushConstantsLayoutBuilder< VulkanRenderPipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanRenderPipelinePushConstantsLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_push_constants_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::PushConstantsLayoutBuilder< DirectX12ComputePipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12ComputePipelinePushConstantsLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_push_constants_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::PushConstantsLayoutBuilder< VulkanComputePipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanComputePipelinePushConstantsLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline_push_constants_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::RasterizerBuilder< DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_rasterizer_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12RasterizerBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_rasterizer_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::RasterizerBuilder< VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_rasterizer_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanRasterizerBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_rasterizer_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::RenderPassBuilder< DirectX12RenderPassBuilder, DirectX12RenderPass >", "class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12RenderPassBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::RenderPassBuilder< VulkanRenderPassBuilder, VulkanRenderPass >", "class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanRenderPassBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::RenderPipelineBuilder< VulkanRenderPipelineBuilder, VulkanRenderPipeline >", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanRenderPipelineBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::RenderPipelineBuilder< DirectX12RenderPipelineBuilder, DirectX12RenderPipeline >", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12RenderPipelineBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::VertexBufferLayoutBuilder< DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder >", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12VertexBufferLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_vertex_buffer_layout_builder.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::VertexBufferLayoutBuilder< VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder >", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer_layout_builder.html", [
-        [ "LiteFX::Rendering::Backends::VulkanVertexBufferLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer_layout_builder.html", null ]
-      ] ]
-    ] ],
+    [ "LiteFX::Builder< TDerived, T, TParent, TPointer >", "class_lite_f_x_1_1_builder.html", null ],
     [ "LiteFX::Builder< AppBuilder, App >", "class_lite_f_x_1_1_builder.html", [
       [ "LiteFX::AppBuilder", "class_lite_f_x_1_1_app_builder.html", null ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12ComputePipelineBuilder, DirectX12ComputePipeline >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::ComputePipelineBuilder< DirectX12ComputePipelineBuilder, DirectX12ComputePipeline >", "class_lite_f_x_1_1_rendering_1_1_compute_pipeline_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12ComputePipelineBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12ComputePipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::DescriptorSetLayoutBuilder< DirectX12ComputePipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12ComputePipelineDescriptorSetLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_descriptor_set_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12ComputePipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12ComputePipelineBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::PipelineLayoutBuilder< DirectX12ComputePipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12ComputePipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12ComputePipelineLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12ComputePipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::PushConstantsLayoutBuilder< DirectX12ComputePipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12ComputePipelinePushConstantsLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_push_constants_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12ComputeShaderProgramBuilder, DirectX12ShaderProgram, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::ShaderProgramBuilder< DirectX12ComputeShaderProgramBuilder, DirectX12ShaderProgram, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html", [
+        [ "LiteFX::Rendering::ComputeShaderProgramBuilder< DirectX12ComputeShaderProgramBuilder, DirectX12ShaderProgram, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_compute_shader_program_builder.html", [
+          [ "LiteFX::Rendering::Backends::DirectX12ComputeShaderProgramBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_shader_program_builder.html", null ]
+        ] ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12GraphicsShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::ShaderProgramBuilder< DirectX12GraphicsShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html", [
+        [ "LiteFX::Rendering::GraphicsShaderProgramBuilder< DirectX12GraphicsShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_graphics_shader_program_builder.html", [
+          [ "LiteFX::Rendering::Backends::DirectX12GraphicsShaderProgramBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_shader_program_builder.html", null ]
+        ] ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder, SharedPtr< DirectX12InputAssembler > >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::InputAssemblerBuilder< DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_input_assembler_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12InputAssemblerBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_input_assembler_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder, SharedPtr< DirectX12Rasterizer > >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::RasterizerBuilder< DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_rasterizer_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12RasterizerBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_rasterizer_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12RenderPassBuilder, DirectX12RenderPass >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::RenderPassBuilder< DirectX12RenderPassBuilder, DirectX12RenderPass >", "class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12RenderPassBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12RenderPipelineBuilder, DirectX12RenderPipeline >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::RenderPipelineBuilder< DirectX12RenderPipelineBuilder, DirectX12RenderPipeline >", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12RenderPipelineBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12RenderPipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::DescriptorSetLayoutBuilder< DirectX12RenderPipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12RenderPipelineDescriptorSetLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_descriptor_set_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12RenderPipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12RenderPipelineBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::PipelineLayoutBuilder< DirectX12RenderPipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12RenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12RenderPipelineLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12RenderPipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::PushConstantsLayoutBuilder< DirectX12RenderPipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12RenderPipelinePushConstantsLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_push_constants_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::VertexBufferLayoutBuilder< DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder >", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12VertexBufferLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_vertex_buffer_layout_builder.html", null ]
+      ] ]
     ] ],
     [ "LiteFX::Builder< TDerived, T, std::nullptr_t, typename TPointer >", "class_lite_f_x_1_1_builder_3_01_t_derived_00_01_t_00_01std_1_1nullptr__t_00_01typename_01_t_pointer_01_4.html", null ],
     [ "LiteFX::Builder< TDerived, TComputePipeline >", "class_lite_f_x_1_1_builder.html", [
@@ -127,24 +128,86 @@ var hierarchy =
     ] ],
     [ "LiteFX::Builder< TDerived, TShaderProgram, TParent >", "class_lite_f_x_1_1_builder.html", [
       [ "LiteFX::Rendering::ShaderProgramBuilder< TDerived, TShaderProgram, TParent, TShaderModule >", "class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html", [
-        [ "LiteFX::Rendering::ComputeShaderProgramBuilder< DirectX12ComputeShaderProgramBuilder, DirectX12ShaderProgram, DirectX12ComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_compute_shader_program_builder.html", [
-          [ "LiteFX::Rendering::Backends::DirectX12ComputeShaderProgramBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_shader_program_builder.html", null ]
-        ] ],
-        [ "LiteFX::Rendering::ComputeShaderProgramBuilder< VulkanComputeShaderProgramBuilder, VulkanShaderProgram, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_compute_shader_program_builder.html", [
-          [ "LiteFX::Rendering::Backends::VulkanComputeShaderProgramBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_shader_program_builder.html", null ]
-        ] ],
-        [ "LiteFX::Rendering::GraphicsShaderProgramBuilder< DirectX12GraphicsShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_graphics_shader_program_builder.html", [
-          [ "LiteFX::Rendering::Backends::DirectX12GraphicsShaderProgramBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_shader_program_builder.html", null ]
-        ] ],
-        [ "LiteFX::Rendering::GraphicsShaderProgramBuilder< VulkanGraphicsShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_graphics_shader_program_builder.html", [
-          [ "LiteFX::Rendering::Backends::VulkanGraphicsShaderProgramBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_shader_program_builder.html", null ]
-        ] ],
         [ "LiteFX::Rendering::ComputeShaderProgramBuilder< TDerived, TShaderProgram, TParent >", "class_lite_f_x_1_1_rendering_1_1_compute_shader_program_builder.html", null ],
         [ "LiteFX::Rendering::GraphicsShaderProgramBuilder< TDerived, TShaderProgram, TParent >", "class_lite_f_x_1_1_rendering_1_1_graphics_shader_program_builder.html", null ]
       ] ]
     ] ],
     [ "LiteFX::Builder< TDerived, TVertexBufferLayout, TParent >", "class_lite_f_x_1_1_builder.html", [
       [ "LiteFX::Rendering::VertexBufferLayoutBuilder< TDerived, TVertexBufferLayout, TParent >", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer_layout_builder.html", null ]
+    ] ],
+    [ "LiteFX::Builder< VulkanComputePipelineBuilder, VulkanComputePipeline >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::ComputePipelineBuilder< VulkanComputePipelineBuilder, VulkanComputePipeline >", "class_lite_f_x_1_1_rendering_1_1_compute_pipeline_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanComputePipelineBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanComputePipelineDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::DescriptorSetLayoutBuilder< VulkanComputePipelineDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanComputePipelineDescriptorSetLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline_descriptor_set_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanComputePipelineLayoutBuilder, VulkanPipelineLayout, VulkanComputePipelineBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::PipelineLayoutBuilder< VulkanComputePipelineLayoutBuilder, VulkanPipelineLayout, VulkanComputePipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanComputePipelineLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanComputePipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::PushConstantsLayoutBuilder< VulkanComputePipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanComputePipelinePushConstantsLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_pipeline_push_constants_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanComputeShaderProgramBuilder, VulkanShaderProgram, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::ShaderProgramBuilder< VulkanComputeShaderProgramBuilder, VulkanShaderProgram, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html", [
+        [ "LiteFX::Rendering::ComputeShaderProgramBuilder< VulkanComputeShaderProgramBuilder, VulkanShaderProgram, VulkanComputePipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_compute_shader_program_builder.html", [
+          [ "LiteFX::Rendering::Backends::VulkanComputeShaderProgramBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_compute_shader_program_builder.html", null ]
+        ] ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanGraphicsShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::ShaderProgramBuilder< VulkanGraphicsShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_shader_program_builder.html", [
+        [ "LiteFX::Rendering::GraphicsShaderProgramBuilder< VulkanGraphicsShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_graphics_shader_program_builder.html", [
+          [ "LiteFX::Rendering::Backends::VulkanGraphicsShaderProgramBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_shader_program_builder.html", null ]
+        ] ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder, SharedPtr< VulkanInputAssembler > >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::InputAssemblerBuilder< VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_input_assembler_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanInputAssemblerBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_input_assembler_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder, SharedPtr< VulkanRasterizer > >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::RasterizerBuilder< VulkanRasterizerBuilder, VulkanRasterizer, VulkanRenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_rasterizer_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanRasterizerBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_rasterizer_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanRenderPassBuilder, VulkanRenderPass >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::RenderPassBuilder< VulkanRenderPassBuilder, VulkanRenderPass >", "class_lite_f_x_1_1_rendering_1_1_render_pass_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanRenderPassBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanRenderPipelineBuilder, VulkanRenderPipeline >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::RenderPipelineBuilder< VulkanRenderPipelineBuilder, VulkanRenderPipeline >", "class_lite_f_x_1_1_rendering_1_1_render_pipeline_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanRenderPipelineBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanRenderPipelineDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::DescriptorSetLayoutBuilder< VulkanRenderPipelineDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_descriptor_set_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanRenderPipelineDescriptorSetLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_descriptor_set_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanRenderPipelineLayoutBuilder, VulkanPipelineLayout, VulkanRenderPipelineBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::PipelineLayoutBuilder< VulkanRenderPipelineLayoutBuilder, VulkanPipelineLayout, VulkanRenderPipelineBuilder >", "class_lite_f_x_1_1_rendering_1_1_pipeline_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanRenderPipelineLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanRenderPipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::PushConstantsLayoutBuilder< VulkanRenderPipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanRenderPipelineLayoutBuilder >", "class_lite_f_x_1_1_rendering_1_1_push_constants_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanRenderPipelinePushConstantsLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pipeline_push_constants_layout_builder.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::Builder< VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder >", "class_lite_f_x_1_1_builder.html", [
+      [ "LiteFX::Rendering::VertexBufferLayoutBuilder< VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder >", "class_lite_f_x_1_1_rendering_1_1_vertex_buffer_layout_builder.html", [
+        [ "LiteFX::Rendering::Backends::VulkanVertexBufferLayoutBuilder", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer_layout_builder.html", null ]
+      ] ]
     ] ],
     [ "CameraBuffer", "struct_camera_buffer.html", null ],
     [ "LiteFX::Rendering::Backends::D3D12MADeleter", "struct_lite_f_x_1_1_rendering_1_1_backends_1_1_d3_d12_m_a_deleter.html", null ],
@@ -270,11 +333,11 @@ var hierarchy =
     ] ],
     [ "GlfwWindowDeleter", "struct_glfw_window_deleter.html", null ],
     [ "LiteFX::IBackend", "class_lite_f_x_1_1_i_backend.html", [
-      [ "LiteFX::Rendering::IRenderBackend< VulkanDevice >", "class_lite_f_x_1_1_rendering_1_1_i_render_backend.html", [
-        [ "LiteFX::Rendering::Backends::VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html", null ]
-      ] ],
       [ "LiteFX::Rendering::IRenderBackend< DirectX12Device >", "class_lite_f_x_1_1_rendering_1_1_i_render_backend.html", [
         [ "LiteFX::Rendering::Backends::DirectX12Backend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_backend.html", null ]
+      ] ],
+      [ "LiteFX::Rendering::IRenderBackend< VulkanDevice >", "class_lite_f_x_1_1_rendering_1_1_i_render_backend.html", [
+        [ "LiteFX::Rendering::Backends::VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html", null ]
       ] ],
       [ "LiteFX::Rendering::IRenderBackend< TGraphicsDevice, TGraphicsAdapter, TSurface, TSwapChain, TFrameBuffer, TCommandQueue, TFactory, TRenderPass >", "class_lite_f_x_1_1_rendering_1_1_i_render_backend.html", null ]
     ] ],
@@ -329,24 +392,24 @@ var hierarchy =
     ] ],
     [ "LiteFX::Rendering::IDeviceMemory", "class_lite_f_x_1_1_rendering_1_1_i_device_memory.html", [
       [ "LiteFX::Rendering::IBuffer", "class_lite_f_x_1_1_rendering_1_1_i_buffer.html", [
-        [ "LiteFX::Rendering::IIndexBuffer< VulkanIndexBufferLayout >", "class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html", [
-          [ "LiteFX::Rendering::Backends::IVulkanIndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_index_buffer.html", [
-            [ "LiteFX::Rendering::Backends::VulkanIndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_index_buffer.html", null ]
-          ] ]
-        ] ],
         [ "LiteFX::Rendering::IIndexBuffer< DirectX12IndexBufferLayout >", "class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html", [
           [ "LiteFX::Rendering::Backends::IDirectX12IndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_index_buffer.html", [
             [ "LiteFX::Rendering::Backends::DirectX12IndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html", null ]
           ] ]
         ] ],
-        [ "LiteFX::Rendering::IVertexBuffer< VulkanVertexBufferLayout >", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html", [
-          [ "LiteFX::Rendering::Backends::IVulkanVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_vertex_buffer.html", [
-            [ "LiteFX::Rendering::Backends::VulkanVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer.html", null ]
+        [ "LiteFX::Rendering::IIndexBuffer< VulkanIndexBufferLayout >", "class_lite_f_x_1_1_rendering_1_1_i_index_buffer.html", [
+          [ "LiteFX::Rendering::Backends::IVulkanIndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_index_buffer.html", [
+            [ "LiteFX::Rendering::Backends::VulkanIndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_index_buffer.html", null ]
           ] ]
         ] ],
         [ "LiteFX::Rendering::IVertexBuffer< DirectX12VertexBufferLayout >", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html", [
           [ "LiteFX::Rendering::Backends::IDirectX12VertexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_vertex_buffer.html", [
             [ "LiteFX::Rendering::Backends::DirectX12VertexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_vertex_buffer.html", null ]
+          ] ]
+        ] ],
+        [ "LiteFX::Rendering::IVertexBuffer< VulkanVertexBufferLayout >", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html", [
+          [ "LiteFX::Rendering::Backends::IVulkanVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_vertex_buffer.html", [
+            [ "LiteFX::Rendering::Backends::VulkanVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_vertex_buffer.html", null ]
           ] ]
         ] ],
         [ "LiteFX::Rendering::Backends::IDirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html", [
@@ -414,13 +477,17 @@ var hierarchy =
       [ "LiteFX::Rendering::Backends::VulkanInputAttachmentMapping", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_input_attachment_mapping.html", null ]
     ] ],
     [ "LiteFX::Rendering::IInputAttachmentMappingSource< TFrameBuffer, TCommandBuffer >", "class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html", [
+      [ "LiteFX::Rendering::IRenderPass< TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer >", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html", null ]
+    ] ],
+    [ "LiteFX::Rendering::IInputAttachmentMappingSource< DirectX12FrameBuffer >", "class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html", [
       [ "LiteFX::Rendering::IRenderPass< DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping >", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html", [
         [ "LiteFX::Rendering::Backends::DirectX12RenderPass", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pass.html", null ]
-      ] ],
+      ] ]
+    ] ],
+    [ "LiteFX::Rendering::IInputAttachmentMappingSource< VulkanFrameBuffer >", "class_lite_f_x_1_1_rendering_1_1_i_input_attachment_mapping_source.html", [
       [ "LiteFX::Rendering::IRenderPass< VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping >", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html", [
         [ "LiteFX::Rendering::Backends::VulkanRenderPass", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html", null ]
-      ] ],
-      [ "LiteFX::Rendering::IRenderPass< TRenderPipeline, TFrameBuffer, TInputAttachmentMapping, TPipelineLayout, TDescriptorSet, TCommandBuffer >", "class_lite_f_x_1_1_rendering_1_1_i_render_pass.html", null ]
+      ] ]
     ] ],
     [ "LiteFX::Rendering::IMappable", "class_lite_f_x_1_1_rendering_1_1_i_mappable.html", [
       [ "LiteFX::Rendering::IBuffer", "class_lite_f_x_1_1_rendering_1_1_i_buffer.html", null ]
@@ -770,51 +837,6 @@ var hierarchy =
       [ "LiteFX::Rendering::RenderTarget", "class_lite_f_x_1_1_rendering_1_1_render_target.html", null ]
     ] ],
     [ "LiteFX::IResource< THandle >", "class_lite_f_x_1_1_i_resource.html", [
-      [ "LiteFX::Resource< VkPipelineLayout >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanPipelineLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_layout.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkDescriptorSetLayout >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanDescriptorSetLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkPipeline >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanPipelineState", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkDescriptorSet >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanDescriptorSet", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkFramebuffer >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkInstance >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html", null ]
-      ] ],
-      [ "LiteFX::Resource< HWND >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::DirectX12Surface", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_surface.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkQueue >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanQueue", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkSwapchainKHR >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanSwapChain", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkCommandBuffer >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkSurfaceKHR >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanSurface", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_surface.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkShaderModule >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanShaderModule", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_module.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkDevice >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanDevice", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkPhysicalDevice >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanGraphicsAdapter", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_adapter.html", null ]
-      ] ],
-      [ "LiteFX::Resource< VkRenderPass >", "class_lite_f_x_1_1_resource.html", [
-        [ "LiteFX::Rendering::Backends::VulkanRenderPass", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html", null ]
-      ] ],
       [ "LiteFX::Resource< THandle >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::DirectX12Backend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_backend.html", null ],
         [ "LiteFX::Rendering::Backends::DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html", null ],
@@ -833,11 +855,41 @@ var hierarchy =
       [ "LiteFX::Rendering::Backends::IDirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_buffer.html", null ],
       [ "LiteFX::Rendering::Backends::IDirectX12Image", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_direct_x12_image.html", null ]
     ] ],
+    [ "LiteFX::IResource< HWND >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< HWND >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::DirectX12Surface", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_surface.html", null ]
+      ] ]
+    ] ],
     [ "LiteFX::IResource< VkBuffer >", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkBuffer >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html", null ]
       ] ],
       [ "LiteFX::Rendering::Backends::IVulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_buffer.html", null ]
+    ] ],
+    [ "LiteFX::IResource< VkCommandBuffer >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkCommandBuffer >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_command_buffer.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkDescriptorSet >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkDescriptorSet >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanDescriptorSet", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkDescriptorSetLayout >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkDescriptorSetLayout >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanDescriptorSetLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkDevice >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkDevice >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanDevice", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_device.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkFramebuffer >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkFramebuffer >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_frame_buffer.html", null ]
+      ] ]
     ] ],
     [ "LiteFX::IResource< VkImage >", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkImage >", "class_lite_f_x_1_1_resource.html", [
@@ -845,12 +897,57 @@ var hierarchy =
       ] ],
       [ "LiteFX::Rendering::Backends::IVulkanImage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_image.html", null ]
     ] ],
+    [ "LiteFX::IResource< VkInstance >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkInstance >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanBackend", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkPhysicalDevice >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkPhysicalDevice >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanGraphicsAdapter", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_graphics_adapter.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkPipeline >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkPipeline >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanPipelineState", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_state.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkPipelineLayout >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkPipelineLayout >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanPipelineLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_pipeline_layout.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkQueue >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkQueue >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanQueue", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkRenderPass >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkRenderPass >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanRenderPass", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html", null ]
+      ] ]
+    ] ],
     [ "LiteFX::IResource< VkSampler >", "class_lite_f_x_1_1_i_resource.html", [
       [ "LiteFX::Resource< VkSampler >", "class_lite_f_x_1_1_resource.html", [
         [ "LiteFX::Rendering::Backends::VulkanSampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_sampler.html", null ]
       ] ],
       [ "LiteFX::Rendering::Backends::IVulkanSampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_i_vulkan_sampler.html", [
         [ "LiteFX::Rendering::Backends::VulkanSampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_sampler.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkShaderModule >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkShaderModule >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanShaderModule", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_module.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkSurfaceKHR >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkSurfaceKHR >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanSurface", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_surface.html", null ]
+      ] ]
+    ] ],
+    [ "LiteFX::IResource< VkSwapchainKHR >", "class_lite_f_x_1_1_i_resource.html", [
+      [ "LiteFX::Resource< VkSwapchainKHR >", "class_lite_f_x_1_1_resource.html", [
+        [ "LiteFX::Rendering::Backends::VulkanSwapChain", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html", null ]
       ] ]
     ] ],
     [ "LiteFX::Rendering::ISampler", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html", [

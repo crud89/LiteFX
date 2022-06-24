@@ -33,7 +33,8 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
-            configuration: x64-Release
+            configuration: windows-x64-release
+            architecture: x64
 
     steps:
       - name: Checking out sources
@@ -48,10 +49,6 @@ jobs:
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
-          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
-          Write-Output "::set-output name=buildPath::$($buildPath)"
-          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
-          Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
       - name: Setup Vulkan SDK cache
@@ -74,30 +71,25 @@ jobs:
       - name: Setup MSVC CLI
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: x64
+          arch: '${{ matrix.architecture }}'
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v6
+        uses: lukka/run-vcpkg@v10
         with:
-          setupOnly: true
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
-          vcpkgTriplet: ${{ matrix.triplet }}
-          additionalCachedPaths: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
+          vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@v10
         with:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          configurationRegexFilter: '${{ matrix.configuration }}'
-          useVcpkgToolchainFile: false
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
-      
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: '${{ matrix.configuration }}'
+          buildPreset: '${{ matrix.configuration }}'
+          
       - name: Install with CMake
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.configuration }}'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
           cmake --install .
 
       - name: Upload install artifacts
@@ -105,4 +97,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.buildPath }}/install'
+          path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'

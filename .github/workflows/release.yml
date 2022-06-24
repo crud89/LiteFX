@@ -36,6 +36,9 @@ jobs:
             triplet: x86-windows
             architecture: x86
 
+    env:
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+
     steps:
       - name: Checking out sources
         uses: actions/checkout@master
@@ -54,10 +57,6 @@ jobs:
           $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
           echo "Installing Vulkan SDK to: $($vulkanDir)..."
           echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
-          $buildPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/build/')
-          Write-Output "::set-output name=buildPath::$($buildPath)"
-          $installPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('${{ github.workspace }}/../out/install/')
-          Write-Output "::set-output name=installPath::$($installPath)"
           New-Item -ItemType directory -Path $vulkanDir
 
       - name: Setup Vulkan SDK cache
@@ -80,76 +79,68 @@ jobs:
       - name: Setup MSVC CLI
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: ${{ matrix.architecture }}
+          arch: '${{ matrix.architecture }}'
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v6
+        uses: lukka/run-vcpkg@v10
         with:
-          setupOnly: true
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
-          vcpkgTriplet: ${{ matrix.triplet }}
-          additionalCachedPaths: ${{ steps.setup-environment.outputs.buildPath }}/vcpkg_installed
+          vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Build with CMake and Ninja (Debug)
         id: build-with-cmake-debug
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@v10
         with:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          configurationRegexFilter: '${{ matrix.architecture }}-Debug'
-          useVcpkgToolchainFile: false
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: '${{ matrix.profile }}-debug'
+          buildPreset: '{{ matrix.profile }}-debug'
           
       - name: Upload build artifacts (Debug)
         uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-dbg
-          path: '${{ steps.setup-environment.outputs.buildPath }}'
+          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-debug'
 
       - name: Install with CMake (Debug)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Debug'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-debug'
           cmake --install .
           
       - name: Build with CMake and Ninja (Release)
         id: build-with-cmake-release
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@v10
         with:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '${{ github.workspace }}/src/CMakeSettings.json'
-          configurationRegexFilter: '${{ matrix.architecture }}-Release'
-          useVcpkgToolchainFile: false
-          buildDirectory: '${{ steps.setup-environment.outputs.buildPath }}'
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: '${{ matrix.profile }}-release'
+          buildPreset: '${{ matrix.profile }}-release'
 
       - name: Upload build artifacts (Release)
         uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-rel
-          path: '${{ steps.setup-environment.outputs.buildPath }}'
+          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
 
       - name: Install with CMake (Release)
         run: |
-          Set-Location '${{ steps.setup-environment.outputs.buildPath }}/${{ matrix.architecture }}-Release'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
           cmake --install .
           
+      # TODO: Check this, since it does not appear to work properly.
       - name: Sign binaries
         uses: DanaBear/code-sign-action@v4
         with:
           certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
           password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          certificatesha1: '${{ secrets.SIGN_CERTIFICATE_SHA1 }}'
-          certificatename: '${{ secrets.SIGN_CERTIFICATE_NAME }}'
-          folder: '${{ steps.setup-environment.outputs.buildPath }}install/bin/'
+          folder: '${{ github.workspace }}/out/install/'
           recursive: true
 
       - name: Upload install artifacts
         uses: actions/upload-artifact@v2
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ steps.setup-environment.outputs.buildPath }}/install'
+          path: '${{ github.workspace }}/out/install/${{ matrix.profile }}-release'
           if-no-files-found: error 
           
   publish:

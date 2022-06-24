@@ -7,7 +7,8 @@ var indexSectionsWithContent =
   4: "abcdefhimnoprstvw",
   5: "abcdefhiopqrstuvw",
   6: "abcdlmrsv",
-  7: "lpq"
+  7: "lpq",
+  8: "l"
 };
 
 var indexSectionNames =
@@ -19,7 +20,8 @@ var indexSectionNames =
   4: "variables",
   5: "typedefs",
   6: "related",
-  7: "pages"
+  7: "pages",
+  8: "concepts"
 };
 
 var indexSectionLabels =
@@ -31,6 +33,7 @@ var indexSectionLabels =
   4: "Variables",
   5: "Typedefs",
   6: "Friends",
-  7: "Pages"
+  7: "Pages",
+  8: "Concepts"
 };
 

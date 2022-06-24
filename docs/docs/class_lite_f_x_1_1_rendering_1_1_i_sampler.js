@@ -1,14 +1,14 @@
 var class_lite_f_x_1_1_rendering_1_1_i_sampler =
 [
     [ "~ISampler", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#aa62c51714b0c8912497ae51d9111585f", null ],
-    [ "getAnisotropy", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a0eabd1fce7be66b7609ef2ac923a7123", null ],
-    [ "getBorderModeU", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#ac396116fa02074d2fca6ea46b8b15f05", null ],
-    [ "getBorderModeV", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a27cbc801ffdbb4b762259cbd18de1c8e", null ],
-    [ "getBorderModeW", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a2740903e6ed3242718b1f37988a3104d", null ],
-    [ "getMagnifyingFilter", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#adaa5b7299f9d56c5079148b7b36d6884", null ],
-    [ "getMaxLOD", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#af7c79ab1a60bcda6b43c8e82d7a1d867", null ],
-    [ "getMinifyingFilter", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#aede0ac08b57767af111c374b5586c8f3", null ],
-    [ "getMinLOD", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a0860462a398255d1198e2bced1395ce2", null ],
-    [ "getMipMapBias", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#adecb15b1900de0cf25715d494494d5c1", null ],
-    [ "getMipMapMode", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a04dfc6c3a3cf66d1e7f69e35801f2366", null ]
+    [ "getAnisotropy", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a87472971150e2a8963dd4593f801bbc7", null ],
+    [ "getBorderModeU", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#abeefc47835768061b4a03300df15eca2", null ],
+    [ "getBorderModeV", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#aaafadbec54ff2fac8df297a001a88917", null ],
+    [ "getBorderModeW", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a9d72b0101a060e2acf1300106abb1d8e", null ],
+    [ "getMagnifyingFilter", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#ad1e76cd5d6b2d466baeb17edac00b54b", null ],
+    [ "getMaxLOD", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#aa355f0abe1617cb9ab061b8994e5c13b", null ],
+    [ "getMinifyingFilter", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#ae28707137f6c87921567d3bbaa9e693f", null ],
+    [ "getMinLOD", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a46427fa966846f67628ed57570fd77b3", null ],
+    [ "getMipMapBias", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#a3c80da5d4c1cfca685d385ffe2919c01", null ],
+    [ "getMipMapMode", "class_lite_f_x_1_1_rendering_1_1_i_sampler.html#ab6d343a479770fcdc19379e0dde26f1e", null ]
 ];

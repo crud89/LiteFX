@@ -1,4 +1,5 @@
 #include <litefx/rendering_api.hpp>
+#include <litefx/rendering_formatters.hpp>
 
 using namespace LiteFX::Rendering;
 

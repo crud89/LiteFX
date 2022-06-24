@@ -126,6 +126,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x hlsl -fshader_stage=${SHADER_STAGE} ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      DEPENDS ${SHADER_SOURCES}
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -162,10 +163,6 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 
     SET(compiler_options "")
-
-    IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-      LIST(APPEND compiler_options -Zi)
-    ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     
     IF(${compile_as} STREQUAL "SPIRV")
       LIST(APPEND compiler_options -D SPIRV)
@@ -182,7 +179,8 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
       ADD_CUSTOM_COMMAND(TARGET ${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" ${compiler_options} ${shader_source}
+        COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} ${shader_source}
+        DEPENDS ${SHADER_SOURCES}
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -194,12 +192,6 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     ELSEIF(${compile_as} STREQUAL "DXIL")
       LIST(APPEND compiler_options -D DXIL)
       
-      IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        LIST(APPEND compiler_options -Qembed_debug)
-      ELSE()
-        LIST(APPEND compiler_options -Qstrip_debug)
-      ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-      
       ADD_CUSTOM_TARGET(${target_name} 
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
         COMMENT "dxc: compiling hlsl shader '${shader_source}' (profile: ${SHADER_PROFILE}) to DXIL..."
@@ -208,7 +200,8 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
       ADD_CUSTOM_COMMAND(TARGET ${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" ${compiler_options} ${shader_source}
+        COMMAND ${BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source}
+        DEPENDS ${SHADER_SOURCES}
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -281,6 +274,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMAND ${BUILD_GLSLC_COMPILER} -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      DEPENDS ${SHADER_SOURCES}
     )
     
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 

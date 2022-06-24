@@ -196,7 +196,7 @@ struct fmt::formatter<LiteFX::AppVersion> {
 	template <typename FormatContext>
 	auto format(const LiteFX::AppVersion& app, FormatContext& ctx) {
 		return engineVersion ?
-			format_to(ctx.out(), "{} Version {}", app.engineIdentifier(), app.engineVersion()) :
-			format_to(ctx.out(), "{}.{}.{}.{}", app.major(), app.minor(), app.patch(), app.revision());
+			fmt::format_to(ctx.out(), "{} Version {}", app.engineIdentifier(), app.engineVersion()) :
+			fmt::format_to(ctx.out(), "{}.{}.{}.{}", app.major(), app.minor(), app.patch(), app.revision());
 	}
 };

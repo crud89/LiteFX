@@ -29,7 +29,7 @@ var NAVTREE =
       [ "Key Features", "index.html#autotoc_md11", null ]
     ] ],
     [ "Installation", "index.html#autotoc_md12", [
-      [ "Using <tt>vcpkg</tt>", "index.html#autotoc_md13", null ],
+      [ "Using vcpkg", "index.html#autotoc_md13", null ],
       [ "Manual Builds", "index.html#autotoc_md14", [
         [ "Prerequisites", "index.html#autotoc_md15", null ],
         [ "Cloning the Repository", "index.html#autotoc_md16", null ],
@@ -88,6 +88,7 @@ var NAVTREE =
         [ "Typedefs", "namespacemembers_type.html", null ]
       ] ]
     ] ],
+    [ "Concepts", "concepts.html", "concepts" ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
@@ -106,17 +107,27 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"class_lite_f_x_1_1_builder.html#ab8028b7112e72fcf58c9660621b008bb",
+"class_direct_x12_pipeline_layout_1_1_direct_x12_render_pipeline_layout_impl.html#a9ec18ce8365804e548ecf68e1529395f",
+"class_lite_f_x_1_1_builder.html#ad24ee7d95ca10a44b4ec8205f19245b6",
+"class_lite_f_x_1_1_math_1_1_size2d.html#a35dc71ac9b48351300f27150105dc3cb",
 "class_lite_f_x_1_1_math_1_1_vector2f.html#aac49495c2c98389f8ed2c69083e6d5b1",
+"class_lite_f_x_1_1_math_1_1_vector4u.html#a76fc5f3161cc158edb2e4d3e7afe12ab",
 "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_compute_pipeline_push_constants_layout_builder.html#a6d0a873985b23c43348b19f72b1afd1b",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_graphics_shader_program_builder.html#a3e59dc3a31c41c3b5200b246cc732bb0",
 "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_queue.html#a84c29c4f51741f5b46582cfdb4ac090a",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_render_pipeline_push_constants_layout_builder.html#ada766f4e62ba87ed6de3d949144e2ce1",
 "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_barrier.html#ae116bf371bc6065e3916fe409bd8570c",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_descriptor_set_layout.html#a5d03a1670fe45b9210361c1f859524dd",
 "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_index_buffer_layout.html#a3adfc43a97dc69ad592a89eb0c964059",
-"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program.html#a7a273fa4c3299cd41f151110154e67d7",
-"class_lite_f_x_1_1_rendering_1_1_i_image.html#ab16bf4d4b002f043fe3fe95c0bf4fac3",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_render_pass.html#aae429f00e6843b00c3183fd9d03fc1f1",
+"class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_shader_program.html#a5d9a45983f907e95f3cb5e3d6c4ca35e",
+"class_lite_f_x_1_1_rendering_1_1_i_command_buffer.html#ad77e9bba4e59697cccba83f18222354c",
+"class_lite_f_x_1_1_rendering_1_1_i_image.html#aa1cf73d4b791377a3699f8e070b54be4",
+"class_lite_f_x_1_1_rendering_1_1_i_sampler.html#ad1e76cd5d6b2d466baeb17edac00b54b",
 "class_lite_f_x_1_1_rendering_1_1_viewport.html#a838bf699f3cd785f875a133cf42181d6",
-"class_vulkan_input_attachment_mapping_1_1_vulkan_input_attachment_mapping_impl.html#a0be617a30ca635365d998201e1fda28c",
-"namespace_lite_f_x_1_1_math_1_1_vectors.html#a75b41b808736cf84370da42de2b9bb66"
+"class_vulkan_compute_pipeline_push_constants_layout_builder_1_1_vulkan_compute_pipeline_push_constants_layout_builder_impl.html#aac667074e9d696d6bd0f10a18676f3ef",
+"class_vulkan_sampler_1_1_vulkan_sampler_impl.html#a5479099a6edc2952d257a2e5cd023f15",
+"namespace_lite_f_x_1_1_math_1_1_vectors.html#acf5d36481575da0b52d67085ef93c8ee"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
