@@ -2160,7 +2160,7 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Describes a factory that creates objects for a <see cref="IGraphicsDevice" />.
+    /// Describes a factory that creates objects for a <see cref="GraphicsDevice" />.
     /// </summary>
     /// <remarks>
     /// Initial resource states depend on the provided <see cref="BufferUsage" />. *Staging* and *Dynamic* resources are always initialized in <see cref="ResourceState::GenericRead" /> 
@@ -2313,6 +2313,90 @@ namespace LiteFX::Rendering {
         virtual Array<UniquePtr<TSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
     };
 
+    class LITEFX_RENDERING_API IGraphicsDevice {
+    public:
+        virtual ~IGraphicsDevice() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the surface, the device draws to.
+        /// </summary>
+        /// <returns>A reference of the surface, the device draws to.</returns>
+        virtual const ISurface& surface() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the graphics adapter, the device uses for drawing.
+        /// </summary>
+        /// <returns>A reference of the graphics adapter, the device uses for drawing.</returns>
+        virtual const IGraphicsAdapter& adapter() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the swap chain, that contains the back and front buffers used for presentation.
+        /// </summary>
+        /// <returns>The swap chain, that contains the back and front buffers used for presentation.</returns>
+        //virtual const ISwapChain& swapChain() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the factory instance, used to create instances from the device.
+        /// </summary>
+        /// <returns>The factory instance, used to create instances from the device.</returns>
+        //virtual const IFactory& factory() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the instance of the queue, used to process draw calls.
+        /// </summary>
+        /// <returns>The instance of the queue, used to process draw calls.</returns>
+        //virtual const ICommandQueue& graphicsQueue() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the instance of the queue used for device-device transfers (e.g. between render-passes).
+        /// </summary>
+        /// <remarks>
+        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
+        /// </remarks>
+        /// <returns>The instance of the queue used for device-device transfers (e.g. between render-passes).</returns>
+        //virtual const ICommandQueue& transferQueue() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the instance of the queue used for host-device transfers.
+        /// </summary>
+        /// <remarks>
+        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
+        /// </remarks>
+        /// <returns>The instance of the queue used for host-device transfers.</returns>
+        //virtual const ICommandQueue& bufferQueue() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the instance of the queue used for compute calls.
+        /// </summary>
+        /// <remarks>
+        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated compute queues are supported on the device.
+        /// </remarks>
+        /// <returns>The instance of the queue used for compute calls.</returns>
+        //virtual const ICommandQueue& computeQueue() const noexcept = 0;
+
+        /// <summary>
+        /// Queries the device for the maximum supported number of multi-sampling levels.
+        /// </summary>
+        /// <remarks>
+        /// This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower 
+        /// multi-sampling levels are implicitly supported for this format.
+        /// </remarks>
+        /// <param name="format">The target (i.e. back-buffer) format.</param>
+        /// <returns>The maximum multi-sampling level.</returns>
+        virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept = 0;
+
+    public:
+        /// <summary>
+        /// Waits until the device is idle.
+        /// </summary>
+        /// <remarks>
+        /// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
+        /// may safely be released.
+        /// </remarks>
+        virtual void wait() const = 0;
+    };
+
     /// <summary>
     /// Represents the graphics device that a rendering back-end is doing work on.
     /// </summary>
@@ -2342,7 +2426,7 @@ namespace LiteFX::Rendering {
         rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
         rtti::implements<TFactory, IGraphicsFactory<TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler>> &&
         rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
-    class IGraphicsDevice {
+    class GraphicsDevice : public IGraphicsDevice {
     public:
         using surface_type = TSurface;
         using adapter_type = TGraphicsAdapter;
@@ -2353,101 +2437,38 @@ namespace LiteFX::Rendering {
         using render_pass_type = TRenderPass;
 
     public:
-        virtual ~IGraphicsDevice() noexcept = default;
+        virtual ~GraphicsDevice() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the surface, the device draws to.
-        /// </summary>
-        /// <returns>A reference of the surface, the device draws to.</returns>
+        /// <inheritdoc />
         virtual const TSurface& surface() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the graphics adapter, the device uses for drawing.
-        /// </summary>
-        /// <returns>A reference of the graphics adapter, the device uses for drawing.</returns>
+        /// <inheritdoc />
         virtual const TGraphicsAdapter& adapter() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the swap chain, that contains the back and front buffers used for presentation.
-        /// </summary>
-        /// <returns>The swap chain, that contains the back and front buffers used for presentation.</returns>
+        /// <inheritdoc />
         virtual const TSwapChain& swapChain() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the factory instance, used to create instances from the device.
-        /// </summary>
-        /// <returns>The factory instance, used to create instances from the device.</returns>
+        /// <inheritdoc />
         virtual const TFactory& factory() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the queue, used to process draw calls.
-        /// </summary>
-        /// <returns>The instance of the queue, used to process draw calls.</returns>
+        /// <inheritdoc />
         virtual const TCommandQueue& graphicsQueue() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the queue used for device-device transfers (e.g. between render-passes).
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for device-device transfers (e.g. between render-passes).</returns>
+        /// <inheritdoc />
         virtual const TCommandQueue& transferQueue() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the queue used for host-device transfers.
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for host-device transfers.</returns>
+        /// <inheritdoc />
         virtual const TCommandQueue& bufferQueue() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the queue used for compute calls.
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated compute queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for compute calls.</returns>
+        /// <inheritdoc />
         virtual const TCommandQueue& computeQueue() const noexcept = 0;
-
-        /// <summary>
-        /// Queries the device for the maximum supported number of multi-sampling levels.
-        /// </summary>
-        /// <remarks>
-        /// This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower 
-        /// multi-sampling levels are implicitly supported for this format.
-        /// </remarks>
-        /// <param name="format">The target (i.e. back-buffer) format.</param>
-        /// <returns>The maximum multi-sampling level.</returns>
-        virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept = 0;
-
-    public:
-        /// <summary>
-        /// Waits until the device is idle.
-        /// </summary>
-        /// <remarks>
-        /// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
-        /// may safely be released.
-        /// </remarks>
-        virtual void wait() const = 0;
     };
 
     /// <summary>
-    /// Defines a back-end, that provides a device instance for a certain surface and graphics adapter.
+    /// The interface to access a render backend.
     /// </summary>
-    /// <typeparam name="TGraphicsAdapter">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
-    /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
-    /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
-    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
-    /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
-    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
-    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
-    template <typename TBackend, typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
-        rtti::implements<TGraphicsDevice, IGraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
-    class IRenderBackend : public IBackend {
+    class LITEFX_RENDERING_API IRenderBackend : public IBackend {
     public:
         virtual ~IRenderBackend() noexcept = default;
 
@@ -2456,7 +2477,9 @@ namespace LiteFX::Rendering {
         /// Lists all available graphics adapters.
         /// </summary>
         /// <returns>An array of pointers to all available graphics adapters.</returns>
-        virtual Array<const TGraphicsAdapter*> listAdapters() const = 0;
+        Array<const IGraphicsAdapter*> listAdapters() const {
+            return this->getAdapters();
+        }
 
         /// <summary>
         /// Finds an adapter using its unique ID.
@@ -2469,13 +2492,68 @@ namespace LiteFX::Rendering {
         /// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
         /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
         /// <seealso cref="IGraphicsAdapter" />
-        virtual const TGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+        virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+        
+        /// <summary>
+        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        virtual IGraphicsDevice* device(const String& name) noexcept = 0;
 
         /// <summary>
-        /// Registers a device on the backend.
+        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
         /// </summary>
-        /// <param name="name">The unique name of the device.</param>
-        /// <param name="device">The device instance.</param>
+        /// <param name="name">The name of the device.</param>
+        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        virtual const IGraphicsDevice* device(const String& name) const noexcept = 0;
+
+        /// <summary>
+        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        virtual const IGraphicsDevice* operator[](const String& name) const noexcept {
+            return this->device(name);
+        };
+
+        /// <summary>
+        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        virtual IGraphicsDevice* operator[](const String& name) noexcept {
+            return this->device(name);
+        };
+
+    private:
+        virtual Array<const IGraphicsAdapter*> getAdapters() const = 0;
+    };
+
+    /// <summary>
+    /// Defines a back-end, that provides a device instance for a certain surface and graphics adapter.
+    /// </summary>
+    /// <typeparam name="TGraphicsAdapter">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
+    /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
+    /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
+    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
+    /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
+    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
+    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
+    template <typename TBackend, typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
+        rtti::implements<TGraphicsDevice, GraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
+    class RenderBackend : public IRenderBackend {
+    public:
+        virtual ~RenderBackend() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual Array<const TGraphicsAdapter*> listAdapters() const = 0;
+
+        /// <inheritdoc />
+        virtual const TGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+
+        /// <inheritdoc />
         virtual void registerDevice(String name, UniquePtr<TGraphicsDevice>&& device) = 0;
 
         /// <summary>
@@ -2493,37 +2571,33 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="name">The name of the device.</param>
         virtual void releaseDevice(const String& name) = 0;
-        
-        /// <summary>
-        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
-        /// </summary>
-        /// <param name="name">The name of the device.</param>
-        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+
+        /// <inheritdoc />
         virtual TGraphicsDevice* device(const String& name) noexcept = 0;
 
-        /// <summary>
-        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
-        /// </summary>
-        /// <param name="name">The name of the device.</param>
-        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        /// <inheritdoc />
         virtual const TGraphicsDevice* device(const String& name) const noexcept = 0;
 
-        /// <summary>
-        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
-        /// </summary>
-        /// <param name="name">The name of the device.</param>
-        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        /// <inheritdoc />
         virtual const TGraphicsDevice* operator[](const String& name) const noexcept {
             return this->device(name);
         };
 
-        /// <summary>
-        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
-        /// </summary>
-        /// <param name="name">The name of the device.</param>
-        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        /// <inheritdoc />
         virtual TGraphicsDevice* operator[](const String& name) noexcept {
             return this->device(name);
         };
+
+        // IRenderBackend interface
+    private:
+        virtual Array<const IGraphicsAdapter*> getAdapters() const override {
+            auto adapters = this->listAdapters();
+            Array<const IGraphicsAdapter*> result;
+            result.reserve(adapters.size());
+            std::transform(adapters.begin(), adapters.end(), result.begin(), [](const TGraphicsAdapter* adapter) { return static_cast<const IGraphicsAdapter*>(adapter); });
+            return result;
+
+            //return this->listAdapters() | std::views::transform([](auto adapter) { return static_cast<const IGraphicsAdapter*>(adapter); }) | ranges::to<Array<const IGraphicsAdapter*>>();
+        }
     };
 }

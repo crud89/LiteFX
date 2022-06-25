@@ -1921,7 +1921,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan graphics device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public IGraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass>, public Resource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass>, public Resource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -1971,7 +1971,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
 		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
 		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		/// <seealso cref="IGraphicsDevice::build" />
 		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
 
 		/// <summary>
@@ -1980,7 +1979,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
 		[[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline() const;
 
-		// IGraphicsDevice interface.
+		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
 		virtual const VulkanSwapChain& swapChain() const noexcept override;
@@ -2017,7 +2016,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanBackend, VulkanDevice>, public Resource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend<VulkanBackend, VulkanDevice>, public Resource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
 	public:
@@ -2104,7 +2103,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void deactivate() override;
 
-		// IRenderBackend interface.
+		// RenderBackend interface.
 	public:
 		/// <inheritdoc />
 		virtual Array<const VulkanGraphicsAdapter*> listAdapters() const override;

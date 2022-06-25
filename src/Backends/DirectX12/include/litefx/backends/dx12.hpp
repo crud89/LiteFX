@@ -1855,7 +1855,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 graphics device.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Device : public IGraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass>, public ComResource<ID3D12Device5> {
+	class LITEFX_DIRECTX12_API DirectX12Device : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass>, public ComResource<ID3D12Device5> {
 		LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
 
 	public:
@@ -1949,7 +1949,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference of the swap chain.</returns>
 		virtual DirectX12SwapChain& swapChain() noexcept;
 
-		// IGraphicsDevice interface.
+		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
 		virtual const DirectX12SwapChain& swapChain() const noexcept override;
@@ -1985,9 +1985,9 @@ namespace LiteFX::Rendering::Backends {
 	};
 	
 	/// <summary>
-	/// Implements the DirectX 12 <see cref="IRenderBackend" />.
+	/// Implements the DirectX 12 <see cref="RenderBackend" />.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Backend : public IRenderBackend<DirectX12Backend, DirectX12Device>, public ComResource<IDXGIFactory7> {
+	class LITEFX_DIRECTX12_API DirectX12Backend : public RenderBackend<DirectX12Backend, DirectX12Device>, public ComResource<IDXGIFactory7> {
 		LITEFX_IMPLEMENTATION(DirectX12BackendImpl);
 		LITEFX_BUILDER(DirectX12BackendBuilder);
 
@@ -2009,7 +2009,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void deactivate() override;
 
-		// IRenderBackend interface.
+		// RenderBackend interface.
 	public:
 		/// <inheritdoc />
 		virtual Array<const DirectX12GraphicsAdapter*> listAdapters() const override;
