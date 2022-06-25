@@ -2471,7 +2471,6 @@ namespace LiteFX::Rendering {
         /// <seealso cref="IGraphicsAdapter" />
         virtual const TGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
 
-    protected:
         /// <summary>
         /// Registers a device on the backend.
         /// </summary>
@@ -2479,7 +2478,6 @@ namespace LiteFX::Rendering {
         /// <param name="device">The device instance.</param>
         virtual void registerDevice(String name, UniquePtr<TGraphicsDevice>&& device) = 0;
 
-    public:
         /// <summary>
         /// Creates a new graphics device.
         /// </summary>

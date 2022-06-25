@@ -127,6 +127,7 @@ void DirectX12Backend::releaseDevice(const String& name)
         return;
 
     auto device = m_impl->m_devices[name].get();
+    device->wait();
     // TODO: device->release();
     
     m_impl->m_devices.erase(name);

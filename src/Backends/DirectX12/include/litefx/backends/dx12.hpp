@@ -2017,7 +2017,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt32>& adapterId = std::nullopt) const override;
 
-	protected:
 		/// <inheritdoc />
 		virtual void registerDevice(String name, UniquePtr<DirectX12Device>&& device) override;
 
