@@ -12,8 +12,8 @@ public:
 
 private:
 	Dictionary<std::type_index, UniquePtr<IBackend>> m_backends;
-	std::multimap<std::type_index, const std::function<bool()>&> m_startCallbacks;
-	std::multimap<std::type_index, const std::function<void()>&> m_stopCallbacks;
+	std::multimap<std::type_index, const std::function<bool()>> m_startCallbacks;
+	std::multimap<std::type_index, const std::function<void()>> m_stopCallbacks;
 
 public:
 	AppImpl(App* parent) : 

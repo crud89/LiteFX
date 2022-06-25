@@ -211,12 +211,12 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend) :
-	DirectX12Device(adapter, std::move(surface), backend, Format::B8G8R8A8_SRGB, { 800, 600 }, 3)
+DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface) :
+	DirectX12Device(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3)
 {
 }
 
-DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
+DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
 	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.getDeviceId());

@@ -12,6 +12,7 @@ public:
 
 private:
     Array<UniquePtr<VulkanGraphicsAdapter>> m_adapters{ };
+    Dictionary<String, UniquePtr<VulkanDevice>> m_devices;
     Array<String> m_extensions;
     Array<String> m_layers;
     const App& m_app;
@@ -215,6 +216,41 @@ const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>
         return match->get();
 
     return nullptr;
+}
+
+void VulkanBackend::registerDevice(String name, UniquePtr<VulkanDevice>&& device)
+{
+    if (m_impl->m_devices.contains(name))
+        throw new InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+
+    m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
+}
+
+void VulkanBackend::releaseDevice(const String& name)
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return;
+
+    auto device = m_impl->m_devices[name].get();
+    // TODO: device->release();
+
+    m_impl->m_devices.erase(name);
+}
+
+VulkanDevice* VulkanBackend::device(const String& name) noexcept
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return nullptr;
+
+    return m_impl->m_devices[name].get();
+}
+
+const VulkanDevice* VulkanBackend::device(const String& name) const noexcept
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return nullptr;
+
+    return m_impl->m_devices[name].get();
 }
 
 Span<const String> VulkanBackend::getEnabledValidationLayers() const noexcept

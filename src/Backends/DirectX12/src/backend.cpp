@@ -12,6 +12,7 @@ public:
 
 private:
     Array<UniquePtr<DirectX12GraphicsAdapter>> m_adapters{ };
+    Dictionary<String, UniquePtr<DirectX12Device>> m_devices;
     ComPtr<ID3D12Debug> m_debugInterface;
     const App& m_app;
 
@@ -110,6 +111,41 @@ const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UIn
         return match->get();
 
     return nullptr;
+}
+
+void DirectX12Backend::registerDevice(String name, UniquePtr<DirectX12Device>&& device)
+{
+    if (m_impl->m_devices.contains(name)) [[unlikely]]
+        throw new InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+
+    m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
+}
+
+void DirectX12Backend::releaseDevice(const String& name)
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return;
+
+    auto device = m_impl->m_devices[name].get();
+    // TODO: device->release();
+    
+    m_impl->m_devices.erase(name);
+}
+
+DirectX12Device* DirectX12Backend::device(const String& name) noexcept
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return nullptr;
+
+    return m_impl->m_devices[name].get();
+}
+
+const DirectX12Device* DirectX12Backend::device(const String& name) const noexcept
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return nullptr;
+
+    return m_impl->m_devices[name].get();
 }
 
 void DirectX12Backend::enableAdvancedSoftwareRasterizer(const bool& enable)

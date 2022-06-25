@@ -1862,23 +1862,23 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Creates a new device instance.
 		/// </summary>
+		/// <param name="backend">The backend from which the device got created.</param>
 		/// <param name="adapter">The adapter the device uses for drawing.</param>
 		/// <param name="surface">The surface, the device should draw to.</param>
-		/// <param name="backend">The backend from which the device got created.</param>
-		explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend);
+		explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface);
 
 		/// <summary>
 		/// Creates a new device instance.
 		/// </summary>
+		/// <param name="backend">The backend from which the device got created.</param>
 		/// <param name="adapter">The adapter the device uses for drawing.</param>
 		/// <param name="surface">The surface, the device should draw to.</param>
-		/// <param name="backend">The backend from which the device got created.</param>
 		/// <param name="format">The initial surface format, device uses for drawing.</param>
 		/// <param name="frameBufferSize">The initial size of the frame buffers.</param>
 		/// <param name="frameBuffers">The initial number of frame buffers.</param>
 		/// <param name="globalBufferHeapSize">The size of the global heap for constant buffers, shader resources and images.</param>
 		/// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
-		explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize = 524287, const UInt32& globalSamplerHeapSize = 2048);
+		explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize = 524287, const UInt32& globalSamplerHeapSize = 2048);
 
 		DirectX12Device(const DirectX12Device&) = delete;
 		DirectX12Device(DirectX12Device&&) = delete;
@@ -1987,7 +1987,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements the DirectX 12 <see cref="IRenderBackend" />.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Backend : public IRenderBackend<DirectX12Device>, public ComResource<IDXGIFactory7> {
+	class LITEFX_DIRECTX12_API DirectX12Backend : public IRenderBackend<DirectX12Backend, DirectX12Device>, public ComResource<IDXGIFactory7> {
 		LITEFX_IMPLEMENTATION(DirectX12BackendImpl);
 		LITEFX_BUILDER(DirectX12BackendBuilder);
 
@@ -2016,6 +2016,19 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt32>& adapterId = std::nullopt) const override;
+
+	protected:
+		/// <inheritdoc />
+		virtual void registerDevice(String name, UniquePtr<DirectX12Device>&& device) override;
+
+		/// <inheritdoc />
+		virtual void releaseDevice(const String& name) override;
+
+		/// <inheritdoc />
+		virtual DirectX12Device* device(const String& name) noexcept override;
+
+		/// <inheritdoc />
+		virtual const DirectX12Device* device(const String& name) const noexcept override;
 
 	public:
 		/// <summary>

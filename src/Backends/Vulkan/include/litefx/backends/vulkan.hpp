@@ -1928,21 +1928,23 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Creates a new device instance.
 		/// </summary>
+		/// <param name="backend">The backend from which the device is created.</param>
 		/// <param name="adapter">The adapter the device uses for drawing.</param>
 		/// <param name="surface">The surface, the device should draw to.</param>
 		/// <param name="extensions">The required extensions the device gets initialized with.</param>
-		explicit VulkanDevice(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions = { });
+		explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions = { });
 
 		/// <summary>
 		/// Creates a new device instance.
 		/// </summary>
+		/// <param name="backend">The backend from which the device is created.</param>
 		/// <param name="adapter">The adapter the device uses for drawing.</param>
 		/// <param name="surface">The surface, the device should draw to.</param>
 		/// <param name="format">The initial surface format, device uses for drawing.</param>
 		/// <param name="frameBufferSize">The initial size of the frame buffers.</param>
 		/// <param name="frameBuffers">The initial number of frame buffers.</param>
 		/// <param name="extensions">The required extensions the device gets initialized with.</param>
-		explicit VulkanDevice(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions = { });
+		explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions = { });
 
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
@@ -2015,7 +2017,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanDevice>, public Resource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend : public IRenderBackend<VulkanBackend, VulkanDevice>, public Resource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
 	public:
@@ -2109,5 +2111,18 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const VulkanGraphicsAdapter* findAdapter(const Optional<UInt32>& adapterId = std::nullopt) const override;
+
+	protected:
+		/// <inheritdoc />
+		virtual void registerDevice(String name, UniquePtr<VulkanDevice>&& device) override;
+
+		/// <inheritdoc />
+		virtual void releaseDevice(const String& name) override;
+
+		/// <inheritdoc />
+		virtual VulkanDevice* device(const String& name) noexcept override;
+
+		/// <inheritdoc />
+		virtual const VulkanDevice* device(const String& name) const noexcept override;
 	};
 }

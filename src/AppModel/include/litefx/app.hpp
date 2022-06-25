@@ -122,20 +122,20 @@ namespace LiteFX {
 		}
 
 		/// <summary>
-		/// Attempts to start a backend of type <typeparamref="TBackend" /> and stops the active backend of the same <see cref="BackendType" />, if any.
+		/// Attempts to start a backend of type <typeparamref name="TBackend" /> and stops the active backend of the same <see cref="BackendType" />, if any.
 		/// </summary>
 		/// <typeparam name="TBackend">The type of the backend to start.</typeparam>
-		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref="TBackend" /> is registered.</exception>
+		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
-		void startBackend() const {
-			this->startBackend(typeid(TBackend), this->findBackend<TBackend>());
+		void startBackend() {
+			this->startBackend(typeid(TBackend), static_cast<IBackend*>(this->findBackend<TBackend>()));
 		}
 
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
-		void stopBackend() const {
-			this->stopBackend(typeid(TBackend), this->findBackend<TBackend>());
+		void stopBackend() {
+			this->stopBackend(typeid(TBackend), static_cast<IBackend*>(this->findBackend<TBackend>()));
 		}
 
 	public:

@@ -2436,53 +2436,16 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Provides convenient access to manage the state of a render backend.
-    /// </summary>
-    /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
-    /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
-    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
-    /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
-    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
-    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
-    template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
-        rtti::implements<TGraphicsDevice, IGraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
-    class IRenderBackendState {
-    public:
-        virtual ~IRenderBackendState() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Releases all managed resources.
-        /// </summary>
-        /// <remarks>
-        /// Releasing the managed resources ensures that the instances are destroyed in the correct order, so that no dangling reference is kept alive. Note, however, that this only works, 
-        /// if all references are managed by the state object. If you have a reference to a managed object within a object that is not managed by the state, you have to ensure, that it is 
-        /// released before cleaning up the state.
-        /// </remarks>
-        virtual void cleanup() = 0;
-
-        /// <summary>
-        /// Stores a graphics device in the state.
-        /// </summary>
-        /// <param name="device">The device to add to the state.</param>
-        virtual void storeDevice(UniquePtr<TGraphicsDevice>&& device) = 0;
-
-        virtual bool containsDevice(StringView deviceName) const noexcept = 0;
-
-        virtual TGraphicsDevice& device(StringView name) const = 0;
-
-    };
-
-    /// <summary>
     /// Defines a back-end, that provides a device instance for a certain surface and graphics adapter.
     /// </summary>
+    /// <typeparam name="TGraphicsAdapter">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
     /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
     /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
     /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
     /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
-    template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
+    template <typename TBackend, typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
         rtti::implements<TGraphicsDevice, IGraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
     class IRenderBackend : public IBackend {
     public:
@@ -2508,6 +2471,14 @@ namespace LiteFX::Rendering {
         /// <seealso cref="IGraphicsAdapter" />
         virtual const TGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
 
+    protected:
+        /// <summary>
+        /// Registers a device on the backend.
+        /// </summary>
+        /// <param name="name">The unique name of the device.</param>
+        /// <param name="device">The device instance.</param>
+        virtual void registerDevice(String name, UniquePtr<TGraphicsDevice>&& device) = 0;
+
     public:
         /// <summary>
         /// Creates a new graphics device.
@@ -2515,8 +2486,46 @@ namespace LiteFX::Rendering {
         /// <param name="_args">The arguments that are passed to the graphics device constructor.</param>
         /// <returns>A pointer of the created graphics device instance.</returns>
         template <typename ...TArgs>
-        [[nodiscard]] UniquePtr<TGraphicsDevice> createDevice(const TGraphicsAdapter& adapter, UniquePtr<TSurface>&& surface, TArgs&&... _args) const {
-            return makeUnique<TGraphicsDevice>(adapter, std::move(surface), std::forward<TArgs>(_args)...);
+        void createDevice(String name, const TGraphicsAdapter& adapter, UniquePtr<TSurface>&& surface, TArgs&&... _args) {
+            this->registerDevice(name, std::move(makeUnique<TGraphicsDevice>(static_cast<const TBackend&>(*this), adapter, std::move(surface), std::forward<TArgs>(_args)...)));
         }
+
+        /// <summary>
+        /// Destroys and removes a device from the backend.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        virtual void releaseDevice(const String& name) = 0;
+        
+        /// <summary>
+        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        virtual TGraphicsDevice* device(const String& name) noexcept = 0;
+
+        /// <summary>
+        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        virtual const TGraphicsDevice* device(const String& name) const noexcept = 0;
+
+        /// <summary>
+        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        virtual const TGraphicsDevice* operator[](const String& name) const noexcept {
+            return this->device(name);
+        };
+
+        /// <summary>
+        /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
+        virtual TGraphicsDevice* operator[](const String& name) noexcept {
+            return this->device(name);
+        };
     };
 }
