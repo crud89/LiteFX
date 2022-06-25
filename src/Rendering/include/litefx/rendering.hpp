@@ -1984,17 +1984,11 @@ namespace LiteFX::Rendering {
         virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const UInt32& outputLocation) = 0;
         virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const RenderTarget& renderTarget) = 0;
     };
-
+    
     /// <summary>
-    /// Represents a swap chain, i.e. a chain of multiple <see cref="IImage" /> instances, that can be presented to a <see cref="ISurface" />.
+    /// Interface for a swap chain.
     /// </summary>
-    /// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-    template <typename TImageInterface> requires
-        std::derived_from<TImageInterface, IImage>
-    class ISwapChain {
-    public:
-        using image_interface_type = TImageInterface;
-
+    class LITEFX_RENDERING_API ISwapChain {
     public:
         virtual ~ISwapChain() noexcept = default;
 
@@ -2021,7 +2015,9 @@ namespace LiteFX::Rendering {
         /// Returns an array of the swap chain present images.
         /// </summary>
         /// <returns>Returns an array of the swap chain present images.</returns>
-        virtual Array<const TImageInterface*> images() const noexcept = 0;
+        Array<const IImage*> images() const noexcept {
+            return this->getImages();
+        };
 
     public:
         /// <summary>
@@ -2053,6 +2049,36 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>A reference of the front buffer after the buffer swap.</returns>
         [[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
+
+    private:
+        virtual Array<const IImage*> getImages() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Represents a swap chain, i.e. a chain of multiple <see cref="IImage" /> instances, that can be presented to a <see cref="ISurface" />.
+    /// </summary>
+    /// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
+    template <typename TImageInterface> requires
+        std::derived_from<TImageInterface, IImage>
+    class SwapChain : public ISwapChain {
+    public:
+        using image_interface_type = TImageInterface;
+
+    public:
+        virtual ~SwapChain() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual Array<const TImageInterface*> images() const noexcept = 0;
+
+    private:
+        virtual Array<const IImage*> getImages() const noexcept override {
+            auto images = this->images();
+            Array<const IImage*> result;
+            result.reserve(images.size());
+            std::transform(images.begin(), images.end(), result.begin(), [](auto image) { return static_cast<const IImage*>(image); });
+            return result;
+        }
     };
 
     /// <summary>
@@ -2313,6 +2339,9 @@ namespace LiteFX::Rendering {
         virtual Array<UniquePtr<TSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
     };
 
+    /// <summary>
+    /// The interface for a graphics device that.
+    /// </summary>
     class LITEFX_RENDERING_API IGraphicsDevice {
     public:
         virtual ~IGraphicsDevice() noexcept = default;
@@ -2334,7 +2363,7 @@ namespace LiteFX::Rendering {
         /// Returns the swap chain, that contains the back and front buffers used for presentation.
         /// </summary>
         /// <returns>The swap chain, that contains the back and front buffers used for presentation.</returns>
-        //virtual const ISwapChain& swapChain() const noexcept = 0;
+        virtual const ISwapChain& swapChain() const noexcept = 0;
 
         /// <summary>
         /// Returns the factory instance, used to create instances from the device.
@@ -2403,12 +2432,12 @@ namespace LiteFX::Rendering {
     /// <remarks>
     /// The graphics device is the central instance of a renderer. It has two major roles. First, it maintains the <see cref="IGraphicsFactory" /> instance, that is used to facilitate
     /// common objects. Second, it owns the device state, which contains objects required for communication between your application and the graphics driver. Most notably, those objects
-    /// contain the <see cref="ISwapChain" /> instance and the <see cref="ICommandQueue" /> instances used for data and command transfer.
+    /// contain the <see cref="SwapChain" /> instance and the <see cref="CommandQueue" /> instances used for data and command transfer.
     /// </remarks>
     /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
     /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
     /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
-    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
+    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="SwapChain" />.</typeparam>
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="IRenderPass" />.</typeparam>
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
@@ -2422,7 +2451,7 @@ namespace LiteFX::Rendering {
     template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TImage = TFactory::image_type, typename TVertexBuffer = TFactory::vertex_buffer_type, typename TIndexBuffer = TFactory::index_buffer_type, typename TDescriptorLayout = TFactory::descriptor_layout_type, typename TBuffer = TFactory::buffer_type, typename TSampler = TFactory::sampler_type> requires
         rtti::implements<TSurface, ISurface> &&
         rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-        rtti::implements<TSwapChain, ISwapChain<TImage>> &&
+        rtti::implements<TSwapChain, SwapChain<TImage>> &&
         rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
         rtti::implements<TFactory, IGraphicsFactory<TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler>> &&
         rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
@@ -2536,7 +2565,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TGraphicsAdapter">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
     /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
     /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
-    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
+    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="SwapChain" />.</typeparam>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
     /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>

@@ -1705,7 +1705,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 swap chain.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12SwapChain : public virtual DirectX12RuntimeObject<DirectX12Device>, public ISwapChain<IDirectX12Image>, public ComResource<IDXGISwapChain4> {
+	class LITEFX_DIRECTX12_API DirectX12SwapChain : public virtual DirectX12RuntimeObject<DirectX12Device>, public SwapChain<IDirectX12Image>, public ComResource<IDXGISwapChain4> {
 		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
 
 	public:
@@ -1729,7 +1729,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns><c>true</c>, if the adapter supports variable refresh rates (i.e. tearing is allowed).</returns>
 		virtual const bool& supportsVariableRefreshRate() const noexcept;
 
-		// ISwapChain interface.
+		// SwapChain interface.
 	public:
 		/// <inheritdoc />
 		virtual const Format& surfaceFormat() const noexcept override;

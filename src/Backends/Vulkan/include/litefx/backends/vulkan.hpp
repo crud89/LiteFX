@@ -1701,7 +1701,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan swap chain.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSwapChain : public virtual VulkanRuntimeObject<VulkanDevice>, public ISwapChain<IVulkanImage>, public Resource<VkSwapchainKHR> {
+	class LITEFX_VULKAN_API VulkanSwapChain : public virtual VulkanRuntimeObject<VulkanDevice>, public SwapChain<IVulkanImage>, public Resource<VkSwapchainKHR> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
@@ -1725,7 +1725,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference of the current swap semaphore, a command queue can wait on for presenting.</returns>
 		virtual const VkSemaphore& semaphore() const noexcept;
 
-		// ISwapChain interface.
+		// SwapChain interface.
 	public:
 		/// <inheritdoc />
 		virtual const Format& surfaceFormat() const noexcept override;
