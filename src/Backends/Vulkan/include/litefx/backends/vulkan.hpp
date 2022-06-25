@@ -449,7 +449,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanRenderPipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual VulkanRenderPipelineLayoutBuilder& go() override;
 
 		// DescriptorSetLayoutBuilder interface.
 	public:
@@ -503,7 +503,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanComputePipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual VulkanComputePipelineLayoutBuilder& go() override;
 
 		// DescriptorSetLayoutBuilder interface.
 	public:
@@ -624,7 +624,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanRenderPipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual VulkanRenderPipelineLayoutBuilder& go() override;
 
 		// PushConstantsLayoutBuilder interface.
 	public:
@@ -652,7 +652,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanComputePipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual VulkanComputePipelineLayoutBuilder& go() override;
 
 		// PushConstantsLayoutBuilder interface.
 	public:
@@ -746,7 +746,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanRenderPipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual VulkanRenderPipelineLayoutBuilder& go() override;
 
 		// ShaderProgramBuilder interface.
 	public:
@@ -791,7 +791,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanComputePipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual VulkanComputePipelineLayoutBuilder& go() override;
 
 		// ShaderProgramBuilder interface.
 	public:
@@ -875,7 +875,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanRenderPipelineBuilder& go() override;
+		[[nodiscard]] virtual VulkanRenderPipelineBuilder& go() override;
 
 		// RenderPipelineBuilder interface.
 	public:
@@ -930,7 +930,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanComputePipelineBuilder& go() override;
+		[[nodiscard]] virtual VulkanComputePipelineBuilder& go() override;
 
 		// ComputePipelineBuilder interface.
 	public:
@@ -1047,7 +1047,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanRenderPipelineBuilder& go() override;
+		[[nodiscard]] virtual VulkanRenderPipelineBuilder& go() override;
 	};
 
 	/// <summary>
@@ -1111,7 +1111,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanRenderPipelineBuilder& go() override;
+		[[nodiscard]] virtual VulkanRenderPipelineBuilder& go() override;
 
 		// RasterizerBuilder interface.
 	public:
@@ -1658,7 +1658,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
 
 	public:
-		virtual UniquePtr<VulkanRenderPass> go() override;
+		[[nodiscard]] virtual UniquePtr<VulkanRenderPass> go() override;
 	};
 
 	/// <summary>

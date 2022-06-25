@@ -457,7 +457,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
 
 		// DescriptorSetLayoutBuilder interface.
 	public:
@@ -504,7 +504,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12ComputePipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual DirectX12ComputePipelineLayoutBuilder& go() override;
 
 		// DescriptorSetLayoutBuilder interface.
 	public:
@@ -648,7 +648,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
 
 		// PushConstantsLayoutBuilder interface.
 	public:
@@ -676,7 +676,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12ComputePipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual DirectX12ComputePipelineLayoutBuilder& go() override;
 
 		// PushConstantsLayoutBuilder interface.
 	public:
@@ -764,7 +764,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
 
 		// ShaderProgramBuilder interface.
 	public:
@@ -809,7 +809,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12ComputePipelineLayoutBuilder& go() override;
+		[[nodiscard]] virtual DirectX12ComputePipelineLayoutBuilder& go() override;
 
 		// ShaderProgramBuilder interface.
 	public:
@@ -893,7 +893,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& go() override;
+		[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
 
 		// RenderPipelineBuilder interface.
 	public:
@@ -947,7 +947,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12ComputePipelineBuilder& go() override;
+		[[nodiscard]] virtual DirectX12ComputePipelineBuilder& go() override;
 
 		// ComputePipelineBuilder interface.
 	public:
@@ -1063,7 +1063,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& go() override;
+		[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
 	};
 
 	/// <summary>
@@ -1112,7 +1112,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& go() override;
+		[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
 
 		// RasterizerBuilder interface.
 	public:
@@ -1662,7 +1662,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
 
 	public:
-		virtual UniquePtr<DirectX12RenderPass> go() override;
+		[[nodiscard]] virtual UniquePtr<DirectX12RenderPass> go() override;
 	};
 
 	/// <summary>
