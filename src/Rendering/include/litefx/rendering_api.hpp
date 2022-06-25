@@ -49,7 +49,7 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents the type of a <see cref="ICommandQueue" />.
+    /// Represents the type of a <see cref="CommandQueue" />.
     /// </summary>
     /// <remarks>
     /// There are three major queue types: `Graphics`, `Compute` and `Transfer`. Each queue type has a larger subset of commands it is allowed to execute. For example, a 

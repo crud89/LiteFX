@@ -234,8 +234,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanCommandBuffer" />
 	/// <seealso cref="IVulkanBuffer" />
 	/// <seealso cref="IVulkanImage" />
-	/// <seealso cref="IBarrier" />
-	class LITEFX_VULKAN_API VulkanBarrier : public IBarrier<IVulkanBuffer, IVulkanImage> {
+	/// <seealso cref="Barrier" />
+	class LITEFX_VULKAN_API VulkanBarrier : public Barrier<IVulkanBuffer, IVulkanImage> {
 		LITEFX_IMPLEMENTATION(VulkanBarrierImpl);
 
 	public:
@@ -244,7 +244,7 @@ namespace LiteFX::Rendering::Backends {
 		VulkanBarrier(VulkanBarrier&&) = delete;
 		virtual ~VulkanBarrier() noexcept;
 
-		// IBarrier interface.
+		// Barrier interface.
 	public:
 		/// <inheritdoc />
 		virtual void transition(IVulkanBuffer& buffer, const ResourceState& targetState) override;
@@ -567,12 +567,12 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements the Vulkan <see cref="IPushConstantsLayout" />.
+	/// Implements the Vulkan <see cref="PushConstantsLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanPushConstantsRange" />
 	/// <seealso cref="VulkanRenderPipelinePushConstantsLayoutBuilder" />
 	/// <seealso cref="VulkanComputePipelinePushConstantsLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanPushConstantsLayout : public virtual VulkanRuntimeObject<VulkanPipelineLayout>, public IPushConstantsLayout<VulkanPushConstantsRange> {
+	class LITEFX_VULKAN_API VulkanPushConstantsLayout : public virtual VulkanRuntimeObject<VulkanPipelineLayout>, public PushConstantsLayout<VulkanPushConstantsRange> {
 		LITEFX_IMPLEMENTATION(VulkanPushConstantsLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelinePushConstantsLayoutBuilder);
 		LITEFX_BUILDER(VulkanComputePipelinePushConstantsLayoutBuilder);
@@ -604,7 +604,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="IPushConstantsLayout" /> for a <see cref="IRenderPipeline" />.
+	/// Builds a Vulkan <see cref="PushConstantsLayout" /> for a <see cref="IRenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanPushConstantsLayout" />
 	class LITEFX_VULKAN_API VulkanRenderPipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<VulkanRenderPipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanRenderPipelineLayoutBuilder> {
@@ -632,7 +632,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="IPushConstantsLayout" /> for a <see cref="IComputePipeline" />.
+	/// Builds a Vulkan <see cref="PushConstantsLayout" /> for a <see cref="IComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanPushConstantsLayout" />
 	class LITEFX_VULKAN_API VulkanComputePipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<VulkanComputePipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanComputePipelineLayoutBuilder> {
@@ -1164,7 +1164,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Records commands for a <see cref="VulkanCommandQueue" />
 	/// </summary>
 	/// <seealso cref="VulkanQueue" />
-	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public ICommandBuffer<IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
+	class LITEFX_VULKAN_API VulkanCommandBuffer : public virtual VulkanRuntimeObject<VulkanQueue>, public CommandBuffer<IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
@@ -1187,7 +1187,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderPass">The render pass state to inherit.</param>
 		virtual void begin(const VulkanRenderPass& renderPass) const noexcept;
 
-		// ICommandBuffer interface.
+		// CommandBuffer interface.
 	public:
 		/// <inheritdoc />
 		virtual void begin() const override;
@@ -1754,7 +1754,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan command queue.
 	/// </summary>
 	/// <seealso cref="VulkanCommandBuffer" />
-	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public ICommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
+	class LITEFX_VULKAN_API VulkanQueue : public virtual VulkanRuntimeObject<VulkanDevice>, public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 	
 	public:
@@ -1839,7 +1839,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>The instance of the command buffer.</returns>
 		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer(const bool& secondary, const bool& beginRecording) const;
 
-		// ICommandQueue interface.
+		// CommandQueue interface.
 	public:
 		/// <inheritdoc />
 		virtual bool isBound() const noexcept override;

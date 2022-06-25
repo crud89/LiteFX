@@ -233,8 +233,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12CommandBuffer" />
 	/// <seealso cref="IDirectX12Buffer" />
 	/// <seealso cref="IDirectX12Image" />
-	/// <seealso cref="IBarrier" />
-	class LITEFX_DIRECTX12_API DirectX12Barrier : public IBarrier<IDirectX12Buffer, IDirectX12Image> {
+	/// <seealso cref="Barrier" />
+	class LITEFX_DIRECTX12_API DirectX12Barrier : public Barrier<IDirectX12Buffer, IDirectX12Image> {
 		LITEFX_IMPLEMENTATION(DirectX12BarrierImpl);
 
 	public:
@@ -243,7 +243,7 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Barrier(DirectX12Barrier&&) = delete;
 		virtual ~DirectX12Barrier() noexcept;
 
-		// IBarrier interface.
+		// Barrier interface.
 	public:
 		/// <inheritdoc />
 		virtual void transition(IDirectX12Buffer& buffer, const ResourceState& targetState) override;
@@ -577,7 +577,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements the DirectX 12 <see cref="IPushConstantsLayout" />.
+	/// Implements the DirectX 12 <see cref="PushConstantsLayout" />.
 	/// </summary>
 	/// <remarks>
 	/// In DirectX 12, push constants map to root constants. Those are 32 bit values that are directly stored on the root signature. Thus, push constants can bloat your root 
@@ -588,7 +588,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12PushConstantsRange" />
 	/// <seealso cref="DirectX12RenderPipelinePushConstantsLayoutBuilder" />
 	/// <seealso cref="DirectX12ComputePipelinePushConstantsLayoutBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12PushConstantsLayout : public virtual DirectX12RuntimeObject<DirectX12PipelineLayout>, public IPushConstantsLayout<DirectX12PushConstantsRange> {
+	class LITEFX_DIRECTX12_API DirectX12PushConstantsLayout : public virtual DirectX12RuntimeObject<DirectX12PipelineLayout>, public PushConstantsLayout<DirectX12PushConstantsRange> {
 		LITEFX_IMPLEMENTATION(DirectX12PushConstantsLayoutImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelinePushConstantsLayoutBuilder);
 		LITEFX_BUILDER(DirectX12ComputePipelinePushConstantsLayoutBuilder);
@@ -628,7 +628,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="IPushConstantsLayout" /> for a <see cref="IRenderPipeline" />.
+	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="IRenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12PushConstantsLayout" />
 	class LITEFX_DIRECTX12_API DirectX12RenderPipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12RenderPipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12RenderPipelineLayoutBuilder> {
@@ -656,7 +656,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="IPushConstantsLayout" /> for a <see cref="IComputePipeline" />.
+	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="IComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12PushConstantsLayout" />
 	class LITEFX_DIRECTX12_API DirectX12ComputePipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12ComputePipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12ComputePipelineLayoutBuilder> {
@@ -1158,7 +1158,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Records commands for a <see cref="DirectX12CommandQueue" />
 	/// </summary>
 	/// <seealso cref="DirectX12CommandQueue" />
-	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public ICommandBuffer<IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public DirectX12RuntimeObject<DirectX12Queue>, public ComResource<ID3D12GraphicsCommandList4> {
+	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public CommandBuffer<IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public DirectX12RuntimeObject<DirectX12Queue>, public ComResource<ID3D12GraphicsCommandList4> {
 		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
 	public:
@@ -1172,7 +1172,7 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
 		virtual ~DirectX12CommandBuffer() noexcept;
 
-		// ICommandBuffer interface.
+		// CommandBuffer interface.
 	public:
 		/// <inheritdoc />
 		virtual void begin() const override;
@@ -1758,7 +1758,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 command queue.
 	/// </summary>
 	/// <seealso cref="DirectX12CommandBuffer" />
-	class LITEFX_DIRECTX12_API DirectX12Queue : public virtual DirectX12RuntimeObject<DirectX12Device>, public ICommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
+	class LITEFX_DIRECTX12_API DirectX12Queue : public virtual DirectX12RuntimeObject<DirectX12Device>, public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
 		LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
 
 	public:
@@ -1773,7 +1773,7 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Queue(DirectX12Queue&&) = delete;
 		virtual ~DirectX12Queue() noexcept;
 
-		// ICommandQueue interface.
+		// CommandQueue interface.
 	public:
 		/// <inheritdoc />
 		virtual bool isBound() const noexcept override;
