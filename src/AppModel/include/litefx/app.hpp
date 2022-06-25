@@ -47,23 +47,71 @@ namespace LiteFX {
 		Platform platform() const noexcept;
 		virtual const IBackend* operator[](std::type_index type) const;
 		virtual const IBackend* getBackend(std::type_index type) const;
+		virtual Array<const IBackend*> getBackends(const BackendType type) const noexcept;
 
 	protected:
-		virtual void setInitializer(std::type_index type, const std::function<bool()>& initializer);
-		virtual const std::function<bool()>& getInitializer(std::type_index type) const;
-
-		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
-		const std::function<bool()>& getInitializer() const {
-			return this->getInitializer(typeid(TBackend));
-		}
-
 		virtual IBackend* getBackend(std::type_index type);
 
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
 		TBackend* findBackend() {
 			return dynamic_cast<TBackend*>(this->getBackend(typeid(TBackend)));
+		}
+
+		virtual void startBackend(std::type_index type, IBackend* backend) const;
+		virtual void stopBackend(std::type_index type, IBackend* backend) const;
+		virtual void stopActiveBackends(const BackendType& type) const;
+
+	private:
+		void registerStartCallback(std::type_index type, const std::function<bool()>& callback);
+		void registerStopCallback(std::type_index type, const std::function<void()>& callback);
+
+	public:
+		/// <summary>
+		/// Sets a callback that is called, if a backend is started.
+		/// </summary>
+		/// <remarks>
+		/// A backend can have multiple start callbacks, that are executed if a backend is started. Typically such a callback is used to initialize
+		/// a device and surface for an application. An application might use multiple callbacks, if it creates multiple devices, for example to
+		/// create a plugin architecture.
+		/// </remarks>
+		/// <typeparam name="TBackend">The type of the backend.</typeparam>
+		/// <param name="callback">The function to call during backend startup.</param>
+		/// <seealso cref="onBackendStop" />
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		void onBackendStart(const std::function<bool(TBackend*)>& callback) {
+			this->registerStartCallback(typeid(TBackend), [this, callback]() {
+				auto backend = this->findBackend<TBackend>();
+
+				if (backend == nullptr)
+					throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+
+				if (backend->state() == BackendState::Active)
+					return true;
+				else
+					return callback(backend);
+			});
+		}
+
+		/// <summary>
+		/// Sets a callback that is called, if a backend is stopped.
+		/// </summary>
+		/// <typeparam name="TBackend">The type of the backend.</typeparam>
+		/// <param name="callback">The function to call during backend shutdown.</param>
+		/// <seealso cref="onBackendStart" />
+		template <typename TBackend> requires
+			rtti::implements<TBackend, IBackend>
+		void onBackendStop(const std::function<void(TBackend*)>& callback) {
+			this->registerStopCallback(typeid(TBackend), [this, callback]() {
+				auto backend = this->findBackend<TBackend>();
+
+				if (backend == nullptr)
+					throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+
+				if (backend->state() != BackendState::Inactive)
+					callback(backend);
+			});
 		}
 
 	public:
@@ -73,42 +121,21 @@ namespace LiteFX {
 			return dynamic_cast<const TBackend*>(this->getBackend(typeid(TBackend)));
 		}
 
-		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
-		void setInitializer(const std::function<bool(const TBackend*)>& initializer) {
-			this->setInitializer(typeid(TBackend), [this, initializer]() {
-				auto backend = this->findBackend<TBackend>();
-
-				if (backend->state() == BackendState::Active)
-					return true;
-
-				if (backend == nullptr)
-					throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
-				
-				if (!initializer(backend))
-					return false;
-
-				static_cast<IBackend*>(backend)->activate();
-				return true;
-			});
-		}
-
+		/// <summary>
+		/// Attempts to start a backend of type <typeparamref="TBackend" /> and stops the active backend of the same <see cref="BackendType" />, if any.
+		/// </summary>
+		/// <typeparam name="TBackend">The type of the backend to start.</typeparam>
+		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref="TBackend" /> is registered.</exception>
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
 		void startBackend() const {
-			auto initializer = this->getInitializer<TBackend>();
-			
-			if (!initializer())
-				throw RuntimeException("The backend of type {0} could not be initialized.", typeid(TBackend).name());
+			this->startBackend(typeid(TBackend), this->findBackend<TBackend>());
 		}
 
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
 		void stopBackend() const {
-			auto backend = this->findBackend<TBackend>();
-
-			if (backend->state() != BackendState::Active)
-				static_cast<IBackend*>(backend)->deactivate();
+			this->stopBackend(typeid(TBackend), this->findBackend<TBackend>());
 		}
 
 	public:
