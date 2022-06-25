@@ -15,7 +15,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IVertexBufferLayout" />
     /// <seealso cref="IIndexBufferLayout" />
     /// <seealso cref="IDescriptorLayout" />
-    class IBufferLayout {
+    class LITEFX_RENDERING_API IBufferLayout {
     public:
         virtual ~IBufferLayout() noexcept = default;
 
@@ -45,8 +45,8 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a vertex buffer layout.
     /// </summary>
-    /// <seealso cref="IVertexBufferBuffer" />
-    class IVertexBufferLayout : public IBufferLayout {
+    /// <seealso cref="IVertexBuffer" />
+    class LITEFX_RENDERING_API IVertexBufferLayout : public IBufferLayout {
     public:
         virtual ~IVertexBufferLayout() noexcept = default;
 
@@ -75,7 +75,7 @@ namespace LiteFX::Rendering {
     /// Describes a index buffer layout.
     /// </summary>
     /// <seealso cref="IIndexBuffer" />
-    class IIndexBufferLayout : public IBufferLayout {
+    class LITEFX_RENDERING_API IIndexBufferLayout : public IBufferLayout {
     public:
         virtual ~IIndexBufferLayout() noexcept = default;
 
@@ -1066,15 +1066,9 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Describes a vertex buffer.
+    /// The interface for a vertex buffer.
     /// </summary>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
-    template <typename TVertexBufferLayout> requires
-        rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
-    class IVertexBuffer : public virtual IBuffer {
-    public:
-        using vertex_buffer_layout_type = TVertexBufferLayout;
-
+    class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer {
     public:
         virtual ~IVertexBuffer() noexcept = default;
 
@@ -1083,7 +1077,40 @@ namespace LiteFX::Rendering {
         /// Gets the layout of the vertex buffer.
         /// </summary>
         /// <returns>The layout of the vertex buffer.</returns>
+        virtual const IVertexBufferLayout& layout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Describes a vertex buffer.
+    /// </summary>
+    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
+    template <typename TVertexBufferLayout> requires
+        rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
+    class VertexBuffer : public virtual IVertexBuffer {
+    public:
+        using vertex_buffer_layout_type = TVertexBufferLayout;
+
+    public:
+        virtual ~VertexBuffer() noexcept = default;
+
+    public:
+        /// <inheritdoc />
         virtual const TVertexBufferLayout& layout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// The interface for an index buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
+    public:
+        virtual ~IIndexBuffer() noexcept = default;
+    
+    public:
+        /// <summary>
+        /// Gets the layout of the index buffer.
+        /// </summary>
+        /// <returns>The layout of the index buffer.</returns>
+        virtual const IIndexBufferLayout& layout() const noexcept = 0;
     };
 
     /// <summary>
@@ -1092,18 +1119,15 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
     template <typename TIndexBufferLayout> requires
         rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
-    class IIndexBuffer : public virtual IBuffer {
+    class IndexBuffer : public virtual IIndexBuffer {
     public:
         using index_buffer_layout_type = TIndexBufferLayout;
 
     public:
-        virtual ~IIndexBuffer() noexcept = default;
+        virtual ~IndexBuffer() noexcept = default;
 
     public:
-        /// <summary>
-        /// Gets the layout of the index buffer.
-        /// </summary>
-        /// <returns>The layout of the index buffer.</returns>
+        /// <inheritdoc/>
         virtual const TIndexBufferLayout& layout() const noexcept = 0;
     };
 
@@ -1216,8 +1240,8 @@ namespace LiteFX::Rendering {
     /// Represents a command buffer, that buffers commands that should be submitted to a <see cref="ICommandQueue" />.
     /// </summary>
     /// <typeparam name="TBuffer">The generic buffer type. Must implement <see cref="IBuffer"/>.</typeparam>
-    /// <typeparam name="TVertexBuffer">The vertex buffer type. Must implement <see cref="IVertexBuffer"/>.</typeparam>
-    /// <typeparam name="TIndexBuffer">The index buffer type. Must implement <see cref="IIndexBuffer"/>.</typeparam>
+    /// <typeparam name="TVertexBuffer">The vertex buffer type. Must implement <see cref="VertexBuffer"/>.</typeparam>
+    /// <typeparam name="TIndexBuffer">The index buffer type. Must implement <see cref="IndexBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="IBarrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="IPipeline"/>.</typeparam>
@@ -1392,7 +1416,7 @@ namespace LiteFX::Rendering {
         /// After binding the vertex buffer, the next call to <see cref="draw" /> or <see cref="drawIndexed" /> will read from it, until another vertex buffer is bound. 
         /// </remarks>
         /// <param name="buffer">The vertex buffer to bind to the pipeline.</param>
-        /// <seealso cref="IVertexBuffer" />
+        /// <seealso cref="VertexBuffer" />
         /// <seealso cref="draw" />
         /// <seealso cref="drawIndexed" />
         virtual void bind(const TVertexBuffer& buffer) const noexcept = 0;
@@ -1404,7 +1428,7 @@ namespace LiteFX::Rendering {
         /// After binding the index buffer, the next call to <see cref="drawIndexed" /> will read from it, until another index buffer is bound. 
         /// </remarks>
         /// <param name="buffer">The index buffer to bind to the pipeline.</param>
-        /// <seealso cref="IIndexBuffer" />
+        /// <seealso cref="IndexBuffer" />
         /// <seealso cref="drawIndexed" />
         virtual void bind(const TIndexBuffer& buffer) const noexcept = 0;
 
@@ -1496,15 +1520,15 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
     /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="IInputAssembler"/>.</typeparam>
-    /// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="IVertexBuffer"/>.</typeparam>
-    /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IIndexBuffer"/>.</typeparam>
+    /// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="VertexBuffer"/>.</typeparam>
+    /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IndexBuffer"/>.</typeparam>
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
     /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
     /// <seealso cref="IRenderPipelineBuilder" />
     template <typename TPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type> requires
         rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
-        std::derived_from<TVertexBufferInterface, IVertexBuffer<TVertexBufferLayout>> &&
-        std::derived_from<TIndexBufferInterface, IIndexBuffer<TIndexBufferLayout>>
+        std::derived_from<TVertexBufferInterface, VertexBuffer<TVertexBufferLayout>> &&
+        std::derived_from<TIndexBufferInterface, IndexBuffer<TIndexBufferLayout>>
     class IRenderPipeline : public IPipeline<TPipelineLayout> {
     public:
         using vertex_buffer_interface_type = TVertexBufferInterface;
@@ -2186,38 +2210,9 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Describes a factory that creates objects for a <see cref="GraphicsDevice" />.
+    /// The interface for a graphics factory.
     /// </summary>
-    /// <remarks>
-    /// Initial resource states depend on the provided <see cref="BufferUsage" />. *Staging* and *Dynamic* resources are always initialized in <see cref="ResourceState::GenericRead" /> 
-    /// state, while *Resource* and *Readback* resources are initialized in <see cref="ResourceState::CopyDestination" /> state. Images (and attachments) can only be used as *Resource*,
-    /// so they are always created as copy destination. Images require a transfer from a buffer, followed by an explicit <see cref="IBarrier" /> into the state required by the shader.
-    /// Attachments are implicitly transitioned at the beginning and end of a render pass, so you typically do not need to create an explicit barrier for them.
-    /// </remarks>
-    /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-    /// <typeparam name="TVertexBuffer">The type of the vertex buffer. Must implement <see cref="IVertexBuffer" />.</typeparam>
-    /// <typeparam name="TIndexBuffer">The type of the index buffer. Must implement <see cref="IIndexBuffer" />.</typeparam>
-    /// <typeparam name="TImage">The type of the image. Must inherit from <see cref="IImage"/>.</typeparam>
-    /// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="IBuffer"/>.</typeparam>
-    /// <typeparam name="TSampler">The type of the sampler. Must inherit from <see cref="ISampler"/>.</typeparam>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
-    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler, typename TVertexBufferLayout = TVertexBuffer::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBuffer::index_buffer_layout_type> requires
-        rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-        std::derived_from<TVertexBuffer, IVertexBuffer<TVertexBufferLayout>> &&
-        std::derived_from<TIndexBuffer, IIndexBuffer<TIndexBufferLayout>> &&
-        std::derived_from<TImage, IImage> &&
-        std::derived_from<TBuffer, IBuffer> &&
-        std::derived_from<TSampler, ISampler>
-    class IGraphicsFactory {
-    public:
-        using descriptor_layout_type = TDescriptorLayout;
-        using vertex_buffer_type = TVertexBuffer;
-        using index_buffer_type = TIndexBuffer;
-        using buffer_type = TBuffer;
-        using image_type = TImage;
-        using sampler_type = TSampler;
-
+    class LITEFX_RENDERING_API IGraphicsFactory {
     public:
         virtual ~IGraphicsFactory() noexcept = default;
 
@@ -2231,7 +2226,9 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        virtual UniquePtr<TBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
+        UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            return this->getBuffer(type, usage, elementSize, elements, allowWrite);
+        };
 
         /// <summary>
         /// Creates a vertex buffer, based on the <paramref name="layout" />
@@ -2245,7 +2242,9 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const TVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
+        UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const {
+            return this->getVertexBuffer(layout, usage, elements);
+        }
 
         /// <summary>
         /// Creates an index buffer, based on the <paramref name="layout" />.
@@ -2259,7 +2258,9 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <returns>The instance of the index buffer.</returns>
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const TIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const {
+            return this->getIndexBuffer(layout, usage, elements);
+        }
 
         /// <summary>
         /// Creates an image that is used as render target attachment.
@@ -2268,7 +2269,9 @@ namespace LiteFX::Rendering {
         /// <param name="size">The extent of the image.</param>
         /// <param name="samples">The number of samples, the image should be sampled with.</param>
         /// <returns>The instance of the attachment image.</returns>
-        virtual UniquePtr<TImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+        UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const {
+            return this->getAttachment(format, size, samples);
+        }
 
         /// <summary>
         /// Creates a texture, based on the <paramref name="layout" />.
@@ -2286,7 +2289,9 @@ namespace LiteFX::Rendering {
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        virtual UniquePtr<TImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+        UniquePtr<IImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
+            return this->getTexture(format, size, dimension, levels, layers, samples, allowWrite);
+        }
 
         /// <summary>
         /// Creates an array of textures, based on the <paramref name="layout" />.
@@ -2301,7 +2306,9 @@ namespace LiteFX::Rendering {
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>An array of texture instances.</returns>
         /// <seealso cref="createTexture" />
-        virtual Array<UniquePtr<TImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+        Array<UniquePtr<IImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
+            return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite);
+        }
 
         /// <summary>
         /// Creates a texture sampler, based on the <paramref name="layout" />.
@@ -2318,7 +2325,9 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>The instance of the sampler.</returns>
         /// <seealso cref="createSamplers" />
-        virtual UniquePtr<TSampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+        UniquePtr<ISampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+            return this->getSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+        }
 
         /// <summary>
         /// Creates an array of texture samplers, based on the <paramref name="layout" />.
@@ -2336,7 +2345,122 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>An array of sampler instances.</returns>
         /// <seealso cref="createSampler" />
+        Array<UniquePtr<ISampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+            return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+        }
+
+    private:
+        virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IImage> getAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const = 0;
+        virtual UniquePtr<IImage> getTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
+        virtual Array<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
+        virtual UniquePtr<ISampler> getSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
+        virtual Array<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
+    };
+
+    /// <summary>
+    /// Describes a factory that creates objects for a <see cref="GraphicsDevice" />.
+    /// </summary>
+    /// <remarks>
+    /// Initial resource states depend on the provided <see cref="BufferUsage" />. *Staging* and *Dynamic* resources are always initialized in <see cref="ResourceState::GenericRead" /> 
+    /// state, while *Resource* and *Readback* resources are initialized in <see cref="ResourceState::CopyDestination" /> state. Images (and attachments) can only be used as *Resource*,
+    /// so they are always created as copy destination. Images require a transfer from a buffer, followed by an explicit <see cref="IBarrier" /> into the state required by the shader.
+    /// Attachments are implicitly transitioned at the beginning and end of a render pass, so you typically do not need to create an explicit barrier for them.
+    /// </remarks>
+    /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
+    /// <typeparam name="TVertexBuffer">The type of the vertex buffer. Must implement <see cref="VertexBuffer" />.</typeparam>
+    /// <typeparam name="TIndexBuffer">The type of the index buffer. Must implement <see cref="IndexBuffer" />.</typeparam>
+    /// <typeparam name="TImage">The type of the image. Must inherit from <see cref="IImage"/>.</typeparam>
+    /// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="IBuffer"/>.</typeparam>
+    /// <typeparam name="TSampler">The type of the sampler. Must inherit from <see cref="ISampler"/>.</typeparam>
+    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
+    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
+    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler, typename TVertexBufferLayout = TVertexBuffer::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBuffer::index_buffer_layout_type> requires
+        rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
+        std::derived_from<TVertexBuffer, VertexBuffer<TVertexBufferLayout>> &&
+        std::derived_from<TIndexBuffer, IndexBuffer<TIndexBufferLayout>> &&
+        std::derived_from<TImage, IImage> &&
+        std::derived_from<TBuffer, IBuffer> &&
+        std::derived_from<TSampler, ISampler>
+    class GraphicsFactory : public IGraphicsFactory {
+    public:
+        using descriptor_layout_type = TDescriptorLayout;
+        using vertex_buffer_type = TVertexBuffer;
+        using index_buffer_type = TIndexBuffer;
+        using buffer_type = TBuffer;
+        using image_type = TImage;
+        using sampler_type = TSampler;
+
+    public:
+        virtual ~GraphicsFactory() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual UniquePtr<TBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const TVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const TIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<TImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<TImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+
+        /// <inheritdoc />
+        virtual Array<UniquePtr<TImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<TSampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+
+        /// <inheritdoc />
         virtual Array<UniquePtr<TSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+
+    private:
+        virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const override { 
+            return this->createBuffer(type, usage, elementSize, elements, allowWrite);
+        }
+
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override { 
+            return this->createVertexBuffer(dynamic_cast<const TVertexBufferLayout&>(layout), usage, elements);
+        }
+        
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override {
+            return this->createIndexBuffer(dynamic_cast<const TIndexBufferLayout&>(layout), usage, elements);
+        }
+
+        virtual UniquePtr<IImage> getAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const override { 
+            return this->createAttachment(format, size, samples);
+        }
+        
+        virtual UniquePtr<IImage> getTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const override { 
+            return this->createTexture(format, size, dimension, levels, layers, samples, allowWrite);
+        }
+
+        virtual Array<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const override { 
+            auto textures = this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite);
+            Array<UniquePtr<IImage>> results;
+            results.reserve(textures.size());
+            std::move(std::begin(textures), std::end(textures), std::inserter(results, std::end(results)));
+            return results;
+        }
+        
+        virtual UniquePtr<ISampler> getSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override { 
+            return this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+        }
+        
+        virtual Array<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
+            auto samplers = this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+            Array<UniquePtr<ISampler>> results;
+            results.reserve(samplers.size());
+            std::move(std::begin(samplers), std::end(samplers), std::inserter(results, std::end(results)));
+            return results;
+        }
     };
 
     /// <summary>
@@ -2369,7 +2493,7 @@ namespace LiteFX::Rendering {
         /// Returns the factory instance, used to create instances from the device.
         /// </summary>
         /// <returns>The factory instance, used to create instances from the device.</returns>
-        //virtual const IFactory& factory() const noexcept = 0;
+        virtual const IGraphicsFactory& factory() const noexcept = 0;
 
         /// <summary>
         /// Returns the instance of the queue, used to process draw calls.
@@ -2430,11 +2554,11 @@ namespace LiteFX::Rendering {
     /// Represents the graphics device that a rendering back-end is doing work on.
     /// </summary>
     /// <remarks>
-    /// The graphics device is the central instance of a renderer. It has two major roles. First, it maintains the <see cref="IGraphicsFactory" /> instance, that is used to facilitate
+    /// The graphics device is the central instance of a renderer. It has two major roles. First, it maintains the <see cref="GraphicsFactory" /> instance, that is used to facilitate
     /// common objects. Second, it owns the device state, which contains objects required for communication between your application and the graphics driver. Most notably, those objects
     /// contain the <see cref="SwapChain" /> instance and the <see cref="CommandQueue" /> instances used for data and command transfer.
     /// </remarks>
-    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
+    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="GraphicsFactory" />.</typeparam>
     /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
     /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
     /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="SwapChain" />.</typeparam>
@@ -2453,7 +2577,7 @@ namespace LiteFX::Rendering {
         rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
         rtti::implements<TSwapChain, SwapChain<TImage>> &&
         rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
-        rtti::implements<TFactory, IGraphicsFactory<TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler>> &&
+        rtti::implements<TFactory, GraphicsFactory<TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler>> &&
         rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
     class GraphicsDevice : public IGraphicsDevice {
     public:
@@ -2568,7 +2692,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="SwapChain" />.</typeparam>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
-    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
+    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="GraphicsFactory" />.</typeparam>
     template <typename TBackend, typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
         rtti::implements<TGraphicsDevice, GraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
     class RenderBackend : public IRenderBackend {

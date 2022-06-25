@@ -29,7 +29,7 @@ private:
 			m_id(id), m_queueCount(queueCount), m_type(type) { 
 		}
 		QueueFamily(const QueueFamily& _other) = delete;
-		QueueFamily(QueueFamily&& _other) {
+		QueueFamily(QueueFamily&& _other) noexcept {
 			m_queues = std::move(_other.m_queues);
 			m_id = std::move(_other.m_id);
 			m_queueCount = std::move(_other.m_queueCount);

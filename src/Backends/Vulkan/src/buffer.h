@@ -69,7 +69,7 @@ namespace LiteFX::Rendering::Backends {
 		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
 		virtual ~VulkanVertexBuffer() noexcept;
 
-		// IVertexBuffer interface.
+		// VertexBuffer interface.
 	public:
 		/// <inheritdoc />
 		const VulkanVertexBufferLayout& layout() const noexcept override;
@@ -88,7 +88,7 @@ namespace LiteFX::Rendering::Backends {
 		VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
 		virtual ~VulkanIndexBuffer() noexcept;
 
-		// IIndexBuffer interface.
+		// IndexBuffer interface.
 	public:
 		/// <inheritdoc />
 		virtual const VulkanIndexBufferLayout& layout() const noexcept override;

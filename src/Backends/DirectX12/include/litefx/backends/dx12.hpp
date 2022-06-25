@@ -182,7 +182,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12VertexBufferLayout" />
 	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual IVertexBuffer<DirectX12VertexBufferLayout>, public IDirectX12Buffer {
+	class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual VertexBuffer<DirectX12VertexBufferLayout>, public IDirectX12Buffer {
 	public:
 		virtual ~IDirectX12VertexBuffer() noexcept = default;
 
@@ -195,7 +195,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12IndexBufferLayout" />
 	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IIndexBuffer<DirectX12IndexBufferLayout>, public IDirectX12Buffer {
+	class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IndexBuffer<DirectX12IndexBufferLayout>, public IDirectX12Buffer {
 	public:
 		virtual ~IDirectX12IndexBuffer() noexcept = default;
 
@@ -1813,7 +1813,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <remarks>
 	/// The DX12 graphics factory is implemented using <a href="https://gpuopen.com/d3d12-memory-allocator/" target="_blank">D3D12 Memory Allocator</a>.
 	/// </remarks>
-	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public IGraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler> {
+	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler> {
 		LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
 
 	public:

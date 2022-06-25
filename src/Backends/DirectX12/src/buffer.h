@@ -82,7 +82,7 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12VertexBuffer(const DirectX12VertexBuffer&) = delete;
 		virtual ~DirectX12VertexBuffer() noexcept;
 
-		// IVertexBuffer interface.
+		// VertexBuffer interface.
 	public:
 		/// <inheritdoc />
 		const DirectX12VertexBufferLayout& layout() const noexcept override;
@@ -105,7 +105,7 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12IndexBuffer(const DirectX12IndexBuffer&) = delete;
 		virtual ~DirectX12IndexBuffer() noexcept;
 
-		// IIndexBuffer interface.
+		// IndexBuffer interface.
 	public:
 		/// <inheritdoc />
 		const DirectX12IndexBufferLayout& layout() const noexcept override;
