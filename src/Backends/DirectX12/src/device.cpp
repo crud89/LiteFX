@@ -330,7 +330,7 @@ DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 	return *m_impl->m_blitPipeline;
 }
 
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
 {
 	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
 }
