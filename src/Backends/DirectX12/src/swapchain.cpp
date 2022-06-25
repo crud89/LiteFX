@@ -54,7 +54,7 @@ public:
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.Width = static_cast<UInt32>(frameBufferSize.width());
 		swapChainDesc.Height = static_cast<UInt32>(frameBufferSize.height());
-		swapChainDesc.Format = ::getFormat(format);
+		swapChainDesc.Format = DX12::getFormat(format);
 		swapChainDesc.Stereo = FALSE;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.BufferCount = std::max<UInt32>(2, frameBuffers);
@@ -100,7 +100,7 @@ public:
 
 		// Resize the buffers.
 		UInt32 buffers = std::max<UInt32>(2, frameBuffers);
-		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), ::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
+		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
@@ -177,10 +177,10 @@ Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 	//       supported swap effect. If other swap effects are used, this function may require redesign. For more information see: 
 	//       https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1#remarks.
 	return Array<Format> {
-		::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
-		::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
-		::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM),
-		::getFormat(DXGI_FORMAT_R8G8B8A8_UNORM)
+		DX12::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
+		DX12::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
+		DX12::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM),
+		DX12::getFormat(DXGI_FORMAT_R8G8B8A8_UNORM)
 	};
 }
 

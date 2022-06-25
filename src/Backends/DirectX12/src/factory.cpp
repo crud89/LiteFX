@@ -159,7 +159,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 	resourceDesc.Height = size.height();
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = 1;
-	resourceDesc.Format = ::getFormat(format);
+	resourceDesc.Format = DX12::getFormat(format);
 	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
@@ -187,13 +187,13 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const Format&
 		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
 
 	D3D12_RESOURCE_DESC resourceDesc = {};
-	resourceDesc.Dimension = ::getImageType(dimension);
+	resourceDesc.Dimension = DX12::getImageType(dimension);
 	resourceDesc.Alignment = 0;
 	resourceDesc.Width = size.width();
 	resourceDesc.Height = size.height();
 	resourceDesc.DepthOrArraySize = dimension == ImageDimensions::DIM_3 ? size.depth() : layers;
 	resourceDesc.MipLevels = levels;
-	resourceDesc.Format = ::getFormat(format);
+	resourceDesc.Format = DX12::getFormat(format);
 	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resourceDesc.Flags = allowWrite ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;

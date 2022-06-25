@@ -39,7 +39,7 @@ public:
         // Query for push constant ranges.
         Array<const VulkanPushConstantsRange*> ranges = m_pushConstantsLayout == nullptr ? Array<const VulkanPushConstantsRange*>{} : m_pushConstantsLayout->ranges();
         auto rangeHandles = ranges |
-            std::views::transform([](const VulkanPushConstantsRange* range) { return VkPushConstantRange{ .stageFlags = static_cast<VkShaderStageFlags>(::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() }; }) |
+            std::views::transform([](const VulkanPushConstantsRange* range) { return VkPushConstantRange{ .stageFlags = static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() }; }) |
             ranges::to<Array<VkPushConstantRange>>();
 
         // Create the pipeline layout.

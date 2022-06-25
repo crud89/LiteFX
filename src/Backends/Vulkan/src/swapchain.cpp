@@ -62,7 +62,7 @@ public:
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		createInfo.imageFormat = ::getFormat(selectedFormat);
+		createInfo.imageFormat = Vk::getFormat(selectedFormat);
 		createInfo.imageColorSpace = this->findColorSpace(adapter, surface, selectedFormat);
 		createInfo.queueFamilyIndexCount = 0;
 		createInfo.pQueueFamilyIndices = nullptr;
@@ -164,7 +164,7 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return ::getFormat(format.format); }) | ranges::to<Array<Format>>();
+		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | ranges::to<Array<Format>>();
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
@@ -175,7 +175,7 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		if (auto match = std::ranges::find_if(availableFormats, [&format](const VkSurfaceFormatKHR& surfaceFormat) { return surfaceFormat.format == ::getFormat(format); }); match != availableFormats.end()) [[likely]]
+		if (auto match = std::ranges::find_if(availableFormats, [&format](const VkSurfaceFormatKHR& surfaceFormat) { return surfaceFormat.format == Vk::getFormat(format); }); match != availableFormats.end()) [[likely]]
 			return match->colorSpace;
 
 		return VK_COLOR_SPACE_MAX_ENUM_KHR;

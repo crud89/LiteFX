@@ -68,8 +68,8 @@ public:
                 throw InvalidArgumentException("No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
 
             VkAttachmentDescription attachment{};
-            attachment.format = getFormat(inputAttachment.renderTarget().format());
-            attachment.samples = getSamples(inputAttachment.inputAttachmentSource()->multiSamplingLevel());
+            attachment.format = Vk::getFormat(inputAttachment.renderTarget().format());
+            attachment.samples = Vk::getSamples(inputAttachment.inputAttachmentSource()->multiSamplingLevel());
             attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -120,8 +120,8 @@ public:
             else [[likely]]
             {
                 VkAttachmentDescription attachment{};
-                attachment.format = getFormat(renderTarget.format());
-                attachment.samples = getSamples(m_samples);
+                attachment.format = Vk::getFormat(renderTarget.format());
+                attachment.samples = Vk::getSamples(m_samples);
                 attachment.loadOp = renderTarget.clearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 attachment.stencilLoadOp = renderTarget.clearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 attachment.storeOp = renderTarget.isVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;

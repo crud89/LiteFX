@@ -88,7 +88,7 @@ VkPipelineShaderStageCreateInfo VulkanShaderModule::shaderStageDefinition() cons
 	shaderStageDefinition.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shaderStageDefinition.module = this->handle();
 	shaderStageDefinition.pName = this->entryPoint().c_str();
-	shaderStageDefinition.stage = getShaderStage(this->type());
+	shaderStageDefinition.stage = Vk::getShaderStage(this->type());
 
 	return shaderStageDefinition;
 }

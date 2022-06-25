@@ -140,7 +140,7 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 		.subresourceRange = VkImageSubresourceRange { .aspectMask = image.aspectMask() }
 	};
 
-	auto layout = ::getImageLayout(image.state(0));
+	auto layout = Vk::getImageLayout(image.state(0));
 
 	for (UInt32 layer(0); layer < image.layers(); ++layer)
 	{
@@ -376,5 +376,5 @@ void VulkanCommandBuffer::drawIndexed(const UInt32& indices, const UInt32& insta
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept
 {
-	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.parent().handle(), static_cast<VkShaderStageFlags>(::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
+	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.parent().handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
 }

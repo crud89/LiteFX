@@ -43,8 +43,8 @@ public:
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		D3D12_RASTERIZER_DESC rasterizerState = {};
 		rasterizerState.DepthClipEnable = FALSE;
-		rasterizerState.FillMode = ::getPolygonMode(rasterizer.polygonMode());
-		rasterizerState.CullMode = ::getCullMode(rasterizer.cullMode());
+		rasterizerState.FillMode = DX12::getPolygonMode(rasterizer.polygonMode());
+		rasterizerState.CullMode = DX12::getCullMode(rasterizer.cullMode());
 		rasterizerState.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise;
 		rasterizerState.MultisampleEnable = FALSE;
 		rasterizerState.AntialiasedLineEnable = FALSE;
@@ -65,7 +65,7 @@ public:
 
 		// Setup input assembler state.
 		LITEFX_TRACE(DIRECTX12_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", m_inputAssembler->topology());
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = ::getPrimitiveTopologyType(m_inputAssembler->topology());
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = DX12::getPrimitiveTopologyType(m_inputAssembler->topology());
 
 		auto vertexLayouts = m_inputAssembler->vertexBufferLayouts();
 
@@ -78,9 +78,9 @@ public:
 
 			std::ranges::for_each(bufferAttributes, [&](const BufferAttribute* attribute) {
 				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {};
-				elementDescriptor.SemanticName = ::getSemanticName(attribute->semantic());
+				elementDescriptor.SemanticName = DX12::getSemanticName(attribute->semantic());
 				elementDescriptor.SemanticIndex = attribute->semanticIndex();
-				elementDescriptor.Format = ::getFormat(attribute->format());
+				elementDescriptor.Format = DX12::getFormat(attribute->format());
 				elementDescriptor.InputSlot = bindingPoint;
 				elementDescriptor.InputSlotClass = D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
 				elementDescriptor.AlignedByteOffset = attribute->offset();	// TODO: May not include packing, but packing is required - need to test this!
@@ -118,42 +118,42 @@ public:
 			if (renderTarget.type() == RenderTargetType::DepthStencil)
 			{
 				// Setup depth/stencil format.
-				pipelineStateDescription.DSVFormat = ::getFormat(renderTarget.format());
+				pipelineStateDescription.DSVFormat = DX12::getFormat(renderTarget.format());
 
 				// Setup depth/stencil state.
 				// TODO: From depth/stencil state.
 				depthStencilState.DepthEnable = rasterizer.depthStencilState().depthState().Enable;
 				depthStencilState.DepthWriteMask = rasterizer.depthStencilState().depthState().Write ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
-				depthStencilState.DepthFunc = ::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
+				depthStencilState.DepthFunc = DX12::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
 
 				depthStencilState.StencilEnable = rasterizer.depthStencilState().stencilState().Enable;
 				depthStencilState.StencilReadMask = rasterizer.depthStencilState().stencilState().ReadMask;
 				depthStencilState.StencilWriteMask = rasterizer.depthStencilState().stencilState().WriteMask;
-				depthStencilState.FrontFace.StencilFunc = ::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
-				depthStencilState.FrontFace.StencilDepthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
-				depthStencilState.FrontFace.StencilFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
-				depthStencilState.FrontFace.StencilPassOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
-				depthStencilState.BackFace.StencilFunc = ::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
-				depthStencilState.BackFace.StencilDepthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
-				depthStencilState.BackFace.StencilFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
-				depthStencilState.BackFace.StencilPassOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
+				depthStencilState.FrontFace.StencilFunc = DX12::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
+				depthStencilState.FrontFace.StencilDepthFailOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
+				depthStencilState.FrontFace.StencilFailOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
+				depthStencilState.FrontFace.StencilPassOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
+				depthStencilState.BackFace.StencilFunc = DX12::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
+				depthStencilState.BackFace.StencilDepthFailOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
+				depthStencilState.BackFace.StencilFailOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
+				depthStencilState.BackFace.StencilPassOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
 			}
 			else
 			{
 				// Setup target formats.
 				UInt32 target = i++;
-				pipelineStateDescription.RTVFormats[target] = ::getFormat(renderTarget.format());
+				pipelineStateDescription.RTVFormats[target] = DX12::getFormat(renderTarget.format());
 
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
 				targetBlendState.BlendEnable = renderTarget.blendState().Enable;
 				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().WriteMask);
-				targetBlendState.SrcBlend = ::getBlendFactor(renderTarget.blendState().SourceColor);
-				targetBlendState.SrcBlendAlpha = ::getBlendFactor(renderTarget.blendState().SourceAlpha);
-				targetBlendState.DestBlend = ::getBlendFactor(renderTarget.blendState().DestinationColor);
-				targetBlendState.DestBlendAlpha = ::getBlendFactor(renderTarget.blendState().DestinationAlpha);
-				targetBlendState.BlendOp = ::getBlendOperation(renderTarget.blendState().ColorOperation);
-				targetBlendState.BlendOpAlpha = ::getBlendOperation(renderTarget.blendState().AlphaOperation);
+				targetBlendState.SrcBlend = DX12::getBlendFactor(renderTarget.blendState().SourceColor);
+				targetBlendState.SrcBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().SourceAlpha);
+				targetBlendState.DestBlend = DX12::getBlendFactor(renderTarget.blendState().DestinationColor);
+				targetBlendState.DestBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().DestinationAlpha);
+				targetBlendState.BlendOp = DX12::getBlendOperation(renderTarget.blendState().ColorOperation);
+				targetBlendState.BlendOpAlpha = DX12::getBlendOperation(renderTarget.blendState().AlphaOperation);
 
 				// TODO: We should also implement this, but this restricts all blend states to be equal and IndependentBlendEnable set to false.
 				targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
@@ -306,7 +306,7 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
 	commandBuffer.handle()->OMSetStencilRef(m_impl->m_stencilRef);
 	commandBuffer.handle()->OMSetBlendFactor(blendFactor);
-	commandBuffer.handle()->IASetPrimitiveTopology(::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
+	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 }
 
 // ------------------------------------------------------------------------------------------------

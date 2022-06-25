@@ -245,10 +245,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 	imageInfo.extent.depth = 1;
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
-	imageInfo.format = ::getFormat(format);
+	imageInfo.format = Vk::getFormat(format);
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.samples = ::getSamples(samples);
+	imageInfo.samples = Vk::getSamples(samples);
 	imageInfo.usage = (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
 	UInt32 queues[] = { m_impl->m_device.graphicsQueue().familyId() };
@@ -275,16 +275,16 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const Format& forma
 
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = ::getImageType(dimension);
+	imageInfo.imageType = Vk::getImageType(dimension);
 	imageInfo.extent.width = size.width();
 	imageInfo.extent.height = size.height();
 	imageInfo.extent.depth = size.depth();
 	imageInfo.mipLevels = levels;
 	imageInfo.arrayLayers = layers;
-	imageInfo.format = ::getFormat(format);
+	imageInfo.format = Vk::getFormat(format);
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.samples = ::getSamples(samples);
+	imageInfo.samples = Vk::getSamples(samples);
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	imageInfo.usage |= allowWrite ? VK_IMAGE_USAGE_STORAGE_BIT : VK_IMAGE_USAGE_SAMPLED_BIT;
 	

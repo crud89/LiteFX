@@ -25,7 +25,7 @@ public:
 	DirectX12ImageImpl(DirectX12Image* parent, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
 		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_writable(writable), m_samples(samples)
 	{
-		m_planes = ::D3D12GetFormatPlaneCount(m_parent->getDevice()->handle().Get(), ::getFormat(format));
+		m_planes = ::D3D12GetFormatPlaneCount(m_parent->getDevice()->handle().Get(), DX12::getFormat(format));
 		m_elements = m_planes * m_layers * m_levels;
 		m_states.resize(m_elements, initialState);
 	}
@@ -186,7 +186,7 @@ UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, ::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
+	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, DX12::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Writable: {7} }}", fmt::ptr(resource.Get()), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, writable, samples);
 	
 	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, writable, initialState, allocator, AllocationPtr(allocation));

@@ -133,7 +133,7 @@ UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(const DirectX12Device& dev
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, ::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate buffer.");
+	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, DX12::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Writable: {5} }}", fmt::ptr(resource.Get()), type, elements, elementSize, elements * elementSize, writable);
 
 	return makeUnique<DirectX12Buffer>(device, std::move(resource), type, elements, elementSize, alignment, writable, initialState, allocator, AllocationPtr(allocation));
@@ -198,7 +198,7 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const DirectX1
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, ::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
+	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, DX12::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(resource.Get()), BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<DirectX12VertexBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));
@@ -263,7 +263,7 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const DirectX12D
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, ::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
+	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, DX12::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", fmt::ptr(resource.Get()), BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<DirectX12IndexBuffer>(device, std::move(resource), layout, elements, initialState, allocator, AllocationPtr(allocation));

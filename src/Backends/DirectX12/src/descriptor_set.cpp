@@ -138,7 +138,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
     if (descriptorLayout.descriptorType() == DescriptorType::Texture)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
-            .Format = ::getFormat(texture.format()),
+            .Format = DX12::getFormat(texture.format()),
             .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
         };
 
@@ -204,7 +204,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
             throw InvalidArgumentException("The provided texture is not writable and cannot be bound to a read/write descriptor.");
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC textureView = {
-            .Format = ::getFormat(texture.format())
+            .Format = DX12::getFormat(texture.format())
         };
 
         switch (texture.dimensions())
@@ -279,7 +279,7 @@ void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image
     auto offset = this->parent().descriptorOffsetForBinding(binding);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC inputAttachmentView = {
-        .Format = ::getFormat(image.format()),
+        .Format = DX12::getFormat(image.format()),
         .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
         .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
         .Texture2D = { .MostDetailedMip = 0, .MipLevels = 1, .PlaneSlice = 0, .ResourceMinLODClamp = 0 },

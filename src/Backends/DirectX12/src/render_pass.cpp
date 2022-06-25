@@ -72,7 +72,7 @@ public:
             std::views::filter([](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
             std::views::transform([&frameBuffer, &renderTargetView](const RenderTarget& renderTarget) {
                 Float clearColor[4] = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() };
-                CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(renderTarget.format()), clearColor };
+                CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(renderTarget.format()), clearColor };
 
                 D3D12_RENDER_PASS_BEGINNING_ACCESS beginAccess = renderTarget.clearBuffer() ?
                     D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
@@ -92,7 +92,7 @@ public:
             std::get<1>(m_contexts[backBuffer]) = std::nullopt;
         else
         {
-            CD3DX12_CLEAR_VALUE clearValue{ ::getFormat(m_depthStencilTarget->format()), m_depthStencilTarget->clearValues().x(), static_cast<Byte>(m_depthStencilTarget->clearValues().y()) };
+            CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(m_depthStencilTarget->format()), m_depthStencilTarget->clearValues().x(), static_cast<Byte>(m_depthStencilTarget->clearValues().y()) };
 
             D3D12_RENDER_PASS_ENDING_ACCESS depthEndAccess, stencilEndAccess;
             D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess = m_depthStencilTarget->clearBuffer() && ::hasDepth(m_depthStencilTarget->format()) ?
@@ -293,7 +293,7 @@ void DirectX12RenderPass::end() const
     if (requiresResolve)
     {
         const IDirectX12Image* multiSampledImage = &frameBuffer->image(m_impl->m_presentTarget->location());
-        std::as_const(*m_impl->m_endCommandBuffer).handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, ::getFormat(m_impl->m_presentTarget->format()));
+        std::as_const(*m_impl->m_endCommandBuffer).handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, DX12::getFormat(m_impl->m_presentTarget->format()));
 
         // Transition the present target back to the present state.
         DirectX12Barrier presentBarrier;

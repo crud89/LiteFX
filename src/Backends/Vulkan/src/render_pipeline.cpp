@@ -48,9 +48,9 @@ public:
 		rasterizerState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizerState.depthClampEnable = VK_FALSE;
 		rasterizerState.rasterizerDiscardEnable = VK_FALSE;
-		rasterizerState.polygonMode = ::getPolygonMode(rasterizer.polygonMode());
+		rasterizerState.polygonMode = Vk::getPolygonMode(rasterizer.polygonMode());
 		rasterizerState.lineWidth = rasterizer.lineWidth();
-		rasterizerState.cullMode = ::getCullMode(rasterizer.cullMode());
+		rasterizerState.cullMode = Vk::getCullMode(rasterizer.cullMode());
 		rasterizerState.frontFace = rasterizer.cullOrder() == CullOrder::ClockWise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterizerState.depthBiasEnable = rasterizer.depthStencilState().depthBias().Enable;
 		rasterizerState.depthBiasClamp = rasterizer.depthStencilState().depthBias().Clamp;
@@ -76,7 +76,7 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", m_inputAssembler->topology());
 
 		// Set primitive topology.
-		inputAssembly.topology = ::getPrimitiveTopology(m_inputAssembler->topology());
+		inputAssembly.topology = Vk::getPrimitiveTopology(m_inputAssembler->topology());
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		// Parse vertex input descriptors.
@@ -101,7 +101,7 @@ public:
 					descriptor.binding = bindingPoint;
 					descriptor.location = attribute->location();
 					descriptor.offset = attribute->offset();
-					descriptor.format = ::getFormat(attribute->format());
+					descriptor.format = Vk::getFormat(attribute->format());
 
 					return descriptor;
 				}) |
@@ -141,7 +141,7 @@ public:
 		VkPipelineMultisampleStateCreateInfo multisampling = {};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = ::getSamples(m_parent->parent().multiSamplingLevel());
+		multisampling.rasterizationSamples = Vk::getSamples(m_parent->parent().multiSamplingLevel());
 		multisampling.minSampleShading = 1.0f;
 		multisampling.pSampleMask = nullptr;
 		multisampling.alphaToCoverageEnable = m_alphaToCoverage;
@@ -155,12 +155,12 @@ public:
 
 			colorBlendAttachments.push_back(VkPipelineColorBlendAttachmentState {
 				.blendEnable = renderTarget.blendState().Enable,
-				.srcColorBlendFactor = ::getBlendFactor(renderTarget.blendState().SourceColor),
-				.dstColorBlendFactor = ::getBlendFactor(renderTarget.blendState().DestinationColor),
-				.colorBlendOp = ::getBlendOperation(renderTarget.blendState().ColorOperation),
-				.srcAlphaBlendFactor = ::getBlendFactor(renderTarget.blendState().SourceAlpha),
-				.dstAlphaBlendFactor = ::getBlendFactor(renderTarget.blendState().DestinationAlpha),
-				.alphaBlendOp = ::getBlendOperation(renderTarget.blendState().AlphaOperation),
+				.srcColorBlendFactor = Vk::getBlendFactor(renderTarget.blendState().SourceColor),
+				.dstColorBlendFactor = Vk::getBlendFactor(renderTarget.blendState().DestinationColor),
+				.colorBlendOp = Vk::getBlendOperation(renderTarget.blendState().ColorOperation),
+				.srcAlphaBlendFactor = Vk::getBlendFactor(renderTarget.blendState().SourceAlpha),
+				.dstAlphaBlendFactor = Vk::getBlendFactor(renderTarget.blendState().DestinationAlpha),
+				.alphaBlendOp = Vk::getBlendOperation(renderTarget.blendState().AlphaOperation),
 				.colorWriteMask = static_cast<VkColorComponentFlags>(renderTarget.blendState().WriteMask)
 			});
 		});
@@ -182,20 +182,20 @@ public:
 		depthStencilState.depthBoundsTestEnable = VK_FALSE;
 		depthStencilState.depthTestEnable = rasterizer.depthStencilState().depthState().Enable;
 		depthStencilState.depthWriteEnable = rasterizer.depthStencilState().depthState().Write;
-		depthStencilState.depthCompareOp = ::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
+		depthStencilState.depthCompareOp = Vk::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
 		depthStencilState.stencilTestEnable = rasterizer.depthStencilState().stencilState().Enable;
 		depthStencilState.front.compareMask = rasterizer.depthStencilState().stencilState().ReadMask;
 		depthStencilState.front.writeMask = rasterizer.depthStencilState().stencilState().WriteMask;
-		depthStencilState.front.compareOp = ::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
-		depthStencilState.front.failOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
-		depthStencilState.front.passOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
-		depthStencilState.front.depthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
+		depthStencilState.front.compareOp = Vk::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
+		depthStencilState.front.failOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
+		depthStencilState.front.passOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
+		depthStencilState.front.depthFailOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
 		depthStencilState.back.compareMask = rasterizer.depthStencilState().stencilState().ReadMask;
 		depthStencilState.back.writeMask = rasterizer.depthStencilState().stencilState().WriteMask;
-		depthStencilState.back.compareOp = ::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
-		depthStencilState.back.failOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
-		depthStencilState.back.passOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
-		depthStencilState.back.depthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
+		depthStencilState.back.compareOp = Vk::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
+		depthStencilState.back.failOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
+		depthStencilState.back.passOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
+		depthStencilState.back.depthFailOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
 
 		// Setup shader stages.
 		auto modules = m_layout->program().modules();

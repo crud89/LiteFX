@@ -198,9 +198,9 @@ public:
 		//       supported swap effect. If other swap effects are used, this function may require redesign. For more information see: 
 		//       https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1#remarks.
 		Array<Format> surfaceFormats = {
-			::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
-			::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
-			::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM)
+			DX12::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
+			DX12::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
+			DX12::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM)
 		};
 
 		return surfaceFormats;
@@ -221,7 +221,7 @@ DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, Unique
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.getDeviceId());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Vendor: {0:#0x} (\"{1}\")", adapter.getVendorId(), ::getVendorName(adapter.getVendorId()).c_str());
+	LITEFX_DEBUG(DIRECTX12_LOG, "Vendor: {0:#0x} (\"{1}\")", adapter.getVendorId(), DX12::getVendorName(adapter.getVendorId()).c_str());
 	LITEFX_DEBUG(DIRECTX12_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
 	LITEFX_DEBUG(DIRECTX12_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
 	LITEFX_DEBUG(DIRECTX12_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
@@ -388,7 +388,7 @@ const DirectX12Queue& DirectX12Device::computeQueue() const noexcept
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& format) const noexcept
 {
 	constexpr std::array<MultiSamplingLevel, 7> allLevels = { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
-	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels{ .Format = ::getFormat(format) };
+	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels{ .Format = DX12::getFormat(format) };
 
 	for (int level(0); level < allLevels.size(); ++level)
 	{

@@ -112,7 +112,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 		return Parameters {
 			.sizeX = 1.f / static_cast<Float>(std::max<size_t>(image.extent(level).width(), 1)),
 			.sizeY = 1.f / static_cast<Float>(std::max<size_t>(image.extent(level).height(), 1)),
-			.sRGB = ::isSRGB(image.format()) ? 1.f : 0.f
+			.sRGB = DX12::isSRGB(image.format()) ? 1.f : 0.f
 		};
 	});
 

@@ -33,8 +33,8 @@ public:
 			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 			.pNext = nullptr,
 			.image = m_parent->handle(),
-			.viewType = ::getImageViewType(dimensions),
-			.format = ::getFormat(m_format),
+			.viewType = Vk::getImageViewType(dimensions),
+			.format = Vk::getFormat(m_format),
 			.components = VkComponentMapping {
 				.r = VK_COMPONENT_SWIZZLE_IDENTITY,
 				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
