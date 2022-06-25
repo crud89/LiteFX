@@ -89,6 +89,16 @@ BackendType DirectX12Backend::type() const noexcept
     return BackendType::Rendering;
 }
 
+void DirectX12Backend::activate()
+{
+    this->state() = BackendState::Active;
+}
+
+void DirectX12Backend::deactivate()
+{
+    this->state() = BackendState::Inactive;
+}
+
 Array<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
 {
     return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const DirectX12GraphicsAdapter*>>();
