@@ -37,7 +37,7 @@ public:
 
 	~DirectX12DeviceImpl() noexcept
 	{
-		if (m_eventQueue != nullptr & m_debugCallbackCookie != 0)
+		if (m_eventQueue != nullptr && m_debugCallbackCookie != 0)
 			m_eventQueue->UnregisterMessageCallback(m_debugCallbackCookie);
 
 		m_swapChain = nullptr;
