@@ -3012,7 +3012,7 @@ namespace LiteFX::Rendering {
         /// Returns the instance of the queue, used to process draw calls.
         /// </summary>
         /// <returns>The instance of the queue, used to process draw calls.</returns>
-        //virtual const ICommandQueue& graphicsQueue() const noexcept = 0;
+        virtual const ICommandQueue& graphicsQueue() const noexcept = 0;
 
         /// <summary>
         /// Returns the instance of the queue used for device-device transfers (e.g. between render-passes).
@@ -3021,7 +3021,7 @@ namespace LiteFX::Rendering {
         /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
         /// </remarks>
         /// <returns>The instance of the queue used for device-device transfers (e.g. between render-passes).</returns>
-        //virtual const ICommandQueue& transferQueue() const noexcept = 0;
+        virtual const ICommandQueue& transferQueue() const noexcept = 0;
 
         /// <summary>
         /// Returns the instance of the queue used for host-device transfers.
@@ -3030,7 +3030,7 @@ namespace LiteFX::Rendering {
         /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
         /// </remarks>
         /// <returns>The instance of the queue used for host-device transfers.</returns>
-        //virtual const ICommandQueue& bufferQueue() const noexcept = 0;
+        virtual const ICommandQueue& bufferQueue() const noexcept = 0;
 
         /// <summary>
         /// Returns the instance of the queue used for compute calls.
@@ -3039,7 +3039,7 @@ namespace LiteFX::Rendering {
         /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated compute queues are supported on the device.
         /// </remarks>
         /// <returns>The instance of the queue used for compute calls.</returns>
-        //virtual const ICommandQueue& computeQueue() const noexcept = 0;
+        virtual const ICommandQueue& computeQueue() const noexcept = 0;
 
         /// <summary>
         /// Queries the device for the maximum supported number of multi-sampling levels.
