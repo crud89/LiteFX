@@ -221,7 +221,7 @@ const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>
 void VulkanBackend::registerDevice(String name, UniquePtr<VulkanDevice>&& device)
 {
     if (m_impl->m_devices.contains(name))
-        throw new InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+        throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
 
     m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
 }

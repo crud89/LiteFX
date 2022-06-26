@@ -73,7 +73,7 @@ void App::startBackend(std::type_index type, IBackend* backend) const
 
 	for (auto it = callbacks.first; it != callbacks.second; ++it)
 		if (!it->second())
-			throw new RuntimeException("Unable to start backend {0}.", type.name());
+			throw RuntimeException("Unable to start backend {0}.", type.name());
 
 	// Set the backend to active.
 	backend->activate();

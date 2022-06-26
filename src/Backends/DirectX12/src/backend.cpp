@@ -116,7 +116,7 @@ const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UIn
 void DirectX12Backend::registerDevice(String name, UniquePtr<DirectX12Device>&& device)
 {
     if (m_impl->m_devices.contains(name)) [[unlikely]]
-        throw new InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+        throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
 
     m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
 }
