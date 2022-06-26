@@ -88,10 +88,10 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Describes a the layout of a single descriptor within a <see cref="IDescriptorSet" />.
+    /// Describes a the layout of a single descriptor within a <see cref="DescriptorSet" />.
     /// </summary>
-    /// <seealso cref="IDescriptorSetLayout" />
-    class IDescriptorLayout : public IBufferLayout {
+    /// <seealso cref="DescriptorSetLayout" />
+    class LITEFX_RENDERING_API IDescriptorLayout : public IBufferLayout {
     public:
         virtual ~IDescriptorLayout() noexcept = default;
 
@@ -112,7 +112,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Allows for data to be mapped into the object.
     /// </summary>
-    class IMappable {
+    class LITEFX_RENDERING_API IMappable {
     public:
         virtual ~IMappable() noexcept = default;
 
@@ -137,7 +137,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a chunk of device memory.
     /// </summary>
-    class IDeviceMemory {
+    class LITEFX_RENDERING_API IDeviceMemory {
     public:
         virtual ~IDeviceMemory() noexcept = default;
 
@@ -235,7 +235,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Base interface for buffer objects.
     /// </summary>
-    class IBuffer : public virtual IDeviceMemory, public virtual IMappable {
+    class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual IMappable {
     public:
         virtual ~IBuffer() noexcept = default;
 
@@ -250,7 +250,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a generic image.
     /// </summary>
-    class IImage : public virtual IDeviceMemory {
+    class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory {
     public:
         virtual ~IImage() noexcept = default;
 
@@ -333,7 +333,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a texture sampler.
     /// </summary>
-    class ISampler {
+    class LITEFX_RENDERING_API ISampler {
     public:
         virtual ~ISampler() noexcept = default;
 
@@ -621,6 +621,77 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// The interface for a descriptor set.
+    /// </summary>
+    class LITEFX_RENDERING_API IDescriptorSet {
+    public:
+        virtual ~IDescriptorSet() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Updates a constant buffer within the current descriptor set.
+        /// </summary>
+        /// <param name="binding">The buffer binding point.</param>
+        /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
+        /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
+        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set.</param>
+        /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
+        void update(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const {
+            this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor);
+        }
+
+        /// <summary>
+        /// Updates a texture within the current descriptor set.
+        /// </summary>
+        /// <remarks>
+        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the 
+        /// <paramref name="binding" /> parameter.
+        /// 
+        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters <paramref name="firstLayer" /> and <paramref name="layers" /> are ignored.
+        /// 
+        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the <paramref name="firstLevel" /> parameter specifies 
+        /// the mip-map level to write to (or read from). Multiple levels are not allowed in this case, so the <paramref name="levels" /> parameter is ignored. Instead, you have to 
+        /// bind them to separate descriptors. Furthermore, the <paramref name="firstLayer" /> and <paramref name="layers" /> parameter can be used to specify the number of depth
+        /// or W-slices of a writable 3D texture or the side(s) of a cube map.
+        /// </remarks>
+        /// <param name="binding">The texture binding point.</param>
+        /// <param name="texture">The texture to write to the descriptor set.</param>
+        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the texture to.</param>
+        /// <param name="firstLevel">The index of the first mip-map level to bind.</param>
+        /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
+        /// <param name="firstLayer">The index of the first layer to bind.</param>
+        /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
+        void update(const UInt32& binding, const IImage& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const {
+            this->doUpdate(binding, texture, descriptor, firstLevel, levels, firstLayer, layers);
+        }
+
+        /// <summary>
+        /// Updates a sampler within the current descriptor set.
+        /// </summary>
+        /// <param name="binding">The sampler binding point.</param>
+        /// <param name="sampler">The sampler to write to the descriptor set.</param>
+        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the sampler to.</param>
+        void update(const UInt32& binding, const ISampler& sampler, const UInt32& descriptor = 0) const {
+            this->doUpdate(binding, sampler, descriptor);
+        }
+
+        /// <summary>
+        /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
+        /// </summary>
+        /// <param name="binding">The input attachment binding point.</param>
+        /// <param name="image">The image to bind to the input attachment descriptor.</param>
+        void attach(const UInt32& binding, const IImage& image) const {
+            this->doAttach(binding, image);
+        }
+
+    private:
+        virtual void doUpdate(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const = 0;
+        virtual void doUpdate(const UInt32& binding, const IImage& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const = 0;
+        virtual void doUpdate(const UInt32& binding, const ISampler& sampler, const UInt32& descriptor) const = 0;
+        virtual void doAttach(const UInt32& binding, const IImage& image) const = 0;
+    };
+
+    /// <summary>
     /// Defines a set of descriptors.
     /// </summary>
     /// <remarks>
@@ -633,12 +704,12 @@ namespace LiteFX::Rendering {
     /// <c>register</c> (HLSL). Descriptor sets are read from GPU-visible memory, depending on how they are bound during the current draw call.
     /// 
     /// From a CPU perspective, think of a descriptor set as an array of pointers to different buffers (i.e. descriptors) for the shader. A descriptor can be bound to a set by 
-    /// calling <see cref="IDescriptorSet::update" />. Note that this does not automatically ensure, that the buffer memory is visible for the GPU. Instead, a buffer may also 
+    /// calling <see cref="DescriptorSet::update" />. Note that this does not automatically ensure, that the buffer memory is visible for the GPU. Instead, a buffer may also 
     /// require a transfer into GPU visible memory, depending on the <see cref="BufferUsage" />. However, as long as a descriptor within a set is mapped to a buffer, modifying 
     /// this buffer also reflects the change to the shader, without requiring to update the descriptor, similarly to how modifying the object behind a pointer does not require 
     /// the pointer to change.
     /// 
-    /// Note, that there might be multiple descriptor set instances of the same <see cref="IDescriptorSetLayout" />, pointing to different <see cref="IBuffer" /> instances, 
+    /// Note, that there might be multiple descriptor set instances of the same <see cref="DescriptorSetLayout" />, pointing to different <see cref="IBuffer" /> instances, 
     /// depending on the number of <i>frames in flight</i>. Since multiple frames can be computed concurrently, it is important to properly synchronize descriptor set updates.
     /// Generally, there are three strategies to choose from, that you can implement or mix in custom flavors, depending on your use case:
     /// 
@@ -684,90 +755,55 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TBuffer">The type of the buffer interface. Must inherit from <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TSampler">The type of the sampler interface. Must inherit from <see cref="ISampler"/>.</typeparam>
-    /// <seealso cref="IDescriptorSetLayout" />
+    /// <seealso cref="DescriptorSetLayout" />
     template <typename TBuffer, typename TImage, typename TSampler> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TSampler, ISampler> &&
         std::derived_from<TImage, IImage>
-    class IDescriptorSet {
+    class DescriptorSet : public IDescriptorSet {
     public:
         using buffer_type = TBuffer;
         using sampler_type = TSampler;
         using image_type = TImage;
 
     public:
-        virtual ~IDescriptorSet() noexcept = default;
+        virtual ~DescriptorSet() noexcept = default;
 
     public:
-        /// <summary>
-        /// Updates a constant buffer within the current descriptor set.
-        /// </summary>
-        /// <param name="binding">The buffer binding point.</param>
-        /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
-        /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
-        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set.</param>
-        /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
+        /// <inheritdoc />
         virtual void update(const UInt32& binding, const TBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const = 0;
 
-        /// <summary>
-        /// Updates a texture within the current descriptor set.
-        /// </summary>
-        /// <remarks>
-        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the 
-        /// <paramref name="binding" /> parameter.
-        /// 
-        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters <paramref name="firstLayer" /> and <paramref name="layers" /> are ignored.
-        /// 
-        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the <paramref name="firstLevel" /> parameter specifies 
-        /// the mip-map level to write to (or read from). Multiple levels are not allowed in this case, so the <paramref name="levels" /> parameter is ignored. Instead, you have to 
-        /// bind them to separate descriptors. Furthermore, the <paramref name="firstLayer" /> and <paramref name="layers" /> parameter can be used to specify the number of depth
-        /// or W-slices of a writable 3D texture or the side(s) of a cube map.
-        /// </remarks>
-        /// <param name="binding">The texture binding point.</param>
-        /// <param name="texture">The texture to write to the descriptor set.</param>
-        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the texture to.</param>
-        /// <param name="firstLevel">The index of the first mip-map level to bind.</param>
-        /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
-        /// <param name="firstLayer">The index of the first layer to bind.</param>
-        /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
+        /// <inheritdoc />
         virtual void update(const UInt32& binding, const TImage& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const = 0;
 
-        /// <summary>
-        /// Updates a sampler within the current descriptor set.
-        /// </summary>
-        /// <param name="binding">The sampler binding point.</param>
-        /// <param name="sampler">The sampler to write to the descriptor set.</param>
-        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the sampler to.</param>
+        /// <inheritdoc />
         virtual void update(const UInt32& binding, const TSampler& sampler, const UInt32& descriptor = 0) const = 0;
 
-        /// <summary>
-        /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
-        /// </summary>
-        /// <param name="binding">The input attachment binding point.</param>
-        /// <param name="image">The image to bind to the input attachment descriptor.</param>
+        /// <inheritdoc />
         virtual void attach(const UInt32& binding, const TImage& image) const = 0;
+
+    private:
+        virtual void doUpdate(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const override {
+            this->update(binding, dynamic_cast<const TBuffer&>(buffer), bufferElement, elements, firstDescriptor);
+        }
+
+        virtual void doUpdate(const UInt32& binding, const IImage& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const  override {
+            this->update(binding, dynamic_cast<const TImage&>(texture), descriptor, firstLevel, levels, firstLayer, layers);
+        }
+
+        virtual void doUpdate(const UInt32& binding, const ISampler& sampler, const UInt32& descriptor) const  override {
+            this->update(binding, dynamic_cast<const TSampler&>(sampler), descriptor);
+        }
+
+        virtual void doAttach(const UInt32& binding, const IImage& image) const  override {
+            this->attach(binding, dynamic_cast<const TImage&>(image));
+        }
     };
 
     /// <summary>
-    /// Describes the layout of a descriptor set.
+    /// The interface for a descriptor set layout.
     /// </summary>
-    /// <remarks>
-    /// A descriptor set groups together multiple descriptors. This concept is identified by the <c>set</c> keyword in GLSL and <c>space</c> in HLSL.
-    /// 
-    /// For more information on buffer binding and resource management, refer to the remarks of the <see cref="IDescriptorSet" /> interface.
-    /// </remarks>
-    /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout"/>.</typeparam>
-    /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
-    /// <seealso cref="IDescriptorLayout" />
-    /// <seealso cref="IDescriptorSet" />
-    template <typename TDescriptorLayout, typename TDescriptorSet, typename TBuffer = TDescriptorSet::buffer_type, typename TSampler = TDescriptorSet::sampler_type, typename TImage = TDescriptorSet::image_type> requires
-        rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-        rtti::implements<TDescriptorSet, IDescriptorSet<TBuffer, TImage, TSampler>>
-    class IDescriptorSetLayout {
-    public:
-        using descriptor_layout_type = TDescriptorLayout;
-        using descriptor_set_type = TDescriptorSet;
-
+    class LITEFX_RENDERING_API IDescriptorSetLayout {
     public:
         virtual ~IDescriptorSetLayout() noexcept = default;
 
@@ -776,14 +812,16 @@ namespace LiteFX::Rendering {
         /// Returns the layouts of the descriptors within the descriptor set.
         /// </summary>
         /// <returns>The layouts of the descriptors within the descriptor set.</returns>
-        virtual Array<const TDescriptorLayout*> descriptors() const noexcept = 0;
+        Array<const IDescriptorLayout*> descriptors() const noexcept {
+            return this->getDescriptors();
+        }
 
         /// <summary>
         /// Returns the descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.
         /// </summary>
         /// <param name="binding">The binding point of the requested descriptor layout.</param>
         /// <returns>The descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.</returns>
-        virtual const TDescriptorLayout& descriptor(const UInt32& binding) const = 0;
+        virtual const IDescriptorLayout& descriptor(const UInt32& binding) const = 0;
 
         /// <summary>
         /// Returns the space index of the descriptor set.
@@ -842,7 +880,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <remarks>
         /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of
-        /// created descriptor sets. It does this by never releasing them. Instead, when a <see cref="IDescriptorSet" /> instance gets destroyed, it should call 
+        /// created descriptor sets. It does this by never releasing them. Instead, when a <see cref="DescriptorSet" /> instance gets destroyed, it should call 
         /// <see cref="free" /> in order to mark itself (i.e. its handle) as not being used any longer.
         /// 
         /// Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries 
@@ -851,26 +889,100 @@ namespace LiteFX::Rendering {
         /// Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted.
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
-        virtual UniquePtr<TDescriptorSet> allocate() const noexcept = 0;
+        UniquePtr<IDescriptorSet> allocate() const noexcept {
+            return this->getDescriptorSet();
+        }
 
         /// <summary>
         /// Allocates an array of descriptor sets.
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
         /// <returns>The array of descriptor set instances.</returns>
-        virtual Array<UniquePtr<TDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept = 0;
+        Array<UniquePtr<IDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept {
+            return this->getDescriptorSets(descriptorSets);
+        }
 
         /// <summary>
         /// Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
         /// </summary>
+        void free(const IDescriptorSet& descriptorSet) const noexcept {
+            this->releaseDescriptorSet(descriptorSet);
+        }
+
+    private:
+        virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet() const noexcept = 0;
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets) const noexcept = 0;
+        virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Describes the layout of a descriptor set.
+    /// </summary>
+    /// <remarks>
+    /// A descriptor set groups together multiple descriptors. This concept is identified by the <c>set</c> keyword in GLSL and <c>space</c> in HLSL.
+    /// 
+    /// For more information on buffer binding and resource management, refer to the remarks of the <see cref="DescriptorSet" /> interface.
+    /// </remarks>
+    /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout"/>.</typeparam>
+    /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="DescriptorSet"/>.</typeparam>
+    /// <seealso cref="IDescriptorLayout" />
+    /// <seealso cref="DescriptorSet" />
+    template <typename TDescriptorLayout, typename TDescriptorSet, typename TBuffer = TDescriptorSet::buffer_type, typename TSampler = TDescriptorSet::sampler_type, typename TImage = TDescriptorSet::image_type> requires
+        rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
+        rtti::implements<TDescriptorSet, DescriptorSet<TBuffer, TImage, TSampler>>
+    class DescriptorSetLayout : public IDescriptorSetLayout {
+    public:
+        using descriptor_layout_type = TDescriptorLayout;
+        using descriptor_set_type = TDescriptorSet;
+
+    public:
+        virtual ~DescriptorSetLayout() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual Array<const TDescriptorLayout*> descriptors() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual const TDescriptorLayout& descriptor(const UInt32& binding) const = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<TDescriptorSet> allocate() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual Array<UniquePtr<TDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept = 0;
+
+        /// <inheritdoc />
         virtual void free(const TDescriptorSet& descriptorSet) const noexcept = 0;
+
+    private:
+        virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept override {
+            auto descriptors = this->descriptors();
+            return Array<const IDescriptorLayout*>(descriptors.begin(), descriptors.end());
+        }
+
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet() const noexcept override {
+            return this->allocate();
+        }
+
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets) const noexcept override {
+            auto sets = this->allocate(descriptorSets);
+            Array<UniquePtr<IDescriptorSet>> results;
+            results.reserve(sets.size());
+            std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
+            return results;
+        }
+
+        virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
+            this->releaseDescriptorSet(dynamic_cast<const TDescriptorSet&>(descriptorSet));
+        }
     };
 
     /// <summary>
     /// 
     /// </summary>
     template <typename TDerived, typename TDescriptorSetLayout, typename TParent, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
-        rtti::implements<TDescriptorSetLayout, IDescriptorSetLayout<TDescriptorLayout, TDescriptorSet>>
+        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<TDescriptorLayout, TDescriptorSet>>
     class DescriptorSetLayoutBuilder : public Builder<TDerived, TDescriptorSetLayout, TParent> {
     public:
         using Builder<TDerived, TDescriptorSetLayout, TParent>::Builder;
@@ -1042,7 +1154,7 @@ namespace LiteFX::Rendering {
     /// </remarks>
     /// <typeparam name="TPushConstantsRange">The type of the push constant range. Must implement <see cref="IPushConstantsRange" />.</typeparam>
     /// <seealso cref="IPushConstantsRange" />
-    /// <seealso cref="IDescriptorSetLayout" />
+    /// <seealso cref="DescriptorSetLayout" />
     template <typename TPushConstantsRange> requires
         rtti::implements<TPushConstantsRange, IPushConstantsRange>
     class PushConstantsLayout : public IPushConstantsLayout {
@@ -1059,10 +1171,7 @@ namespace LiteFX::Rendering {
     private:
         virtual Array<const IPushConstantsRange*> getRanges() const noexcept override {
             auto ranges = this->ranges();
-            Array<const IPushConstantsRange*> results;
-            results.reserve(ranges.size());
-            std::transform(ranges.begin(), ranges.end(), results.begin(), [](auto range) { return static_cast<const IPushConstantsRange*>(range); });
-            return results;
+            return Array<const IPushConstantsRange*>(ranges.begin(), ranges.end());
         }
     };
 
@@ -1080,15 +1189,9 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a shader program, consisting of multiple <see cref="IShaderModule" />s.
+    /// The interface for a shader program.
     /// </summary>
-    /// <typeparam name="TShaderModule">The type of the shader module. Must implement <see cref="IShaderModule"/>.</typeparam>
-    template <typename TShaderModule> requires
-        rtti::implements<TShaderModule, IShaderModule>
-    class IShaderProgram {
-    public:
-        using shader_module_type = TShaderModule;
-
+    class LITEFX_RENDERING_API IShaderProgram {
     public:
         virtual ~IShaderProgram() noexcept = default;
 
@@ -1097,14 +1200,43 @@ namespace LiteFX::Rendering {
         /// Returns the modules, the shader program is build from.
         /// </summary>
         /// <returns>The modules, the shader program is build from.</returns>
+        Array<const IShaderModule*> modules() const noexcept {
+            return this->getModules();
+        }
+
+    private:
+        virtual Array<const IShaderModule*> getModules() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Represents a shader program, consisting of multiple <see cref="IShaderModule" />s.
+    /// </summary>
+    /// <typeparam name="TShaderModule">The type of the shader module. Must implement <see cref="IShaderModule"/>.</typeparam>
+    template <typename TShaderModule> requires
+        rtti::implements<TShaderModule, IShaderModule>
+    class ShaderProgram : public IShaderProgram {
+    public:
+        using shader_module_type = TShaderModule;
+
+    public:
+        virtual ~ShaderProgram() noexcept = default;
+
+    public:
+        /// <inheritdoc />
         virtual Array<const TShaderModule*> modules() const noexcept = 0;
+
+    private:
+        virtual Array<const IShaderModule*> getModules() const noexcept {
+            auto modules = this->modules();
+            return Array<const IShaderModule*>(modules.begin(), modules.end());
+        }
     };
 
     /// <summary>
     /// 
     /// </summary>
     template <typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = typename TShaderProgram::shader_module_type> requires
-        rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
+        rtti::implements<TShaderProgram, ShaderProgram<TShaderModule>>
     class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
     public:
         using Builder<TDerived, TShaderProgram, TParent>::Builder;
@@ -1140,24 +1272,11 @@ namespace LiteFX::Rendering {
     public:
         virtual TDerived& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
     };
-    
-    /// <summary>
-    /// Represents a the layout of a <see cref="IRenderPipeline" />.
-    /// </summary>
-    /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="IDescriptorSetLayout"/>.</typeparam>
-    /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
-    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="IShaderProgram"/>.</typeparam>
-    template <typename TDescriptorSetLayout, typename TPushConstantsLayout, typename TShaderProgram, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type, typename TShaderModule = TShaderProgram::shader_module_type> requires
-        rtti::implements<TDescriptorSetLayout, IDescriptorSetLayout<TDescriptorLayout, TDescriptorSet>> &&
-        rtti::implements<TPushConstantsLayout, PushConstantsLayout<TPushConstantsRange>> &&
-        rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
-    class IPipelineLayout {
-    public:
-        using descriptor_set_layout_type = TDescriptorSetLayout;
-        using push_constants_layout_type = TPushConstantsLayout;
-        using shader_program_type = TShaderProgram;
-        using descriptor_set_type = TDescriptorSet;
 
+    /// <summary>
+    /// The interface for a pipeline layout.
+    /// </summary>
+    class LITEFX_RENDERING_API IPipelineLayout {
     public:
         virtual ~IPipelineLayout() noexcept = default;
 
@@ -1166,33 +1285,78 @@ namespace LiteFX::Rendering {
         /// Returns the shader program, the pipeline uses for drawing.
         /// </summary>
         /// <returns>The shader program, the pipeline uses for drawing.</returns>
-        virtual const TShaderProgram& program() const noexcept = 0;
+        virtual const IShaderProgram& program() const noexcept = 0;
 
         /// <summary>
         /// Returns the descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.
         /// </summary>
         /// <param name="space">The space to request the descriptor set layout for.</param>
         /// <returns>The descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.</returns>
-        virtual const TDescriptorSetLayout& descriptorSet(const UInt32& space) const = 0;
+        virtual const IDescriptorSetLayout& descriptorSet(const UInt32& space) const = 0;
 
         /// <summary>
         /// Returns all descriptor set layouts, the pipeline has been initialized with.
         /// </summary>
         /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
-        virtual Array<const TDescriptorSetLayout*> descriptorSets() const noexcept = 0;
+        Array<const IDescriptorSetLayout*> descriptorSets() const noexcept {
+            return this->getDescriptorSets();
+        }
 
         /// <summary>
         /// Returns the push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.
         /// </summary>
         /// <returns>The push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.</returns>
+        virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
+
+    private:
+        virtual Array<const IDescriptorSetLayout*> getDescriptorSets() const noexcept = 0;
+    };
+    
+    /// <summary>
+    /// Represents a the layout of a <see cref="IRenderPipeline" />.
+    /// </summary>
+    /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
+    /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
+    template <typename TDescriptorSetLayout, typename TPushConstantsLayout, typename TShaderProgram, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type, typename TShaderModule = TShaderProgram::shader_module_type> requires
+        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<TDescriptorLayout, TDescriptorSet>> &&
+        rtti::implements<TPushConstantsLayout, PushConstantsLayout<TPushConstantsRange>> &&
+        rtti::implements<TShaderProgram, ShaderProgram<TShaderModule>>
+    class PipelineLayout : public IPipelineLayout {
+    public:
+        using descriptor_set_layout_type = TDescriptorSetLayout;
+        using push_constants_layout_type = TPushConstantsLayout;
+        using shader_program_type = TShaderProgram;
+        using descriptor_set_type = TDescriptorSet;
+
+    public:
+        virtual ~PipelineLayout() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual const TShaderProgram& program() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual const TDescriptorSetLayout& descriptorSet(const UInt32& space) const = 0;
+
+        /// <inheritdoc />
+        virtual Array<const TDescriptorSetLayout*> descriptorSets() const noexcept = 0;
+
+        /// <inheritdoc />
         virtual const TPushConstantsLayout* pushConstants() const noexcept = 0;
+
+    private:
+        virtual Array<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
+            auto layouts = this->descriptorSets();
+            return Array<const IDescriptorSetLayout*>(layouts.begin(), layouts.end());
+        }
     };
 
     /// <summary>
     /// 
     /// </summary>
     template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
-        rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
+        rtti::implements<TPipelineLayout, PipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
     class PipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
     public:
         using Builder<TDerived, TPipelineLayout, TParent>::Builder;
@@ -1343,20 +1507,9 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a pipeline state.
+    /// The interface for a pipeline.
     /// </summary>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
-    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="IShaderProgram"/>.</typeparam>
-    /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="IDescriptorSetLayout"/>.</typeparam>
-    /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
-    /// <seealso cref="IRenderPipeline" />
-    /// <seealso cref="IComputePipeline" />
-    template <typename TPipelineLayout, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = typename TPipelineLayout::push_constants_layout_type, typename TShaderProgram = typename TPipelineLayout::shader_program_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type> requires 
-        rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
-    class IPipeline {
-    public:
-        using pipeline_layout_type = TPipelineLayout;
-
+    class LITEFX_RENDERING_API IPipeline {
     public:
         virtual ~IPipeline() noexcept = default;
 
@@ -1371,6 +1524,29 @@ namespace LiteFX::Rendering {
         /// Returns the layout of the render pipeline.
         /// </summary>
         /// <returns>The layout of the render pipeline.</returns>
+        virtual const IPipelineLayout& layout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Represents a pipeline state.
+    /// </summary>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
+    /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
+    /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="DescriptorSet"/>.</typeparam>
+    /// <seealso cref="IRenderPipeline" />
+    /// <seealso cref="IComputePipeline" />
+    template <typename TPipelineLayout, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = typename TPipelineLayout::push_constants_layout_type, typename TShaderProgram = typename TPipelineLayout::shader_program_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type> requires 
+        rtti::implements<TPipelineLayout, PipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
+    class Pipeline : public IPipeline {
+    public:
+        using pipeline_layout_type = TPipelineLayout;
+
+    public:
+        virtual ~Pipeline() noexcept = default;
+
+    public:
+        /// <inheritdoc />
         virtual const TPipelineLayout& layout() const noexcept = 0;
     };
 
@@ -1534,13 +1710,17 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Sets the active pipeline state.
         /// </summary>
-        //virtual void use(const IPipeline& pipeline) const noexcept = 0;
+        void use(const IPipeline& pipeline) const noexcept {
+            this->cmdUse(pipeline);
+        }
 
         /// <summary>
         /// Binds the provided descriptor set.
         /// </summary>
         /// <param name="descriptorSet">The descriptor set to bind.</param>
-        //virtual void bind(const IDescriptorSet& descriptorSet) const noexcept = 0;
+        void bind(const IDescriptorSet& descriptorSet) const noexcept {
+            this->cmdBind(descriptorSet);
+        }
 
         /// <summary>
         /// Binds a vertex buffer to the pipeline.
@@ -1655,8 +1835,8 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(const IBuffer& source, const IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
         virtual void cmdTransfer(const IImage& source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
         virtual void cmdTransfer(const IImage& source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
-        //virtual void cmdUse(const IPipeline & pipeline) const noexcept = 0;
-        //virtual void cmdBind(const IDescriptorSet& descriptorSet) const noexcept = 0;
+        virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
+        virtual void cmdBind(const IDescriptorSet& descriptorSet) const noexcept = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
@@ -1673,10 +1853,10 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TIndexBuffer">The index buffer type. Must implement <see cref="IndexBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="Barrier"/>.</typeparam>
-    /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="IPipeline"/>.</typeparam>
+    /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
     template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type> requires
         rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
-        std::derived_from<TPipeline, IPipeline<TPipelineLayout>>
+        std::derived_from<TPipeline, Pipeline<TPipelineLayout>>
     class CommandBuffer : public ICommandBuffer {
         using ICommandBuffer::begin;
         using ICommandBuffer::end;
@@ -1773,8 +1953,13 @@ namespace LiteFX::Rendering {
             this->transfer(dynamic_cast<const TImage&>(source), dynamic_cast<const TBuffer&>(target), firstSubresource, targetElement, subresources);
         }
 
-        //virtual void cmdUse(const IPipeline& pipeline) const noexcept override { }
-        //virtual void cmdBind(const IDescriptorSet& descriptorSet) const noexcept override { }
+        virtual void cmdUse(const IPipeline& pipeline) const noexcept override { 
+            this->use(dynamic_cast<const TPipeline&>(pipeline));
+        }
+
+        virtual void cmdBind(const IDescriptorSet& descriptorSet) const noexcept override { 
+            this->bind(dynamic_cast<const TDescriptorSet&>(descriptorSet));
+        }
         
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept override { 
             this->bind(dynamic_cast<const TVertexBuffer&>(buffer));
@@ -1802,9 +1987,9 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a graphics <see cref="IPipeline" />.
+    /// Represents a graphics <see cref="Pipeline" />.
     /// </summary>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
     /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="IInputAssembler"/>.</typeparam>
     /// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="VertexBuffer"/>.</typeparam>
     /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IndexBuffer"/>.</typeparam>
@@ -1815,7 +2000,7 @@ namespace LiteFX::Rendering {
         rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
         std::derived_from<TVertexBufferInterface, VertexBuffer<TVertexBufferLayout>> &&
         std::derived_from<TIndexBufferInterface, IndexBuffer<TIndexBufferLayout>>
-    class IRenderPipeline : public IPipeline<TPipelineLayout> {
+    class IRenderPipeline : public Pipeline<TPipelineLayout> {
     public:
         using vertex_buffer_interface_type = TVertexBufferInterface;
         using index_buffer_interface_type = TIndexBufferInterface;
@@ -1948,10 +2133,10 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Represents a compute <see cref="IPipeline" />.
     /// </summary>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
     /// <seealso cref="IComputePipelineBuilder" />
     template <typename TPipelineLayout>
-    class IComputePipeline : public IPipeline<TPipelineLayout> {
+    class IComputePipeline : public Pipeline<TPipelineLayout> {
     public:
         virtual ~IComputePipeline() noexcept = default;
     };
@@ -2141,7 +2326,7 @@ namespace LiteFX::Rendering {
     /// GPU, that processes data using different <see cref="IRenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="IFrameBuffer" />.
     /// </remarks>
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout" />.</typeparam>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout" />.</typeparam>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
     /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
@@ -2384,10 +2569,7 @@ namespace LiteFX::Rendering {
     private:
         virtual Array<const IImage*> getImages() const noexcept override {
             auto images = this->images();
-            Array<const IImage*> result;
-            result.reserve(images.size());
-            std::transform(images.begin(), images.end(), result.begin(), [](auto image) { return static_cast<const IImage*>(image); });
-            return result;
+            return Array<const IImage*>(images.begin(), images.end());
         }
     };
 
@@ -3076,12 +3258,7 @@ namespace LiteFX::Rendering {
     private:
         virtual Array<const IGraphicsAdapter*> getAdapters() const override {
             auto adapters = this->listAdapters();
-            Array<const IGraphicsAdapter*> result;
-            result.reserve(adapters.size());
-            std::transform(adapters.begin(), adapters.end(), result.begin(), [](const TGraphicsAdapter* adapter) { return static_cast<const IGraphicsAdapter*>(adapter); });
-            return result;
-
-            //return this->listAdapters() | std::views::transform([](auto adapter) { return static_cast<const IGraphicsAdapter*>(adapter); }) | ranges::to<Array<const IGraphicsAdapter*>>();
+            return Array<const IGraphicsAdapter*>(adapters.begin(), adapters.end());
         }
     };
 }

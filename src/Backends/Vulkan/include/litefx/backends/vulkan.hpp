@@ -295,10 +295,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a Vulkan <see cref="IDescriptorSet" />.
+	/// Implements a Vulkan <see cref="DescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public IDescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
+	class LITEFX_VULKAN_API VulkanDescriptorSet : public virtual VulkanRuntimeObject<VulkanDescriptorSetLayout>, public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
 	public:
@@ -327,11 +327,11 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a Vulkan <see cref="IDescriptorSetLayout" />.
+	/// Implements a Vulkan <see cref="DescriptorSetLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanRenderPipelineDescriptorSetLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanDescriptorSetLayout : public virtual VulkanRuntimeObject<VulkanPipelineLayout>, public IDescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
+	class LITEFX_VULKAN_API VulkanDescriptorSetLayout : public virtual VulkanRuntimeObject<VulkanPipelineLayout>, public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineDescriptorSetLayoutBuilder);
 		LITEFX_BUILDER(VulkanComputePipelineDescriptorSetLayoutBuilder);
@@ -699,10 +699,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a Vulkan <see cref="IShaderProgram" />.
+	/// Implements a Vulkan <see cref="ShaderProgram" />.
 	/// </summary>
 	/// <seealso cref="VulkanShaderProgramBuilder" />
-	class LITEFX_VULKAN_API VulkanShaderProgram : public virtual VulkanRuntimeObject<VulkanPipelineLayout>, public IShaderProgram<VulkanShaderModule> {
+	class LITEFX_VULKAN_API VulkanShaderProgram : public virtual VulkanRuntimeObject<VulkanPipelineLayout>, public ShaderProgram<VulkanShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
 		LITEFX_BUILDER(VulkanGraphicsShaderProgramBuilder);
 		LITEFX_BUILDER(VulkanComputeShaderProgramBuilder);
@@ -727,7 +727,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan graphics <see cref="IShaderProgram" />.
+	/// Builds a Vulkan graphics <see cref="ShaderProgram" />.
 	/// </summary>
 	/// <seealso cref="VulkanShaderProgram" />
 	class LITEFX_VULKAN_API VulkanGraphicsShaderProgramBuilder : public GraphicsShaderProgramBuilder<VulkanGraphicsShaderProgramBuilder, VulkanShaderProgram, VulkanRenderPipelineLayoutBuilder> {
@@ -772,7 +772,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan compute <see cref="IShaderProgram" />.
+	/// Builds a Vulkan compute <see cref="ShaderProgram" />.
 	/// </summary>
 	/// <seealso cref="VulkanShaderProgram" />
 	class LITEFX_VULKAN_API VulkanComputeShaderProgramBuilder : public ComputeShaderProgramBuilder<VulkanComputeShaderProgramBuilder, VulkanShaderProgram, VulkanComputePipelineLayoutBuilder> {
@@ -805,10 +805,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a Vulkan <see cref="IPipelineLayout" />.
+	/// Implements a Vulkan <see cref="PipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanPipelineLayout : public virtual VulkanRuntimeObject<VulkanPipelineState>, public IPipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout, VulkanShaderProgram>, public Resource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanPipelineLayout : public virtual VulkanRuntimeObject<VulkanPipelineState>, public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout, VulkanShaderProgram>, public Resource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 		LITEFX_BUILDER(VulkanComputePipelineLayoutBuilder);
@@ -840,7 +840,7 @@ namespace LiteFX::Rendering::Backends {
 		explicit VulkanPipelineLayout(const VulkanRenderPipeline& pipeline) noexcept;
 		explicit VulkanPipelineLayout(const VulkanComputePipeline& pipeline) noexcept;
 
-		// IPipelineLayout interface.
+		// PipelineLayout interface.
 	public:
 		/// <inheritdoc />
 		virtual const VulkanShaderProgram& program() const noexcept override;
@@ -856,7 +856,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="IPipelineLayout" /> for a render pipeline.
+	/// Builds a Vulkan <see cref="PipelineLayout" /> for a render pipeline.
 	/// </summary>
 	/// <seealso cref="VulkanPipelineLayout" />
 	/// <seealso cref="VulkanRenderPipeline" />
@@ -911,7 +911,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="IPipelineLayout" /> for a compute pipeline.
+	/// Builds a Vulkan <see cref="PipelineLayout" /> for a compute pipeline.
 	/// </summary>
 	/// <seealso cref="VulkanPipelineLayout" />
 	/// <seealso cref="VulkanComputePipeline" />
@@ -1140,7 +1140,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines the base class for Vulkan pipeline state objects.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanPipelineState : public virtual IPipeline<VulkanPipelineLayout>, public Resource<VkPipeline> {
+	class LITEFX_VULKAN_API VulkanPipelineState : public virtual Pipeline<VulkanPipelineLayout>, public Resource<VkPipeline> {
 	public:
 		using Resource<VkPipeline>::Resource;
 		virtual ~VulkanPipelineState() noexcept = default;
@@ -1262,7 +1262,7 @@ namespace LiteFX::Rendering::Backends {
 	private:
 		VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept;
 
-		// IPipeline interface.
+		// Pipeline interface.
 	public:
 		/// <inheritdoc />
 		virtual const String& name() const noexcept override;
@@ -1413,7 +1413,7 @@ namespace LiteFX::Rendering::Backends {
 	private:
 		VulkanComputePipeline(const VulkanDevice& device) noexcept;
 
-		// IPipeline interface.
+		// Pipeline interface.
 	public:
 		/// <inheritdoc />
 		virtual const String& name() const noexcept override;
