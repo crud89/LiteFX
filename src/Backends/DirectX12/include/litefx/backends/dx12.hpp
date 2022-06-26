@@ -1555,6 +1555,18 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
 		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
 		explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+
+		/// <summary>
+		/// Creates and initializes a new DirectX 12 render pass instance.
+		/// </summary>
+		/// <param name="device">The parent device instance.</param>
+		/// <param name="name">The name of the render pass state resource.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
+		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
+		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+		explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+
 		DirectX12RenderPass(const DirectX12RenderPass&) = delete;
 		DirectX12RenderPass(DirectX12RenderPass&&) = delete;
 		virtual ~DirectX12RenderPass() noexcept;
@@ -1568,7 +1580,8 @@ namespace LiteFX::Rendering::Backends {
 		/// is only initialized after calling <see cref="DirectX12RenderPassBuilder::go" />.
 		/// </remarks>
 		/// <param name="device">The parent device of the render pass.</param>
-		explicit DirectX12RenderPass(const DirectX12Device& device) noexcept;
+		/// <param name="name">The name of the render pass state resource.</param>
+		explicit DirectX12RenderPass(const DirectX12Device& device, const String& name = "") noexcept;
 
 		// IInputAttachmentMappingSource interface.
 	public:
@@ -1640,12 +1653,14 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPassBuilderImpl)
 
 	public:
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1) noexcept;
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers) noexcept;
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1) noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name = "") noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1, const String& name = "") noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const String& name = "") noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1, const String& name = "") noexcept;
 		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
 		virtual ~DirectX12RenderPassBuilder() noexcept;
+
 	public:
 		virtual void use(RenderTarget&& target) override;
 		virtual void use(DirectX12InputAttachmentMapping&& inputAttachment) override;
@@ -1929,6 +1944,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
 
 	public:
+		/// <summary>
+		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
+		/// </summary>
+		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
+
 		/// <summary>
 		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
 		/// </summary>

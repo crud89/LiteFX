@@ -1372,6 +1372,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API StateResource {
         LITEFX_IMPLEMENTATION(StateResourceImpl);
 
+    protected:
+        StateResource() noexcept;
+
     public:
         /// <summary>
         /// Initializes a new state resource instance.
@@ -1381,6 +1384,13 @@ namespace LiteFX::Rendering {
         StateResource(StateResource&&) = delete;
         StateResource(const StateResource&) = delete;
         virtual ~StateResource() noexcept;
+
+    protected:
+        /// <summary>
+        /// Returns the name of the resource.
+        /// </summary>
+        /// <returns>The name of the resource.</returns>
+        String& name() noexcept;
 
     public:
         /// <summary>

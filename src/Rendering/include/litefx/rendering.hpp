@@ -1030,7 +1030,7 @@ namespace LiteFX::Rendering {
         rtti::implements<TFrameBuffer, FrameBuffer<TCommandBuffer>> /*&&
         rtti::implements<TRenderPipeline, RenderPipeline<TPipelineLayout>> &&
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
-    class RenderPass :public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
+    class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
     public:
         using frame_buffer_type = TFrameBuffer;
         using render_pipeline_type = TRenderPipeline;

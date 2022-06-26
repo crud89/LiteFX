@@ -24,12 +24,22 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
+StateResource::StateResource() noexcept :
+    StateResource(fmt::format("{0}", fmt::ptr(this)))
+{
+}
+
 StateResource::StateResource(StringView name) :
     m_impl(makePimpl<StateResourceImpl>(this, name))
 {
 }
 
 StateResource::~StateResource() noexcept = default;
+
+String& StateResource::name() noexcept
+{
+    return m_impl->m_name;
+}
 
 const String& StateResource::name() const noexcept
 {

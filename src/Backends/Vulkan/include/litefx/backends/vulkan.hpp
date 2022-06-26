@@ -1551,6 +1551,17 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
 		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
 		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+
+		/// <summary>
+		/// Creates and initializes a new Vulkan render pass instance.
+		/// </summary>
+		/// <param name="device">The parent device instance.</param>
+		/// <param name="name">The name of the render pass state resource.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
+		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
+		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+		explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;
 		virtual ~VulkanRenderPass() noexcept;
@@ -1564,7 +1575,8 @@ namespace LiteFX::Rendering::Backends {
 		/// is only initialized after calling <see cref="VulkanRenderPassBuilder::go" />.
 		/// </remarks>
 		/// <param name="device">The parent device of the render pass.</param>
-		explicit VulkanRenderPass(const VulkanDevice& device) noexcept;
+		/// <param name="name">The name of the render pass state resource.</param>
+		explicit VulkanRenderPass(const VulkanDevice& device, const String& name = "") noexcept;
 
 		// IInputAttachmentMappingSource interface.
 	public:
@@ -1636,9 +1648,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassBuilderImpl)
 
 	public:
-		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) noexcept;
-		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers) noexcept;
-		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel) noexcept;
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const String& name = "") noexcept;
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const String& name = "") noexcept;
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel, const String& name = "") noexcept;
 		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
 		virtual ~VulkanRenderPassBuilder() noexcept;
@@ -1965,6 +1978,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanSwapChain& swapChain() noexcept;
 
 	public:
+		/// <summary>
+		/// Returns a builder for a <see cref="VulkanRenderPass" />.
+		/// </summary>
+		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
+
 		/// <summary>
 		/// Returns a builder for a <see cref="VulkanRenderPass" />.
 		/// </summary>

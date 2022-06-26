@@ -255,9 +255,18 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget
     m_impl->m_primaryCommandBuffer = getDevice()->graphicsQueue().createCommandBuffer(false);
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device) noexcept :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+    VulkanRenderPass(device, renderTargets, commandBuffers, samples, inputAttachments)
+{
+    if (!name.empty())
+        this->name() = name;
+}
+
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name) noexcept :
     m_impl(makePimpl<VulkanRenderPassImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
+    if (!name.empty())
+        this->name() = name;
 }
 
 VulkanRenderPass::~VulkanRenderPass() noexcept
@@ -478,18 +487,23 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers) noexcept :
-    VulkanRenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1)
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const String& name) noexcept :
+    VulkanRenderPassBuilder(device, 1, MultiSamplingLevel::x1, name)
 {
 }
 
-VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples) noexcept :
-    VulkanRenderPassBuilder(device, 1, samples)
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const String& name) noexcept :
+    VulkanRenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1, name)
 {
 }
 
-VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples) noexcept :
-    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this, samples, commandBuffers)), RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass>(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device)))
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples, const String& name) noexcept :
+    VulkanRenderPassBuilder(device, 1, samples, name)
+{
+}
+
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples, const String& name) noexcept :
+    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this, samples, commandBuffers)), RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass>(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device, name)))
 {
 }
 

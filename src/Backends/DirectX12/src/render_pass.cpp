@@ -140,9 +140,18 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<Ren
     m_impl->m_endCommandBuffer   = device.graphicsQueue().createCommandBuffer(false);
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device) noexcept :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+    DirectX12RenderPass(device, renderTargets, commandBuffers, samples, inputAttachments)
+{
+    if (!name.empty())
+        this->name() = name;
+}
+
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name) noexcept :
     m_impl(makePimpl<DirectX12RenderPassImpl>(this)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
 {
+    if (!name.empty())
+        this->name() = name;
 }
 
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
@@ -384,18 +393,23 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& samples) noexcept : 
-    DirectX12RenderPassBuilder(device, 1, samples)
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
+    DirectX12RenderPassBuilder(device, 1, MultiSamplingLevel::x1, name)
 {
 }
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers) noexcept :
-    DirectX12RenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1)
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& samples, const String& name) noexcept :
+    DirectX12RenderPassBuilder(device, 1, samples, name)
 {
 }
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples) noexcept :
-    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this, commandBuffers, samples)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device)))
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const String& name) noexcept :
+    DirectX12RenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1, name)
+{
+}
+
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples, const String& name) noexcept :
+    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this, commandBuffers, samples)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
 {
 }
 
