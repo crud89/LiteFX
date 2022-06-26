@@ -604,7 +604,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="PushConstantsLayout" /> for a <see cref="IRenderPipeline" />.
+	/// Builds a Vulkan <see cref="PushConstantsLayout" /> for a <see cref="RenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanPushConstantsLayout" />
 	class LITEFX_VULKAN_API VulkanRenderPipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<VulkanRenderPipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanRenderPipelineLayoutBuilder> {
@@ -632,7 +632,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="PushConstantsLayout" /> for a <see cref="IComputePipeline" />.
+	/// Builds a Vulkan <see cref="PushConstantsLayout" /> for a <see cref="ComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanPushConstantsLayout" />
 	class LITEFX_VULKAN_API VulkanComputePipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<VulkanComputePipelinePushConstantsLayoutBuilder, VulkanPushConstantsLayout, VulkanComputePipelineLayoutBuilder> {
@@ -968,7 +968,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements the Vulkan input assembler state.
 	/// </summary>
 	/// <seealso cref="VulkanInputAssemblerBuilder" />
-	class LITEFX_VULKAN_API VulkanInputAssembler : public virtual VulkanRuntimeObject<VulkanDevice>, public IInputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
+	class LITEFX_VULKAN_API VulkanInputAssembler : public virtual VulkanRuntimeObject<VulkanDevice>, public InputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
 		LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl);
 		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
@@ -1239,10 +1239,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a Vulkan <see cref="IRenderPipeline" />.
+	/// Implements a Vulkan <see cref="RenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IRenderPipeline<VulkanPipelineLayout, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public virtual VulkanRuntimeObject<VulkanRenderPass>, public RenderPipeline<VulkanPipelineLayout, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -1270,7 +1270,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const VulkanPipelineLayout& layout() const noexcept override;
 
-		// IRenderPipeline interface.
+		// RenderPipeline interface.
 	public:
 		/// <inheritdoc />
 		virtual const UInt32& id() const noexcept override;
@@ -1306,7 +1306,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="IRenderPipeline" />.
+	/// Builds a Vulkan <see cref="RenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipeline" />
 	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline> {
@@ -1392,10 +1392,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a Vulkan <see cref="IComputePipeline" />.
+	/// Implements a Vulkan <see cref="ComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanComputePipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanComputePipeline : public virtual VulkanRuntimeObject<VulkanDevice>, public IComputePipeline<VulkanPipelineLayout>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanComputePipeline : public virtual VulkanRuntimeObject<VulkanDevice>, public ComputePipeline<VulkanPipelineLayout>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanComputePipelineImpl);
 		LITEFX_BUILDER(VulkanComputePipelineBuilder);
 
@@ -1431,7 +1431,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="IComputePipeline" />.
+	/// Builds a Vulkan <see cref="ComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanComputePipeline" />
 	class LITEFX_VULKAN_API VulkanComputePipelineBuilder : public ComputePipelineBuilder<VulkanComputePipelineBuilder, VulkanComputePipeline> {
@@ -1469,7 +1469,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan frame buffer.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanFrameBuffer : public virtual VulkanRuntimeObject<VulkanRenderPass>, public IFrameBuffer<VulkanCommandBuffer>, public Resource<VkFramebuffer> {
+	class LITEFX_VULKAN_API VulkanFrameBuffer : public virtual VulkanRuntimeObject<VulkanRenderPass>, public FrameBuffer<VulkanCommandBuffer>, public Resource<VkFramebuffer> {
 		LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
 
 	public:
@@ -1502,7 +1502,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference of the last fence value for the frame buffer.</returns>
 		virtual UInt64& lastFence() const noexcept;
 
-		// IFrameBuffer interface.
+		// FrameBuffer interface.
 	public:
 		/// <inheritdoc />
 		virtual const UInt32& bufferIndex() const noexcept override;
@@ -1537,7 +1537,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan render pass.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPassBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPass : public virtual VulkanRuntimeObject<VulkanDevice>, public IRenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
+	class LITEFX_VULKAN_API VulkanRenderPass : public virtual VulkanRuntimeObject<VulkanDevice>, public RenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
@@ -1571,7 +1571,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const VulkanFrameBuffer& frameBuffer(const UInt32& buffer) const override;
 
-		// IRenderPass interface.
+		// RenderPass interface.
 	public:
 		/// <inheritdoc />
 		virtual const VulkanFrameBuffer& activeFrameBuffer() const override;

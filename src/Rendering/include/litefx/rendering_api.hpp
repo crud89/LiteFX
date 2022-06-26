@@ -1188,7 +1188,7 @@ namespace LiteFX::Rendering {
         ///     </item>
         /// </list>
         /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
         /// </remarks>
         RenderTarget = 0x00000020,
 
@@ -1211,7 +1211,7 @@ namespace LiteFX::Rendering {
         ///     </item>
         /// </list>
         /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
         /// </remarks>
         DepthRead = 0x00000021,
 
@@ -1234,7 +1234,7 @@ namespace LiteFX::Rendering {
         ///     </item>
         /// </list>
         /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
         /// </remarks>
         DepthWrite = 0x00000022,
 
@@ -1257,7 +1257,7 @@ namespace LiteFX::Rendering {
         ///     </item>
         /// </list>
         /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
         /// </remarks>
         Present = 0x00000023,
 
@@ -1280,7 +1280,7 @@ namespace LiteFX::Rendering {
         ///     </item>
         /// </list>
         /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
         /// </remarks>
         ResolveSource = 0x00000024,
 
@@ -1303,7 +1303,7 @@ namespace LiteFX::Rendering {
         ///     </item>
         /// </list>
         /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="IRenderPass" />es.
+        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
         /// </remarks>
         ResolveDestination = 0x00000025,
 
@@ -1488,15 +1488,15 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a render target, i.e. an abstract view of the output of an <see cref="IRenderPass" />.
+    /// Represents a render target, i.e. an abstract view of the output of an <see cref="RenderPass" />.
     /// </remarks>
     /// <remarks>
-    /// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="IRenderPass" />, that contains 
-    /// the <see cref="IFrameBuffer" />, that stores the actual render target image resource.
+    /// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="RenderPass" />, that contains 
+    /// the <see cref="FrameBuffer" />, that stores the actual render target image resource.
     /// </remarks>
     /// <seealso cref="RenderTarget" />
-    /// <seealso cref="IRenderPass" />
-    /// <seealso cref="IFrameBuffer" />
+    /// <seealso cref="RenderPass" />
+    /// <seealso cref="FrameBuffer" />
     /// <seealso cref="IImage" />
     class LITEFX_RENDERING_API IRenderTarget {
     public:
@@ -1855,7 +1855,7 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents the rasterizer state of a <see cref="IRenderPipeline" />.
+    /// Represents the rasterizer state of a <see cref="RenderPipeline" />.
     /// </summary>
     class LITEFX_RENDERING_API IRasterizer {
     public:

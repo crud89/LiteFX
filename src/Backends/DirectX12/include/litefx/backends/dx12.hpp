@@ -628,7 +628,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="IRenderPipeline" />.
+	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="RenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12PushConstantsLayout" />
 	class LITEFX_DIRECTX12_API DirectX12RenderPipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12RenderPipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12RenderPipelineLayoutBuilder> {
@@ -656,7 +656,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="IComputePipeline" />.
+	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="ComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12PushConstantsLayout" />
 	class LITEFX_DIRECTX12_API DirectX12ComputePipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12ComputePipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12ComputePipelineLayoutBuilder> {
@@ -984,7 +984,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements the DirectX 12 input assembler state.
 	/// </summary>
 	/// <seealso cref="DirectX12InputAssemblerBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public virtual DirectX12RuntimeObject<DirectX12Device>, public IInputAssembler<DirectX12VertexBufferLayout, DirectX12IndexBufferLayout> {
+	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public virtual DirectX12RuntimeObject<DirectX12Device>, public InputAssembler<DirectX12VertexBufferLayout, DirectX12IndexBufferLayout> {
 		LITEFX_IMPLEMENTATION(DirectX12InputAssemblerImpl);
 		LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
 
@@ -1224,10 +1224,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a DirectX 12 <see cref="IRenderPipeline" />.
+	/// Implements a DirectX 12 <see cref="RenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPipelineBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public virtual DirectX12PipelineState, public IRenderPipeline<DirectX12PipelineLayout, DirectX12InputAssembler, IDirectX12VertexBuffer, IDirectX12IndexBuffer> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public virtual DirectX12PipelineState, public RenderPipeline<DirectX12PipelineLayout, DirectX12InputAssembler, IDirectX12VertexBuffer, IDirectX12IndexBuffer> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 
@@ -1255,7 +1255,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const DirectX12PipelineLayout& layout() const noexcept override;
 
-		// IRenderPipeline interface.
+		// RenderPipeline interface.
 	public:
 		/// <inheritdoc />
 		virtual const UInt32& id() const noexcept override;
@@ -1287,7 +1287,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="IRenderPipeline" />.
+	/// Builds a DirectX 12 <see cref="RenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPipeline" />
 	class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline> {
@@ -1373,10 +1373,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a DirectX 12 <see cref="IComputePipeline" />.
+	/// Implements a DirectX 12 <see cref="ComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12ComputePipelineBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12ComputePipeline : public virtual DirectX12RuntimeObject<DirectX12Device>, public virtual DirectX12PipelineState, public IComputePipeline<DirectX12PipelineLayout> {
+	class LITEFX_DIRECTX12_API DirectX12ComputePipeline : public virtual DirectX12RuntimeObject<DirectX12Device>, public virtual DirectX12PipelineState, public ComputePipeline<DirectX12PipelineLayout> {
 		LITEFX_IMPLEMENTATION(DirectX12ComputePipelineImpl);
 		LITEFX_BUILDER(DirectX12ComputePipelineBuilder);
 
@@ -1408,7 +1408,7 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="IComputePipeline" />.
+	/// Builds a DirectX 12 <see cref="ComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12ComputePipeline" />
 	class LITEFX_DIRECTX12_API DirectX12ComputePipelineBuilder : public ComputePipelineBuilder<DirectX12ComputePipelineBuilder, DirectX12ComputePipeline> {
@@ -1446,7 +1446,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 frame buffer.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12FrameBuffer : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public IFrameBuffer<DirectX12CommandBuffer> {
+	class LITEFX_DIRECTX12_API DirectX12FrameBuffer : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public FrameBuffer<DirectX12CommandBuffer> {
 		LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
 
 	public:
@@ -1476,7 +1476,7 @@ namespace LiteFX::Rendering::Backends {
 		/// Returns a pointer to the descriptor heap that allocates the depth/stencil views for this frame buffer.
 		/// </summary>
 		/// <remarks>
-		/// Note that it is typically not supported to have more than one depth/stencil output view bound to a <see cref="IRenderPass" />.
+		/// Note that it is typically not supported to have more than one depth/stencil output view bound to a <see cref="RenderPass" />.
 		/// </remarks>
 		/// <returns>A pointer to the descriptor heap that allocates the depth/stencil views for this frame buffer.</returns>
 		/// <seealso cref="renderTargetHeap" />
@@ -1506,7 +1506,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference of the last fence value for the frame buffer.</returns>
 		virtual UInt64& lastFence() const noexcept;
 
-		// IFrameBuffer interface.
+		// FrameBuffer interface.
 	public:
 		/// <inheritdoc />
 		virtual const UInt32& bufferIndex() const noexcept override;
@@ -1541,7 +1541,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 render pass.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPassBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPass : public virtual DirectX12RuntimeObject<DirectX12Device>, public IRenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPass : public virtual DirectX12RuntimeObject<DirectX12Device>, public RenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
 		LITEFX_BUILDER(DirectX12RenderPassBuilder);
 
@@ -1575,7 +1575,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const DirectX12FrameBuffer& frameBuffer(const UInt32& buffer) const override;
 
-		// IRenderPass interface.
+		// RenderPass interface.
 	public:
 		/// <inheritdoc />
 		virtual const DirectX12FrameBuffer& activeFrameBuffer() const override;

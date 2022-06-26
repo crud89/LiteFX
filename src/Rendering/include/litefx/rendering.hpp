@@ -749,7 +749,7 @@ namespace LiteFX::Rendering {
     /// 
     /// Also note, that another buffer management strategy is currently not available: the <i>Monolithic Buffer</i>. In this strategy, there is only one large buffer for 
     /// <i>all</i> buffers. Differently from the ring buffer strategy, where there is one buffer per descriptor type, a monolithic buffer combines multiple constant buffers, 
-    /// containing different data into one giant buffer block. Calling <see cref="IRenderPipeline::bind" /> for a descriptor set would then receive an additional dynamic 
+    /// containing different data into one giant buffer block. Calling <see cref="RenderPipeline::bind" /> for a descriptor set would then receive an additional dynamic 
     /// offset for each descriptor within the descriptor set.
     /// </remarks>
     /// <typeparam name="TBuffer">The type of the buffer interface. Must inherit from <see cref="IBuffer"/>.</typeparam>
@@ -1313,7 +1313,7 @@ namespace LiteFX::Rendering {
     };
     
     /// <summary>
-    /// Represents a the layout of a <see cref="IRenderPipeline" />.
+    /// Represents a the layout of a <see cref="RenderPipeline" />.
     /// </summary>
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
     /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
@@ -1434,18 +1434,9 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a the input assembler state of a <see cref="IRenderPipeline" />.
+    /// The interface for an input assembler state.
     /// </summary>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
-    template <typename TVertexBufferLayout, typename TIndexBufferLayout> requires
-        rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
-        rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
-    class IInputAssembler {
-    public:
-        using vertex_buffer_layout_type = TVertexBufferLayout;
-        using index_buffer_layout_type = TIndexBufferLayout;
-
+    class LITEFX_RENDERING_API IInputAssembler {
     public:
         virtual ~IInputAssembler() noexcept = default;
 
@@ -1454,33 +1445,71 @@ namespace LiteFX::Rendering {
         /// Returns all vertex buffer layouts of the input assembly.
         /// </summary>
         /// <returns>All vertex buffer layouts of the input assembly.</returns>
-        virtual Array<const TVertexBufferLayout*> vertexBufferLayouts() const noexcept = 0;
+        Array<const IVertexBufferLayout*> vertexBufferLayouts() const noexcept {
+            return this->getVertexBufferLayouts();
+        }
 
         /// <summary>
         /// Returns the vertex buffer layout for binding provided with <paramref name="binding" />.
         /// </summary>
         /// <param name="binding">The binding point of the vertex buffer layout.</param>
         /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
-        virtual const TVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const = 0;
+        virtual const IVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const = 0;
 
         /// <summary>
         /// Returns the index buffer layout.
         /// </summary>
         /// <returns>The index buffer layout.</returns>
-        virtual const TIndexBufferLayout& indexBufferLayout() const = 0;
+        virtual const IIndexBufferLayout& indexBufferLayout() const = 0;
 
         /// <summary>
         /// Returns the primitive topology.
         /// </summary>
         /// <returns>The primitive topology.</returns>
         virtual const PrimitiveTopology& topology() const noexcept = 0;
+
+    private:
+        virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept = 0;
     };
 
     /// <summary>
-    /// Builds a <see cref="IInputAssembler" />.
+    /// Represents a the input assembler state of a <see cref="RenderPipeline" />.
+    /// </summary>
+    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
+    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
+    template <typename TVertexBufferLayout, typename TIndexBufferLayout> requires
+        rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
+        rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
+    class InputAssembler : public IInputAssembler {
+    public:
+        using vertex_buffer_layout_type = TVertexBufferLayout;
+        using index_buffer_layout_type = TIndexBufferLayout;
+
+    public:
+        virtual ~InputAssembler() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual Array<const TVertexBufferLayout*> vertexBufferLayouts() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual const TVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const = 0;
+
+        /// <inheritdoc />
+        virtual const TIndexBufferLayout& indexBufferLayout() const = 0;
+
+    private:
+        virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
+            auto layouts = this->vertexBufferLayouts();
+            return Array<const IVertexBufferLayout*>(layouts.begin(), layouts.end());
+        }
+    };
+
+    /// <summary>
+    /// Builds a <see cref="InputAssembler" />.
     /// </summary>
     template <typename TDerived, typename TInputAssembler, typename TParent, typename TVertexBufferLayout = TInputAssembler::vertex_buffer_layout_type, typename TIndexBufferLayout = TInputAssembler::index_buffer_layout_type> requires
-        rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>>
+        rtti::implements<TInputAssembler, InputAssembler<TVertexBufferLayout, TIndexBufferLayout>>
     class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>> {
     public:
         using Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>>::Builder;
@@ -1534,8 +1563,8 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
     /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="DescriptorSet"/>.</typeparam>
-    /// <seealso cref="IRenderPipeline" />
-    /// <seealso cref="IComputePipeline" />
+    /// <seealso cref="RenderPipeline" />
+    /// <seealso cref="ComputePipeline" />
     template <typename TPipelineLayout, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = typename TPipelineLayout::push_constants_layout_type, typename TShaderProgram = typename TPipelineLayout::shader_program_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type> requires 
         rtti::implements<TPipelineLayout, PipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
     class Pipeline : public IPipeline {
@@ -1987,25 +2016,9 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a graphics <see cref="Pipeline" />.
+    /// The interface for a render pipeline.
     /// </summary>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
-    /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="IInputAssembler"/>.</typeparam>
-    /// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="VertexBuffer"/>.</typeparam>
-    /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IndexBuffer"/>.</typeparam>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
-    /// <seealso cref="IRenderPipelineBuilder" />
-    template <typename TPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type> requires
-        rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
-        std::derived_from<TVertexBufferInterface, VertexBuffer<TVertexBufferLayout>> &&
-        std::derived_from<TIndexBufferInterface, IndexBuffer<TIndexBufferLayout>>
-    class IRenderPipeline : public Pipeline<TPipelineLayout> {
-    public:
-        using vertex_buffer_interface_type = TVertexBufferInterface;
-        using index_buffer_interface_type = TIndexBufferInterface;
-        using input_assembler_type = TInputAssembler;
-
+    class LITEFX_RENDERING_API IRenderPipeline : public virtual IPipeline {
     public:
         virtual ~IRenderPipeline() noexcept = default;
 
@@ -2023,7 +2036,9 @@ namespace LiteFX::Rendering {
         /// Returns the input assembler state used by the render pipeline.
         /// </summary>
         /// <returns>The input assembler state used by the render pipeline.</returns>
-        virtual SharedPtr<TInputAssembler> inputAssembler() const noexcept = 0;
+        SharedPtr<IInputAssembler> inputAssembler() const noexcept {
+            return this->getInputAssembler();
+        }
 
         /// <summary>
         /// Returns the rasterizer state used by the render pipeline.
@@ -2047,7 +2062,7 @@ namespace LiteFX::Rendering {
         /// Returns a reference to the stencil reference value.
         /// </summary>
         /// <remarks>
-        /// The stencil reference value is used by the stencil test and is set with each call to <see cref="IRenderPipeline::use" />.
+        /// The stencil reference value is used by the stencil test and is set with each call to <see cref="RenderPipeline::use" />.
         /// </remarks>
         /// <returns>A reference to the stencil reference value.</returns>
         virtual UInt32& stencilRef() const noexcept = 0;
@@ -2058,7 +2073,7 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// You can change the values inside this vector reference to influence the constant blend factors. Blend factors are set for all render targets that use the
         /// blend factors <c>BlendFactor::ConstantColor</c>, <c>BlendFactor::OneMinusConstantColor</c>, <c>BlendFactor::ConstantAlpha</c> or 
-        /// <c>BlendFactor::OneMinusConstantAlpha</c>. They are set on each call to <see cref="IRenderPipeline::use" />.
+        /// <c>BlendFactor::OneMinusConstantAlpha</c>. They are set on each call to <see cref="RenderPipeline::use" />.
         /// </remarks>
         /// <returns>A reference of the constant blend factors for the pipeline.</returns>
         virtual Vector4f& blendFactors() const noexcept = 0;
@@ -2077,14 +2092,50 @@ namespace LiteFX::Rendering {
         /// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg" />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage" />
         virtual const bool& alphaToCoverage() const noexcept = 0;
+
+    private:
+        virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Represents a graphics <see cref="Pipeline" />.
+    /// </summary>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="InputAssembler"/>.</typeparam>
+    /// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="VertexBuffer"/>.</typeparam>
+    /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IndexBuffer"/>.</typeparam>
+    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
+    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
+    /// <seealso cref="IRenderPipelineBuilder" />
+    template <typename TPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type> requires
+        rtti::implements<TInputAssembler, InputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
+        std::derived_from<TVertexBufferInterface, VertexBuffer<TVertexBufferLayout>> &&
+        std::derived_from<TIndexBufferInterface, IndexBuffer<TIndexBufferLayout>>
+    class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout> {
+    public:
+        using vertex_buffer_interface_type = TVertexBufferInterface;
+        using index_buffer_interface_type = TIndexBufferInterface;
+        using input_assembler_type = TInputAssembler;
+
+    public:
+        virtual ~RenderPipeline() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual SharedPtr<TInputAssembler> inputAssembler() const noexcept = 0;
+
+    private:
+        virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept override {
+            return this->inputAssembler();
+        }
     };
 
     /// <summary>
     /// Describes the interface of a render pipeline builder.
     /// </summary>
-    /// <seealso cref="IRenderPipeline" />
+    /// <seealso cref="RenderPipeline" />
     template <typename TDerived, typename TRenderPipeline, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type> requires
-        rtti::implements<TRenderPipeline, IRenderPipeline<TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface>>
+        rtti::implements<TRenderPipeline, RenderPipeline<TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface>>
     class RenderPipelineBuilder : public Builder<TDerived, TRenderPipeline> {
     public:
         using Builder<TDerived, TRenderPipeline>::Builder;
@@ -2131,22 +2182,30 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a compute <see cref="IPipeline" />.
+    /// The interface for a compute pipeline.
     /// </summary>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
-    /// <seealso cref="IComputePipelineBuilder" />
-    template <typename TPipelineLayout>
-    class IComputePipeline : public Pipeline<TPipelineLayout> {
+    class LITEFX_RENDERING_API IComputePipeline : public virtual IPipeline {
     public:
         virtual ~IComputePipeline() noexcept = default;
     };
 
     /// <summary>
+    /// Represents a compute <see cref="Pipeline" />.
+    /// </summary>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <seealso cref="IComputePipelineBuilder" />
+    template <typename TPipelineLayout>
+    class ComputePipeline : public IComputePipeline, public Pipeline<TPipelineLayout> {
+    public:
+        virtual ~ComputePipeline() noexcept = default;
+    };
+
+    /// <summary>
     /// Describes the interface of a render pipeline builder.
     /// </summary>
-    /// <seealso cref="IComputePipeline" />
+    /// <seealso cref="ComputePipeline" />
     template <typename TDerived, typename TComputePipeline, typename TPipelineLayout = TComputePipeline::pipeline_layout_type> requires
-        rtti::implements<TComputePipeline, IComputePipeline<TPipelineLayout>>
+        rtti::implements<TComputePipeline, ComputePipeline<TPipelineLayout>>
     class ComputePipelineBuilder : public Builder<TDerived, TComputePipeline> {
     public:
         using Builder<TDerived, TComputePipeline>::Builder;
@@ -2160,28 +2219,21 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Stores the images for the output attachments for a back buffer of a <see cref="IRenderPass" />, as well as a <see cref="CommandBuffer" /> instance, that records draw commands.
+    /// The interface for a frame buffer.
     /// </summary>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
-    /// <seealso cref="RenderTarget" />
-    template <typename TCommandBuffer, typename TBuffer = TCommandBuffer::buffer_type, typename TVertexBuffer = TCommandBuffer::vertex_buffer_type, typename TIndexBuffer = TCommandBuffer::index_buffer_type, typename TImage = TCommandBuffer::image_type, typename TBarrier = TCommandBuffer::barrier_type, typename TPipeline = TCommandBuffer::pipeline_type> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline>>
-    class IFrameBuffer {
-    public:
-        using command_buffer_type = TCommandBuffer;
-
+    class LITEFX_RENDERING_API IFrameBuffer {
     public:
         virtual ~IFrameBuffer() noexcept = default;
 
     public:
         /// <summary>
-        /// Returns the index of the buffer within the <see cref="IRenderPass" />.
+        /// Returns the index of the buffer within the <see cref="RenderPass" />.
         /// </summary>
         /// <remarks>
-        /// A render pass stores multiple frame buffers, each with their own index. Calling <see cref="IRenderPass::frameBuffer" /> with this index on the frame buffers render
+        /// A render pass stores multiple frame buffers, each with their own index. Calling <see cref="RenderPass::frameBuffer" /> with this index on the frame buffers render
         /// pass returns the current frame buffer instance (i.e. the same instance, as the one, the index has been requested from).
         /// </remarks>
-        /// <returns>the index of the buffer within the <see cref="IRenderPass" />.</returns>
+        /// <returns>the index of the buffer within the <see cref="RenderPass" />.</returns>
         virtual const UInt32& bufferIndex() const noexcept = 0;
 
         /// <summary>
@@ -2216,7 +2268,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All command buffers, the frame buffer stores.</returns>
         /// <seealso cref="commandBuffer" />
-        virtual Array<const TCommandBuffer*> commandBuffers() const noexcept = 0;
+        Array<const ICommandBuffer*> commandBuffers() const noexcept {
+            return this->getCommandBuffers();
+        }
 
         /// <summary>
         /// Returns a command buffer that records draw commands for the frame buffer.
@@ -2225,19 +2279,21 @@ namespace LiteFX::Rendering {
         /// <returns>A command buffer that records draw commands for the frame buffer</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
         /// <seealso cref="commandBuffers" />
-        virtual const TCommandBuffer& commandBuffer(const UInt32& index) const = 0;
+        virtual const ICommandBuffer& commandBuffer(const UInt32& index) const = 0;
 
         /// <summary>
-        /// Returns the images that store the output attachments for the render targets of the <see cref="IRenderPass" />.
+        /// Returns the images that store the output attachments for the render targets of the <see cref="RenderPass" />.
         /// </summary>
-        /// <returns>The images that store the output attachments for the render targets of the <see cref="IRenderPass" />.</returns>
-        virtual Array<const TImage*> images() const noexcept = 0;
+        /// <returns>The images that store the output attachments for the render targets of the <see cref="RenderPass" />.</returns>
+        Array<const IImage*> images() const noexcept {
+            return this->getImages();
+        }
 
         /// <summary>
         /// Returns the image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.
         /// </summary>
         /// <returns>The image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.</returns>
-        virtual const TImage& image(const UInt32& location) const = 0;
+        virtual const IImage& image(const UInt32& location) const = 0;
 
     public:
         /// <summary>
@@ -2251,19 +2307,62 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="renderArea">The new dimensions of the frame buffer.</param>
         virtual void resize(const Size2d& renderArea) = 0;
+
+    private:
+        virtual Array<const ICommandBuffer*> getCommandBuffers() const noexcept = 0;
+        virtual Array<const IImage*> getImages() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Stores the images for the output attachments for a back buffer of a <see cref="RenderPass" />, as well as a <see cref="CommandBuffer" /> instance, that records draw commands.
+    /// </summary>
+    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
+    /// <seealso cref="RenderTarget" />
+    template <typename TCommandBuffer, typename TBuffer = TCommandBuffer::buffer_type, typename TVertexBuffer = TCommandBuffer::vertex_buffer_type, typename TIndexBuffer = TCommandBuffer::index_buffer_type, typename TImage = TCommandBuffer::image_type, typename TBarrier = TCommandBuffer::barrier_type, typename TPipeline = TCommandBuffer::pipeline_type> requires
+        rtti::implements<TCommandBuffer, CommandBuffer<TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline>>
+    class FrameBuffer : public IFrameBuffer {
+    public:
+        using command_buffer_type = TCommandBuffer;
+
+    public:
+        virtual ~FrameBuffer() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual Array<const TCommandBuffer*> commandBuffers() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual const TCommandBuffer& commandBuffer(const UInt32& index) const = 0;
+
+        /// <inheritdoc />
+        virtual Array<const TImage*> images() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual const TImage& image(const UInt32& location) const = 0;
+
+    private:
+        virtual Array<const ICommandBuffer*> getCommandBuffers() const noexcept override {
+            auto commandBuffers = this->commandBuffers();
+            return Array<const ICommandBuffer*>(commandBuffers.begin(), commandBuffers.end());
+        }
+
+        virtual Array<const IImage*> getImages() const noexcept override {
+            auto images = this->images();
+            return Array<const IImage*>(images.begin(), images.end());
+        }
     };
 
     /// <summary>
     /// Represents the source for an input attachment mapping.
     /// </summary>
     /// <remarks>
-    /// This interface is implemented by a <see cref="IRenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="IFrameBuffer" /> 
+    /// This interface is implemented by a <see cref="RenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="FrameBuffer" /> 
     /// during initialization or re-creation, in order to resolve input attachment dependencies.
     /// </remarks>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
+    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type> requires
-        rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer>>
+        rtti::implements<TFrameBuffer, FrameBuffer<TCommandBuffer>>
     class IInputAttachmentMappingSource {
     public:
         using frame_buffer_type = TFrameBuffer;
@@ -2282,7 +2381,7 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="IRenderPass" />.
+    /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="RenderPass" />.
     /// </summary>
     /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="IInputAttachmentMappingSource" />.</typeparam>
     template <typename TInputAttachmentMappingSource, typename TFrameBuffer = TInputAttachmentMappingSource::frame_buffer_type> requires
@@ -2319,28 +2418,9 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a render pass.
+    /// The interface for a render pass.
     /// </summary>
-    /// <remarks>
-    /// A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the
-    /// GPU, that processes data using different <see cref="IRenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="IFrameBuffer" />.
-    /// </remarks>
-    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout" />.</typeparam>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
-    /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
-    // TODO: Add concepts to constrain render pipeline and input attachments properly.
-    template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type> requires
-        rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer>> /*&&
-        rtti::implements<TRenderPipeline, IRenderPipeline<TPipelineLayout>> &&
-        rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
-    class IRenderPass : public IInputAttachmentMappingSource<TFrameBuffer> {
-    public:
-        using frame_buffer_type = TFrameBuffer;
-        using render_pipeline_type = TRenderPipeline;
-        using input_attachment_mapping_type = TInputAttachmentMapping;
-
+    class LITEFX_RENDERING_API IRenderPass {
     public:
         virtual ~IRenderPass() noexcept = default;
 
@@ -2354,13 +2434,15 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="buffer">The index of the frame buffer.</param>
         /// <returns>A back buffer used by the render pass.</returns>
-        virtual const TFrameBuffer& activeFrameBuffer() const = 0;
+        virtual const IFrameBuffer& activeFrameBuffer() const = 0;
 
         /// <summary>
         /// Returns a list of all frame buffers.
         /// </summary>
         /// <returns>A list of all frame buffers. </returns>
-        virtual Array<const TFrameBuffer*> frameBuffers() const noexcept = 0;
+        Array<const IFrameBuffer*> frameBuffers() const noexcept {
+            return this->getFrameBuffers();
+        }
 
         /// <summary>
         /// Returns the render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.
@@ -2368,14 +2450,16 @@ namespace LiteFX::Rendering {
         /// <param name="id">The ID of the requested render pipeline.</param>
         /// <returns>The render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.</returns>
         /// <seealso cref="IRenderPipeline" />
-        virtual const TRenderPipeline& pipeline(const UInt32& id) const = 0;
+        virtual const IRenderPipeline& pipeline(const UInt32& id) const = 0;
 
         /// <summary>
         /// Returns an array of all render pipelines, owned by the render pass.
         /// </summary>
         /// <returns>An array of all render pipelines, owned by the render pass.</returns>
         /// <seealso cref="IRenderPipeline" />
-        virtual Array<const TRenderPipeline*> pipelines() const noexcept = 0;
+        Array<const IRenderPipeline*> pipelines() const noexcept {
+            return this->getPipelines();
+        }
 
         /// <summary>
         /// Returns the render target mapped to the location provided by <paramref name="location" />.
@@ -2388,10 +2472,10 @@ namespace LiteFX::Rendering {
         /// Returns the list of render targets, the render pass renders into.
         /// </summary>
         /// <remarks>
-        /// Note that the actual render target image resources are stored within the individual <see cref="IFrameBuffer" />s of the render pass.
+        /// Note that the actual render target image resources are stored within the individual <see cref="FrameBuffer" />s of the render pass.
         /// </remarks>
         /// <returns>A list of render targets, the render pass renders into.</returns>
-        /// <seealso cref="IFrameBuffer" />
+        /// <seealso cref="FrameBuffer" />
         /// <seealso cref="frameBuffer" />
         virtual Span<const RenderTarget> renderTargets() const noexcept = 0;
 
@@ -2406,7 +2490,7 @@ namespace LiteFX::Rendering {
         /// Returns the input attachment the render pass is consuming.
         /// </summary>
         /// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
-        virtual Span<const TInputAttachmentMapping> inputAttachments() const noexcept = 0;
+        //virtual Span<const IInputAttachmentMapping> inputAttachments() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of samples, the render targets are sampled with.
@@ -2452,14 +2536,82 @@ namespace LiteFX::Rendering {
         /// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
         /// </summary>
         /// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
+        void updateAttachments(const IDescriptorSet& descriptorSet) const {
+            this->setAttachments(descriptorSet);
+        }
+
+    private:
+        virtual Array<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
+        virtual Array<const IRenderPipeline*> getPipelines() const noexcept = 0;
+        virtual void setAttachments(const IDescriptorSet& descriptorSet) const = 0;
+    };
+
+    /// <summary>
+    /// Represents a render pass.
+    /// </summary>
+    /// <remarks>
+    /// A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the
+    /// GPU, that processes data using different <see cref="RenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="FrameBuffer" />.
+    /// </remarks>
+    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout" />.</typeparam>
+    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
+    /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
+    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
+    // TODO: Add concepts to constrain render pipeline and input attachments properly.
+    template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type> requires
+        rtti::implements<TFrameBuffer, FrameBuffer<TCommandBuffer>> /*&&
+        rtti::implements<TRenderPipeline, RenderPipeline<TPipelineLayout>> &&
+        rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
+    class RenderPass :public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
+    public:
+        using frame_buffer_type = TFrameBuffer;
+        using render_pipeline_type = TRenderPipeline;
+        using input_attachment_mapping_type = TInputAttachmentMapping;
+
+    public:
+        virtual ~RenderPass() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual const TFrameBuffer& activeFrameBuffer() const = 0;
+
+        /// <inheritdoc />
+        virtual Array<const TFrameBuffer*> frameBuffers() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual const TRenderPipeline& pipeline(const UInt32& id) const = 0;
+
+        /// <inheritdoc />
+        virtual Array<const TRenderPipeline*> pipelines() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual Span<const TInputAttachmentMapping> inputAttachments() const noexcept = 0;
+
+        /// <inheritdoc />
         virtual void updateAttachments(const TDescriptorSet& descriptorSet) const = 0;
+
+    private:
+        virtual Array<const IFrameBuffer*> getFrameBuffers() const noexcept override {
+            auto frameBuffers = this->frameBuffers();
+            return Array<const IFrameBuffer*>(frameBuffers.begin(), frameBuffers.end());
+        }
+
+        virtual Array<const IRenderPipeline*> getPipelines() const noexcept override {
+            auto pipelines = this->pipelines();
+            return Array<const IRenderPipeline*>(pipelines.begin(), pipelines.end());
+        }
+
+        virtual void setAttachments(const IDescriptorSet& descriptorSet) const override {
+            this->updateAttachments(dynamic_cast<const TDescriptorSet&>(descriptorSet));
+        }
     };
 
     /// <summary>
     /// 
     /// </summary>
     template <typename TDerived, typename TRenderPass, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TInputAttachmentMapping = typename TRenderPass::input_attachment_mapping_type> requires
-        rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
+        rtti::implements<TRenderPass, RenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
     class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
     public:
         using Builder<TDerived, TRenderPass>::Builder;
@@ -2747,7 +2899,7 @@ namespace LiteFX::Rendering {
         /// Creates a vertex buffer, based on the <paramref name="layout" />
         /// </summary>
         /// <remarks>
-        /// A vertex buffer can be used by different <see cref="IRenderPipeline" />s, as long as they share a common input assembler state.
+        /// A vertex buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
         /// 
         /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
         /// </remarks>
@@ -2763,7 +2915,7 @@ namespace LiteFX::Rendering {
         /// Creates an index buffer, based on the <paramref name="layout" />.
         /// </summary>
         /// <remarks>
-        /// An index buffer can be used by different <see cref="IRenderPipeline" />s, as long as they share a common input assembler state.
+        /// An index buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
         /// 
         /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
         /// </remarks>
@@ -3076,10 +3228,10 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
     /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="SwapChain" />.</typeparam>
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
-    /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="IRenderPass" />.</typeparam>
-    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
+    /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
+    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <typeparam name="TImage">The type of the swap chain image. Must inherit from <see cref="IImage" />.</typeparam>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
+    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer" />.</typeparam>
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
@@ -3091,7 +3243,7 @@ namespace LiteFX::Rendering {
         rtti::implements<TSwapChain, SwapChain<TImage>> &&
         rtti::implements<TCommandQueue, CommandQueue<TCommandBuffer>> &&
         rtti::implements<TFactory, GraphicsFactory<TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler>> &&
-        rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
+        rtti::implements<TRenderPass, RenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
     class GraphicsDevice : public IGraphicsDevice {
     public:
         using surface_type = TSurface;
