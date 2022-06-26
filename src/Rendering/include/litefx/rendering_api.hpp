@@ -22,6 +22,44 @@ namespace LiteFX::Rendering {
     using namespace LiteFX;
     using namespace LiteFX::Math;
 
+    class IGraphicsAdapter;
+    class ISurface;
+    class IShaderModule;
+    class IRenderTarget;
+    class IRasterizer;
+    class IViewport;
+    class IScissor;
+    class IBufferLayout;
+    class IVertexBufferLayout;
+    class IIndexBufferLayout;
+    class IDescriptorLayout;
+    class IMappable;
+    class IDeviceMemory;
+    class IBuffer;
+    class IImage;
+    class ISampler;
+    class IBarrier;
+    class IDescriptorSet;
+    class IDescriptorSetLayout;
+    class IPushConstantsRange;
+    class IPushConstantsLayout;
+    class IShaderProgram;
+    class IPipelineLayout;
+    class IVertexBuffer;
+    class IIndexBuffer;
+    class IInputAssembler;
+    class IPipeline;
+    class ICommandBuffer;
+    class IRenderPipeline;
+    class IComputePipeline;
+    class IFrameBuffer;
+    class IRenderPass;
+    class ISwapChain;
+    class ICommandQueue;
+    class IGraphicsFactory;
+    class IGraphicsDevice;
+    class IRenderBackend;
+
     // Define enumerations.
     /// <summary>
     /// Defines different types of graphics adapters.
@@ -1367,9 +1405,24 @@ namespace LiteFX::Rendering {
     bool LITEFX_RENDERING_API hasStencil(const Format& format);
 
     /// <summary>
-    /// Base class for a resource that can be identified by a name string.
+    /// The interface for a state resource.
     /// </summary>
-    class LITEFX_RENDERING_API StateResource {
+    class LITEFX_RENDERING_API IStateResource {
+    public:
+        virtual ~IStateResource() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the name of the resource.
+        /// </summary>
+        /// <returns>The name of the resource.</returns>
+        virtual const String& name() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Base class for a resource that can be identified by a name string within a <see cref="DeviceState" />.
+    /// </summary>
+    class LITEFX_RENDERING_API StateResource : public virtual IStateResource {
         LITEFX_IMPLEMENTATION(StateResourceImpl);
 
     protected:
@@ -1386,18 +1439,71 @@ namespace LiteFX::Rendering {
         virtual ~StateResource() noexcept;
 
     protected:
-        /// <summary>
-        /// Returns the name of the resource.
-        /// </summary>
-        /// <returns>The name of the resource.</returns>
+        /// <inheritdoc />
         String& name() noexcept;
 
     public:
+        /// <inheritdoc />
+        virtual const String& name() const noexcept override;
+    };
+
+    /// <summary>
+    /// A class that can be used to manage the state of a <see cref="IGraphicsDevice" />.
+    /// </summary>
+    /// <seealso cref="StateResource" />
+    class LITEFX_RENDERING_API DeviceState {
+        LITEFX_IMPLEMENTATION(DeviceStateImpl);
+        friend class IGraphicsDevice;
+
+    public:
         /// <summary>
-        /// Returns the name of the resource.
+        /// Creates a new device state instance.
         /// </summary>
-        /// <returns>The name of the resource.</returns>
-        const String& name() const noexcept;
+        explicit DeviceState() noexcept;
+        DeviceState(DeviceState&&) = delete;
+        DeviceState(const DeviceState&) = delete;
+        virtual ~DeviceState() noexcept;
+
+    public:
+        /// <summary>
+        /// Release all resources managed by the device state.
+        /// </summary>
+        void clear();
+
+        /// <summary>
+        /// Adds a new render pass to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="renderPass">The render pass to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another render pass with the same identifier has already been added.</exception>
+        void add(UniquePtr<IRenderPass>&& renderPass);
+
+        /// <summary>
+        /// Adds a new render pass to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the render pass.</param>
+        /// <param name="renderPass">The render pass to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another render pass with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IRenderPass>&& renderPass);
+
+        /// <summary>
+        /// Returns a render pass from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the render pass.</param>
+        /// <returns>A reference of the render pass.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no render pass has been added for the provided <paramref name="id" />.</exception>
+        IRenderPass& renderPass(const String& id) const;
+
+        /// <summary>
+        /// Releases a render pass.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method will destroy the render pass. Before calling it, the render pass must be requested using <see cref="renderPass" />. After 
+        /// this method has been executed, all references (including the <paramref name="renderPass" /> parameter) will be invalid. If the render pass is
+        /// not managed by the device state, this method will do nothing and return <c>false</c>.
+        /// </remarks>
+        /// <param name="renderPass">The render pass to release.</param>
+        /// <returns><c>true</c>, if the render pass was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IRenderPass& renderPass);
     };
 
     /// <summary>
@@ -3543,7 +3649,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a render pass.
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPass {
+    class LITEFX_RENDERING_API IRenderPass : public virtual IStateResource {
     public:
         virtual ~IRenderPass() noexcept = default;
 
@@ -4006,6 +4112,12 @@ namespace LiteFX::Rendering {
         virtual ~IGraphicsDevice() noexcept = default;
 
     public:
+        /// <summary>
+        /// Returns the device state that can be used to manage resources.
+        /// </summary>
+        /// <returns>A reference of the device state.</returns>
+        virtual DeviceState& state() const noexcept = 0;
+
         /// <summary>
         /// Returns the surface, the device draws to.
         /// </summary>

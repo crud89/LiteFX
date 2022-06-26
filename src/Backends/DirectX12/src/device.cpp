@@ -13,6 +13,7 @@ public:
 private:
 	const DirectX12GraphicsAdapter& m_adapter;
 	const DirectX12Backend& m_backend;
+	DeviceState m_deviceState;
 	UniquePtr<DirectX12Surface> m_surface;
 	UniquePtr<DirectX12Queue> m_graphicsQueue, m_transferQueue, m_bufferQueue, m_computeQueue;
 	UniquePtr<DirectX12GraphicsFactory> m_factory;
@@ -348,6 +349,11 @@ DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline() const
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept
 {
 	return *m_impl->m_swapChain;
+}
+
+DeviceState& DirectX12Device::state() const noexcept
+{
+	return m_impl->m_deviceState;
 }
 
 const DirectX12SwapChain& DirectX12Device::swapChain() const noexcept

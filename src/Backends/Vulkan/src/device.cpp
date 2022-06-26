@@ -51,6 +51,8 @@ private:
 		}
 	};
 
+	DeviceState m_deviceState;
+
 	Array<QueueFamily> m_families;
 	VulkanQueue* m_graphicsQueue;
 	VulkanQueue* m_transferQueue;
@@ -80,6 +82,9 @@ public:
 
 	~VulkanDeviceImpl()
 	{
+		// Clear the device state.
+		m_deviceState.clear();
+
 		// This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
 		m_families.clear();
 
@@ -310,6 +315,11 @@ VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, const 
 VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const
 {
 	return VulkanComputePipelineBuilder(*this);
+}
+
+DeviceState& VulkanDevice::state() const noexcept
+{
+	return m_impl->m_deviceState;
 }
 
 const VulkanSwapChain& VulkanDevice::swapChain() const noexcept

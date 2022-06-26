@@ -23,6 +23,7 @@ SET(RENDERING_SOURCES
     "src/scissor.cpp"
     "src/render_target.cpp"
     "src/state_resource.cpp"
+    "src/device_state.cpp"
 )
 
 # Add shared library project.

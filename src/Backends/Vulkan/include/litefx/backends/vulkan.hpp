@@ -2004,6 +2004,9 @@ namespace LiteFX::Rendering::Backends {
 		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
+		virtual DeviceState& state() const noexcept override;
+
+		/// <inheritdoc />
 		virtual const VulkanSwapChain& swapChain() const noexcept override;
 
 		/// <inheritdoc />
