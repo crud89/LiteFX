@@ -262,7 +262,7 @@ DirectX12GraphicsShaderProgramBuilder DirectX12RenderPipelineLayoutBuilder::shad
     return DirectX12GraphicsShaderProgramBuilder(*this);
 }
 
-DirectX12RenderPipelineDescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages)
+DirectX12RenderPipelineDescriptorSetLayoutBuilder DirectX12RenderPipelineLayoutBuilder::addDescriptorSet(const UInt32& space, const ShaderStage& stages, const UInt32& /*poolSize*/)
 {
     return DirectX12RenderPipelineDescriptorSetLayoutBuilder(*this, space, stages);
 }
