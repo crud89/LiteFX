@@ -7,6 +7,8 @@
 OPTION(BUILD_VULKAN_BACKEND "Builds the Vulkan backend." ON)
 OPTION(BUILD_DIRECTX_12_BACKEND "Builds the DirectX 12 backend." ON)
 
+OPTION(BUILD_DEFINE_BUILDERS "Defines builder types to allow to use builder syntax in applications." ON)
+
 OPTION(BUILD_EXAMPLES "When set to OFF, no samples will be built, regardless of their individual option." ON)
 OPTION(BUILD_EXAMPLES_DX12_PIX_LOADER "Add code to DirectX12 samples to load PIX GPU capture library when starting with --load-pix=1 command line argument." ON)
 
