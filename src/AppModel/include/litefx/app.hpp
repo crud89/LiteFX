@@ -153,6 +153,7 @@ namespace LiteFX {
 		}
 	};
 
+#if defined(BUILD_DEFINE_BUILDERS)
 	class LITEFX_APPMODEL_API AppBuilder : public Builder<AppBuilder, App> {
 	public:
 		using builder_type::Builder;
@@ -176,6 +177,7 @@ namespace LiteFX {
 			return *this;
 		}
 	};
+#endif // defined(BUILD_DEFINE_BUILDERS)
 
 	class LITEFX_APPMODEL_API AppVersion {
 		LITEFX_IMPLEMENTATION(AppVersionImpl);

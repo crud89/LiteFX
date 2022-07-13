@@ -141,6 +141,7 @@ void App::resize(int width, int height)
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
+#if defined(BUILD_DEFINE_BUILDERS)
 
 void AppBuilder::use(UniquePtr<IBackend>&& backend)
 {
@@ -155,3 +156,5 @@ UniquePtr<App> AppBuilder::go()
 	this->instance()->initialize();
 	return builder_type::go();
 }
+
+#endif //defined(BUILD_DEFINE_BUILDERS)
