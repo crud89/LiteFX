@@ -2058,121 +2058,132 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Builds a <see cref="Rasterizer" />.
-    /// </summary>
-    template <typename TDerived, typename TRasterizer, typename TParent> requires
-        rtti::implements<TRasterizer, IRasterizer>
-    class RasterizerBuilder : public Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>> {
-    public:
-        using Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>>::Builder;
-
-    public:
-        /// <summary>
-        /// Initializes the rasterizer state with the provided polygon mode.
-        /// </summary>
-        /// <param name="mode">The polygon mode to initialize the rasterizer state with.</param>
-        virtual TDerived& withPolygonMode(const PolygonMode& mode) noexcept = 0;
-
-        /// <summary>
-        /// Initializes the rasterizer state with the provided cull mode.
-        /// </summary>
-        /// <param name="mode">The cull mode to initialize the rasterizer state with.</param>
-        virtual TDerived& withCullMode(const CullMode& mode) noexcept = 0;
-
-        /// <summary>
-        /// Initializes the rasterizer state with the provided cull order.
-        /// </summary>
-        /// <param name="order">The cull order to initialize the rasterizer state with.</param>
-        virtual TDerived& withCullOrder(const CullOrder& order) noexcept = 0;
-
-        /// <summary>
-        /// Initializes the rasterizer state with the provided line width.
-        /// </summary>
-        /// <param name="width">The line width to initialize the rasterizer state with.</param>
-        virtual TDerived& withLineWidth(const Float& width) noexcept = 0;
-
-        /// <summary>
-        /// Initializes the rasterizer depth bias.
-        /// </summary>
-        /// <param name="depthBias">The depth bias the rasterizer should use.</param>
-        virtual TDerived& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept = 0;
-
-        /// <summary>
-        /// Initializes the rasterizer depth state.
-        /// </summary>
-        /// <param name="depthState">The depth state of the rasterizer.</param>
-        virtual TDerived& withDepthState(const DepthStencilState::DepthState& depthState) noexcept = 0;
-
-        /// <summary>
-        /// Initializes the rasterizer stencil state.
-        /// </summary>
-        /// <param name="stencilState">The stencil state of the rasterizer.</param>
-        virtual TDerived& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept = 0;
-    };
-
-    /// <summary>
-    /// 
+    /// Interface for a viewport.
     /// </summary>
     class LITEFX_RENDERING_API IViewport {
     public:
         virtual ~IViewport() noexcept = default;
 
     public:
+        /// <summary>
+        /// Gets the rectangle that defines the dimensions of the viewport.
+        /// </summary>
+        /// <returns>The rectangle that defines the dimensions of the viewport.</returns>
         virtual RectF getRectangle() const noexcept = 0;
+
+        /// <summary>
+        /// Sets the rectangle that defines the dimensions of the viewport.
+        /// </summary>
+        /// <param name="rectangle">The rectangle that defines the dimensions of the viewport.</param>
         virtual void setRectangle(const RectF& rectangle) noexcept = 0;
+
+        /// <summary>
+        /// Gets the minimum depth of the viewport.
+        /// </summary>
+        /// <returns>The minimum depth of the viewport.</returns>
         virtual float getMinDepth() const noexcept = 0;
+
+        /// <summary>
+        /// Sets the minimum depth of the viewport.
+        /// </summary>
+        /// <param name="depth">The minimum depth of the viewport.</param>
         virtual void setMinDepth(const float& depth) const noexcept = 0;
+
+        /// <summary>
+        /// Gets the maximum depth of the viewport.
+        /// </summary>
+        /// <returns>The maximum depth of the viewport.</returns>
         virtual float getMaxDepth() const noexcept = 0;
+
+        /// <summary>
+        /// Sets the maximum depth of the viewport.
+        /// </summary>
+        /// <param name="depth">The maximum depth of the viewport.</param>
         virtual void setMaxDepth(const float& depth) const noexcept = 0;
     };
 
     /// <summary>
-    /// 
+    /// Implements a viewport.
     /// </summary>
     class LITEFX_RENDERING_API Viewport : public IViewport {
         LITEFX_IMPLEMENTATION(ViewportImpl);
 
     public:
+        /// <summary>
+        /// Initializes a new viewport.
+        /// </summary>
+        /// <param name="clientRect">The rectangle that defines the dimensions of the viewport.</param>
+        /// <param name="minDepth">The minimum depth of the viewport.</param>
+        /// <param name="maxDepth">The maximum depth of the viewport.</param>
         explicit Viewport(const RectF& clientRect = { }, const Float& minDepth = 0.f, const Float& maxDepth = 1.f);
+
         Viewport(Viewport&&) noexcept = delete;
         Viewport(const Viewport&) noexcept = delete;
         virtual ~Viewport() noexcept;
 
     public:
+        /// <inheritdoc />
         virtual RectF getRectangle() const noexcept override;
+
+        /// <inheritdoc />
         virtual void setRectangle(const RectF& rectangle) noexcept override;
+
+        /// <inheritdoc />
         virtual Float getMinDepth() const noexcept override;
+
+        /// <inheritdoc />
         virtual void setMinDepth(const Float& depth) const noexcept override;
+
+        /// <inheritdoc />
         virtual Float getMaxDepth() const noexcept override;
+
+        /// <inheritdoc />
         virtual void setMaxDepth(const Float& depth) const noexcept override;
     };
 
     /// <summary>
-    /// 
+    /// The interface of a scissor.
     /// </summary>
     class LITEFX_RENDERING_API IScissor {
     public:
         virtual ~IScissor() noexcept = default;
 
     public:
+        /// <summary>
+        /// Gets the rectangle that defines the scissor region.
+        /// </summary>
+        /// <returns>The rectangle that defines the scissor region.</returns>
         virtual RectF getRectangle() const noexcept = 0;
+
+        /// <summary>
+        /// Sets the rectangle that defines the scissor region.
+        /// </summary>
+        /// <param name="rectangle">The rectangle that defines the scissor region.</rectangle>
         virtual void setRectangle(const RectF& rectangle) noexcept = 0;
     };
 
     /// <summary>
-    /// 
+    /// Implements a scissor.
     /// </summary>
     class LITEFX_RENDERING_API Scissor : public IScissor {
         LITEFX_IMPLEMENTATION(ScissorImpl);
 
     public:
+        /// <summary>
+        /// Initializes a new scissor.
+        /// </summary>
+        /// <param name="scissorRect">The rectangle that defines the scissor region.</param>
         explicit Scissor(const RectF& scissorRect = { });
+
         Scissor(Scissor&&) noexcept = delete;
         Scissor(const Scissor&) noexcept = delete;
         virtual ~Scissor() noexcept;
 
     public:
+        /// <inheritdoc />
         virtual RectF getRectangle() const noexcept override;
+
+        /// <inheritdoc />
         virtual void setRectangle(const RectF& rectangle) noexcept override;
     };
 
@@ -3331,11 +3342,12 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Binds the provided descriptor set.
+        /// Binds the provided descriptor set to the provided pipeline.
         /// </summary>
         /// <param name="descriptorSet">The descriptor set to bind.</param>
-        void bind(const IDescriptorSet& descriptorSet) const noexcept {
-            this->cmdBind(descriptorSet);
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        void bind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
+            this->cmdBind(descriptorSet, pipeline);
         }
 
         /// <summary>
@@ -3452,7 +3464,7 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(const IImage& source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
         virtual void cmdTransfer(const IImage& source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
-        virtual void cmdBind(const IDescriptorSet& descriptorSet) const noexcept = 0;
+        virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
@@ -3654,6 +3666,12 @@ namespace LiteFX::Rendering {
         virtual ~IRenderPass() noexcept = default;
 
     public:
+        ///// <summary>
+        ///// Returns the parent device, the render pass has been created from.
+        ///// </summary>
+        ///// <returns>A reference of the parent device.</returns>
+        //virtual const IGraphicsDevice& device() const noexcept;
+
         /// <summary>
         /// Returns the current frame buffer from of the render pass.
         /// </summary>

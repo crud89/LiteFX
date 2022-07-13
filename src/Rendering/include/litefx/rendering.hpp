@@ -7,6 +7,60 @@ namespace LiteFX::Rendering {
     using namespace LiteFX;
     using namespace LiteFX::Math;
 
+#if defined(BUILD_DEFINE_BUILDERS)
+    /// <summary>
+    /// Builds a <see cref="Rasterizer" />.
+    /// </summary>
+    template <typename TDerived, typename TRasterizer, typename TParent> requires
+        rtti::implements<TRasterizer, IRasterizer>
+    class RasterizerBuilder : public Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>> {
+    public:
+        using Builder<TDerived, TRasterizer, TParent, SharedPtr<TRasterizer>>::Builder;
+
+    public:
+        /// <summary>
+        /// Initializes the rasterizer state with the provided polygon mode.
+        /// </summary>
+        /// <param name="mode">The polygon mode to initialize the rasterizer state with.</param>
+        virtual TDerived& withPolygonMode(const PolygonMode& mode) noexcept = 0;
+
+        /// <summary>
+        /// Initializes the rasterizer state with the provided cull mode.
+        /// </summary>
+        /// <param name="mode">The cull mode to initialize the rasterizer state with.</param>
+        virtual TDerived& withCullMode(const CullMode& mode) noexcept = 0;
+
+        /// <summary>
+        /// Initializes the rasterizer state with the provided cull order.
+        /// </summary>
+        /// <param name="order">The cull order to initialize the rasterizer state with.</param>
+        virtual TDerived& withCullOrder(const CullOrder& order) noexcept = 0;
+
+        /// <summary>
+        /// Initializes the rasterizer state with the provided line width.
+        /// </summary>
+        /// <param name="width">The line width to initialize the rasterizer state with.</param>
+        virtual TDerived& withLineWidth(const Float& width) noexcept = 0;
+
+        /// <summary>
+        /// Initializes the rasterizer depth bias.
+        /// </summary>
+        /// <param name="depthBias">The depth bias the rasterizer should use.</param>
+        virtual TDerived& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept = 0;
+
+        /// <summary>
+        /// Initializes the rasterizer depth state.
+        /// </summary>
+        /// <param name="depthState">The depth state of the rasterizer.</param>
+        virtual TDerived& withDepthState(const DepthStencilState::DepthState& depthState) noexcept = 0;
+
+        /// <summary>
+        /// Initializes the rasterizer stencil state.
+        /// </summary>
+        /// <param name="stencilState">The stencil state of the rasterizer.</param>
+        virtual TDerived& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept = 0;
+    };
+
     /// <summary>
     /// 
     /// </summary>
@@ -19,6 +73,350 @@ namespace LiteFX::Rendering {
     public:
         virtual TDerived& addAttribute(UniquePtr<BufferAttribute>&& attribute) = 0;
     };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TDescriptorSetLayout, typename TParent, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
+        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<TDescriptorLayout, TDescriptorSet>>
+    class DescriptorSetLayoutBuilder : public Builder<TDerived, TDescriptorSetLayout, TParent> {
+    public:
+        using Builder<TDerived, TDescriptorSetLayout, TParent>::Builder;
+
+    public:
+        /// <summary>
+        /// Adds a descriptor to the descriptor set layout.
+        /// </summary>
+        /// <param name="layout">The descriptor layout to add.</param>
+        virtual TDerived& withDescriptor(UniquePtr<TDescriptorLayout>&& layout) = 0;
+
+        /// <summary>
+        /// Adds a descriptor to the descriptor set layout.
+        /// </summary>
+        /// <param name="type">The type of the descriptor.</param>
+        /// <param name="binding">The binding point for the descriptor.</param>
+        /// <param name="descriptorSize">The size of a single descriptor.</param>
+        /// <param name="descriptors">The number of descriptors to bind.</param>
+        virtual TDerived& withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) = 0;
+
+    public:
+        /// <summary>
+        /// Adds an uniform/constant buffer descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptorSize">The size of a single descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        virtual TDerived& withUniform(const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) {
+            return this->withDescriptor(DescriptorType::Uniform, binding, descriptorSize, descriptors);
+        }
+
+        /// <summary>
+        /// Adds a texel buffer descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        virtual TDerived& withBuffer(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->withDescriptor(writable ? DescriptorType::WritableBuffer : DescriptorType::Buffer, binding, 0, descriptors);
+        }
+
+        /// <summary>
+        /// Adds a storage/structured buffer descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        virtual TDerived& withStorage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->withDescriptor(writable ? DescriptorType::WritableStorage : DescriptorType::Storage, binding, 0, descriptors);
+        }
+
+        /// <summary>
+        /// Adds an image/texture descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        virtual TDerived& withImage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->withDescriptor(writable ? DescriptorType::WritableTexture : DescriptorType::Texture, binding, 0, descriptors);
+        }
+
+        /// <summary>
+        /// Adds an input attachment descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        virtual TDerived& withInputAttachment(const UInt32& binding) {
+            return this->withDescriptor(DescriptorType::InputAttachment, binding, 0);
+        }
+
+        /// <summary>
+        /// Adds a sampler descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        virtual TDerived& withSampler(const UInt32& binding, const UInt32& descriptors = 1) {
+            return this->withDescriptor(DescriptorType::Sampler, binding, 0, descriptors);
+        }
+
+        virtual void use(UniquePtr<TDescriptorLayout>&& layout) {
+            this->withDescriptor(std::move(layout));
+        }
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TPushConstantsLayout, typename TParent, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type> requires
+        rtti::implements<TPushConstantsLayout, PushConstantsLayout<TPushConstantsRange>>
+    class PushConstantsLayoutBuilder : public Builder<TDerived, TPushConstantsLayout, TParent> {
+    public:
+        using Builder<TDerived, TPushConstantsLayout, TParent>::Builder;
+
+    public:
+        virtual TDerived& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) = 0;
+    };
+
+    /// <summary>
+    /// Base class for a builder that builds a <see cref="ShaderProgram" />.
+    /// </summary>
+    template <typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = typename TShaderProgram::shader_module_type> requires
+        rtti::implements<TShaderProgram, ShaderProgram<TShaderModule>>
+    class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
+    public:
+        using Builder<TDerived, TShaderProgram, TParent>::Builder;
+
+    public:
+        /// <summary>
+        /// Adds a shader module to the program.
+        /// </summary>
+        /// <param name="type">The type of the shader module.</param>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
+    };
+
+    /// <summary>
+    /// Base class for a graphics shader program builder.
+    /// </summary>
+    /// <seealso cref="ShaderProgramBuilder" />
+    /// <seealso cref="ComputeShaderProgramBuilder" />
+    template <typename TDerived, typename TShaderProgram, typename TParent>
+    class GraphicsShaderProgramBuilder : public ShaderProgramBuilder<TDerived, TShaderProgram, TParent> {
+    public:
+        using ShaderProgramBuilder<TDerived, TShaderProgram, TParent>::ShaderProgramBuilder;
+
+    public:
+        /// <summary>
+        /// Adds a vertex shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+
+        /// <summary>
+        /// Adds a tessellation control shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+
+        /// <summary>
+        /// Adds a tessellation evaluation shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+
+        /// <summary>
+        /// Adds a geometry shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+
+        /// <summary>
+        /// Adds a fragment shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+    };
+
+    /// <summary>
+    /// Base class for a graphics shader program builder.
+    /// </summary>
+    /// <seealso cref="ShaderProgramBuilder" />
+    /// <seealso cref="GraphicsShaderProgramBuilder" />
+    template <typename TDerived, typename TShaderProgram, typename TParent>
+    class ComputeShaderProgramBuilder : public ShaderProgramBuilder<TDerived, TShaderProgram, TParent> {
+    public:
+        using ShaderProgramBuilder<TDerived, TShaderProgram, TParent>::ShaderProgramBuilder;
+
+    public:
+        /// <summary>
+        /// Adds a compute shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+    };
+
+    /// <summary>
+    /// Base class for a builder of a <see cref="PipelineLayout" />.
+    /// </summary>
+    template <typename TDerived, typename TPipelineLayout, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
+        rtti::implements<TPipelineLayout, PipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
+    class PipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, std::nullptr_t, SharedPtr<TPipelineLayout>> {
+    public:
+        using Builder<TDerived, TPipelineLayout, std::nullptr_t, SharedPtr<TPipelineLayout>>::Builder;
+
+    public:
+        /// <summary>
+        /// Adds a shader program to the pipeline layout.
+        /// </summary>
+        /// <remarks>
+        /// Note that a pipeline layout must only have one shader program. If this method is called twice, the second call will overwrite the shader
+        /// program set by the first call.
+        /// </remarks>
+        /// <param name="program">The program to add to the pipeline layout.</param>
+        virtual void use(UniquePtr<TShaderProgram>&& program) = 0;
+
+        /// <summary>
+        /// Adds a descriptor set to the pipeline layout.
+        /// </summary>
+        /// <param name="layout">The layout of the descriptor set.</param>
+        virtual void use(UniquePtr<TDescriptorSetLayout>&& layout) = 0;
+
+        /// <summary>
+        /// Adds a push constants range to the pipeline layout.
+        /// </summary>
+        /// <param name="layout">The layout of the push constants range.</param>
+        virtual void use(UniquePtr<TPushConstantsLayout>&& layout) = 0;
+    };
+
+    /// <summary>
+    /// Builds a <see cref="InputAssembler" />.
+    /// </summary>
+    template <typename TDerived, typename TInputAssembler, typename TParent, typename TVertexBufferLayout = TInputAssembler::vertex_buffer_layout_type, typename TIndexBufferLayout = TInputAssembler::index_buffer_layout_type> requires
+        rtti::implements<TInputAssembler, InputAssembler<TVertexBufferLayout, TIndexBufferLayout>>
+    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>> {
+    public:
+        using Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>>::Builder;
+
+    public:
+        /// <summary>
+        /// Specifies the topology to initialize the input assembler with.
+        /// </summary>
+        /// <param name="topology">The topology to initialize the input assembler with.</param>
+        virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
+
+        /// <summary>
+        /// Adds a vertex buffer layout to the input assembler. Can be called multiple times.
+        /// </summary>
+        /// <param name="layout">The layout to add to the input assembler.</param>
+        virtual void use(UniquePtr<TVertexBufferLayout>&& layout) = 0;
+
+        /// <summary>
+        /// Adds an index buffer layout to the input assembler. Can only be called once.
+        /// </summary>
+        /// <param name="layout"></param>
+        /// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</excpetion>
+        virtual void use(UniquePtr<TIndexBufferLayout>&& layout) = 0;
+    };
+
+    /// <summary>
+    /// Describes the interface of a render pipeline builder.
+    /// </summary>
+    /// <seealso cref="RenderPipeline" />
+    template <typename TDerived, typename TRenderPipeline, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type> requires
+        rtti::implements<TRenderPipeline, RenderPipeline<TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface>>
+    class RenderPipelineBuilder : public Builder<TDerived, TRenderPipeline> {
+    public:
+        using Builder<TDerived, TRenderPipeline>::Builder;
+
+    public:
+        /// <summary>
+        /// Uses the provided pipeline layout to initialize the render pipeline. Can be invoked only once.
+        /// </summary>
+        /// <param name="layout">The pipeline layout to initialize the render pipeline with.</param>
+        virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
+
+        /// <summary>
+        /// Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.
+        /// </summary>
+        /// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
+        virtual void use(SharedPtr<IRasterizer> rasterizer) = 0;
+
+        /// <summary>
+        /// Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.
+        /// </summary>
+        /// <param name="inputAssembler">The input assembler state to initialize the render pipeline with.</param>
+        virtual void use(SharedPtr<TInputAssembler> inputAssembler) = 0;
+
+        /// <summary>
+        /// Uses the provided viewport to initialize the render pipeline. Can be invoked multiple times.
+        /// </summary>
+        /// <param name="viewport">A viewport to initialize the render pipeline with.</param>
+        virtual void use(SharedPtr<IViewport> viewport) = 0;
+
+        /// <summary>
+        /// Uses the provided scissor to initialize the render pipeline. Can be invoked multiple times.
+        /// </summary>
+        /// <param name="scissor">A scissor to initialize the render pipeline with.</param>
+        virtual void use(SharedPtr<IScissor> scissor) = 0;
+
+        /// <summary>
+        /// Enables <i>Alpha-to-Coverage</i> multi-sampling on the pipeline.
+        /// </summary>
+        /// <remarks>
+        /// For more information on <i>Alpha-to-Coverage</i> multi-sampling see the remarks of <see cref="IRenderPipeline::alphaToCoverage" />.
+        /// </remarks>
+        /// <param name="enable">Whether or not to use <i>Alpha-to-Coverage</i> multi-sampling.</param>
+        virtual TDerived& enableAlphaToCoverage(const bool& enable = true) = 0;
+    };
+
+    /// <summary>
+    /// Describes the interface of a render pipeline builder.
+    /// </summary>
+    /// <seealso cref="ComputePipeline" />
+    template <typename TDerived, typename TComputePipeline, typename TPipelineLayout = TComputePipeline::pipeline_layout_type> requires
+        rtti::implements<TComputePipeline, ComputePipeline<TPipelineLayout>>
+    class ComputePipelineBuilder : public Builder<TDerived, TComputePipeline> {
+    public:
+        using Builder<TDerived, TComputePipeline>::Builder;
+
+    public:
+        /// <summary>
+        /// Uses the provided pipeline layout to initialize the compute pipeline. Can be invoked only once.
+        /// </summary>
+        /// <param name="layout">The pipeline layout to initialize the compute pipeline with.</param>
+        virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
+    };
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename TDerived, typename TRenderPass, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TInputAttachmentMapping = typename TRenderPass::input_attachment_mapping_type> requires
+        rtti::implements<TRenderPass, RenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
+    class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
+    public:
+        using Builder<TDerived, TRenderPass>::Builder;
+
+    public:
+        virtual void use(RenderTarget&& target) = 0;
+        virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
+
+    public:
+        virtual TDerived& commandBuffers(const UInt32& count) = 0;
+        virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        virtual TDerived& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) = 0;
+        virtual TDerived& inputAttachment(const TInputAttachmentMapping& inputAttachment) = 0;
+        virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const UInt32& outputLocation) = 0;
+        virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const RenderTarget& renderTarget) = 0;
+    };
+#endif // defined(BUILD_DEFINE_BUILDERS)
 
     /// <summary>
     /// A barrier that transitions a set of resources backed by <see cref="IDeviceMemory" /> into different <see cref="ResourceState" />.
@@ -282,82 +680,6 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TDescriptorSetLayout, typename TParent, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
-        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<TDescriptorLayout, TDescriptorSet>>
-    class DescriptorSetLayoutBuilder : public Builder<TDerived, TDescriptorSetLayout, TParent> {
-    public:
-        using Builder<TDerived, TDescriptorSetLayout, TParent>::Builder;
-
-    public:
-        virtual TDerived& addDescriptor(UniquePtr<TDescriptorLayout>&& layout) = 0;
-        virtual TDerived& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) = 0;
-
-    public:
-        /// <summary>
-        /// Adds an uniform/constant buffer descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptorSize">The size of a single descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        virtual TDerived& addUniform(const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) {
-            return this->addDescriptor(DescriptorType::Uniform, binding, descriptorSize, descriptors);
-        }
-
-        /// <summary>
-        /// Adds a texel buffer descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
-        virtual TDerived& addBuffer(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->addDescriptor(writable ? DescriptorType::WritableBuffer : DescriptorType::Buffer, binding, 0, descriptors);
-        }
-
-        /// <summary>
-        /// Adds a storage/structured buffer descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
-        virtual TDerived& addStorage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->addDescriptor(writable ? DescriptorType::WritableStorage : DescriptorType::Storage, binding, 0, descriptors);
-        }
-
-        /// <summary>
-        /// Adds an image/texture descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
-        virtual TDerived& addImage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->addDescriptor(writable ? DescriptorType::WritableTexture : DescriptorType::Texture, binding, 0, descriptors);
-        }
-
-        /// <summary>
-        /// Adds an input attachment descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        virtual TDerived& addInputAttachment(const UInt32& binding) {
-            return this->addDescriptor(DescriptorType::InputAttachment, binding, 0);
-        }
-
-        /// <summary>
-        /// Adds a sampler descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        virtual TDerived& addSampler(const UInt32& binding, const UInt32& descriptors = 1) {
-            return this->addDescriptor(DescriptorType::Sampler, binding, 0, descriptors);
-        }
-
-        virtual void use(UniquePtr<TDescriptorLayout>&& layout) {
-            this->addDescriptor(std::move(layout));
-        }
-    };
-
-    /// <summary>
     /// Describes the layout of the pipelines push constant ranges.
     /// </summary>
     /// <remarks>
@@ -401,19 +723,6 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TPushConstantsLayout, typename TParent, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type> requires
-        rtti::implements<TPushConstantsLayout, PushConstantsLayout<TPushConstantsRange>>
-    class PushConstantsLayoutBuilder : public Builder<TDerived, TPushConstantsLayout, TParent> {
-    public:
-        using Builder<TDerived, TPushConstantsLayout, TParent>::Builder;
-
-    public:
-        virtual TDerived& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) = 0;
-    };
-
-    /// <summary>
     /// Represents a shader program, consisting of multiple <see cref="IShaderModule" />s.
     /// </summary>
     /// <typeparam name="TShaderModule">The type of the shader module. Must implement <see cref="IShaderModule"/>.</typeparam>
@@ -436,50 +745,9 @@ namespace LiteFX::Rendering {
             return Array<const IShaderModule*>(modules.begin(), modules.end());
         }
     };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = typename TShaderProgram::shader_module_type> requires
-        rtti::implements<TShaderProgram, ShaderProgram<TShaderModule>>
-    class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
-    public:
-        using Builder<TDerived, TShaderProgram, TParent>::Builder;
-
-    public:
-        virtual TDerived& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TShaderProgram, typename TParent>
-    class GraphicsShaderProgramBuilder : public ShaderProgramBuilder<TDerived, TShaderProgram, TParent> {
-    public:
-        using ShaderProgramBuilder<TDerived, TShaderProgram, TParent>::ShaderProgramBuilder;
-
-    public:
-        virtual TDerived& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TShaderProgram, typename TParent>
-    class ComputeShaderProgramBuilder : public ShaderProgramBuilder<TDerived, TShaderProgram, TParent> {
-    public:
-        using ShaderProgramBuilder<TDerived, TShaderProgram, TParent>::ShaderProgramBuilder;
-
-    public:
-        virtual TDerived& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-    };
     
     /// <summary>
-    /// Represents a the layout of a <see cref="RenderPipeline" />.
+    /// Represents a the layout of a <see cref="RenderPipeline" /> or a <see cref="ComputePipeline" />.
     /// </summary>
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
     /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
@@ -516,21 +784,6 @@ namespace LiteFX::Rendering {
             auto layouts = this->descriptorSets();
             return Array<const IDescriptorSetLayout*>(layouts.begin(), layouts.end());
         }
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
-        rtti::implements<TPipelineLayout, PipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
-    class PipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
-    public:
-        using Builder<TDerived, TPipelineLayout, TParent>::Builder;
-
-    public:
-        virtual void use(UniquePtr<TShaderProgram>&& program) = 0;
-        virtual void use(UniquePtr<TDescriptorSetLayout>&& layout) = 0;
-        virtual void use(UniquePtr<TPushConstantsLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -600,36 +853,6 @@ namespace LiteFX::Rendering {
             auto layouts = this->vertexBufferLayouts();
             return Array<const IVertexBufferLayout*>(layouts.begin(), layouts.end());
         }
-    };
-
-    /// <summary>
-    /// Builds a <see cref="InputAssembler" />.
-    /// </summary>
-    template <typename TDerived, typename TInputAssembler, typename TParent, typename TVertexBufferLayout = TInputAssembler::vertex_buffer_layout_type, typename TIndexBufferLayout = TInputAssembler::index_buffer_layout_type> requires
-        rtti::implements<TInputAssembler, InputAssembler<TVertexBufferLayout, TIndexBufferLayout>>
-    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>> {
-    public:
-        using Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>>::Builder;
-
-    public:
-        /// <summary>
-        /// Specifies the topology to initialize the input assembler with.
-        /// </summary>
-        /// <param name="topology">The topology to initialize the input assembler with.</param>
-        virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
-
-        /// <summary>
-        /// Adds a vertex buffer layout to the input assembler. Can be called multiple times.
-        /// </summary>
-        /// <param name="layout">The layout to add to the input assembler.</param>
-        virtual void use(UniquePtr<TVertexBufferLayout>&& layout) = 0;
-
-        /// <summary>
-        /// Adds an index buffer layout to the input assembler. Can only be called once.
-        /// </summary>
-        /// <param name="layout"></param>
-        /// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</excpetion>
-        virtual void use(UniquePtr<TIndexBufferLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -708,7 +931,7 @@ namespace LiteFX::Rendering {
         virtual void use(const TPipeline& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void bind(const TDescriptorSet& descriptorSet) const noexcept = 0;
+        virtual void bind(const TDescriptorSet& descriptorSet, const TPipeline& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
         virtual void bind(const TVertexBuffer& buffer) const noexcept = 0;
@@ -767,8 +990,8 @@ namespace LiteFX::Rendering {
             this->use(dynamic_cast<const TPipeline&>(pipeline));
         }
 
-        virtual void cmdBind(const IDescriptorSet& descriptorSet) const noexcept override { 
-            this->bind(dynamic_cast<const TDescriptorSet&>(descriptorSet));
+        virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override { 
+            this->bind(dynamic_cast<const TDescriptorSet&>(descriptorSet), dynamic_cast<const TPipeline&>(pipeline));
         }
         
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept override { 
@@ -805,7 +1028,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IndexBuffer"/>.</typeparam>
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
     /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
-    /// <seealso cref="IRenderPipelineBuilder" />
+    /// <seealso cref="RenderPipelineBuilder" />
     template <typename TPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type> requires
         rtti::implements<TInputAssembler, InputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
         std::derived_from<TVertexBufferInterface, VertexBuffer<TVertexBufferLayout>> &&
@@ -830,83 +1053,14 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Describes the interface of a render pipeline builder.
-    /// </summary>
-    /// <seealso cref="RenderPipeline" />
-    template <typename TDerived, typename TRenderPipeline, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type> requires
-        rtti::implements<TRenderPipeline, RenderPipeline<TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface>>
-    class RenderPipelineBuilder : public Builder<TDerived, TRenderPipeline> {
-    public:
-        using Builder<TDerived, TRenderPipeline>::Builder;
-
-    public:
-        /// <summary>
-        /// Uses the provided pipeline layout to initialize the render pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="layout">The pipeline layout to initialize the render pipeline with.</param>
-        virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
-
-        /// <summary>
-        /// Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IRasterizer> rasterizer) = 0;
-
-        /// <summary>
-        /// Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="inputAssembler">The input assembler state to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<TInputAssembler> inputAssembler) = 0;
-
-        /// <summary>
-        /// Uses the provided viewport to initialize the render pipeline. Can be invoked multiple times.
-        /// </summary>
-        /// <param name="viewport">A viewport to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IViewport> viewport) = 0;
-
-        /// <summary>
-        /// Uses the provided scissor to initialize the render pipeline. Can be invoked multiple times.
-        /// </summary>
-        /// <param name="scissor">A scissor to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IScissor> scissor) = 0;
-
-        /// <summary>
-        /// Enables <i>Alpha-to-Coverage</i> multi-sampling on the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// For more information on <i>Alpha-to-Coverage</i> multi-sampling see the remarks of <see cref="IRenderPipeline::alphaToCoverage" />.
-        /// </remarks>
-        /// <param name="enable">Whether or not to use <i>Alpha-to-Coverage</i> multi-sampling.</param>
-        virtual TDerived& enableAlphaToCoverage(const bool& enable = true) = 0;
-    };
-
-    /// <summary>
     /// Represents a compute <see cref="Pipeline" />.
     /// </summary>
     /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
-    /// <seealso cref="IComputePipelineBuilder" />
+    /// <seealso cref="ComputePipelineBuilder" />
     template <typename TPipelineLayout>
     class ComputePipeline : public IComputePipeline, public Pipeline<TPipelineLayout> {
     public:
         virtual ~ComputePipeline() noexcept = default;
-    };
-
-    /// <summary>
-    /// Describes the interface of a render pipeline builder.
-    /// </summary>
-    /// <seealso cref="ComputePipeline" />
-    template <typename TDerived, typename TComputePipeline, typename TPipelineLayout = TComputePipeline::pipeline_layout_type> requires
-        rtti::implements<TComputePipeline, ComputePipeline<TPipelineLayout>>
-    class ComputePipelineBuilder : public Builder<TDerived, TComputePipeline> {
-    public:
-        using Builder<TDerived, TComputePipeline>::Builder;
-
-    public:
-        /// <summary>
-        /// Uses the provided pipeline layout to initialize the compute pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="layout">The pipeline layout to initialize the compute pipeline with.</param>
-        virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
     };
 
     /// <summary>
@@ -1027,7 +1181,8 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     // TODO: Add concepts to constrain render pipeline and input attachments properly.
     template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type> requires
-        rtti::implements<TFrameBuffer, FrameBuffer<TCommandBuffer>> /*&&
+        rtti::implements<TFrameBuffer, FrameBuffer<TCommandBuffer>> &&
+        std::derived_from<TRenderPipeline, IRenderPipeline> /*&&
         rtti::implements<TRenderPipeline, RenderPipeline<TPipelineLayout>> &&
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
     class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
@@ -1040,6 +1195,9 @@ namespace LiteFX::Rendering {
         virtual ~RenderPass() noexcept = default;
 
     public:
+        ///// <inheritdoc />
+        //virtual const TGraphicsDevice& device() const noexcept = 0;
+
         /// <inheritdoc />
         virtual const TFrameBuffer& activeFrameBuffer() const = 0;
 
@@ -1072,31 +1230,6 @@ namespace LiteFX::Rendering {
         virtual void setAttachments(const IDescriptorSet& descriptorSet) const override {
             this->updateAttachments(dynamic_cast<const TDescriptorSet&>(descriptorSet));
         }
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TRenderPass, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TInputAttachmentMapping = typename TRenderPass::input_attachment_mapping_type> requires
-        rtti::implements<TRenderPass, RenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
-    class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
-    public:
-        using Builder<TDerived, TRenderPass>::Builder;
-
-    public:
-        virtual void use(RenderTarget&& target) = 0;
-        virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
-
-    public:
-        virtual TDerived& commandBuffers(const UInt32& count) = 0;
-        virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) = 0;
-        virtual TDerived& inputAttachment(const TInputAttachmentMapping& inputAttachment) = 0;
-        virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const UInt32& outputLocation) = 0;
-        virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const RenderTarget& renderTarget) = 0;
     };
 
     /// <summary>
@@ -1301,9 +1434,17 @@ namespace LiteFX::Rendering {
         using adapter_type = TGraphicsAdapter;
         using swap_chain_type = TSwapChain;
         using command_queue_type = TCommandQueue;
+        using command_buffer_type = command_queue_type::command_buffer_type;
         using factory_type = TFactory;
+        using descriptor_layout_type = factory_type::descriptor_layout_type;
+        using vertex_buffer_type = factory_type::vertex_buffer_type;
+        using index_buffer_type = factory_type::index_buffer_type;
+        using buffer_type = factory_type::buffer_type;
+        using image_type = factory_type::image_type;
+        using sampler_type = factory_type::sampler_type;
         using frame_buffer_type = TFrameBuffer;
         using render_pass_type = TRenderPass;
+        using render_pipeline_type = render_pass_type::render_pipeline_type;
 
     public:
         virtual ~GraphicsDevice() noexcept = default;
@@ -1347,6 +1488,23 @@ namespace LiteFX::Rendering {
     template <typename TBackend, typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
         rtti::implements<TGraphicsDevice, GraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
     class RenderBackend : public IRenderBackend {
+        using GraphicsDevice = TGraphicsDevice;
+        using Surface = GraphicsDevice::surface_type;
+        using Adapter = GraphicsDevice::adapter_type;
+        using SwapChain = GraphicsDevice::swap_chain_type;
+        using CommandQueue = GraphicsDevice::command_queue_type;
+        using CommandBuffer = GraphicsDevice::command_buffer_type;
+        using Factory = GraphicsDevice::factory_type;
+        using DescriptorLayout = Factory::descriptor_layout_type;
+        using VertexBuffer = Factory::vertex_buffer_type;
+        using IndexBuffer = Factory::index_buffer_type;
+        using Buffer = Factory::buffer_type;
+        using Image = Factory::image_type;
+        using Sampler = Factory::sampler_type;
+        using FrameBuffer = GraphicsDevice::frame_buffer_type;
+        using RenderPass = GraphicsDevice::render_pass_type;
+        using RenderPipeline = GraphicsDevice::render_pipeline_type;
+
     public:
         virtual ~RenderBackend() noexcept = default;
 

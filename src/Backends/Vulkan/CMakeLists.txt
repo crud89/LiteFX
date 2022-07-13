@@ -15,6 +15,7 @@ FIND_PACKAGE(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 SET(VULKAN_BACKEND_HEADERS
     "include/litefx/backends/vulkan_api.hpp"
     "include/litefx/backends/vulkan_formatters.hpp"
+    "include/litefx/backends/vulkan_builders.hpp"
     "include/litefx/backends/vulkan.hpp"
 )
 
@@ -51,6 +52,24 @@ SET(VULKAN_BACKEND_SOURCES
     "src/push_constants_range.cpp"
     "src/push_constants_layout.cpp"
 )
+
+# Add builder sources.
+IF(BUILD_DEFINE_BUILDERS)
+    SET(VULKAN_BACKEND_SOURCES
+        ${VULKAN_BACKEND_SOURCES}
+        "src/builders/compute_pipeline_builder.cpp"
+        "src/builders/compute_pipeline_layout_builder.cpp"
+        "src/builders/descriptor_set_layout_builder.cpp"
+        "src/builders/input_assembler_builder.cpp"
+        "src/builders/push_constants_layout_builder.cpp"
+        "src/builders/rasterizer_builder.cpp"
+        "src/builders/render_pass_builder.cpp"
+        "src/builders/render_pipeline_builder.cpp"
+        "src/builders/render_pipeline_layout_builder.cpp"
+        "src/builders/shader_program_builder.cpp"
+        "src/builders/vertex_buffer_layout_builder.cpp"
+    )
+ENDIF(BUILD_DEFINE_BUILDERS)
 
 # Add shared library project.
 ADD_LIBRARY(${PROJECT_NAME} SHARED

@@ -11,6 +11,7 @@ public:
 	friend class VulkanFrameBuffer;
 
 private:
+    const VulkanRenderPass& m_renderPass;
     Array<UniquePtr<IVulkanImage>> m_outputAttachments;
     Array<const IVulkanImage*> m_renderTargetViews;
 	Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
@@ -20,22 +21,24 @@ private:
     UInt64 m_lastFence{ 0 };
 
 public:
-    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
-        base(parent), m_bufferIndex(bufferIndex), m_size(renderArea)
+    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
+        base(parent), m_bufferIndex(bufferIndex), m_size(renderArea), m_renderPass(renderPass)
 	{
+        const auto& device = m_renderPass.device();
+
 		// Initialize the semaphore.
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
+		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(device.handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
 
         // Retrieve a command buffer from the graphics queue.
         m_commandBuffers.resize(commandBuffers);
-        std::ranges::generate(m_commandBuffers, [this]() { return m_parent->getDevice()->graphicsQueue().createCommandBuffer(true, false); });
+        std::ranges::generate(m_commandBuffers, [this, &device]() { return device.graphicsQueue().createCommandBuffer(true, false); });
 	}
 
 	~VulkanFrameBufferImpl()
 	{
-		::vkDestroySemaphore(m_parent->getDevice()->handle(), m_semaphore, nullptr);
+		::vkDestroySemaphore(m_renderPass.device().handle(), m_semaphore, nullptr);
 	}
 
 public:
@@ -50,7 +53,7 @@ public:
 
         // Start with the input attachments.
         // NOTE: We assume, that the parent render pass provides the attachments in an sorted manner.
-        std::ranges::for_each(m_parent->parent().inputAttachments(), [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
+        std::ranges::for_each(m_renderPass.inputAttachments(), [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
             if (inputAttachment.location() != i) [[unlikely]]
                 LITEFX_WARNING(VULKAN_LOG, "Remapped input attachment from location {0} to location {1}. Please make sure that the input attachments are sorted within the render pass and do not have any gaps in their location mappings.", inputAttachment.location(), i);
 
@@ -66,16 +69,16 @@ public:
 
         // Initialize the output attachments from render targets of the parent render pass.
         // NOTE: Again, we assume, that the parent render pass provides the render targets in an sorted manner.
-        auto samples = m_parent->parent().multiSamplingLevel();
+        auto samples = m_renderPass.multiSamplingLevel();
 
-        std::ranges::for_each(m_parent->parent().renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
+        std::ranges::for_each(m_renderPass.renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
             if (renderTarget.location() != i++) [[unlikely]]
                 LITEFX_WARNING(VULKAN_LOG, "Remapped render target from location {0} to location {1}. Please make sure that the render targets are sorted within the render pass and do not have any gaps in their location mappings.", renderTarget.location(), i - 1);
 
             if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
             {
                 // If the render target is a present target, acquire an image view from the swap chain.
-                auto swapChainImages = m_parent->getDevice()->swapChain().images();
+                auto swapChainImages = m_renderPass.device().swapChain().images();
                 auto image = swapChainImages[m_bufferIndex];
                 m_renderTargetViews.push_back(image);
                 attachmentViews.push_back(image->imageView());
@@ -83,7 +86,7 @@ public:
             else
             {
                 // Create an image view for the render target.
-                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, samples);
+                auto image = m_renderPass.device().factory().createAttachment(renderTarget.format(), m_size, samples);
                 attachmentViews.push_back(image->imageView());
                 m_renderTargetViews.push_back(image.get());
                 m_outputAttachments.push_back(std::move(image));
@@ -91,9 +94,9 @@ public:
         });
 
         // If we have a present target and multi sampling is enabled, make sure to add a view for the resolve attachment.
-        if (samples > MultiSamplingLevel::x1 && std::ranges::any_of(m_parent->parent().renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }))
+        if (samples > MultiSamplingLevel::x1 && std::ranges::any_of(m_renderPass.renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }))
         {
-            auto swapChainImages = m_parent->getDevice()->swapChain().images();
+            auto swapChainImages = m_renderPass.device().swapChain().images();
             auto image = swapChainImages[m_bufferIndex];
             m_renderTargetViews.push_back(image);
             attachmentViews.push_back(image->imageView());
@@ -102,7 +105,7 @@ public:
         // Allocate the frame buffer.
         VkFramebufferCreateInfo frameBufferInfo{};
         frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        frameBufferInfo.renderPass = m_parent->parent().handle();
+        frameBufferInfo.renderPass = m_renderPass.handle();
         frameBufferInfo.attachmentCount = static_cast<UInt32>(attachmentViews.size());
         frameBufferInfo.pAttachments = attachmentViews.data();
         frameBufferInfo.width = m_size.width();
@@ -110,7 +113,7 @@ public:
         frameBufferInfo.layers = 1;
 
         VkFramebuffer frameBuffer;
-        raiseIfFailed<RuntimeException>(::vkCreateFramebuffer(m_parent->getDevice()->handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
+        raiseIfFailed<RuntimeException>(::vkCreateFramebuffer(m_renderPass.device().handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
 
         return frameBuffer;
 	}
@@ -121,14 +124,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, bufferIndex, renderArea, commandBuffers)), VulkanRuntimeObject<VulkanRenderPass>(renderPass, renderPass.getDevice()), Resource<VkFramebuffer>(VK_NULL_HANDLE)
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, renderPass, bufferIndex, renderArea, commandBuffers)), Resource<VkFramebuffer>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 }
 
 VulkanFrameBuffer::~VulkanFrameBuffer() noexcept
 {
-    ::vkDestroyFramebuffer(this->getDevice()->handle(), this->handle(), nullptr);
+    ::vkDestroyFramebuffer(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
 }
 
 const VkSemaphore& VulkanFrameBuffer::semaphore() const noexcept
@@ -192,7 +195,7 @@ const IVulkanImage& VulkanFrameBuffer::image(const UInt32& location) const
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
 {
     // Destroy the old frame buffer.
-    ::vkDestroyFramebuffer(this->getDevice()->handle(), this->handle(), nullptr);
+    ::vkDestroyFramebuffer(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
 
     // Reset the size and re-initialize the frame buffer.
     m_impl->m_size = renderArea;

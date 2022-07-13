@@ -114,7 +114,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanBuffer::allocate(type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -127,7 +127,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& t
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanBuffer::allocate(m_impl->m_device, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		return VulkanBuffer::allocate(type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 }
 

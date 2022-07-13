@@ -20,6 +20,7 @@
 #  pragma message ("Vulkan: No supported surface platform detected.")
 #endif
 
+#include <litefx/config.h>
 #include <litefx/rendering.hpp>
 #include <vulkan/vulkan.h>
 
@@ -62,6 +63,7 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanImage;
     class IVulkanSampler;
 
+#if defined(BUILD_DEFINE_BUILDERS)
     // Builder declarations.
     class VulkanVertexBufferLayoutBuilder;
     class VulkanRenderPipelineDescriptorSetLayoutBuilder;
@@ -78,6 +80,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanComputePipelineBuilder;
     class VulkanRenderPassBuilder;
     class VulkanBackendBuilder;
+#endif // defined(BUILD_DEFINE_BUILDERS)
 
     /// <summary>
     /// Contains conversion helpers for DirectX 12.
@@ -292,33 +295,6 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>The handle of the backend, the surface has been created from.</returns>
         const VkInstance& instance() const noexcept;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="TParent"></typeparam>
-    template <typename TParent>
-    class LITEFX_VULKAN_API VulkanRuntimeObject {
-    private:
-        const TParent& m_parent;
-        const VulkanDevice* m_device;
-
-    public:
-        explicit VulkanRuntimeObject(const TParent& parent, const VulkanDevice* device) :
-            m_parent(parent), m_device(device) 
-        {
-            if (device == nullptr)
-                throw ArgumentNotInitializedException("The device must be initialized.");
-        }
-
-        VulkanRuntimeObject(VulkanRuntimeObject&&) = delete;
-        VulkanRuntimeObject(const VulkanRuntimeObject&) = delete;
-        virtual ~VulkanRuntimeObject() noexcept = default;
-
-    public:
-        virtual const TParent& parent() const noexcept { return m_parent; }
-        virtual const VulkanDevice* getDevice() const noexcept { return m_device; };
     };
 
     DEFINE_EXCEPTION(VulkanPlatformException, std::runtime_error);

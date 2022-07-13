@@ -7,11 +7,11 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
-	class VulkanBuffer : public VulkanRuntimeObject<VulkanDevice>, public IVulkanBuffer, public Resource<VkBuffer> {
+	class VulkanBuffer : public IVulkanBuffer, public Resource<VkBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
 
 	public:
-		explicit VulkanBuffer(const VulkanDevice& device, VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		explicit VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
 		VulkanBuffer(VulkanBuffer&&) = delete;
 		VulkanBuffer(const VulkanBuffer&) = delete;
 		virtual ~VulkanBuffer() noexcept;
@@ -57,14 +57,14 @@ namespace LiteFX::Rendering::Backends {
 
 		// VulkanBuffer.
 	public:
-		static UniquePtr<IVulkanBuffer> allocate(const VulkanDevice& device, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IVulkanBuffer> allocate(const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	class VulkanVertexBuffer : public VulkanBuffer, public IVulkanVertexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferImpl);
 
 	public:
-		explicit VulkanVertexBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		explicit VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
 		VulkanVertexBuffer(VulkanVertexBuffer&&) = delete;
 		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
 		virtual ~VulkanVertexBuffer() noexcept;
@@ -83,7 +83,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferImpl);
 
 	public:
-		explicit VulkanIndexBuffer(const VulkanDevice& device, VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		explicit VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
 		VulkanIndexBuffer(VulkanIndexBuffer&&) = delete;
 		VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
 		virtual ~VulkanIndexBuffer() noexcept;

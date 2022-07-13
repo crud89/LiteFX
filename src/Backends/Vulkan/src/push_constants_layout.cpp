@@ -16,10 +16,11 @@ private:
     Dictionary<ShaderStage, VulkanPushConstantsRange*> m_ranges;
     Array<UniquePtr<VulkanPushConstantsRange>> m_rangePointers;
     UInt32 m_size;
+    const VulkanPipelineLayout& m_pipelineLayout;
 
 public:
-    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, const UInt32& size) :
-        base(parent), m_size(size)
+    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, const VulkanPipelineLayout& pipelineLayout, const UInt32& size) :
+        base(parent), m_size(size), m_pipelineLayout(pipelineLayout)
     {
         // Align the size to 4 bytes.
         m_size = size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size;
@@ -47,18 +48,23 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPushConstantsLayout::VulkanPushConstantsLayout(const VulkanPipelineLayout& parent, Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size)), VulkanRuntimeObject<VulkanPipelineLayout>(parent, parent.getDevice())
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(const VulkanPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size) :
+    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, pipelineLayout, size))
 {
     m_impl->setRanges(std::move(ranges));
 }
 
-VulkanPushConstantsLayout::VulkanPushConstantsLayout(const VulkanPipelineLayout& parent, const UInt32& size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size)), VulkanRuntimeObject<VulkanPipelineLayout>(parent, parent.getDevice())
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(const VulkanPipelineLayout& pipelineLayout, const UInt32& size) :
+    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, pipelineLayout, size))
 {
 }
 
 VulkanPushConstantsLayout::~VulkanPushConstantsLayout() noexcept = default;
+
+const VulkanPipelineLayout& VulkanPushConstantsLayout::pipelineLayout() const noexcept
+{
+    return m_impl->m_pipelineLayout;
+}
 
 const UInt32& VulkanPushConstantsLayout::size() const noexcept
 {
@@ -81,92 +87,4 @@ Array<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const
     return m_impl->m_rangePointers |
         std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); }) |
         ranges::to<Array<const VulkanPushConstantsRange*>>();
-}
-
-// ------------------------------------------------------------------------------------------------
-// Render pipeline descriptor set layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanRenderPipelinePushConstantsLayoutBuilder::VulkanRenderPipelinePushConstantsLayoutBuilderImpl : public Implement<VulkanRenderPipelinePushConstantsLayoutBuilder> {
-public:
-    friend class VulkanRenderPipelinePushConstantsLayoutBuilder;
-
-private:
-    Array<UniquePtr<VulkanPushConstantsRange>> m_ranges;
-    UInt32 m_size;
-
-public:
-    VulkanRenderPipelinePushConstantsLayoutBuilderImpl(VulkanRenderPipelinePushConstantsLayoutBuilder* parent, const UInt32& size) :
-        base(parent), m_size(size)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
-// Render pipeline descriptor set layout builder shared interface.
-// ------------------------------------------------------------------------------------------------
-
-VulkanRenderPipelinePushConstantsLayoutBuilder::VulkanRenderPipelinePushConstantsLayoutBuilder(VulkanRenderPipelineLayoutBuilder& parent, const UInt32& size) :
-    m_impl(makePimpl<VulkanRenderPipelinePushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(*std::as_const(parent).instance(), size)))
-{
-}
-
-VulkanRenderPipelinePushConstantsLayoutBuilder::~VulkanRenderPipelinePushConstantsLayoutBuilder() noexcept = default;
-
-VulkanRenderPipelineLayoutBuilder& VulkanRenderPipelinePushConstantsLayoutBuilder::go()
-{
-    auto instance = this->instance();
-    instance->m_impl->setRanges(std::move(m_impl->m_ranges));
-
-    return PushConstantsLayoutBuilder::go();
-}
-
-VulkanRenderPipelinePushConstantsLayoutBuilder& VulkanRenderPipelinePushConstantsLayoutBuilder::addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
-{
-    m_impl->m_ranges.push_back(makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding));
-    return *this;
-}
-
-// ------------------------------------------------------------------------------------------------
-// Compute pipeline descriptor set layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanComputePipelinePushConstantsLayoutBuilder::VulkanComputePipelinePushConstantsLayoutBuilderImpl : public Implement<VulkanComputePipelinePushConstantsLayoutBuilder> {
-public:
-    friend class VulkanComputePipelinePushConstantsLayoutBuilder;
-
-private:
-    Array<UniquePtr<VulkanPushConstantsRange>> m_ranges;
-    UInt32 m_size;
-
-public:
-    VulkanComputePipelinePushConstantsLayoutBuilderImpl(VulkanComputePipelinePushConstantsLayoutBuilder* parent, const UInt32& size) :
-        base(parent), m_size(size)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
-// Compute pipeline descriptor set layout builder shared interface.
-// ------------------------------------------------------------------------------------------------
-
-VulkanComputePipelinePushConstantsLayoutBuilder::VulkanComputePipelinePushConstantsLayoutBuilder(VulkanComputePipelineLayoutBuilder& parent, const UInt32& size) :
-    m_impl(makePimpl<VulkanComputePipelinePushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(*std::as_const(parent).instance(), size)))
-{
-}
-
-VulkanComputePipelinePushConstantsLayoutBuilder::~VulkanComputePipelinePushConstantsLayoutBuilder() noexcept = default;
-
-VulkanComputePipelineLayoutBuilder& VulkanComputePipelinePushConstantsLayoutBuilder::go()
-{
-    auto instance = this->instance();
-    instance->m_impl->setRanges(std::move(m_impl->m_ranges));
-
-    return PushConstantsLayoutBuilder::go();
-}
-
-VulkanComputePipelinePushConstantsLayoutBuilder& VulkanComputePipelinePushConstantsLayoutBuilder::addRange(const ShaderStage & shaderStages, const UInt32 & offset, const UInt32 & size, const UInt32 & space, const UInt32 & binding)
-{
-    m_impl->m_ranges.push_back(makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding));
-    return *this;
 }

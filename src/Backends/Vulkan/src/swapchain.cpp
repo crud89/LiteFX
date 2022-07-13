@@ -19,10 +19,11 @@ private:
 	Array<VkSemaphore> m_swapSemaphores { };
 	std::atomic_uint32_t m_currentImage { };
 	Array<UniquePtr<IVulkanImage>> m_presentImages { };
+	const VulkanDevice& m_device;
 
 public:
-	VulkanSwapChainImpl(VulkanSwapChain* parent) : 
-		base(parent) 
+	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
+		base(parent), m_device(device)
 	{ 
 	}
 	
@@ -37,8 +38,8 @@ public:
 		if (format == Format::Other || format == Format::None)
 			throw InvalidArgumentException("The provided surface format it not a valid value.");
 
-		auto adapter = m_parent->getDevice()->adapter().handle();
-		auto surface = m_parent->getDevice()->surface().handle();
+		auto adapter = m_device.adapter().handle();
+		auto surface = m_device.surface().handle();
 
 		// Query the swap chain surface format.
 		auto surfaceFormats = this->getSurfaceFormats(adapter, surface);
@@ -79,7 +80,7 @@ public:
 		// -VK_PRESENT_MODE_MAILBOX_KHR: to enable triple buffering
 		createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 
-		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(m_parent->getDevice()), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat);
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat);
 
 		// Log if something needed to be changed.
 		[[unlikely]] if (selectedFormat != format)
@@ -93,7 +94,7 @@ public:
 
 		// Create the swap chain instance.
 		VkSwapchainKHR swapChain;
-		raiseIfFailed<RuntimeException>(::vkCreateSwapchainKHR(m_parent->getDevice()->handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
+		raiseIfFailed<RuntimeException>(::vkCreateSwapchainKHR(m_device.handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
 
 		// Create a semaphore for swapping images.
 		VkSemaphoreCreateInfo semaphoreInfo{};
@@ -102,7 +103,7 @@ public:
 		m_swapSemaphores.resize(images);
 		std::ranges::generate(m_swapSemaphores, [&]() mutable {
 			VkSemaphore semaphore;
-			raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_parent->getDevice()->handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to create swap semaphore.");
+			raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to create swap semaphore.");
 			
 			return semaphore;
 		});
@@ -110,10 +111,10 @@ public:
 		// Create the swap chain images.
 		auto actualRenderArea = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
 		Array<VkImage> imageChain(images);
-		::vkGetSwapchainImagesKHR(m_parent->getDevice()->handle(), swapChain, &images, imageChain.data());
+		::vkGetSwapchainImagesKHR(m_device.handle(), swapChain, &images, imageChain.data());
 
 		m_presentImages = imageChain |
-			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(*m_parent->getDevice(), image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Undefined); }) |
+			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(m_device, image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Undefined); }) |
 			ranges::to<Array<UniquePtr<IVulkanImage>>>();
 
 		// Store state variables.
@@ -128,10 +129,10 @@ public:
 	void cleanup()
 	{
 		// Destroy the swap chain itself.
-		::vkDestroySwapchainKHR(m_parent->getDevice()->handle(), m_parent->handle(), nullptr);
+		::vkDestroySwapchainKHR(m_device.handle(), m_parent->handle(), nullptr);
 
 		// Destroy the image swap semaphores.
-		std::ranges::for_each(m_swapSemaphores, [&](const auto& semaphore) { ::vkDestroySemaphore(m_parent->getDevice()->handle(), semaphore, nullptr); });
+		std::ranges::for_each(m_swapSemaphores, [&](const auto& semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
 
 		// Destroy state.
 		m_swapSemaphores.clear();
@@ -145,7 +146,7 @@ public:
 	{
 		UInt32 nextImage;
 		m_currentImage++;
-		raiseIfFailed<RuntimeException>(::vkAcquireNextImageKHR(m_parent->getDevice()->handle(), m_parent->handle(), UINT64_MAX, this->currentSemaphore(), VK_NULL_HANDLE, &nextImage), "Unable to swap front buffer.");
+		raiseIfFailed<RuntimeException>(::vkAcquireNextImageKHR(m_device.handle(), m_parent->handle(), UINT64_MAX, this->currentSemaphore(), VK_NULL_HANDLE, &nextImage), "Unable to swap front buffer.");
 
 		return nextImage;
 	}
@@ -187,7 +188,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
-	m_impl(makePimpl<VulkanSwapChainImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device), Resource<VkSwapchainKHR>(VK_NULL_HANDLE)
+	m_impl(makePimpl<VulkanSwapChainImpl>(this, device)), Resource<VkSwapchainKHR>(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize(surfaceFormat, renderArea, buffers);
 }
@@ -221,7 +222,7 @@ Array<const IVulkanImage*> VulkanSwapChain::images() const noexcept
 
 Array<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
 {
-	return m_impl->getSurfaceFormats(this->getDevice()->adapter().handle(), this->getDevice()->surface().handle());
+	return m_impl->getSurfaceFormats(m_impl->m_device.adapter().handle(), m_impl->m_device.surface().handle());
 }
 
 void VulkanSwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)

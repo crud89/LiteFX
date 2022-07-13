@@ -26,8 +26,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanIndexBufferLayout::VulkanIndexBufferLayout(const VulkanInputAssembler& inputAssembler, const IndexType& type) :
-    m_impl(makePimpl<VulkanIndexBufferLayoutImpl>(this, type)), VulkanRuntimeObject<VulkanInputAssembler>(inputAssembler, inputAssembler.getDevice())
+VulkanIndexBufferLayout::VulkanIndexBufferLayout(const IndexType& type) :
+    m_impl(makePimpl<VulkanIndexBufferLayoutImpl>(this, type))
 {
 }
 

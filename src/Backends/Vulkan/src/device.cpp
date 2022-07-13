@@ -302,20 +302,20 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 	return *m_impl->m_swapChain;
 }
 
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
-{
-	return VulkanRenderPassBuilder(*this, commandBuffers, samples);
-}
-
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
-{
-	return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
-}
-
-VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const
-{
-	return VulkanComputePipelineBuilder(*this);
-}
+//VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+//{
+//	return VulkanRenderPassBuilder(*this, commandBuffers, samples);
+//}
+//
+//VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+//{
+//	return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
+//}
+//
+//VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const
+//{
+//	return VulkanComputePipelineBuilder(*this);
+//}
 
 DeviceState& VulkanDevice::state() const noexcept
 {
