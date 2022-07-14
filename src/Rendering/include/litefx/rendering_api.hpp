@@ -3057,12 +3057,6 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Returns the shader program, the pipeline uses for drawing.
-        /// </summary>
-        /// <returns>The shader program, the pipeline uses for drawing.</returns>
-        virtual const IShaderProgram& program() const noexcept = 0;
-
-        /// <summary>
         /// Returns the descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.
         /// </summary>
         /// <param name="space">The space to request the descriptor set layout for.</param>
@@ -3171,10 +3165,24 @@ namespace LiteFX::Rendering {
         virtual const String& name() const noexcept = 0;
 
         /// <summary>
+        /// Returns the shader program used by the pipeline.
+        /// </summary>
+        /// <returns>The shader program used by the pipeline.</returns>
+        SharedPtr<const IShaderProgram> program() const noexcept {
+            return this->getProgram();
+        }
+
+        /// <summary>
         /// Returns the layout of the render pipeline.
         /// </summary>
         /// <returns>The layout of the render pipeline.</returns>
-        virtual const IPipelineLayout& layout() const noexcept = 0;
+        SharedPtr<const IPipelineLayout> layout() const noexcept {
+            return this->getLayout();
+        }
+
+    private:
+        virtual SharedPtr<const IShaderProgram> getProgram() const noexcept = 0;
+        virtual SharedPtr<const IPipelineLayout> getLayout() const noexcept = 0;
     };
 
     /// <summary>

@@ -591,7 +591,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="PipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanPipelineLayout : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout, VulkanShaderProgram>, public Resource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanPipelineLayout : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineLayoutBuilder);
 		LITEFX_BUILDER(VulkanComputePipelineLayoutBuilder);
@@ -601,10 +601,9 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new Vulkan render pipeline layout.
 		/// </summary>
 		/// <param name="device">The parent device, the layout is created from.</param>
-		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
 		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-		explicit VulkanPipelineLayout(const VulkanDevice& device, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
+		explicit VulkanPipelineLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
 		VulkanPipelineLayout(VulkanPipelineLayout&&) noexcept = delete;
 		VulkanPipelineLayout(const VulkanPipelineLayout&) noexcept = delete;
 		virtual ~VulkanPipelineLayout() noexcept;
@@ -625,9 +624,6 @@ namespace LiteFX::Rendering::Backends {
 
 		// PipelineLayout interface.
 	public:
-		/// <inheritdoc />
-		virtual const VulkanShaderProgram& program() const noexcept override;
-
 		/// <inheritdoc />
 		virtual const VulkanDescriptorSetLayout& descriptorSet(const UInt32& space) const override;
 
@@ -724,7 +720,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines the base class for Vulkan pipeline state objects.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanPipelineState : public virtual Pipeline<VulkanPipelineLayout>, public Resource<VkPipeline> {
+	class LITEFX_VULKAN_API VulkanPipelineState : public virtual Pipeline<VulkanPipelineLayout, VulkanShaderProgram>, public Resource<VkPipeline> {
 	public:
 		using Resource<VkPipeline>::Resource;
 		virtual ~VulkanPipelineState() noexcept = default;
@@ -826,7 +822,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="RenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -836,9 +832,13 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="renderPass">The parent render pass.</param>
 		/// <param name="id">The unique ID of the pipeline within the render pass.</param>
+		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
+		/// <param name="layout">The layout of the pipeline.</param>
+		/// <param name="inputAssembler">The input assembler state of the pipeline.</param>
+		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
 		/// <param name="name">The optional debug name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
-		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool& enableAlphaToCoverage = false, const String& name = "");
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage = false, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -856,7 +856,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual const String& name() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanPipelineLayout& layout() const noexcept override;
+		virtual SharedPtr<const VulkanShaderProgram> program() const noexcept override;
+
+		/// <inheritdoc />
+		virtual SharedPtr<const VulkanPipelineLayout> layout() const noexcept override;
 
 		// RenderPipeline interface.
 	public:
@@ -897,7 +900,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="ComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="VulkanComputePipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanComputePipeline : public ComputePipeline<VulkanPipelineLayout>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanComputePipeline : public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanComputePipelineImpl);
 		LITEFX_BUILDER(VulkanComputePipelineBuilder);
 
@@ -906,8 +909,10 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new Vulkan compute pipeline.
 		/// </summary>
 		/// <param name="device">The parent device.</param>
+		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
+		/// <param name="layout">The layout of the pipeline.</param>
 		/// <param name="name">The optional debug name of the render pipeline.</param>
-		explicit VulkanComputePipeline(const VulkanDevice& device, UniquePtr<VulkanPipelineLayout>&& layout, const String& name = "");
+		explicit VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, const String& name = "");
 		VulkanComputePipeline(VulkanComputePipeline&&) noexcept = delete;
 		VulkanComputePipeline(const VulkanComputePipeline&) noexcept = delete;
 		virtual ~VulkanComputePipeline() noexcept;
@@ -925,7 +930,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual const String& name() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanPipelineLayout& layout() const noexcept override;
+		virtual SharedPtr<const VulkanShaderProgram> program() const noexcept override;
+
+		/// <inheritdoc />
+		virtual SharedPtr<const VulkanPipelineLayout> layout() const noexcept override;
 
 		// VulkanPipelineState interface.
 	public:

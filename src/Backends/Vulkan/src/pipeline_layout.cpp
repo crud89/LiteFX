@@ -13,14 +13,13 @@ public:
     friend class VulkanPipelineLayout;
 
 private:
-    UniquePtr<VulkanShaderProgram> m_shaderProgram;
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
     const VulkanDevice& m_device;
 
 public:
-    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-        base(parent), m_device(device), m_shaderProgram(std::move(shaderProgram)), m_descriptorSetLayouts(std::move(descriptorLayouts)), m_pushConstantsLayout(std::move(pushConstantsLayout))
+    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+        base(parent), m_device(device), m_descriptorSetLayouts(std::move(descriptorLayouts)), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
     }
 
@@ -63,8 +62,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, UniquePtr<VulkanShaderProgram>&& shaderProgram, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-    m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device, std::move(shaderProgram), std::move(descriptorSetLayouts), std::move(pushConstantsLayout))), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+    m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout))), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 }
@@ -82,11 +81,6 @@ VulkanPipelineLayout::~VulkanPipelineLayout() noexcept
 const VulkanDevice& VulkanPipelineLayout::device() const noexcept
 {
     return m_impl->m_device;
-}
-
-const VulkanShaderProgram& VulkanPipelineLayout::program() const noexcept
-{
-    return *m_impl->m_shaderProgram.get();
 }
 
 const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(const UInt32& space) const

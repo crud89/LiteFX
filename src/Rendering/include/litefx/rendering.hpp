@@ -751,25 +751,19 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
     /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
-    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
-    template <typename TDescriptorSetLayout, typename TPushConstantsLayout, typename TShaderProgram, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type, typename TShaderModule = TShaderProgram::shader_module_type> requires
+    template <typename TDescriptorSetLayout, typename TPushConstantsLayout, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type> requires
         rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<TDescriptorLayout, TDescriptorSet>> &&
-        rtti::implements<TPushConstantsLayout, PushConstantsLayout<TPushConstantsRange>> &&
-        rtti::implements<TShaderProgram, ShaderProgram<TShaderModule>>
+        rtti::implements<TPushConstantsLayout, PushConstantsLayout<TPushConstantsRange>>
     class PipelineLayout : public IPipelineLayout {
     public:
         using descriptor_set_layout_type = TDescriptorSetLayout;
         using push_constants_layout_type = TPushConstantsLayout;
-        using shader_program_type = TShaderProgram;
         using descriptor_set_type = TDescriptorSet;
 
     public:
         virtual ~PipelineLayout() noexcept = default;
 
     public:
-        /// <inheritdoc />
-        virtual const TShaderProgram& program() const noexcept = 0;
-
         /// <inheritdoc />
         virtual const TDescriptorSetLayout& descriptorSet(const UInt32& space) const = 0;
 
@@ -864,10 +858,12 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="DescriptorSet"/>.</typeparam>
     /// <seealso cref="RenderPipeline" />
     /// <seealso cref="ComputePipeline" />
-    template <typename TPipelineLayout, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = typename TPipelineLayout::push_constants_layout_type, typename TShaderProgram = typename TPipelineLayout::shader_program_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type> requires 
-        rtti::implements<TPipelineLayout, PipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
+    template <typename TPipelineLayout, typename TShaderProgram, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = typename TPipelineLayout::push_constants_layout_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type, typename TShaderModule = typename TShaderProgram::shader_module_type> requires
+        rtti::implements<TPipelineLayout, PipelineLayout<TDescriptorSetLayout, TPushConstantsLayout>> &&
+        rtti::implements<TShaderProgram, ShaderProgram<TShaderModule>>
     class Pipeline : public IPipeline {
     public:
+        using shader_program_type = TShaderProgram;
         using pipeline_layout_type = TPipelineLayout;
 
     public:
@@ -875,7 +871,19 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const TPipelineLayout& layout() const noexcept = 0;
+        virtual SharedPtr<const TShaderProgram> program() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual SharedPtr<const TPipelineLayout> layout() const noexcept = 0;
+
+    private:
+        virtual SharedPtr<const IShaderProgram> getProgram() const noexcept override {
+            return std::static_pointer_cast<const IShaderProgram>(this->program());
+        }
+
+        virtual SharedPtr<const IPipelineLayout> getLayout() const noexcept override {
+            return std::static_pointer_cast<const IPipelineLayout>(this->layout());
+        }
     };
 
     /// <summary>
@@ -887,9 +895,9 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="Barrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
-    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type> requires
+    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TShaderProgram = TPipeline::shader_program_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type> requires
         rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
-        std::derived_from<TPipeline, Pipeline<TPipelineLayout>>
+        std::derived_from<TPipeline, Pipeline<TPipelineLayout, TShaderProgram>>
     class CommandBuffer : public ICommandBuffer {
         using ICommandBuffer::begin;
         using ICommandBuffer::end;
@@ -1023,17 +1031,18 @@ namespace LiteFX::Rendering {
     /// Represents a graphics <see cref="Pipeline" />.
     /// </summary>
     /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="InputAssembler"/>.</typeparam>
     /// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="VertexBuffer"/>.</typeparam>
     /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IndexBuffer"/>.</typeparam>
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
     /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
     /// <seealso cref="RenderPipelineBuilder" />
-    template <typename TPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type> requires
+    template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type> requires
         rtti::implements<TInputAssembler, InputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
         std::derived_from<TVertexBufferInterface, VertexBuffer<TVertexBufferLayout>> &&
         std::derived_from<TIndexBufferInterface, IndexBuffer<TIndexBufferLayout>>
-    class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout> {
+    class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         using vertex_buffer_interface_type = TVertexBufferInterface;
         using index_buffer_interface_type = TIndexBufferInterface;
@@ -1056,9 +1065,10 @@ namespace LiteFX::Rendering {
     /// Represents a compute <see cref="Pipeline" />.
     /// </summary>
     /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <seealso cref="ComputePipelineBuilder" />
-    template <typename TPipelineLayout>
-    class ComputePipeline : public IComputePipeline, public Pipeline<TPipelineLayout> {
+    template <typename TPipelineLayout, typename TShaderProgram>
+    class ComputePipeline : public IComputePipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         virtual ~ComputePipeline() noexcept = default;
     };

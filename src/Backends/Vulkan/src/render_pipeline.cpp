@@ -12,7 +12,8 @@ public:
 	friend class VulkanRenderPipeline;
 
 private:
-	UniquePtr<VulkanPipelineLayout> m_layout;
+	SharedPtr<VulkanPipelineLayout> m_layout;
+	SharedPtr<VulkanShaderProgram> m_program;
 	SharedPtr<VulkanInputAssembler> m_inputAssembler;
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
@@ -25,8 +26,8 @@ private:
 	const VulkanRenderPass& m_renderPass;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<VulkanPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
-		base(parent), m_renderPass(renderPass), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const UInt32& id, const String& name, const bool& alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors) :
+		base(parent), m_renderPass(renderPass), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(viewports), m_scissors(scissors)
 	{
 	}
 
@@ -199,8 +200,8 @@ public:
 		depthStencilState.back.depthFailOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
 
 		// Setup shader stages.
-		auto modules = m_layout->program().modules();
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(&m_layout->program())), modules.size());
+		auto modules = m_program->modules();
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
@@ -237,8 +238,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, UniquePtr<VulkanPipelineLayout>&& layout, SharedPtr<VulkanInputAssembler>&& inputAssembler, SharedPtr<VulkanRasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool& enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, id, name, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, viewports, scissors)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
 }
@@ -263,9 +264,14 @@ const UInt32& VulkanRenderPipeline::id() const noexcept
 	return m_impl->m_id;
 }
 
-const VulkanPipelineLayout& VulkanRenderPipeline::layout() const noexcept 
+SharedPtr<const VulkanShaderProgram> VulkanRenderPipeline::program() const noexcept
 {
-	return *m_impl->m_layout;
+	return m_impl->m_program;
+}
+
+SharedPtr<const VulkanPipelineLayout> VulkanRenderPipeline::layout() const noexcept 
+{
+	return m_impl->m_layout;
 }
 
 SharedPtr<VulkanInputAssembler> VulkanRenderPipeline::inputAssembler() const noexcept 
