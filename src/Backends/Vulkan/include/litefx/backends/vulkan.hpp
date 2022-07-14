@@ -301,7 +301,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~VulkanDescriptorSet() noexcept;
 
 	public:
-		// TODO: Move to interface.
 		/// <summary>
 		/// Returns the parent descriptor set layout.
 		/// </summary>
@@ -354,7 +353,6 @@ namespace LiteFX::Rendering::Backends {
 		explicit VulkanDescriptorSetLayout(const VulkanPipelineLayout& layout) noexcept;
 
 	public:
-		// TODO: Move to interface.
 		/// <summary>
 		/// Returns the parent pipeline layout.
 		/// </summary>
@@ -503,7 +501,6 @@ namespace LiteFX::Rendering::Backends {
 		explicit VulkanPushConstantsLayout(const VulkanPipelineLayout& pipelineLayout, const UInt32& size);
 
 	public:
-		// TODO: Move to interface.
 		/// <summary>
 		/// Returns the parent pipeline layout, the push constants are described for.
 		/// </summary>
@@ -620,7 +617,6 @@ namespace LiteFX::Rendering::Backends {
 		explicit VulkanPipelineLayout(const VulkanDevice& device) noexcept;
 
 	public:
-		// TODO: Move to interface.
 		/// <summary>
 		/// Returns a reference to the device that provides this layout.
 		/// </summary>
@@ -1059,7 +1055,6 @@ namespace LiteFX::Rendering::Backends {
 
 		// RenderPass interface.
 	public:
-		// TODO: Move to interface.
 		/// <summary>
 		/// Returns a reference to the device that provides this queue.
 		/// </summary>
@@ -1241,7 +1236,6 @@ namespace LiteFX::Rendering::Backends {
 
 		// VulkanQueue interface.
 	public:
-		// TODO: Move to interface.
 		/// <summary>
 		/// Returns a reference to the device that provides this queue.
 		/// </summary>
