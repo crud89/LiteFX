@@ -66,14 +66,10 @@ namespace LiteFX::Rendering::Backends {
 #if defined(BUILD_DEFINE_BUILDERS)
     // Builder declarations.
     class VulkanVertexBufferLayoutBuilder;
-    class VulkanRenderPipelineDescriptorSetLayoutBuilder;
-    class VulkanComputePipelineDescriptorSetLayoutBuilder;
-    class VulkanRenderPipelinePushConstantsLayoutBuilder;
-    class VulkanComputePipelinePushConstantsLayoutBuilder;
-    class VulkanRenderPipelineLayoutBuilder;
-    class VulkanComputePipelineLayoutBuilder;
-    class VulkanGraphicsShaderProgramBuilder;
-    class VulkanComputeShaderProgramBuilder;
+    class VulkanDescriptorSetLayoutBuilder;
+    class VulkanPushConstantsLayoutBuilder;
+    class VulkanPipelineLayoutBuilder;
+    class VulkaShaderProgramBuilder;
     class VulkanInputAssemblerBuilder;
     class VulkanRasterizerBuilder;
     class VulkanRenderPipelineBuilder;

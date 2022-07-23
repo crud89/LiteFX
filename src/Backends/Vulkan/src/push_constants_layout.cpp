@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -8,8 +9,7 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanPushConstantsLayout::VulkanPushConstantsLayoutImpl : public Implement<VulkanPushConstantsLayout> {
 public:
-    friend class VulkanRenderPipelinePushConstantsLayoutBuilder;
-    friend class VulkanComputePipelinePushConstantsLayoutBuilder;
+    friend class VulkanPushConstantsLayoutBuilder;
     friend class VulkanPushConstantsLayout;
 
 private:
@@ -88,3 +88,46 @@ Array<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const
         std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); }) |
         ranges::to<Array<const VulkanPushConstantsRange*>>();
 }
+
+#if defined(BUILD_DEFINE_BUILDERS)
+// ------------------------------------------------------------------------------------------------
+// Push constants layout builder implementation.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilderImpl : public Implement<VulkanPushConstantsLayoutBuilder> {
+public:
+    friend class VulkanPushConstantsLayoutBuilder;
+
+private:
+    Array<UniquePtr<VulkanPushConstantsRange>> m_ranges;
+    UInt32 m_size;
+
+public:
+    VulkanPushConstantsLayoutBuilderImpl(VulkanPushConstantsLayoutBuilder* parent, const UInt32& size) :
+        base(parent), m_size(size)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Push constants layout builder shared interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& size) :
+    m_impl(makePimpl<VulkanPushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(*std::as_const(parent).instance(), size)))
+{
+}
+
+VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept = default;
+
+void VulkanPushConstantsLayoutBuilder::build()
+{
+    this->instance()->m_impl->setRanges(std::move(m_impl->m_ranges));
+}
+
+VulkanPushConstantsLayoutBuilder& VulkanPushConstantsLayoutBuilder::addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
+{
+    m_impl->m_ranges.push_back(makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding));
+    return *this;
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)

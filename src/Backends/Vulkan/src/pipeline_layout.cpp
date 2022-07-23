@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -8,8 +9,7 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanPipelineLayout::VulkanPipelineLayoutImpl : public Implement<VulkanPipelineLayout> {
 public:
-    friend class VulkanRenderPipelineLayoutBuilder;
-    friend class VulkanComputePipelineLayoutBuilder;
+    friend class VulkanPipelineLayoutBuilder;
     friend class VulkanPipelineLayout;
 
 private:
@@ -43,7 +43,7 @@ public:
             ranges::to<Array<VkPushConstantRange>>();
 
         // Create the pipeline layout.
-        LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size(), rangeHandles.size());
+        LITEFX_TRACE(VULKAN_LOG, "Creating pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size(), rangeHandles.size());
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -102,3 +102,64 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
 {
     return m_impl->m_pushConstantsLayout.get();
 }
+
+#if defined(BUILD_DEFINE_BUILDERS)
+// ------------------------------------------------------------------------------------------------
+// Pipeline layout builder implementation.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilderImpl : public Implement<VulkanPipelineLayoutBuilder> {
+public:
+    friend class VulkanPipelineLayoutBuilder;
+    friend class VulkanPipelineLayout;
+
+private:
+    UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
+    Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
+
+public:
+    VulkanPipelineLayoutBuilderImpl(VulkanPipelineLayoutBuilder* parent) :
+        base(parent)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+//  pipeline layout builder interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
+    m_impl(makePimpl<VulkanPipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent)))
+{
+}
+
+VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
+
+void VulkanPipelineLayoutBuilder::build()
+{
+    auto instance = this->instance();
+    instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
+    instance->m_impl->m_pushConstantsLayout = std::move(m_impl->m_pushConstantsLayout);
+    instance->handle() = instance->m_impl->initialize();
+}
+
+void VulkanPipelineLayoutBuilder::use(UniquePtr<VulkanDescriptorSetLayout>&& layout)
+{
+    m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
+}
+
+void VulkanPipelineLayoutBuilder::use(UniquePtr<VulkanPushConstantsLayout>&& layout)
+{
+    m_impl->m_pushConstantsLayout = std::move(layout);
+}
+
+VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(const UInt32& space, const ShaderStage& stages, const UInt32& poolSize)
+{
+    return VulkanDescriptorSetLayoutBuilder(*this, space, stages, poolSize);
+}
+
+VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(const UInt32& size)
+{
+    return VulkanPushConstantsLayoutBuilder(*this, size);
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)

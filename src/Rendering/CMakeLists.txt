@@ -12,6 +12,7 @@ SET(RENDERING_HEADERS
     "include/litefx/rendering_api.hpp"
     "include/litefx/rendering_formatters.hpp"
     "include/litefx/rendering.hpp"
+    "include/litefx/rendering_builders.hpp"
 )
 
 SET(RENDERING_SOURCES
