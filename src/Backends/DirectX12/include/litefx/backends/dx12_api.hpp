@@ -28,6 +28,9 @@
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
+#include <litefx/config.h>
+#include <litefx/rendering.hpp>
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -68,22 +71,19 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12Image;
     class IDirectX12Sampler;
 
+#if defined(BUILD_DEFINE_BUILDERS)
     // Builder declarations.
     class DirectX12VertexBufferLayoutBuilder;
-    class DirectX12RenderPipelineDescriptorSetLayoutBuilder;
-    class DirectX12ComputePipelineDescriptorSetLayoutBuilder;
-    class DirectX12RenderPipelinePushConstantsLayoutBuilder;
-    class DirectX12ComputePipelinePushConstantsLayoutBuilder;
-    class DirectX12RenderPipelineLayoutBuilder;
-    class DirectX12ComputePipelineLayoutBuilder;
-    class DirectX12GraphicsShaderProgramBuilder;
-    class DirectX12ComputeShaderProgramBuilder;
+    class DirectX12DescriptorSetLayoutBuilder;
+    class DirectX12PushConstantsLayoutBuilder;
+    class DirectX12PipelineLayoutBuilder;
+    class DirectX12ShaderProgramBuilder;
     class DirectX12InputAssemblerBuilder;
     class DirectX12RasterizerBuilder;
     class DirectX12RenderPipelineBuilder;
     class DirectX12ComputePipelineBuilder;
     class DirectX12RenderPassBuilder;
-    class DirectX12BackendBuilder;
+#endif // defined(BUILD_DEFINE_BUILDERS)
 
     /// <summary>
     /// A resource that is hold by a <c>ComPtr</c>.
@@ -254,29 +254,6 @@ namespace LiteFX::Rendering::Backends {
         DirectX12Surface(const DirectX12Surface&) = delete;
         DirectX12Surface(DirectX12Surface&&) = delete;
         virtual ~DirectX12Surface() noexcept;
-    };
-
-    template <typename TParent>
-    class LITEFX_DIRECTX12_API DirectX12RuntimeObject {
-    private:
-        const TParent& m_parent;
-        const DirectX12Device* m_device;
-
-    public:
-        explicit DirectX12RuntimeObject(const TParent& parent, const DirectX12Device* device) :
-            m_parent(parent), m_device(device)
-        {
-            if (device == nullptr)
-                throw ArgumentNotInitializedException("The device must be initialized.");
-        }
-
-        DirectX12RuntimeObject(DirectX12RuntimeObject&&) = delete;
-        DirectX12RuntimeObject(const DirectX12RuntimeObject&) = delete;
-        virtual ~DirectX12RuntimeObject() noexcept = default;
-
-    public:
-        virtual const TParent& parent() const noexcept { return m_parent; }
-        virtual const DirectX12Device* getDevice() const noexcept { return m_device; };
     };
 
     DEFINE_EXCEPTION(DX12PlatformException, std::runtime_error);

@@ -6,18 +6,19 @@ using namespace LiteFX::Rendering::Backends;
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Rasterizer::DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
-    Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState), DirectX12RuntimeObject<DirectX12RenderPipeline>(pipeline, pipeline.getDevice())
+DirectX12Rasterizer::DirectX12Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
+    Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState)
 {
 }
 
-DirectX12Rasterizer::DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline) noexcept :
-    Rasterizer(PolygonMode::Solid, CullMode::BackFaces, CullOrder::CounterClockWise), DirectX12RuntimeObject<DirectX12RenderPipeline>(pipeline, pipeline.getDevice())
+DirectX12Rasterizer::DirectX12Rasterizer() noexcept :
+    Rasterizer(PolygonMode::Solid, CullMode::BackFaces, CullOrder::CounterClockWise)
 {
 }
 
 DirectX12Rasterizer::~DirectX12Rasterizer() noexcept = default;
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -107,3 +108,4 @@ DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withStencilState(const D
     m_impl->m_stencilState = stencilState;
     return *this;
 }
+#endif // defined(BUILD_DEFINE_BUILDERS)

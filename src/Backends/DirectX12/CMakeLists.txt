@@ -15,6 +15,7 @@ FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
 SET(DIRECTX12_BACKEND_HEADERS
     "include/litefx/backends/dx12_api.hpp"
     "include/litefx/backends/dx12_formatters.hpp"
+    "include/litefx/backends/dx12_builders.hpp"
     "include/litefx/backends/dx12.hpp"
 )
 

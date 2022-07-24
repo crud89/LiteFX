@@ -20,12 +20,13 @@ private:
 	ImageDimensions m_dimensions;
 	bool m_writable;
 	MultiSamplingLevel m_samples;
+	const DirectX12Device& m_device;
 
 public:
-	DirectX12ImageImpl(DirectX12Image* parent, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_writable(writable), m_samples(samples)
+	DirectX12ImageImpl(DirectX12Image* parent, const DirectX12Device& device, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
+		base(parent), m_device(device), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_writable(writable), m_samples(samples)
 	{
-		m_planes = ::D3D12GetFormatPlaneCount(m_parent->getDevice()->handle().Get(), DX12::getFormat(format));
+		m_planes = ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format));
 		m_elements = m_planes * m_layers * m_levels;
 		m_states.resize(m_elements, initialState);
 	}
@@ -36,7 +37,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-	m_impl(makePimpl<DirectX12ImageImpl>(this, extent, format, dimension, levels, layers, samples, writable, initialState, allocator, std::move(allocation))), DirectX12RuntimeObject<DirectX12Device>(device, &device), ComResource<ID3D12Resource>(nullptr)
+	m_impl(makePimpl<DirectX12ImageImpl>(this, device, extent, format, dimension, levels, layers, samples, writable, initialState, allocator, std::move(allocation))), ComResource<ID3D12Resource>(nullptr)
 {
 	this->handle() = std::move(image);
 }
@@ -207,10 +208,11 @@ private:
 	Float m_mipMapBias;
 	Float m_minLod, m_maxLod;
 	Float m_anisotropy;
+	const DirectX12Device& m_device;
 
 public:
-	DirectX12SamplerImpl(DirectX12Sampler* parent, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
-		base(parent), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
+	DirectX12SamplerImpl(DirectX12Sampler* parent, const DirectX12Device& device, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+		base(parent), m_device(device), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
 	{
 	}
 };
@@ -220,7 +222,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Sampler::DirectX12Sampler(const DirectX12Device& device, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
-	DirectX12RuntimeObject<DirectX12Device>(device, &device), m_impl(makePimpl<DirectX12SamplerImpl>(this, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
+	m_impl(makePimpl<DirectX12SamplerImpl>(this, device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
 {
 }
 

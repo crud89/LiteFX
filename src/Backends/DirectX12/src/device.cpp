@@ -168,23 +168,43 @@ public:
 
 	void createBlitPipeline()
 	{
+		throw;
+
 		try
 		{
-			m_blitPipeline = m_parent->buildComputePipeline()
-				.layout()
-					.shaderProgram()
-						.addComputeShaderModule("shaders/blit.dxi")
-						.go()
-					.addDescriptorSet(0)
-						.addUniform(0, 16, 1)
-						.addImage(1)
-						.addImage(2, 1, true)
-						.go()
-					.addDescriptorSet(1)
-						.addSampler(0)
-						.go()
-					.go()
-				.go();
+			//// Allocate shader module.
+			//Array<UniquePtr<DirectX12ShaderModule>> modules {
+			//	std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, "shaders/blit.dxi", "main"))
+			//};
+			//auto shaderProgram = makeShared<DirectX12ShaderProgram>(std::move(modules));
+
+			//// Allocate descriptor set layouts.
+			//UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
+			//Array<UniquePtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts {
+
+			//};
+			
+			// TODO: Resolve circular dependency between descriptor set layout and pipeline layout (descriptor set layouts should not depend on pipeline layout)
+			//Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts
+
+			// Create compute pipeline.
+			//m_blitPipeline = makeUnique<ComputePipeline>()
+
+			//m_blitPipeline = m_parent->buildComputePipeline()
+			//	.layout()
+			//		.shaderProgram()
+			//			.addComputeShaderModule("shaders/blit.dxi")
+			//			.go()
+			//		.addDescriptorSet(0)
+			//			.addUniform(0, 16, 1)
+			//			.addImage(1)
+			//			.addImage(2, 1, true)
+			//			.go()
+			//		.addDescriptorSet(1)
+			//			.addSampler(0)
+			//			.go()
+			//		.go()
+			//	.go();
 		}
 		catch (Exception& ex)
 		{
@@ -255,7 +275,7 @@ const ID3D12DescriptorHeap* DirectX12Device::globalSamplerHeap() const noexcept
 	return m_impl->m_globalSamplerHeap.Get();
 }
 
-void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet) const noexcept
+void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
 {
 	// TODO: Ring-buffer may not work here - we need to track which descriptor sets are bound to which descriptor offset, since otherwise we might overwrite static descriptors. 
 	//       We could for example use a map for this and discard descriptor sets when they are `free`d.
@@ -278,7 +298,7 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 
 	// Deduct, whether to set the graphics or compute descriptor tables.
 	// TODO: Maybe we could store a simple boolean on the pipeline state to make this easier.
-	const bool isGraphicsSet = dynamic_cast<const DirectX12RenderPipeline*>(&descriptorSet.parent().parent().parent()) != nullptr;
+	const bool isGraphicsSet = dynamic_cast<const DirectX12RenderPipeline*>(&pipeline) != nullptr;
 	
 	// Get the descriptor handles.
 	CD3DX12_CPU_DESCRIPTOR_HANDLE targetBufferHandle(m_impl->m_globalBufferHeap->GetCPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
@@ -294,9 +314,9 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), bufferOffset, m_impl->m_bufferDescriptorIncrement);
 		
 		if (isGraphicsSet)
-			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
 		else
-			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
 
 		// Store the updated offset.
 		m_impl->m_bufferOffset = bufferOffset + buffers;
@@ -311,9 +331,9 @@ void DirectX12Device::updateGlobalDescriptors(const DirectX12CommandBuffer& comm
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), samplerOffset, m_impl->m_samplerDescriptorIncrement);
 		
 		if (isGraphicsSet)
-			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
 		else
-			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.parent().rootParameterIndex(), targetGpuHandle);
+			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
 
 		// Store the updated offset.
 		m_impl->m_samplerOffset = samplerOffset + samplers;
@@ -331,20 +351,20 @@ DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 	return *m_impl->m_blitPipeline;
 }
 
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
-{
-	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
-}
-
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
-{
-	return DirectX12RenderPassBuilder(*this, commandBuffers, samples, name);
-}
-
-DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline() const
-{
-	return DirectX12ComputePipelineBuilder(*this);
-}
+//DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+//{
+//	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
+//}
+//
+//DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+//{
+//	return DirectX12RenderPassBuilder(*this, commandBuffers, samples, name);
+//}
+//
+//DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline() const
+//{
+//	return DirectX12ComputePipelineBuilder(*this);
+//}
 
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept
 {

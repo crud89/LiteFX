@@ -18,10 +18,11 @@ private:
 	std::atomic_uint32_t m_currentImage{ };
 	Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
 	bool m_supportsVariableRefreshRates{ false };
+	const DirectX12Device& m_device;
 
 public:
-	DirectX12SwapChainImpl(DirectX12SwapChain* parent) : 
-		base(parent) 
+	DirectX12SwapChainImpl(DirectX12SwapChain* parent, const DirectX12Device& device) :
+		base(parent), m_device(device)
 	{
 	}
 
@@ -43,13 +44,13 @@ public:
 		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](const Format& surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
 
-		auto adapter = m_parent->getDevice()->adapter().handle();
-		auto surface = m_parent->getDevice()->surface().handle();
-		auto graphicsQueue = m_parent->getDevice()->graphicsQueue().handle();
-		const auto& backend = m_parent->getDevice()->backend();
+		auto adapter = m_device.adapter().handle();
+		auto surface = m_device.surface().handle();
+		auto graphicsQueue = m_device.graphicsQueue().handle();
+		const auto& backend = m_device.backend();
 
 		// Create the swap chain.
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_parent->getDevice()), frameBuffers, frameBufferSize.width(), frameBufferSize.height());
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_device.handle().Get()), frameBuffers, frameBufferSize.width(), frameBufferSize.height());
 		
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.Width = static_cast<UInt32>(frameBufferSize.width());
@@ -74,7 +75,7 @@ public:
 		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, &swapChain, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
+			return makeUnique<DirectX12Image>(m_device, std::move(resource), frameBufferSize, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
 		});
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
@@ -96,7 +97,7 @@ public:
 		m_presentImages.clear();
 
 		// Store a backend reference.
-		const auto& backend = m_parent->getDevice()->backend();
+		const auto& backend = m_device.backend();
 
 		// Resize the buffers.
 		UInt32 buffers = std::max<UInt32>(2, frameBuffers);
@@ -107,7 +108,7 @@ public:
 		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_parent->parent(), std::move(resource), frameBufferSize, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
+			return makeUnique<DirectX12Image>(m_device, std::move(resource), frameBufferSize, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
 		});
 
 		m_format = format;
@@ -119,7 +120,7 @@ public:
 	{
 		// NOTE: Swap is happening when presenting in a render pass. When acquiring a new back buffer, we need to wait for the swap to occur first, though.
 		// TODO: Check, if we can solve this with another fence, that is queued on present and waited for in here.
-		m_parent->getDevice()->wait();
+		m_device.wait();
 		return m_parent->handle()->GetCurrentBackBufferIndex();
 	}
 
@@ -139,7 +140,7 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
-	m_impl(makePimpl<DirectX12SwapChainImpl>(this)), DirectX12RuntimeObject(device, &device), ComResource<IDXGISwapChain4>(nullptr)
+	m_impl(makePimpl<DirectX12SwapChainImpl>(this, device)), ComResource<IDXGISwapChain4>(nullptr)
 {
 	this->handle() = m_impl->initialize(format, frameBufferSize, frameBuffers);
 }

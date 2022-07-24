@@ -24,17 +24,18 @@ private:
     const RenderTarget* m_depthStencilTarget = nullptr;
     MultiSamplingLevel m_multiSamplingLevel{ MultiSamplingLevel::x1 };
     Array<RenderPassContext> m_contexts;
+    const DirectX12Device& m_device;
 
 public:
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
-        base(parent), m_multiSamplingLevel(samples)
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+        base(parent), m_device(device), m_multiSamplingLevel(samples)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
     }
 
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent) :
-        base(parent)
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device) :
+        base(parent), m_device(device)
     {
     }
 
@@ -128,12 +129,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
-    m_impl(makePimpl<DirectX12RenderPassImpl>(this, renderTargets, samples, inputAttachments)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
+    m_impl(makePimpl<DirectX12RenderPassImpl>(this, device, renderTargets, samples, inputAttachments))
 {
     // Initialize the frame buffers.
-    m_impl->m_frameBuffers.resize(this->getDevice()->swapChain().buffers());
-    m_impl->m_contexts.resize(this->getDevice()->swapChain().buffers());
-    std::ranges::generate(m_impl->m_frameBuffers, [this, &commandBuffers, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*this, i++, this->parent().swapChain().renderArea(), commandBuffers); });
+    m_impl->m_frameBuffers.resize(device.swapChain().buffers());
+    m_impl->m_contexts.resize(device.swapChain().buffers());
+    std::ranges::generate(m_impl->m_frameBuffers, [this, &device, &commandBuffers, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*this, i++, device.swapChain().renderArea(), commandBuffers); });
 
     // Initialize the command buffers.
     m_impl->m_beginCommandBuffer = device.graphicsQueue().createCommandBuffer(false);
@@ -148,13 +149,18 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name) noexcept :
-    m_impl(makePimpl<DirectX12RenderPassImpl>(this)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
+    m_impl(makePimpl<DirectX12RenderPassImpl>(this, device))
 {
     if (!name.empty())
         this->name() = name;
 }
 
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
+
+const DirectX12Device& DirectX12RenderPass::device() const noexcept
+{
+    return m_impl->m_device;
+}
 
 const DirectX12FrameBuffer& DirectX12RenderPass::frameBuffer(const UInt32& buffer) const
 {
@@ -240,7 +246,7 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     const auto& context = m_impl->m_contexts[buffer];
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
-    this->getDevice()->graphicsQueue().waitFor(frameBuffer->lastFence());
+    m_impl->m_device.graphicsQueue().waitFor(frameBuffer->lastFence());
     m_impl->m_beginCommandBuffer->begin();
 
     // Declare render pass input transition barriers.
@@ -265,7 +271,7 @@ void DirectX12RenderPass::end() const
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
 
     auto frameBuffer = m_impl->m_activeFrameBuffer;
-    const auto& swapChain = this->getDevice()->swapChain();
+    const auto& swapChain = m_impl->m_device.swapChain();
 
     // Resume and end the render pass.
     const auto& buffer = m_impl->m_backBuffer;
@@ -291,7 +297,7 @@ void DirectX12RenderPass::end() const
     });
 
     // Add another barrier for the back buffer image, if required.
-    const IDirectX12Image* backBufferImage = this->getDevice()->swapChain().images()[m_impl->m_backBuffer];
+    const IDirectX12Image* backBufferImage = m_impl->m_device.swapChain().images()[m_impl->m_backBuffer];
 
     if (requiresResolve)
         transitionBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceState::ResolveDestination);
@@ -316,7 +322,7 @@ void DirectX12RenderPass::end() const
     Array<const DirectX12CommandBuffer*> commandBuffers = frameBuffer->commandBuffers();
     commandBuffers.insert(commandBuffers.begin(), m_impl->m_beginCommandBuffer.get());
     commandBuffers.push_back(m_impl->m_endCommandBuffer.get());
-    m_impl->m_activeFrameBuffer->lastFence() = this->getDevice()->graphicsQueue().submit(commandBuffers);
+    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
 
     // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
     //       frame in the queue has been drawn and the back buffer can be written again.
@@ -361,11 +367,7 @@ void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descri
     });
 }
 
-DirectX12RenderPipelineBuilder DirectX12RenderPass::makePipeline(const UInt32& id, const String& name) const noexcept
-{
-    return DirectX12RenderPipelineBuilder(*this, id, name);
-}
-
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -501,3 +503,4 @@ DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const UI
     m_impl->m_inputAttachments.push_back(DirectX12InputAttachmentMapping(renderPass, renderTarget, inputLocation));
     return *this;
 }
+#endif // defined(BUILD_DEFINE_BUILDERS)

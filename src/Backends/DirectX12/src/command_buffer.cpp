@@ -13,10 +13,11 @@ public:
 private:
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 	bool m_recording{ false };
+	const DirectX12Queue& m_queue;
 
 public:
-	DirectX12CommandBufferImpl(DirectX12CommandBuffer* parent) :
-		base(parent)
+	DirectX12CommandBufferImpl(DirectX12CommandBuffer* parent, const DirectX12Queue& queue) :
+		base(parent), m_queue(queue)
 	{
 	}
 
@@ -26,7 +27,7 @@ public:
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
 
-		switch (m_parent->parent().type())
+		switch (m_queue.type())
 		{
 		case QueueType::Compute: type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
 		case QueueType::Transfer: type = D3D12_COMMAND_LIST_TYPE_COPY; break;
@@ -34,15 +35,15 @@ public:
 		case QueueType::Graphics: type = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
 		}
 
-		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
+		raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
 
 		// Create the actual command list.
 		ComPtr<ID3D12GraphicsCommandList4> commandList;
 
 		if (m_recording = begin)
-			raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
+			raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 		else
-			raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
+			raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 
 		return commandList;
 	}
@@ -56,8 +57,8 @@ public:
 
 	void bindDescriptorHeaps()
 	{
-		if (m_parent->parent().type() == QueueType::Compute || m_parent->parent().type() == QueueType::Graphics)
-			m_parent->getDevice()->bindGlobalDescriptorHeaps(*m_parent);
+		if (m_queue.type() == QueueType::Compute || m_queue.type() == QueueType::Graphics)
+			m_queue.device().bindGlobalDescriptorHeaps(*m_parent);
 	}
 };
 
@@ -66,7 +67,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin) :
-	m_impl(makePimpl<DirectX12CommandBufferImpl>(this)), DirectX12RuntimeObject(queue, queue.getDevice()), ComResource<ID3D12GraphicsCommandList4>(nullptr)
+	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList4>(nullptr)
 {
 	this->handle() = m_impl->initialize(begin);
 
@@ -121,22 +122,22 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 		ranges::to<Array<const void*>>();
 
 	// Set the active pipeline state.
-	auto& pipeline = this->getDevice()->blitPipeline();
+	auto& pipeline = m_impl->m_queue.device().blitPipeline();
 	this->use(pipeline);
 
 	// Create and bind the parameters.
-	const auto& resourceBindingsLayout = pipeline.layout().descriptorSet(0);
+	const auto& resourceBindingsLayout = pipeline.layout()->descriptorSet(0);
 	auto resourceBindings = resourceBindingsLayout.allocate();
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
-	auto parameters = this->getDevice()->factory().createBuffer(parametersLayout.type(), BufferUsage::Dynamic, parametersLayout.elementSize(), image.levels());
+	auto parameters = m_impl->m_queue.device().factory().createBuffer(parametersLayout.type(), BufferUsage::Dynamic, parametersLayout.elementSize(), image.levels());
 	parameters->map(parametersBlock, sizeof(Parameters));
 
 	// Create and bind the sampler.
-	const auto& samplerBindingsLayout = pipeline.layout().descriptorSet(1);
+	const auto& samplerBindingsLayout = pipeline.layout()->descriptorSet(1);
 	auto samplerBindings = samplerBindingsLayout.allocate();
-	auto sampler = this->getDevice()->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
+	auto sampler = m_impl->m_queue.device().factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
 	samplerBindings->update(0, *sampler);
-	this->bind(*samplerBindings);
+	this->bind(*samplerBindings, pipeline);
 
 	// Transition the texture into a read/write state.
 	DirectX12Barrier barrier, waitBarrier;
@@ -159,7 +160,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 			resourceBindings->update(2, image, 0, i, 1, l, 1);
 
 			// Dispatch the pipeline.
-			this->bind(*resourceBindings);
+			this->bind(*resourceBindings, pipeline);
 			this->dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
 
 			// Wait for all writes.
@@ -203,7 +204,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 
 	for (int sr(0); sr < elements; ++sr)
 	{
-		this->getDevice()->handle()->GetCopyableFootprints(&targetDesc, sourceElement + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		m_impl->m_queue.device().handle()->GetCopyableFootprints(&targetDesc, sourceElement + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), firstSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
@@ -223,7 +224,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 
 	for (int sr(0); sr < subresources; ++sr)
 	{
-		this->getDevice()->handle()->GetCopyableFootprints(&targetDesc, sourceSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		m_impl->m_queue.device().handle()->GetCopyableFootprints(&targetDesc, sourceSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), targetSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
@@ -242,7 +243,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 
 	for (int sr(0); sr < subresources; ++sr)
 	{
-		this->getDevice()->handle()->GetCopyableFootprints(&targetDesc, firstSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		m_impl->m_queue.device().handle()->GetCopyableFootprints(&targetDesc, firstSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), targetElement + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
@@ -253,9 +254,9 @@ void DirectX12CommandBuffer::use(const DirectX12PipelineState& pipeline) const n
 	pipeline.use(*this);
 }
 
-void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) const noexcept
+void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
 {
-	this->getDevice()->updateGlobalDescriptors(*this, descriptorSet);
+	m_impl->m_queue.device().updateGlobalDescriptors(*this, descriptorSet, pipeline);
 }
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 

@@ -12,9 +12,10 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 vertex buffer layout.
 	/// </summary>
-	/// <seealso cref="DirectX12VertexBufferLayoutBuilder" />
 	/// <seealso cref="DirectX12VertexBuffer" />
-	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout : public virtual DirectX12RuntimeObject<DirectX12InputAssembler>, public IVertexBufferLayout {
+	/// <seealso cref="DirectX12IndexBuffer" />
+	/// <seealso cref="DirectX12VertexBufferLayoutBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout : public IVertexBufferLayout {
 		LITEFX_IMPLEMENTATION(DirectX12VertexBufferLayoutImpl);
 		LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
 
@@ -22,10 +23,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new vertex buffer layout.
 		/// </summary>
-		/// <param name="inputAssembler">The parent input assembler state, the vertex buffer layout is initialized for.</param>
 		/// <param name="vertexSize">The size of a single vertex.</param>
 		/// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-		explicit DirectX12VertexBufferLayout(const DirectX12InputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding = 0);
+		explicit DirectX12VertexBufferLayout(const size_t& vertexSize, const UInt32& binding = 0);
 		DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) = delete;
 		DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
 		virtual ~DirectX12VertexBufferLayout() noexcept;
@@ -48,57 +48,19 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a see <see cref="DirectX12VertexBufferLayout" />.
-	/// </summary>
-	/// <seealso cref="DirectX12VertexBuffer" />
-	/// <seealso cref="DirectX12VertexBufferLayout" />
-	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
-	public:
-		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
-
-	public:
-		/// <inheritdoc />
-		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
-
-	public:
-		/// <summary>
-		/// Adds an attribute to the vertex buffer layout.
-		/// </summary>
-		/// <remarks>
-		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
-		/// </remarks>
-		/// <param name="format">The format of the attribute.</param>
-		/// <param name="offset">The offset of the attribute within a buffer element.</param>
-		/// <param name="semantic">The semantic of the attribute.</param>
-		/// <param name="semanticIndex">The semantic index of the attribute.</param>
-		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
-
-		/// <summary>
-		/// Adds an attribute to the vertex buffer layout.
-		/// </summary>
-		/// <param name="location">The location, the attribute is bound to.</param>
-		/// <param name="format">The format of the attribute.</param>
-		/// <param name="offset">The offset of the attribute within a buffer element.</param>
-		/// <param name="semantic">The semantic of the attribute.</param>
-		/// <param name="semanticIndex">The semantic index of the attribute.</param>
-		virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
-	};
-
-	/// <summary>
 	/// Implements a DirectX 12 index buffer layout.
 	/// </summary>
 	/// <seealso cref="DirectX12IndexBuffer" />
 	/// <seealso cref="DirectX12VertexBufferLayout" />
-	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout : public virtual DirectX12RuntimeObject<DirectX12InputAssembler>, public IIndexBufferLayout {
+	class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout : public IIndexBufferLayout {
 		LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
 
 	public:
 		/// <summary>
 		/// Initializes a new index buffer layout
 		/// </summary>
-		/// <param name="inputAssembler">The parent input assembler state, the index buffer layout is initialized for.</param>
 		/// <param name="type">The type of the indices within the index buffer.</param>
-		explicit DirectX12IndexBufferLayout(const DirectX12InputAssembler& inputAssembler, const IndexType& type);
+		explicit DirectX12IndexBufferLayout(const IndexType& type);
 		DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) = delete;
 		DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) = delete;
 		virtual ~DirectX12IndexBufferLayout() noexcept;
@@ -128,19 +90,18 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IDirectX12Sampler" />
 	/// <seealso cref="DirectX12DescriptorSet" />
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public IDescriptorLayout {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public IDescriptorLayout {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorLayoutImpl);
 
 	public:
 		/// <summary>
 		/// Initializes a new DirectX 12 descriptor layout.
 		/// </summary>
-		/// <param name="descriptorSetLayout">The parent descriptor set layout.</param>
 		/// <param name="type">The type of the descriptor.</param>
 		/// <param name="binding">The binding point for the descriptor.</param>
 		/// <param name="elementSize">The size of the descriptor.</param>
 		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
-		explicit DirectX12DescriptorLayout(const DirectX12DescriptorSetLayout& descriptorSetLayout, const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
+		explicit DirectX12DescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
 		DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
 		DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
 		virtual ~DirectX12DescriptorLayout() noexcept;
@@ -296,10 +257,71 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Implements a DirectX 12 <see cref="IShaderModule" />.
+	/// </summary>
+	/// <seealso cref="DirectX12ShaderProgram" />
+	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public IShaderModule, public ComResource<ID3DBlob> {
+		LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX 12 shader module.
+		/// </summary>
+		/// <param name="device">The parent device, this shader module has been created from.</param>
+		/// <param name="type">The shader stage, this module is used in.</param>
+		/// <param name="fileName">The file name of the module source.</param>
+		/// <param name="entryPoint">The name of the module entry point.</param>
+		explicit DirectX12ShaderModule(const DirectX12Device& device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
+		DirectX12ShaderModule(const DirectX12ShaderModule&) noexcept = delete;
+		DirectX12ShaderModule(DirectX12ShaderModule&&) noexcept = delete;
+		virtual ~DirectX12ShaderModule() noexcept;
+
+		// IShaderModule interface.
+	public:
+		/// <inheritdoc />
+		virtual const String& fileName() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const String& entryPoint() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const ShaderStage& type() const noexcept override;
+	};
+
+	/// <summary>
+	/// Implements a DirectX 12 <see cref="ShaderProgram" />.
+	/// </summary>
+	/// <seealso cref="DirectX12ShaderProgramBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12ShaderProgram : public ShaderProgram<DirectX12ShaderModule> {
+		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
+		LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX 12 shader program.
+		/// </summary>
+		/// <param name="modules">The shader modules used by the shader program.</param>
+		explicit DirectX12ShaderProgram(Array<UniquePtr<DirectX12ShaderModule>>&& modules);
+		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
+		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
+		virtual ~DirectX12ShaderProgram() noexcept;
+
+	private:
+		/// <summary>
+		/// Initializes a new DirectX 12 shader program.
+		/// </summary>
+		explicit DirectX12ShaderProgram() noexcept;
+
+	public:
+		/// <inheritdoc />
+		virtual Array<const DirectX12ShaderModule*> modules() const noexcept override;
+	};
+
+	/// <summary>
 	/// Implements a DirectX 12 <see cref="DescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public virtual DirectX12RuntimeObject<DirectX12DescriptorSetLayout>, public DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler> {
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSet : public DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler> {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
 	public:
@@ -313,6 +335,13 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12DescriptorSet(DirectX12DescriptorSet&&) = delete;
 		DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
 		virtual ~DirectX12DescriptorSet() noexcept;
+
+	public:
+		/// <summary>
+		/// Returns the parent descriptor set layout.
+		/// </summary>
+		/// <returns>The parent descriptor set layout.</returns>
+		virtual const DirectX12DescriptorSetLayout& layout() const noexcept;
 
 	public:
 		/// <inheritdoc />
@@ -345,29 +374,31 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 <see cref="DescriptorSetLayout" />.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSet" />
-	/// <seealso cref="DirectX12RenderPipelineDescriptorSetLayoutBuilder" />
-	/// <seealso cref="DirectX12ComputePipelineDescriptorSetLayoutBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayout : public virtual DirectX12RuntimeObject<DirectX12PipelineLayout>, public DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet> {
+	/// <seealso cref="DirectX12PipelineDescriptorSetLayoutBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayout : public DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet> {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
-		LITEFX_BUILDER(DirectX12RenderPipelineDescriptorSetLayoutBuilder);
-		LITEFX_BUILDER(DirectX12ComputePipelineDescriptorSetLayoutBuilder);
-		friend DirectX12PipelineLayout;
+		LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
+		friend class DirectX12PipelineLayout;
 
 	public:
 		/// <summary>
 		/// Initializes a DirectX 12 descriptor set layout.
 		/// </summary>
-		/// <param name="pipelineLayout">The parent pipeline layout that contains the descriptor set layout.</param>
+		/// <param name="device">The device, the descriptor set layout is created on.</param>
 		/// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
 		/// <param name="space">The space or set id of the descriptor set.</param>
 		/// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
-		explicit DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages);
+		explicit DirectX12DescriptorSetLayout(const DirectX12Device& device, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages);
 		DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) = delete;
 		DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout&) = delete;
 		virtual ~DirectX12DescriptorSetLayout() noexcept;
 
 	private:
-		explicit DirectX12DescriptorSetLayout(const DirectX12PipelineLayout& pipelineLayout) noexcept;
+		/// <summary>
+		/// Initializes a DirectX 12 descriptor set layout.
+		/// </summary>
+		/// <param name="device">The device, the descriptor set layout is created on.</param>
+		explicit DirectX12DescriptorSetLayout(const DirectX12Device& device) noexcept;
 
 	public:
 		/// <summary>
@@ -384,6 +415,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>The index of the first descriptor for the binding.</returns>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown, if the descriptor set does not contain a descriptor bound to the binding point specified by <paramref name="binding"/>.</exception>
 		virtual UInt32 descriptorOffsetForBinding(const UInt32& binding) const;
+
+		/// <summary>
+		/// Returns the parent device.
+		/// </summary>
+		/// <returns>A reference of the parent device.</returns>
+		virtual const DirectX12Device& device() const noexcept;
 
 	protected:
 		/// <summary>
@@ -435,101 +472,12 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a <see cref="DirectX12DescriptorSetLayout" /> for a render pipeline.
-	/// </summary>
-	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	/// <seealso cref="DirectX12RenderPipeline" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelineDescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<DirectX12RenderPipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 descriptor set layout builder.
-		/// </summary>
-		/// <param name="parent">The parent pipeline layout builder.</param>
-		/// <param name="space">The space the descriptor set is bound to.</param>
-		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-		explicit DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
-		DirectX12RenderPipelineDescriptorSetLayoutBuilder(const DirectX12RenderPipelineDescriptorSetLayoutBuilder&) = delete;
-		DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineDescriptorSetLayoutBuilder&&) = delete;
-		virtual ~DirectX12RenderPipelineDescriptorSetLayoutBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
-
-		// DescriptorSetLayoutBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) override;
-
-		// DirectX12RenderPipelineDescriptorSetLayoutBuilder.
-	public:
-		/// <summary>
-		/// Sets the space, the descriptor set is bound to.
-		/// </summary>
-		/// <param name="space">The space, the descriptor set is bound to.</param>
-		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& space(const UInt32& space) noexcept;
-
-		/// <summary>
-		/// Sets the shader stages, the descriptor set is accessible from.
-		/// </summary>
-		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& shaderStages(const ShaderStage& stages) noexcept;
-	};
-
-	/// <summary>
-	/// Builds a <see cref="DirectX12DescriptorSetLayout" /> for a compute pipeline.
-	/// </summary>
-	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	/// <seealso cref="DirectX12ComputePipeline" />
-	class LITEFX_DIRECTX12_API DirectX12ComputePipelineDescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<DirectX12ComputePipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12ComputePipelineLayoutBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12ComputePipelineDescriptorSetLayoutBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 descriptor set layout builder.
-		/// </summary>
-		/// <param name="parent">The parent pipeline layout builder.</param>
-		/// <param name="space">The space the descriptor set is bound to.</param>
-		explicit DirectX12ComputePipelineDescriptorSetLayoutBuilder(DirectX12ComputePipelineLayoutBuilder& parent, const UInt32& space = 0);
-		DirectX12ComputePipelineDescriptorSetLayoutBuilder(const DirectX12ComputePipelineDescriptorSetLayoutBuilder&) = delete;
-		DirectX12ComputePipelineDescriptorSetLayoutBuilder(DirectX12ComputePipelineDescriptorSetLayoutBuilder&&) = delete;
-		virtual ~DirectX12ComputePipelineDescriptorSetLayoutBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12ComputePipelineLayoutBuilder& go() override;
-
-		// DescriptorSetLayoutBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12ComputePipelineDescriptorSetLayoutBuilder& addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout) override;
-
-		/// <inheritdoc />
-		virtual DirectX12ComputePipelineDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) override;
-
-		// DirectX12ComputePipelineDescriptorSetLayoutBuilder.
-	public:
-		/// <summary>
-		/// Sets the space, the descriptor set is bound to.
-		/// </summary>
-		/// <param name="space">The space, the descriptor set is bound to.</param>
-		virtual DirectX12ComputePipelineDescriptorSetLayoutBuilder& space(const UInt32& space) noexcept;
-	};
-
-	/// <summary>
 	/// Implements the DirectX 12 <see cref="IPushConstantsRange" />.
 	/// </summary>
 	/// <seealso cref="DirectX12PushConstantsLayout" />
 	class LITEFX_DIRECTX12_API DirectX12PushConstantsRange : public IPushConstantsRange {
 		LITEFX_IMPLEMENTATION(DirectX12PushConstantsRangeImpl);
-		friend DirectX12PipelineLayout;
+		friend class DirectX12PipelineLayout;
 
 	public:
 		/// <summary>
@@ -586,13 +534,11 @@ namespace LiteFX::Rendering::Backends {
 	/// the root signature.
 	/// </remarks>
 	/// <seealso cref="DirectX12PushConstantsRange" />
-	/// <seealso cref="DirectX12RenderPipelinePushConstantsLayoutBuilder" />
-	/// <seealso cref="DirectX12ComputePipelinePushConstantsLayoutBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12PushConstantsLayout : public virtual DirectX12RuntimeObject<DirectX12PipelineLayout>, public PushConstantsLayout<DirectX12PushConstantsRange> {
+	/// <seealso cref="DirectX12PipelinePushConstantsLayoutBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12PushConstantsLayout : public PushConstantsLayout<DirectX12PushConstantsRange> {
 		LITEFX_IMPLEMENTATION(DirectX12PushConstantsLayoutImpl);
-		LITEFX_BUILDER(DirectX12RenderPipelinePushConstantsLayoutBuilder);
-		LITEFX_BUILDER(DirectX12ComputePipelinePushConstantsLayoutBuilder);
-		friend DirectX12PipelineLayout;
+		LITEFX_BUILDER(DirectX12PushConstantsLayoutBuilder);
+		friend class DirectX12PipelineLayout;
 
 	public:
 		/// <summary>
@@ -607,6 +553,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual ~DirectX12PushConstantsLayout() noexcept;
 
 	private:
+		/// <summary>
+		/// Initializes a new push constants layout.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout.</param>
+		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
 		explicit DirectX12PushConstantsLayout(const DirectX12PipelineLayout& parent, const UInt32& size);
 
 	public:
@@ -628,241 +579,43 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="RenderPipeline" />.
-	/// </summary>
-	/// <seealso cref="DirectX12PushConstantsLayout" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12RenderPipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12RenderPipelineLayoutBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPipelinePushConstantsLayoutBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 render pipeline push constants layout builder.
-		/// </summary>
-		/// <param name="parent">The parent pipeline layout builder.</param>
-		/// <param name="size">The size of the push constants backing memory.</param>
-		explicit DirectX12RenderPipelinePushConstantsLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& size);
-		DirectX12RenderPipelinePushConstantsLayoutBuilder(const DirectX12RenderPipelinePushConstantsLayoutBuilder&) = delete;
-		DirectX12RenderPipelinePushConstantsLayoutBuilder(DirectX12RenderPipelinePushConstantsLayoutBuilder&&) = delete;
-		virtual ~DirectX12RenderPipelinePushConstantsLayoutBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
-
-		// PushConstantsLayoutBuilder interface.
-	public:
-		virtual DirectX12RenderPipelinePushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
-	};
-
-	/// <summary>
-	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="ComputePipeline" />.
-	/// </summary>
-	/// <seealso cref="DirectX12PushConstantsLayout" />
-	class LITEFX_DIRECTX12_API DirectX12ComputePipelinePushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12ComputePipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12ComputePipelineLayoutBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12ComputePipelinePushConstantsLayoutBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 compute pipeline push constants layout builder.
-		/// </summary>
-		/// <param name="parent">The parent pipeline layout builder.</param>
-		/// <param name="size">The size of the push constants backing memory.</param>
-		explicit DirectX12ComputePipelinePushConstantsLayoutBuilder(DirectX12ComputePipelineLayoutBuilder& parent, const UInt32& size);
-		DirectX12ComputePipelinePushConstantsLayoutBuilder(const DirectX12ComputePipelinePushConstantsLayoutBuilder&) = delete;
-		DirectX12ComputePipelinePushConstantsLayoutBuilder(DirectX12ComputePipelinePushConstantsLayoutBuilder&&) = delete;
-		virtual ~DirectX12ComputePipelinePushConstantsLayoutBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12ComputePipelineLayoutBuilder& go() override;
-
-		// PushConstantsLayoutBuilder interface.
-	public:
-		virtual DirectX12ComputePipelinePushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
-	};
-
-	/// <summary>
-	/// Implements a DirectX 12 <see cref="IShaderModule" />.
-	/// </summary>
-	/// <seealso cref="DirectX12ShaderProgram" />
-	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public virtual DirectX12RuntimeObject<DirectX12Device>, public IShaderModule, public ComResource<ID3DBlob> {
-		LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a new DirectX 12 shader module.
-		/// </summary>
-		/// <param name="device">The parent device, this shader module has been created from.</param>
-		/// <param name="type">The shader stage, this module is used in.</param>
-		/// <param name="fileName">The file name of the module source.</param>
-		/// <param name="entryPoint">The name of the module entry point.</param>
-		explicit DirectX12ShaderModule(const DirectX12Device& device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
-		DirectX12ShaderModule(const DirectX12ShaderModule&) noexcept = delete;
-		DirectX12ShaderModule(DirectX12ShaderModule&&) noexcept = delete;
-		virtual ~DirectX12ShaderModule() noexcept;
-
-		// IShaderModule interface.
-	public:
-		/// <inheritdoc />
-		virtual const String& fileName() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const String& entryPoint() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const ShaderStage& type() const noexcept override;
-	};
-
-	/// <summary>
-	/// Implements a DirectX 12 <see cref="ShaderProgram" />.
-	/// </summary>
-	/// <seealso cref="DirectX12GraphicsShaderProgramBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12ShaderProgram : public virtual DirectX12RuntimeObject<DirectX12PipelineLayout>, public ShaderProgram<DirectX12ShaderModule> {
-		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
-		LITEFX_BUILDER(DirectX12GraphicsShaderProgramBuilder);
-		LITEFX_BUILDER(DirectX12ComputeShaderProgramBuilder);
-
-	public:
-		/// <summary>
-		/// Initializes a new DirectX 12 shader program.
-		/// </summary>
-		/// <param name="pipelineLayout">The parent pipeline layout to initialize the shader program from.</param>
-		/// <param name="modules">The shader modules used by the shader program.</param>
-		explicit DirectX12ShaderProgram(const DirectX12PipelineLayout& pipelineLayout, Array<UniquePtr<DirectX12ShaderModule>>&& modules);
-		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
-		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
-		virtual ~DirectX12ShaderProgram() noexcept;
-
-	private:
-		explicit DirectX12ShaderProgram(const DirectX12PipelineLayout& pipelineLayout) noexcept;
-
-	public:
-		/// <inheritdoc />
-		virtual Array<const DirectX12ShaderModule*> modules() const noexcept override;
-	};
-
-	/// <summary>
-	/// Builds a DirectX 12 <see cref="ShaderProgram" /> for graphics rendering.
-	/// </summary>
-	/// <seealso cref="DirectX12ShaderProgram" />
-	/// <seealso cref="DirectX12RenderPipeline" />
-	class LITEFX_DIRECTX12_API DirectX12GraphicsShaderProgramBuilder : public GraphicsShaderProgramBuilder<DirectX12GraphicsShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12GraphicsShaderProgramBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 graphics shader program builder.
-		/// </summary>
-		/// <param name="parent">The parent pipeline layout builder.</param>
-		explicit DirectX12GraphicsShaderProgramBuilder(DirectX12RenderPipelineLayoutBuilder& parent);
-		DirectX12GraphicsShaderProgramBuilder(const DirectX12GraphicsShaderProgramBuilder&) = delete;
-		DirectX12GraphicsShaderProgramBuilder(DirectX12GraphicsShaderProgramBuilder&&) = delete;
-		virtual ~DirectX12GraphicsShaderProgramBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
-
-		// ShaderProgramBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12GraphicsShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
-
-		// GraphicsShaderProgramBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12GraphicsShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12GraphicsShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12GraphicsShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12GraphicsShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12GraphicsShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
-	};
-
-	/// <summary>
-	/// Builds a DirectX 12 compute <see cref="ShaderProgram" />.
-	/// </summary>
-	/// <seealso cref="DirectX12ShaderProgram" />
-	class LITEFX_DIRECTX12_API DirectX12ComputeShaderProgramBuilder : public ComputeShaderProgramBuilder<DirectX12ComputeShaderProgramBuilder, DirectX12ShaderProgram, DirectX12ComputePipelineLayoutBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12ComputeShaderProgramBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 compute shader program builder.
-		/// </summary>
-		/// <param name="parent">The parent pipeline layout builder.</param>
-		explicit DirectX12ComputeShaderProgramBuilder(DirectX12ComputePipelineLayoutBuilder& parent);
-		DirectX12ComputeShaderProgramBuilder(const DirectX12ComputeShaderProgramBuilder&) = delete;
-		DirectX12ComputeShaderProgramBuilder(DirectX12ComputeShaderProgramBuilder&&) = delete;
-		virtual ~DirectX12ComputeShaderProgramBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12ComputePipelineLayoutBuilder& go() override;
-
-		// ShaderProgramBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12ComputeShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
-
-		// ComputeShaderProgramBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12ComputeShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
-	};
-
-	/// <summary>
 	/// Implements a DirectX 12 <see cref="PipelineLayout" />.
 	/// </summary>
-	/// <seealso cref="DirectX12RenderPipelineLayoutBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12PipelineLayout : public virtual DirectX12RuntimeObject<DirectX12PipelineState>, public PipelineLayout<DirectX12DescriptorSetLayout, DirectX12PushConstantsLayout, DirectX12ShaderProgram>, public ComResource<ID3D12RootSignature> {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutImpl);
-		LITEFX_BUILDER(DirectX12RenderPipelineLayoutBuilder);
-		LITEFX_BUILDER(DirectX12ComputePipelineLayoutBuilder);
+	/// <seealso cref="DirectX12PipelineLayoutBuilder" />
+	class LITEFX_DIRECTX12_API DirectX12PipelineLayout : public PipelineLayout<DirectX12DescriptorSetLayout, DirectX12PushConstantsLayout>, public ComResource<ID3D12RootSignature> {
+		LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutImpl);
+		LITEFX_BUILDER(DirectX12PipelineLayoutBuilder);
 
 	public:
 		/// <summary>
 		/// Initializes a new DirectX 12 render pipeline layout.
 		/// </summary>
-		/// <param name="pipeline">The parent pipeline state the layout describes.</param>
+		/// <param name="device">The parent device, the layout is created from.</param>
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
 		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-		explicit DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
-
-		/// <summary>
-		/// Initializes a new DirectX 12 compute pipeline layout.
-		/// </summary>
-		/// <param name="pipeline">The parent pipeline state the layout describes.</param>
-		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
-		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
-		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-		explicit DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
+		explicit DirectX12PipelineLayout(const DirectX12Device& device, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
 
 		DirectX12PipelineLayout(DirectX12PipelineLayout&&) noexcept = delete;
 		DirectX12PipelineLayout(const DirectX12PipelineLayout&) noexcept = delete;
 		virtual ~DirectX12PipelineLayout() noexcept;
 
 	private:
-		explicit DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline) noexcept;
-		explicit DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline) noexcept;
+		/// <summary>
+		/// Initializes a new DirectX 12 render pipeline layout.
+		/// </summary>
+		/// <param name="device">The parent device, the layout is created from.</param>
+		explicit DirectX12PipelineLayout(const DirectX12Device& device) noexcept;
+
+	public:
+		/// <summary>
+		/// Returns a reference to the device that provides this layout.
+		/// </summary>
+		/// <returns>A reference to the layouts parent device.</returns>
+		virtual const DirectX12Device& device() const noexcept;
 
 		// PipelineLayout interface.
 	public:
-		/// <inheritdoc />
-		virtual const DirectX12ShaderProgram& program() const noexcept override;
-
 		/// <inheritdoc />
 		virtual const DirectX12DescriptorSetLayout& descriptorSet(const UInt32& space) const override;
 
@@ -874,118 +627,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="PipelineLayout" /> for a render pipeline.
-	/// </summary>
-	/// <seealso cref="DirectX12PipelineLayout" />
-	/// <seealso cref="DirectX12RenderPipeline" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayoutBuilder : public PipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12RenderPipelineBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a new DirectX 12 render pipeline layout builder.
-		/// </summary>
-		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent);
-		DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineLayoutBuilder&&) = delete;
-		DirectX12RenderPipelineLayoutBuilder(const DirectX12RenderPipelineLayoutBuilder&) = delete;
-		virtual ~DirectX12RenderPipelineLayoutBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
-
-		// RenderPipelineBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12ShaderProgram>&& program) override;
-
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12DescriptorSetLayout>&& layout) override;
-
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12PushConstantsLayout>&& layout) override;
-
-		// DirectX12RenderPipelineBuilder.
-	public:
-		/// <summary>
-		/// Builds a shader program for the render pipeline layout.
-		/// </summary>
-		virtual DirectX12GraphicsShaderProgramBuilder shaderProgram();
-
-		/// <summary>
-		/// Builds a new descriptor set for the render pipeline layout.
-		/// </summary>
-		/// <param name="space">The space, the descriptor set is bound to.</param>
-		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
-		/// <param name="poolSize">Unused for this backend.</param>
-		virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 0);
-
-		/// <summary>
-		/// Builds a new push constants layout for the render pipeline layout.
-		/// </summary>
-		/// <param name="size">The size of the push constants backing memory.</param>
-		virtual DirectX12RenderPipelinePushConstantsLayoutBuilder addPushConstants(const UInt32& size);
-	};
-
-	/// <summary>
-	/// Builds a DirectX 12 <see cref="PipelineLayout" /> for a compute pipeline.
-	/// </summary>
-	/// <seealso cref="DirectX12PipelineLayout" />
-	/// <seealso cref="DirectX12ComputePipeline" />
-	class LITEFX_DIRECTX12_API DirectX12ComputePipelineLayoutBuilder : public PipelineLayoutBuilder<DirectX12ComputePipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12ComputePipelineBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12ComputePipelineLayoutBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a new DirectX 12 compute pipeline layout builder.
-		/// </summary>
-		DirectX12ComputePipelineLayoutBuilder(DirectX12ComputePipelineBuilder& parent);
-		DirectX12ComputePipelineLayoutBuilder(DirectX12ComputePipelineLayoutBuilder&&) = delete;
-		DirectX12ComputePipelineLayoutBuilder(const DirectX12ComputePipelineLayoutBuilder&) = delete;
-		virtual ~DirectX12ComputePipelineLayoutBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12ComputePipelineBuilder& go() override;
-
-		// ComputePipelineBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12ShaderProgram>&& program) override;
-
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12DescriptorSetLayout>&& layout) override;
-		
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12PushConstantsLayout>&& layout) override;
-
-		// DirectX12ComputePipelineBuilder.
-	public:
-		/// <summary>
-		/// Builds a shader program for the compute pipeline layout.
-		/// </summary>
-		virtual DirectX12ComputeShaderProgramBuilder shaderProgram();
-
-		/// <summary>
-		/// Builds a new descriptor set for the compute pipeline layout.
-		/// </summary>
-		/// <param name="space">The space, the descriptor set is bound to.</param>
-		virtual DirectX12ComputePipelineDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& space = 0);
-
-		/// <summary>
-		/// Builds a new push constants layout for the compute pipeline layout.
-		/// </summary>
-		/// <param name="size">The size of the push constants backing memory.</param>
-		virtual DirectX12ComputePipelinePushConstantsLayoutBuilder addPushConstants(const UInt32& size);
-	};
-
-	/// <summary>
 	/// Implements the DirectX 12 input assembler state.
 	/// </summary>
 	/// <seealso cref="DirectX12InputAssemblerBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public virtual DirectX12RuntimeObject<DirectX12Device>, public InputAssembler<DirectX12VertexBufferLayout, DirectX12IndexBufferLayout> {
+	class LITEFX_DIRECTX12_API DirectX12InputAssembler : public InputAssembler<DirectX12VertexBufferLayout, DirectX12IndexBufferLayout> {
 		LITEFX_IMPLEMENTATION(DirectX12InputAssemblerImpl);
 		LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
 
@@ -993,17 +638,19 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new DirectX 12 input assembler state.
 		/// </summary>
-		/// <param name="device">The parent device.</param>
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit DirectX12InputAssembler(const DirectX12Device& device, Array<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology = PrimitiveTopology::TriangleList);
+		explicit DirectX12InputAssembler(Array<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology = PrimitiveTopology::TriangleList);
 		DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
 		DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
 		virtual ~DirectX12InputAssembler() noexcept;
 
 	private:
-		explicit DirectX12InputAssembler(const DirectX12Device& device) noexcept;
+		/// <summary>
+		/// Initializes a new DirectX 12 input assembler state.
+		/// </summary>
+		explicit DirectX12InputAssembler() noexcept;
 
 	public:
 		/// <inheritdoc />
@@ -1020,129 +667,39 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a <see cref="DirectX12InputAssembler" />.
-	/// </summary>
-	/// <seealso cref="DirectX12InputAssembler" />
-	class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12InputAssemblerBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 input assembler builder.
-		/// </summary>
-		/// <param name="parent">The parent render pipeline builder.</param>
-		explicit DirectX12InputAssemblerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept;
-		DirectX12InputAssemblerBuilder(const DirectX12InputAssemblerBuilder&) noexcept = delete;
-		DirectX12InputAssemblerBuilder(DirectX12InputAssemblerBuilder&&) noexcept = delete;
-		virtual ~DirectX12InputAssemblerBuilder() noexcept;
-
-	public:
-		/// <summary>
-		/// Starts building a vertex buffer layout.
-		/// </summary>
-		/// <param name="elementSize">The size of a vertex within the vertex buffer.</param>
-		/// <param name="binding">The binding point to bind the vertex buffer to.</param>
-		virtual DirectX12VertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
-
-		/// <summary>
-		/// Starts building an index buffer layout.
-		/// </summary>
-		/// <param name="type">The type of the index buffer.</param>
-		virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
-
-		// IInputAssemblerBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12InputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
-
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12VertexBufferLayout>&& layout) override;
-
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12IndexBufferLayout>&& layout) override;
-
-		// Builder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
-	};
-
-	/// <summary>
 	/// Implements a DirectX 12 <see cref="IRasterizer" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RasterizerBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12Rasterizer : public virtual DirectX12RuntimeObject<DirectX12RenderPipeline>, public Rasterizer {
+	class LITEFX_DIRECTX12_API DirectX12Rasterizer : public Rasterizer {
 		LITEFX_BUILDER(DirectX12RasterizerBuilder);
 
 	public:
 		/// <summary>
 		/// Initializes a new DirectX 12 rasterizer state.
 		/// </summary>
-		/// <param name="pipeline">The parent pipeline, the rasterizer state is created for.</param>
 		/// <param name="polygonMode">The polygon mode used by the pipeline.</param>
 		/// <param name="cullMode">The cull mode used by the pipeline.</param>
 		/// <param name="cullOrder">The cull order used by the pipeline.</param>
 		/// <param name="lineWidth">The line width used by the pipeline.</param>
 		/// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
+		explicit DirectX12Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
 		DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
 		DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
 		virtual ~DirectX12Rasterizer() noexcept;
 
 	private:
-		explicit DirectX12Rasterizer(const DirectX12RenderPipeline& pipeline) noexcept;
-	};
-
-	/// <summary>
-	/// Builds a DirectX 12 <see cref="IRasterizer" />.
-	/// </summary>
-	/// <seealso cref="DirectX12Rasterizer" />
-	class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12RasterizerBuilderImpl);
-
-	public:
 		/// <summary>
-		/// Initializes a DirectX 12 input assembler builder.
+		/// Initializes a new DirectX 12 rasterizer state.
 		/// </summary>
-		/// <param name="parent">The parent render pipeline builder.</param>
-		explicit DirectX12RasterizerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept;
-		DirectX12RasterizerBuilder(const DirectX12RasterizerBuilder&) noexcept = delete;
-		DirectX12RasterizerBuilder(DirectX12RasterizerBuilder&&) noexcept = delete;
-		virtual ~DirectX12RasterizerBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
-
-		// RasterizerBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) noexcept override;
-
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) noexcept override;
-
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) noexcept override;
-
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) noexcept override;
-
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept override;
-
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withDepthState(const DepthStencilState::DepthState& depthState) noexcept override;
-
-		/// <inheritdoc />
-		virtual DirectX12RasterizerBuilder& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept override;
+		explicit DirectX12Rasterizer() noexcept;
 	};
 
 	/// <summary>
 	/// Defines the base class for DirectX 12 pipeline state objects.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12PipelineState : public virtual Pipeline<DirectX12PipelineLayout>, public ComResource<ID3D12PipelineState> {
+	/// <seealso cref="DirectX12RenderPipeline" />
+	/// <seealso cref="DirectX12ComputePipeline" />
+	class LITEFX_DIRECTX12_API DirectX12PipelineState : public virtual Pipeline<DirectX12PipelineLayout, DirectX12ShaderProgram>, public ComResource<ID3D12PipelineState> {
 	public:
 		using ComResource<ID3D12PipelineState>::ComResource;
 		virtual ~DirectX12PipelineState() noexcept = default;
@@ -1159,7 +716,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Records commands for a <see cref="DirectX12CommandQueue" />
 	/// </summary>
 	/// <seealso cref="DirectX12CommandQueue" />
-	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public CommandBuffer<IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public DirectX12RuntimeObject<DirectX12Queue>, public ComResource<ID3D12GraphicsCommandList4> {
+	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public CommandBuffer<IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList4> {
 		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
 	public:
@@ -1203,7 +760,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void use(const DirectX12PipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const DirectX12DescriptorSet& descriptorSet) const noexcept override;
+		virtual void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
 		virtual void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;
@@ -1227,8 +784,9 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="RenderPipeline" />.
 	/// </summary>
+	/// <seealso cref="DirectX12ComputePipeline" />
 	/// <seealso cref="DirectX12RenderPipelineBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public virtual DirectX12PipelineState, public RenderPipeline<DirectX12PipelineLayout, DirectX12InputAssembler, IDirectX12VertexBuffer, IDirectX12IndexBuffer> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12PipelineState, public RenderPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram, DirectX12InputAssembler, IDirectX12VertexBuffer, IDirectX12IndexBuffer> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 
@@ -1238,14 +796,22 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="renderPass">The parent render pass.</param>
 		/// <param name="id">The unique ID of the pipeline within the render pass.</param>
+		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
+		/// <param name="layout">The layout of the pipeline.</param>
+		/// <param name="inputAssembler">The input assembler state of the pipeline.</param>
+		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
 		/// <param name="name">The optional debug name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
-		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12PipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage = false, const String& name = "");
+		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage = false, const String& name = "");
 		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
 		DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
 		virtual ~DirectX12RenderPipeline() noexcept;
 
 	private:
+		/// <summary>
+		/// Initializes a new DirectX 12 render pipeline.
+		/// </summary>
+		/// <param name="renderPass">The parent render pass.</param>
 		DirectX12RenderPipeline(const DirectX12RenderPass& renderPass) noexcept;
 
 		// Pipeline interface.
@@ -1254,7 +820,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual const String& name() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12PipelineLayout& layout() const noexcept override;
+		virtual SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
+
+		/// <inheritdoc />
+		virtual SharedPtr<const DirectX12PipelineLayout> layout() const noexcept override;
 
 		// RenderPipeline interface.
 	public:
@@ -1284,100 +853,16 @@ namespace LiteFX::Rendering::Backends {
 
 		// DirectX12PipelineState interface.
 	public:
+		/// <inheritdoc />
 		virtual void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
-	};
-
-	/// <summary>
-	/// Builds a DirectX 12 <see cref="RenderPipeline" />.
-	/// </summary>
-	/// <seealso cref="DirectX12RenderPipeline" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline> {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 render pipeline builder.
-		/// </summary>
-		/// <param name="renderPass">The parent render pass</param>
-		/// <param name="id">A unique identifier for the render pipeline.</param>
-		/// <param name="name">A debug name for the render pipeline.</param>
-		explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name = "");
-		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
-		DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
-		virtual ~DirectX12RenderPipelineBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual UniquePtr<DirectX12RenderPipeline> go() override;
-
-		// RenderPipelineBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12PipelineLayout>&& layout) override;
-
-		/// <inheritdoc />
-		virtual void use(SharedPtr<IRasterizer> rasterizer) override;
-
-		/// <inheritdoc />
-		virtual void use(SharedPtr<DirectX12InputAssembler> inputAssembler) override;
-
-		/// <inheritdoc />
-		virtual void use(SharedPtr<IViewport> viewport) override;
-
-		/// <inheritdoc />
-		virtual void use(SharedPtr<IScissor> scissor) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
-
-		// DirectX12RenderPipelineBuilder.
-	public:
-		/// <summary>
-		/// Builds a <see cref="DirectX12PipelineLayout" /> for the render pipeline.
-		/// </summary>
-		virtual DirectX12RenderPipelineLayoutBuilder layout();
-
-		/// <summary>
-		/// Builds a <see cref="DirectX12Rasterizer" /> for the render pipeline.
-		/// </summary>
-		virtual DirectX12RasterizerBuilder rasterizer();
-
-		/// <summary>
-		/// Builds a <see cref="DirectX12InputAssembler" /> for the render pipeline.
-		/// </summary>
-		virtual DirectX12InputAssemblerBuilder inputAssembler();
-
-		/// <summary>
-		/// Uses the provided rasterizer state for the render pipeline.
-		/// </summary>
-		/// <param name="rasterizer">The rasterizer state used by the render pipeline.</param>
-		virtual DirectX12RenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
-
-		/// <summary>
-		/// Uses the provided input assembler state for the render pipeline.
-		/// </summary>
-		/// <param name="inputAssembler">The input assembler state used by the render pipeline.</param>
-		virtual DirectX12RenderPipelineBuilder& withInputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler);
-
-		/// <summary>
-		/// Adds the provided viewport to the render pipeline.
-		/// </summary>
-		/// <param name="viewport">The viewport to add to the render pipeline.</param>
-		virtual DirectX12RenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
-
-		/// <summary>
-		/// Adds the provided scissor to the render pipeline.
-		/// </summary>
-		/// <param name="scissor">The scissor to add to the render pipeline.</param>
-		virtual DirectX12RenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
 	};
 
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="ComputePipeline" />.
 	/// </summary>
+	/// <seealso cref="DirectX12RenderPipeline" />
 	/// <seealso cref="DirectX12ComputePipelineBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12ComputePipeline : public virtual DirectX12RuntimeObject<DirectX12Device>, public virtual DirectX12PipelineState, public ComputePipeline<DirectX12PipelineLayout> {
+	class LITEFX_DIRECTX12_API DirectX12ComputePipeline : public virtual DirectX12PipelineState, public ComputePipeline<DirectX12PipelineLayout, DirectX12ShaderProgram> {
 		LITEFX_IMPLEMENTATION(DirectX12ComputePipelineImpl);
 		LITEFX_BUILDER(DirectX12ComputePipelineBuilder);
 
@@ -1386,13 +871,19 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new DirectX 12 compute pipeline.
 		/// </summary>
 		/// <param name="device">The parent device.</param>
+		/// <param name="layout">The layout of the pipeline.</param>
+		/// <param name="shaderProgram">The shader program used by this pipeline.</param>
 		/// <param name="name">The optional debug name of the compute pipeline.</param>
-		explicit DirectX12ComputePipeline(const DirectX12Device& device, UniquePtr<DirectX12PipelineLayout>&& layout, const String& name = "");
+		explicit DirectX12ComputePipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, const String& name = "");
 		DirectX12ComputePipeline(DirectX12ComputePipeline&&) noexcept = delete;
 		DirectX12ComputePipeline(const DirectX12ComputePipeline&) noexcept = delete;
 		virtual ~DirectX12ComputePipeline() noexcept;
 
 	private:
+		/// <summary>
+		/// Initializes a new DirectX 12 compute pipeline.
+		/// </summary>
+		/// <param name="device">The parent device.</param>
 		DirectX12ComputePipeline(const DirectX12Device& device) noexcept;
 
 		// Pipeline interface.
@@ -1401,7 +892,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual const String& name() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12PipelineLayout& layout() const noexcept override;
+		virtual SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
+
+		/// <inheritdoc />
+		virtual SharedPtr<const DirectX12PipelineLayout> layout() const noexcept override;
 
 		// DirectX12PipelineState interface.
 	public:
@@ -1409,45 +903,10 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a DirectX 12 <see cref="ComputePipeline" />.
-	/// </summary>
-	/// <seealso cref="DirectX12ComputePipeline" />
-	class LITEFX_DIRECTX12_API DirectX12ComputePipelineBuilder : public ComputePipelineBuilder<DirectX12ComputePipelineBuilder, DirectX12ComputePipeline> {
-		LITEFX_IMPLEMENTATION(DirectX12ComputePipelineBuilderImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a DirectX 12 compute pipeline builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
-		/// <param name="name">A debug name for the compute pipeline.</param>
-		explicit DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name = "");
-		DirectX12ComputePipelineBuilder(DirectX12ComputePipelineBuilder&&) = delete;
-		DirectX12ComputePipelineBuilder(const DirectX12ComputePipelineBuilder&) = delete;
-		virtual ~DirectX12ComputePipelineBuilder() noexcept;
-
-		// IBuilder interface.
-	public:
-		/// <inheritdoc />
-		[[nodiscard]] virtual UniquePtr<DirectX12ComputePipeline> go() override;
-
-		// ComputePipelineBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual void use(UniquePtr<DirectX12PipelineLayout>&& layout) override;
-
-		// DirectX12ComputePipelineBuilder.
-	public:
-		/// <summary>
-		/// Builds a <see cref="DirectX12PipelineLayout" /> for the compute pipeline.
-		/// </summary>
-		virtual DirectX12ComputePipelineLayoutBuilder layout();
-	};
-
-	/// <summary>
 	/// Implements a DirectX 12 frame buffer.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12FrameBuffer : public virtual DirectX12RuntimeObject<DirectX12RenderPass>, public FrameBuffer<DirectX12CommandBuffer> {
+	/// <seealso cref="DirectX12RenderPass" />
+	class LITEFX_DIRECTX12_API DirectX12FrameBuffer : public FrameBuffer<DirectX12CommandBuffer> {
 		LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
 
 	public:
@@ -1542,7 +1001,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 render pass.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPassBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPass : public virtual DirectX12RuntimeObject<DirectX12Device>, public RenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPass : public RenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
 		LITEFX_BUILDER(DirectX12RenderPassBuilder);
 
@@ -1591,6 +1050,12 @@ namespace LiteFX::Rendering::Backends {
 
 		// RenderPass interface.
 	public:
+		/// <summary>
+		/// Returns a reference to the device that provides this queue.
+		/// </summary>
+		/// <returns>A reference to the queue's parent device.</returns>
+		virtual const DirectX12Device& device() const noexcept;
+
 		/// <inheritdoc />
 		virtual const DirectX12FrameBuffer& activeFrameBuffer() const override;
 
@@ -1633,52 +1098,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void updateAttachments(const DirectX12DescriptorSet& descriptorSet) const override;
-
-		// DirectX 12RenderPass.
-	public:
-		/// <summary>
-		/// Starts building a render pipeline.
-		/// </summary>
-		/// <param name="id">A unique ID for the render pipeline.</param>
-		/// <param name="name">A debug name for the render pipeline.</param>
-		/// <seealso cref="DirectX12RenderPipeline" />
-		/// <seealso cref="DirectX12RenderPipelineBuilder" />
-		virtual DirectX12RenderPipelineBuilder makePipeline(const UInt32& id, const String& name = "") const noexcept;
-	};
-
-	/// <summary>
-	/// Implements the DirectX 12 <see cref="RenderPassBuilder" />.
-	/// </summary>
-	/// <seealso cref="DirectX12RenderPass" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPassBuilder : public RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass> {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPassBuilderImpl)
-
-	public:
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name = "") noexcept;
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1, const String& name = "") noexcept;
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const String& name = "") noexcept;
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel = MultiSamplingLevel::x1, const String& name = "") noexcept;
-		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
-		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
-		virtual ~DirectX12RenderPassBuilder() noexcept;
-
-	public:
-		virtual void use(RenderTarget&& target) override;
-		virtual void use(DirectX12InputAttachmentMapping&& inputAttachment) override;
-
-	public:
-		virtual DirectX12RenderPassBuilder& commandBuffers(const UInt32& count) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-		virtual DirectX12RenderPassBuilder& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) override;
-		virtual DirectX12RenderPassBuilder& inputAttachment(const DirectX12InputAttachmentMapping& inputAttachment) override;
-		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const UInt32& outputLocation) override;
-		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
-
-	public:
-		[[nodiscard]] virtual UniquePtr<DirectX12RenderPass> go() override;
 	};
 
 	/// <summary>
@@ -1690,6 +1109,9 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12InputAttachmentMappingImpl);
 
 	public:
+		/// <summary>
+		/// Creates a new DirectX 12 input attachment mapping.
+		/// </summary>
 		DirectX12InputAttachmentMapping() noexcept;
 
 		/// <summary>
@@ -1699,12 +1121,28 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
 		/// <param name="location">The location to bind the input attachment to.</param>
 		DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location);
+
+		/// <summary>
+		/// Copies another input attachment mapping.
+		/// </summary>
 		DirectX12InputAttachmentMapping(const DirectX12InputAttachmentMapping&) noexcept;
+
+		/// <summary>
+		/// Takes over another input attachment mapping.
+		/// </summary>
 		DirectX12InputAttachmentMapping(DirectX12InputAttachmentMapping&&) noexcept;
+
 		virtual ~DirectX12InputAttachmentMapping() noexcept;
 
 	public:
+		/// <summary>
+		/// Copies another input attachment mapping.
+		/// </summary>
 		inline DirectX12InputAttachmentMapping& operator=(const DirectX12InputAttachmentMapping&) noexcept;
+
+		/// <summary>
+		/// Takes over another input attachment mapping.
+		/// </summary>
 		inline DirectX12InputAttachmentMapping& operator=(DirectX12InputAttachmentMapping&&) noexcept;
 
 	public:
@@ -1721,7 +1159,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 swap chain.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12SwapChain : public virtual DirectX12RuntimeObject<DirectX12Device>, public SwapChain<IDirectX12Image>, public ComResource<IDXGISwapChain4> {
+	class LITEFX_DIRECTX12_API DirectX12SwapChain : public SwapChain<IDirectX12Image>, public ComResource<IDXGISwapChain4> {
 		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
 
 	public:
@@ -1774,7 +1212,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 command queue.
 	/// </summary>
 	/// <seealso cref="DirectX12CommandBuffer" />
-	class LITEFX_DIRECTX12_API DirectX12Queue : public virtual DirectX12RuntimeObject<DirectX12Device>, public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
+	class LITEFX_DIRECTX12_API DirectX12Queue : public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
 		LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
 
 	public:
@@ -1788,6 +1226,14 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Queue(const DirectX12Queue&) = delete;
 		DirectX12Queue(DirectX12Queue&&) = delete;
 		virtual ~DirectX12Queue() noexcept;
+
+		// DirectX12CommandQueue interface.
+	public:
+		/// <summary>
+		/// Returns a reference to the device that provides this queue.
+		/// </summary>
+		/// <returns>A reference to the queue's parent device.</returns>
+		virtual const DirectX12Device& device() const noexcept;
 
 		// CommandQueue interface.
 	public:
@@ -1926,7 +1372,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="commandBuffer"></param>
 		/// <param name="descriptorSet"></param>
 		/// <returns></returns>
-		virtual void updateGlobalDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet) const noexcept;
+		virtual void updateGlobalDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept;
 
 		/// <summary>
 		/// 
@@ -1945,28 +1391,28 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
 
 	public:
-		/// <summary>
-		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
-		/// </summary>
-		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
-		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
+		///// <summary>
+		///// Returns a builder for a <see cref="DirectX12RenderPass" />.
+		///// </summary>
+		///// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+		///// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+		///// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		//[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
 
-		/// <summary>
-		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
-		/// </summary>
-		/// <param name="name">The name of the render pass.</param>
-		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
-		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
+		///// <summary>
+		///// Returns a builder for a <see cref="DirectX12RenderPass" />.
+		///// </summary>
+		///// <param name="name">The name of the render pass.</param>
+		///// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+		///// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+		///// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		//[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
 
-		/// <summary>
-		/// Returns a builder for a <see cref="DirectX12ComputePipeline" />.
-		/// </summary>
-		/// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
-		[[nodiscard]] DirectX12ComputePipelineBuilder buildComputePipeline() const;
+		///// <summary>
+		///// Returns a builder for a <see cref="DirectX12ComputePipeline" />.
+		///// </summary>
+		///// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
+		//[[nodiscard]] DirectX12ComputePipelineBuilder buildComputePipeline() const;
 
 		/// <summary>
 		/// Returns a reference of the swap chain.

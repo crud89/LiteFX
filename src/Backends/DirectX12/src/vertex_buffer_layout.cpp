@@ -28,8 +28,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12InputAssembler& inputAssembler, const size_t& vertexSize, const UInt32& binding) :
-    m_impl(makePimpl<DirectX12VertexBufferLayoutImpl>(this, vertexSize, binding)), DirectX12RuntimeObject(inputAssembler, inputAssembler.getDevice())
+DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const size_t& vertexSize, const UInt32& binding) :
+    m_impl(makePimpl<DirectX12VertexBufferLayoutImpl>(this, vertexSize, binding))
 {
 }
 
@@ -57,6 +57,7 @@ Array<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const no
         ranges::to<Array<const BufferAttribute*>>();
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
@@ -76,3 +77,4 @@ DirectX12VertexBufferLayoutBuilder& DirectX12VertexBufferLayoutBuilder::addAttri
 {
     return this->addAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
 }
+#endif // defined(BUILD_DEFINE_BUILDERS)

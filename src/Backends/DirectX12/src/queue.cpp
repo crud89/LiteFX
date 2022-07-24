@@ -17,10 +17,11 @@ private:
 	UInt64 m_fenceValue{ 0 };
 	bool m_bound;
 	mutable std::mutex m_mutex;
+	const DirectX12Device& m_device;
 
 public:
-	DirectX12QueueImpl(DirectX12Queue* parent, const QueueType& type, const QueuePriority& priority) :
-		base(parent), m_bound(false), m_type(type), m_priority(priority)
+	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, const QueueType& type, const QueuePriority& priority) :
+		base(parent), m_device(device), m_bound(false), m_type(type), m_priority(priority)
 	{
 	}
 
@@ -55,8 +56,8 @@ public:
 			break;
 		}
 
-		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
-		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
+		raiseIfFailed<RuntimeException>(m_device.handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
+		raiseIfFailed<RuntimeException>(m_device.handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
 
 		return commandQueue;
 	}
@@ -85,7 +86,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Queue::DirectX12Queue(const DirectX12Device& device, const QueueType& type, const QueuePriority& priority) :
-	ComResource<ID3D12CommandQueue>(nullptr), DirectX12RuntimeObject(device, &device), m_impl(makePimpl<DirectX12QueueImpl>(this, type, priority))
+	ComResource<ID3D12CommandQueue>(nullptr), m_impl(makePimpl<DirectX12QueueImpl>(this, device, type, priority))
 {
 	this->handle() = m_impl->initialize();
 }
@@ -93,6 +94,11 @@ DirectX12Queue::DirectX12Queue(const DirectX12Device& device, const QueueType& t
 DirectX12Queue::~DirectX12Queue() noexcept
 {
 	this->release();
+}
+
+const DirectX12Device& DirectX12Queue::device() const noexcept
+{
+	return m_impl->m_device;
 }
 
 bool DirectX12Queue::isBound() const noexcept

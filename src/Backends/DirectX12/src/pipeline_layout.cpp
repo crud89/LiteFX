@@ -6,27 +6,24 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12PipelineLayout::DirectX12RenderPipelineLayoutImpl : public Implement<DirectX12PipelineLayout> {
+class DirectX12PipelineLayout::DirectX12PipelineLayoutImpl : public Implement<DirectX12PipelineLayout> {
 public:
-    friend class DirectX12RenderPipelineLayoutBuilder;
-    friend class DirectX12ComputePipelineLayoutBuilder;
+    friend class DirectX12PipelineLayoutBuilder;
     friend class DirectX12PipelineLayout;
 
 private:
-    UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
+    const DirectX12Device& m_device;
 
 public:
-    DirectX12RenderPipelineLayoutImpl(DirectX12PipelineLayout* parent, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-        base(parent), m_shaderProgram(std::move(shaderProgram)), m_descriptorSetLayouts(std::move(descriptorLayouts)), m_pushConstantsLayout(std::move(pushConstantsLayout))
+    DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+        base(parent), m_descriptorSetLayouts(std::move(descriptorLayouts)), m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device)
     {
-        if (shaderProgram == nullptr)
-            throw RuntimeException("The shader program must be initialized before creating a pipeline layout.");
     }
 
-    DirectX12RenderPipelineLayoutImpl(DirectX12PipelineLayout* parent) :
-        base(parent)
+    DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device) :
+        base(parent), m_device(device)
     {
     }
 
@@ -135,7 +132,7 @@ public:
 
         // Create the root signature.
         ComPtr<ID3D12RootSignature> rootSignature;
-        raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
+        raiseIfFailed<RuntimeException>(m_device.handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
 
         return rootSignature;
     }
@@ -145,33 +142,22 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+    ComResource<ID3D12RootSignature>(nullptr), m_impl(makePimpl<DirectX12PipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
 {
     this->handle() = m_impl->initialize();
 }
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline, UniquePtr<DirectX12ShaderProgram>&& shaderProgram, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this, std::move(shaderProgram), std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
-{
-    this->handle() = m_impl->initialize();
-}
-
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12RenderPipeline& pipeline) noexcept :
-    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this))
-{
-}
-
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12ComputePipeline& pipeline) noexcept :
-    ComResource<ID3D12RootSignature>(nullptr), DirectX12RuntimeObject(pipeline, pipeline.getDevice()), m_impl(makePimpl<DirectX12RenderPipelineLayoutImpl>(this))
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) noexcept :
+    ComResource<ID3D12RootSignature>(nullptr), m_impl(makePimpl<DirectX12PipelineLayoutImpl>(this, device))
 {
 }
 
 DirectX12PipelineLayout::~DirectX12PipelineLayout() noexcept = default;
 
-const DirectX12ShaderProgram& DirectX12PipelineLayout::program() const noexcept
+const DirectX12Device& DirectX12PipelineLayout::device() const noexcept
 {
-    return *m_impl->m_shaderProgram;
+    return m_impl->m_device;
 }
 
 const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(const UInt32& space) const
@@ -194,6 +180,7 @@ const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() con
     return m_impl->m_pushConstantsLayout.get();
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Render pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -271,81 +258,4 @@ DirectX12RenderPipelinePushConstantsLayoutBuilder DirectX12RenderPipelineLayoutB
 {
     return DirectX12RenderPipelinePushConstantsLayoutBuilder(*this, size);
 }
-
-// ------------------------------------------------------------------------------------------------
-// Compute pipeline layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12ComputePipelineLayoutBuilder::DirectX12ComputePipelineLayoutBuilderImpl : public Implement<DirectX12ComputePipelineLayoutBuilder> {
-public:
-    friend class DirectX12ComputePipelineLayoutBuilder;
-    friend class DirectX12PipelineLayout;
-
-private:
-    UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
-    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
-    Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
-
-public:
-    DirectX12ComputePipelineLayoutBuilderImpl(DirectX12ComputePipelineLayoutBuilder* parent) :
-        base(parent)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
-// Compute pipeline layout builder interface.
-// ------------------------------------------------------------------------------------------------
-
-DirectX12ComputePipelineLayoutBuilder::DirectX12ComputePipelineLayoutBuilder(DirectX12ComputePipelineBuilder& parent) :
-    m_impl(makePimpl<DirectX12ComputePipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(parent, UniquePtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(*std::as_const(parent).instance())))
-{
-}
-
-DirectX12ComputePipelineLayoutBuilder::~DirectX12ComputePipelineLayoutBuilder() noexcept = default;
-
-DirectX12ComputePipelineBuilder& DirectX12ComputePipelineLayoutBuilder::go()
-{
-    auto instance = this->instance();
-    instance->m_impl->m_shaderProgram = std::move(m_impl->m_shaderProgram);
-    instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
-    instance->m_impl->m_pushConstantsLayout = std::move(m_impl->m_pushConstantsLayout);
-    instance->handle() = instance->m_impl->initialize();
-
-    return PipelineLayoutBuilder::go();
-}
-
-void DirectX12ComputePipelineLayoutBuilder::use(UniquePtr<DirectX12ShaderProgram>&& program)
-{
-#ifndef NDEBUG
-    if (m_impl->m_shaderProgram != nullptr)
-        LITEFX_WARNING(DIRECTX12_LOG, "Another shader program has already been initialized and will be replaced. A pipeline layout can only have one shader program.");
-#endif
-
-    m_impl->m_shaderProgram = std::move(program);
-}
-
-void DirectX12ComputePipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSetLayout>&& layout)
-{
-    m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
-}
-
-void DirectX12ComputePipelineLayoutBuilder::use(UniquePtr<DirectX12PushConstantsLayout>&& layout)
-{
-    m_impl->m_pushConstantsLayout = std::move(layout);
-}
-
-DirectX12ComputeShaderProgramBuilder DirectX12ComputePipelineLayoutBuilder::shaderProgram()
-{
-    return DirectX12ComputeShaderProgramBuilder(*this);
-}
-
-DirectX12ComputePipelineDescriptorSetLayoutBuilder DirectX12ComputePipelineLayoutBuilder::addDescriptorSet(const UInt32& space)
-{
-    return DirectX12ComputePipelineDescriptorSetLayoutBuilder(*this, space);
-}
-
-DirectX12ComputePipelinePushConstantsLayoutBuilder DirectX12ComputePipelineLayoutBuilder::addPushConstants(const UInt32& size)
-{
-    return DirectX12ComputePipelinePushConstantsLayoutBuilder(*this, size);
-}
+#endif // defined(BUILD_DEFINE_BUILDERS)

@@ -47,14 +47,14 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12Device& device, Array<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
-    m_impl(makePimpl<DirectX12InputAssemblerImpl>(this)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
+DirectX12InputAssembler::DirectX12InputAssembler(Array<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
+    m_impl(makePimpl<DirectX12InputAssemblerImpl>(this))
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
-DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12Device& device) noexcept :
-    m_impl(makePimpl<DirectX12InputAssemblerImpl>(this)), DirectX12RuntimeObject<DirectX12Device>(device, &device)
+DirectX12InputAssembler::DirectX12InputAssembler() noexcept :
+    m_impl(makePimpl<DirectX12InputAssemblerImpl>(this))
 {
 }
 
@@ -85,6 +85,7 @@ const PrimitiveTopology& DirectX12InputAssembler::topology() const noexcept
     return m_impl->m_primitiveTopology;
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -149,3 +150,4 @@ DirectX12RenderPipelineBuilder& DirectX12InputAssemblerBuilder::go()
     this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
     return InputAssemblerBuilder::go();
 }
+#endif // defined(BUILD_DEFINE_BUILDERS)

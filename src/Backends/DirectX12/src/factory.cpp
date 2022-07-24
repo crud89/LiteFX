@@ -70,13 +70,13 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferT
 	case BufferUsage::Dynamic:
 	case BufferUsage::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::GenericRead, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::GenericRead, resourceDesc, allocationDesc);
 	case BufferUsage::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	default:
 		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}
@@ -104,13 +104,13 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 	case BufferUsage::Dynamic:
 	case BufferUsage::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::GenericRead, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(layout, m_impl->m_allocator, elements, ResourceState::GenericRead, resourceDesc, allocationDesc);
 	case BufferUsage::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	default:
 		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}
@@ -138,13 +138,13 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 	case BufferUsage::Dynamic:
 	case BufferUsage::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::GenericRead, resourceDesc, allocationDesc);
+		return DirectX12IndexBuffer::allocate(layout, m_impl->m_allocator, elements, ResourceState::GenericRead, resourceDesc, allocationDesc);
 	case BufferUsage::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12IndexBuffer::allocate(layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12IndexBuffer::allocate(layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	default:
 		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}

@@ -8,8 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 
 class DirectX12ShaderProgram::DirectX12ShaderProgramImpl : public Implement<DirectX12ShaderProgram> {
 public:
-    friend class DirectX12GraphicsShaderProgramBuilder;
-    friend class DirectX12ComputeShaderProgramBuilder;
+    friend class DirectX12ShaderProgramBuilder;
     friend class DirectX12ShaderProgram;
 
 private:
@@ -26,8 +25,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12PipelineLayout& pipelineLayout) noexcept :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this)), DirectX12RuntimeObject<DirectX12PipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+DirectX12ShaderProgram::DirectX12ShaderProgram() noexcept :
+    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this))
 {
 }
 
@@ -40,6 +39,7 @@ Array<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noex
         ranges::to<Array<const DirectX12ShaderModule*>>();
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Graphics shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -107,51 +107,4 @@ DirectX12GraphicsShaderProgramBuilder& DirectX12GraphicsShaderProgramBuilder::ad
 {
     return this->addShaderModule(ShaderStage::Fragment, fileName, entryPoint);
 }
-
-// ------------------------------------------------------------------------------------------------
-// Compute shader program builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12ComputeShaderProgramBuilder::DirectX12ComputeShaderProgramBuilderImpl : public Implement<DirectX12ComputeShaderProgramBuilder> {
-public:
-    friend class DirectX12ComputeShaderProgramBuilder;
-
-private:
-    Array<UniquePtr<DirectX12ShaderModule>> m_modules;
-
-public:
-    DirectX12ComputeShaderProgramBuilderImpl(DirectX12ComputeShaderProgramBuilder* parent) :
-        base(parent)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
-// Compute shader program builder shared interface.
-// ------------------------------------------------------------------------------------------------
-
-DirectX12ComputeShaderProgramBuilder::DirectX12ComputeShaderProgramBuilder(DirectX12ComputePipelineLayoutBuilder& parent) :
-    m_impl(makePimpl<DirectX12ComputeShaderProgramBuilderImpl>(this)), ComputeShaderProgramBuilder(parent, UniquePtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(*std::as_const(parent).instance())))
-{
-}
-
-DirectX12ComputeShaderProgramBuilder::~DirectX12ComputeShaderProgramBuilder() noexcept = default;
-
-DirectX12ComputePipelineLayoutBuilder& DirectX12ComputeShaderProgramBuilder::go()
-{
-    auto instance = this->instance();
-    instance->m_impl->m_modules = std::move(m_impl->m_modules);
-
-    return ComputeShaderProgramBuilder::go();
-}
-
-DirectX12ComputeShaderProgramBuilder& DirectX12ComputeShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
-{
-    m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(*this->instance()->getDevice(), type, fileName, entryPoint));
-    return *this;
-}
-
-DirectX12ComputeShaderProgramBuilder& DirectX12ComputeShaderProgramBuilder::addComputeShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->addShaderModule(ShaderStage::Compute, fileName, entryPoint);
-}
+#endif // defined(BUILD_DEFINE_BUILDERS)
