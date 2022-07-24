@@ -1087,6 +1087,7 @@ namespace LiteFX::Rendering {
     template <typename TBackend, typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
         rtti::implements<TGraphicsDevice, GraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
     class RenderBackend : public IRenderBackend {
+    public:
         using GraphicsDevice = TGraphicsDevice;
         using Surface = GraphicsDevice::surface_type;
         using Adapter = GraphicsDevice::adapter_type;
