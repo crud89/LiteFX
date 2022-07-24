@@ -13,6 +13,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan vertex buffer layout.
 	/// </summary>
 	/// <seealso cref="VulkanVertexBuffer" />
+	/// <seealso cref="VulkanIndexBufferLayout" />
 	/// <seealso cref="VulkanVertexBufferLayoutBuilder" />
 	class LITEFX_VULKAN_API VulkanVertexBufferLayout : public IVertexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferLayoutImpl);
@@ -717,6 +718,8 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines the base class for Vulkan pipeline state objects.
 	/// </summary>
+	/// <seealso cref="VulkanRenderPipeline" />
+	/// <seealso cref="VulkanComputePipeline" />
 	class LITEFX_VULKAN_API VulkanPipelineState : public virtual Pipeline<VulkanPipelineLayout, VulkanShaderProgram>, public Resource<VkPipeline> {
 	public:
 		using Resource<VkPipeline>::Resource;
@@ -818,6 +821,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="RenderPipeline" />.
 	/// </summary>
+	/// <seealso cref="VulkanComputePipeline" />
 	/// <seealso cref="VulkanRenderPipelineBuilder" />
 	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
@@ -896,6 +900,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="ComputePipeline" />.
 	/// </summary>
+	/// <seealso cref="VulkanRenderPipeline" />
 	/// <seealso cref="VulkanComputePipelineBuilder" />
 	class LITEFX_VULKAN_API VulkanComputePipeline : public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanComputePipelineImpl);
@@ -944,6 +949,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan frame buffer.
 	/// </summary>
+	/// <seealso cref="VulkanRenderPass" />
 	class LITEFX_VULKAN_API VulkanFrameBuffer : public FrameBuffer<VulkanCommandBuffer>, public Resource<VkFramebuffer> {
 		LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
 
@@ -1037,6 +1043,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
 		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
 		explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+		
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;
 		virtual ~VulkanRenderPass() noexcept;
