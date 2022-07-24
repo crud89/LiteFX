@@ -79,7 +79,7 @@ namespace LiteFX::Rendering::Backends {
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
     /// <summary>
-    /// Contains conversion helpers for DirectX 12.
+    /// Contains conversion helpers for Vulkan.
     /// </summary>
     namespace Vk
     {

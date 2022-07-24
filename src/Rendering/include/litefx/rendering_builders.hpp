@@ -331,6 +331,8 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the interface of a render pipeline builder.
     /// </summary>
+    /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
+    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <seealso cref="RenderPipeline" />
     template <typename TDerived, typename TRenderPipeline, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TShaderProgram = TRenderPipeline::shader_program_type, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type> requires
         rtti::implements<TRenderPipeline, RenderPipeline<TPipelineLayout, TShaderProgram, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface>>
@@ -347,37 +349,37 @@ namespace LiteFX::Rendering {
         /// program set by the first call.
         /// </remarks>
         /// <param name="program">The program to add to the pipeline layout.</param>
-        virtual void use(SharedPtr<TShaderProgram>&& program) = 0;
+        virtual TDerived& shaderProgram(SharedPtr<TShaderProgram> program) = 0;
 
         /// <summary>
         /// Uses the provided pipeline layout to initialize the render pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="layout">The pipeline layout to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<TPipelineLayout>&& layout) = 0;
+        virtual TDerived& layout(SharedPtr<TPipelineLayout> layout) = 0;
 
         /// <summary>
         /// Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IRasterizer> rasterizer) = 0;
+        virtual TDerived& rasterizer(SharedPtr<IRasterizer> rasterizer) = 0;
 
         /// <summary>
         /// Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="inputAssembler">The input assembler state to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<TInputAssembler> inputAssembler) = 0;
+        virtual TDerived& inputAssembler(SharedPtr<TInputAssembler> inputAssembler) = 0;
 
         /// <summary>
         /// Uses the provided viewport to initialize the render pipeline. Can be invoked multiple times.
         /// </summary>
         /// <param name="viewport">A viewport to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IViewport> viewport) = 0;
+        virtual TDerived& viewport(SharedPtr<IViewport> viewport) = 0;
 
         /// <summary>
         /// Uses the provided scissor to initialize the render pipeline. Can be invoked multiple times.
         /// </summary>
         /// <param name="scissor">A scissor to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IScissor> scissor) = 0;
+        virtual TDerived& scissor(SharedPtr<IScissor> scissor) = 0;
 
         /// <summary>
         /// Enables <i>Alpha-to-Coverage</i> multi-sampling on the pipeline.
@@ -392,6 +394,8 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the interface of a render pipeline builder.
     /// </summary>
+    /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
+    /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
     /// <seealso cref="ComputePipeline" />
     template <typename TDerived, typename TComputePipeline, typename TPipelineLayout = TComputePipeline::pipeline_layout_type, typename TShaderProgram = TComputePipeline::shader_program_type> requires
         rtti::implements<TComputePipeline, ComputePipeline<TPipelineLayout, TShaderProgram>>
@@ -408,13 +412,13 @@ namespace LiteFX::Rendering {
         /// program set by the first call.
         /// </remarks>
         /// <param name="program">The program to add to the pipeline layout.</param>
-        virtual void use(SharedPtr<TShaderProgram>&& program) = 0;
+        virtual TDerived& shaderProgram(SharedPtr<TShaderProgram> program) = 0;
 
         /// <summary>
         /// Uses the provided pipeline layout to initialize the compute pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="layout">The pipeline layout to initialize the compute pipeline with.</param>
-        virtual void use(SharedPtr<TPipelineLayout>&& layout) = 0;
+        virtual TDerived& layout(SharedPtr<TPipelineLayout> layout) = 0;
     };
 
     /// <summary>

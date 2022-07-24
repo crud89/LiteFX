@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -338,3 +339,123 @@ void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, const 
 {
 	::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::as_const(*m_impl->m_layout).handle(), descriptorSet.layout().space(), 1, &descriptorSet.handle(), 0, nullptr);
 }
+
+#if defined(BUILD_DEFINE_BUILDERS)
+// ------------------------------------------------------------------------------------------------
+// Builder implementation.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl : public Implement<VulkanRenderPipelineBuilder> {
+public:
+	friend class VulkanRenderPipelineBuilderBuilder;
+	friend class VulkanRenderPipelineBuilder;
+
+private:
+	SharedPtr<VulkanPipelineLayout> m_layout;
+	SharedPtr<VulkanShaderProgram> m_program;
+	SharedPtr<VulkanInputAssembler> m_inputAssembler;
+	SharedPtr<VulkanRasterizer> m_rasterizer;
+	Array<SharedPtr<IViewport>> m_viewports;
+	Array<SharedPtr<IScissor>> m_scissors;
+	bool m_alphaToCoverage{ false };
+
+public:
+	VulkanRenderPipelineBuilderImpl(VulkanRenderPipelineBuilder* parent) :
+		base(parent)
+	{
+	}
+};
+
+// ------------------------------------------------------------------------------------------------
+// Builder interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>(new VulkanRenderPipeline(renderPass)))
+{
+	this->instance()->m_impl->m_id = id;
+	this->instance()->m_impl->m_name = name;
+}
+
+VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
+
+void VulkanRenderPipelineBuilder::build()
+{
+	auto instance = this->instance();
+	instance->m_impl->m_program = std::move(m_impl->m_program);
+	instance->m_impl->m_layout = std::move(m_impl->m_layout);
+	instance->m_impl->m_inputAssembler = std::move(m_impl->m_inputAssembler);
+	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
+	instance->m_impl->m_viewports = std::move(m_impl->m_viewports);
+	instance->m_impl->m_scissors = std::move(m_impl->m_scissors);
+	instance->m_impl->m_alphaToCoverage = std::move(m_impl->m_alphaToCoverage);
+	instance->handle() = instance->m_impl->initialize();
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::shaderProgram(SharedPtr<VulkanShaderProgram> program)
+{
+#ifndef NDEBUG
+	if (m_impl->m_program != nullptr)
+		LITEFX_WARNING(VULKAN_LOG, "Another shader program has already been initialized and will be replaced. A pipeline can only have one shader program.");
+#endif
+
+	m_impl->m_program = program;
+	return *this;
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::layout(SharedPtr<VulkanPipelineLayout> layout)
+{
+#ifndef NDEBUG
+	if (m_impl->m_layout != nullptr)
+		LITEFX_WARNING(VULKAN_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
+#endif
+
+	m_impl->m_layout = layout;
+	return *this;
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::rasterizer(SharedPtr<IRasterizer> rasterizer)
+{
+#ifndef NDEBUG
+	if (m_impl->m_rasterizer != nullptr)
+		LITEFX_WARNING(VULKAN_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
+#endif
+
+	auto vulkanRasterizer = std::dynamic_pointer_cast<VulkanRasterizer>(rasterizer);
+
+	if (vulkanRasterizer == nullptr)
+		throw InvalidArgumentException("The provided rasterizer must be a Vulkan rasterizer instance.");
+
+	m_impl->m_rasterizer = vulkanRasterizer;
+	return *this;
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::inputAssembler(SharedPtr<VulkanInputAssembler> inputAssembler)
+{
+#ifndef NDEBUG
+	if (m_impl->m_inputAssembler != nullptr)
+		LITEFX_WARNING(VULKAN_LOG, "Another input assembler has already been initialized and will be replaced. A pipeline can only have one input assembler.");
+#endif
+
+	m_impl->m_inputAssembler = inputAssembler;
+	return *this;
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::viewport(SharedPtr<IViewport> viewport)
+{
+	m_impl->m_viewports.push_back(viewport);
+	return *this;
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::scissor(SharedPtr<IScissor> scissor)
+{
+	m_impl->m_scissors.push_back(scissor);
+	return *this;
+}
+
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::enableAlphaToCoverage(const bool& enable)
+{
+	m_impl->m_alphaToCoverage = enable;
+	return *this;
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)

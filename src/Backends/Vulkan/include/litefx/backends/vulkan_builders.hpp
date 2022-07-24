@@ -318,6 +318,85 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanPushConstantsLayoutBuilder pushConstants(const UInt32& size);
 	};
 
+	/// <summary>
+	/// Builds a Vulkan <see cref="RenderPipeline" />.
+	/// </summary>
+	/// <seealso cref="VulkanRenderPipeline" />
+	class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline> {
+		LITEFX_IMPLEMENTATION(VulkanRenderPipelineBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a Vulkan render pipeline builder.
+		/// </summary>
+		/// <param name="renderPass">The parent render pass</param>
+		/// <param name="id">A unique identifier for the render pipeline.</param>
+		/// <param name="name">A debug name for the render pipeline.</param>
+		explicit VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
+		VulkanRenderPipelineBuilder(VulkanRenderPipelineBuilder&&) = delete;
+		VulkanRenderPipelineBuilder(const VulkanRenderPipelineBuilder&) = delete;
+		virtual ~VulkanRenderPipelineBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
+
+		// RenderPipelineBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& shaderProgram(SharedPtr<VulkanShaderProgram> shaderProgram) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& layout(SharedPtr<VulkanPipelineLayout> layout) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& rasterizer(SharedPtr<IRasterizer> rasterizer) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& inputAssembler(SharedPtr<VulkanInputAssembler> inputAssembler) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& viewport(SharedPtr<IViewport> viewport) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& scissor(SharedPtr<IScissor> scissor) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
+	};
+
+	/// <summary>
+	/// Builds a Vulkan <see cref="ComputePipeline" />.
+	/// </summary>
+	/// <seealso cref="VulkanComputePipeline" />
+	class LITEFX_VULKAN_API VulkanComputePipelineBuilder : public ComputePipelineBuilder<VulkanComputePipelineBuilder, VulkanComputePipeline> {
+		LITEFX_IMPLEMENTATION(VulkanComputePipelineBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a Vulkan compute pipeline builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+		/// <param name="name">A debug name for the compute pipeline.</param>
+		explicit VulkanComputePipelineBuilder(const VulkanDevice& device, const String& name = "");
+		VulkanComputePipelineBuilder(VulkanComputePipelineBuilder&&) = delete;
+		VulkanComputePipelineBuilder(const VulkanComputePipelineBuilder&) = delete;
+		virtual ~VulkanComputePipelineBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
+
+		// ComputePipelineBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanComputePipelineBuilder& shaderProgram(SharedPtr<VulkanShaderProgram> program) override;
+
+		/// <inheritdoc />
+		virtual VulkanComputePipelineBuilder& layout(SharedPtr<VulkanPipelineLayout> layout) override;
+	};
 
 
 	////
@@ -327,127 +406,6 @@ namespace LiteFX::Rendering::Backends {
 	////
 
 
-	///// <summary>
-	///// Builds a Vulkan <see cref="RenderPipeline" />.
-	///// </summary>
-	///// <seealso cref="VulkanRenderPipeline" />
-	//class LITEFX_VULKAN_API VulkanRenderPipelineBuilder : public RenderPipelineBuilder<VulkanRenderPipelineBuilder, VulkanRenderPipeline> {
-	//	LITEFX_IMPLEMENTATION(VulkanRenderPipelineBuilderImpl);
-
-	//public:
-	//	/// <summary>
-	//	/// Initializes a Vulkan render pipeline builder.
-	//	/// </summary>
-	//	/// <param name="renderPass">The parent render pass</param>
-	//	/// <param name="id">A unique identifier for the render pipeline.</param>
-	//	/// <param name="name">A debug name for the render pipeline.</param>
-	//	explicit VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
-	//	VulkanRenderPipelineBuilder(VulkanRenderPipelineBuilder&&) = delete;
-	//	VulkanRenderPipelineBuilder(const VulkanRenderPipelineBuilder&) = delete;
-	//	virtual ~VulkanRenderPipelineBuilder() noexcept;
-
-	//	// IBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual UniquePtr<VulkanRenderPipeline> go() override;
-
-	//	// RenderPipelineBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<VulkanPipelineLayout>&& layout) override;
-
-	//	/// <inheritdoc />
-	//	virtual void use(SharedPtr<IRasterizer> rasterizer) override;
-
-	//	/// <inheritdoc />
-	//	virtual void use(SharedPtr<VulkanInputAssembler> inputAssembler) override;
-
-	//	/// <inheritdoc />
-	//	virtual void use(SharedPtr<IViewport> viewport) override;
-
-	//	/// <inheritdoc />
-	//	virtual void use(SharedPtr<IScissor> scissor) override;
-
-	//	/// <inheritdoc />
-	//	virtual VulkanRenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
-
-	//	// VulkanRenderPipelineBuilder.
-	//public:
-	//	/// <summary>
-	//	/// Builds a <see cref="VulkanPipelineLayout" /> for the render pipeline.
-	//	/// </summary>
-	//	virtual VulkanRenderPipelineLayoutBuilder layout();
-
-	//	/// <summary>
-	//	/// Builds a <see cref="VulkanRasterizer" /> for the render pipeline.
-	//	/// </summary>
-	//	virtual VulkanRasterizerBuilder rasterizer();
-
-	//	/// <summary>
-	//	/// Builds a <see cref="VulkanInputAssembler" /> for the render pipeline.
-	//	/// </summary>
-	//	virtual VulkanInputAssemblerBuilder inputAssembler();
-
-	//	/// <summary>
-	//	/// Uses the provided rasterizer state for the render pipeline.
-	//	/// </summary>
-	//	/// <param name="rasterizer">The rasterizer state used by the render pipeline.</param>
-	//	virtual VulkanRenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
-
-	//	/// <summary>
-	//	/// Uses the provided input assembler state for the render pipeline.
-	//	/// </summary>
-	//	/// <param name="inputAssembler">The input assembler state used by the render pipeline.</param>
-	//	virtual VulkanRenderPipelineBuilder& withInputAssembler(SharedPtr<VulkanInputAssembler> inputAssembler);
-
-	//	/// <summary>
-	//	/// Adds the provided viewport to the render pipeline.
-	//	/// </summary>
-	//	/// <param name="viewport">The viewport to add to the render pipeline.</param>
-	//	virtual VulkanRenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
-
-	//	/// <summary>
-	//	/// Adds the provided scissor to the render pipeline.
-	//	/// </summary>
-	//	/// <param name="scissor">The scissor to add to the render pipeline.</param>
-	//	virtual VulkanRenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
-	//};
-
-	///// <summary>
-	///// Builds a Vulkan <see cref="ComputePipeline" />.
-	///// </summary>
-	///// <seealso cref="VulkanComputePipeline" />
-	//class LITEFX_VULKAN_API VulkanComputePipelineBuilder : public ComputePipelineBuilder<VulkanComputePipelineBuilder, VulkanComputePipeline> {
-	//	LITEFX_IMPLEMENTATION(VulkanComputePipelineBuilderImpl);
-
-	//public:
-	//	/// <summary>
-	//	/// Initializes a Vulkan compute pipeline builder.
-	//	/// </summary>
-	//	/// <param name="device">The parent device</param>
-	//	/// <param name="name">A debug name for the compute pipeline.</param>
-	//	explicit VulkanComputePipelineBuilder(const VulkanDevice& device, const String& name = "");
-	//	VulkanComputePipelineBuilder(VulkanComputePipelineBuilder&&) = delete;
-	//	VulkanComputePipelineBuilder(const VulkanComputePipelineBuilder&) = delete;
-	//	virtual ~VulkanComputePipelineBuilder() noexcept;
-
-	//	// IBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual UniquePtr<VulkanComputePipeline> go() override;
-
-	//	// ComputePipelineBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<VulkanPipelineLayout>&& layout) override;
-
-	//	// VulkanComputePipelineBuilder.
-	//public:
-	//	/// <summary>
-	//	/// Builds a <see cref="VulkanPipelineLayout" /> for the compute pipeline.
-	//	/// </summary>
-	//	virtual VulkanComputePipelineLayoutBuilder layout();
-	//};
 
 	///// <summary>
 	///// Implements the Vulkan <see cref="RenderPassBuilder" />.
