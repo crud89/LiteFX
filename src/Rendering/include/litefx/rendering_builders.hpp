@@ -422,8 +422,11 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// 
+    /// Describes the interface of a render pass builder.
     /// </summary>
+    /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
+    /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
+    /// <seealso cref="RenderPass" />
     template <typename TDerived, typename TRenderPass, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TInputAttachmentMapping = typename TRenderPass::input_attachment_mapping_type> requires
         rtti::implements<TRenderPass, RenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
     class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
@@ -431,20 +434,87 @@ namespace LiteFX::Rendering {
         using Builder<TDerived, TRenderPass>::Builder;
 
     public:
-        virtual void use(RenderTarget&& target) = 0;
-        virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
-
-    public:
+        /// <summary>
+        /// Sets the number of command buffers allocated by the render pass.
+        /// </summary>
+        /// <param name="count">The number of command buffers.</param>
         virtual TDerived& commandBuffers(const UInt32& count) = 0;
+
+        /// <summary>
+        /// Sets the multi-sampling level for the render targets.
+        /// </summary>
+        /// <param name="samples">The number of samples for each render target.</param>
+        virtual TDerived& multiSamplingLevel(const MultiSamplingLevel& samples) = 0;
+
+        /// <summary>
+        /// Adds a render target to the render pass by assigning it an incremental location number.
+        /// </summary>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The color format of the render target.</param>
+        /// <param name="clearValues">The fixed clear value for the render target.</param>
+        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
+        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+
+        /// <summary>
+        /// Adds a render target to the render pass.
+        /// </summary>
+        /// <param name="location">The location of the render target.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The color format of the render target.</param>
+        /// <param name="clearValues">The fixed clear value for the render target.</param>
+        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
+        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+
+        /// <summary>
+        /// Adds a render target to the render pass, that maps to an input attachment of another render pass. The location is assigned incrementally.
+        /// </summary>
+        /// <param name="output">The input attachment mapping to map to.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The color format of the render target.</param>
+        /// <param name="clearValues">The fixed clear value for the render target.</param>
+        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
+        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+
+        /// <summary>
+        /// Adds a render target to the render pass, that maps to an input attachment of another render pass.
+        /// </summary>
+        /// <param name="output">The input attachment mapping to map to.</param>
+        /// <param name="location">The location of the render target.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The color format of the render target.</param>
+        /// <param name="clearValues">The fixed clear value for the render target.</param>
+        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
+        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) = 0;
+        
+        /// <summary>
+        /// Adds an input attachment to the render pass.
+        /// </summary>
+        /// <param name="inputAttachment">The input attachment to add.</param>
         virtual TDerived& inputAttachment(const TInputAttachmentMapping& inputAttachment) = 0;
+
+        /// <summary>
+        /// Adds an input attachment to the render pass.
+        /// </summary>
+        /// <param name="inputLocation">The location from which the input attachment gets accessed.</param>
+        /// <param name="renderPass">The render pass, the input attachment is created from.</param>
+        /// <param name="outputLocation">The location to which the input attachment is written by <paramref name="renderPass" />.</param>
         virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const UInt32& outputLocation) = 0;
+
+        /// <summary>
+        /// Adds an input attachment to the render pass.
+        /// </summary>
+        /// <param name="inputLocation">The location from which the input attachment gets accessed.</param>
+        /// <param name="renderPass">The render pass, the input attachment is created from.</param>
+        /// <param name="renderTarget">The render target that is bound as input attachment.</param>
         virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const RenderTarget& renderTarget) = 0;
     };
-
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

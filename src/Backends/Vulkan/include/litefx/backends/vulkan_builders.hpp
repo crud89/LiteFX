@@ -398,47 +398,82 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanComputePipelineBuilder& layout(SharedPtr<VulkanPipelineLayout> layout) override;
 	};
 
+	/// <summary>
+	/// Implements the Vulkan <see cref="RenderPassBuilder" />.
+	/// </summary>
+	/// <seealso cref="VulkanRenderPass" />
+	class LITEFX_VULKAN_API VulkanRenderPassBuilder : public RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass> {
+		LITEFX_IMPLEMENTATION(VulkanRenderPassBuilderImpl)
 
-	////
-	//// 
-	//// TODO: Refactor the following:
-	////
-	////
+	public:
+		/// <summary>
+		/// Initializes a Vulkan render pass builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+		/// <param name="name">A debug name for the render pass.</param>
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const String& name = "") noexcept;
 
+		/// <summary>
+		/// Initializes a Vulkan render pass builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+		/// <param name="samples">The multi-sampling level for the render targets.</param>
+		/// <param name="name">A debug name for the render pass.</param>
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
 
+		/// <summary>
+		/// Initializes a Vulkan render pass builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
+		/// <param name="name">A debug name for the render pass.</param>
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const String& name = "") noexcept;
 
-	///// <summary>
-	///// Implements the Vulkan <see cref="RenderPassBuilder" />.
-	///// </summary>
-	///// <seealso cref="VulkanRenderPass" />
-	//class LITEFX_VULKAN_API VulkanRenderPassBuilder : public RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass> {
-	//	LITEFX_IMPLEMENTATION(VulkanRenderPassBuilderImpl)
+		/// <summary>
+		/// Initializes a Vulkan render pass builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
+		/// <param name="multiSamplingLevel">The multi-sampling level for the render targets.</param>
+		/// <param name="name">A debug name for the render pass.</param>
+		explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel, const String& name = "") noexcept;
+		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
+		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
+		virtual ~VulkanRenderPassBuilder() noexcept;
 
-	//public:
-	//	explicit VulkanRenderPassBuilder(const VulkanDevice& device, const String& name = "") noexcept;
-	//	explicit VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
-	//	explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const String& name = "") noexcept;
-	//	explicit VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel, const String& name = "") noexcept;
-	//	VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
-	//	VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
-	//	virtual ~VulkanRenderPassBuilder() noexcept;
-	//public:
-	//	virtual void use(RenderTarget&& target) override;
-	//	virtual void use(VulkanInputAttachmentMapping&& inputAttachment) override;
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
 
-	//public:
-	//	virtual VulkanRenderPassBuilder& commandBuffers(const UInt32& count) override;
-	//	virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-	//	virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-	//	virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-	//	virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-	//	virtual VulkanRenderPassBuilder& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) override;
-	//	virtual VulkanRenderPassBuilder& inputAttachment(const VulkanInputAttachmentMapping& inputAttachment) override;
-	//	virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const UInt32& outputLocation) override;
-	//	virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
+		// RenderPassBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& commandBuffers(const UInt32& count) override;
 
-	//public:
-	//	[[nodiscard]] virtual UniquePtr<VulkanRenderPass> go() override;
-	//};
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& multiSamplingLevel(const MultiSamplingLevel& samples) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& inputAttachment(const VulkanInputAttachmentMapping& inputAttachment) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const UInt32& outputLocation) override;
+
+		/// <inheritdoc />
+		virtual VulkanRenderPassBuilder& inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
+	};
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)
