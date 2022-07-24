@@ -15,12 +15,12 @@ public:
 private:
     Dictionary<ShaderStage, VulkanPushConstantsRange*> m_ranges;
     Array<UniquePtr<VulkanPushConstantsRange>> m_rangePointers;
+    const VulkanPipelineLayout* m_pipelineLayout = nullptr;
     UInt32 m_size;
-    const VulkanPipelineLayout& m_pipelineLayout;
 
 public:
-    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, const VulkanPipelineLayout& pipelineLayout, const UInt32& size) :
-        base(parent), m_size(size), m_pipelineLayout(pipelineLayout)
+    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, const UInt32& size) :
+        base(parent), m_size(size)
     {
         // Align the size to 4 bytes.
         m_size = size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size;
@@ -48,22 +48,33 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPushConstantsLayout::VulkanPushConstantsLayout(const VulkanPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, pipelineLayout, size))
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size) :
+    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size))
 {
     m_impl->setRanges(std::move(ranges));
 }
 
-VulkanPushConstantsLayout::VulkanPushConstantsLayout(const VulkanPipelineLayout& pipelineLayout, const UInt32& size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, pipelineLayout, size))
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(const UInt32& size) :
+    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size))
 {
 }
 
 VulkanPushConstantsLayout::~VulkanPushConstantsLayout() noexcept = default;
 
-const VulkanPipelineLayout& VulkanPushConstantsLayout::pipelineLayout() const noexcept
+const VulkanPipelineLayout& VulkanPushConstantsLayout::pipelineLayout() const
 {
-    return m_impl->m_pipelineLayout;
+    if (m_impl->m_pipelineLayout != nullptr)
+        return *m_impl->m_pipelineLayout;
+    else [[unlikely]]
+        throw RuntimeException("The push constant layout has not yet been added to a pipeline layout.");
+}
+
+void VulkanPushConstantsLayout::pipelineLayout(const VulkanPipelineLayout& pipelineLayout)
+{
+    if (m_impl->m_pipelineLayout == nullptr)
+        m_impl->m_pipelineLayout = &pipelineLayout;
+    else [[unlikely]]   // Can only happen, if interface of pipeline layout changes in a way that the push constants layout is not passed as a UniquePtr rvalue anymore.
+        throw RuntimeException("The push constant layout has already been initialized from another pipeline layout.");
 }
 
 const UInt32& VulkanPushConstantsLayout::size() const noexcept
@@ -114,7 +125,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(*std::as_const(parent).instance(), size)))
+    m_impl(makePimpl<VulkanPushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(size)))
 {
 }
 

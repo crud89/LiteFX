@@ -404,12 +404,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a Vulkan descriptor set layout.
 		/// </summary>
-		/// <param name="layout">The parent pipeline layout the descriptor set is defined for.</param>
+		/// <param name="device">The parent device, the pipeline layout has been created from.</param>
 		/// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
 		/// <param name="space">The space or set id of the descriptor set.</param>
 		/// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
 		/// <param name="poolSize">The size of a descriptor pool.</param>
-		explicit VulkanDescriptorSetLayout(const VulkanPipelineLayout& layout, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize = 1024);
+		explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize = 1024);
 		VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) = delete;
 		VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
 		virtual ~VulkanDescriptorSetLayout() noexcept;
@@ -418,15 +418,15 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a Vulkan descriptor set layout.
 		/// </summary>
-		/// <param name="layout">The parent pipeline layout the descriptor set is defined for.</param>
-		explicit VulkanDescriptorSetLayout(const VulkanPipelineLayout& layout) noexcept;
+		/// <param name="device">The parent device, the pipeline layout has been created from.</param>
+		explicit VulkanDescriptorSetLayout(const VulkanDevice& device) noexcept;
 
 	public:
 		/// <summary>
-		/// Returns the parent pipeline layout.
+		/// Returns the device, the pipeline layout has been created from.
 		/// </summary>
-		/// <returns>A reference of the parent pipeline layout.</returns>
-		virtual const VulkanPipelineLayout& layout() const noexcept;
+		/// <returns>A reference of the device, the pipeline layout has been created from.</returns>
+		virtual const VulkanDevice& device() const noexcept;
 
 	public:
 		/// <inheritdoc />
@@ -547,15 +547,15 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_VULKAN_API VulkanPushConstantsLayout : public PushConstantsLayout<VulkanPushConstantsRange> {
 		LITEFX_IMPLEMENTATION(VulkanPushConstantsLayoutImpl);
 		LITEFX_BUILDER(VulkanPushConstantsLayoutBuilder);
+		friend class VulkanPipelineLayout;
 
 	public:
 		/// <summary>
 		/// Initializes a new push constants layout.
 		/// </summary>
-		/// <param name="pipelineLayout">The parent pipeline layout, the push constants are described for.</param>
 		/// <param name="ranges">The ranges contained by the layout.</param>
 		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
-		explicit VulkanPushConstantsLayout(const VulkanPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size);
+		explicit VulkanPushConstantsLayout(Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size);
 		VulkanPushConstantsLayout(const VulkanPushConstantsLayout&) = delete;
 		VulkanPushConstantsLayout(VulkanPushConstantsLayout&&) = delete;
 		virtual ~VulkanPushConstantsLayout() noexcept;
@@ -564,17 +564,23 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new push constants layout.
 		/// </summary>
-		/// <param name="pipelineLayout">The parent pipeline layout, the push constants are described for.</param>
 		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
-		explicit VulkanPushConstantsLayout(const VulkanPipelineLayout& pipelineLayout, const UInt32& size);
+		explicit VulkanPushConstantsLayout(const UInt32& size);
 
 	public:
 		/// <summary>
 		/// Returns the parent pipeline layout, the push constants are described for.
 		/// </summary>
 		/// <returns>A reference of the parent pipeline layout.</returns>
-		virtual const VulkanPipelineLayout& pipelineLayout() const noexcept;
+		virtual const VulkanPipelineLayout& pipelineLayout() const;
 
+	private:
+		/// <summary>
+		/// Sets the parent pipeline layout, the push constants are described for.
+		/// </summary>
+		/// <param name="pipelineLayout">The parent pipeline layout.</param>
+		virtual void pipelineLayout(const VulkanPipelineLayout& pipelineLayout);
+	
 	public:
 		/// <inheritdoc />
 		virtual const UInt32& size() const noexcept override;

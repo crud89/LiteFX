@@ -16,11 +16,10 @@ private:
     Dictionary<ShaderStage, DirectX12PushConstantsRange*> m_ranges;
     Array<UniquePtr<DirectX12PushConstantsRange>> m_rangePointers;
     UInt32 m_size;
-    const DirectX12PipelineLayout& m_pipelineLayout;
 
 public:
-    DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, const DirectX12PipelineLayout& pipelineLayout, const UInt32& size) :
-        base(parent), m_pipelineLayout(pipelineLayout), m_size(size)
+    DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, const UInt32& size) :
+        base(parent), m_size(size)
     {
         // Align the size to 4 bytes.
         m_size = size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size;
@@ -48,14 +47,14 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(const DirectX12PipelineLayout& parent, Array<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, parent, size))
+DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(Array<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size) :
+    m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
 {
     m_impl->setRanges(std::move(ranges));
 }
 
-DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(const DirectX12PipelineLayout& parent, const UInt32& size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, parent, size))
+DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(const UInt32& size) :
+    m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
 {
 }
 
@@ -118,7 +117,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(*std::as_const(parent).instance(), size)))
+    m_impl(makePimpl<DirectX12PushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(size)))
 {
 }
 

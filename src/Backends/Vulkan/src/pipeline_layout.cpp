@@ -31,6 +31,9 @@ public:
 public:
     VkPipelineLayout initialize()
     {
+        // Store the pipeline layout on the push constants.
+        m_pushConstantsLayout->pipelineLayout(*this->m_parent);
+
         // Query for the descriptor set layout handles.
         auto descriptorSetLayouts = m_descriptorSetLayouts |
             std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |

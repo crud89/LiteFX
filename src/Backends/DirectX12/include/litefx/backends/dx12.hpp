@@ -544,10 +544,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new push constants layout.
 		/// </summary>
-		/// <param name="parent">The parent pipeline layout.</param>
 		/// <param name="ranges">The ranges contained by the layout.</param>
 		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
-		explicit DirectX12PushConstantsLayout(const DirectX12PipelineLayout& parent, Array<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size);
+		explicit DirectX12PushConstantsLayout(Array<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size);
 		DirectX12PushConstantsLayout(const DirectX12PushConstantsLayout&) = delete;
 		DirectX12PushConstantsLayout(DirectX12PushConstantsLayout&&) = delete;
 		virtual ~DirectX12PushConstantsLayout() noexcept;
@@ -556,9 +555,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new push constants layout.
 		/// </summary>
-		/// <param name="parent">The parent pipeline layout.</param>
 		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
-		explicit DirectX12PushConstantsLayout(const DirectX12PipelineLayout& parent, const UInt32& size);
+		explicit DirectX12PushConstantsLayout(const UInt32& size);
 
 	public:
 		/// <inheritdoc />

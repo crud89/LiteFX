@@ -37,16 +37,16 @@ private:
     ShaderStage m_stages;
     UInt32 m_space, m_poolSize;
     mutable std::mutex m_mutex;
-    const VulkanPipelineLayout& m_layout;
+    const VulkanDevice& m_device;
 
 public:
-    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanPipelineLayout& layout, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-        base(parent), m_layout(layout), m_descriptorLayouts(std::move(descriptorLayouts)), m_space(space), m_stages(stages), m_poolSize(poolSize)
+    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
+        base(parent), m_device(device), m_descriptorLayouts(std::move(descriptorLayouts)), m_space(space), m_stages(stages), m_poolSize(poolSize)
     {
     }
 
-    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanPipelineLayout& layout) :
-        base(parent), m_layout(layout)
+    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device) :
+        base(parent), m_device(device)
     {
     }
 
@@ -118,7 +118,7 @@ public:
         descriptorSetLayoutInfo.pBindings = bindings.data();
 
         VkDescriptorSetLayout layout;
-        raiseIfFailed<RuntimeException>(::vkCreateDescriptorSetLayout(m_layout.device().handle(), &descriptorSetLayoutInfo, nullptr, &layout), "Unable to create descriptor set layout.");
+        raiseIfFailed<RuntimeException>(::vkCreateDescriptorSetLayout(m_device.handle(), &descriptorSetLayoutInfo, nullptr, &layout), "Unable to create descriptor set layout.");
 
         // Create the initial descriptor pool.
         this->addDescriptorPool();
@@ -142,7 +142,7 @@ public:
         poolInfo.maxSets = m_poolSize;
 
         VkDescriptorPool descriptorPool;
-        raiseIfFailed<RuntimeException>(::vkCreateDescriptorPool(m_layout.device().handle(), &poolInfo, nullptr, &descriptorPool), "Unable to create buffer pool.");
+        raiseIfFailed<RuntimeException>(::vkCreateDescriptorPool(m_device.handle(), &poolInfo, nullptr, &descriptorPool), "Unable to create buffer pool.");
         m_descriptorPools.push_back(descriptorPool);
     }
 
@@ -156,7 +156,7 @@ public:
 
         // Try to allocate a new descriptor set.
         VkDescriptorSet descriptorSet;
-        auto result = ::vkAllocateDescriptorSets(m_layout.device().handle(), &descriptorSetInfo, &descriptorSet);
+        auto result = ::vkAllocateDescriptorSets(m_device.handle(), &descriptorSetInfo, &descriptorSet);
 
         if (result == VK_SUCCESS)
             return descriptorSet;
@@ -173,27 +173,27 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanPipelineLayout& layout, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, layout, std::move(descriptorLayouts), space, stages, poolSize)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages, poolSize)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
 }
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanPipelineLayout& layout) noexcept :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, layout)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device) noexcept :
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
 }
 
 VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept
 {
     // Release descriptor pools and destroy the descriptor set layouts. Releasing the pools also frees the descriptor sets allocated from it.
-    std::ranges::for_each(m_impl->m_descriptorPools, [this](const VkDescriptorPool& pool) { ::vkDestroyDescriptorPool(m_impl->m_layout.device().handle(), pool, nullptr); });
-    ::vkDestroyDescriptorSetLayout(m_impl->m_layout.device().handle(), this->handle(), nullptr);
+    std::ranges::for_each(m_impl->m_descriptorPools, [this](const VkDescriptorPool& pool) { ::vkDestroyDescriptorPool(m_impl->m_device.handle(), pool, nullptr); });
+    ::vkDestroyDescriptorSetLayout(m_impl->m_device.handle(), this->handle(), nullptr);
 }
 
-const VulkanPipelineLayout& VulkanDescriptorSetLayout::layout() const noexcept
+const VulkanDevice& VulkanDescriptorSetLayout::device() const noexcept
 {
-    return m_impl->m_layout;
+    return m_impl->m_device;
 }
 
 Array<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::descriptors() const noexcept
@@ -315,7 +315,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(*std::as_const(parent).instance())))
+    m_impl(makePimpl<VulkanDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(std::as_const(parent).instance()->device())))
 {
 }
 
