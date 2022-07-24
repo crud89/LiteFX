@@ -316,127 +316,85 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12PushConstantsLayoutBuilder pushConstants(const UInt32& size);
 	};
 
-	///// <summary>
-	///// Builds a DirectX 12 <see cref="RenderPipeline" />.
-	///// </summary>
-	///// <seealso cref="DirectX12RenderPipeline" />
-	//class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline> {
-	//	LITEFX_IMPLEMENTATION(DirectX12RenderPipelineBuilderImpl);
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="RenderPipeline" />.
+	/// </summary>
+	/// <seealso cref="DirectX12RenderPipeline" />
+	class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline> {
+		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineBuilderImpl);
 
-	//public:
-	//	/// <summary>
-	//	/// Initializes a DirectX 12 render pipeline builder.
-	//	/// </summary>
-	//	/// <param name="renderPass">The parent render pass</param>
-	//	/// <param name="id">A unique identifier for the render pipeline.</param>
-	//	/// <param name="name">A debug name for the render pipeline.</param>
-	//	explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name = "");
-	//	DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
-	//	DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
-	//	virtual ~DirectX12RenderPipelineBuilder() noexcept;
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 render pipeline builder.
+		/// </summary>
+		/// <param name="renderPass">The parent render pass</param>
+		/// <param name="id">A unique identifier for the render pipeline.</param>
+		/// <param name="name">A debug name for the render pipeline.</param>
+		explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name = "");
+		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
+		DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
+		virtual ~DirectX12RenderPipelineBuilder() noexcept;
 
-	//	// Builder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual UniquePtr<DirectX12RenderPipeline> go() override;
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
 
-	//	// RenderPipelineBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<DirectX12PipelineLayout>&& layout) override;
+		// RenderPipelineBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& shaderProgram(SharedPtr<DirectX12ShaderProgram> shaderProgram) override;
 
-	//	/// <inheritdoc />
-	//	virtual void use(SharedPtr<IRasterizer> rasterizer) override;
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& layout(SharedPtr<DirectX12PipelineLayout> layout) override;
 
-	//	/// <inheritdoc />
-	//	virtual void use(SharedPtr<DirectX12InputAssembler> inputAssembler) override;
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& rasterizer(SharedPtr<IRasterizer> rasterizer) override;
 
-	//	/// <inheritdoc />
-	//	virtual void use(SharedPtr<IViewport> viewport) override;
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& inputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler) override;
 
-	//	/// <inheritdoc />
-	//	virtual void use(SharedPtr<IScissor> scissor) override;
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& viewport(SharedPtr<IViewport> viewport) override;
 
-	//	/// <inheritdoc />
-	//	virtual DirectX12RenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& scissor(SharedPtr<IScissor> scissor) override;
 
-	//	// DirectX12RenderPipelineBuilder.
-	//public:
-	//	/// <summary>
-	//	/// Builds a <see cref="DirectX12PipelineLayout" /> for the render pipeline.
-	//	/// </summary>
-	//	virtual DirectX12RenderPipelineLayoutBuilder layout();
+		/// <inheritdoc />
+		virtual DirectX12RenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
+	};
 
-	//	/// <summary>
-	//	/// Builds a <see cref="DirectX12Rasterizer" /> for the render pipeline.
-	//	/// </summary>
-	//	virtual DirectX12RasterizerBuilder rasterizer();
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="ComputePipeline" />.
+	/// </summary>
+	/// <seealso cref="DirectX12ComputePipeline" />
+	class LITEFX_DIRECTX12_API DirectX12ComputePipelineBuilder : public ComputePipelineBuilder<DirectX12ComputePipelineBuilder, DirectX12ComputePipeline> {
+		LITEFX_IMPLEMENTATION(DirectX12ComputePipelineBuilderImpl);
 
-	//	/// <summary>
-	//	/// Builds a <see cref="DirectX12InputAssembler" /> for the render pipeline.
-	//	/// </summary>
-	//	virtual DirectX12InputAssemblerBuilder inputAssembler();
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 compute pipeline builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+		/// <param name="name">A debug name for the compute pipeline.</param>
+		explicit DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name = "");
+		DirectX12ComputePipelineBuilder(DirectX12ComputePipelineBuilder&&) = delete;
+		DirectX12ComputePipelineBuilder(const DirectX12ComputePipelineBuilder&) = delete;
+		virtual ~DirectX12ComputePipelineBuilder() noexcept;
 
-	//	/// <summary>
-	//	/// Uses the provided rasterizer state for the render pipeline.
-	//	/// </summary>
-	//	/// <param name="rasterizer">The rasterizer state used by the render pipeline.</param>
-	//	virtual DirectX12RenderPipelineBuilder& withRasterizer(SharedPtr<IRasterizer> rasterizer);
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
 
-	//	/// <summary>
-	//	/// Uses the provided input assembler state for the render pipeline.
-	//	/// </summary>
-	//	/// <param name="inputAssembler">The input assembler state used by the render pipeline.</param>
-	//	virtual DirectX12RenderPipelineBuilder& withInputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler);
+		// ComputePipelineBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12ComputePipelineBuilder& shaderProgram(SharedPtr<DirectX12ShaderProgram> program) override;
 
-	//	/// <summary>
-	//	/// Adds the provided viewport to the render pipeline.
-	//	/// </summary>
-	//	/// <param name="viewport">The viewport to add to the render pipeline.</param>
-	//	virtual DirectX12RenderPipelineBuilder& withViewport(SharedPtr<IViewport> viewport);
-
-	//	/// <summary>
-	//	/// Adds the provided scissor to the render pipeline.
-	//	/// </summary>
-	//	/// <param name="scissor">The scissor to add to the render pipeline.</param>
-	//	virtual DirectX12RenderPipelineBuilder& withScissor(SharedPtr<IScissor> scissor);
-	//};
-
-	///// <summary>
-	///// Builds a DirectX 12 <see cref="ComputePipeline" />.
-	///// </summary>
-	///// <seealso cref="DirectX12ComputePipeline" />
-	//class LITEFX_DIRECTX12_API DirectX12ComputePipelineBuilder : public ComputePipelineBuilder<DirectX12ComputePipelineBuilder, DirectX12ComputePipeline> {
-	//	LITEFX_IMPLEMENTATION(DirectX12ComputePipelineBuilderImpl);
-
-	//public:
-	//	/// <summary>
-	//	/// Initializes a DirectX 12 compute pipeline builder.
-	//	/// </summary>
-	//	/// <param name="device">The parent device</param>
-	//	/// <param name="name">A debug name for the compute pipeline.</param>
-	//	explicit DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name = "");
-	//	DirectX12ComputePipelineBuilder(DirectX12ComputePipelineBuilder&&) = delete;
-	//	DirectX12ComputePipelineBuilder(const DirectX12ComputePipelineBuilder&) = delete;
-	//	virtual ~DirectX12ComputePipelineBuilder() noexcept;
-
-	//	// Builder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual UniquePtr<DirectX12ComputePipeline> go() override;
-
-	//	// ComputePipelineBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<DirectX12PipelineLayout>&& layout) override;
-
-	//	// DirectX12ComputePipelineBuilder.
-	//public:
-	//	/// <summary>
-	//	/// Builds a <see cref="DirectX12PipelineLayout" /> for the compute pipeline.
-	//	/// </summary>
-	//	virtual DirectX12ComputePipelineLayoutBuilder layout();
-	//};
+		/// <inheritdoc />
+		virtual DirectX12ComputePipelineBuilder& layout(SharedPtr<DirectX12PipelineLayout> layout) override;
+	};
 
 	///// <summary>
 	///// Implements the DirectX 12 <see cref="RenderPassBuilder" />.

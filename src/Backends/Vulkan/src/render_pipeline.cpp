@@ -347,7 +347,6 @@ void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, const 
 
 class VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilderImpl : public Implement<VulkanRenderPipelineBuilder> {
 public:
-	friend class VulkanRenderPipelineBuilderBuilder;
 	friend class VulkanRenderPipelineBuilder;
 
 private:

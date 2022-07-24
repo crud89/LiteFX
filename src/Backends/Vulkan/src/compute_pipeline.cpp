@@ -111,7 +111,6 @@ void VulkanComputePipeline::bind(const VulkanCommandBuffer& commandBuffer, const
 
 class VulkanComputePipelineBuilder::VulkanComputePipelineBuilderImpl : public Implement<VulkanComputePipelineBuilder> {
 public:
-	friend class VulkanComputePipelineBuilderBuilder;
 	friend class VulkanComputePipelineBuilder;
 
 private:
