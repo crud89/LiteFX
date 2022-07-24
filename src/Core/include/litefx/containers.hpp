@@ -428,6 +428,7 @@ namespace LiteFX {
 	/// <typeparam name="TDerived">The concrete implementation of the builder itself.</typeparam>
 	/// <typeparam name="T">The type of the object the builder builds.</typeparam>
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
+	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Builders" />
 	template <typename TDerived, typename T, typename TPointer>
 	class Builder<TDerived, T, std::nullptr_t, typename TPointer> {
 	private:
@@ -511,6 +512,7 @@ namespace LiteFX {
 	/// <typeparam name="TDerived">The concrete implementation of the builder itself.</typeparam>
 	/// <typeparam name="T">The type of the object the builder builds.</typeparam>
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
+	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Builders" />
 	template <typename TDerived, typename T, typename TParent, typename TPointer>
 	class Builder {
 	private:
