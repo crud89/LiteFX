@@ -1451,29 +1451,31 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference of the swap chain.</returns>
 		virtual VulkanSwapChain& swapChain() noexcept;
 
+#if defined(BUILD_DEFINE_BUILDERS)
 	public:
-		///// <summary>
-		///// Returns a builder for a <see cref="VulkanRenderPass" />.
-		///// </summary>
-		///// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-		///// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
-		///// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		//[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
+		/// <summary>
+		/// Returns a builder for a <see cref="VulkanRenderPass" />.
+		/// </summary>
+		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
 
-		///// <summary>
-		///// Returns a builder for a <see cref="VulkanRenderPass" />.
-		///// </summary>
-		///// <param name="name">The name of the render pass.</param>
-		///// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-		///// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
-		///// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		//[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
+		/// <summary>
+		/// Returns a builder for a <see cref="VulkanRenderPass" />.
+		/// </summary>
+		/// <param name="name">The name of the render pass.</param>
+		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
+		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
 
-		///// <summary>
-		///// Returns a builder for a <see cref="VulkanComputePipelineBuilder" />.
-		///// </summary>
-		///// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
-		//[[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline() const;
+		/// <summary>
+		/// Returns a builder for a <see cref="VulkanComputePipelineBuilder" />.
+		/// </summary>
+		/// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
+		[[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline() const;
+#endif // defined(BUILD_DEFINE_BUILDERS)
 
 		// GraphicsDevice interface.
 	public:

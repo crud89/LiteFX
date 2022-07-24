@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include <litefx/backends/dx12_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -337,20 +338,22 @@ DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 	return *m_impl->m_blitPipeline;
 }
 
-//DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
-//{
-//	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
-//}
-//
-//DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
-//{
-//	return DirectX12RenderPassBuilder(*this, commandBuffers, samples, name);
-//}
-//
-//DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline() const
-//{
-//	return DirectX12ComputePipelineBuilder(*this);
-//}
+#if defined(BUILD_DEFINE_BUILDERS)
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+{
+	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
+}
+
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+{
+	return DirectX12RenderPassBuilder(*this, commandBuffers, samples, name);
+}
+
+DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline() const
+{
+	return DirectX12ComputePipelineBuilder(*this);
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)
 
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept
 {

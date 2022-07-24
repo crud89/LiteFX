@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -302,20 +303,22 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 	return *m_impl->m_swapChain;
 }
 
-//VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
-//{
-//	return VulkanRenderPassBuilder(*this, commandBuffers, samples);
-//}
-//
-//VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
-//{
-//	return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
-//}
-//
-//VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const
-//{
-//	return VulkanComputePipelineBuilder(*this);
-//}
+#if defined(BUILD_DEFINE_BUILDERS)
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+{
+	return VulkanRenderPassBuilder(*this, commandBuffers, samples);
+}
+
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+{
+	return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
+}
+
+VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const
+{
+	return VulkanComputePipelineBuilder(*this);
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)
 
 DeviceState& VulkanDevice::state() const noexcept
 {
