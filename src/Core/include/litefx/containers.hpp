@@ -393,7 +393,6 @@ namespace LiteFX {
 		const THandle& handle() const noexcept override { return m_handle; }
 	};
 
-#if defined(BUILD_DEFINE_BUILDERS)
 	/// <summary>
 	/// Describes an generic builder type.
 	/// </summary>
@@ -597,16 +596,11 @@ namespace LiteFX {
 			return this->add();
 		}
 	};
-#endif // defined(BUILD_DEFINE_BUILDERS)
 
 #if !defined(LITEFX_BUILDER)
-#  if defined(BUILD_DEFINE_BUILDERS)
 #    define LITEFX_BUILDER(BuilderType) public: \
 		/*using builder = BuilderType;*/ \
 		friend class BuilderType;
-#  else
-#    define LITEFX_BUILDER(BuilderType)
-#  endif // defined(BUILD_DEFINE_BUILDERS)
 #endif // !defined(LITEFX_BUILDER)
 
 }

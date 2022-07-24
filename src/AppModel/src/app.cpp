@@ -141,20 +141,16 @@ void App::resize(int width, int height)
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
-#if defined(BUILD_DEFINE_BUILDERS)
 
 void AppBuilder::use(UniquePtr<IBackend>&& backend)
 {
 	this->instance()->use(std::move(backend));
 }
 
-UniquePtr<App> AppBuilder::go()
+void AppBuilder::build()
 {
 	Logger::get(this->instance()->name()).info("Starting app (Version {1}) on platform {0}...", this->instance()->platform(), this->instance()->version());
 	Logger::get(this->instance()->name()).debug("Using engine: {0:e}.", this->instance()->version());
 
 	this->instance()->initialize();
-	return builder_type::go();
 }
-
-#endif //defined(BUILD_DEFINE_BUILDERS)

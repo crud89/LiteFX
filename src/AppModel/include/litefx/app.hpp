@@ -153,14 +153,13 @@ namespace LiteFX {
 		}
 	};
 
-#if defined(BUILD_DEFINE_BUILDERS)
 	class LITEFX_APPMODEL_API AppBuilder : public Builder<AppBuilder, App> {
 	public:
 		using builder_type::Builder;
 
 	public:
 		void use(UniquePtr<IBackend>&& backend);
-		virtual UniquePtr<App> go() override;
+		virtual void build() override;
 
 		template <typename TSink, typename ...TArgs> requires
 			std::convertible_to<TSink*, ISink*>
@@ -177,7 +176,6 @@ namespace LiteFX {
 			return *this;
 		}
 	};
-#endif // defined(BUILD_DEFINE_BUILDERS)
 
 	class LITEFX_APPMODEL_API AppVersion {
 		LITEFX_IMPLEMENTATION(AppVersionImpl);
