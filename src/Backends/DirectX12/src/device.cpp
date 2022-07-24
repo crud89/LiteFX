@@ -168,43 +168,29 @@ public:
 
 	void createBlitPipeline()
 	{
-		throw;
-
 		try
 		{
-			//// Allocate shader module.
-			//Array<UniquePtr<DirectX12ShaderModule>> modules {
-			//	std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, "shaders/blit.dxi", "main"))
-			//};
-			//auto shaderProgram = makeShared<DirectX12ShaderProgram>(std::move(modules));
+			// Allocate shader module.
+			Array<UniquePtr<DirectX12ShaderModule>> modules;
+			modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, "shaders/blit.dxi", "main")));
+			auto shaderProgram = makeShared<DirectX12ShaderProgram>(std::move(modules));
 
-			//// Allocate descriptor set layouts.
-			//UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
-			//Array<UniquePtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts {
-
-			//};
+			// Allocate descriptor set layouts.
+			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
+			Array<UniquePtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts;
+			Array<UniquePtr<DirectX12DescriptorLayout>> bufferLayouts, samplerLayouts;
+			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Uniform, 0, 16));
+			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0));
+			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::WritableTexture, 2, 0));
+			samplerLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0));
+			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute));
+			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute));
 			
-			// TODO: Resolve circular dependency between descriptor set layout and pipeline layout (descriptor set layouts should not depend on pipeline layout)
-			//Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts
+			// Create a pipeline layout.
+			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(*m_parent, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
 
-			// Create compute pipeline.
-			//m_blitPipeline = makeUnique<ComputePipeline>()
-
-			//m_blitPipeline = m_parent->buildComputePipeline()
-			//	.layout()
-			//		.shaderProgram()
-			//			.addComputeShaderModule("shaders/blit.dxi")
-			//			.go()
-			//		.addDescriptorSet(0)
-			//			.addUniform(0, 16, 1)
-			//			.addImage(1)
-			//			.addImage(2, 1, true)
-			//			.go()
-			//		.addDescriptorSet(1)
-			//			.addSampler(0)
-			//			.go()
-			//		.go()
-			//	.go();
+			// Create the pipeline.
+			m_blitPipeline = makeUnique<DirectX12ComputePipeline>(*m_parent, pipelineLayout, shaderProgram, "Blit");
 		}
 		catch (Exception& ex)
 		{

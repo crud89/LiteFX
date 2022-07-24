@@ -16,8 +16,13 @@ private:
     Array<UniquePtr<DirectX12ShaderModule>> m_modules;
 
 public:
-    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent) : 
-        base(parent) 
+    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, Array<UniquePtr<DirectX12ShaderModule>>&& modules) :
+        base(parent), m_modules(std::move(modules))
+    {
+    }
+
+    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent) :
+        base(parent)
     {
     }
 };
@@ -25,6 +30,11 @@ public:
 // ------------------------------------------------------------------------------------------------
 // Interface.
 // ------------------------------------------------------------------------------------------------
+
+DirectX12ShaderProgram::DirectX12ShaderProgram(Array<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept :
+    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this, std::move(modules)))
+{
+}
 
 DirectX12ShaderProgram::DirectX12ShaderProgram() noexcept :
     m_impl(makePimpl<DirectX12ShaderProgramImpl>(this))

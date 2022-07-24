@@ -301,7 +301,7 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new DirectX 12 shader program.
 		/// </summary>
 		/// <param name="modules">The shader modules used by the shader program.</param>
-		explicit DirectX12ShaderProgram(Array<UniquePtr<DirectX12ShaderModule>>&& modules);
+		explicit DirectX12ShaderProgram(Array<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept;
 		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
 		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
 		virtual ~DirectX12ShaderProgram() noexcept;
