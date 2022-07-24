@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include <litefx/backends/dx12_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -62,19 +63,19 @@ Array<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const no
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12VertexBufferLayoutBuilder& DirectX12VertexBufferLayoutBuilder::addAttribute(UniquePtr<BufferAttribute>&& attribute)
+DirectX12VertexBufferLayoutBuilder& DirectX12VertexBufferLayoutBuilder::withAttribute(UniquePtr<BufferAttribute>&& attribute)
 {
     this->instance()->m_impl->m_attributes.push_back(std::move(attribute));
     return *this;
 }
 
-DirectX12VertexBufferLayoutBuilder& DirectX12VertexBufferLayoutBuilder::addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
+DirectX12VertexBufferLayoutBuilder& DirectX12VertexBufferLayoutBuilder::withAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
 {
-    return this->addAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->attributes().size()), offset, format, semantic, semanticIndex)));
+    return this->withAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->attributes().size()), offset, format, semantic, semanticIndex)));
 }
 
-DirectX12VertexBufferLayoutBuilder& DirectX12VertexBufferLayoutBuilder::addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
+DirectX12VertexBufferLayoutBuilder& DirectX12VertexBufferLayoutBuilder::withAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
 {
-    return this->addAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
+    return this->withAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

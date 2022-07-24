@@ -102,59 +102,59 @@ void DirectX12ComputePipeline::use(const DirectX12CommandBuffer& commandBuffer) 
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
-// ------------------------------------------------------------------------------------------------
-// Builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilderImpl : public Implement<DirectX12ComputePipelineBuilder> {
-public:
-	friend class DirectX12ComputePipelineBuilderBuilder;
-	friend class DirectX12ComputePipelineBuilder;
-
-private:
-	UniquePtr<DirectX12PipelineLayout> m_layout;
-
-public:
-	DirectX12ComputePipelineBuilderImpl(DirectX12ComputePipelineBuilder* parent) :
-		base(parent)
-	{
-	}
-};
-
-// ------------------------------------------------------------------------------------------------
-// Builder interface.
-// ------------------------------------------------------------------------------------------------
-
-DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name) :
-	m_impl(makePimpl<DirectX12ComputePipelineBuilderImpl>(this)), ComputePipelineBuilder(UniquePtr<DirectX12ComputePipeline>(new DirectX12ComputePipeline(device)))
-{
-	this->instance()->m_impl->m_name = name;
-}
-
-DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = default;
-
-UniquePtr<DirectX12ComputePipeline> DirectX12ComputePipelineBuilder::go()
-{
-	auto instance = this->instance();
-	instance->m_impl->m_layout = std::move(m_impl->m_layout);
-	instance->handle() = instance->m_impl->initialize();
-
-	return ComputePipelineBuilder::go();
-}
-
-void DirectX12ComputePipelineBuilder::use(UniquePtr<DirectX12PipelineLayout>&& layout)
-{
-#ifndef NDEBUG
-	if (m_impl->m_layout != nullptr)
-		LITEFX_WARNING(DIRECTX12_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
-#endif
-
-	m_impl->m_layout = std::move(layout);
-}
-
-
-DirectX12ComputePipelineLayoutBuilder DirectX12ComputePipelineBuilder::layout()
-{
-	return DirectX12ComputePipelineLayoutBuilder(*this);
-}
+//// ------------------------------------------------------------------------------------------------
+//// Builder implementation.
+//// ------------------------------------------------------------------------------------------------
+//
+//class DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilderImpl : public Implement<DirectX12ComputePipelineBuilder> {
+//public:
+//	friend class DirectX12ComputePipelineBuilderBuilder;
+//	friend class DirectX12ComputePipelineBuilder;
+//
+//private:
+//	UniquePtr<DirectX12PipelineLayout> m_layout;
+//
+//public:
+//	DirectX12ComputePipelineBuilderImpl(DirectX12ComputePipelineBuilder* parent) :
+//		base(parent)
+//	{
+//	}
+//};
+//
+//// ------------------------------------------------------------------------------------------------
+//// Builder interface.
+//// ------------------------------------------------------------------------------------------------
+//
+//DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name) :
+//	m_impl(makePimpl<DirectX12ComputePipelineBuilderImpl>(this)), ComputePipelineBuilder(UniquePtr<DirectX12ComputePipeline>(new DirectX12ComputePipeline(device)))
+//{
+//	this->instance()->m_impl->m_name = name;
+//}
+//
+//DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = default;
+//
+//UniquePtr<DirectX12ComputePipeline> DirectX12ComputePipelineBuilder::go()
+//{
+//	auto instance = this->instance();
+//	instance->m_impl->m_layout = std::move(m_impl->m_layout);
+//	instance->handle() = instance->m_impl->initialize();
+//
+//	return ComputePipelineBuilder::go();
+//}
+//
+//void DirectX12ComputePipelineBuilder::use(UniquePtr<DirectX12PipelineLayout>&& layout)
+//{
+//#ifndef NDEBUG
+//	if (m_impl->m_layout != nullptr)
+//		LITEFX_WARNING(DIRECTX12_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
+//#endif
+//
+//	m_impl->m_layout = std::move(layout);
+//}
+//
+//
+//DirectX12ComputePipelineLayoutBuilder DirectX12ComputePipelineBuilder::layout()
+//{
+//	return DirectX12ComputePipelineLayoutBuilder(*this);
+//}
 #endif // defined(BUILD_DEFINE_BUILDERS)

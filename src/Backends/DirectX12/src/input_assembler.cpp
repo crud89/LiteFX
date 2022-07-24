@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include <litefx/backends/dx12_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -111,28 +112,16 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept :
-    m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder>(parent, SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler(*std::as_const(parent).instance()->getDevice())))
+DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexcept :
+    m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler>(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler()))
 {
 }
 
 DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = default;
 
-DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::addVertexBuffer(const size_t& elementSize, const UInt32& binding)
+void DirectX12InputAssemblerBuilder::build()
 {
-    return DirectX12VertexBufferLayoutBuilder(*this, makeUnique<DirectX12VertexBufferLayout>(*this->instance(), elementSize, binding));
-}
-
-DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::withIndexType(const IndexType& type)
-{
-    this->use(makeUnique<DirectX12IndexBufferLayout>(*this->instance(), type));
-    return *this;
-}
-
-DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::withTopology(const PrimitiveTopology& topology)
-{
-    m_impl->m_primitiveTopology = topology;
-    return *this;
+    this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
 }
 
 void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12VertexBufferLayout>&& layout)
@@ -145,9 +134,20 @@ void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12IndexBufferLayout>&&
     m_impl->m_indexBufferLayout = std::move(layout);
 }
 
-DirectX12RenderPipelineBuilder& DirectX12InputAssemblerBuilder::go()
+DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::topology(const PrimitiveTopology& topology)
 {
-    this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
-    return InputAssemblerBuilder::go();
+    m_impl->m_primitiveTopology = topology;
+    return *this;
+}
+
+DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(const size_t& elementSize, const UInt32& binding)
+{
+    return DirectX12VertexBufferLayoutBuilder(*this, makeUnique<DirectX12VertexBufferLayout>(elementSize, binding));
+}
+
+DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::indexType(const IndexType& type)
+{
+    this->use(makeUnique<DirectX12IndexBufferLayout>(type));
+    return *this;
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

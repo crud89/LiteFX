@@ -368,139 +368,139 @@ void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descri
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
-// ------------------------------------------------------------------------------------------------
-// Builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12RenderPassBuilder::DirectX12RenderPassBuilderImpl : public Implement<DirectX12RenderPassBuilder> {
-public:
-    friend class DirectX12RenderPassBuilder;
-    friend class DirectX12RenderPass;
-
-private:
-    Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
-    Array<DirectX12InputAttachmentMapping> m_inputAttachments;
-    Array<RenderTarget> m_renderTargets;
-    MultiSamplingLevel m_multiSamplingLevel;
-    UInt32 m_commandBuffers;
-
-public:
-    DirectX12RenderPassBuilderImpl(DirectX12RenderPassBuilder* parent, const UInt32& commandBuffers, const MultiSamplingLevel& samples) :
-        base(parent), m_multiSamplingLevel(samples), m_commandBuffers(commandBuffers)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
-// Builder shared interface.
-// ------------------------------------------------------------------------------------------------
-
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
-    DirectX12RenderPassBuilder(device, 1, MultiSamplingLevel::x1, name)
-{
-}
-
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& samples, const String& name) noexcept :
-    DirectX12RenderPassBuilder(device, 1, samples, name)
-{
-}
-
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const String& name) noexcept :
-    DirectX12RenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1, name)
-{
-}
-
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples, const String& name) noexcept :
-    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this, commandBuffers, samples)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
-{
-}
-
-DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
-
-UniquePtr<DirectX12RenderPass> DirectX12RenderPassBuilder::go()
-{
-    auto instance = this->instance();
-    instance->m_impl->mapRenderTargets(m_impl->m_renderTargets);
-    instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
-    instance->m_impl->m_multiSamplingLevel = std::move(m_impl->m_multiSamplingLevel);
-
-    // Initialize the frame buffers.
-    instance->m_impl->m_frameBuffers.resize(instance->getDevice()->swapChain().buffers());
-    instance->m_impl->m_contexts.resize(instance->getDevice()->swapChain().buffers());
-    std::ranges::generate(instance->m_impl->m_frameBuffers, [this, &instance, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*instance, i++, instance->parent().swapChain().renderArea(), m_impl->m_commandBuffers); });
-
-    // Initialize the command buffers.
-    instance->m_impl->m_beginCommandBuffer = instance->getDevice()->graphicsQueue().createCommandBuffer(false);
-    instance->m_impl->m_endCommandBuffer   = instance->getDevice()->graphicsQueue().createCommandBuffer(false);
-
-    return RenderPassBuilder::go();
-}
-
-void DirectX12RenderPassBuilder::use(RenderTarget&& target)
-{
-    m_impl->m_renderTargets.push_back(std::move(target));
-}
-
-void DirectX12RenderPassBuilder::use(DirectX12InputAttachmentMapping&& attachment)
-{
-    m_impl->m_inputAttachments.push_back(std::move(attachment));
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::commandBuffers(const UInt32& count)
-{
-    m_impl->m_commandBuffers = count;
-    return *this;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
-    //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile));
-    return *this;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
-    //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile);
-    output = std::move(DirectX12InputAttachmentMapping(*this->instance(), renderTarget, location));
-    m_impl->m_renderTargets.push_back(renderTarget);
-    return *this;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::setMultiSamplingLevel(const MultiSamplingLevel& samples)
-{
-    m_impl->m_multiSamplingLevel = samples;
-    return *this;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const DirectX12InputAttachmentMapping& inputAttachment)
-{
-    m_impl->m_inputAttachments.push_back(inputAttachment);
-    return *this;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const UInt32& outputLocation)
-{
-    m_impl->m_inputAttachments.push_back(DirectX12InputAttachmentMapping(renderPass, renderPass.renderTarget(outputLocation), inputLocation));
-    return *this;
-}
-
-DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
-{
-    m_impl->m_inputAttachments.push_back(DirectX12InputAttachmentMapping(renderPass, renderTarget, inputLocation));
-    return *this;
-}
+//// ------------------------------------------------------------------------------------------------
+//// Builder implementation.
+//// ------------------------------------------------------------------------------------------------
+//
+//class DirectX12RenderPassBuilder::DirectX12RenderPassBuilderImpl : public Implement<DirectX12RenderPassBuilder> {
+//public:
+//    friend class DirectX12RenderPassBuilder;
+//    friend class DirectX12RenderPass;
+//
+//private:
+//    Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
+//    Array<DirectX12InputAttachmentMapping> m_inputAttachments;
+//    Array<RenderTarget> m_renderTargets;
+//    MultiSamplingLevel m_multiSamplingLevel;
+//    UInt32 m_commandBuffers;
+//
+//public:
+//    DirectX12RenderPassBuilderImpl(DirectX12RenderPassBuilder* parent, const UInt32& commandBuffers, const MultiSamplingLevel& samples) :
+//        base(parent), m_multiSamplingLevel(samples), m_commandBuffers(commandBuffers)
+//    {
+//    }
+//};
+//
+//// ------------------------------------------------------------------------------------------------
+//// Builder shared interface.
+//// ------------------------------------------------------------------------------------------------
+//
+//DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
+//    DirectX12RenderPassBuilder(device, 1, MultiSamplingLevel::x1, name)
+//{
+//}
+//
+//DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& samples, const String& name) noexcept :
+//    DirectX12RenderPassBuilder(device, 1, samples, name)
+//{
+//}
+//
+//DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const String& name) noexcept :
+//    DirectX12RenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1, name)
+//{
+//}
+//
+//DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples, const String& name) noexcept :
+//    m_impl(makePimpl<DirectX12RenderPassBuilderImpl>(this, commandBuffers, samples)), RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass>(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
+//{
+//}
+//
+//DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
+//
+//UniquePtr<DirectX12RenderPass> DirectX12RenderPassBuilder::go()
+//{
+//    auto instance = this->instance();
+//    instance->m_impl->mapRenderTargets(m_impl->m_renderTargets);
+//    instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
+//    instance->m_impl->m_multiSamplingLevel = std::move(m_impl->m_multiSamplingLevel);
+//
+//    // Initialize the frame buffers.
+//    instance->m_impl->m_frameBuffers.resize(instance->getDevice()->swapChain().buffers());
+//    instance->m_impl->m_contexts.resize(instance->getDevice()->swapChain().buffers());
+//    std::ranges::generate(instance->m_impl->m_frameBuffers, [this, &instance, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*instance, i++, instance->parent().swapChain().renderArea(), m_impl->m_commandBuffers); });
+//
+//    // Initialize the command buffers.
+//    instance->m_impl->m_beginCommandBuffer = instance->getDevice()->graphicsQueue().createCommandBuffer(false);
+//    instance->m_impl->m_endCommandBuffer   = instance->getDevice()->graphicsQueue().createCommandBuffer(false);
+//
+//    return RenderPassBuilder::go();
+//}
+//
+//void DirectX12RenderPassBuilder::use(RenderTarget&& target)
+//{
+//    m_impl->m_renderTargets.push_back(std::move(target));
+//}
+//
+//void DirectX12RenderPassBuilder::use(DirectX12InputAttachmentMapping&& attachment)
+//{
+//    m_impl->m_inputAttachments.push_back(std::move(attachment));
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::commandBuffers(const UInt32& count)
+//{
+//    m_impl->m_commandBuffers = count;
+//    return *this;
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+//{
+//    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
+//    //       until the render pass is initialized, so we silently ignore this for now.
+//    return this->renderTarget(static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+//{
+//    m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile));
+//    return *this;
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+//{
+//    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
+//    //       until the render pass is initialized, so we silently ignore this for now.
+//    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+//{
+//    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile);
+//    output = std::move(DirectX12InputAttachmentMapping(*this->instance(), renderTarget, location));
+//    m_impl->m_renderTargets.push_back(renderTarget);
+//    return *this;
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::setMultiSamplingLevel(const MultiSamplingLevel& samples)
+//{
+//    m_impl->m_multiSamplingLevel = samples;
+//    return *this;
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const DirectX12InputAttachmentMapping& inputAttachment)
+//{
+//    m_impl->m_inputAttachments.push_back(inputAttachment);
+//    return *this;
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const UInt32& outputLocation)
+//{
+//    m_impl->m_inputAttachments.push_back(DirectX12InputAttachmentMapping(renderPass, renderPass.renderTarget(outputLocation), inputLocation));
+//    return *this;
+//}
+//
+//DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
+//{
+//    m_impl->m_inputAttachments.push_back(DirectX12InputAttachmentMapping(renderPass, renderTarget, inputLocation));
+//    return *this;
+//}
 #endif // defined(BUILD_DEFINE_BUILDERS)

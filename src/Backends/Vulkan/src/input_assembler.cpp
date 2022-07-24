@@ -125,17 +125,6 @@ void VulkanInputAssemblerBuilder::build()
     this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
 }
 
-VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(const size_t& elementSize, const UInt32& binding)
-{
-    return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding));
-}
-
-VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::indexType(const IndexType& type)
-{
-    this->use(makeUnique<VulkanIndexBufferLayout>(type));
-    return *this;
-}
-
 VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::topology(const PrimitiveTopology& topology)
 {
     m_impl->m_primitiveTopology = topology;
@@ -150,5 +139,16 @@ void VulkanInputAssemblerBuilder::use(UniquePtr<VulkanVertexBufferLayout>&& layo
 void VulkanInputAssemblerBuilder::use(UniquePtr<VulkanIndexBufferLayout>&& layout)
 {
     m_impl->m_indexBufferLayout = std::move(layout);
+}
+
+VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(const size_t& elementSize, const UInt32& binding)
+{
+    return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding));
+}
+
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::indexType(const IndexType& type)
+{
+    this->use(makeUnique<VulkanIndexBufferLayout>(type));
+    return *this;
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

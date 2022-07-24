@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include <litefx/backends/dx12_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -47,14 +48,14 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RasterizerBuilder::DirectX12RasterizerBuilder(DirectX12RenderPipelineBuilder & parent) noexcept :
-    m_impl(makePimpl<DirectX12RasterizerBuilderImpl>(this)), RasterizerBuilder(parent, SharedPtr<DirectX12Rasterizer>(new DirectX12Rasterizer(*std::as_const(parent).instance())))
+DirectX12RasterizerBuilder::DirectX12RasterizerBuilder() noexcept :
+    m_impl(makePimpl<DirectX12RasterizerBuilderImpl>(this)), RasterizerBuilder(SharedPtr<DirectX12Rasterizer>(new DirectX12Rasterizer()))
 {
 }
 
 DirectX12RasterizerBuilder::~DirectX12RasterizerBuilder() noexcept = default;
 
-DirectX12RenderPipelineBuilder& DirectX12RasterizerBuilder::go()
+void DirectX12RasterizerBuilder::build()
 {
     this->instance()->polygonMode() = m_impl->m_polygonMode;
     this->instance()->cullMode() = m_impl->m_cullMode;
@@ -63,47 +64,45 @@ DirectX12RenderPipelineBuilder& DirectX12RasterizerBuilder::go()
     this->instance()->depthStencilState().depthBias() = m_impl->m_depthBias;
     this->instance()->depthStencilState().depthState() = m_impl->m_depthState;
     this->instance()->depthStencilState().stencilState() = m_impl->m_stencilState;
-
-    return RasterizerBuilder::go();
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withPolygonMode(const PolygonMode & mode) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::polygonMode(const PolygonMode & mode) noexcept
 {
     m_impl->m_polygonMode = mode;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withCullMode(const CullMode & cullMode) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::cullMode(const CullMode & cullMode) noexcept
 {
     m_impl->m_cullMode = cullMode;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withCullOrder(const CullOrder & cullOrder) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::cullOrder(const CullOrder & cullOrder) noexcept
 {
     m_impl->m_cullOrder = cullOrder;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withLineWidth(const Float & lineWidth) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::lineWidth(const Float & lineWidth) noexcept
 {
     m_impl->m_lineWidth = lineWidth;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthBias(const DepthStencilState::DepthBias & depthBias) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::depthBias(const DepthStencilState::DepthBias & depthBias) noexcept
 {
     m_impl->m_depthBias = depthBias;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withDepthState(const DepthStencilState::DepthState & depthState) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::depthState(const DepthStencilState::DepthState & depthState) noexcept
 {
     m_impl->m_depthState = depthState;
     return *this;
 }
 
-DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::withStencilState(const DepthStencilState::StencilState & stencilState) noexcept
+DirectX12RasterizerBuilder& DirectX12RasterizerBuilder::stencilState(const DepthStencilState::StencilState & stencilState) noexcept
 {
     m_impl->m_stencilState = stencilState;
     return *this;

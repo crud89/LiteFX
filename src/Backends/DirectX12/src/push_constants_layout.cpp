@@ -94,47 +94,47 @@ Array<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() noexc
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
-// ------------------------------------------------------------------------------------------------
-// Render pipeline descriptor set layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12RenderPipelinePushConstantsLayoutBuilder::DirectX12RenderPipelinePushConstantsLayoutBuilderImpl : public Implement<DirectX12RenderPipelinePushConstantsLayoutBuilder> {
-public:
-    friend class DirectX12RenderPipelinePushConstantsLayoutBuilder;
-
-private:
-    Array<UniquePtr<DirectX12PushConstantsRange>> m_ranges;
-    UInt32 m_size;
-
-public:
-    DirectX12RenderPipelinePushConstantsLayoutBuilderImpl(DirectX12RenderPipelinePushConstantsLayoutBuilder* parent, const UInt32& size) :
-        base(parent), m_size(size)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
-// Render pipeline descriptor set layout builder shared interface.
-// ------------------------------------------------------------------------------------------------
-
-DirectX12RenderPipelinePushConstantsLayoutBuilder::DirectX12RenderPipelinePushConstantsLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& size) :
-    m_impl(makePimpl<DirectX12RenderPipelinePushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(*std::as_const(parent).instance(), size)))
-{
-}
-
-DirectX12RenderPipelinePushConstantsLayoutBuilder::~DirectX12RenderPipelinePushConstantsLayoutBuilder() noexcept = default;
-
-DirectX12RenderPipelineLayoutBuilder& DirectX12RenderPipelinePushConstantsLayoutBuilder::go()
-{
-    auto instance = this->instance();
-    instance->m_impl->setRanges(std::move(m_impl->m_ranges));
-
-    return PushConstantsLayoutBuilder::go();
-}
-
-DirectX12RenderPipelinePushConstantsLayoutBuilder& DirectX12RenderPipelinePushConstantsLayoutBuilder::addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
-{
-    m_impl->m_ranges.push_back(makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding));
-    return *this;
-}
+//// ------------------------------------------------------------------------------------------------
+//// Render pipeline descriptor set layout builder implementation.
+//// ------------------------------------------------------------------------------------------------
+//
+//class DirectX12RenderPipelinePushConstantsLayoutBuilder::DirectX12RenderPipelinePushConstantsLayoutBuilderImpl : public Implement<DirectX12RenderPipelinePushConstantsLayoutBuilder> {
+//public:
+//    friend class DirectX12RenderPipelinePushConstantsLayoutBuilder;
+//
+//private:
+//    Array<UniquePtr<DirectX12PushConstantsRange>> m_ranges;
+//    UInt32 m_size;
+//
+//public:
+//    DirectX12RenderPipelinePushConstantsLayoutBuilderImpl(DirectX12RenderPipelinePushConstantsLayoutBuilder* parent, const UInt32& size) :
+//        base(parent), m_size(size)
+//    {
+//    }
+//};
+//
+//// ------------------------------------------------------------------------------------------------
+//// Render pipeline descriptor set layout builder shared interface.
+//// ------------------------------------------------------------------------------------------------
+//
+//DirectX12RenderPipelinePushConstantsLayoutBuilder::DirectX12RenderPipelinePushConstantsLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& size) :
+//    m_impl(makePimpl<DirectX12RenderPipelinePushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(*std::as_const(parent).instance(), size)))
+//{
+//}
+//
+//DirectX12RenderPipelinePushConstantsLayoutBuilder::~DirectX12RenderPipelinePushConstantsLayoutBuilder() noexcept = default;
+//
+//DirectX12RenderPipelineLayoutBuilder& DirectX12RenderPipelinePushConstantsLayoutBuilder::go()
+//{
+//    auto instance = this->instance();
+//    instance->m_impl->setRanges(std::move(m_impl->m_ranges));
+//
+//    return PushConstantsLayoutBuilder::go();
+//}
+//
+//DirectX12RenderPipelinePushConstantsLayoutBuilder& DirectX12RenderPipelinePushConstantsLayoutBuilder::addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
+//{
+//    m_impl->m_ranges.push_back(makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding));
+//    return *this;
+//}
 #endif // defined(BUILD_DEFINE_BUILDERS)

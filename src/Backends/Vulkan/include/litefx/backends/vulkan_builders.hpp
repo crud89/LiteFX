@@ -10,7 +10,7 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	/// <summary>
-	/// Builds a Vulkan graphics <see cref="ShaderProgram" />.
+	/// Builds a Vulkan  <see cref="ShaderProgram" />.
 	/// </summary>
 	/// <seealso cref="VulkanShaderProgram" />
 	class LITEFX_VULKAN_API VulkanShaderProgramBuilder : public ShaderProgramBuilder<VulkanShaderProgramBuilder, VulkanShaderProgram> {
@@ -66,7 +66,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a Vulkan input assembler builder.
 		/// </summary>
-		/// <param name="parent">The parent render pipeline builder.</param>
 		explicit VulkanRasterizerBuilder() noexcept;
 		VulkanRasterizerBuilder(const VulkanRasterizerBuilder&) noexcept = delete;
 		VulkanRasterizerBuilder(VulkanRasterizerBuilder&&) noexcept = delete;

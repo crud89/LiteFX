@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include <litefx/backends/dx12_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -41,70 +42,74 @@ Array<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noex
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Graphics shader program builder implementation.
+// Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12GraphicsShaderProgramBuilder::DirectX12GraphicsShaderProgramBuilderImpl : public Implement<DirectX12GraphicsShaderProgramBuilder> {
+class DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilderImpl : public Implement<DirectX12ShaderProgramBuilder> {
 public:
-    friend class DirectX12GraphicsShaderProgramBuilder;
+    friend class DirectX12ShaderProgramBuilder;
 
 private:
     Array<UniquePtr<DirectX12ShaderModule>> m_modules;
+    const DirectX12Device& m_device;
 
 public:
-    DirectX12GraphicsShaderProgramBuilderImpl(DirectX12GraphicsShaderProgramBuilder* parent) :
-        base(parent)
+    DirectX12ShaderProgramBuilderImpl(DirectX12ShaderProgramBuilder* parent, const DirectX12Device& device) :
+        base(parent), m_device(device)
     {
     }
 };
 
 // ------------------------------------------------------------------------------------------------
-// Graphics shader program builder shared interface.
+// Shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12GraphicsShaderProgramBuilder::DirectX12GraphicsShaderProgramBuilder(DirectX12RenderPipelineLayoutBuilder& parent) :
-    m_impl(makePimpl<DirectX12GraphicsShaderProgramBuilderImpl>(this)), GraphicsShaderProgramBuilder(parent, UniquePtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(*std::as_const(parent).instance())))
+DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
+    m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(UniquePtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram()))
 {
 }
 
-DirectX12GraphicsShaderProgramBuilder::~DirectX12GraphicsShaderProgramBuilder() noexcept = default;
+DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = default;
 
-DirectX12RenderPipelineLayoutBuilder& DirectX12GraphicsShaderProgramBuilder::go()
+void DirectX12ShaderProgramBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_modules = std::move(m_impl->m_modules);
-
-    return GraphicsShaderProgramBuilder::go();
 }
 
-DirectX12GraphicsShaderProgramBuilder& DirectX12GraphicsShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
 {
-    m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(*this->instance()->getDevice(), type, fileName, entryPoint));
+    m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, fileName, entryPoint));
     return *this;
 }
 
-DirectX12GraphicsShaderProgramBuilder& DirectX12GraphicsShaderProgramBuilder::addVertexShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withVertexShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderStage::Vertex, fileName, entryPoint);
+    return this->withShaderModule(ShaderStage::Vertex, fileName, entryPoint);
 }
 
-DirectX12GraphicsShaderProgramBuilder& DirectX12GraphicsShaderProgramBuilder::addTessellationControlShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationControlShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
+    return this->withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
 }
 
-DirectX12GraphicsShaderProgramBuilder& DirectX12GraphicsShaderProgramBuilder::addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
+    return this->withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
 }
 
-DirectX12GraphicsShaderProgramBuilder& DirectX12GraphicsShaderProgramBuilder::addGeometryShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withGeometryShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderStage::Geometry, fileName, entryPoint);
+    return this->withShaderModule(ShaderStage::Geometry, fileName, entryPoint);
 }
 
-DirectX12GraphicsShaderProgramBuilder& DirectX12GraphicsShaderProgramBuilder::addFragmentShaderModule(const String& fileName, const String& entryPoint)
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withFragmentShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderStage::Fragment, fileName, entryPoint);
+    return this->withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
+}
+
+DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withComputeShaderModule(const String& fileName, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::Compute, fileName, entryPoint);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

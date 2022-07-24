@@ -9,91 +9,180 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
 
-	///// <summary>
-	///// Builds a DirectX 12 <see cref="ShaderProgram" /> for graphics rendering.
-	///// </summary>
-	///// <seealso cref="DirectX12ShaderProgram" />
-	///// <seealso cref="DirectX12RenderPipeline" />
-	//class LITEFX_DIRECTX12_API DirectX12GraphicsShaderProgramBuilder : public GraphicsShaderProgramBuilder<DirectX12GraphicsShaderProgramBuilder, DirectX12ShaderProgram, DirectX12RenderPipelineLayoutBuilder> {
-	//	LITEFX_IMPLEMENTATION(DirectX12GraphicsShaderProgramBuilderImpl);
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="ShaderProgram" />.
+	/// </summary>
+	/// <seealso cref="DirectX12ShaderProgram" />
+	class LITEFX_DIRECTX12_API DirectX12ShaderProgramBuilder : public ShaderProgramBuilder<DirectX12ShaderProgramBuilder, DirectX12ShaderProgram> {
+		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramBuilderImpl);
 
-	//public:
-	//	/// <summary>
-	//	/// Initializes a DirectX 12 graphics shader program builder.
-	//	/// </summary>
-	//	/// <param name="parent">The parent pipeline layout builder.</param>
-	//	explicit DirectX12GraphicsShaderProgramBuilder(DirectX12RenderPipelineLayoutBuilder& parent);
-	//	DirectX12GraphicsShaderProgramBuilder(const DirectX12GraphicsShaderProgramBuilder&) = delete;
-	//	DirectX12GraphicsShaderProgramBuilder(DirectX12GraphicsShaderProgramBuilder&&) = delete;
-	//	virtual ~DirectX12GraphicsShaderProgramBuilder() noexcept;
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12  shader program builder.
+		/// </summary>
+		/// <param name="device">The parent device that hosts the shader program.</param>
+		explicit DirectX12ShaderProgramBuilder(const DirectX12Device& device);
+		DirectX12ShaderProgramBuilder(const DirectX12ShaderProgramBuilder&) = delete;
+		DirectX12ShaderProgramBuilder(DirectX12ShaderProgramBuilder&&) = delete;
+		virtual ~DirectX12ShaderProgramBuilder() noexcept;
 
-	//	// IBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+		// Builder interface.
+	protected:
+		/// <inheritdoc />
+		virtual void build() override;
 
-	//	// ShaderProgramBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual DirectX12GraphicsShaderProgramBuilder& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
+		// ShaderProgramBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
 
-	//	// GraphicsShaderProgramBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual DirectX12GraphicsShaderProgramBuilder& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& withVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
-	//	/// <inheritdoc />
-	//	virtual DirectX12GraphicsShaderProgramBuilder& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& withTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
-	//	/// <inheritdoc />
-	//	virtual DirectX12GraphicsShaderProgramBuilder& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
-	//	/// <inheritdoc />
-	//	virtual DirectX12GraphicsShaderProgramBuilder& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& withGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
-	//	/// <inheritdoc />
-	//	virtual DirectX12GraphicsShaderProgramBuilder& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& withFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
-	//	/// <inheritdoc />
-	//	virtual DirectX12ComputeShaderProgramBuilder& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
-	//};
+		/// <inheritdoc />
+		virtual DirectX12ShaderProgramBuilder& withComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
+	};
 
-	///// <summary>
-	///// Builds a see <see cref="DirectX12VertexBufferLayout" />.
-	///// </summary>
-	///// <seealso cref="DirectX12VertexBuffer" />
-	///// <seealso cref="DirectX12VertexBufferLayout" />
-	//class LITEFX_DIRECTX12_API DirectX12VertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
-	//public:
-	//	using VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="IRasterizer" />.
+	/// </summary>
+	/// <seealso cref="DirectX12Rasterizer" />
+	class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer> {
+		LITEFX_IMPLEMENTATION(DirectX12RasterizerBuilderImpl);
 
-	//public:
-	//	/// <inheritdoc />
-	//	virtual DirectX12VertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 input assembler builder.
+		/// </summary>
+		explicit DirectX12RasterizerBuilder() noexcept;
+		DirectX12RasterizerBuilder(const DirectX12RasterizerBuilder&) noexcept = delete;
+		DirectX12RasterizerBuilder(DirectX12RasterizerBuilder&&) noexcept = delete;
+		virtual ~DirectX12RasterizerBuilder() noexcept;
 
-	//public:
-	//	/// <summary>
-	//	/// Adds an attribute to the vertex buffer layout.
-	//	/// </summary>
-	//	/// <remarks>
-	//	/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
-	//	/// </remarks>
-	//	/// <param name="format">The format of the attribute.</param>
-	//	/// <param name="offset">The offset of the attribute within a buffer element.</param>
-	//	/// <param name="semantic">The semantic of the attribute.</param>
-	//	/// <param name="semanticIndex">The semantic index of the attribute.</param>
-	//	virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
 
-	//	/// <summary>
-	//	/// Adds an attribute to the vertex buffer layout.
-	//	/// </summary>
-	//	/// <param name="location">The location, the attribute is bound to.</param>
-	//	/// <param name="format">The format of the attribute.</param>
-	//	/// <param name="offset">The offset of the attribute within a buffer element.</param>
-	//	/// <param name="semantic">The semantic of the attribute.</param>
-	//	/// <param name="semanticIndex">The semantic index of the attribute.</param>
-	//	virtual DirectX12VertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
-	//};
+		// RasterizerBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& polygonMode(const PolygonMode& mode = PolygonMode::Solid) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& cullMode(const CullMode& cullMode = CullMode::BackFaces) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& cullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& lineWidth(const Float& lineWidth = 1.f) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& depthBias(const DepthStencilState::DepthBias& depthBias) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& depthState(const DepthStencilState::DepthState& depthState) noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12RasterizerBuilder& stencilState(const DepthStencilState::StencilState& stencilState) noexcept override;
+	};
+	
+	/// <summary>
+	/// Builds a see <see cref="DirectX12VertexBufferLayout" />.
+	/// </summary>
+	/// <seealso cref="DirectX12VertexBuffer" />
+	/// <seealso cref="DirectX12VertexBufferLayout" />
+	class LITEFX_DIRECTX12_API DirectX12VertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
+	public:
+		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayoutBuilder, DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
+
+	public:
+		/// <inheritdoc />
+		virtual DirectX12VertexBufferLayoutBuilder& withAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+
+	public:
+		/// <summary>
+		/// Adds an attribute to the vertex buffer layout.
+		/// </summary>
+		/// <remarks>
+		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
+		/// </remarks>
+		/// <param name="format">The format of the attribute.</param>
+		/// <param name="offset">The offset of the attribute within a buffer element.</param>
+		/// <param name="semantic">The semantic of the attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the attribute.</param>
+		virtual DirectX12VertexBufferLayoutBuilder& withAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+
+		/// <summary>
+		/// Adds an attribute to the vertex buffer layout.
+		/// </summary>
+		/// <param name="location">The location, the attribute is bound to.</param>
+		/// <param name="format">The format of the attribute.</param>
+		/// <param name="offset">The offset of the attribute within a buffer element.</param>
+		/// <param name="semantic">The semantic of the attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the attribute.</param>
+		virtual DirectX12VertexBufferLayoutBuilder& withAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+	};
+
+	/// <summary>
+	/// Builds a <see cref="DirectX12InputAssembler" />.
+	/// </summary>
+	/// <seealso cref="DirectX12InputAssembler" />
+	class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler> {
+		LITEFX_IMPLEMENTATION(DirectX12InputAssemblerBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 input assembler builder.
+		/// </summary>
+		explicit DirectX12InputAssemblerBuilder() noexcept;
+		DirectX12InputAssemblerBuilder(const DirectX12InputAssemblerBuilder&) noexcept = delete;
+		DirectX12InputAssemblerBuilder(DirectX12InputAssemblerBuilder&&) noexcept = delete;
+		virtual ~DirectX12InputAssemblerBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
+
+		// InputAssemblerBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12InputAssemblerBuilder& topology(const PrimitiveTopology& topology) override;
+
+		/// <inheritdoc />
+		virtual void use(UniquePtr<DirectX12VertexBufferLayout>&& layout) override;
+
+		/// <inheritdoc />
+		virtual void use(UniquePtr<DirectX12IndexBufferLayout>&& layout) override;
+
+	public:
+		/// <summary>
+		/// Starts building a vertex buffer layout.
+		/// </summary>
+		/// <param name="elementSize">The size of a vertex within the vertex buffer.</param>
+		/// <param name="binding">The binding point to bind the vertex buffer to.</param>
+		virtual DirectX12VertexBufferLayoutBuilder vertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
+
+		/// <summary>
+		/// Starts building an index buffer layout.
+		/// </summary>
+		/// <param name="type">The type of the index buffer.</param>
+		virtual DirectX12InputAssemblerBuilder& indexType(const IndexType& type);
+	};
 
 	///// <summary>
 	///// Builds a <see cref="DirectX12DescriptorSetLayout" /> for a render pipeline.
@@ -115,7 +204,7 @@ namespace LiteFX::Rendering::Backends {
 	//	DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineDescriptorSetLayoutBuilder&&) = delete;
 	//	virtual ~DirectX12RenderPipelineDescriptorSetLayoutBuilder() noexcept;
 
-	//	// IBuilder interface.
+	//	// Builder interface.
 	//public:
 	//	/// <inheritdoc />
 	//	[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
@@ -188,7 +277,7 @@ namespace LiteFX::Rendering::Backends {
 	//	DirectX12RenderPipelineLayoutBuilder(const DirectX12RenderPipelineLayoutBuilder&) = delete;
 	//	virtual ~DirectX12RenderPipelineLayoutBuilder() noexcept;
 
-	//	// IBuilder interface.
+	//	// Builder interface.
 	//public:
 	//	/// <inheritdoc />
 	//	[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
@@ -227,100 +316,6 @@ namespace LiteFX::Rendering::Backends {
 	//};
 
 	///// <summary>
-	///// Builds a <see cref="DirectX12InputAssembler" />.
-	///// </summary>
-	///// <seealso cref="DirectX12InputAssembler" />
-	//class LITEFX_DIRECTX12_API DirectX12InputAssemblerBuilder : public InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler, DirectX12RenderPipelineBuilder> {
-	//	LITEFX_IMPLEMENTATION(DirectX12InputAssemblerBuilderImpl);
-
-	//public:
-	//	/// <summary>
-	//	/// Initializes a DirectX 12 input assembler builder.
-	//	/// </summary>
-	//	/// <param name="parent">The parent render pipeline builder.</param>
-	//	explicit DirectX12InputAssemblerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept;
-	//	DirectX12InputAssemblerBuilder(const DirectX12InputAssemblerBuilder&) noexcept = delete;
-	//	DirectX12InputAssemblerBuilder(DirectX12InputAssemblerBuilder&&) noexcept = delete;
-	//	virtual ~DirectX12InputAssemblerBuilder() noexcept;
-
-	//public:
-	//	/// <summary>
-	//	/// Starts building a vertex buffer layout.
-	//	/// </summary>
-	//	/// <param name="elementSize">The size of a vertex within the vertex buffer.</param>
-	//	/// <param name="binding">The binding point to bind the vertex buffer to.</param>
-	//	virtual DirectX12VertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
-
-	//	/// <summary>
-	//	/// Starts building an index buffer layout.
-	//	/// </summary>
-	//	/// <param name="type">The type of the index buffer.</param>
-	//	virtual DirectX12InputAssemblerBuilder& withIndexType(const IndexType& type);
-
-	//	// IInputAssemblerBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual DirectX12InputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
-
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<DirectX12VertexBufferLayout>&& layout) override;
-
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<DirectX12IndexBufferLayout>&& layout) override;
-
-	//	// Builder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
-	//};
-
-	///// <summary>
-	///// Builds a DirectX 12 <see cref="IRasterizer" />.
-	///// </summary>
-	///// <seealso cref="DirectX12Rasterizer" />
-	//class LITEFX_DIRECTX12_API DirectX12RasterizerBuilder : public RasterizerBuilder<DirectX12RasterizerBuilder, DirectX12Rasterizer, DirectX12RenderPipelineBuilder> {
-	//	LITEFX_IMPLEMENTATION(DirectX12RasterizerBuilderImpl);
-
-	//public:
-	//	/// <summary>
-	//	/// Initializes a DirectX 12 input assembler builder.
-	//	/// </summary>
-	//	/// <param name="parent">The parent render pipeline builder.</param>
-	//	explicit DirectX12RasterizerBuilder(DirectX12RenderPipelineBuilder& parent) noexcept;
-	//	DirectX12RasterizerBuilder(const DirectX12RasterizerBuilder&) noexcept = delete;
-	//	DirectX12RasterizerBuilder(DirectX12RasterizerBuilder&&) noexcept = delete;
-	//	virtual ~DirectX12RasterizerBuilder() noexcept;
-
-	//	// IBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
-
-	//	// RasterizerBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual DirectX12RasterizerBuilder& withPolygonMode(const PolygonMode& mode = PolygonMode::Solid) noexcept override;
-
-	//	/// <inheritdoc />
-	//	virtual DirectX12RasterizerBuilder& withCullMode(const CullMode& cullMode = CullMode::BackFaces) noexcept override;
-
-	//	/// <inheritdoc />
-	//	virtual DirectX12RasterizerBuilder& withCullOrder(const CullOrder& cullOrder = CullOrder::CounterClockWise) noexcept override;
-
-	//	/// <inheritdoc />
-	//	virtual DirectX12RasterizerBuilder& withLineWidth(const Float& lineWidth = 1.f) noexcept override;
-
-	//	/// <inheritdoc />
-	//	virtual DirectX12RasterizerBuilder& withDepthBias(const DepthStencilState::DepthBias& depthBias) noexcept override;
-
-	//	/// <inheritdoc />
-	//	virtual DirectX12RasterizerBuilder& withDepthState(const DepthStencilState::DepthState& depthState) noexcept override;
-
-	//	/// <inheritdoc />
-	//	virtual DirectX12RasterizerBuilder& withStencilState(const DepthStencilState::StencilState& stencilState) noexcept override;
-	//};
-
-	///// <summary>
 	///// Builds a DirectX 12 <see cref="RenderPipeline" />.
 	///// </summary>
 	///// <seealso cref="DirectX12RenderPipeline" />
@@ -339,7 +334,7 @@ namespace LiteFX::Rendering::Backends {
 	//	DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
 	//	virtual ~DirectX12RenderPipelineBuilder() noexcept;
 
-	//	// IBuilder interface.
+	//	// Builder interface.
 	//public:
 	//	/// <inheritdoc />
 	//	[[nodiscard]] virtual UniquePtr<DirectX12RenderPipeline> go() override;
@@ -424,7 +419,7 @@ namespace LiteFX::Rendering::Backends {
 	//	DirectX12ComputePipelineBuilder(const DirectX12ComputePipelineBuilder&) = delete;
 	//	virtual ~DirectX12ComputePipelineBuilder() noexcept;
 
-	//	// IBuilder interface.
+	//	// Builder interface.
 	//public:
 	//	/// <inheritdoc />
 	//	[[nodiscard]] virtual UniquePtr<DirectX12ComputePipeline> go() override;

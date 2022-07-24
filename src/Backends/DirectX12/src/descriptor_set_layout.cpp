@@ -216,68 +216,68 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
-// ------------------------------------------------------------------------------------------------
-// Render pipeline descriptor set layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12RenderPipelineDescriptorSetLayoutBuilder::DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl : public Implement<DirectX12RenderPipelineDescriptorSetLayoutBuilder> {
-public:
-    friend class DirectX12RenderPipelineDescriptorSetLayoutBuilder;
-
-private:
-    Array<UniquePtr<DirectX12DescriptorLayout>> m_layouts;
-    UInt32 m_space;
-    ShaderStage m_stages;
-
-public:
-    DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl(DirectX12RenderPipelineDescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages) :
-        base(parent), m_space(space), m_stages(stages)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
-// Render pipeline descriptor set layout builder shared interface.
-// ------------------------------------------------------------------------------------------------
-
-DirectX12RenderPipelineDescriptorSetLayoutBuilder::DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages) :
-    m_impl(makePimpl<DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*std::as_const(parent).instance())))
-{
-}
-
-DirectX12RenderPipelineDescriptorSetLayoutBuilder::~DirectX12RenderPipelineDescriptorSetLayoutBuilder() noexcept = default;
-
-DirectX12RenderPipelineLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::go()
-{
-    auto instance = this->instance();
-    instance->m_impl->m_layouts = std::move(m_impl->m_layouts);
-    instance->m_impl->m_space = std::move(m_impl->m_space);
-    instance->m_impl->m_stages = std::move(m_impl->m_stages);
-    instance->m_impl->initialize();
-
-    return DescriptorSetLayoutBuilder::go();
-}
-
-DirectX12RenderPipelineDescriptorSetLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout)
-{
-    m_impl->m_layouts.push_back(std::move(layout));
-    return *this;
-}
-
-DirectX12RenderPipelineDescriptorSetLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
-{
-    return this->addDescriptor(makeUnique<DirectX12DescriptorLayout>(*(this->instance()), type, binding, descriptorSize, descriptors));
-}
-
-DirectX12RenderPipelineDescriptorSetLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
-{
-    m_impl->m_space = space;
-    return *this;
-}
-
-DirectX12RenderPipelineDescriptorSetLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::shaderStages(const ShaderStage& stages) noexcept
-{
-    m_impl->m_stages = stages;
-    return *this;
-}
+//// ------------------------------------------------------------------------------------------------
+//// Render pipeline descriptor set layout builder implementation.
+//// ------------------------------------------------------------------------------------------------
+//
+//class DirectX12RenderPipelineDescriptorSetLayoutBuilder::DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl : public Implement<DirectX12RenderPipelineDescriptorSetLayoutBuilder> {
+//public:
+//    friend class DirectX12RenderPipelineDescriptorSetLayoutBuilder;
+//
+//private:
+//    Array<UniquePtr<DirectX12DescriptorLayout>> m_layouts;
+//    UInt32 m_space;
+//    ShaderStage m_stages;
+//
+//public:
+//    DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl(DirectX12RenderPipelineDescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages) :
+//        base(parent), m_space(space), m_stages(stages)
+//    {
+//    }
+//};
+//
+//// ------------------------------------------------------------------------------------------------
+//// Render pipeline descriptor set layout builder shared interface.
+//// ------------------------------------------------------------------------------------------------
+//
+//DirectX12RenderPipelineDescriptorSetLayoutBuilder::DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages) :
+//    m_impl(makePimpl<DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*std::as_const(parent).instance())))
+//{
+//}
+//
+//DirectX12RenderPipelineDescriptorSetLayoutBuilder::~DirectX12RenderPipelineDescriptorSetLayoutBuilder() noexcept = default;
+//
+//DirectX12RenderPipelineLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::go()
+//{
+//    auto instance = this->instance();
+//    instance->m_impl->m_layouts = std::move(m_impl->m_layouts);
+//    instance->m_impl->m_space = std::move(m_impl->m_space);
+//    instance->m_impl->m_stages = std::move(m_impl->m_stages);
+//    instance->m_impl->initialize();
+//
+//    return DescriptorSetLayoutBuilder::go();
+//}
+//
+//DirectX12RenderPipelineDescriptorSetLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout)
+//{
+//    m_impl->m_layouts.push_back(std::move(layout));
+//    return *this;
+//}
+//
+//DirectX12RenderPipelineDescriptorSetLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
+//{
+//    return this->addDescriptor(makeUnique<DirectX12DescriptorLayout>(*(this->instance()), type, binding, descriptorSize, descriptors));
+//}
+//
+//DirectX12RenderPipelineDescriptorSetLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
+//{
+//    m_impl->m_space = space;
+//    return *this;
+//}
+//
+//DirectX12RenderPipelineDescriptorSetLayoutBuilder& DirectX12RenderPipelineDescriptorSetLayoutBuilder::shaderStages(const ShaderStage& stages) noexcept
+//{
+//    m_impl->m_stages = stages;
+//    return *this;
+//}
 #endif // defined(BUILD_DEFINE_BUILDERS)
