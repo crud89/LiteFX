@@ -101,42 +101,90 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRasterizerBuilder& stencilState(const DepthStencilState::StencilState& stencilState) noexcept override;
 	};
 
-	///// <summary>
-	///// Builds a see <see cref="VulkanVertexBufferLayout" />.
-	///// </summary>
-	///// <seealso cref="VulkanVertexBuffer" />
-	///// <seealso cref="VulkanVertexBufferLayout" />
-	//class LITEFX_VULKAN_API VulkanVertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
-	//public:
-	//	using VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
+	/// <summary>
+	/// Builds a see <see cref="VulkanVertexBufferLayout" />.
+	/// </summary>
+	/// <seealso cref="VulkanVertexBuffer" />
+	/// <seealso cref="VulkanVertexBufferLayout" />
+	class LITEFX_VULKAN_API VulkanVertexBufferLayoutBuilder : public VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
+	public:
+		using VertexBufferLayoutBuilder<VulkanVertexBufferLayoutBuilder, VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
 
-	//public:
-	//	/// <inheritdoc />
-	//	virtual VulkanVertexBufferLayoutBuilder& addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+	public:
+		/// <inheritdoc />
+		virtual VulkanVertexBufferLayoutBuilder& withAttribute(UniquePtr<BufferAttribute>&& attribute) override;
 
-	//public:
-	//	/// <summary>
-	//	/// Adds an attribute to the vertex buffer layout.
-	//	/// </summary>
-	//	/// <remarks>
-	//	/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
-	//	/// </remarks>
-	//	/// <param name="format">The format of the attribute.</param>
-	//	/// <param name="offset">The offset of the attribute within a buffer element.</param>
-	//	/// <param name="semantic">The semantic of the attribute.</param>
-	//	/// <param name="semanticIndex">The semantic index of the attribute.</param>
-	//	virtual VulkanVertexBufferLayoutBuilder& addAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+	public:
+		/// <summary>
+		/// Adds an attribute to the vertex buffer layout.
+		/// </summary>
+		/// <remarks>
+		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
+		/// </remarks>
+		/// <param name="format">The format of the attribute.</param>
+		/// <param name="offset">The offset of the attribute within a buffer element.</param>
+		/// <param name="semantic">The semantic of the attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the attribute.</param>
+		virtual VulkanVertexBufferLayoutBuilder& withAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
 
-	//	/// <summary>
-	//	/// Adds an attribute to the vertex buffer layout.
-	//	/// </summary>
-	//	/// <param name="location">The location, the attribute is bound to.</param>
-	//	/// <param name="format">The format of the attribute.</param>
-	//	/// <param name="offset">The offset of the attribute within a buffer element.</param>
-	//	/// <param name="semantic">The semantic of the attribute.</param>
-	//	/// <param name="semanticIndex">The semantic index of the attribute.</param>
-	//	virtual VulkanVertexBufferLayoutBuilder& addAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
-	//};
+		/// <summary>
+		/// Adds an attribute to the vertex buffer layout.
+		/// </summary>
+		/// <param name="location">The location, the attribute is bound to.</param>
+		/// <param name="format">The format of the attribute.</param>
+		/// <param name="offset">The offset of the attribute within a buffer element.</param>
+		/// <param name="semantic">The semantic of the attribute.</param>
+		/// <param name="semanticIndex">The semantic index of the attribute.</param>
+		virtual VulkanVertexBufferLayoutBuilder& withAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic = AttributeSemantic::Unknown, const UInt32& semanticIndex = 0);
+	};
+
+	/// <summary>
+	/// Builds a <see cref="VulkanInputAssembler" />.
+	/// </summary>
+	/// <seealso cref="VulkanInputAssembler" />
+	class LITEFX_VULKAN_API VulkanInputAssemblerBuilder : public InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler> {
+		LITEFX_IMPLEMENTATION(VulkanInputAssemblerBuilderImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a Vulkan input assembler builder.
+		/// </summary>
+		explicit VulkanInputAssemblerBuilder() noexcept;
+		VulkanInputAssemblerBuilder(const VulkanInputAssemblerBuilder&) noexcept = delete;
+		VulkanInputAssemblerBuilder(VulkanInputAssemblerBuilder&&) noexcept = delete;
+		virtual ~VulkanInputAssemblerBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
+
+		// InputAssemblerBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual VulkanInputAssemblerBuilder& topology(const PrimitiveTopology& topology) override;
+
+		/// <inheritdoc />
+		virtual void use(UniquePtr<VulkanVertexBufferLayout>&& layout) override;
+
+		/// <inheritdoc />
+		virtual void use(UniquePtr<VulkanIndexBufferLayout>&& layout) override;
+
+		// VulkanInputAssemblerBuilder interface.
+	public:
+		/// <summary>
+		/// Starts building a vertex buffer layout.
+		/// </summary>
+		/// <param name="elementSize">The size of a vertex within the vertex buffer.</param>
+		/// <param name="binding">The binding point to bind the vertex buffer to.</param>
+		virtual VulkanVertexBufferLayoutBuilder vertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
+
+		/// <summary>
+		/// Starts building an index buffer layout.
+		/// </summary>
+		/// <param name="type">The type of the index buffer.</param>
+		virtual VulkanInputAssemblerBuilder& indexType(const IndexType& type);
+	};
 
 	/// <summary>
 	/// Builds a <see cref="VulkanDescriptorSetLayout" /> for a <see cref="VulkanPipelineLayout" />.
@@ -278,55 +326,6 @@ namespace LiteFX::Rendering::Backends {
 	////
 	////
 
-
-
-	///// <summary>
-	///// Builds a <see cref="VulkanInputAssembler" />.
-	///// </summary>
-	///// <seealso cref="VulkanInputAssembler" />
-	//class LITEFX_VULKAN_API VulkanInputAssemblerBuilder : public InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder> {
-	//	LITEFX_IMPLEMENTATION(VulkanInputAssemblerBuilderImpl);
-
-	//public:
-	//	/// <summary>
-	//	/// Initializes a Vulkan input assembler builder.
-	//	/// </summary>
-	//	/// <param name="parent">The parent render pipeline builder.</param>
-	//	explicit VulkanInputAssemblerBuilder(VulkanRenderPipelineBuilder& parent) noexcept;
-	//	VulkanInputAssemblerBuilder(const VulkanInputAssemblerBuilder&) noexcept = delete;
-	//	VulkanInputAssemblerBuilder(VulkanInputAssemblerBuilder&&) noexcept = delete;
-	//	virtual ~VulkanInputAssemblerBuilder() noexcept;
-
-	//public:
-	//	/// <summary>
-	//	/// Starts building a vertex buffer layout.
-	//	/// </summary>
-	//	/// <param name="elementSize">The size of a vertex within the vertex buffer.</param>
-	//	/// <param name="binding">The binding point to bind the vertex buffer to.</param>
-	//	virtual VulkanVertexBufferLayoutBuilder addVertexBuffer(const size_t& elementSize, const UInt32& binding = 0);
-
-	//	/// <summary>
-	//	/// Starts building an index buffer layout.
-	//	/// </summary>
-	//	/// <param name="type">The type of the index buffer.</param>
-	//	virtual VulkanInputAssemblerBuilder& withIndexType(const IndexType& type);
-
-	//	// IInputAssemblerBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual VulkanInputAssemblerBuilder& withTopology(const PrimitiveTopology& topology) override;
-
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<VulkanVertexBufferLayout>&& layout) override;
-
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<VulkanIndexBufferLayout>&& layout) override;
-
-	//	// Builder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual VulkanRenderPipelineBuilder& go() override;
-	//};
 
 	///// <summary>
 	///// Builds a Vulkan <see cref="RenderPipeline" />.

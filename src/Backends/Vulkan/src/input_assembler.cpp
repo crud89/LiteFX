@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -85,3 +86,69 @@ const PrimitiveTopology& VulkanInputAssembler::topology() const noexcept
 {
     return m_impl->m_primitiveTopology;
 }
+
+#if defined(BUILD_DEFINE_BUILDERS)
+// ------------------------------------------------------------------------------------------------
+// Builder implementation.
+// ------------------------------------------------------------------------------------------------
+
+class VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilderImpl : public Implement<VulkanInputAssemblerBuilder> {
+public:
+    friend class VulkanInputAssemblerBuilder;
+    friend class VulkanInputAssembler;
+
+private:
+    Array<UniquePtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
+    UniquePtr<VulkanIndexBufferLayout> m_indexBufferLayout;
+    PrimitiveTopology m_primitiveTopology;
+
+public:
+    VulkanInputAssemblerBuilderImpl(VulkanInputAssemblerBuilder* parent) :
+        base(parent)
+    {
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Builder shared interface.
+// ------------------------------------------------------------------------------------------------
+
+VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() noexcept :
+    m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler>(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler()))
+{
+}
+
+VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
+
+void VulkanInputAssemblerBuilder::build()
+{
+    this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
+}
+
+VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(const size_t& elementSize, const UInt32& binding)
+{
+    return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding));
+}
+
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::indexType(const IndexType& type)
+{
+    this->use(makeUnique<VulkanIndexBufferLayout>(type));
+    return *this;
+}
+
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::topology(const PrimitiveTopology& topology)
+{
+    m_impl->m_primitiveTopology = topology;
+    return *this;
+}
+
+void VulkanInputAssemblerBuilder::use(UniquePtr<VulkanVertexBufferLayout>&& layout)
+{
+    m_impl->m_vertexBufferLayouts.push_back(std::move(layout));
+}
+
+void VulkanInputAssemblerBuilder::use(UniquePtr<VulkanIndexBufferLayout>&& layout)
+{
+    m_impl->m_indexBufferLayout = std::move(layout);
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)

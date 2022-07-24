@@ -127,8 +127,11 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// 
+    /// Builds a <see cref="VertexBufferLayout" />.
     /// </summary>
+    /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
+    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
+    /// <seealso cref="IVertexBufferLayout" />
     template <typename TDerived, typename TVertexBufferLayout, typename TParent> requires
         rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
     class VertexBufferLayoutBuilder : public Builder<TDerived, TVertexBufferLayout, TParent> {
@@ -136,7 +139,11 @@ namespace LiteFX::Rendering {
         using Builder<TDerived, TVertexBufferLayout, TParent>::Builder;
 
     public:
-        virtual TDerived& addAttribute(UniquePtr<BufferAttribute>&& attribute) = 0;
+        /// <summary>
+        /// Adds an attribute to the vertex buffer layout.
+        /// </summary>
+        /// <param name="attribute">The attribute to add to the layout.</param>
+        virtual TDerived& withAttribute(UniquePtr<BufferAttribute>&& attribute) = 0;
     };
 
     /// <summary>
@@ -291,18 +298,21 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Builds a <see cref="InputAssembler" />.
     /// </summary>
-    template <typename TDerived, typename TInputAssembler, typename TParent, typename TVertexBufferLayout = TInputAssembler::vertex_buffer_layout_type, typename TIndexBufferLayout = TInputAssembler::index_buffer_layout_type> requires
+    /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
+    /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="InputAssembler" />.</typeparam>
+    /// <seealso cref="InputAssembler" />
+    template <typename TDerived, typename TInputAssembler, typename TVertexBufferLayout = TInputAssembler::vertex_buffer_layout_type, typename TIndexBufferLayout = TInputAssembler::index_buffer_layout_type> requires
         rtti::implements<TInputAssembler, InputAssembler<TVertexBufferLayout, TIndexBufferLayout>>
-    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>> {
+    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, std::nullptr_t, SharedPtr<TInputAssembler>> {
     public:
-        using Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>>::Builder;
+        using Builder<TDerived, TInputAssembler, std::nullptr_t, SharedPtr<TInputAssembler>>::Builder;
 
     public:
         /// <summary>
         /// Specifies the topology to initialize the input assembler with.
         /// </summary>
         /// <param name="topology">The topology to initialize the input assembler with.</param>
-        virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
+        virtual TDerived& topology(const PrimitiveTopology& topology) = 0;
 
         /// <summary>
         /// Adds a vertex buffer layout to the input assembler. Can be called multiple times.
