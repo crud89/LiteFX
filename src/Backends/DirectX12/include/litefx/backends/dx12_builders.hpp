@@ -184,136 +184,137 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12InputAssemblerBuilder& indexType(const IndexType& type);
 	};
 
-	///// <summary>
-	///// Builds a <see cref="DirectX12DescriptorSetLayout" /> for a render pipeline.
-	///// </summary>
-	///// <seealso cref="DirectX12DescriptorSetLayout" />
-	///// <seealso cref="DirectX12RenderPipeline" />
-	//class LITEFX_DIRECTX12_API DirectX12RenderPipelineDescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<DirectX12RenderPipelineDescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12RenderPipelineLayoutBuilder> {
-	//	LITEFX_IMPLEMENTATION(DirectX12RenderPipelineDescriptorSetLayoutBuilderImpl);
+	/// <summary>
+	/// Builds a <see cref="DirectX12DescriptorSetLayout" /> for a pipeline layout.
+	/// </summary>
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	/// <seealso cref="DirectX12RenderPipeline" />
+	/// <seealso cref="DirectX12ComputePipeline" />
+	class LITEFX_DIRECTX12_API DirectX12DescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayoutBuilder, DirectX12DescriptorSetLayout, DirectX12PipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutBuilderImpl);
 
-	//public:
-	//	/// <summary>
-	//	/// Initializes a DirectX 12 descriptor set layout builder.
-	//	/// </summary>
-	//	/// <param name="parent">The parent pipeline layout builder.</param>
-	//	/// <param name="space">The space the descriptor set is bound to.</param>
-	//	/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-	//	explicit DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
-	//	DirectX12RenderPipelineDescriptorSetLayoutBuilder(const DirectX12RenderPipelineDescriptorSetLayoutBuilder&) = delete;
-	//	DirectX12RenderPipelineDescriptorSetLayoutBuilder(DirectX12RenderPipelineDescriptorSetLayoutBuilder&&) = delete;
-	//	virtual ~DirectX12RenderPipelineDescriptorSetLayoutBuilder() noexcept;
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 descriptor set layout builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		/// <param name="space">The space the descriptor set is bound to.</param>
+		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
+		/// <param name="poolSize">Ignored for DirectX 12, but required for compatibility.</param>
+		explicit DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 1024);
+		DirectX12DescriptorSetLayoutBuilder(const DirectX12DescriptorSetLayoutBuilder&) = delete;
+		DirectX12DescriptorSetLayoutBuilder(DirectX12DescriptorSetLayoutBuilder&&) = delete;
+		virtual ~DirectX12DescriptorSetLayoutBuilder() noexcept;
 
-	//	// Builder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual DirectX12RenderPipelineLayoutBuilder& go() override;
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
 
-	//	// DescriptorSetLayoutBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout) override;
+		// DescriptorSetLayoutBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual DirectX12DescriptorSetLayoutBuilder& withDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout) override;
 
-	//	/// <inheritdoc />
-	//	virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) override;
+		/// <inheritdoc />
+		virtual DirectX12DescriptorSetLayoutBuilder& withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) override;
 
-	//	// DirectX12RenderPipelineDescriptorSetLayoutBuilder.
-	//public:
-	//	/// <summary>
-	//	/// Sets the space, the descriptor set is bound to.
-	//	/// </summary>
-	//	/// <param name="space">The space, the descriptor set is bound to.</param>
-	//	virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& space(const UInt32& space) noexcept;
+		// DirectX12DescriptorSetLayoutBuilder.
+	public:
+		/// <summary>
+		/// Sets the space, the descriptor set is bound to.
+		/// </summary>
+		/// <param name="space">The space, the descriptor set is bound to.</param>
+		virtual DirectX12DescriptorSetLayoutBuilder& space(const UInt32& space) noexcept;
 
-	//	/// <summary>
-	//	/// Sets the shader stages, the descriptor set is accessible from.
-	//	/// </summary>
-	//	/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-	//	virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder& shaderStages(const ShaderStage& stages) noexcept;
-	//};
+		/// <summary>
+		/// Sets the shader stages, the descriptor set is accessible from.
+		/// </summary>
+		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
+		virtual DirectX12DescriptorSetLayoutBuilder& shaderStages(const ShaderStage& stages) noexcept;
 
-	///// <summary>
-	///// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a <see cref="RenderPipeline" />.
-	///// </summary>
-	///// <seealso cref="DirectX12PushConstantsLayout" />
-	//class LITEFX_DIRECTX12_API DirectX12PushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12RenderPipelinePushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12RenderPipelineLayoutBuilder> {
-	//	LITEFX_IMPLEMENTATION(DirectX12PushConstantsLayoutBuilderImpl);
+		/// <summary>
+		/// Sets the size of the descriptor pools used for descriptor set allocations. Ignored for DirectX 12, but required for interface compatibility.
+		/// </summary>
+		/// <param name="poolSize">The size of the descriptor pools used for descriptor set allocations.</param>
+		virtual DirectX12DescriptorSetLayoutBuilder& poolSize(const UInt32& poolSize) noexcept;
+	};
 
-	//public:
-	//	/// <summary>
-	//	/// Initializes a DirectX 12 render pipeline push constants layout builder.
-	//	/// </summary>
-	//	/// <param name="parent">The parent pipeline layout builder.</param>
-	//	/// <param name="size">The size of the push constants backing memory.</param>
-	//	explicit DirectX12PushConstantsLayoutBuilder(DirectX12RenderPipelineLayoutBuilder& parent, const UInt32& size);
-	//	DirectX12PushConstantsLayoutBuilder(const DirectX12RenderPipelinePushConstantsLayoutBuilder&) = delete;
-	//	DirectX12PushConstantsLayoutBuilder(DirectX12RenderPipelinePushConstantsLayoutBuilder&&) = delete;
-	//	virtual ~DirectX12PushConstantsLayoutBuilder() noexcept;
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="PushConstantsLayout" /> for a pipeline layout.
+	/// </summary>
+	/// <seealso cref="DirectX12PushConstantsLayout" />
+	class LITEFX_DIRECTX12_API DirectX12PushConstantsLayoutBuilder : public PushConstantsLayoutBuilder<DirectX12PushConstantsLayoutBuilder, DirectX12PushConstantsLayout, DirectX12PipelineLayoutBuilder> {
+		LITEFX_IMPLEMENTATION(DirectX12PushConstantsLayoutBuilderImpl);
 
-	//	// Builder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual void build() override;
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 render pipeline push constants layout builder.
+		/// </summary>
+		/// <param name="parent">The parent pipeline layout builder.</param>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		explicit DirectX12PushConstantsLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& size);
+		DirectX12PushConstantsLayoutBuilder(const DirectX12PushConstantsLayoutBuilder&) = delete;
+		DirectX12PushConstantsLayoutBuilder(DirectX12PushConstantsLayoutBuilder&&) = delete;
+		virtual ~DirectX12PushConstantsLayoutBuilder() noexcept;
 
-	//	// PushConstantsLayoutBuilder interface.
-	//public:
-	//	virtual DirectX12PushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
-	//};
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
 
-	///// <summary>
-	///// Builds a DirectX 12 <see cref="PipelineLayout" /> for a render pipeline.
-	///// </summary>
-	///// <seealso cref="DirectX12PipelineLayout" />
-	///// <seealso cref="DirectX12RenderPipeline" />
-	//class LITEFX_DIRECTX12_API DirectX12RenderPipelineLayoutBuilder : public PipelineLayoutBuilder<DirectX12RenderPipelineLayoutBuilder, DirectX12PipelineLayout, DirectX12RenderPipelineBuilder> {
-	//	LITEFX_IMPLEMENTATION(DirectX12RenderPipelineLayoutBuilderImpl);
+		// PushConstantsLayoutBuilder interface.
+	public:
+		virtual DirectX12PushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
+	};
 
-	//public:
-	//	/// <summary>
-	//	/// Initializes a new DirectX 12 render pipeline layout builder.
-	//	/// </summary>
-	//	DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineBuilder& parent);
-	//	DirectX12RenderPipelineLayoutBuilder(DirectX12RenderPipelineLayoutBuilder&&) = delete;
-	//	DirectX12RenderPipelineLayoutBuilder(const DirectX12RenderPipelineLayoutBuilder&) = delete;
-	//	virtual ~DirectX12RenderPipelineLayoutBuilder() noexcept;
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="PipelineLayout" /> for a pipeline.
+	/// </summary>
+	/// <seealso cref="DirectX12PipelineLayout" />
+	/// <seealso cref="DirectX12RenderPipeline" />
+	/// <seealso cref="DirectX12ComputePipeline" />
+	class LITEFX_DIRECTX12_API DirectX12PipelineLayoutBuilder : public PipelineLayoutBuilder<DirectX12PipelineLayoutBuilder, DirectX12PipelineLayout> {
+		LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutBuilderImpl);
 
-	//	// Builder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	[[nodiscard]] virtual DirectX12RenderPipelineBuilder& go() override;
+	public:
+		/// <summary>
+		/// Initializes a new DirectX 12 pipeline layout builder.
+		/// </summary>
+		DirectX12PipelineLayoutBuilder(const DirectX12Device& device);
+		DirectX12PipelineLayoutBuilder(DirectX12PipelineLayoutBuilder&&) = delete;
+		DirectX12PipelineLayoutBuilder(const DirectX12PipelineLayoutBuilder&) = delete;
+		virtual ~DirectX12PipelineLayoutBuilder() noexcept;
 
-	//	// RenderPipelineBuilder interface.
-	//public:
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<DirectX12ShaderProgram>&& program) override;
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
 
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<DirectX12DescriptorSetLayout>&& layout) override;
+		// PipelineBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual void use(UniquePtr<DirectX12DescriptorSetLayout>&& layout) override;
 
-	//	/// <inheritdoc />
-	//	virtual void use(UniquePtr<DirectX12PushConstantsLayout>&& layout) override;
+		/// <inheritdoc />
+		virtual void use(UniquePtr<DirectX12PushConstantsLayout>&& layout) override;
 
-	//	// DirectX12RenderPipelineBuilder.
-	//public:
-	//	/// <summary>
-	//	/// Builds a shader program for the render pipeline layout.
-	//	/// </summary>
-	//	virtual DirectX12GraphicsShaderProgramBuilder shaderProgram();
+		// DirectX12PipelineLayoutBuilder.
+	public:
+		/// <summary>
+		/// Builds a new descriptor set for the pipeline layout.
+		/// </summary>
+		/// <param name="space">The space, the descriptor set is bound to.</param>
+		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
+		/// <param name="poolSize">Unused for this backend.</param>
+		virtual DirectX12DescriptorSetLayoutBuilder descriptorSet(const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 0);
 
-	//	/// <summary>
-	//	/// Builds a new descriptor set for the render pipeline layout.
-	//	/// </summary>
-	//	/// <param name="space">The space, the descriptor set is bound to.</param>
-	//	/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
-	//	/// <param name="poolSize">Unused for this backend.</param>
-	//	virtual DirectX12RenderPipelineDescriptorSetLayoutBuilder addDescriptorSet(const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 0);
-
-	//	/// <summary>
-	//	/// Builds a new push constants layout for the render pipeline layout.
-	//	/// </summary>
-	//	/// <param name="size">The size of the push constants backing memory.</param>
-	//	virtual DirectX12RenderPipelinePushConstantsLayoutBuilder addPushConstants(const UInt32& size);
-	//};
+		/// <summary>
+		/// Builds a new push constants layout for the pipeline layout.
+		/// </summary>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		virtual DirectX12PushConstantsLayoutBuilder pushConstants(const UInt32& size);
+	};
 
 	///// <summary>
 	///// Builds a DirectX 12 <see cref="RenderPipeline" />.

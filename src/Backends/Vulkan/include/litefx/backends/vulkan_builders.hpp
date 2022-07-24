@@ -189,7 +189,8 @@ namespace LiteFX::Rendering::Backends {
 	/// Builds a <see cref="VulkanDescriptorSetLayout" /> for a <see cref="VulkanPipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	/// <seealso cref="VulkanPipeline" />
+	/// <seealso cref="VulkanRenderPipeline" />
+	/// <seealso cref="VulkanComputePipeline" />
 	class LITEFX_VULKAN_API VulkanDescriptorSetLayoutBuilder : public DescriptorSetLayoutBuilder<VulkanDescriptorSetLayoutBuilder, VulkanDescriptorSetLayout, VulkanPipelineLayoutBuilder> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutBuilderImpl);
 
@@ -270,16 +271,17 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a Vulkan <see cref="PipelineLayout" /> for a  pipeline.
+	/// Builds a Vulkan <see cref="PipelineLayout" /> for a pipeline.
 	/// </summary>
 	/// <seealso cref="VulkanPipelineLayout" />
-	/// <seealso cref="VulkanPipeline" />
+	/// <seealso cref="VulkanRenderPipeline" />
+	/// <seealso cref="VulkanComputePipeline" />
 	class LITEFX_VULKAN_API VulkanPipelineLayoutBuilder : public PipelineLayoutBuilder<VulkanPipelineLayoutBuilder, VulkanPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutBuilderImpl);
 
 	public:
 		/// <summary>
-		/// Initializes a new Vulkan  pipeline layout builder.
+		/// Initializes a new Vulkan pipeline layout builder.
 		/// </summary>
 		/// <param name="device">The parent device, the pipeline layout is created from.</param>
 		explicit VulkanPipelineLayoutBuilder(const VulkanDevice& device);
@@ -292,7 +294,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void build() override;
 
-		// PipelineBuilder interface.
+		// PipelineLayoutBuilder interface.
 	public:
 		/// <inheritdoc />
 		virtual void use(UniquePtr<VulkanDescriptorSetLayout>&& layout) override;
@@ -300,10 +302,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void use(UniquePtr<VulkanPushConstantsLayout>&& layout) override;
 
-		// VulkanPipelineBuilder.
+		// VulkanPipelineLayoutBuilder.
 	public:
 		/// <summary>
-		/// Builds a new descriptor set for the  pipeline layout.
+		/// Builds a new descriptor set for the pipeline layout.
 		/// </summary>
 		/// <param name="space">The space, the descriptor set is bound to.</param>
 		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
@@ -311,7 +313,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanDescriptorSetLayoutBuilder descriptorSet(const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 1024);
 
 		/// <summary>
-		/// Builds a new push constants layout for the  pipeline layout.
+		/// Builds a new push constants layout for the pipeline layout.
 		/// </summary>
 		/// <param name="size">The size of the push constants backing memory.</param>
 		virtual VulkanPushConstantsLayoutBuilder pushConstants(const UInt32& size);
