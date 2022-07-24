@@ -75,7 +75,6 @@ namespace LiteFX::Rendering::Backends {
     class VulkanRenderPipelineBuilder;
     class VulkanComputePipelineBuilder;
     class VulkanRenderPassBuilder;
-    class VulkanBackendBuilder;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
     /// <summary>
