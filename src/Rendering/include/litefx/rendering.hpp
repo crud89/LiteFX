@@ -1035,6 +1035,10 @@ namespace LiteFX::Rendering {
         using frame_buffer_type = render_pass_type::frame_buffer_type;
         using render_pipeline_type = render_pass_type::render_pipeline_type;
         using compute_pipeline_type = TComputePipeline;
+        using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
+        using shader_program_type = render_pipeline_type::shader_program_type;
+        using input_assembler_type = render_pipeline_type::input_assembler_type;
+        using rasterizer_type = render_pipeline_type::rasterizer_type;
         using shader_program_type = render_pipeline_type::shader_program_type;
 
     public:
@@ -1070,10 +1074,10 @@ namespace LiteFX::Rendering {
         using render_pass_builder_type = render_pass_type::builder_type;
         using render_pipeline_builder_type = render_pipeline_type::builder_type;
         using compute_pipeline_builder_type = compute_pipeline_type::builder_type;
-        using pipeline_layout_builder_type = render_pipeline_type::pipeline_layout_type::builder_type;
-        using input_assembler_builder_type = render_pipeline_type::input_assembler_type::builder_type;
-        using rasterizer_builder_type = render_pipeline_type::rasterizer_type::builder_type;
-        using shader_program_builder_type = render_pipeline_type::shader_program_type::builder_type;
+        using pipeline_layout_builder_type = pipeline_layout_type::builder_type;
+        using input_assembler_builder_type = input_assembler_type::builder_type;
+        using rasterizer_builder_type = rasterizer_type::builder_type;
+        using shader_program_builder_type = shader_program_type::builder_type;
 
         /// <summary>
         /// Returns a builder for a <see cref="RenderPass" />.
@@ -1164,9 +1168,12 @@ namespace LiteFX::Rendering {
         using sampler_type = factory_type::sampler_type;
         using frame_buffer_type = device_type::frame_buffer_type;
         using render_pass_type = device_type::render_pass_type;
+        using pipeline_layout_type = device_type::pipeline_layout_type;
         using render_pipeline_type = device_type::render_pipeline_type;
         using compute_pipeline_type = device_type::compute_pipeline_type;
         using shader_program_type = device_type::shader_program_type;
+        using input_assembler_type = device_type::input_assembler_type;
+        using rasterizer_type = device_type::rasterizer_type;
 
     public:
         virtual ~RenderBackend() noexcept = default;

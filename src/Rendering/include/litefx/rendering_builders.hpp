@@ -358,6 +358,7 @@ namespace LiteFX::Rendering {
         using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
         using shader_program_type = render_pipeline_type::shader_program_type;
         using input_assembler_type = render_pipeline_type::input_assembler_type;
+        using rasterizer_type = render_pipeline_type::rasterizer_type;
 
     public:
         /// <summary>
@@ -380,7 +381,7 @@ namespace LiteFX::Rendering {
         /// Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
-        virtual TDerived& rasterizer(SharedPtr<IRasterizer> rasterizer) = 0;
+        virtual TDerived& rasterizer(SharedPtr<rasterizer_type> rasterizer) = 0;
 
         /// <summary>
         /// Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.

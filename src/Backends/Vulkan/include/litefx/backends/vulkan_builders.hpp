@@ -359,7 +359,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRenderPipelineBuilder& layout(SharedPtr<VulkanPipelineLayout> layout) override;
 
 		/// <inheritdoc />
-		virtual VulkanRenderPipelineBuilder& rasterizer(SharedPtr<IRasterizer> rasterizer) override;
+		virtual VulkanRenderPipelineBuilder& rasterizer(SharedPtr<VulkanRasterizer> rasterizer) override;
 
 		/// <inheritdoc />
 		virtual VulkanRenderPipelineBuilder& inputAssembler(SharedPtr<VulkanInputAssembler> inputAssembler) override;

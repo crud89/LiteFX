@@ -385,19 +385,14 @@ DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::layout(SharedPtr
 	return *this;
 }
 
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::rasterizer(SharedPtr<IRasterizer> rasterizer)
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::rasterizer(SharedPtr<DirectX12Rasterizer> rasterizer)
 {
 #ifndef NDEBUG
 	if (m_impl->m_rasterizer != nullptr)
 		LITEFX_WARNING(DIRECTX12_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
 #endif
 
-	auto dxRasterizer = std::dynamic_pointer_cast<DirectX12Rasterizer>(rasterizer);
-
-	if (dxRasterizer == nullptr)
-		throw InvalidArgumentException("The provided rasterizer must be a DirectX 12 rasterizer instance.");
-
-	m_impl->m_rasterizer = dxRasterizer;
+	m_impl->m_rasterizer = rasterizer;
 	return *this;
 }
 

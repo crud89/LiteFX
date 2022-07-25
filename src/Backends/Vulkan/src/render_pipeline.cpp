@@ -406,19 +406,14 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::layout(SharedPtr<Vulka
 	return *this;
 }
 
-VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::rasterizer(SharedPtr<IRasterizer> rasterizer)
+VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::rasterizer(SharedPtr<VulkanRasterizer> rasterizer)
 {
 #ifndef NDEBUG
 	if (m_impl->m_rasterizer != nullptr)
 		LITEFX_WARNING(VULKAN_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
 #endif
-
-	auto vulkanRasterizer = std::dynamic_pointer_cast<VulkanRasterizer>(rasterizer);
-
-	if (vulkanRasterizer == nullptr)
-		throw InvalidArgumentException("The provided rasterizer must be a Vulkan rasterizer instance.");
-
-	m_impl->m_rasterizer = vulkanRasterizer;
+	
+	m_impl->m_rasterizer = rasterizer;
 	return *this;
 }
 

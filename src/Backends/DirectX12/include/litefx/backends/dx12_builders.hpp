@@ -356,7 +356,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RenderPipelineBuilder& layout(SharedPtr<DirectX12PipelineLayout> layout) override;
 
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& rasterizer(SharedPtr<IRasterizer> rasterizer) override;
+		virtual DirectX12RenderPipelineBuilder& rasterizer(SharedPtr<DirectX12Rasterizer> rasterizer) override;
 
 		/// <inheritdoc />
 		virtual DirectX12RenderPipelineBuilder& inputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler) override;
