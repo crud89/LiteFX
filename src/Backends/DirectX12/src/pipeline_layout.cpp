@@ -195,10 +195,11 @@ private:
     UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
+    const DirectX12Device& m_device;
 
 public:
-    DirectX12PipelineLayoutBuilderImpl(DirectX12PipelineLayoutBuilder* parent) :
-        base(parent)
+    DirectX12PipelineLayoutBuilderImpl(DirectX12PipelineLayoutBuilder* parent, const DirectX12Device& device) :
+        base(parent), m_device(device)
     {
     }
 };
@@ -208,7 +209,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const DirectX12Device& parent) :
-    m_impl(makePimpl<DirectX12PipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(SharedPtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(parent)))
+    m_impl(makePimpl<DirectX12PipelineLayoutBuilderImpl>(this, parent)), PipelineLayoutBuilder(SharedPtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(parent)))
 {
 }
 
@@ -240,5 +241,10 @@ DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSe
 DirectX12PushConstantsLayoutBuilder DirectX12PipelineLayoutBuilder::pushConstants(const UInt32& size)
 {
     return DirectX12PushConstantsLayoutBuilder(*this, size);
+}
+
+const DirectX12Device& DirectX12PipelineLayoutBuilder::device() const noexcept
+{
+    return m_impl->m_device;
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

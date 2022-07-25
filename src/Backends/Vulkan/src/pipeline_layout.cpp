@@ -119,10 +119,11 @@ public:
 private:
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
+    const VulkanDevice& m_device;
 
 public:
-    VulkanPipelineLayoutBuilderImpl(VulkanPipelineLayoutBuilder* parent) :
-        base(parent)
+    VulkanPipelineLayoutBuilderImpl(VulkanPipelineLayoutBuilder* parent, const VulkanDevice& device) :
+        base(parent), m_device(device)
     {
     }
 };
@@ -132,7 +133,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
-    m_impl(makePimpl<VulkanPipelineLayoutBuilderImpl>(this)), PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent)))
+    m_impl(makePimpl<VulkanPipelineLayoutBuilderImpl>(this, parent)), PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent)))
 {
 }
 
@@ -164,5 +165,10 @@ VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(cons
 VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(const UInt32& size)
 {
     return VulkanPushConstantsLayoutBuilder(*this, size);
+}
+
+const VulkanDevice& VulkanPipelineLayoutBuilder::device() const noexcept
+{
+    return m_impl->m_device;
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

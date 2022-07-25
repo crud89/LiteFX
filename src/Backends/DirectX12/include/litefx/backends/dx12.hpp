@@ -1463,7 +1463,6 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12Backend : public RenderBackend<DirectX12Backend, DirectX12Device>, public ComResource<IDXGIFactory7> {
 		LITEFX_IMPLEMENTATION(DirectX12BackendImpl);
-		LITEFX_BUILDER(DirectX12BackendBuilder);
 
 	public:
 		explicit DirectX12Backend(const App& app, const bool& advancedSoftwareRasterizer = false);

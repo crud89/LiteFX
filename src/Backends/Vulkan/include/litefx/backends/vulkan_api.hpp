@@ -69,7 +69,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanDescriptorSetLayoutBuilder;
     class VulkanPushConstantsLayoutBuilder;
     class VulkanPipelineLayoutBuilder;
-    class VulkaShaderProgramBuilder;
+    class VulkanShaderProgramBuilder;
     class VulkanInputAssemblerBuilder;
     class VulkanRasterizerBuilder;
     class VulkanRenderPipelineBuilder;

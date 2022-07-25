@@ -278,6 +278,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanComputePipeline" />
 	class LITEFX_VULKAN_API VulkanPipelineLayoutBuilder : public PipelineLayoutBuilder<VulkanPipelineLayoutBuilder, VulkanPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutBuilderImpl);
+		friend class VulkanDescriptorSetLayoutBuilder;
 
 	public:
 		/// <summary>
@@ -317,6 +318,13 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="size">The size of the push constants backing memory.</param>
 		virtual VulkanPushConstantsLayoutBuilder pushConstants(const UInt32& size);
+
+	private:
+		/// <summary>
+		/// Returns the device, the builder has been initialized with.
+		/// </summary>
+		/// <returns>A reference of the device, the builder has been initialized with.</returns>
+		virtual const VulkanDevice& device() const noexcept;
 	};
 
 	/// <summary>
