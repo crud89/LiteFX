@@ -1408,7 +1408,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan graphics device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass>, public Resource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline>, public Resource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
