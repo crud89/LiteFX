@@ -829,7 +829,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanComputePipeline" />
 	/// <seealso cref="VulkanRenderPipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, IVulkanVertexBuffer, IVulkanIndexBuffer>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 

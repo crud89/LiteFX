@@ -784,7 +784,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12ComputePipeline" />
 	/// <seealso cref="DirectX12RenderPipelineBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12PipelineState, public RenderPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram, DirectX12InputAssembler, IDirectX12VertexBuffer, IDirectX12IndexBuffer> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12PipelineState, public RenderPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram, DirectX12InputAssembler> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 

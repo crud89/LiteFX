@@ -26,74 +26,74 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual void transition(TBuffer& buffer, const ResourceState& targetState) = 0;
+        virtual void transition(buffer_type& buffer, const ResourceState& targetState) = 0;
 
         /// <inheritdoc />
-        virtual void transition(TBuffer& buffer, const UInt32& element, const ResourceState& targetState) = 0;
+        virtual void transition(buffer_type& buffer, const UInt32& element, const ResourceState& targetState) = 0;
 
         /// <inheritdoc />
-        virtual void transition(TBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) = 0;
+        virtual void transition(buffer_type& buffer, const ResourceState& sourceState, const ResourceState& targetState) = 0;
 
         /// <inheritdoc />
-        virtual void transition(TBuffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) = 0;
+        virtual void transition(buffer_type& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) = 0;
 
         /// <inheritdoc />
-        virtual void transition(TImage& image, const ResourceState& targetState) = 0;
+        virtual void transition(image_type& image, const ResourceState& targetState) = 0;
 
         /// <inheritdoc />
-        virtual void transition(TImage& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
+        virtual void transition(image_type& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
 
         /// <inheritdoc />
-        virtual void transition(TImage& image, const ResourceState& sourceState, const ResourceState& targetState) = 0;
+        virtual void transition(image_type& image, const ResourceState& sourceState, const ResourceState& targetState) = 0;
 
         /// <inheritdoc />
-        virtual void transition(TImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
+        virtual void transition(image_type& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
 
         /// <inheritdoc />
-        virtual void waitFor(const TBuffer& buffer) = 0;
+        virtual void waitFor(const buffer_type& buffer) = 0;
 
         /// <inheritdoc />
-        virtual void waitFor(const TImage& image) = 0;
+        virtual void waitFor(const image_type& image) = 0;
 
     private:
         virtual void doTransition(IBuffer& buffer, const ResourceState& targetState) override { 
-            this->transition(dynamic_cast<TBuffer&>(buffer), targetState);
+            this->transition(dynamic_cast<buffer_type&>(buffer), targetState);
         }
 
         virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<TBuffer&>(buffer), element, targetState);
+            this->transition(dynamic_cast<buffer_type&>(buffer), element, targetState);
         }
 
         virtual void doTransition(IBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<TBuffer&>(buffer), sourceState, targetState);
+            this->transition(dynamic_cast<buffer_type&>(buffer), sourceState, targetState);
         }
 
         virtual void doTransition(IBuffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<TBuffer&>(buffer), sourceState, element, targetState);
+            this->transition(dynamic_cast<buffer_type&>(buffer), sourceState, element, targetState);
         }
 
         virtual void doTransition(IImage& image, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<TImage&>(image), targetState);
+            this->transition(dynamic_cast<image_type&>(image), targetState);
         }
 
         virtual void doTransition(IImage& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<TImage&>(image), level, layer, plane, targetState);
+            this->transition(dynamic_cast<image_type&>(image), level, layer, plane, targetState);
         }
 
         virtual void doTransition(IImage& image, const ResourceState& sourceState, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<TImage&>(image), sourceState, targetState);
+            this->transition(dynamic_cast<image_type&>(image), sourceState, targetState);
         }
 
         virtual void doTransition(IImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<TImage&>(image), sourceState, level, layer, plane, targetState);
+            this->transition(dynamic_cast<image_type&>(image), sourceState, level, layer, plane, targetState);
         }
 
         virtual void doWaitFor(const IBuffer& buffer) override {
-            this->waitFor(dynamic_cast<const TBuffer&>(buffer));
+            this->waitFor(dynamic_cast<const buffer_type&>(buffer));
         }
 
         virtual void doWaitFor(const IImage& image) override {
-            this->waitFor(dynamic_cast<const TImage&>(image));
+            this->waitFor(dynamic_cast<const image_type&>(image));
         }
     };
 
@@ -177,32 +177,32 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual void update(const UInt32& binding, const TBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const = 0;
+        virtual void update(const UInt32& binding, const buffer_type& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void update(const UInt32& binding, const TImage& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const = 0;
+        virtual void update(const UInt32& binding, const image_type& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void update(const UInt32& binding, const TSampler& sampler, const UInt32& descriptor = 0) const = 0;
+        virtual void update(const UInt32& binding, const sampler_type& sampler, const UInt32& descriptor = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void attach(const UInt32& binding, const TImage& image) const = 0;
+        virtual void attach(const UInt32& binding, const image_type& image) const = 0;
 
     private:
         virtual void doUpdate(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const override {
-            this->update(binding, dynamic_cast<const TBuffer&>(buffer), bufferElement, elements, firstDescriptor);
+            this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor);
         }
 
         virtual void doUpdate(const UInt32& binding, const IImage& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const  override {
-            this->update(binding, dynamic_cast<const TImage&>(texture), descriptor, firstLevel, levels, firstLayer, layers);
+            this->update(binding, dynamic_cast<const image_type&>(texture), descriptor, firstLevel, levels, firstLayer, layers);
         }
 
         virtual void doUpdate(const UInt32& binding, const ISampler& sampler, const UInt32& descriptor) const  override {
-            this->update(binding, dynamic_cast<const TSampler&>(sampler), descriptor);
+            this->update(binding, dynamic_cast<const sampler_type&>(sampler), descriptor);
         }
 
         virtual void doAttach(const UInt32& binding, const IImage& image) const  override {
-            this->attach(binding, dynamic_cast<const TImage&>(image));
+            this->attach(binding, dynamic_cast<const image_type&>(image));
         }
     };
 
@@ -218,9 +218,9 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="DescriptorSet"/>.</typeparam>
     /// <seealso cref="IDescriptorLayout" />
     /// <seealso cref="DescriptorSet" />
-    template <typename TDescriptorLayout, typename TDescriptorSet, typename TBuffer = TDescriptorSet::buffer_type, typename TSampler = TDescriptorSet::sampler_type, typename TImage = TDescriptorSet::image_type> requires
+    template <typename TDescriptorLayout, typename TDescriptorSet> requires
         rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-        rtti::implements<TDescriptorSet, DescriptorSet<TBuffer, TImage, TSampler>>
+        rtti::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type>>
     class DescriptorSetLayout : public IDescriptorSetLayout {
     public:
         using descriptor_layout_type = TDescriptorLayout;
@@ -231,19 +231,19 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const TDescriptorLayout*> descriptors() const noexcept = 0;
+        virtual Array<const descriptor_layout_type*> descriptors() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TDescriptorLayout& descriptor(const UInt32& binding) const = 0;
+        virtual const descriptor_layout_type& descriptor(const UInt32& binding) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TDescriptorSet> allocate() const noexcept = 0;
+        virtual UniquePtr<descriptor_set_type> allocate() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<TDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept = 0;
+        virtual Array<UniquePtr<descriptor_set_type>> allocate(const UInt32& descriptorSets) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void free(const TDescriptorSet& descriptorSet) const noexcept = 0;
+        virtual void free(const descriptor_set_type& descriptorSet) const noexcept = 0;
 
     private:
         virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept override {
@@ -264,7 +264,7 @@ namespace LiteFX::Rendering {
         }
 
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
-            this->releaseDescriptorSet(dynamic_cast<const TDescriptorSet&>(descriptorSet));
+            this->releaseDescriptorSet(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
     };
 
@@ -302,7 +302,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const TPushConstantsRange*> ranges() const noexcept = 0;
+        virtual Array<const push_constants_range_type*> ranges() const noexcept = 0;
 
     private:
         virtual Array<const IPushConstantsRange*> getRanges() const noexcept override {
@@ -326,7 +326,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const TShaderModule*> modules() const noexcept = 0;
+        virtual Array<const shader_module_type*> modules() const noexcept = 0;
 
     private:
         virtual Array<const IShaderModule*> getModules() const noexcept {
@@ -340,27 +340,26 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
     /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
-    template <typename TDescriptorSetLayout, typename TPushConstantsLayout, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type> requires
-        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<TDescriptorLayout, TDescriptorSet>> &&
-        rtti::implements<TPushConstantsLayout, PushConstantsLayout<TPushConstantsRange>>
+    template <typename TDescriptorSetLayout, typename TPushConstantsLayout> requires
+        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<typename TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSetLayout::descriptor_set_type>> &&
+        rtti::implements<TPushConstantsLayout, PushConstantsLayout<typename TPushConstantsLayout::push_constants_range_type>>
     class PipelineLayout : public IPipelineLayout {
     public:
         using descriptor_set_layout_type = TDescriptorSetLayout;
         using push_constants_layout_type = TPushConstantsLayout;
-        using descriptor_set_type = TDescriptorSet;
 
     public:
         virtual ~PipelineLayout() noexcept = default;
 
     public:
         /// <inheritdoc />
-        virtual const TDescriptorSetLayout& descriptorSet(const UInt32& space) const = 0;
+        virtual const descriptor_set_layout_type& descriptorSet(const UInt32& space) const = 0;
 
         /// <inheritdoc />
-        virtual Array<const TDescriptorSetLayout*> descriptorSets() const noexcept = 0;
+        virtual Array<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TPushConstantsLayout* pushConstants() const noexcept = 0;
+        virtual const push_constants_layout_type* pushConstants() const noexcept = 0;
 
     private:
         virtual Array<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
@@ -384,7 +383,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const TVertexBufferLayout& layout() const noexcept = 0;
+        virtual const vertex_buffer_layout_type& layout() const noexcept = 0;
     };
 
     /// <summary>
@@ -402,7 +401,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc/>
-        virtual const TIndexBufferLayout& layout() const noexcept = 0;
+        virtual const index_buffer_layout_type& layout() const noexcept = 0;
     };
 
     /// <summary>
@@ -423,13 +422,13 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const TVertexBufferLayout*> vertexBufferLayouts() const noexcept = 0;
+        virtual Array<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const = 0;
+        virtual const vertex_buffer_layout_type& vertexBufferLayout(const UInt32& binding) const = 0;
 
         /// <inheritdoc />
-        virtual const TIndexBufferLayout& indexBufferLayout() const = 0;
+        virtual const index_buffer_layout_type& indexBufferLayout() const = 0;
 
     private:
         virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
@@ -443,13 +442,11 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
-    /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
-    /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="DescriptorSet"/>.</typeparam>
     /// <seealso cref="RenderPipeline" />
     /// <seealso cref="ComputePipeline" />
-    template <typename TPipelineLayout, typename TShaderProgram, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = typename TPipelineLayout::push_constants_layout_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type, typename TShaderModule = typename TShaderProgram::shader_module_type> requires
-        rtti::implements<TPipelineLayout, PipelineLayout<TDescriptorSetLayout, TPushConstantsLayout>> &&
-        rtti::implements<TShaderProgram, ShaderProgram<TShaderModule>>
+    template <typename TPipelineLayout, typename TShaderProgram> requires
+        rtti::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>> &&
+        rtti::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
     class Pipeline : public virtual IPipeline {
     public:
         using shader_program_type = TShaderProgram;
@@ -460,10 +457,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual SharedPtr<const TShaderProgram> program() const noexcept = 0;
+        virtual SharedPtr<const shader_program_type> program() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual SharedPtr<const TPipelineLayout> layout() const noexcept = 0;
+        virtual SharedPtr<const pipeline_layout_type> layout() const noexcept = 0;
 
     private:
         virtual SharedPtr<const IShaderProgram> getProgram() const noexcept override {
@@ -484,9 +481,9 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="Barrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
-    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TShaderProgram = TPipeline::shader_program_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type> requires
+    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
         rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
-        std::derived_from<TPipeline, Pipeline<TPipelineLayout, TShaderProgram>>
+        std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>>
     class CommandBuffer : public ICommandBuffer {
         using ICommandBuffer::begin;
         using ICommandBuffer::end;
@@ -501,58 +498,62 @@ namespace LiteFX::Rendering {
         using image_type = TImage;
         using barrier_type = TBarrier;
         using pipeline_type = TPipeline;
+        using pipeline_layout_type = pipeline_type::pipeline_layout_type;
+        using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
+        using push_constants_layout_type = pipeline_layout_type::push_constants_layout_type;
+        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
 
     public:
         virtual ~CommandBuffer() noexcept = default;
 
     public:
         /// <inheritdoc />
-        virtual void barrier(const TBarrier& barrier, const bool& invert = false) const noexcept = 0;
+        virtual void barrier(const barrier_type& barrier, const bool& invert = false) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void generateMipMaps(TImage& image) noexcept = 0;
+        virtual void generateMipMaps(image_type& image) noexcept = 0;
 
         /// <inheritdoc />
-        virtual void transfer(const TBuffer& source, const TBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const = 0;
+        virtual void transfer(const buffer_type& source, const buffer_type& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(const TBuffer& source, const TImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const = 0;
+        virtual void transfer(const buffer_type& source, const image_type& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(const TImage& source, const TImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const = 0;
+        virtual void transfer(const image_type& source, const image_type& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(const TImage& source, const TBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const = 0;
+        virtual void transfer(const image_type& source, const buffer_type& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void use(const TPipeline& pipeline) const noexcept = 0;
+        virtual void use(const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void bind(const TDescriptorSet& descriptorSet, const TPipeline& pipeline) const noexcept = 0;
+        virtual void bind(const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void bind(const TVertexBuffer& buffer) const noexcept = 0;
+        virtual void bind(const vertex_buffer_type& buffer) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void bind(const TIndexBuffer& buffer) const noexcept = 0;
+        virtual void bind(const index_buffer_type& buffer) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void pushConstants(const TPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
+        virtual void pushConstants(const push_constants_layout_type& layout, const void* const memory) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void draw(const TVertexBuffer& vertexBuffer, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const {
+        virtual void draw(const vertex_buffer_type& vertexBuffer, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const {
             this->bind(vertexBuffer);
             this->draw(vertexBuffer.elements(), instances, firstVertex, firstInstance);
         }
 
         /// <inheritdoc />
-        virtual void drawIndexed(const TIndexBuffer& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
+        virtual void drawIndexed(const index_buffer_type& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
             this->bind(indexBuffer);
             this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
         }
 
         /// <inheritdoc />
-        virtual void drawIndexed(const TVertexBuffer& vertexBuffer, const TIndexBuffer& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
+        virtual void drawIndexed(const vertex_buffer_type& vertexBuffer, const index_buffer_type& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
             this->bind(vertexBuffer);
             this->bind(indexBuffer);
             this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
@@ -560,59 +561,59 @@ namespace LiteFX::Rendering {
 
     private:
         virtual void cmdBarrier(const IBarrier& barrier, const bool& invert) const noexcept override { 
-            this->barrier(dynamic_cast<const TBarrier&>(barrier), invert);
+            this->barrier(dynamic_cast<const barrier_type&>(barrier), invert);
         }
 
         virtual void cmdGenerateMipMaps(IImage& image) noexcept override { 
-            this->generateMipMaps(dynamic_cast<TImage&>(image));
+            this->generateMipMaps(dynamic_cast<image_type&>(image));
         }
 
         virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const override { 
-            this->transfer(dynamic_cast<const TBuffer&>(source), dynamic_cast<const TBuffer&>(target), sourceElement, targetElement, elements);
+            this->transfer(dynamic_cast<const buffer_type&>(source), dynamic_cast<const buffer_type&>(target), sourceElement, targetElement, elements);
         }
         
         virtual void cmdTransfer(const IBuffer& source, const IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const override { 
-            this->transfer(dynamic_cast<const TBuffer&>(source), dynamic_cast<const TImage&>(target), sourceElement, firstSubresource, elements);
+            this->transfer(dynamic_cast<const buffer_type&>(source), dynamic_cast<const image_type&>(target), sourceElement, firstSubresource, elements);
         }
         
         virtual void cmdTransfer(const IImage& source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const override {
-            this->transfer(dynamic_cast<const TImage&>(source), dynamic_cast<const TImage&>(target), sourceSubresource, targetSubresource, subresources);
+            this->transfer(dynamic_cast<const image_type&>(source), dynamic_cast<const image_type&>(target), sourceSubresource, targetSubresource, subresources);
         }
 
         virtual void cmdTransfer(const IImage& source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const override {
-            this->transfer(dynamic_cast<const TImage&>(source), dynamic_cast<const TBuffer&>(target), firstSubresource, targetElement, subresources);
+            this->transfer(dynamic_cast<const image_type&>(source), dynamic_cast<const buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
         virtual void cmdUse(const IPipeline& pipeline) const noexcept override { 
-            this->use(dynamic_cast<const TPipeline&>(pipeline));
+            this->use(dynamic_cast<const pipeline_type&>(pipeline));
         }
 
         virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override { 
-            this->bind(dynamic_cast<const TDescriptorSet&>(descriptorSet), dynamic_cast<const TPipeline&>(pipeline));
+            this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
         }
         
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept override { 
-            this->bind(dynamic_cast<const TVertexBuffer&>(buffer));
+            this->bind(dynamic_cast<const vertex_buffer_type&>(buffer));
         }
 
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept override { 
-            this->bind(dynamic_cast<const TVertexBuffer&>(buffer));
+            this->bind(dynamic_cast<const vertex_buffer_type&>(buffer));
         }
         
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept override { 
-            this->pushConstants(dynamic_cast<const TPushConstantsLayout&>(layout), memory);
+            this->pushConstants(dynamic_cast<const push_constants_layout_type&>(layout), memory);
         }
         
         virtual void cmdDraw(const IVertexBuffer& vertexBuffer, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const override { 
-            this->draw(dynamic_cast<const TVertexBuffer&>(vertexBuffer), instances, firstVertex, firstInstance);
+            this->draw(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), instances, firstVertex, firstInstance);
         }
         
         virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const override { 
-            this->drawIndexed(dynamic_cast<const TIndexBuffer&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
+            this->drawIndexed(dynamic_cast<const index_buffer_type&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
         }
         
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const override { 
-            this->drawIndexed(dynamic_cast<const TVertexBuffer&>(vertexBuffer), dynamic_cast<const TIndexBuffer&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
+            this->drawIndexed(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), dynamic_cast<const index_buffer_type&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
         }
     };
 
@@ -622,19 +623,11 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="InputAssembler"/>.</typeparam>
-    /// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="VertexBuffer"/>.</typeparam>
-    /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IndexBuffer"/>.</typeparam>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
     /// <seealso cref="RenderPipelineBuilder" />
-    template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type> requires
-        rtti::implements<TInputAssembler, InputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
-        std::derived_from<TVertexBufferInterface, VertexBuffer<TVertexBufferLayout>> &&
-        std::derived_from<TIndexBufferInterface, IndexBuffer<TIndexBufferLayout>>
+    template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler> requires
+        rtti::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>>
     class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
     public:
-        using vertex_buffer_interface_type = TVertexBufferInterface;
-        using index_buffer_interface_type = TIndexBufferInterface;
         using input_assembler_type = TInputAssembler;
 
     public:
@@ -642,7 +635,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual SharedPtr<TInputAssembler> inputAssembler() const noexcept = 0;
+        virtual SharedPtr<input_assembler_type> inputAssembler() const noexcept = 0;
 
     private:
         virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept override {
@@ -667,27 +660,28 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
-    template <typename TCommandBuffer, typename TBuffer = TCommandBuffer::buffer_type, typename TVertexBuffer = TCommandBuffer::vertex_buffer_type, typename TIndexBuffer = TCommandBuffer::index_buffer_type, typename TImage = TCommandBuffer::image_type, typename TBarrier = TCommandBuffer::barrier_type, typename TPipeline = TCommandBuffer::pipeline_type> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline>>
+    template <typename TCommandBuffer> requires
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
     class FrameBuffer : public IFrameBuffer {
     public:
         using command_buffer_type = TCommandBuffer;
+        using image_type = command_buffer_type::image_type;
 
     public:
         virtual ~FrameBuffer() noexcept = default;
 
     public:
         /// <inheritdoc />
-        virtual Array<const TCommandBuffer*> commandBuffers() const noexcept = 0;
+        virtual Array<const command_buffer_type*> commandBuffers() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TCommandBuffer& commandBuffer(const UInt32& index) const = 0;
+        virtual const command_buffer_type& commandBuffer(const UInt32& index) const = 0;
 
         /// <inheritdoc />
-        virtual Array<const TImage*> images() const noexcept = 0;
+        virtual Array<const image_type*> images() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TImage& image(const UInt32& location) const = 0;
+        virtual const image_type& image(const UInt32& location) const = 0;
 
     private:
         virtual Array<const ICommandBuffer*> getCommandBuffers() const noexcept override {
@@ -709,9 +703,8 @@ namespace LiteFX::Rendering {
     /// during initialization or re-creation, in order to resolve input attachment dependencies.
     /// </remarks>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
-    template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type> requires
-        rtti::implements<TFrameBuffer, FrameBuffer<TCommandBuffer>>
+    template <typename TFrameBuffer> requires
+        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>>
     class IInputAttachmentMappingSource {
     public:
         using frame_buffer_type = TFrameBuffer;
@@ -726,15 +719,15 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The index of a frame buffer within the source.</param>
         /// <returns>The frame buffer with the index provided in <paramref name="buffer" />.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="buffer" /> does not map to a frame buffer within the source.</exception>
-        virtual const TFrameBuffer& frameBuffer(const UInt32& buffer) const = 0;
+        virtual const frame_buffer_type& frameBuffer(const UInt32& buffer) const = 0;
     };
 
     /// <summary>
     /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="RenderPass" />.
     /// </summary>
     /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="IInputAttachmentMappingSource" />.</typeparam>
-    template <typename TInputAttachmentMappingSource, typename TFrameBuffer = TInputAttachmentMappingSource::frame_buffer_type> requires
-        rtti::implements<TInputAttachmentMappingSource, IInputAttachmentMappingSource<TFrameBuffer>>
+    template <typename TInputAttachmentMappingSource> requires
+        rtti::implements<TInputAttachmentMappingSource, IInputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
     class IInputAttachmentMapping {
     public:
         using input_attachment_mapping_source_type = TInputAttachmentMappingSource;
@@ -747,7 +740,7 @@ namespace LiteFX::Rendering {
         /// Returns the source of the input attachment render target.
         /// </summary>
         /// <returns>The source of the input attachment render target.</returns>
-        virtual const TInputAttachmentMappingSource* inputAttachmentSource() const noexcept = 0;
+        virtual const input_attachment_mapping_source_type* inputAttachmentSource() const noexcept = 0;
 
         /// <summary>
         /// Returns a reference of the render target that is mapped to the input attachment.
@@ -776,37 +769,40 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
-    template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TShaderProgram = TRenderPipeline::shader_program_type, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TVertexBuffer = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBuffer = TRenderPipeline::index_buffer_interface_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type> requires
-        rtti::implements<TFrameBuffer, FrameBuffer<TCommandBuffer>> &&
-        rtti::implements<TRenderPipeline, RenderPipeline<TPipelineLayout, TShaderProgram, TInputAssembler, TVertexBuffer, TIndexBuffer>> /*&&
+    template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping> requires
+        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
+        rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type>> /*&&
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
     class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
     public:
         using frame_buffer_type = TFrameBuffer;
         using render_pipeline_type = TRenderPipeline;
         using input_attachment_mapping_type = TInputAttachmentMapping;
+        using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
+        using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
+        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
 
     public:
         virtual ~RenderPass() noexcept = default;
 
     public:
         /// <inheritdoc />
-        virtual const TFrameBuffer& activeFrameBuffer() const = 0;
+        virtual const frame_buffer_type& activeFrameBuffer() const = 0;
 
         /// <inheritdoc />
-        virtual Array<const TFrameBuffer*> frameBuffers() const noexcept = 0;
+        virtual Array<const frame_buffer_type*> frameBuffers() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TRenderPipeline& pipeline(const UInt32& id) const = 0;
+        virtual const render_pipeline_type& pipeline(const UInt32& id) const = 0;
 
         /// <inheritdoc />
-        virtual Array<const TRenderPipeline*> pipelines() const noexcept = 0;
+        virtual Array<const render_pipeline_type*> pipelines() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual Span<const TInputAttachmentMapping> inputAttachments() const noexcept = 0;
+        virtual Span<const input_attachment_mapping_type> inputAttachments() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void updateAttachments(const TDescriptorSet& descriptorSet) const = 0;
+        virtual void updateAttachments(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
         virtual Array<const IFrameBuffer*> getFrameBuffers() const noexcept override {
@@ -820,7 +816,7 @@ namespace LiteFX::Rendering {
         }
 
         virtual void setAttachments(const IDescriptorSet& descriptorSet) const override {
-            this->updateAttachments(dynamic_cast<const TDescriptorSet&>(descriptorSet));
+            this->updateAttachments(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
     };
 
@@ -839,7 +835,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const TImageInterface*> images() const noexcept = 0;
+        virtual Array<const image_interface_type*> images() const noexcept = 0;
 
     private:
         virtual Array<const IImage*> getImages() const noexcept override {
@@ -852,8 +848,8 @@ namespace LiteFX::Rendering {
     /// Represents a command queue.
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="CommandBuffer"/>.</typeparam>
-    template <typename TCommandBuffer, typename TBuffer = TCommandBuffer::buffer_type, typename TVertexBuffer = TCommandBuffer::vertex_buffer_type, typename TIndexBuffer = TCommandBuffer::index_buffer_type, typename TImage = TCommandBuffer::image_type, typename TBarrier = TCommandBuffer::barrier_type, typename TPipeline = TCommandBuffer::pipeline_type> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline>>
+    template <typename TCommandBuffer> requires
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
     class CommandQueue : public ICommandQueue {
     public:
         using command_buffer_type = TCommandBuffer;
@@ -863,13 +859,13 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual UniquePtr<TCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const = 0;
+        virtual UniquePtr<command_buffer_type> createCommandBuffer(const bool& beginRecording = false) const = 0;
 
         /// <inheritdoc />
-        virtual UInt64 submit(const TCommandBuffer& commandBuffer) const = 0;
+        virtual UInt64 submit(const command_buffer_type& commandBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual UInt64 submit(const Array<const TCommandBuffer*>& commandBuffers) const = 0;
+        virtual UInt64 submit(const Array<const command_buffer_type*>& commandBuffers) const = 0;
 
     private:
         virtual UniquePtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const override {
@@ -877,13 +873,13 @@ namespace LiteFX::Rendering {
         }
 
         virtual UInt64 submitCommandBuffer(const ICommandBuffer& commandBuffer) const override {
-            return this->submit(dynamic_cast<const TCommandBuffer&>(commandBuffer));
+            return this->submit(dynamic_cast<const command_buffer_type&>(commandBuffer));
         }
 
         virtual UInt64 submitCommandBuffers(const Array<const ICommandBuffer*>& commandBuffers) const override {
-            Array<const TCommandBuffer*> buffers;
+            Array<const command_buffer_type*> buffers;
             buffers.reserve(commandBuffers.size());
-            std::transform(commandBuffers.begin(), commandBuffers.end(), buffers.begin(), [](auto buffer) { return dynamic_cast<const TCommandBuffer*>(buffer); });
+            std::transform(commandBuffers.begin(), commandBuffers.end(), buffers.begin(), [](auto buffer) { return dynamic_cast<const command_buffer_type*>(buffer); });
             return this->submit(buffers);
         }
     };
@@ -903,12 +899,10 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The type of the image. Must inherit from <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TSampler">The type of the sampler. Must inherit from <see cref="ISampler"/>.</typeparam>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
-    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler, typename TVertexBufferLayout = TVertexBuffer::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBuffer::index_buffer_layout_type> requires
+    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler> requires
         rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-        std::derived_from<TVertexBuffer, VertexBuffer<TVertexBufferLayout>> &&
-        std::derived_from<TIndexBuffer, IndexBuffer<TIndexBufferLayout>> &&
+        std::derived_from<TVertexBuffer, VertexBuffer<typename TVertexBuffer::vertex_buffer_layout_type>> &&
+        std::derived_from<TIndexBuffer, IndexBuffer<typename TIndexBuffer::index_buffer_layout_type>> &&
         std::derived_from<TImage, IImage> &&
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TSampler, ISampler>
@@ -916,7 +910,9 @@ namespace LiteFX::Rendering {
     public:
         using descriptor_layout_type = TDescriptorLayout;
         using vertex_buffer_type = TVertexBuffer;
+        using vertex_buffer_layout_type = vertex_buffer_type::vertex_buffer_layout_type;
         using index_buffer_type = TIndexBuffer;
+        using index_buffer_layout_type = index_buffer_type::index_buffer_layout_type;
         using buffer_type = TBuffer;
         using image_type = TImage;
         using sampler_type = TSampler;
@@ -929,10 +925,10 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<TBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const TVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const TIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<TImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
@@ -955,11 +951,11 @@ namespace LiteFX::Rendering {
         }
 
         virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override { 
-            return this->createVertexBuffer(dynamic_cast<const TVertexBufferLayout&>(layout), usage, elements);
+            return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
         }
         
         virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override {
-            return this->createIndexBuffer(dynamic_cast<const TIndexBufferLayout&>(layout), usage, elements);
+            return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 
         virtual UniquePtr<IImage> getAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const override { 
@@ -1006,22 +1002,14 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
-    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
-    /// <typeparam name="TImage">The type of the swap chain image. Must inherit from <see cref="IImage" />.</typeparam>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
-    /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer" />.</typeparam>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
-    /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TImage = TFactory::image_type, typename TVertexBuffer = TFactory::vertex_buffer_type, typename TIndexBuffer = TFactory::index_buffer_type, typename TDescriptorLayout = TFactory::descriptor_layout_type, typename TBuffer = TFactory::buffer_type, typename TSampler = TFactory::sampler_type> requires
+    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline> requires
         rtti::implements<TSurface, ISurface> &&
         rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-        rtti::implements<TSwapChain, SwapChain<TImage>> &&
-        rtti::implements<TCommandQueue, CommandQueue<TCommandBuffer>> &&
-        rtti::implements<TFactory, GraphicsFactory<TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler>> &&
-        rtti::implements<TRenderPass, RenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>> /*&&
-        rtti::implements<TComputePipeline, ComputePipeline<TPipelineLayout, TShaderProgram>>*/
+        rtti::implements<TSwapChain, SwapChain<typename TFactory::image_type>> &&
+        rtti::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
+        rtti::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type>> &&
+        rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
+        rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>>
     class GraphicsDevice : public IGraphicsDevice {
     public:
         using surface_type = TSurface;
@@ -1036,8 +1024,8 @@ namespace LiteFX::Rendering {
         using buffer_type = factory_type::buffer_type;
         using image_type = factory_type::image_type;
         using sampler_type = factory_type::sampler_type;
-        using frame_buffer_type = TFrameBuffer;
         using render_pass_type = TRenderPass;
+        using frame_buffer_type = render_pass_type::frame_buffer_type;
         using render_pipeline_type = render_pass_type::render_pipeline_type;
         using compute_pipeline_type = TComputePipeline;
 
@@ -1046,74 +1034,69 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const TSurface& surface() const noexcept = 0;
+        virtual const surface_type& surface() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TGraphicsAdapter& adapter() const noexcept = 0;
+        virtual const adapter_type& adapter() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TSwapChain& swapChain() const noexcept = 0;
+        virtual const swap_chain_type& swapChain() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TFactory& factory() const noexcept = 0;
+        virtual const factory_type& factory() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TCommandQueue& graphicsQueue() const noexcept = 0;
+        virtual const command_queue_type& graphicsQueue() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TCommandQueue& transferQueue() const noexcept = 0;
+        virtual const command_queue_type& transferQueue() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TCommandQueue& bufferQueue() const noexcept = 0;
+        virtual const command_queue_type& bufferQueue() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TCommandQueue& computeQueue() const noexcept = 0;
+        virtual const command_queue_type& computeQueue() const noexcept = 0;
     };
 
     /// <summary>
     /// Defines a back-end, that provides a device instance for a certain surface and graphics adapter.
     /// </summary>
-    /// <typeparam name="TGraphicsAdapter">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
-    /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
-    /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
-    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="SwapChain" />.</typeparam>
+    /// <typeparam name="TBackend">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
-    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
-    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="GraphicsFactory" />.</typeparam>
-    template <typename TBackend, typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type, typename TComputePipeline = TGraphicsDevice::compute_pipeline_type> requires
-        rtti::implements<TGraphicsDevice, GraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass, TComputePipeline>>
+    template <typename TBackend, typename TGraphicsDevice> requires
+        rtti::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type>>
     class RenderBackend : public IRenderBackend {
     public:
-        using GraphicsDevice = TGraphicsDevice;
-        using Surface = GraphicsDevice::surface_type;
-        using Adapter = GraphicsDevice::adapter_type;
-        using SwapChain = GraphicsDevice::swap_chain_type;
-        using CommandQueue = GraphicsDevice::command_queue_type;
-        using CommandBuffer = GraphicsDevice::command_buffer_type;
-        using Factory = GraphicsDevice::factory_type;
-        using DescriptorLayout = Factory::descriptor_layout_type;
-        using VertexBuffer = Factory::vertex_buffer_type;
-        using IndexBuffer = Factory::index_buffer_type;
-        using Buffer = Factory::buffer_type;
-        using Image = Factory::image_type;
-        using Sampler = Factory::sampler_type;
-        using FrameBuffer = GraphicsDevice::frame_buffer_type;
-        using RenderPass = GraphicsDevice::render_pass_type;
-        using RenderPipeline = GraphicsDevice::render_pipeline_type;
-        using ComputePipeline = GraphicsDevice::compute_pipeline_type;
+        using device_type = TGraphicsDevice;
+        using surface_type = device_type::surface_type;
+        using adapter_type = device_type::adapter_type;
+        using swap_chain_type = device_type::swap_chain_type;
+        using command_queue_type = device_type::command_queue_type;
+        using command_buffer_type = device_type::command_buffer_type;
+        using factory_type = device_type::factory_type;
+        using descriptor_layout_type = factory_type::descriptor_layout_type;
+        using vertex_buffer_type = factory_type::vertex_buffer_type;
+        using index_buffer_type = factory_type::index_buffer_type;
+        using buffer_type = factory_type::buffer_type;
+        using image_type = factory_type::image_type;
+        using sampler_type = factory_type::sampler_type;
+        using frame_buffer_type = device_type::frame_buffer_type;
+        using render_pass_type = device_type::render_pass_type;
+        using render_pipeline_type = device_type::render_pipeline_type;
+        using compute_pipeline_type = device_type::compute_pipeline_type;
 
     public:
         virtual ~RenderBackend() noexcept = default;
 
     public:
         /// <inheritdoc />
-        virtual Array<const TGraphicsAdapter*> listAdapters() const = 0;
+        virtual Array<const adapter_type*> listAdapters() const = 0;
 
         /// <inheritdoc />
-        virtual const TGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+        virtual const adapter_type* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
 
         /// <inheritdoc />
-        virtual void registerDevice(String name, UniquePtr<TGraphicsDevice>&& device) = 0;
+        virtual void registerDevice(String name, UniquePtr<device_type>&& device) = 0;
 
         /// <summary>
         /// Creates a new graphics device.
@@ -1121,8 +1104,8 @@ namespace LiteFX::Rendering {
         /// <param name="_args">The arguments that are passed to the graphics device constructor.</param>
         /// <returns>A pointer of the created graphics device instance.</returns>
         template <typename ...TArgs>
-        void createDevice(String name, const TGraphicsAdapter& adapter, UniquePtr<TSurface>&& surface, TArgs&&... _args) {
-            this->registerDevice(name, std::move(makeUnique<TGraphicsDevice>(static_cast<const TBackend&>(*this), adapter, std::move(surface), std::forward<TArgs>(_args)...)));
+        void createDevice(String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
+            this->registerDevice(name, std::move(makeUnique<device_type>(static_cast<const TBackend&>(*this), adapter, std::move(surface), std::forward<TArgs>(_args)...)));
         }
 
         /// <summary>
@@ -1132,18 +1115,18 @@ namespace LiteFX::Rendering {
         virtual void releaseDevice(const String& name) = 0;
 
         /// <inheritdoc />
-        virtual TGraphicsDevice* device(const String& name) noexcept = 0;
+        virtual device_type* device(const String& name) noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TGraphicsDevice* device(const String& name) const noexcept = 0;
+        virtual const device_type* device(const String& name) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const TGraphicsDevice* operator[](const String& name) const noexcept {
+        virtual const device_type* operator[](const String& name) const noexcept {
             return this->device(name);
         };
 
         /// <inheritdoc />
-        virtual TGraphicsDevice* operator[](const String& name) noexcept {
+        virtual device_type* operator[](const String& name) noexcept {
             return this->device(name);
         };
 
