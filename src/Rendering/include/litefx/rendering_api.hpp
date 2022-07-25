@@ -1486,12 +1486,35 @@ namespace LiteFX::Rendering {
         void add(const String& id, UniquePtr<IRenderPass>&& renderPass);
 
         /// <summary>
+        /// Adds a new pipeline to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="pipeline">The pipeline to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another pipeline with the same identifier has already been added.</exception>
+        void add(UniquePtr<IPipeline>&& pipeline);
+
+        /// <summary>
+        /// Adds a new pipeline to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the pipeline.</param>
+        /// <param name="pipeline">The pipeline to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another pipeline with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IPipeline>&& pipeline);
+
+        /// <summary>
         /// Returns a render pass from the device state.
         /// </summary>
         /// <param name="id">The identifier associated with the render pass.</param>
         /// <returns>A reference of the render pass.</returns>
         /// <exception cref="InvalidArgumentExceptoin">Thrown, if no render pass has been added for the provided <paramref name="id" />.</exception>
         IRenderPass& renderPass(const String& id) const;
+
+        /// <summary>
+        /// Returns a pipeline from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the pipeline.</param>
+        /// <returns>A reference of the pipeline.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no pipeline has been added for the provided <paramref name="id" />.</exception>
+        IPipeline& pipeline(const String& id) const;
 
         /// <summary>
         /// Releases a render pass.
@@ -1504,6 +1527,18 @@ namespace LiteFX::Rendering {
         /// <param name="renderPass">The render pass to release.</param>
         /// <returns><c>true</c>, if the render pass was properly released, <c>false</c> otherwise.</returns>
         bool release(const IRenderPass& renderPass);
+
+        /// <summary>
+        /// Releases a pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method will destroy the pipeline. Before calling it, the pipeline must be requested using <see cref="pipeline" />. After this 
+        /// method has been executed, all references (including the <paramref name="pipeline" /> parameter) will be invalid. If the pipeline is not
+        ///  managed by the device state, this method will do nothing and return <c>false</c>.
+        /// </remarks>
+        /// <param name="pipeline">The pipeline to release.</param>
+        /// <returns><c>true</c>, if the pipeline was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IPipeline& pipeline);
     };
 
     /// <summary>
