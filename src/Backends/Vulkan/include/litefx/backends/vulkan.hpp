@@ -395,7 +395,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="DescriptorSetLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSet" />
-	/// <seealso cref="VulkanRenderPipelineDescriptorSetLayoutBuilder" />
+	/// <seealso cref="VulkanDescriptorSetLayoutBuilder" />
 	class LITEFX_VULKAN_API VulkanDescriptorSetLayout : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
 		LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
@@ -542,8 +542,8 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements the Vulkan <see cref="PushConstantsLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanPushConstantsRange" />
-	/// <seealso cref="VulkanRenderPipelinePushConstantsLayoutBuilder" />
-	/// <seealso cref="VulkanComputePipelinePushConstantsLayoutBuilder" />
+	/// <seealso cref="VulkanPushConstantsLayoutBuilder" />
+	/// <seealso cref="VulkanPushConstantsLayoutBuilder" />
 	class LITEFX_VULKAN_API VulkanPushConstantsLayout : public PushConstantsLayout<VulkanPushConstantsRange> {
 		LITEFX_IMPLEMENTATION(VulkanPushConstantsLayoutImpl);
 		LITEFX_BUILDER(VulkanPushConstantsLayoutBuilder);
@@ -595,7 +595,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="PipelineLayout" />.
 	/// </summary>
-	/// <seealso cref="VulkanRenderPipelineLayoutBuilder" />
+	/// <seealso cref="VulkanPipelineLayoutBuilder" />
 	class LITEFX_VULKAN_API VulkanPipelineLayout : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanPipelineLayoutBuilder);
@@ -842,7 +842,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="layout">The layout of the pipeline.</param>
 		/// <param name="inputAssembler">The input assembler state of the pipeline.</param>
 		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
-		/// <param name="name">The optional debug name of the render pipeline.</param>
+		/// <param name="name">The optional name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
 		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage = false, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
@@ -854,13 +854,11 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new Vulkan render pipeline.
 		/// </summary>
 		/// <param name="renderPass">The parent render pass.</param>
-		VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept;
+		/// <param name="name">The optional name of the render pipeline.</param>
+		VulkanRenderPipeline(const VulkanRenderPass& renderPass, const String& name = "") noexcept;
 
 		// Pipeline interface.
 	public:
-		/// <inheritdoc />
-		virtual const String& name() const noexcept override;
-
 		/// <inheritdoc />
 		virtual SharedPtr<const VulkanShaderProgram> program() const noexcept override;
 

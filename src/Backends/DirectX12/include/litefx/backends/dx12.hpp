@@ -797,7 +797,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="layout">The layout of the pipeline.</param>
 		/// <param name="inputAssembler">The input assembler state of the pipeline.</param>
 		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
-		/// <param name="name">The optional debug name of the render pipeline.</param>
+		/// <param name="name">The optional name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
 		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage = false, const String& name = "");
 		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
@@ -809,13 +809,11 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new DirectX 12 render pipeline.
 		/// </summary>
 		/// <param name="renderPass">The parent render pass.</param>
-		DirectX12RenderPipeline(const DirectX12RenderPass& renderPass) noexcept;
+		/// <param name="name">The optional name of the render pipeline.</param>
+		DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name = "") noexcept;
 
 		// Pipeline interface.
 	public:
-		/// <inheritdoc />
-		virtual const String& name() const noexcept override;
-
 		/// <inheritdoc />
 		virtual SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
 

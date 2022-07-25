@@ -19,15 +19,14 @@ private:
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
-	String m_name;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
 	const VulkanRenderPass& m_renderPass;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const String& name, const bool& alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors) :
-		base(parent), m_renderPass(renderPass), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(viewports), m_scissors(scissors)
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors) :
+		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(viewports), m_scissors(scissors)
 	{
 	}
 
@@ -39,7 +38,7 @@ public:
 public:
 	VkPipeline initialize()
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_name);
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
 		
 		// Get the device.
 		const auto& device = m_renderPass.device();
@@ -239,24 +238,24 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, name, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, viewports, scissors)), VulkanPipelineState(VK_NULL_HANDLE)
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, viewports, scissors)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
+
+	if (!name.empty())
+		this->name() = name;
 }
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass) noexcept :
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const String& name) noexcept :
 	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass)), VulkanPipelineState(VK_NULL_HANDLE)
 {
+	if (!name.empty())
+		this->name() = name;
 }
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
 	::vkDestroyPipeline(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
-}
-
-const String& VulkanRenderPipeline::name() const noexcept
-{
-	return m_impl->m_name;
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRenderPipeline::program() const noexcept
@@ -366,7 +365,7 @@ public:
 VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const String& name) :
 	m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>(new VulkanRenderPipeline(renderPass)))
 {
-	this->instance()->m_impl->m_name = name;
+	this->instance()->name() = name;
 }
 
 VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;

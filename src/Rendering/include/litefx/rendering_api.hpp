@@ -3188,17 +3188,11 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a pipeline.
     /// </summary>
-    class LITEFX_RENDERING_API IPipeline {
+    class LITEFX_RENDERING_API IPipeline : public virtual IStateResource {
     public:
         virtual ~IPipeline() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the name of the render pipeline.
-        /// </summary>
-        /// <returns>The name of the render pipeline.</returns>
-        virtual const String& name() const noexcept = 0;
-
         /// <summary>
         /// Returns the shader program used by the pipeline.
         /// </summary>

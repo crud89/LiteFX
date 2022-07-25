@@ -447,7 +447,7 @@ namespace LiteFX::Rendering {
     template <typename TPipelineLayout, typename TShaderProgram> requires
         rtti::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>> &&
         rtti::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
-    class Pipeline : public virtual IPipeline {
+    class Pipeline : public virtual IPipeline, public virtual StateResource {
     public:
         using shader_program_type = TShaderProgram;
         using pipeline_layout_type = TPipelineLayout;

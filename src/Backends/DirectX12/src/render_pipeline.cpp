@@ -19,15 +19,14 @@ private:
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
-	String m_name;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
 	const DirectX12RenderPass& m_renderPass;
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const String& name, const bool& alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
-		base(parent), m_renderPass(renderPass), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
 
@@ -39,7 +38,7 @@ public:
 public:
 	ComPtr<ID3D12PipelineState> initialize()
 	{
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_name);
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
 
@@ -225,22 +224,22 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, name, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, std::move(viewports), std::move(scissors))), DirectX12PipelineState(nullptr)
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, std::move(viewports), std::move(scissors))), DirectX12PipelineState(nullptr)
 {
 	this->handle() = m_impl->initialize();
+
+	if (!name.empty())
+		this->name() = name;
 }
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass) noexcept :
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) noexcept :
 	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass)), DirectX12PipelineState(nullptr)
 {
+	if (!name.empty())
+		this->name() = name;
 }
 
 DirectX12RenderPipeline::~DirectX12RenderPipeline() noexcept = default;
-
-const String& DirectX12RenderPipeline::name() const noexcept
-{
-	return m_impl->m_name;
-}
 
 SharedPtr<const DirectX12ShaderProgram> DirectX12RenderPipeline::program() const noexcept
 {
@@ -345,7 +344,7 @@ public:
 DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
 	m_impl(makePimpl<DirectX12RenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<DirectX12RenderPipeline>(new DirectX12RenderPipeline(renderPass)))
 {
-	this->instance()->m_impl->m_name = name;
+	this->instance()->name() = name;
 }
 
 DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
