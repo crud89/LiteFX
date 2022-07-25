@@ -784,7 +784,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12ComputePipeline" />
 	/// <seealso cref="DirectX12RenderPipelineBuilder" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12PipelineState, public RenderPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram, DirectX12InputAssembler> {
+	class LITEFX_DIRECTX12_API DirectX12RenderPipeline : public virtual DirectX12PipelineState, public RenderPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram, DirectX12InputAssembler, DirectX12Rasterizer> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineImpl);
 		LITEFX_BUILDER(DirectX12RenderPipelineBuilder);
 
@@ -828,7 +828,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual SharedPtr<DirectX12InputAssembler> inputAssembler() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<IRasterizer> rasterizer() const noexcept override;
+		virtual SharedPtr<DirectX12Rasterizer> rasterizer() const noexcept override;
 
 		/// <inheritdoc />
 		virtual Array<const IViewport*> viewports() const noexcept override;
@@ -1346,29 +1346,33 @@ namespace LiteFX::Rendering::Backends {
 		virtual const DirectX12Backend& backend() const noexcept;
 
 		/// <summary>
-		/// 
+		/// Returns the global descriptor heap.
 		/// </summary>
-		/// <returns></returns>
+		/// <remarks>
+		/// The DirectX 12 device uses a global heap of descriptors and samplers in a ring-buffer fashion. The heap itself is managed by the device.
+		/// </remarks>
+		/// <returns>A pointer to the global descriptor heap.</returns>
 		virtual const ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
 
 		/// <summary>
-		/// 
+		/// Returns the global sampler heap.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>A pointer to the global sampler heap.</returns>
+		/// <seealso cref="globalBufferHeap" />
 		virtual const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
 
 		/// <summary>
-		/// 
+		/// Updates descriptors of a descriptor set for a pipeline.
 		/// </summary>
-		/// <param name="commandBuffer"></param>
-		/// <param name="descriptorSet"></param>
-		/// <returns></returns>
+		/// <param name="commandBuffer">The command buffer to issue the update command on.</param>
+		/// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
+		/// <param name="pipeline">The pipeline to update the descriptors for.</param>
 		virtual void updateGlobalDescriptors(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept;
 
 		/// <summary>
-		/// 
+		/// Binds the global descriptor heap.
 		/// </summary>
-		/// <returns></returns>
+		/// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
 		virtual void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
 
 		/// <summary>
@@ -1440,6 +1444,18 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		[[nodiscard]] virtual DirectX12ComputePipelineBuilder buildComputePipeline(const String& name) const override;
+		
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12PipelineLayoutBuilder buildPipelineLayout() const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12InputAssemblerBuilder buildInputAssembler() const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12RasterizerBuilder buildRasterizer() const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12ShaderProgramBuilder buildShaderProgram() const override;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 	};
 	

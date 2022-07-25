@@ -829,7 +829,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanComputePipeline" />
 	/// <seealso cref="VulkanRenderPipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, VulkanRasterizer>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -873,7 +873,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual SharedPtr<VulkanInputAssembler> inputAssembler() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<IRasterizer> rasterizer() const noexcept override;
+		virtual SharedPtr<VulkanRasterizer> rasterizer() const noexcept override;
 
 		/// <inheritdoc />
 		virtual Array<const IViewport*> viewports() const noexcept override;
@@ -1496,6 +1496,18 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		[[nodiscard]] virtual VulkanComputePipelineBuilder buildComputePipeline(const String& name) const override;
+		
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanPipelineLayoutBuilder buildPipelineLayout() const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanInputAssemblerBuilder buildInputAssembler() const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanRasterizerBuilder buildRasterizer() const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanShaderProgramBuilder buildShaderProgram() const override;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 	};
 

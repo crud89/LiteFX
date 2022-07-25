@@ -323,6 +323,26 @@ VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline(const String& na
 {
 	return VulkanComputePipelineBuilder(*this, name);
 }
+
+VulkanPipelineLayoutBuilder VulkanDevice::buildPipelineLayout() const
+{
+	return VulkanPipelineLayoutBuilder(*this);
+}
+
+VulkanInputAssemblerBuilder VulkanDevice::buildInputAssembler() const
+{
+	return VulkanInputAssemblerBuilder();
+}
+
+VulkanRasterizerBuilder VulkanDevice::buildRasterizer() const
+{
+	return VulkanRasterizerBuilder();
+}
+
+VulkanShaderProgramBuilder VulkanDevice::buildShaderProgram() const
+{
+	return VulkanShaderProgramBuilder(*this);
+}
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
 DeviceState& VulkanDevice::state() const noexcept

@@ -274,7 +274,7 @@ SharedPtr<VulkanInputAssembler> VulkanRenderPipeline::inputAssembler() const noe
 	return m_impl->m_inputAssembler;
 }
 
-SharedPtr<IRasterizer> VulkanRenderPipeline::rasterizer() const noexcept 
+SharedPtr<VulkanRasterizer> VulkanRenderPipeline::rasterizer() const noexcept
 {
 	return m_impl->m_rasterizer;
 }

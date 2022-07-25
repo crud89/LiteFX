@@ -358,6 +358,26 @@ DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline(const Stri
 {
 	return DirectX12ComputePipelineBuilder(*this, name);
 }
+
+DirectX12PipelineLayoutBuilder DirectX12Device::buildPipelineLayout() const
+{
+	return DirectX12PipelineLayoutBuilder(*this);
+}
+
+DirectX12InputAssemblerBuilder DirectX12Device::buildInputAssembler() const
+{
+	return DirectX12InputAssemblerBuilder();
+}
+
+DirectX12RasterizerBuilder DirectX12Device::buildRasterizer() const
+{
+	return DirectX12RasterizerBuilder();
+}
+
+DirectX12ShaderProgramBuilder DirectX12Device::buildShaderProgram() const
+{
+	return DirectX12ShaderProgramBuilder(*this);
+}
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept

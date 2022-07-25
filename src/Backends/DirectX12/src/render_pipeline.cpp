@@ -257,7 +257,7 @@ SharedPtr<DirectX12InputAssembler> DirectX12RenderPipeline::inputAssembler() con
 	return m_impl->m_inputAssembler;
 }
 
-SharedPtr<IRasterizer> DirectX12RenderPipeline::rasterizer() const noexcept
+SharedPtr<DirectX12Rasterizer> DirectX12RenderPipeline::rasterizer() const noexcept
 {
 	return m_impl->m_rasterizer;
 }

@@ -3501,7 +3501,9 @@ namespace LiteFX::Rendering {
         /// Returns the rasterizer state used by the render pipeline.
         /// </summary>
         /// <returns>The rasterizer state used by the render pipeline.</returns>
-        virtual SharedPtr<IRasterizer> rasterizer() const noexcept = 0;
+        SharedPtr<IRasterizer> rasterizer() const noexcept {
+            return this->getRasterizer();
+        }
 
         /// <summary>
         /// Returns the viewports, the render pipeline can draw to.
@@ -3552,6 +3554,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept = 0;
+        virtual SharedPtr<IRasterizer> getRasterizer() const noexcept = 0;
     };
 
     /// <summary>

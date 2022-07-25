@@ -623,12 +623,15 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="InputAssembler"/>.</typeparam>
+    /// <typeparam name="TRasterizer">The type of the rasterizer state. Must implement <see cref="Rasterizer"/>.</typeparam>
     /// <seealso cref="RenderPipelineBuilder" />
-    template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler> requires
-        rtti::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>>
+    template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TRasterizer> requires
+        rtti::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>> &&
+        rtti::implements<TRasterizer, Rasterizer>
     class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         using input_assembler_type = TInputAssembler;
+        using rasterizer_type = TRasterizer;
 
     public:
         virtual ~RenderPipeline() noexcept = default;
@@ -637,9 +640,16 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual SharedPtr<input_assembler_type> inputAssembler() const noexcept = 0;
 
+        /// <inheritdoc />
+        virtual SharedPtr<rasterizer_type> rasterizer() const noexcept = 0;
+
     private:
         virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept override {
             return this->inputAssembler();
+        }
+
+        virtual SharedPtr<IRasterizer> getRasterizer() const noexcept override {
+            return this->rasterizer();
         }
     };
 
@@ -771,7 +781,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
     template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping> requires
         rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
-        rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type>> /*&&
+        rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
     class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
     public:
@@ -1025,6 +1035,7 @@ namespace LiteFX::Rendering {
         using frame_buffer_type = render_pass_type::frame_buffer_type;
         using render_pipeline_type = render_pass_type::render_pipeline_type;
         using compute_pipeline_type = TComputePipeline;
+        using shader_program_type = render_pipeline_type::shader_program_type;
 
     public:
         virtual ~GraphicsDevice() noexcept = default;
@@ -1059,6 +1070,10 @@ namespace LiteFX::Rendering {
         using render_pass_builder_type = render_pass_type::builder_type;
         using render_pipeline_builder_type = render_pipeline_type::builder_type;
         using compute_pipeline_builder_type = compute_pipeline_type::builder_type;
+        using pipeline_layout_builder_type = render_pipeline_type::pipeline_layout_type::builder_type;
+        using input_assembler_builder_type = render_pipeline_type::input_assembler_type::builder_type;
+        using rasterizer_builder_type = render_pipeline_type::rasterizer_type::builder_type;
+        using shader_program_builder_type = render_pipeline_type::shader_program_type::builder_type;
 
         /// <summary>
         /// Returns a builder for a <see cref="RenderPass" />.
@@ -1088,16 +1103,40 @@ namespace LiteFX::Rendering {
         /// Returns a builder for a <see cref="RenderPipeline" />.
         /// </summary>
         /// <param name="name">The name of the render pipeline.</param>
-        /// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
+        /// <returns>An instance of a builder that is used to create a new render pipeline.</returns>
         //[[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const String& name) const = 0;
 
         /// <summary>
-        /// Returns a builder for a <see cref="ComputePipeline" />.
+        /// Returns a builder for a <see cref="RenderPipeline" />.
         /// </summary>
         /// <param name="renderPass">The parent render pass of the pipeline.</param>
         /// <param name="name">The name of the render pipeline.</param>
-        /// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
+        /// <returns>An instance of a builder that is used to create a new render pipeline.</returns>
         [[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const render_pass_type& renderPass, const String& name) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="PipelineLayout" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new pipeline layout.</returns>
+        [[nodiscard]] virtual pipeline_layout_builder_type buildPipelineLayout() const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="InputAssembler" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new input assembler.</returns>
+        [[nodiscard]] virtual input_assembler_builder_type buildInputAssembler() const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="Rasterizer" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new rasterizer.</returns>
+        [[nodiscard]] virtual rasterizer_builder_type buildRasterizer() const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="ShaderProgram" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new shader program.</returns>
+        [[nodiscard]] virtual shader_program_builder_type buildShaderProgram() const = 0;
 #endif // defined(BUILD_DEFINE_BUILDERS)
     };
 
@@ -1127,6 +1166,7 @@ namespace LiteFX::Rendering {
         using render_pass_type = device_type::render_pass_type;
         using render_pipeline_type = device_type::render_pipeline_type;
         using compute_pipeline_type = device_type::compute_pipeline_type;
+        using shader_program_type = device_type::shader_program_type;
 
     public:
         virtual ~RenderBackend() noexcept = default;

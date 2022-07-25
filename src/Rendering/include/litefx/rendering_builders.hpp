@@ -350,7 +350,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <seealso cref="RenderPipeline" />
     template <typename TDerived, typename TRenderPipeline> requires
-        rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type>>
+        rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>>
     class RenderPipelineBuilder : public Builder<TDerived, TRenderPipeline> {
     public:
         using Builder<TDerived, TRenderPipeline>::Builder;
