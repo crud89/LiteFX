@@ -1531,11 +1531,6 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Releases a pipeline.
         /// </summary>
-        /// <remarks>
-        /// Calling this method will destroy the pipeline. Before calling it, the pipeline must be requested using <see cref="pipeline" />. After this 
-        /// method has been executed, all references (including the <paramref name="pipeline" /> parameter) will be invalid. If the pipeline is not
-        ///  managed by the device state, this method will do nothing and return <c>false</c>.
-        /// </remarks>
         /// <param name="pipeline">The pipeline to release.</param>
         /// <returns><c>true</c>, if the pipeline was properly released, <c>false</c> otherwise.</returns>
         bool release(const IPipeline& pipeline);
@@ -2503,7 +2498,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Base interface for buffer objects.
     /// </summary>
-    class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual IMappable {
+    class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual IMappable, public virtual IStateResource {
     public:
         virtual ~IBuffer() noexcept = default;
 
@@ -2518,7 +2513,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a generic image.
     /// </summary>
-    class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory {
+    class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory, public virtual IStateResource {
     public:
         virtual ~IImage() noexcept = default;
 
@@ -2601,7 +2596,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a texture sampler.
     /// </summary>
-    class LITEFX_RENDERING_API ISampler {
+    class LITEFX_RENDERING_API ISampler : public virtual IStateResource {
     public:
         virtual ~ISampler() noexcept = default;
 
@@ -4010,6 +4005,20 @@ namespace LiteFX::Rendering {
         };
 
         /// <summary>
+        /// Creates a buffer of type <paramref name="type" />.
+        /// </summary>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="type">The type of the buffer.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            return this->getBuffer(name, type, usage, elementSize, elements, allowWrite);
+        };
+
+        /// <summary>
         /// Creates a vertex buffer, based on the <paramref name="layout" />
         /// </summary>
         /// <remarks>
@@ -4023,6 +4032,23 @@ namespace LiteFX::Rendering {
         /// <returns>The instance of the vertex buffer.</returns>
         UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const {
             return this->getVertexBuffer(layout, usage, elements);
+        }
+
+        /// <summary>
+        /// Creates a vertex buffer, based on the <paramref name="layout" />
+        /// </summary>
+        /// <remarks>
+        /// A vertex buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
+        /// 
+        /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
+        /// </remarks>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="layout">The layout of the vertex buffer.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
+        /// <returns>The instance of the vertex buffer.</returns>
+        UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const {
+            return this->getVertexBuffer(name, layout, usage, elements);
         }
 
         /// <summary>
@@ -4042,6 +4068,23 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Creates an index buffer, based on the <paramref name="layout" />.
+        /// </summary>
+        /// <remarks>
+        /// An index buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
+        /// 
+        /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
+        /// </remarks>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="layout">The layout of the index buffer.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
+        /// <returns>The instance of the index buffer.</returns>
+        UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const {
+            return this->getIndexBuffer(name, layout, usage, elements);
+        }
+
+        /// <summary>
         /// Creates an image that is used as render target attachment.
         /// </summary>
         /// <param name="format">The format of the image.</param>
@@ -4050,6 +4093,18 @@ namespace LiteFX::Rendering {
         /// <returns>The instance of the attachment image.</returns>
         UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const {
             return this->getAttachment(format, size, samples);
+        }
+
+        /// <summary>
+        /// Creates an image that is used as render target attachment.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="size">The extent of the image.</param>
+        /// <param name="samples">The number of samples, the image should be sampled with.</param>
+        /// <returns>The instance of the attachment image.</returns>
+        UniquePtr<IImage> createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const {
+            return this->getAttachment(name, format, size, samples);
         }
 
         /// <summary>
@@ -4070,6 +4125,27 @@ namespace LiteFX::Rendering {
         /// <seealso cref="createTextures" />
         UniquePtr<IImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
             return this->getTexture(format, size, dimension, levels, layers, samples, allowWrite);
+        }
+
+        /// <summary>
+        /// Creates a texture, based on the <paramref name="layout" />.
+        /// </summary>
+        /// <remarks>
+        /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
+        /// <see cref="createBuffer" /> first that holds the actual image bytes. You than can transfer/copy the contents into the texture.
+        /// </remarks>
+        /// <param name="name">The name of the texture image.</param>
+        /// <param name="format">The format of the texture image.</param>
+        /// <param name="size">The dimensions of the texture.</param>
+        /// <param name="dimension">The dimensionality of the texture.</param>
+        /// <param name="layers">The number of layers (slices) in this texture.</param>
+        /// <param name="levels">The number of mip map levels of the texture.</param>
+        /// <param name="samples">The number of samples, the texture should be sampled with.</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the texture.</returns>
+        /// <seealso cref="createTextures" />
+        UniquePtr<IImage> createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
+            return this->getTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
         }
 
         /// <summary>
@@ -4109,6 +4185,26 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Creates a texture sampler, based on the <paramref name="layout" />.
+        /// </summary>
+        /// <param name="name">The name of the sampler.</param>
+        /// <param name="magFilter">The filter operation used for magnifying.</param>
+        /// <param name="minFilter">The filter operation used for minifying.</param>
+        /// <param name="borderU">The border mode along the U-axis.</param>
+        /// <param name="borderV">The border mode along the V-axis.</param>
+        /// <param name="borderW">The border mode along the W-axis.</param>
+        /// <param name="mipMapMode">The mip map mode.</param>
+        /// <param name="mipMapBias">The mip map bias.</param>
+        /// <param name="maxLod">The maximum level of detail value.</param>
+        /// <param name="minLod">The minimum level of detail value.</param>
+        /// <param name="anisotropy">The level of anisotropic filtering.</param>
+        /// <returns>The instance of the sampler.</returns>
+        /// <seealso cref="createSamplers" />
+        UniquePtr<ISampler> createSampler(const String& name, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+            return this->getSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+        }
+
+        /// <summary>
         /// Creates an array of texture samplers, based on the <paramref name="layout" />.
         /// </summary>
         /// <param name="elements">The number of samplers to create.</param>
@@ -4130,12 +4226,18 @@ namespace LiteFX::Rendering {
 
     private:
         virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
+        virtual UniquePtr<IBuffer> getBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
         virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
         virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
         virtual UniquePtr<IImage> getAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const = 0;
+        virtual UniquePtr<IImage> getAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const = 0;
         virtual UniquePtr<IImage> getTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
+        virtual UniquePtr<IImage> getTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
         virtual Array<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
         virtual UniquePtr<ISampler> getSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
+        virtual UniquePtr<ISampler> getSampler(const String& name, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
         virtual Array<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
     };
 

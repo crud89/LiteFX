@@ -91,9 +91,11 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator allocator, VmaAllocation allocation) :
+VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator allocator, VmaAllocation allocation, const String& name) :
 	m_impl(makePimpl<VulkanImageImpl>(this, device, extent, format, dimensions, levels, layers, samples, writable, initialState, allocator, allocation)), Resource<VkImage>(image)
 {
+	if (!name.empty())
+		this->name() = name;
 }
 
 VulkanImage::~VulkanImage() noexcept 
@@ -347,13 +349,18 @@ VkImageView& VulkanImage::imageView(const UInt32& plane)
 
 UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
+	return VulkanImage::allocate("", device, extent, format, dimensions, levels, layers, samples, writable, initialState, allocator, createInfo, allocationInfo, allocationResult);
+}
+
+UniquePtr<VulkanImage> VulkanImage::allocate(const String& name, const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+{
 	VkImage image;
 	VmaAllocation allocation;
 
 	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Writable: {7} }}", fmt::ptr(reinterpret_cast<void*>(image)), ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, writable, samples);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Writable: {7} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(image))) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, writable, samples);
 
-	return makeUnique<VulkanImage>(device, image, extent, format, dimensions, levels, layers, samples, writable, initialState, allocator, allocation);
+	return makeUnique<VulkanImage>(device, image, extent, format, dimensions, levels, layers, samples, writable, initialState, allocator, allocation, name);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -445,10 +452,13 @@ public:
 // Sampler shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSampler::VulkanSampler(const VulkanDevice& device, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+VulkanSampler::VulkanSampler(const VulkanDevice& device, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy, const String& name) :
 	Resource<VkSampler>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanSamplerImpl>(this, device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
 {
 	this->handle() = m_impl->initialize();
+
+	if (!name.empty())
+		this->name() = name;
 }
 
 VulkanSampler::~VulkanSampler() noexcept

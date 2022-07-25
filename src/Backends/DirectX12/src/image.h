@@ -10,11 +10,11 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX12 <see cref="IImage" />.
 	/// </summary>
-	class DirectX12Image : public IDirectX12Image, public ComResource<ID3D12Resource> {
+	class DirectX12Image : public IDirectX12Image, public ComResource<ID3D12Resource>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12ImageImpl);
 
 	public:
-		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr);
+		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
 		DirectX12Image(DirectX12Image&&) = delete;
 		DirectX12Image(const DirectX12Image&) = delete;
 		virtual ~DirectX12Image() noexcept;
@@ -78,12 +78,13 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		static UniquePtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<DirectX12Image> allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="ISampler" />.
 	/// </summary>
-	class DirectX12Sampler : public IDirectX12Sampler {
+	class DirectX12Sampler : public IDirectX12Sampler, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12SamplerImpl);
 
 	public:
@@ -101,7 +102,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit DirectX12Sampler(const DirectX12Device& device, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f);
+		explicit DirectX12Sampler(const DirectX12Device& device, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f, const String& name = "");
 		DirectX12Sampler(DirectX12Sampler&&) = delete;
 		DirectX12Sampler(const DirectX12Sampler&) = delete;
 		virtual ~DirectX12Sampler() noexcept;

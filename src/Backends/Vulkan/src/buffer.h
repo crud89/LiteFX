@@ -7,11 +7,14 @@
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
-	class VulkanBuffer : public IVulkanBuffer, public Resource<VkBuffer> {
+	/// <summary>
+	/// Implements a Vulkan <see cref="IBuffer" />.
+	/// </summary>
+	class VulkanBuffer : public IVulkanBuffer, public Resource<VkBuffer>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
 
 	public:
-		explicit VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		explicit VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name);
 		VulkanBuffer(VulkanBuffer&&) = delete;
 		VulkanBuffer(const VulkanBuffer&) = delete;
 		virtual ~VulkanBuffer() noexcept;
@@ -58,13 +61,17 @@ namespace LiteFX::Rendering::Backends {
 		// VulkanBuffer.
 	public:
 		static UniquePtr<IVulkanBuffer> allocate(const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IVulkanBuffer> allocate(const String& name, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
+	/// <summary>
+	/// Implements a Vulkan <see cref="IVertexBuffer" />.
+	/// </summary>
 	class VulkanVertexBuffer : public VulkanBuffer, public IVulkanVertexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferImpl);
 
 	public:
-		explicit VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		explicit VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name = "");
 		VulkanVertexBuffer(VulkanVertexBuffer&&) = delete;
 		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
 		virtual ~VulkanVertexBuffer() noexcept;
@@ -77,13 +84,17 @@ namespace LiteFX::Rendering::Backends {
 		// VulkanVertexBuffer.
 	public:
 		static UniquePtr<IVulkanVertexBuffer> allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IVulkanVertexBuffer> allocate(const String& name, const VulkanVertexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
+	/// <summary>
+	/// Implements a Vulkan <see cref="IIndexBuffer" />.
+	/// </summary>
 	class VulkanIndexBuffer : public VulkanBuffer, public IVulkanIndexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferImpl);
 
 	public:
-		explicit VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation);
+		explicit VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name = "");
 		VulkanIndexBuffer(VulkanIndexBuffer&&) = delete;
 		VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
 		virtual ~VulkanIndexBuffer() noexcept;
@@ -96,5 +107,6 @@ namespace LiteFX::Rendering::Backends {
 		// VulkanIndexBuffer.
 	public:
 		static UniquePtr<IVulkanIndexBuffer> allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<IVulkanIndexBuffer> allocate(const String& name, const VulkanIndexBufferLayout& layout, const UInt32& elements, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 }

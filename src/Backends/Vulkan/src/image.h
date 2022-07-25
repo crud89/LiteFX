@@ -10,11 +10,11 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IImage" />.
 	/// </summary>
-	class VulkanImage : public IVulkanImage, public Resource<VkImage> {
+	class VulkanImage : public IVulkanImage, public Resource<VkImage>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 
 	public:
-		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
+		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
 		VulkanImage(VulkanImage&&) = delete;
 		VulkanImage(const VulkanImage&) = delete;
 		virtual ~VulkanImage() noexcept;
@@ -85,12 +85,13 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanImage> allocate(const String& name, const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
 	/// Implements a Vulkan <see cref="ISampler" />.
 	/// </summary>
-	class VulkanSampler : public IVulkanSampler, public Resource<VkSampler> {
+	class VulkanSampler : public IVulkanSampler, public Resource<VkSampler>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
 
 	public:
@@ -108,7 +109,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit VulkanSampler(const VulkanDevice& device, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f);
+		explicit VulkanSampler(const VulkanDevice& device, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f, const String& name = "");
 		VulkanSampler(VulkanSampler&&) = delete;
 		VulkanSampler(const VulkanSampler&) = delete;
 		virtual ~VulkanSampler() noexcept;
