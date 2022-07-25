@@ -492,15 +492,8 @@ namespace LiteFX {
 		/// Calls <see cref="build" /> and returns the instance.
 		/// </summary>
 		[[nodiscard]]
-		operator TPointer && ()
-		{
+		operator TPointer&& () {
 			this->build();
-			return std::move(m_instance);
-		}
-
-		[[nodiscard]]
-		[[deprecated("Use `operator TPointer&& ()` instead.")]]
-		virtual TPointer go() {
 			return std::move(m_instance);
 		}
 	};
@@ -584,16 +577,10 @@ namespace LiteFX {
 		/// First, calls <see cref="build" />, then `use` on the parent builder using the current object instance and finally returns the parent builder.
 		/// </summary>
 		[[nodiscard]]
-		constexpr TParent& add() {
+		TParent& add() {
 			this->build();
 			m_parent.use(std::move(m_instance));
 			return m_parent;
-		}
-
-		[[nodiscard]]
-		[[deprecated("Use `add()` instead.")]]
-		virtual TParent& go() {
-			return this->add();
 		}
 	};
 
