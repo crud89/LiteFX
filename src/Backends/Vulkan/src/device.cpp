@@ -314,9 +314,14 @@ VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, const 
 	return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
 }
 
-VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const
+VulkanRenderPipelineBuilder VulkanDevice::buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const
 {
-	return VulkanComputePipelineBuilder(*this);
+	return VulkanRenderPipelineBuilder(renderPass, name);
+}
+
+VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline(const String& name) const
+{
+	return VulkanComputePipelineBuilder(*this, name);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)
 

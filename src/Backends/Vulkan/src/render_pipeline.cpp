@@ -19,7 +19,6 @@ private:
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
-	UInt32 m_id;
 	String m_name;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
@@ -27,8 +26,8 @@ private:
 	const VulkanRenderPass& m_renderPass;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const UInt32& id, const String& name, const bool& alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors) :
-		base(parent), m_renderPass(renderPass), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(viewports), m_scissors(scissors)
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const String& name, const bool& alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors) :
+		base(parent), m_renderPass(renderPass), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(viewports), m_scissors(scissors)
 	{
 	}
 
@@ -40,7 +39,7 @@ public:
 public:
 	VkPipeline initialize()
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline {1} (\"{2}\") for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_id, m_name);
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_name);
 		
 		// Get the device.
 		const auto& device = m_renderPass.device();
@@ -239,8 +238,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, id, name, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, viewports, scissors)), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, name, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, viewports, scissors)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
 }
@@ -258,11 +257,6 @@ VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 const String& VulkanRenderPipeline::name() const noexcept
 {
 	return m_impl->m_name;
-}
-
-const UInt32& VulkanRenderPipeline::id() const noexcept
-{
-	return m_impl->m_id;
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRenderPipeline::program() const noexcept
@@ -369,10 +363,9 @@ public:
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const UInt32& id, const String& name) :
+VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const String& name) :
 	m_impl(makePimpl<VulkanRenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>(new VulkanRenderPipeline(renderPass)))
 {
-	this->instance()->m_impl->m_id = id;
 	this->instance()->m_impl->m_name = name;
 }
 

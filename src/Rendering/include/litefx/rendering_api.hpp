@@ -3490,15 +3490,6 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Gets the ID of the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// The pipeline ID must be unique within the render pass.
-        /// </remarks>
-        /// <returns>The ID of the pipeline.</returns>
-        virtual const UInt32& id() const noexcept = 0;
-
-        /// <summary>
         /// Returns the input assembler state used by the render pipeline.
         /// </summary>
         /// <returns>The input assembler state used by the render pipeline.</returns>
@@ -3674,12 +3665,6 @@ namespace LiteFX::Rendering {
         virtual ~IRenderPass() noexcept = default;
 
     public:
-        ///// <summary>
-        ///// Returns the parent device, the render pass has been created from.
-        ///// </summary>
-        ///// <returns>A reference of the parent device.</returns>
-        //virtual const IGraphicsDevice& device() const noexcept;
-
         /// <summary>
         /// Returns the current frame buffer from of the render pass.
         /// </summary>
@@ -3698,14 +3683,6 @@ namespace LiteFX::Rendering {
         Array<const IFrameBuffer*> frameBuffers() const noexcept {
             return this->getFrameBuffers();
         }
-
-        /// <summary>
-        /// Returns the render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.
-        /// </summary>
-        /// <param name="id">The ID of the requested render pipeline.</param>
-        /// <returns>The render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.</returns>
-        /// <seealso cref="IRenderPipeline" />
-        virtual const IRenderPipeline& pipeline(const UInt32& id) const = 0;
 
         /// <summary>
         /// Returns an array of all render pipelines, owned by the render pass.

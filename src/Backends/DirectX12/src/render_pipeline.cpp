@@ -19,7 +19,6 @@ private:
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
-	UInt32 m_id;
 	String m_name;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
@@ -27,8 +26,8 @@ private:
 	const DirectX12RenderPass& m_renderPass;
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const UInt32& id, const String& name, const bool& alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
-		base(parent), m_renderPass(renderPass), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const String& name, const bool& alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+		base(parent), m_renderPass(renderPass), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
 
@@ -40,6 +39,8 @@ public:
 public:
 	ComPtr<ID3D12PipelineState> initialize()
 	{
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_name);
+
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
 
 		// Setup rasterizer state.
@@ -223,8 +224,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, id, name, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, std::move(viewports), std::move(scissors))), DirectX12PipelineState(nullptr)
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, name, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, std::move(viewports), std::move(scissors))), DirectX12PipelineState(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }
@@ -239,11 +240,6 @@ DirectX12RenderPipeline::~DirectX12RenderPipeline() noexcept = default;
 const String& DirectX12RenderPipeline::name() const noexcept
 {
 	return m_impl->m_name;
-}
-
-const UInt32& DirectX12RenderPipeline::id() const noexcept
-{
-	return m_impl->m_id;
 }
 
 SharedPtr<const DirectX12ShaderProgram> DirectX12RenderPipeline::program() const noexcept
@@ -346,10 +342,9 @@ public:
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name) :
+DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
 	m_impl(makePimpl<DirectX12RenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<DirectX12RenderPipeline>(new DirectX12RenderPipeline(renderPass)))
 {
-	this->instance()->m_impl->m_id = id;
 	this->instance()->m_impl->m_name = name;
 }
 

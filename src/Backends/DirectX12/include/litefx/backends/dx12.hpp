@@ -793,14 +793,13 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new DirectX 12 render pipeline.
 		/// </summary>
 		/// <param name="renderPass">The parent render pass.</param>
-		/// <param name="id">The unique ID of the pipeline within the render pass.</param>
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="layout">The layout of the pipeline.</param>
 		/// <param name="inputAssembler">The input assembler state of the pipeline.</param>
 		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
 		/// <param name="name">The optional debug name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
-		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage = false, const String& name = "");
+		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage = false, const String& name = "");
 		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
 		DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
 		virtual ~DirectX12RenderPipeline() noexcept;
@@ -825,9 +824,6 @@ namespace LiteFX::Rendering::Backends {
 
 		// RenderPipeline interface.
 	public:
-		/// <inheritdoc />
-		virtual const UInt32& id() const noexcept override;
-
 		/// <inheritdoc />
 		virtual SharedPtr<DirectX12InputAssembler> inputAssembler() const noexcept override;
 
@@ -1059,9 +1055,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const DirectX12FrameBuffer*> frameBuffers() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const DirectX12RenderPipeline& pipeline(const UInt32& id) const override;
 
 		/// <inheritdoc />
 		virtual Array<const DirectX12RenderPipeline*> pipelines() const noexcept override;
@@ -1388,32 +1381,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <seealso cref="DirectX12Texture::generateMipMaps" />
 		virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
 
-#if defined(BUILD_DEFINE_BUILDERS)
-	public:
-		/// <summary>
-		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
-		/// </summary>
-		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
-		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
-
-		/// <summary>
-		/// Returns a builder for a <see cref="DirectX12RenderPass" />.
-		/// </summary>
-		/// <param name="name">The name of the render pass.</param>
-		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
-		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
-
-		/// <summary>
-		/// Returns a builder for a <see cref="DirectX12ComputePipeline" />.
-		/// </summary>
-		/// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
-		[[nodiscard]] DirectX12ComputePipelineBuilder buildComputePipeline() const;
-#endif // defined(BUILD_DEFINE_BUILDERS)
-
 		/// <summary>
 		/// Returns a reference of the swap chain.
 		/// </summary>
@@ -1456,6 +1423,24 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		/// <inheritdoc />
 		virtual void wait() const override;
+
+#if defined(BUILD_DEFINE_BUILDERS)
+	public:
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12RenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12RenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const override;
+
+		/// <inheritdoc />
+		//[[nodiscard]] virtual DirectX12RenderPipelineBuilder buildRenderPipeline(const String& name) const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12RenderPipelineBuilder buildRenderPipeline(const DirectX12RenderPass& renderPass, const String& name) const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12ComputePipelineBuilder buildComputePipeline(const String& name) const override;
+#endif // defined(BUILD_DEFINE_BUILDERS)
 	};
 	
 	/// <summary>

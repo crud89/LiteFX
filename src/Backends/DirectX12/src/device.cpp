@@ -349,9 +349,14 @@ DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, 
 	return DirectX12RenderPassBuilder(*this, commandBuffers, samples, name);
 }
 
-DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline() const
+DirectX12RenderPipelineBuilder DirectX12Device::buildRenderPipeline(const DirectX12RenderPass& renderPass, const String& name) const
 {
-	return DirectX12ComputePipelineBuilder(*this);
+	return DirectX12RenderPipelineBuilder(renderPass, name);
+}
+
+DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline(const String& name) const
+{
+	return DirectX12ComputePipelineBuilder(*this, name);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)
 

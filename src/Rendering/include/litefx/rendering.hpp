@@ -793,9 +793,6 @@ namespace LiteFX::Rendering {
         virtual Array<const frame_buffer_type*> frameBuffers() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const render_pipeline_type& pipeline(const UInt32& id) const = 0;
-
-        /// <inheritdoc />
         virtual Array<const render_pipeline_type*> pipelines() const noexcept = 0;
 
         /// <inheritdoc />
@@ -1056,6 +1053,52 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual const command_queue_type& computeQueue() const noexcept = 0;
+
+#if defined(BUILD_DEFINE_BUILDERS)
+    public:
+        using render_pass_builder_type = render_pass_type::builder_type;
+        using render_pipeline_builder_type = render_pipeline_type::builder_type;
+        using compute_pipeline_builder_type = compute_pipeline_type::builder_type;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="RenderPass" />.
+        /// </summary>
+        /// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <returns>An instance of a builder that is used to create a new render pass.</returns>
+        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="RenderPass" />.
+        /// </summary>
+        /// <param name="name">The name of the render pass.</param>
+        /// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <returns>An instance of a builder that is used to create a new render pass.</returns>
+        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="ComputePipeline" />.
+        /// </summary>
+        /// <param name="name">The name of the compute pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
+        [[nodiscard]] virtual compute_pipeline_builder_type buildComputePipeline(const String& name) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="RenderPipeline" />.
+        /// </summary>
+        /// <param name="name">The name of the render pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
+        //[[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const String& name) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="ComputePipeline" />.
+        /// </summary>
+        /// <param name="renderPass">The parent render pass of the pipeline.</param>
+        /// <param name="name">The name of the render pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
+        [[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const render_pass_type& renderPass, const String& name) const = 0;
+#endif // defined(BUILD_DEFINE_BUILDERS)
     };
 
     /// <summary>

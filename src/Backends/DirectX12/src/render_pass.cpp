@@ -186,14 +186,6 @@ Array<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noe
         ranges::to<Array<const DirectX12FrameBuffer*>>();
 }
 
-const DirectX12RenderPipeline& DirectX12RenderPass::pipeline(const UInt32& id) const
-{
-    if (auto match = std::ranges::find_if(m_impl->m_pipelines, [&id](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline->id() == id; }); match != m_impl->m_pipelines.end())
-        return *match->get();
-
-    throw InvalidArgumentException("No render pipeline with the ID {0} is contained by this render pass.", id);
-}
-
 Array<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
 {
     return m_impl->m_pipelines |

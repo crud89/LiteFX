@@ -838,14 +838,13 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new Vulkan render pipeline.
 		/// </summary>
 		/// <param name="renderPass">The parent render pass.</param>
-		/// <param name="id">The unique ID of the pipeline within the render pass.</param>
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="layout">The layout of the pipeline.</param>
 		/// <param name="inputAssembler">The input assembler state of the pipeline.</param>
 		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
 		/// <param name="name">The optional debug name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
-		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const UInt32& id, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage = false, const String& name = "");
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage = false, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -870,9 +869,6 @@ namespace LiteFX::Rendering::Backends {
 
 		// RenderPipeline interface.
 	public:
-		/// <inheritdoc />
-		virtual const UInt32& id() const noexcept override;
-
 		/// <inheritdoc />
 		virtual SharedPtr<VulkanInputAssembler> inputAssembler() const noexcept override;
 
@@ -1084,9 +1080,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const VulkanFrameBuffer*> frameBuffers() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const VulkanRenderPipeline& pipeline(const UInt32& id) const override;
 
 		/// <inheritdoc />
 		virtual Array<const VulkanRenderPipeline*> pipelines() const noexcept override;
@@ -1451,32 +1444,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference of the swap chain.</returns>
 		virtual VulkanSwapChain& swapChain() noexcept;
 
-#if defined(BUILD_DEFINE_BUILDERS)
-	public:
-		/// <summary>
-		/// Returns a builder for a <see cref="VulkanRenderPass" />.
-		/// </summary>
-		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
-		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
-
-		/// <summary>
-		/// Returns a builder for a <see cref="VulkanRenderPass" />.
-		/// </summary>
-		/// <param name="name">The name of the render pass.</param>
-		/// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-		/// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
-		/// <returns>An instance of a builder that is used to create a new render pass.</returns>
-		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const;
-
-		/// <summary>
-		/// Returns a builder for a <see cref="VulkanComputePipelineBuilder" />.
-		/// </summary>
-		/// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
-		[[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline() const;
-#endif // defined(BUILD_DEFINE_BUILDERS)
-
 		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
@@ -1512,6 +1479,24 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		/// <inheritdoc />
 		virtual void wait() const override;
+
+#if defined(BUILD_DEFINE_BUILDERS)
+	public:
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanRenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const override;
+
+		/// <inheritdoc />
+		//[[nodiscard]] virtual VulkanRenderPipelineBuilder buildRenderPipeline(const String& name) const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanRenderPipelineBuilder buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanComputePipelineBuilder buildComputePipeline(const String& name) const override;
+#endif // defined(BUILD_DEFINE_BUILDERS)
 	};
 
 	/// <summary>

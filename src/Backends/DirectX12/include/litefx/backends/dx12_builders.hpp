@@ -336,9 +336,8 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a DirectX 12 render pipeline builder.
 		/// </summary>
 		/// <param name="renderPass">The parent render pass</param>
-		/// <param name="id">A unique identifier for the render pipeline.</param>
 		/// <param name="name">A debug name for the render pipeline.</param>
-		explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name = "");
+		explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name = "");
 		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
 		DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
 		virtual ~DirectX12RenderPipelineBuilder() noexcept;

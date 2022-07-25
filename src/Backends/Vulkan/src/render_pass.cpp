@@ -304,14 +304,6 @@ Array<const VulkanFrameBuffer*> VulkanRenderPass::frameBuffers() const noexcept
         ranges::to<Array<const VulkanFrameBuffer*>>();
 }
 
-const VulkanRenderPipeline& VulkanRenderPass::pipeline(const UInt32& id) const
-{
-    if (auto match = std::ranges::find_if(m_impl->m_pipelines, [&id](const UniquePtr<VulkanRenderPipeline>& pipeline) { return pipeline->id() == id; }); match != m_impl->m_pipelines.end())
-        return *match->get();
-    
-    throw InvalidArgumentException("No render pipeline with the ID {0} is contained by this render pass.", id);
-}
-
 Array<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noexcept
 {
     return m_impl->m_pipelines | 

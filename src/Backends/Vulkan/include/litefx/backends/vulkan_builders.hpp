@@ -339,9 +339,8 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a Vulkan render pipeline builder.
 		/// </summary>
 		/// <param name="renderPass">The parent render pass</param>
-		/// <param name="id">A unique identifier for the render pipeline.</param>
 		/// <param name="name">A debug name for the render pipeline.</param>
-		explicit VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const UInt32& id, const String& name = "");
+		explicit VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const String& name = "");
 		VulkanRenderPipelineBuilder(VulkanRenderPipelineBuilder&&) = delete;
 		VulkanRenderPipelineBuilder(const VulkanRenderPipelineBuilder&) = delete;
 		virtual ~VulkanRenderPipelineBuilder() noexcept;
