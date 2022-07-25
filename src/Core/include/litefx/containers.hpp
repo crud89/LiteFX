@@ -584,7 +584,7 @@ namespace LiteFX {
 		/// First, calls <see cref="build" />, then `use` on the parent builder using the current object instance and finally returns the parent builder.
 		/// </summary>
 		[[nodiscard]]
-		TParent& add() {
+		constexpr TParent& add() {
 			this->build();
 			m_parent.use(std::move(m_instance));
 			return m_parent;
@@ -599,7 +599,7 @@ namespace LiteFX {
 
 #if !defined(LITEFX_BUILDER)
 #    define LITEFX_BUILDER(BuilderType) public: \
-		/*using builder = BuilderType;*/ \
+		using builder_type = BuilderType; \
 		friend class BuilderType;
 #endif // !defined(LITEFX_BUILDER)
 
