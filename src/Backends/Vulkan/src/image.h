@@ -10,7 +10,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IImage" />.
 	/// </summary>
-	class VulkanImage : public IVulkanImage, public Resource<VkImage>, public virtual StateResource {
+	class VulkanImage : public virtual IVulkanImage, public Resource<VkImage>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 
 	public:
@@ -91,7 +91,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="ISampler" />.
 	/// </summary>
-	class VulkanSampler : public IVulkanSampler, public Resource<VkSampler>, public virtual StateResource {
+	class VulkanSampler : public virtual IVulkanSampler, public Resource<VkSampler>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
 
 	public:

@@ -19,7 +19,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="IBuffer" />.
 	/// </summary>
-	class DirectX12Buffer : public IDirectX12Buffer, public ComResource<ID3D12Resource>, public virtual StateResource {
+	class DirectX12Buffer : public virtual IDirectX12Buffer, public ComResource<ID3D12Resource>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12BufferImpl);
 
 	public:
@@ -80,7 +80,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="IVertexBuffer" />.
 	/// </summary>
-	class DirectX12VertexBuffer : public DirectX12Buffer, public IDirectX12VertexBuffer {
+	class DirectX12VertexBuffer : public DirectX12Buffer, public virtual IDirectX12VertexBuffer {
 		LITEFX_IMPLEMENTATION(DirectX12VertexBufferImpl);
 
 	public:
@@ -107,7 +107,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="IIndexBuffer" />.
 	/// </summary>
-	class DirectX12IndexBuffer : public DirectX12Buffer, public IDirectX12IndexBuffer {
+	class DirectX12IndexBuffer : public DirectX12Buffer, public virtual IDirectX12IndexBuffer {
 		LITEFX_IMPLEMENTATION(DirectX12IndexBufferImpl);
 
 	public:

@@ -10,7 +10,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX12 <see cref="IImage" />.
 	/// </summary>
-	class DirectX12Image : public IDirectX12Image, public ComResource<ID3D12Resource>, public virtual StateResource {
+	class DirectX12Image : public virtual IDirectX12Image, public ComResource<ID3D12Resource>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12ImageImpl);
 
 	public:
@@ -84,7 +84,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="ISampler" />.
 	/// </summary>
-	class DirectX12Sampler : public IDirectX12Sampler, public virtual StateResource {
+	class DirectX12Sampler : public virtual IDirectX12Sampler, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12SamplerImpl);
 
 	public:

@@ -143,7 +143,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12VertexBufferLayout" />
 	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual VertexBuffer<DirectX12VertexBufferLayout>, public IDirectX12Buffer {
+	class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual VertexBuffer<DirectX12VertexBufferLayout>, public virtual IDirectX12Buffer {
 	public:
 		virtual ~IDirectX12VertexBuffer() noexcept = default;
 
@@ -156,7 +156,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12IndexBufferLayout" />
 	/// <seealso cref="IDirectX12Buffer" />
-	class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IndexBuffer<DirectX12IndexBufferLayout>, public IDirectX12Buffer {
+	class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IndexBuffer<DirectX12IndexBufferLayout>, public virtual IDirectX12Buffer {
 	public:
 		virtual ~IDirectX12IndexBuffer() noexcept = default;
 
@@ -183,7 +183,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12DescriptorSet" />
 	/// <seealso cref="DirectX12DescriptorSetLayout" />
 	/// <seealso cref="IDirectX12Image" />
-	class LITEFX_DIRECTX12_API IDirectX12Sampler : public ISampler {
+	class LITEFX_DIRECTX12_API IDirectX12Sampler : public virtual ISampler {
 	public:
 		virtual ~IDirectX12Sampler() noexcept = default;
 	};

@@ -10,7 +10,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IBuffer" />.
 	/// </summary>
-	class VulkanBuffer : public IVulkanBuffer, public Resource<VkBuffer>, public virtual StateResource {
+	class VulkanBuffer : public virtual IVulkanBuffer, public Resource<VkBuffer>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
 
 	public:
@@ -67,7 +67,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IVertexBuffer" />.
 	/// </summary>
-	class VulkanVertexBuffer : public VulkanBuffer, public IVulkanVertexBuffer {
+	class VulkanVertexBuffer : public VulkanBuffer, public virtual IVulkanVertexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferImpl);
 
 	public:
@@ -90,7 +90,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan <see cref="IIndexBuffer" />.
 	/// </summary>
-	class VulkanIndexBuffer : public VulkanBuffer, public IVulkanIndexBuffer {
+	class VulkanIndexBuffer : public VulkanBuffer, public virtual IVulkanIndexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferImpl);
 
 	public:
