@@ -31,7 +31,11 @@ App::App() :
 {
 }
 
-App::~App() noexcept = default;
+App::~App() noexcept
+{
+	for (auto& backend : m_impl->m_backends | std::views::filter([](const auto& b) { return b.second->state() == BackendState::Active; }))
+		this->stopBackend(backend.first);
+}
 
 Platform App::platform() const noexcept
 {
