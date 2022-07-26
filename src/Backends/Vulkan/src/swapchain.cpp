@@ -75,10 +75,7 @@ public:
 		createInfo.imageExtent.width = std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width);
 
 		// Set the present mode to VK_PRESENT_MODE_FIFO_KHR for now, which is always available.
-		// TODO: Change present mode:
-		// -VK_PRESENT_MODE_IMMEDIATE_KHR: to disable VSync (e.g. on variable refresh displays)
-		// -VK_PRESENT_MODE_MAILBOX_KHR: to enable triple buffering
-		createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+		createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 
 		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat);
 
