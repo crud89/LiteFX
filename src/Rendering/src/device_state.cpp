@@ -13,6 +13,12 @@ public:
 private:
     Dictionary<String, UniquePtr<IRenderPass>> m_renderPasses;
     Dictionary<String, UniquePtr<IPipeline>> m_pipelines;
+    Dictionary<String, UniquePtr<IBuffer>> m_buffers;
+    Dictionary<String, UniquePtr<IVertexBuffer>> m_vertexBuffers;
+    Dictionary<String, UniquePtr<IIndexBuffer>> m_indexBuffers;
+    Dictionary<String, UniquePtr<IImage>> m_images;
+    Dictionary<String, UniquePtr<ISampler>> m_samplers;
+    Dictionary<String, UniquePtr<IDescriptorSet>> m_descriptorSets;
 
 public:
     DeviceStateImpl(DeviceState* parent) :
@@ -38,6 +44,38 @@ DeviceState::~DeviceState() noexcept
 void DeviceState::clear()
 {
     // Make sure that everything is destroyed in order.
+
+    // Clear descriptor sets.
+    for (auto& pair : m_impl->m_descriptorSets)
+        pair.second = nullptr;
+
+    m_impl->m_descriptorSets.clear();
+
+    // Clear images, samplers and buffers.
+    for (auto& pair : m_impl->m_buffers)
+        pair.second = nullptr;
+
+    m_impl->m_buffers.clear();
+
+    for (auto& pair : m_impl->m_vertexBuffers)
+        pair.second = nullptr;
+
+    m_impl->m_vertexBuffers.clear();
+
+    for (auto& pair : m_impl->m_indexBuffers)
+        pair.second = nullptr;
+
+    m_impl->m_indexBuffers.clear();
+
+    for (auto& pair : m_impl->m_images)
+        pair.second = nullptr;
+
+    m_impl->m_images.clear();
+
+    for (auto& pair : m_impl->m_samplers)
+        pair.second = nullptr;
+
+    m_impl->m_samplers.clear();
 
     // Clear pipelines.
     for (auto& pair : m_impl->m_pipelines)
@@ -84,6 +122,97 @@ void DeviceState::add(const String& id, UniquePtr<IPipeline>&& pipeline)
     m_impl->m_pipelines.insert(std::make_pair(id, std::move(pipeline)));
 }
 
+void DeviceState::add(UniquePtr<IBuffer>&& buffer)
+{
+    this->add(buffer->name(), std::move(buffer));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IBuffer>&& buffer)
+{
+    if (buffer == nullptr) [[unlikely]]
+        throw new InvalidArgumentException("The buffer must be initialized.");
+
+    if (m_impl->m_buffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("Another buffer with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_buffers.insert(std::make_pair(id, std::move(buffer)));
+}
+
+void DeviceState::add(UniquePtr<IVertexBuffer>&& vertexBuffer)
+{
+    this->add(vertexBuffer->name(), std::move(vertexBuffer));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IVertexBuffer>&& vertexBuffer)
+{
+    if (vertexBuffer == nullptr) [[unlikely]]
+        throw new InvalidArgumentException("The vertex buffer must be initialized.");
+
+    if (m_impl->m_vertexBuffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("Another vertex buffer with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_vertexBuffers.insert(std::make_pair(id, std::move(vertexBuffer)));
+}
+
+void DeviceState::add(UniquePtr<IIndexBuffer>&& indexBuffer)
+{
+    this->add(indexBuffer->name(), std::move(indexBuffer));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IIndexBuffer>&& indexBuffer)
+{
+    if (indexBuffer == nullptr) [[unlikely]]
+        throw new InvalidArgumentException("The index buffer must be initialized.");
+
+    if (m_impl->m_indexBuffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("Another index buffer with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_indexBuffers.insert(std::make_pair(id, std::move(indexBuffer)));
+}
+
+void DeviceState::add(UniquePtr<IImage>&& image)
+{
+    this->add(image->name(), std::move(image));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IImage>&& image)
+{
+    if (image == nullptr) [[unlikely]]
+        throw new InvalidArgumentException("The image must be initialized.");
+
+    if (m_impl->m_images.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("Another image with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_images.insert(std::make_pair(id, std::move(image)));
+}
+
+void DeviceState::add(UniquePtr<ISampler>&& sampler)
+{
+    this->add(sampler->name(), std::move(sampler));
+}
+
+void DeviceState::add(const String& id, UniquePtr<ISampler>&& sampler)
+{
+    if (sampler == nullptr) [[unlikely]]
+        throw new InvalidArgumentException("The sampler must be initialized.");
+
+    if (m_impl->m_samplers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("Another sampler with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_samplers.insert(std::make_pair(id, std::move(sampler)));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IDescriptorSet>&& descriptorSet)
+{
+    if (descriptorSet == nullptr) [[unlikely]]
+        throw new InvalidArgumentException("The descriptor set must be initialized.");
+
+    if (m_impl->m_descriptorSets.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("Another descriptor set with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_descriptorSets.insert(std::make_pair(id, std::move(descriptorSet)));
+}
+
 IRenderPass& DeviceState::renderPass(const String& id) const
 {
     if (!m_impl->m_renderPasses.contains(id)) [[unlikely]]
@@ -98,6 +227,54 @@ IPipeline& DeviceState::pipeline(const String& id) const
         throw InvalidArgumentException("No pipelines with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_pipelines[id];
+}
+
+IBuffer& DeviceState::buffer(const String& id) const
+{
+    if (!m_impl->m_buffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("No buffers with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_buffers[id];
+}
+
+IVertexBuffer& DeviceState::vertexBuffer(const String& id) const
+{
+    if (!m_impl->m_vertexBuffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("No vertex buffers with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_vertexBuffers[id];
+}
+
+IIndexBuffer& DeviceState::indexBuffer(const String& id) const
+{
+    if (!m_impl->m_indexBuffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("No index buffers with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_indexBuffers[id];
+}
+
+IImage& DeviceState::image(const String& id) const
+{
+    if (!m_impl->m_images.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("No images with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_images[id];
+}
+
+ISampler& DeviceState::sampler(const String& id) const
+{
+    if (!m_impl->m_samplers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("No samplers with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_samplers[id];
+}
+
+IDescriptorSet& DeviceState::descriptorSet(const String& id) const
+{
+    if (!m_impl->m_descriptorSets.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("No descriptor sets with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_descriptorSets[id];
 }
 
 bool DeviceState::release(const IRenderPass& renderPass)
@@ -122,6 +299,84 @@ bool DeviceState::release(const IPipeline& pipeline)
 
     match->second = nullptr;
     m_impl->m_pipelines.erase(match->first);
+
+    return true;
+}
+
+bool DeviceState::release(const IBuffer& buffer)
+{
+    auto match = std::find_if(m_impl->m_buffers.begin(), m_impl->m_buffers.end(), [&buffer](const auto& pair) { return pair.second.get() == &buffer; });
+
+    if (match == m_impl->m_buffers.end()) [[unlikely]]
+        return false;
+
+    match->second = nullptr;
+    m_impl->m_buffers.erase(match->first);
+
+    return true;
+}
+
+bool DeviceState::release(const IVertexBuffer& vertexBuffer)
+{
+    auto match = std::find_if(m_impl->m_vertexBuffers.begin(), m_impl->m_vertexBuffers.end(), [&vertexBuffer](const auto& pair) { return pair.second.get() == &vertexBuffer; });
+
+    if (match == m_impl->m_vertexBuffers.end()) [[unlikely]]
+        return false;
+
+    match->second = nullptr;
+    m_impl->m_vertexBuffers.erase(match->first);
+
+    return true;
+}
+
+bool DeviceState::release(const IIndexBuffer& indexBuffer)
+{
+    auto match = std::find_if(m_impl->m_indexBuffers.begin(), m_impl->m_indexBuffers.end(), [&indexBuffer](const auto& pair) { return pair.second.get() == &indexBuffer; });
+
+    if (match == m_impl->m_indexBuffers.end()) [[unlikely]]
+        return false;
+
+    match->second = nullptr;
+    m_impl->m_indexBuffers.erase(match->first);
+
+    return true;
+}
+
+bool DeviceState::release(const IImage& image)
+{
+    auto match = std::find_if(m_impl->m_images.begin(), m_impl->m_images.end(), [&image](const auto& pair) { return pair.second.get() == &image; });
+
+    if (match == m_impl->m_images.end()) [[unlikely]]
+        return false;
+
+    match->second = nullptr;
+    m_impl->m_images.erase(match->first);
+
+    return true;
+}
+
+bool DeviceState::release(const ISampler& sampler)
+{
+    auto match = std::find_if(m_impl->m_samplers.begin(), m_impl->m_samplers.end(), [&sampler](const auto& pair) { return pair.second.get() == &sampler; });
+
+    if (match == m_impl->m_samplers.end()) [[unlikely]]
+        return false;
+
+    match->second = nullptr;
+    m_impl->m_samplers.erase(match->first);
+
+    return true;
+}
+
+bool DeviceState::release(const IDescriptorSet& descriptorSet)
+{
+    auto match = std::find_if(m_impl->m_descriptorSets.begin(), m_impl->m_descriptorSets.end(), [&descriptorSet](const auto& pair) { return pair.second.get() == &descriptorSet; });
+
+    if (match == m_impl->m_descriptorSets.end()) [[unlikely]]
+        return false;
+
+    match->second = nullptr;
+    m_impl->m_descriptorSets.erase(match->first);
 
     return true;
 }

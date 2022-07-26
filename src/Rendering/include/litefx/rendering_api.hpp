@@ -1450,7 +1450,14 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// A class that can be used to manage the state of a <see cref="IGraphicsDevice" />.
     /// </summary>
+    /// <remarks>
+    /// The device state makes managing resources created by a device easier, since you do not have to worry about storage and release order. Note,
+    /// however, that this is not free. Requesting a resource requires a lookup within a hash-map. Also device states are not specialized for the 
+    /// concrete device, so you can only work with interfaces. This implies potentially inefficient upcasting of the state resource when its passed to 
+    /// another object. You have to decide if or to which degree you want to rely on storing resources in a device state.
+    /// </remarks>
     /// <seealso cref="StateResource" />
+    /// <seealso cref="IGraphicsDevice" />
     class LITEFX_RENDERING_API DeviceState {
         LITEFX_IMPLEMENTATION(DeviceStateImpl);
         friend class IGraphicsDevice;
@@ -1501,6 +1508,89 @@ namespace LiteFX::Rendering {
         void add(const String& id, UniquePtr<IPipeline>&& pipeline);
 
         /// <summary>
+        /// Adds a new buffer to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="buffer">The buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another buffer with the same identifier has already been added.</exception>
+        void add(UniquePtr<IBuffer>&& buffer);
+
+        /// <summary>
+        /// Adds a new buffer to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the buffer.</param>
+        /// <param name="buffer">The buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another buffer with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IBuffer>&& buffer);
+
+        /// <summary>
+        /// Adds a new vertex buffer to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="vertexBuffer">The vertex buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another vertex buffer with the same identifier has already been added.</exception>
+        void add(UniquePtr<IVertexBuffer>&& vertexBuffer);
+
+        /// <summary>
+        /// Adds a new vertex buffer to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the vertex buffer.</param>
+        /// <param name="vertexBuffer">The vertex buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another vertex buffer with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IVertexBuffer>&& vertexBuffer);
+
+        /// <summary>
+        /// Adds a new index buffer to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="indexBuffer">The index buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another index buffer with the same identifier has already been added.</exception>
+        void add(UniquePtr<IIndexBuffer>&& indexBuffer);
+
+        /// <summary>
+        /// Adds a new index buffer to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the index buffer.</param>
+        /// <param name="indexBuffer">The index buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another index buffer with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IIndexBuffer>&& indexBuffer);
+
+        /// <summary>
+        /// Adds a new image to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="image">The image to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another image with the same identifier has already been added.</exception>
+        void add(UniquePtr<IImage>&& image);
+
+        /// <summary>
+        /// Adds a new image to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the image.</param>
+        /// <param name="image">The image to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another image with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IImage>&& image);
+
+        /// <summary>
+        /// Adds a new sampler to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="sampler">The sampler to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another sampler with the same identifier has already been added.</exception>
+        void add(UniquePtr<ISampler>&& sampler);
+
+        /// <summary>
+        /// Adds a new sampler to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the sampler.</param>
+        /// <param name="sampler">The sampler to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another sampler with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<ISampler>&& sampler);
+        
+        /// <summary>
+        /// Adds a new descriptor set to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the descriptor set.</param>
+        /// <param name="sampler">The descriptor set to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another descriptor set with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IDescriptorSet>&& descriptorSet);
+
+        /// <summary>
         /// Returns a render pass from the device state.
         /// </summary>
         /// <param name="id">The identifier associated with the render pass.</param>
@@ -1515,6 +1605,54 @@ namespace LiteFX::Rendering {
         /// <returns>A reference of the pipeline.</returns>
         /// <exception cref="InvalidArgumentExceptoin">Thrown, if no pipeline has been added for the provided <paramref name="id" />.</exception>
         IPipeline& pipeline(const String& id) const;
+
+        /// <summary>
+        /// Returns a buffer from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the buffer.</param>
+        /// <returns>A reference of the buffer.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no buffer has been added for the provided <paramref name="id" />.</exception>
+        IBuffer& buffer(const String& id) const;
+
+        /// <summary>
+        /// Returns a vertex buffer from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the vertex buffer.</param>
+        /// <returns>A reference of the vertex buffer.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no vertex buffer has been added for the provided <paramref name="id" />.</exception>
+        IVertexBuffer& vertexBuffer(const String& id) const;
+
+        /// <summary>
+        /// Returns an index buffer from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the index buffer.</param>
+        /// <returns>A reference of the index buffer.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no index buffer has been added for the provided <paramref name="id" />.</exception>
+        IIndexBuffer& indexBuffer(const String& id) const;
+
+        /// <summary>
+        /// Returns an image from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the image.</param>
+        /// <returns>A reference of the image.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no image has been added for the provided <paramref name="id" />.</exception>
+        IImage& image(const String& id) const;
+
+        /// <summary>
+        /// Returns an sampler from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the sampler.</param>
+        /// <returns>A reference of the sampler.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no sampler has been added for the provided <paramref name="id" />.</exception>
+        ISampler& sampler(const String& id) const;
+
+        /// <summary>
+        /// Returns an descriptor set from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the descriptor set.</param>
+        /// <returns>A reference of the descriptor set.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no descriptor set has been added for the provided <paramref name="id" />.</exception>
+        IDescriptorSet& descriptorSet(const String& id) const;
 
         /// <summary>
         /// Releases a render pass.
@@ -1534,6 +1672,48 @@ namespace LiteFX::Rendering {
         /// <param name="pipeline">The pipeline to release.</param>
         /// <returns><c>true</c>, if the pipeline was properly released, <c>false</c> otherwise.</returns>
         bool release(const IPipeline& pipeline);
+
+        /// <summary>
+        /// Releases a buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer to release.</param>
+        /// <returns><c>true</c>, if the buffer was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IBuffer& buffer);
+
+        /// <summary>
+        /// Releases a vertex buffer.
+        /// </summary>
+        /// <param name="buffer">The vertex buffer to release.</param>
+        /// <returns><c>true</c>, if the vertex buffer was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IVertexBuffer& buffer);
+
+        /// <summary>
+        /// Releases a index buffer.
+        /// </summary>
+        /// <param name="buffer">The index buffer to release.</param>
+        /// <returns><c>true</c>, if the index buffer was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IIndexBuffer& buffer);
+
+        /// <summary>
+        /// Releases an image.
+        /// </summary>
+        /// <param name="image">The image to release.</param>
+        /// <returns><c>true</c>, if the image was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IImage& image);
+
+        /// <summary>
+        /// Releases a sampler.
+        /// </summary>
+        /// <param name="sampler">The sampler to release.</param>
+        /// <returns><c>true</c>, if the sampler was properly released, <c>false</c> otherwise.</returns>
+        bool release(const ISampler& sampler);
+
+        /// <summary>
+        /// Releases a descriptor set.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to release.</param>
+        /// <returns><c>true</c>, if the descriptor set was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IDescriptorSet& descriptorSet);
     };
 
     /// <summary>
