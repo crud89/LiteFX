@@ -57,8 +57,10 @@ IBackend* App::getBackend(std::type_index type)
 	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
 }
 
-void App::startBackend(std::type_index type, IBackend* backend) const
+void App::startBackend(std::type_index type) const
 {
+	auto backend = const_cast<IBackend*>(this->getBackend(type));
+
 	if (backend == nullptr)
 		throw InvalidArgumentException("No backend of type {0} has been registered.", type.name());
 
@@ -79,8 +81,10 @@ void App::startBackend(std::type_index type, IBackend* backend) const
 	backend->activate();
 }
 
-void App::stopBackend(std::type_index type, IBackend* backend) const
+void App::stopBackend(std::type_index type) const
 {
+	auto backend = const_cast<IBackend*>(this->getBackend(type));
+
 	if (backend == nullptr)
 		throw InvalidArgumentException("No backend of type {0} has been registered.", type.name());
 
@@ -100,7 +104,23 @@ void App::stopBackend(std::type_index type, IBackend* backend) const
 void App::stopActiveBackends(const BackendType& type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
-		this->stopBackend(backend.first, backend.second.get());
+		this->stopBackend(backend.first);
+}
+
+IBackend* App::activeBackend(const BackendType& type) const
+{
+	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
+		return backend.second.get();
+
+	return nullptr;
+}
+
+std::type_index App::activeBackendType(const BackendType& type) const
+{
+	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
+		return backend.first;
+	
+	return typeid(std::nullptr_t);
 }
 
 void App::registerStartCallback(std::type_index type, const std::function<bool()>& callback)
