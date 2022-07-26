@@ -39,9 +39,14 @@ public:
 
 	~DirectX12DeviceImpl() noexcept
 	{
+		// Clear the device state.
+		m_deviceState.clear();
+
+		// Unregister the event queue.
 		if (m_eventQueue != nullptr && m_debugCallbackCookie != 0)
 			m_eventQueue->UnregisterMessageCallback(m_debugCallbackCookie);
 
+		// Release queues and swap chain.
 		m_swapChain = nullptr;
 		m_graphicsQueue = nullptr;
 		m_transferQueue = nullptr;
