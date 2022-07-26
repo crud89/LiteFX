@@ -5,6 +5,40 @@
 
 #include <CLI/CLI.hpp>
 #include <iostream>
+#include <filesystem>
+#include <shlobj.h>
+
+#ifdef BUILD_EXAMPLES_DX12_PIX_LOADER
+bool loadPixCapturer()
+{
+	// Check if Pix has already been loaded.
+	if (::GetModuleHandleW(L"WinPixGpuCapturer.dll") != 0)
+		return true;
+
+	// Search for latest version of Pix.
+	LPWSTR programFilesPath = nullptr;
+	::SHGetKnownFolderPath(FOLDERID_ProgramFiles, KF_FLAG_DEFAULT, NULL, &programFilesPath);
+
+	std::filesystem::path pixInstallationPath = programFilesPath;
+	pixInstallationPath /= "Microsoft PIX";
+
+	std::wstring newestVersionFound;
+
+	for (auto const& directory_entry : std::filesystem::directory_iterator(pixInstallationPath))
+		if (directory_entry.is_directory())
+			if (newestVersionFound.empty() || newestVersionFound < directory_entry.path().filename().c_str())
+				newestVersionFound = directory_entry.path().filename().c_str();
+
+	if (newestVersionFound.empty())
+		return false;
+
+	auto pixPath = pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";
+	std::wcout << "Found PIX: " << pixPath.c_str() << std::endl;
+	::LoadLibraryW(pixPath.c_str());
+
+	return true;
+}
+#endif
 
 int main(const int argc, const char** argv)
 {
@@ -23,10 +57,15 @@ int main(const int argc, const char** argv)
 	const String appName = SampleApp::Name();
 
 	CLI::App app{ "Demonstrates basic drawing techniques.", appName };
+	
 	Optional<UInt32> adapterId;
-
-	auto validationLayers = app.add_option("-l,--layers")->take_all();
 	app.add_option("-a,--adapter", adapterId)->take_first();
+	auto validationLayers = app.add_option("-l,--vk-validation-layers")->take_all();
+
+#ifdef BUILD_EXAMPLES_DX12_PIX_LOADER
+	bool loadPix{ false };
+	app.add_option("--dx-load-pix", loadPix)->take_first();
+#endif
 
 	try
 	{
@@ -36,6 +75,11 @@ int main(const int argc, const char** argv)
 	{
 		return app.exit(ex);
 	}
+
+#ifdef BUILD_EXAMPLES_DX12_PIX_LOADER
+	if (loadPix && !loadPixCapturer())
+		std::cout << "No PIX distribution found. Make sure you have installed PIX for Windows." << std::endl;
+#endif
 
 	// Turn the validation layers into a list.
 	Array<String> enabledLayers;
@@ -50,9 +94,10 @@ int main(const int argc, const char** argv)
 
 	::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
 	auto window = GlfwWindowPtr(::glfwCreateWindow(800, 600, appName.c_str(), nullptr, nullptr));
 
-	// Get the required extensions from glfw.
+	// Get the required Vulkan extensions from glfw.
 	uint32_t extensions = 0;
 	const char** extensionNames = ::glfwGetRequiredInstanceExtensions(&extensions);
 	Array<String> requiredExtensions;
@@ -68,11 +113,11 @@ int main(const int argc, const char** argv)
 	// Create the app.
 	try 
 	{
-		auto app = App::build<SampleApp>(std::move(window), adapterId)
+		UniquePtr<App> app = App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
 			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
-			.go();
+			.useBackend<DirectX12Backend>();
 
 		app->run();
 	}

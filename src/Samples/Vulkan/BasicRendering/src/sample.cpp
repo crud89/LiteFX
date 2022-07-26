@@ -146,7 +146,7 @@ void SampleApp::run()
     auto window = m_window.get();
 
     // Start by creating the surface and selecting the adapter.
-    auto backend = this->findBackend<VulkanBackend>("Vulkan");
+    auto backend = this->findBackend<VulkanBackend>();
     auto adapter = backend->findAdapter(m_adapterId);
 
     if (adapter == nullptr)
@@ -168,7 +168,8 @@ void SampleApp::run()
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create the device with the initial frame buffer size and triple buffering.
-    m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+    backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+    m_device = backend->device("Default");
 
     // Initialize resources.
     this->initRenderGraph();

@@ -2,6 +2,9 @@
 
 #include <litefx/litefx.h>
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
+#include <litefx/backends/dx12.hpp>
+#include <litefx/backends/dx12_builders.hpp>
 
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32
@@ -27,7 +30,7 @@ typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
 class SampleApp : public LiteFX::App {
 public:
-	static String Name() noexcept { return "LiteFX Sample: Vulkan Basic Rendering"; }
+	static String Name() noexcept { return "LiteFX Sample: Basic Rendering"; }
 	String name() const noexcept override { return Name(); }
 
 	static AppVersion Version() noexcept { return AppVersion(1, 0, 0, 0); }
@@ -45,24 +48,9 @@ private:
 	Optional<UInt32> m_adapterId;
 
 	/// <summary>
-	/// Stores the main device instance.
-	/// </summary>
-	VulkanDevice* m_device;
-
-	/// <summary>
-	/// Stores the only render pass used in this sample.
-	/// </summary>
-	UniquePtr<VulkanRenderPass> m_renderPass;
-
-	/// <summary>
-	/// Stores the only render pipeline used in this sample.
-	/// </summary>
-	UniquePtr<VulkanRenderPipeline> m_pipeline;
-
-	/// <summary>
 	/// Stores a reference of the input assembler state.
 	/// </summary>
-	SharedPtr<VulkanInputAssembler> m_inputAssembler;
+	SharedPtr<IInputAssembler> m_inputAssembler;
 
 	/// <summary>
 	/// Stores the viewport.
@@ -75,67 +63,35 @@ private:
 	SharedPtr<IScissor> m_scissor;
 
 	/// <summary>
-	/// Stores the vertex buffer for the quad rendered in this sample.
+	/// Stores a pointer to the currently active device.
 	/// </summary>
-	UniquePtr<IVulkanVertexBuffer> m_vertexBuffer;
-
-	/// <summary>
-	/// Stores the index buffer for the quad rendered in this sample.
-	/// </summary>
-	UniquePtr<IVulkanIndexBuffer> m_indexBuffer;
-
-	/// <summary>
-	/// Stores the buffer that contains the camera information. Since the camera is static, we only need one (immutable) buffer for it, so the buffer will only contain one element.
-	/// </summary>
-	UniquePtr<IVulkanBuffer> m_cameraBuffer, m_cameraStagingBuffer;
-
-	/// <summary>
-	/// Stores the buffer that holds the object transform. The buffer will contain three elements, since we have three frames in flight.
-	/// </summary>
-	UniquePtr<IVulkanBuffer> m_transformBuffer;
-
-	/// <summary>
-	/// Stores the bindings to the transform buffer.
-	/// </summary>
-	Array<UniquePtr<VulkanDescriptorSet>> m_perFrameBindings;
-
-	/// <summary>
-	/// Stores the binding for the camera buffer.
-	/// </summary>
-	UniquePtr<VulkanDescriptorSet> m_cameraBindings;
+	IGraphicsDevice* m_device;
 
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
-		App(), m_window(std::move(window)), m_adapterId(adapterId)
+		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)
 	{
 		this->initialize();
 	}
 
 private:
 	/// <summary>
-	/// Initializes the render pass.
-	/// </summary>
-	void initRenderGraph();
-
-	/// <summary>
-	/// Initializes the render pipelines.
-	/// </summary>
-	void initPipelines();
-
-	/// <summary>
 	/// Initializes the buffers.
 	/// </summary>
-	void initBuffers();
+	/// <param name="backend">The render backend to use.</param>
+	void initBuffers(IRenderBackend* backend);
 
 	/// <summary>
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>
-	void updateCamera(const VulkanCommandBuffer& commandBuffer);
+	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagingBuffer, const IBuffer& buffer) const;
 
 public:
 	virtual void run() override;
 	virtual void initialize() override;
 	virtual void resize(int width, int height) override;
+	void keyDown(int key, int scancode, int action, int mods);
 	void handleEvents();
 	void drawFrame();
+	void updateWindowTitle();
 };
