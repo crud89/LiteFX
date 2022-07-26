@@ -1454,12 +1454,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference to the array that stores the extensions that were used to initialize the device.</returns>
 		virtual Span<const String> enabledExtensions() const noexcept;
 
-		/// <summary>
-		/// Returns a reference of the swap chain.
-		/// </summary>
-		/// <returns>A reference of the swap chain.</returns>
-		virtual VulkanSwapChain& swapChain() noexcept;
-
 		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
@@ -1467,6 +1461,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const VulkanSwapChain& swapChain() const noexcept override;
+
+		/// <inheritdoc />
+		virtual VulkanSwapChain& swapChain() noexcept override;
 
 		/// <inheritdoc />
 		virtual const VulkanSurface& surface() const noexcept override;

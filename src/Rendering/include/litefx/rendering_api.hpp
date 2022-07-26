@@ -4454,6 +4454,12 @@ namespace LiteFX::Rendering {
         virtual const ISwapChain& swapChain() const noexcept = 0;
 
         /// <summary>
+        /// Returns the swap chain, that contains the back and front buffers used for presentation.
+        /// </summary>
+        /// <returns>The swap chain, that contains the back and front buffers used for presentation.</returns>
+        virtual ISwapChain& swapChain() noexcept = 0;
+
+        /// <summary>
         /// Returns the factory instance, used to create instances from the device.
         /// </summary>
         /// <returns>The factory instance, used to create instances from the device.</returns>

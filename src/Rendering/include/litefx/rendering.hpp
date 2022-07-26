@@ -597,7 +597,7 @@ namespace LiteFX::Rendering {
         }
 
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept override { 
-            this->bind(dynamic_cast<const vertex_buffer_type&>(buffer));
+            this->bind(dynamic_cast<const index_buffer_type&>(buffer));
         }
         
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept override { 
@@ -1097,6 +1097,9 @@ namespace LiteFX::Rendering {
         virtual const swap_chain_type& swapChain() const noexcept = 0;
 
         /// <inheritdoc />
+        virtual swap_chain_type& swapChain() noexcept = 0;
+
+        /// <inheritdoc />
         virtual const factory_type& factory() const noexcept = 0;
 
         /// <inheritdoc />
@@ -1236,8 +1239,11 @@ namespace LiteFX::Rendering {
         /// <param name="_args">The arguments that are passed to the graphics device constructor.</param>
         /// <returns>A pointer of the created graphics device instance.</returns>
         template <typename ...TArgs>
-        void createDevice(String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
-            this->registerDevice(name, std::move(makeUnique<device_type>(static_cast<const TBackend&>(*this), adapter, std::move(surface), std::forward<TArgs>(_args)...)));
+        device_type* createDevice(String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
+            auto device = makeUnique<device_type>(static_cast<const TBackend&>(*this), adapter, std::move(surface), std::forward<TArgs>(_args)...);
+            auto devicePointer = device.get();
+            this->registerDevice(name, std::move(device));
+            return devicePointer;
         }
 
         /// <summary>

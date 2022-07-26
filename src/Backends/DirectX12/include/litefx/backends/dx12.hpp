@@ -1401,12 +1401,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <seealso cref="DirectX12Texture::generateMipMaps" />
 		virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
 
-		/// <summary>
-		/// Returns a reference of the swap chain.
-		/// </summary>
-		/// <returns>A reference of the swap chain.</returns>
-		virtual DirectX12SwapChain& swapChain() noexcept;
-
 		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
@@ -1414,6 +1408,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const DirectX12SwapChain& swapChain() const noexcept override;
+
+		/// <inheritdoc />
+		virtual DirectX12SwapChain& swapChain() noexcept override;
 
 		/// <inheritdoc />
 		virtual const DirectX12Surface& surface() const noexcept override;
