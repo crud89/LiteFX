@@ -192,7 +192,6 @@ public:
     friend class DirectX12PipelineLayout;
 
 private:
-    UniquePtr<DirectX12ShaderProgram> m_shaderProgram;
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
     const DirectX12Device& m_device;
