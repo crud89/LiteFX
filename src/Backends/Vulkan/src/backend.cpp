@@ -153,16 +153,6 @@ public:
             std::views::transform([this](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
             ranges::to<Array<UniquePtr<VulkanGraphicsAdapter>>>();
     }
-
-    const VulkanGraphicsAdapter* findAdapter(const Optional<uint32_t> adapterId) const noexcept
-    {
-        auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
-
-        if (match != m_adapters.end())
-            return match->get();
-        
-        return nullptr;
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -210,9 +200,9 @@ Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
     return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const VulkanGraphicsAdapter*>>();
 }
 
-const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& adapterId) const
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
+    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
         return match->get();
 
     return nullptr;

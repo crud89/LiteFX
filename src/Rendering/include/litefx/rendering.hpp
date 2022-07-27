@@ -1228,7 +1228,7 @@ namespace LiteFX::Rendering {
         virtual Array<const adapter_type*> listAdapters() const = 0;
 
         /// <inheritdoc />
-        virtual const adapter_type* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+        virtual const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
 
         /// <inheritdoc />
         virtual void registerDevice(String name, UniquePtr<device_type>&& device) = 0;

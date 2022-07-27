@@ -264,15 +264,15 @@ VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAda
 VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
 	Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), extensions))
 {
-	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.getDeviceId(), Join(this->enabledExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
-	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
-	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
-	LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
-	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
+	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.vendorId());
+	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.driverVersion());
+	LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.apiVersion());
+	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.dedicatedMemory());
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 	LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(adapter.getAvailableDeviceExtensions(), ", "));
-	LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(adapter.getDeviceValidationLayers(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(adapter.deviceValidationLayers(), ", "));
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 
 	if (extensions.size() > 0)
@@ -392,7 +392,7 @@ const VulkanQueue& VulkanDevice::computeQueue() const noexcept
 
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept
 {
-	auto limits = m_impl->m_adapter.getLimits();
+	auto limits = m_impl->m_adapter.limits();
 	VkSampleCountFlags sampleCounts = limits.framebufferColorSampleCounts;
 
 	if (::hasDepth(format) && ::hasStencil(format))

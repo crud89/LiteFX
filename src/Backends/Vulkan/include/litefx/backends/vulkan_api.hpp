@@ -211,32 +211,35 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        virtual String getName() const noexcept override;
+        virtual String name() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 getVendorId() const noexcept override;
+        virtual UInt64 uniqueId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 getDeviceId() const noexcept override;
+        virtual UInt32 vendorId() const noexcept override;
 
         /// <inheritdoc />
-        virtual GraphicsAdapterType getType() const noexcept override;
+        virtual UInt32 deviceId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 getDriverVersion() const noexcept override;
+        virtual GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 getApiVersion() const noexcept override;
+        virtual UInt32 driverVersion() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt64 getDedicatedMemory() const noexcept override;
+        virtual UInt32 apiVersion() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt64 dedicatedMemory() const noexcept override;
 
     public:
         /// <summary>
         /// Returns the limits of the physical device.
         /// </summary>
         /// <returns>The limits of the physical device.</returns>
-        VkPhysicalDeviceLimits getLimits() const noexcept;
+        VkPhysicalDeviceLimits limits() const noexcept;
 
         /// <summary>
         /// Returns <c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.
@@ -264,7 +267,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>A list of available validation layers.</returns>
         /// <seealso cref="validateDeviceLayers" />
-        Array<String> getDeviceValidationLayers() const noexcept;
+        Array<String> deviceValidationLayers() const noexcept;
     };
 
     /// <summary>

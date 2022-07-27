@@ -29,6 +29,17 @@ public:
         return properties;
     }
 
+    VkPhysicalDeviceIDProperties getIdProperties() const noexcept
+    {
+        // After obtaining VkPhysicalDevice of your choice:
+        VkPhysicalDeviceIDProperties deviceIdProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES };
+        VkPhysicalDeviceProperties2 deviceProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
+        deviceProperties.pNext = &deviceIdProperties;
+        ::vkGetPhysicalDeviceProperties2(m_parent->handle(), &deviceProperties);
+
+        return deviceIdProperties;
+    }
+
     VkPhysicalDeviceFeatures getFeatures() const noexcept
     {
         VkPhysicalDeviceFeatures features;
@@ -49,25 +60,31 @@ VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
 
 VulkanGraphicsAdapter::~VulkanGraphicsAdapter() noexcept = default;
 
-String VulkanGraphicsAdapter::getName() const noexcept
+String VulkanGraphicsAdapter::name() const noexcept
 {
     auto properties = m_impl->getProperties();
     return String(properties.deviceName);
 }
 
-UInt32 VulkanGraphicsAdapter::getVendorId() const noexcept
+UInt64 VulkanGraphicsAdapter::uniqueId() const noexcept
+{
+    auto properties = m_impl->getIdProperties();
+    return *reinterpret_cast<UInt64*>(&properties.deviceLUID);
+}
+
+UInt32 VulkanGraphicsAdapter::vendorId() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.vendorID;
 }
 
-UInt32 VulkanGraphicsAdapter::getDeviceId() const noexcept
+UInt32 VulkanGraphicsAdapter::deviceId() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.deviceID;
 }
 
-GraphicsAdapterType VulkanGraphicsAdapter::getType() const noexcept
+GraphicsAdapterType VulkanGraphicsAdapter::type() const noexcept
 {
     auto properties = m_impl->getProperties();
     
@@ -84,24 +101,24 @@ GraphicsAdapterType VulkanGraphicsAdapter::getType() const noexcept
     }
 }
 
-UInt32 VulkanGraphicsAdapter::getDriverVersion() const noexcept
+UInt32 VulkanGraphicsAdapter::driverVersion() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.driverVersion;
 }
 
-UInt32 VulkanGraphicsAdapter::getApiVersion() const noexcept
+UInt32 VulkanGraphicsAdapter::apiVersion() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.apiVersion;
 }
 
-VkPhysicalDeviceLimits VulkanGraphicsAdapter::getLimits() const noexcept
+VkPhysicalDeviceLimits VulkanGraphicsAdapter::limits() const noexcept
 {
     return m_impl->m_limits;
 }
 
-UInt64 VulkanGraphicsAdapter::getDedicatedMemory() const noexcept
+UInt64 VulkanGraphicsAdapter::dedicatedMemory() const noexcept
 {
     VkPhysicalDeviceMemoryProperties memoryProperties{};
     ::vkGetPhysicalDeviceMemoryProperties(this->handle(), &memoryProperties);
@@ -151,7 +168,7 @@ Array<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const noexce
 
 bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const noexcept
 {
-    auto availableLayers = this->getDeviceValidationLayers();
+    auto availableLayers = this->deviceValidationLayers();
 
     return std::ranges::all_of(layers, [&availableLayers](const auto& layer) {
         auto match = std::ranges::find_if(availableLayers, [&layer](const auto& str) {
@@ -167,7 +184,7 @@ bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) cons
     });
 }
 
-Array<String> VulkanGraphicsAdapter::getDeviceValidationLayers() const noexcept
+Array<String> VulkanGraphicsAdapter::deviceValidationLayers() const noexcept
 {
     UInt32 layers = 0;
     ::vkEnumerateDeviceLayerProperties(this->handle(), &layers, nullptr);

@@ -1620,7 +1620,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<const VulkanGraphicsAdapter*> listAdapters() const override;
 
 		/// <inheritdoc />
-		virtual const VulkanGraphicsAdapter* findAdapter(const Optional<UInt32>& adapterId = std::nullopt) const override;
+		virtual const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
 
 		/// <inheritdoc />
 		virtual void registerDevice(String name, UniquePtr<VulkanDevice>&& device) override;

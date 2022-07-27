@@ -1732,43 +1732,49 @@ namespace LiteFX::Rendering {
         /// Retrieves the name of the graphics adapter.
         /// </summary>
         /// <returns>The name of the graphics adapter.</returns>
-        virtual String getName() const noexcept = 0;
+        virtual String name() const noexcept = 0;
+
+        /// <summary>
+        /// Returns a unique identifier, that identifies the device in the system.
+        /// </summary>
+        /// <returns>A unique identifier, that identifies the device in the system.</returns>
+        virtual UInt64 uniqueId() const noexcept = 0;
 
         /// <summary>
         /// Returns a unique identifier, that identifies the vendor of the graphics adapter.
         /// </summary>
         /// <returns>A unique identifier, that identifies the vendor of the graphics adapter.</returns>
-        virtual UInt32 getVendorId() const noexcept = 0;
+        virtual UInt32 vendorId() const noexcept = 0;
 
         /// <summary>
         /// Returns a unique identifier, that identifies the product.
         /// </summary>
         /// <returns>A unique identifier, that identifies the product.</returns>
-        virtual UInt32 getDeviceId() const noexcept = 0;
+        virtual UInt32 deviceId() const noexcept = 0;
 
         /// <summary>
         /// Returns the type of the graphics adapter.
         /// </summary>
         /// <returns>The type of the graphics adapter.</returns>
-        virtual GraphicsAdapterType getType() const noexcept = 0;
+        virtual GraphicsAdapterType type() const noexcept = 0;
 
         /// <summary>
         /// Returns the graphics driver version.
         /// </summary>
         /// <returns>The graphics driver version.</returns>
-        virtual UInt32 getDriverVersion() const noexcept = 0;
+        virtual UInt32 driverVersion() const noexcept = 0;
 
         /// <summary>
         /// Returns the graphics API version.
         /// </summary>
         /// <returns>The graphics API version.</returns>
-        virtual UInt32 getApiVersion() const noexcept = 0;
+        virtual UInt32 apiVersion() const noexcept = 0;
 
         /// <summary>
         /// Returns the amount of dedicated graphics memory (in bytes), this adapter can use.
         /// </summary>
         /// <returns>The amount of dedicated graphics memory (in bytes), this adapter can use.</returns>
-        virtual UInt64 getDedicatedMemory() const noexcept = 0;
+        virtual UInt64 dedicatedMemory() const noexcept = 0;
     };
 
     /// <summary>
@@ -4547,7 +4553,7 @@ namespace LiteFX::Rendering {
         /// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
         /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
         /// <seealso cref="IGraphicsAdapter" />
-        virtual const IGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+        virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
 
         /// <summary>
         /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.

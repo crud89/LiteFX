@@ -36,41 +36,47 @@ DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter
 
 DirectX12GraphicsAdapter::~DirectX12GraphicsAdapter() noexcept = default;
 
-String DirectX12GraphicsAdapter::getName() const noexcept
+String DirectX12GraphicsAdapter::name() const noexcept
 {
     auto properties = m_impl->getProperties();
     return Narrow(WString(properties.Description));
 }
 
-uint32_t DirectX12GraphicsAdapter::getVendorId() const noexcept
+UInt64 DirectX12GraphicsAdapter::uniqueId() const noexcept
+{
+    auto properties = m_impl->getProperties();
+    return (static_cast<UInt64>(properties.AdapterLuid.HighPart) << 0x20) | static_cast<UInt64>(properties.AdapterLuid.LowPart);
+}
+
+UInt32 DirectX12GraphicsAdapter::vendorId() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.VendorId;
 }
 
-uint32_t DirectX12GraphicsAdapter::getDeviceId() const noexcept
+UInt32 DirectX12GraphicsAdapter::deviceId() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.DeviceId;
 }
 
-GraphicsAdapterType DirectX12GraphicsAdapter::getType() const noexcept
+GraphicsAdapterType DirectX12GraphicsAdapter::type() const noexcept
 {
     auto properties = m_impl->getProperties();
     return LITEFX_FLAG_IS_SET(properties.Flags, DXGI_ADAPTER_FLAG3_SOFTWARE) ? GraphicsAdapterType::CPU : GraphicsAdapterType::GPU;
 }
 
-UInt32 DirectX12GraphicsAdapter::getDriverVersion() const noexcept
+UInt32 DirectX12GraphicsAdapter::driverVersion() const noexcept
 {
     return 0;
 }
 
-UInt32 DirectX12GraphicsAdapter::getApiVersion() const noexcept
+UInt32 DirectX12GraphicsAdapter::apiVersion() const noexcept
 {
-    return 0;
+    return D3D12_SDK_VERSION;
 }
 
-UInt64 DirectX12GraphicsAdapter::getDedicatedMemory() const noexcept
+UInt64 DirectX12GraphicsAdapter::dedicatedMemory() const noexcept
 {
     auto properties = m_impl->getProperties();
     return properties.DedicatedVideoMemory;

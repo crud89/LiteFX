@@ -70,11 +70,11 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		break;
 	case BufferType::Uniform: 
 		usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-		alignment = m_impl->m_device.adapter().getLimits().minUniformBufferOffsetAlignment;
+		alignment = m_impl->m_device.adapter().limits().minUniformBufferOffsetAlignment;
 		break;
 	case BufferType::Storage:
 		usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-		alignment = m_impl->m_device.adapter().getLimits().minStorageBufferOffsetAlignment;
+		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
 		break;
 	case BufferType::Texel:
 		if (allowWrite)
@@ -82,7 +82,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		else
 			usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 
-		alignment = m_impl->m_device.adapter().getLimits().minTexelBufferOffsetAlignment;
+		alignment = m_impl->m_device.adapter().limits().minTexelBufferOffsetAlignment;
 		break;
 	}
 
