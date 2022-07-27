@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include <tchar.h>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -68,7 +69,57 @@ GraphicsAdapterType DirectX12GraphicsAdapter::type() const noexcept
 
 UInt32 DirectX12GraphicsAdapter::driverVersion() const noexcept
 {
-    return 0;
+	// There is no API support for this, so we need to query information directly from the registry. If something goes wrong, this would
+	// indicate an invalid driver installation. In this case, we can simply return an invalid driver version.
+	constexpr UInt32 INVALID_DRIVER_VERSION = std::numeric_limits<UInt32>::max();
+
+	// Query the DX path.
+	HKEY dxKey = nullptr;
+	DWORD adapters = 0;
+	LSTATUS status = ::RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\DirectX"), 0, KEY_READ, &dxKey);
+
+	if (status != ERROR_SUCCESS)
+		return INVALID_DRIVER_VERSION;
+
+	// Get the maximum sub-key length.
+	DWORD subKeyLength = 0;
+	status = ::RegQueryInfoKey(dxKey, nullptr, nullptr, nullptr, &adapters, &subKeyLength, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+
+	if (status != ERROR_SUCCESS)
+		return INVALID_DRIVER_VERSION;
+
+	// Allocate a string that contains the sub-key name.
+	String subKeyName(subKeyLength + 1, '\0');
+	UInt64 driverVersion = 0;
+	bool foundSubkey = false;
+	LUID adapterId {};
+	DWORD idSize = sizeof(UInt64);
+	auto properties = m_impl->getProperties();
+
+	// Parse each adapter individually until we found the current one.
+	for (DWORD i(0); i < adapters; ++i)
+	{
+		status = ::RegEnumKeyEx(dxKey, i, subKeyName.data(), &subKeyLength, nullptr, nullptr, nullptr, nullptr);
+
+		if (status != ERROR_SUCCESS)
+			continue;
+
+		status = ::RegGetValue(dxKey, subKeyName.c_str(), _T("AdapterLuid"), RRF_RT_QWORD, nullptr, &adapterId, &idSize);
+
+		if (status != ERROR_SUCCESS)
+			continue;
+
+		// Check if we've found the adapter.
+		if (adapterId.HighPart == properties.AdapterLuid.HighPart && adapterId.LowPart == properties.AdapterLuid.LowPart)
+		{
+			status = ::RegGetValue(dxKey, subKeyName.c_str(), _T("DriverVersion"), RRF_RT_QWORD, nullptr, &driverVersion, &idSize);
+
+			if (status == ERROR_SUCCESS)
+				return static_cast<UInt32>(driverVersion >> 0x20);
+		}
+	}
+
+	return INVALID_DRIVER_VERSION;
 }
 
 UInt32 DirectX12GraphicsAdapter::apiVersion() const noexcept
