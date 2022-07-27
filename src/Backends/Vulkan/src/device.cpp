@@ -184,7 +184,7 @@ public:
 		VkPhysicalDeviceFeatures deviceFeatures = {};
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-			.timelineSemaphore = true 
+			.timelineSemaphore = true
 		};
 
 		// Define the device itself.

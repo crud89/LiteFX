@@ -277,12 +277,23 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
 
     public:
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+        /// <summary>
+        /// Initializes the surface from a surface and instance handle.
+        /// </summary>
+        /// <param name="surface">The handle of the Vulkan surface.</param>
+        /// <param name="instance">The handle of the parent instance.</param>
+        /// <param name="hwnd">The handle of the surface window.</param>
+        VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance, const HWND hwnd);
+#else
         /// <summary>
         /// Initializes the surface from a surface and instance handle.
         /// </summary>
         /// <param name="surface">The handle of the Vulkan surface.</param>
         /// <param name="instance">The handle of the parent instance.</param>
         VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
+#endif // VK_USE_PLATFORM_WIN32_KHR
+
         VulkanSurface(const VulkanSurface&) = delete;
         VulkanSurface(VulkanSurface&&) = delete;
         virtual ~VulkanSurface() noexcept;
@@ -293,6 +304,15 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>The handle of the backend, the surface has been created from.</returns>
         const VkInstance& instance() const noexcept;
+
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+        /// <summary>
+        /// Returns the window handle of the surface.
+        /// </summary>
+        /// <returns>The window handle of the surface.</returns>
+        /// <seealso cref="createSurface" />
+        const HWND windowHandle() const noexcept;
+#endif // VK_USE_PLATFORM_WIN32_KHR
     };
 
     DEFINE_EXCEPTION(VulkanPlatformException, std::runtime_error);

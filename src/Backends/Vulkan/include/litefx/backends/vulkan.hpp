@@ -1542,12 +1542,6 @@ namespace LiteFX::Rendering::Backends {
 		VulkanBackend(VulkanBackend&&) noexcept = delete;
 		virtual ~VulkanBackend() noexcept;
 
-		// Vulkan Backend interface.
-	public:
-		/// <summary>
-		/// A callback that creates a surface from a Vulkan instance.
-		/// </summary>
-		typedef std::function<VkSurfaceKHR(const VkInstance&)> surface_callback;
 
 	public:
 		/// <summary>
@@ -1556,14 +1550,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>An array of validation layers that are enabled on the backend.</returns>
 		virtual Span<const String> getEnabledValidationLayers() const noexcept;
 
-		/// <summary>
-		/// Creates a surface using the <paramref name="predicate" /> callback.
-		/// </summary>
-		/// <param name="predicate">A callback that gets called with the backend instance handle and creates the surface instance</param>
-		/// <returns>The instance of the created surface.</returns>
-		/// <seealso cref="surface_callback" />
-		UniquePtr<VulkanSurface> createSurface(surface_callback predicate) const;
-
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 		/// <summary>
 		/// Creates a surface on a window handle.
@@ -1571,7 +1557,20 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="hwnd">The window handle on which the surface should be created.</param>
 		/// <returns>The instance of the created surface.</returns>
 		UniquePtr<VulkanSurface> createSurface(const HWND& hwnd) const;
-#endif
+#else
+		/// <summary>
+		/// A callback that creates a surface from a Vulkan instance.
+		/// </summary>
+		typedef std::function<VkSurfaceKHR(const VkInstance&)> surface_callback;
+
+		/// <summary>
+		/// Creates a surface using the <paramref name="predicate" /> callback.
+		/// </summary>
+		/// <param name="predicate">A callback that gets called with the backend instance handle and creates the surface instance</param>
+		/// <returns>The instance of the created surface.</returns>
+		/// <seealso cref="surface_callback" />
+		UniquePtr<VulkanSurface> createSurface(surface_callback predicate) const;
+#endif // VK_USE_PLATFORM_WIN32_KHR
 
 	public:
 		/// <summary>
