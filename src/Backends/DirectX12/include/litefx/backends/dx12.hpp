@@ -1521,6 +1521,13 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <summary>
+		/// Creates a surface on a window handle.
+		/// </summary>
+		/// <param name="hwnd">The window handle on which the surface should be created.</param>
+		/// <returns>The instance of the created surface.</returns>
+		UniquePtr<DirectX12Surface> createSurface(const HWND& hwnd) const;
+
+		/// <summary>
 		/// Enables <a href="https://docs.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp" target="_blank">Windows Advanced Software Rasterization (WARP)</a>.
 		/// </summary>
 		/// <remarks>

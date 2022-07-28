@@ -148,6 +148,11 @@ const DirectX12Device* DirectX12Backend::device(const String& name) const noexce
     return m_impl->m_devices[name].get();
 }
 
+UniquePtr<DirectX12Surface> DirectX12Backend::createSurface(const HWND& hwnd) const
+{
+    return makeUnique<DirectX12Surface>(hwnd);
+}
+
 void DirectX12Backend::enableAdvancedSoftwareRasterizer(const bool& enable)
 {
     m_impl->loadAdapters(enable);
