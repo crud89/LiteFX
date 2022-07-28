@@ -44,6 +44,7 @@ ENDIF(BUILD_EXAMPLES AND NOT BUILD_DEFINE_BUILDERS)
 # Include samples.
 IF(BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/BasicRendering)
+    ADD_SUBDIRECTORY(Samples/RenderPasses)
 ENDIF(BUILD_EXAMPLES)
 
 # Install license notice.
