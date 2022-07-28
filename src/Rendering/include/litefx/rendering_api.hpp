@@ -4025,6 +4025,12 @@ namespace LiteFX::Rendering {
             return this->getImages();
         };
 
+        /// <summary>
+        /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
+        /// </summary>
+        /// <param name="frameBuffer">The frame buffer for which the present should wait.</param>
+        virtual void present(const IFrameBuffer& frameBuffer) const = 0;
+
     public:
         /// <summary>
         /// Returns an array of supported formats, that can be drawn to the surface.

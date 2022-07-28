@@ -19,6 +19,7 @@ private:
 	Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
 	bool m_supportsVariableRefreshRates{ false };
 	const DirectX12Device& m_device;
+	UInt32 m_lastPresentFence = 0;
 
 public:
 	DirectX12SwapChainImpl(DirectX12SwapChain* parent, const DirectX12Device& device) :
@@ -118,9 +119,9 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
-		// NOTE: Swap is happening when presenting in a render pass. When acquiring a new back buffer, we need to wait for the swap to occur first, though.
-		// TODO: Check, if we can solve this with another fence, that is queued on present and waited for in here.
-		m_device.wait();
+		// TODO: We don't want to wait for the last fence here, but for the last fence of a certain frame buffer. If the frame buffer is not currently 
+		// in use, we don't need to wait for the fence of another frame buffer.
+		m_device.graphicsQueue().waitFor(m_lastPresentFence);
 		return m_parent->handle()->GetCurrentBackBufferIndex();
 	}
 
@@ -170,6 +171,12 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 {
 	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); }) | ranges::to<Array<const IDirectX12Image*>>();
+}
+
+void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
+{
+	m_impl->m_lastPresentFence = frameBuffer.lastFence();
+	raiseIfFailed<RuntimeException>(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 
 Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept

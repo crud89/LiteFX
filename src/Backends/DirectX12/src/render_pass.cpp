@@ -321,7 +321,7 @@ void DirectX12RenderPass::end() const
     //       frame in the queue has been drawn and the back buffer can be written again.
     //       Instead of blocking, we could also use a wait-able swap chain (https://www.gamedev.net/forums/topic/677527-dx12-fences-and-swap-chain-present/).
     if (m_impl->m_presentTarget != nullptr)
-        raiseIfFailed<RuntimeException>(swapChain.handle()->Present(0, swapChain.supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
+        swapChain.present(*frameBuffer);
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;

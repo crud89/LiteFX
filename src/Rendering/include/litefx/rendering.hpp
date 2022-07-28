@@ -831,11 +831,13 @@ namespace LiteFX::Rendering {
     /// Represents a swap chain, i.e. a chain of multiple <see cref="IImage" /> instances, that can be presented to a <see cref="ISurface" />.
     /// </summary>
     /// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-    template <typename TImageInterface> requires
+    template <typename TImageInterface, typename TFrameBuffer> requires
+        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
         std::derived_from<TImageInterface, IImage>
     class SwapChain : public ISwapChain {
     public:
         using image_interface_type = TImageInterface;
+        using frame_buffer_type = TFrameBuffer;
 
     public:
         virtual ~SwapChain() noexcept = default;
@@ -843,6 +845,17 @@ namespace LiteFX::Rendering {
     public:
         /// <inheritdoc />
         virtual Array<const image_interface_type*> images() const noexcept = 0;
+
+        /// <summary>
+        /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
+        /// </summary>
+        /// <param name="frameBuffer">The frame buffer for which the present should wait.</param>
+        virtual void present(const frame_buffer_type& frameBuffer) const = 0;
+
+        /// <inheritdoc />
+        virtual void present(const IFrameBuffer& frameBuffer) const override {
+            this->present(dynamic_cast<const frame_buffer_type&>(frameBuffer));
+        }
 
     private:
         virtual Array<const IImage*> getImages() const noexcept override {
@@ -1054,7 +1067,7 @@ namespace LiteFX::Rendering {
     template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline> requires
         rtti::implements<TSurface, ISurface> &&
         rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-        rtti::implements<TSwapChain, SwapChain<typename TFactory::image_type>> &&
+        rtti::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
         rtti::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
         rtti::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type>> &&
         rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
