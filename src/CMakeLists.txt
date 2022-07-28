@@ -48,6 +48,8 @@ IF(BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/PushConstants)
     ADD_SUBDIRECTORY(Samples/UniformArrays)
     ADD_SUBDIRECTORY(Samples/Textures)
+    ADD_SUBDIRECTORY(Samples/Multisampling)
+    #ADD_SUBDIRECTORY(Samples/Multithreading)
 ENDIF(BUILD_EXAMPLES)
 
 # Install license notice.
