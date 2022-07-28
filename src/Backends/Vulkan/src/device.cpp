@@ -96,7 +96,16 @@ public:
 private:
 	void defineMandatoryExtensions() noexcept
 	{
+		m_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+
+#ifdef BUILD_DIRECTX_12_BACKEND
+		// Interop swap chain requires external memory access.
+		m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
+		m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+		m_extensions.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+#else
 		m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+#endif // BUILD_DIRECTX_12_BACKEND
 	}
 
 public:

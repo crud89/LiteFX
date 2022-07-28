@@ -87,6 +87,17 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PRIVATE unofficial::vulkan-memory-allocator::vulkan-memory-allocator
 )
 
+# Link against D3D12 to enable flip-model swap chains.
+IF(BUILD_DIRECTX_12_BACKEND)
+    FIND_PACKAGE(directx-headers CONFIG REQUIRED)
+
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+        PUBLIC Microsoft::DirectX-Headers Microsoft::DirectX-Guids d3d12 dxcore dxgi d3dcompiler
+        PRIVATE LiteFX.Backends.DirectX12
+    )
+ENDIF(BUILD_DIRECTX_12_BACKEND)
+
+
 # Re-use pre-compiled core header.
 IF(BUILD_PRECOMPILED_HEADERS)
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)

@@ -24,11 +24,16 @@ public:
         m_extensions.assign(std::begin(extensions), std::end(extensions));
         m_layers.assign(std::begin(validationLayers), std::end(validationLayers));
 
-        // Define mandatory extensions.
+        this->defineMandatoryExtensions();
+    }
+
+    void defineMandatoryExtensions()
+    {
+        m_extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+
 #ifdef BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
-        if (std::ranges::find(m_extensions, VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME) == m_extensions.end())
-            m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
+        m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
 #endif // BUILD_DIRECTX_12_BACKEND
     }
 

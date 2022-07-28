@@ -268,8 +268,6 @@ void VulkanQueue::waitFor(const UInt64& fence) const noexcept
 	{
 		VkSemaphoreWaitInfo waitInfo {
 			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
-			.pNext = NULL,
-			.flags = 0,
 			.semaphoreCount = 1,
 			.pSemaphores = &m_impl->m_timelineSemaphore,
 			.pValues = &fence

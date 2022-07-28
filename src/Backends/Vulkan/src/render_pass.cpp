@@ -400,21 +400,8 @@ void VulkanRenderPass::end() const
         std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
         frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(*m_impl->m_primaryCommandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
 
-        // Draw the frame, if the result of the render pass it should be presented to the swap chain.
-        std::array<VkSwapchainKHR, 1> swapChains = { m_impl->m_device.swapChain().handle() };
-
-        VkPresentInfoKHR presentInfo {
-            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-            .pNext = nullptr,
-            .waitSemaphoreCount = static_cast<UInt32>(signalSemaphores.size()),
-            .pWaitSemaphores = signalSemaphores.data(),
-            .swapchainCount = static_cast<UInt32>(swapChains.size()),
-            .pSwapchains = swapChains.data(),
-            .pImageIndices = &m_impl->m_backBuffer,
-            .pResults = nullptr
-        };
-
-        raiseIfFailed<RuntimeException>(::vkQueuePresentKHR(m_impl->m_device.graphicsQueue().handle(), &presentInfo), "Unable to present swap chain.");
+        // Present the swap chain.
+        m_impl->m_device.swapChain().present(*frameBuffer);
     }
 
     // Reset the frame buffer.

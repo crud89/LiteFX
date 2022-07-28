@@ -1173,7 +1173,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan swap chain.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSwapChain : public SwapChain<IVulkanImage>, public Resource<VkSwapchainKHR> {
+	class LITEFX_VULKAN_API VulkanSwapChain : public SwapChain<IVulkanImage, VulkanFrameBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
@@ -1210,6 +1210,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual Array<const IVulkanImage*> images() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void present(const VulkanFrameBuffer& frameBuffer) const override;
 
 	public:
 		/// <inheritdoc />
