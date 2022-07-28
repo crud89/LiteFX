@@ -6,7 +6,7 @@ title = "LiteFX - Open-source, modern and flexible computer graphics and renderi
 publishDir = "../"
 
 [params]
-    copyright = "© 2021 Carsten Rudolph"
+    copyright = "© 2022 Carsten Rudolph"
     description = "Open-source, modern and flexible computer graphics and rendering engine, written in C++20 with support for Vulkan 🌋 and DirectX 12 ❎."
     favicon = "favicon.ico"
     images = ["img/banner_m.jpg"]
