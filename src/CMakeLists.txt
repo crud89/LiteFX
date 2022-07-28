@@ -47,6 +47,7 @@ IF(BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/RenderPasses)
     ADD_SUBDIRECTORY(Samples/PushConstants)
     ADD_SUBDIRECTORY(Samples/UniformArrays)
+    ADD_SUBDIRECTORY(Samples/Textures)
 ENDIF(BUILD_EXAMPLES)
 
 # Install license notice.
