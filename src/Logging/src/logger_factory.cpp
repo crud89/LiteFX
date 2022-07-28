@@ -5,15 +5,17 @@ using namespace LiteFX::Logging;
 
 static Array<spdlog::sink_ptr> m_sinks;
 
-Log Logger::get(const String& name)
+Log Logger::get(StringView name)
 {
+    auto nameCopy = String(name);
+
     // Get the log.
-    auto log = spdlog::get(name);
+    auto log = spdlog::get(nameCopy);
     
     // If it does not exist, create it from the current sinks.
     if (log == nullptr)
     {
-        auto logger = makeShared<spdlog::logger>(name, std::begin(m_sinks), std::end(m_sinks));
+        auto logger = makeShared<spdlog::logger>(nameCopy, std::begin(m_sinks), std::end(m_sinks));
 
 #ifndef NDEBUG
         logger->set_level(spdlog::level::trace);
@@ -24,7 +26,7 @@ Log Logger::get(const String& name)
         spdlog::register_logger(logger);
     }
 
-    return Log(name);
+    return Log(nameCopy);
 }
 
 void Logger::sinkTo(const ISink* sink)

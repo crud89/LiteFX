@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -12,17 +13,19 @@ public:
 	friend class VulkanComputePipeline;
 
 private:
-	UniquePtr<VulkanPipelineLayout> m_layout;
+	SharedPtr<VulkanPipelineLayout> m_layout;
+	SharedPtr<VulkanShaderProgram> m_program;
 	String m_name;
+	const VulkanDevice& m_device;
 
 public:
-	VulkanComputePipelineImpl(VulkanComputePipeline* parent, const String& name, UniquePtr<VulkanPipelineLayout>&& layout) :
-		base(parent), m_name(name), m_layout(std::move(layout))
+	VulkanComputePipelineImpl(VulkanComputePipeline* parent, const VulkanDevice& device, const String& name, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram) :
+		base(parent), m_device(device), m_name(name), m_layout(layout), m_program(shaderProgram)
 	{
 	}
 
-	VulkanComputePipelineImpl(VulkanComputePipeline* parent) :
-		base(parent)
+	VulkanComputePipelineImpl(VulkanComputePipeline* parent, const VulkanDevice& device) :
+		base(parent), m_device(device)
 	{
 	}
 
@@ -32,8 +35,8 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_name);
 	
 		// Setup shader stages.
-		auto modules = m_layout->program().modules();
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(&m_layout->program())), modules.size());
+		auto modules = m_program->modules();
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
 
 		if (modules.size() > 1)
 			throw RuntimeException("Only one shader module must be bound to a compute pipeline.");
@@ -49,7 +52,7 @@ public:
 		pipelineInfo.stage = shaderStages.front();
 
 		VkPipeline pipeline;
-		raiseIfFailed<RuntimeException>(::vkCreateComputePipelines(m_parent->getDevice()->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
+		raiseIfFailed<RuntimeException>(::vkCreateComputePipelines(m_device.handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
 
 		return pipeline;
 	}
@@ -59,20 +62,20 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, UniquePtr<VulkanPipelineLayout>&& layout, const String& name) :
-	m_impl(makePimpl<VulkanComputePipelineImpl>(this, name, std::move(layout))), VulkanRuntimeObject(device, &device), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, const String& name) :
+	m_impl(makePimpl<VulkanComputePipelineImpl>(this, device, name, layout, shaderProgram)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
 }
 
 VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device) noexcept :
-	m_impl(makePimpl<VulkanComputePipelineImpl>(this)), VulkanRuntimeObject(device, &device), VulkanPipelineState(VK_NULL_HANDLE)
+	m_impl(makePimpl<VulkanComputePipelineImpl>(this, device)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 }
 
 VulkanComputePipeline::~VulkanComputePipeline() noexcept
 {
-	::vkDestroyPipeline(this->getDevice()->handle(), this->handle(), nullptr);
+	::vkDestroyPipeline(m_impl->m_device.handle(), this->handle(), nullptr);
 }
 
 const String& VulkanComputePipeline::name() const noexcept
@@ -80,9 +83,14 @@ const String& VulkanComputePipeline::name() const noexcept
 	return m_impl->m_name;
 }
 
-const VulkanPipelineLayout& VulkanComputePipeline::layout() const noexcept 
+SharedPtr<const VulkanShaderProgram> VulkanComputePipeline::program() const noexcept
 {
-	return *m_impl->m_layout;
+	return m_impl->m_program;
+}
+
+SharedPtr<const VulkanPipelineLayout> VulkanComputePipeline::layout() const noexcept 
+{
+	return m_impl->m_layout;
 }
 
 void VulkanComputePipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
@@ -92,20 +100,22 @@ void VulkanComputePipeline::use(const VulkanCommandBuffer& commandBuffer) const 
 
 void VulkanComputePipeline::bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept
 {
-	::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), descriptorSet.parent().space(), 1, &descriptorSet.handle(), 0, nullptr);
+	// DescriptorSet -> DescriptorSetLayout
+	::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), descriptorSet.layout().space(), 1, &descriptorSet.handle(), 0, nullptr);
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
 
 class VulkanComputePipelineBuilder::VulkanComputePipelineBuilderImpl : public Implement<VulkanComputePipelineBuilder> {
 public:
-	friend class VulkanComputePipelineBuilderBuilder;
 	friend class VulkanComputePipelineBuilder;
 
 private:
-	UniquePtr<VulkanPipelineLayout> m_layout;
+	SharedPtr<VulkanShaderProgram> m_program;
+	SharedPtr<VulkanPipelineLayout> m_layout;
 
 public:
 	VulkanComputePipelineBuilderImpl(VulkanComputePipelineBuilder* parent) :
@@ -126,26 +136,33 @@ VulkanComputePipelineBuilder::VulkanComputePipelineBuilder(const VulkanDevice& d
 
 VulkanComputePipelineBuilder::~VulkanComputePipelineBuilder() noexcept = default;
 
-UniquePtr<VulkanComputePipeline> VulkanComputePipelineBuilder::go()
+void VulkanComputePipelineBuilder::build()
 {
-	auto instance = this->instance(); 
+	auto instance = this->instance();
 	instance->m_impl->m_layout = std::move(m_impl->m_layout);
+	instance->m_impl->m_program = std::move(m_impl->m_program);
 	instance->handle() = instance->m_impl->initialize();
-
-	return ComputePipelineBuilder::go();
 }
 
-void VulkanComputePipelineBuilder::use(UniquePtr<VulkanPipelineLayout>&& layout)
+VulkanComputePipelineBuilder& VulkanComputePipelineBuilder::shaderProgram(SharedPtr<VulkanShaderProgram> program)
+{
+#ifndef NDEBUG
+	if (m_impl->m_layout != nullptr)
+		LITEFX_WARNING(VULKAN_LOG, "Another shader program has already been initialized and will be replaced. A pipeline can only have one shader program.");
+#endif
+
+	m_impl->m_program = program;
+	return *this;
+}
+
+VulkanComputePipelineBuilder& VulkanComputePipelineBuilder::layout(SharedPtr<VulkanPipelineLayout> layout)
 {
 #ifndef NDEBUG
 	if (m_impl->m_layout != nullptr)
 		LITEFX_WARNING(VULKAN_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
 #endif
 
-	m_impl->m_layout = std::move(layout);
+	m_impl->m_layout = layout;
+	return *this;
 }
-
-VulkanComputePipelineLayoutBuilder VulkanComputePipelineBuilder::layout()
-{
-	return VulkanComputePipelineLayoutBuilder(*this);
-}
+#endif // defined(BUILD_DEFINE_BUILDERS)

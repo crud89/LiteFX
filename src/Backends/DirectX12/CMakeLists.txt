@@ -8,13 +8,14 @@ PROJECT(LiteFX.Backends.DirectX12 VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 # Resolve package dependencies.
-FIND_PACKAGE(directx-headers CONFIG REQUIRED)    
+FIND_PACKAGE(directx-headers CONFIG REQUIRED)
 FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
 
 # Collect header & source files.
 SET(DIRECTX12_BACKEND_HEADERS
     "include/litefx/backends/dx12_api.hpp"
     "include/litefx/backends/dx12_formatters.hpp"
+    "include/litefx/backends/dx12_builders.hpp"
     "include/litefx/backends/dx12.hpp"
 )
 

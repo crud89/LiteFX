@@ -14,10 +14,11 @@ public:
 private:
 	ShaderStage m_type;
 	String m_fileName, m_entryPoint;
+	const DirectX12Device& m_device;
 
 public:
-	DirectX12ShaderModuleImpl(DirectX12ShaderModule* parent, const ShaderStage& type, const String& fileName, const String& entryPoint) :
-		base(parent), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) 
+	DirectX12ShaderModuleImpl(DirectX12ShaderModule* parent, const DirectX12Device& device, const ShaderStage& type, const String& fileName, const String& entryPoint) :
+		base(parent), m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) 
 	{
 	}
 
@@ -35,7 +36,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, const ShaderStage& type, const String& fileName, const String& entryPoint) :
-	DirectX12RuntimeObject(device, &device), m_impl(makePimpl<DirectX12ShaderModuleImpl>(this, type, fileName, entryPoint)), ComResource<ID3DBlob>(nullptr)
+	m_impl(makePimpl<DirectX12ShaderModuleImpl>(this, device, type, fileName, entryPoint)), ComResource<ID3DBlob>(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }

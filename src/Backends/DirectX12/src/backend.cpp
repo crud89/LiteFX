@@ -12,6 +12,7 @@ public:
 
 private:
     Array<UniquePtr<DirectX12GraphicsAdapter>> m_adapters{ };
+    Dictionary<String, UniquePtr<DirectX12Device>> m_devices;
     ComPtr<ID3D12Debug> m_debugInterface;
     const App& m_app;
 
@@ -84,9 +85,24 @@ DirectX12Backend::DirectX12Backend(const App& app, const bool& useAdvancedSoftwa
 
 DirectX12Backend::~DirectX12Backend() noexcept = default;
 
-BackendType DirectX12Backend::getType() const noexcept
+BackendType DirectX12Backend::type() const noexcept
 {
     return BackendType::Rendering;
+}
+
+String DirectX12Backend::name() const noexcept
+{
+    return "DirectX 12";
+}
+
+void DirectX12Backend::activate()
+{
+    this->state() = BackendState::Active;
+}
+
+void DirectX12Backend::deactivate()
+{
+    this->state() = BackendState::Inactive;
 }
 
 Array<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
@@ -94,12 +110,52 @@ Array<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
     return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const DirectX12GraphicsAdapter*>>();
 }
 
-const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt32>& adapterId) const
+const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
+    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
         return match->get();
 
     return nullptr;
+}
+
+void DirectX12Backend::registerDevice(String name, UniquePtr<DirectX12Device>&& device)
+{
+    if (m_impl->m_devices.contains(name)) [[unlikely]]
+        throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+
+    m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
+}
+
+void DirectX12Backend::releaseDevice(const String& name)
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return;
+
+    auto device = m_impl->m_devices[name].get();
+    device->wait();
+
+    m_impl->m_devices.erase(name);
+}
+
+DirectX12Device* DirectX12Backend::device(const String& name) noexcept
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return nullptr;
+
+    return m_impl->m_devices[name].get();
+}
+
+const DirectX12Device* DirectX12Backend::device(const String& name) const noexcept
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return nullptr;
+
+    return m_impl->m_devices[name].get();
+}
+
+UniquePtr<DirectX12Surface> DirectX12Backend::createSurface(const HWND& hwnd) const
+{
+    return makeUnique<DirectX12Surface>(hwnd);
 }
 
 void DirectX12Backend::enableAdvancedSoftwareRasterizer(const bool& enable)

@@ -47,6 +47,11 @@ DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
 
 UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
 {
+	return this->createBuffer("", type, usage, elementSize, elements, allowWrite);
+}
+
+UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
+{
 	constexpr size_t elementAlignment = 0xFF;
 
 	D3D12_RESOURCE_DESC resourceDesc = {};
@@ -70,13 +75,13 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferT
 	case BufferUsage::Dynamic:
 	case BufferUsage::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::GenericRead, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(name, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::GenericRead, resourceDesc, allocationDesc);
 	case BufferUsage::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(name, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12Buffer::allocate(m_impl->m_device, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12Buffer::allocate(name, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	default:
 		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}
@@ -84,39 +89,10 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferT
 
 UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
-	D3D12_RESOURCE_DESC resourceDesc = {};
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	resourceDesc.Alignment = 0;
-	resourceDesc.Width = layout.elementSize() * static_cast<size_t>(elements);
-	resourceDesc.Height = 1;
-	resourceDesc.DepthOrArraySize = 1;
-	resourceDesc.MipLevels = 1;
-	resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-	resourceDesc.SampleDesc.Count = 1;
-	resourceDesc.SampleDesc.Quality = 0;
-	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	D3D12MA::ALLOCATION_DESC allocationDesc = {};
-
-	switch (usage)
-	{
-	case BufferUsage::Dynamic:
-	case BufferUsage::Staging:
-		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::GenericRead, resourceDesc, allocationDesc);
-	case BufferUsage::Resource:
-		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
-	case BufferUsage::Readback:
-		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12VertexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
-	default:
-		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
-	}
+	return this->createVertexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
 {
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -138,19 +114,63 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 	case BufferUsage::Dynamic:
 	case BufferUsage::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::GenericRead, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(name, layout, m_impl->m_allocator, elements, ResourceState::GenericRead, resourceDesc, allocationDesc);
 	case BufferUsage::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(name, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	case BufferUsage::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-		return DirectX12IndexBuffer::allocate(m_impl->m_device, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+		return DirectX12VertexBuffer::allocate(name, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+	default:
+		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
+	}
+}
+
+UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+{
+	return this->createIndexBuffer("", layout, usage, elements);
+}
+
+UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+{
+	D3D12_RESOURCE_DESC resourceDesc = {};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDesc.Alignment = 0;
+	resourceDesc.Width = layout.elementSize() * static_cast<size_t>(elements);
+	resourceDesc.Height = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.SampleDesc.Quality = 0;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	D3D12MA::ALLOCATION_DESC allocationDesc = {};
+
+	switch (usage)
+	{
+	case BufferUsage::Dynamic:
+	case BufferUsage::Staging:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+		return DirectX12IndexBuffer::allocate(name, layout, m_impl->m_allocator, elements, ResourceState::GenericRead, resourceDesc, allocationDesc);
+	case BufferUsage::Resource:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+		return DirectX12IndexBuffer::allocate(name, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+	case BufferUsage::Readback:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
+		return DirectX12IndexBuffer::allocate(name, layout, m_impl->m_allocator, elements, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 	default:
 		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
 	}
 }
 
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
+{
+	return this->createAttachment("", format, size, samples);
+}
+
+UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
 {
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -159,7 +179,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 	resourceDesc.Height = size.height();
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = 1;
-	resourceDesc.Format = ::getFormat(format);
+	resourceDesc.Format = DX12::getFormat(format);
 	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
@@ -169,16 +189,21 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 	if (::hasDepth(format) || ::hasStencil(format))
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, resourceDesc, allocationDesc);
 	}
 	else
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::ReadOnly, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::ReadOnly, resourceDesc, allocationDesc);
 	}
 }
 
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+{
+	return this->createTexture("", format, size, dimension, levels, layers, samples, allowWrite);
+}
+
+UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
 		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
@@ -187,13 +212,13 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const Format&
 		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
 
 	D3D12_RESOURCE_DESC resourceDesc = {};
-	resourceDesc.Dimension = ::getImageType(dimension);
+	resourceDesc.Dimension = DX12::getImageType(dimension);
 	resourceDesc.Alignment = 0;
 	resourceDesc.Width = size.width();
 	resourceDesc.Height = size.height();
 	resourceDesc.DepthOrArraySize = dimension == ImageDimensions::DIM_3 ? size.depth() : layers;
 	resourceDesc.MipLevels = levels;
-	resourceDesc.Format = ::getFormat(format);
+	resourceDesc.Format = DX12::getFormat(format);
 	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resourceDesc.Flags = allowWrite ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
@@ -201,7 +226,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const Format&
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
 	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 	
-	return DirectX12Image::allocate(m_impl->m_device, m_impl->m_allocator, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 }
 
 Array<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
@@ -214,6 +239,11 @@ Array<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(const
 UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
 	return makeUnique<DirectX12Sampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+}
+
+UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const String& name, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+{
+	return makeUnique<DirectX12Sampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 }
 
 Array<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const

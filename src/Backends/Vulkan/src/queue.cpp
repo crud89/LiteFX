@@ -19,10 +19,11 @@ private:
 	UInt64 m_fenceValue{ 0 };
 	mutable std::mutex m_mutex;
 	bool m_bound;
+	const VulkanDevice& m_device;
 
 public:
-	VulkanQueueImpl(VulkanQueue* parent, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
-		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_bound(false)
+	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_bound(false), m_device(device)
 	{
 	}
 
@@ -34,10 +35,10 @@ public:
 public:
 	void release()
 	{
-		::vkDestroySemaphore(m_parent->getDevice()->handle(), m_timelineSemaphore, nullptr);
+		::vkDestroySemaphore(m_device.handle(), m_timelineSemaphore, nullptr);
 
 		if (m_bound)
-			::vkDestroyCommandPool(m_parent->getDevice()->handle(), m_commandPool, nullptr);
+			::vkDestroyCommandPool(m_device.handle(), m_commandPool, nullptr);
 
 		m_bound = false;
 		m_commandPool = {};
@@ -50,7 +51,7 @@ public:
 
 		// Store the queue handle, if not done in previous binds.
 		if (m_parent->handle() == nullptr)
-			::vkGetDeviceQueue(m_parent->getDevice()->handle(), m_familyId, m_queueId, &m_parent->handle());
+			::vkGetDeviceQueue(m_device.handle(), m_familyId, m_queueId, &m_parent->handle());
 
 		// Create command pool.
 		VkCommandPoolCreateInfo poolInfo = {};
@@ -63,7 +64,7 @@ public:
 		if (m_type == QueueType::Transfer)
 			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-		raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
+		raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_device.handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
 
 		// Create a timeline semaphore for queue synchronization.
 		VkSemaphoreTypeCreateInfo timelineCreateInfo;
@@ -77,7 +78,7 @@ public:
 		createInfo.pNext = &timelineCreateInfo;
 		createInfo.flags = 0;
 
-		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_parent->getDevice()->handle(), &createInfo, NULL, &m_timelineSemaphore), "Unable to create queue synchronization semaphore.");
+		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_device.handle(), &createInfo, NULL, &m_timelineSemaphore), "Unable to create queue synchronization semaphore.");
 
 		m_bound = true;
 	}
@@ -88,11 +89,16 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanQueue::VulkanQueue(const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
-	Resource<VkQueue>(nullptr), VulkanRuntimeObject<VulkanDevice>(device, &device), m_impl(makePimpl<VulkanQueueImpl>(this, type, priority, familyId, queueId))
+	Resource<VkQueue>(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, device, type, priority, familyId, queueId))
 {
 }
 
 VulkanQueue::~VulkanQueue() noexcept = default;
+
+const VulkanDevice& VulkanQueue::device() const noexcept
+{
+	return m_impl->m_device;
+}
 
 const VkCommandPool& VulkanQueue::commandPool() const noexcept
 {
@@ -256,21 +262,19 @@ void VulkanQueue::waitFor(const UInt64& fence) const noexcept
 {
 	UInt64 completedValue{ 0 };
 	//raiseIfFailed<RuntimeException>(::vkGetSemaphoreCounterValue(this->getDevice()->handle(), m_impl->m_timelineSemaphore, &completedValue), "Unable to query current queue timeline semaphore value.");
-	::vkGetSemaphoreCounterValue(this->getDevice()->handle(), m_impl->m_timelineSemaphore, &completedValue);
+	::vkGetSemaphoreCounterValue(m_impl->m_device.handle(), m_impl->m_timelineSemaphore, &completedValue);
 
 	if (completedValue < fence)
 	{
 		VkSemaphoreWaitInfo waitInfo {
 			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
-			.pNext = NULL,
-			.flags = 0,
 			.semaphoreCount = 1,
 			.pSemaphores = &m_impl->m_timelineSemaphore,
 			.pValues = &fence
 		};
 
 		//raiseIfFailed<RuntimeException>(::vkWaitSemaphores(this->getDevice()->handle(), &waitInfo, std::numeric_limits<UInt64>::max()), "Unable to wait for queue timeline semaphore.");
-		::vkWaitSemaphores(this->getDevice()->handle(), &waitInfo, std::numeric_limits<UInt64>::max());
+		::vkWaitSemaphores(m_impl->m_device.handle(), &waitInfo, std::numeric_limits<UInt64>::max());
 	}
 }
 

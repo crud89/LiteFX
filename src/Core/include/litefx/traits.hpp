@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <typeindex>
 #include <concepts>
 
 namespace LiteFX::rtti {

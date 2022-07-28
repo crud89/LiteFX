@@ -12,6 +12,7 @@ public:
 
 private:
     Array<UniquePtr<VulkanGraphicsAdapter>> m_adapters{ };
+    Dictionary<String, UniquePtr<VulkanDevice>> m_devices;
     Array<String> m_extensions;
     Array<String> m_layers;
     const App& m_app;
@@ -22,6 +23,18 @@ public:
     {
         m_extensions.assign(std::begin(extensions), std::end(extensions));
         m_layers.assign(std::begin(validationLayers), std::end(validationLayers));
+
+        this->defineMandatoryExtensions();
+    }
+
+    void defineMandatoryExtensions()
+    {
+        m_extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+
+#ifdef BUILD_DIRECTX_12_BACKEND
+        // Interop swap chain requires external memory access.
+        m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
+#endif // BUILD_DIRECTX_12_BACKEND
     }
 
 #ifndef NDEBUG
@@ -80,14 +93,14 @@ public:
         auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | ranges::to<Array<const char*>>();
 
         // Get the app instance.
-        auto appName = m_app.getName();
+        auto appName = String(m_app.name());
 
         // Define Vulkan app.
         VkApplicationInfo appInfo = {};
 
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         appInfo.pApplicationName = appName.c_str();
-        appInfo.applicationVersion = VK_MAKE_VERSION(m_app.getVersion().getMajor(), m_app.getVersion().getMinor(), m_app.getVersion().getPatch());
+        appInfo.applicationVersion = VK_MAKE_VERSION(m_app.version().major(), m_app.version().minor(), m_app.version().patch());
         appInfo.pEngineName = LITEFX_ENGINE_ID;
         appInfo.engineVersion = VK_MAKE_VERSION(LITEFX_MAJOR, LITEFX_MINOR, LITEFX_REV);
         appInfo.apiVersion = VK_API_VERSION_1_2;
@@ -152,16 +165,6 @@ public:
             std::views::transform([this](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
             ranges::to<Array<UniquePtr<VulkanGraphicsAdapter>>>();
     }
-
-    const VulkanGraphicsAdapter* findAdapter(const Optional<uint32_t> adapterId) const noexcept
-    {
-        auto match = std::find_if(m_adapters.begin(), m_adapters.end(), [&adapterId](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; });
-
-        if (match != m_adapters.end())
-            return match->get();
-        
-        return nullptr;
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -189,9 +192,24 @@ VulkanBackend::~VulkanBackend() noexcept
     ::vkDestroyInstance(this->handle(), nullptr);
 }
 
-BackendType VulkanBackend::getType() const noexcept
+BackendType VulkanBackend::type() const noexcept
 {
     return BackendType::Rendering;
+}
+
+String VulkanBackend::name() const noexcept
+{
+    return "Vulkan";
+}
+
+void VulkanBackend::activate()
+{
+    this->state() = BackendState::Active;
+}
+
+void VulkanBackend::deactivate()
+{
+    this->state() = BackendState::Inactive;
 }
 
 Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
@@ -199,12 +217,47 @@ Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
     return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const VulkanGraphicsAdapter*>>();
 }
 
-const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<uint32_t>& adapterId) const
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->getDeviceId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
+    if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
         return match->get();
 
     return nullptr;
+}
+
+void VulkanBackend::registerDevice(String name, UniquePtr<VulkanDevice>&& device)
+{
+    if (m_impl->m_devices.contains(name))
+        throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+
+    m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
+}
+
+void VulkanBackend::releaseDevice(const String& name)
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return;
+
+    auto device = m_impl->m_devices[name].get();
+    device->wait();
+
+    m_impl->m_devices.erase(name);
+}
+
+VulkanDevice* VulkanBackend::device(const String& name) noexcept
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return nullptr;
+
+    return m_impl->m_devices[name].get();
+}
+
+const VulkanDevice* VulkanBackend::device(const String& name) const noexcept
+{
+    if (!m_impl->m_devices.contains(name)) [[unlikely]]
+        return nullptr;
+
+    return m_impl->m_devices[name].get();
 }
 
 Span<const String> VulkanBackend::getEnabledValidationLayers() const noexcept
@@ -212,11 +265,6 @@ Span<const String> VulkanBackend::getEnabledValidationLayers() const noexcept
     return m_impl->m_layers;
 }
 
-UniquePtr<VulkanSurface> VulkanBackend::createSurface(surface_callback predicate) const
-{
-    auto surface = predicate(this->handle());
-    return makeUnique<VulkanSurface>(surface, this->handle());
-}
 
 // ------------------------------------------------------------------------------------------------
 // Platform-specific implementation.
@@ -234,6 +282,14 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd) const
     VkSurfaceKHR surface;
     raiseIfFailed<RuntimeException>(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface), "Unable to create vulkan surface for provided window.");
 
+    return makeUnique<VulkanSurface>(surface, this->handle(), hwnd);
+}
+
+#else
+
+UniquePtr<VulkanSurface> VulkanBackend::createSurface(surface_callback predicate) const
+{
+    auto surface = predicate(this->handle());
     return makeUnique<VulkanSurface>(surface, this->handle());
 }
 

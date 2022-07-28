@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -8,8 +9,7 @@ using namespace LiteFX::Rendering::Backends;
 
 class VulkanShaderProgram::VulkanShaderProgramImpl : public Implement<VulkanShaderProgram> {
 public:
-    friend class VulkanGraphicsShaderProgramBuilder;
-    friend class VulkanComputeShaderProgramBuilder;
+    friend class VulkanShaderProgramBuilder;
     friend class VulkanShaderProgram;
 
 private:
@@ -31,13 +31,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanPipelineLayout& pipelineLayout, Array<UniquePtr<VulkanShaderModule>>&& modules) :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this, std::move(modules))), VulkanRuntimeObject<VulkanPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+VulkanShaderProgram::VulkanShaderProgram(Array<UniquePtr<VulkanShaderModule>>&& modules) :
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this, std::move(modules)))
 {
 }
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanPipelineLayout& pipelineLayout) noexcept :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this)), VulkanRuntimeObject<VulkanPipelineLayout>(pipelineLayout, pipelineLayout.getDevice())
+VulkanShaderProgram::VulkanShaderProgram() noexcept :
+    m_impl(makePimpl<VulkanShaderProgramImpl>(this))
 {
 }
 
@@ -50,20 +50,22 @@ Array<const VulkanShaderModule*> VulkanShaderProgram::modules() const noexcept
         ranges::to<Array<const VulkanShaderModule*>>();
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Graphics shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanGraphicsShaderProgramBuilder::VulkanGraphicsShaderProgramBuilderImpl : public Implement<VulkanGraphicsShaderProgramBuilder> {
+class VulkanShaderProgramBuilder::VulkanShaderProgramBuilderImpl : public Implement<VulkanShaderProgramBuilder> {
 public:
-    friend class VulkanGraphicsShaderProgramBuilder;
+    friend class VulkanShaderProgramBuilder;
 
 private:
     Array<UniquePtr<VulkanShaderModule>> m_modules;
+    const VulkanDevice& m_device;
 
 public:
-    VulkanGraphicsShaderProgramBuilderImpl(VulkanGraphicsShaderProgramBuilder* parent) :
-        base(parent)
+    VulkanShaderProgramBuilderImpl(VulkanShaderProgramBuilder* parent, const VulkanDevice& device) :
+        base(parent), m_device(device)
     {
     }
 };
@@ -72,96 +74,52 @@ public:
 // Graphics shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanGraphicsShaderProgramBuilder::VulkanGraphicsShaderProgramBuilder(VulkanRenderPipelineLayoutBuilder& parent) :
-    m_impl(makePimpl<VulkanGraphicsShaderProgramBuilderImpl>(this)), GraphicsShaderProgramBuilder(parent, UniquePtr<VulkanShaderProgram>(new VulkanShaderProgram(*std::as_const(parent).instance())))
+VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
+    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram()))
 {
 }
 
-VulkanGraphicsShaderProgramBuilder::~VulkanGraphicsShaderProgramBuilder() noexcept = default;
+VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
-VulkanRenderPipelineLayoutBuilder& VulkanGraphicsShaderProgramBuilder::go()
-{
-    auto instance = this->instance();
-    instance->m_impl->m_modules = std::move(m_impl->m_modules);
-
-    return GraphicsShaderProgramBuilder::go();
-}
-
-VulkanGraphicsShaderProgramBuilder& VulkanGraphicsShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
-{
-    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(*this->instance()->getDevice(), type, fileName, entryPoint));
-    return *this;
-}
-
-VulkanGraphicsShaderProgramBuilder& VulkanGraphicsShaderProgramBuilder::addVertexShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->addShaderModule(ShaderStage::Vertex, fileName, entryPoint);
-}
-
-VulkanGraphicsShaderProgramBuilder& VulkanGraphicsShaderProgramBuilder::addTessellationControlShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->addShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
-}
-
-VulkanGraphicsShaderProgramBuilder& VulkanGraphicsShaderProgramBuilder::addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->addShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
-}
-
-VulkanGraphicsShaderProgramBuilder& VulkanGraphicsShaderProgramBuilder::addGeometryShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->addShaderModule(ShaderStage::Geometry, fileName, entryPoint);
-}
-
-VulkanGraphicsShaderProgramBuilder& VulkanGraphicsShaderProgramBuilder::addFragmentShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->addShaderModule(ShaderStage::Fragment, fileName, entryPoint);
-}
-
-// ------------------------------------------------------------------------------------------------
-// Compute shader program builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanComputeShaderProgramBuilder::VulkanComputeShaderProgramBuilderImpl : public Implement<VulkanComputeShaderProgramBuilder> {
-public:
-    friend class VulkanComputeShaderProgramBuilder;
-
-private:
-    Array<UniquePtr<VulkanShaderModule>> m_modules;
-
-public:
-    VulkanComputeShaderProgramBuilderImpl(VulkanComputeShaderProgramBuilder* parent) :
-        base(parent)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
-// Compute shader program builder shared interface.
-// ------------------------------------------------------------------------------------------------
-
-VulkanComputeShaderProgramBuilder::VulkanComputeShaderProgramBuilder(VulkanComputePipelineLayoutBuilder& parent) :
-    m_impl(makePimpl<VulkanComputeShaderProgramBuilderImpl>(this)), ComputeShaderProgramBuilder(parent, UniquePtr<VulkanShaderProgram>(new VulkanShaderProgram(*std::as_const(parent).instance())))
-{
-}
-
-VulkanComputeShaderProgramBuilder::~VulkanComputeShaderProgramBuilder() noexcept = default;
-
-VulkanComputePipelineLayoutBuilder& VulkanComputeShaderProgramBuilder::go()
+void VulkanShaderProgramBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_modules = std::move(m_impl->m_modules);
-
-    return ComputeShaderProgramBuilder::go();
 }
 
-VulkanComputeShaderProgramBuilder& VulkanComputeShaderProgramBuilder::addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
 {
-    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(*this->instance()->getDevice(), type, fileName, entryPoint));
+    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint));
     return *this;
 }
 
-VulkanComputeShaderProgramBuilder& VulkanComputeShaderProgramBuilder::addComputeShaderModule(const String& fileName, const String& entryPoint)
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withVertexShaderModule(const String& fileName, const String& entryPoint)
 {
-    return this->addShaderModule(ShaderStage::Compute, fileName, entryPoint);
+    return this->withShaderModule(ShaderStage::Vertex, fileName, entryPoint);
 }
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationControlShaderModule(const String& fileName, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
+}
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
+}
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withGeometryShaderModule(const String& fileName, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::Geometry, fileName, entryPoint);
+}
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withFragmentShaderModule(const String& fileName, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
+}
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withComputeShaderModule(const String& fileName, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::Compute, fileName, entryPoint);
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)

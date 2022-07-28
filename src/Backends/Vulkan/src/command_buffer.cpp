@@ -11,12 +11,13 @@ public:
 	friend class VulkanCommandBuffer;
 
 private:
+	const VulkanQueue& m_queue;
 	bool m_recording{ false };
 	Optional<VkCommandPool> m_commandPool;
 
 public:
-	VulkanCommandBufferImpl(VulkanCommandBuffer* parent) :
-		base(parent)
+	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue) :
+		base(parent), m_queue(queue)
 	{
 	}
 
@@ -29,11 +30,11 @@ public:
 			VkCommandPoolCreateInfo poolInfo = {
 				.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 				.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-				.queueFamilyIndex = m_parent->parent().queueId()
+				.queueFamilyIndex = m_queue.queueId()
 			};
 
 			VkCommandPool commandPool;
-			raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_parent->getDevice()->handle(), &poolInfo, nullptr, &commandPool), "Unable to create command pool.");
+			raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &commandPool), "Unable to create command pool.");
 			m_commandPool = commandPool;
 		}
 
@@ -41,11 +42,11 @@ public:
 		VkCommandBufferAllocateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		bufferInfo.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-		bufferInfo.commandPool = primary ? m_parent->parent().commandPool() : m_commandPool.value();
+		bufferInfo.commandPool = primary ? m_queue.commandPool() : m_commandPool.value();
 		bufferInfo.commandBufferCount = 1;
 
 		VkCommandBuffer buffer;
-		raiseIfFailed<RuntimeException>(::vkAllocateCommandBuffers(m_parent->getDevice()->handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
+		raiseIfFailed<RuntimeException>(::vkAllocateCommandBuffers(m_queue.device().handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
 
 		return buffer;
 	}
@@ -56,7 +57,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin, const bool& primary) :
-	m_impl(makePimpl<VulkanCommandBufferImpl>(this)), VulkanRuntimeObject<VulkanQueue>(queue, queue.getDevice()), Resource<VkCommandBuffer>(nullptr)
+	m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue)), Resource<VkCommandBuffer>(nullptr)
 {
 	if (!queue.isBound())
 		throw InvalidArgumentException("You must bind the queue before creating a command buffer from it.");
@@ -70,11 +71,11 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const bool& b
 VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
 {
 	if (!m_impl->m_commandPool.has_value())
-		::vkFreeCommandBuffers(this->getDevice()->handle(), this->parent().commandPool(), 1, &this->handle());
+		::vkFreeCommandBuffers(m_impl->m_queue.device().handle(), m_impl->m_queue.commandPool(), 1, &this->handle());
 	else
 	{
-		::vkFreeCommandBuffers(this->getDevice()->handle(), m_impl->m_commandPool.value(), 1, &this->handle());
-		::vkDestroyCommandPool(this->getDevice()->handle(), m_impl->m_commandPool.value(), nullptr);
+		::vkFreeCommandBuffers(m_impl->m_queue.device().handle(), m_impl->m_commandPool.value(), 1, &this->handle());
+		::vkDestroyCommandPool(m_impl->m_queue.device().handle(), m_impl->m_commandPool.value(), nullptr);
 	}
 }
 
@@ -140,7 +141,7 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 		.subresourceRange = VkImageSubresourceRange { .aspectMask = image.aspectMask() }
 	};
 
-	auto layout = ::getImageLayout(image.state(0));
+	auto layout = Vk::getImageLayout(image.state(0));
 
 	for (UInt32 layer(0); layer < image.layers(); ++layer)
 	{
@@ -198,8 +199,8 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 	barrier.subresourceRange.baseArrayLayer = 0;
 	barrier.subresourceRange.layerCount = image.layers();
 	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = image.levels();
-	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier.subresourceRange.levelCount = image.levels() - 1;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	barrier.newLayout = layout;
 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -343,9 +344,9 @@ void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcep
 	pipeline.use(*this);
 }
 
-void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet) const noexcept
+void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept
 {
-	descriptorSet.parent().parent().parent().bind(*this, descriptorSet);
+	pipeline.bind(*this, descriptorSet);
 }
 
 void VulkanCommandBuffer::bind(const IVulkanVertexBuffer& buffer) const noexcept
@@ -376,5 +377,5 @@ void VulkanCommandBuffer::drawIndexed(const UInt32& indices, const UInt32& insta
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept
 {
-	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.parent().handle(), static_cast<VkShaderStageFlags>(::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
+	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.pipelineLayout().handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
 }

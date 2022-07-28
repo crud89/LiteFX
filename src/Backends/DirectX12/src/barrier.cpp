@@ -78,12 +78,16 @@ void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& s
 
 void DirectX12Barrier::waitFor(const IDirectX12Buffer& buffer)
 {
-	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(buffer.handle().Get()));
+	// We cannot wait for read-only resources.
+	if (buffer.writable())
+		m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(buffer.handle().Get()));
 }
 
 void DirectX12Barrier::waitFor(const IDirectX12Image& image)
 {
-	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(image.handle().Get()));
+	// We cannot wait for read-only resources.
+	if (image.writable())
+		m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(image.handle().Get()));
 }
 
 void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const noexcept
@@ -106,7 +110,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, cons
 			else
 				buffer.state(subresource) = targetState;
 
-			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(buffer).handle().Get(), ::getResourceState(std::get<2>(bufferElement)), ::getResourceState(targetState), flags);
+			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(buffer).handle().Get(), DX12::getResourceState(std::get<2>(bufferElement)), DX12::getResourceState(targetState), flags);
 		}
 		else
 		{
@@ -121,7 +125,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, cons
 			else
 				image.state(subresource) = targetState;
 
-			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(image).handle().Get(), ::getResourceState(std::get<2>(imageElement)), ::getResourceState(targetState), flags);
+			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(image).handle().Get(), DX12::getResourceState(std::get<2>(imageElement)), DX12::getResourceState(targetState), flags);
 		}
 	});
 
@@ -149,7 +153,7 @@ void DirectX12Barrier::executeInverse(const DirectX12CommandBuffer& commandBuffe
 			else
 				buffer.state(subresource) = targetState;
 
-			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(buffer).handle().Get(), ::getResourceState(std::get<3>(bufferElement)), ::getResourceState(targetState), flags);
+			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(buffer).handle().Get(), DX12::getResourceState(std::get<3>(bufferElement)), DX12::getResourceState(targetState), flags);
 		}
 		else
 		{
@@ -164,7 +168,7 @@ void DirectX12Barrier::executeInverse(const DirectX12CommandBuffer& commandBuffe
 			else
 				image.state(subresource) = targetState;
 
-			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(image).handle().Get(), ::getResourceState(std::get<3>(imageElement)), ::getResourceState(targetState), flags);
+			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(image).handle().Get(), DX12::getResourceState(std::get<3>(imageElement)), DX12::getResourceState(targetState), flags);
 		}
 	});
 

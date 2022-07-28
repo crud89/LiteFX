@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -29,7 +30,7 @@ private:
 			m_id(id), m_queueCount(queueCount), m_type(type) { 
 		}
 		QueueFamily(const QueueFamily& _other) = delete;
-		QueueFamily(QueueFamily&& _other) {
+		QueueFamily(QueueFamily&& _other) noexcept {
 			m_queues = std::move(_other.m_queues);
 			m_id = std::move(_other.m_id);
 			m_queueCount = std::move(_other.m_queueCount);
@@ -51,6 +52,8 @@ private:
 		}
 	};
 
+	DeviceState m_deviceState;
+
 	Array<QueueFamily> m_families;
 	VulkanQueue* m_graphicsQueue;
 	VulkanQueue* m_transferQueue;
@@ -62,13 +65,16 @@ private:
 	Array<String> m_extensions;
 
 	const VulkanGraphicsAdapter& m_adapter;
-	const VulkanSurface& m_surface;
+	UniquePtr<VulkanSurface> m_surface;
 	UniquePtr<VulkanGraphicsFactory> m_factory;
 
 public:
-	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, Span<String> extensions) :
-		base(parent), m_adapter(adapter), m_surface(surface)
+	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
+		base(parent), m_adapter(adapter), m_surface(std::move(surface))
 	{
+		if (m_surface == nullptr)
+			throw ArgumentNotInitializedException("The surface must be initialized.");
+
 		m_extensions.assign(std::begin(extensions), std::end(extensions));
 
 		this->defineMandatoryExtensions();
@@ -77,14 +83,29 @@ public:
 
 	~VulkanDeviceImpl()
 	{
+		// Clear the device state.
+		m_deviceState.clear();
+
 		// This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
 		m_families.clear();
+
+		// Destroy the surface.
+		m_surface = nullptr;
 	}
 
 private:
 	void defineMandatoryExtensions() noexcept
 	{
+		m_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+
+#ifdef BUILD_DIRECTX_12_BACKEND
+		// Interop swap chain requires external memory access.
+		m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
+		m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+		m_extensions.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+#else
 		m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+#endif // BUILD_DIRECTX_12_BACKEND
 	}
 
 public:
@@ -121,7 +142,7 @@ public:
 		auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | ranges::to<Array<const char*>>();
 
 		// Create graphics and transfer queue.
-		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, m_surface.handle());
+		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, std::as_const(*m_surface).handle());
 		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 		m_bufferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
 		m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::Normal);
@@ -169,10 +190,13 @@ public:
 			}) | ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
 		// Define the device features.
-		VkPhysicalDeviceFeatures deviceFeatures = {};
+		VkPhysicalDeviceFeatures deviceFeatures = {
+			.geometryShader = true,
+			.tessellationShader = true,
+		};
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-			.timelineSemaphore = true 
+			.timelineSemaphore = true
 		};
 
 		// Define the device itself.
@@ -244,23 +268,23 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, Span<String> extensions) :
-	VulkanDevice(adapter, surface, Format::B8G8R8A8_SRGB, { 800, 600 }, 3, extensions)
+VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
+	VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, extensions)
 {
 }
 
-VulkanDevice::VulkanDevice(const VulkanGraphicsAdapter& adapter, const VulkanSurface& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
-	Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, surface, extensions))
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
+	Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), extensions))
 {
-	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(&surface)), adapter.getDeviceId(), Join(this->enabledExtensions(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
-	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.getVendorId());
-	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.getDriverVersion());
-	LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.getApiVersion());
-	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.getDedicatedMemory());
+	LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.vendorId());
+	LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.driverVersion());
+	LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.apiVersion());
+	LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.dedicatedMemory());
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 	LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(adapter.getAvailableDeviceExtensions(), ", "));
-	LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(adapter.getDeviceValidationLayers(), ", "));
+	LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(adapter.deviceValidationLayers(), ", "));
 	LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 
 	if (extensions.size() > 0)
@@ -291,14 +315,51 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 	return *m_impl->m_swapChain;
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
 {
 	return VulkanRenderPassBuilder(*this, commandBuffers, samples);
 }
 
-VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline() const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
 {
-	return VulkanComputePipelineBuilder(*this);
+	return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
+}
+
+VulkanRenderPipelineBuilder VulkanDevice::buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const
+{
+	return VulkanRenderPipelineBuilder(renderPass, name);
+}
+
+VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline(const String& name) const
+{
+	return VulkanComputePipelineBuilder(*this, name);
+}
+
+VulkanPipelineLayoutBuilder VulkanDevice::buildPipelineLayout() const
+{
+	return VulkanPipelineLayoutBuilder(*this);
+}
+
+VulkanInputAssemblerBuilder VulkanDevice::buildInputAssembler() const
+{
+	return VulkanInputAssemblerBuilder();
+}
+
+VulkanRasterizerBuilder VulkanDevice::buildRasterizer() const
+{
+	return VulkanRasterizerBuilder();
+}
+
+VulkanShaderProgramBuilder VulkanDevice::buildShaderProgram() const
+{
+	return VulkanShaderProgramBuilder(*this);
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)
+
+DeviceState& VulkanDevice::state() const noexcept
+{
+	return m_impl->m_deviceState;
 }
 
 const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
@@ -308,7 +369,7 @@ const VulkanSwapChain& VulkanDevice::swapChain() const noexcept
 
 const VulkanSurface& VulkanDevice::surface() const noexcept
 {
-	return m_impl->m_surface;
+	return *m_impl->m_surface;
 }
 
 const VulkanGraphicsAdapter& VulkanDevice::adapter() const noexcept
@@ -341,9 +402,14 @@ const VulkanQueue& VulkanDevice::computeQueue() const noexcept
 	return *m_impl->m_computeQueue;
 }
 
+UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier() const noexcept
+{
+	return makeUnique<VulkanBarrier>();
+}
+
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept
 {
-	auto limits = m_impl->m_adapter.getLimits();
+	auto limits = m_impl->m_adapter.limits();
 	VkSampleCountFlags sampleCounts = limits.framebufferColorSampleCounts;
 
 	if (::hasDepth(format) && ::hasStencil(format))

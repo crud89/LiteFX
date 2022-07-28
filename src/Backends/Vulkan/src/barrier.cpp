@@ -171,7 +171,7 @@ void VulkanBarrier::waitFor(const IVulkanBuffer& buffer)
     m_impl->m_waitBarriers.push_back(VkMemoryBarrier {
         .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
         .pNext = nullptr,
-        .srcAccessMask = ::getAccessFlags(buffer.state(0)),
+        .srcAccessMask = Vk::getAccessFlags(buffer.state(0)),
         .dstAccessMask = VK_ACCESS_SHADER_READ_BIT
     });
 }
@@ -183,7 +183,7 @@ void VulkanBarrier::waitFor(const IVulkanImage& image)
     m_impl->m_waitBarriers.push_back(VkMemoryBarrier {
         .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
         .pNext = nullptr,
-        .srcAccessMask = ::getAccessFlags(image.state(0)),
+        .srcAccessMask = Vk::getAccessFlags(image.state(0)),
         .dstAccessMask = VK_ACCESS_SHADER_READ_BIT
     });
 }
@@ -228,8 +228,8 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
         return VkBufferMemoryBarrier{
             .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
             .pNext = nullptr,
-            .srcAccessMask = ::getAccessFlags(sourceState),
-            .dstAccessMask = ::getAccessFlags(targetState),
+            .srcAccessMask = Vk::getAccessFlags(sourceState),
+            .dstAccessMask = Vk::getAccessFlags(targetState),
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .buffer = std::as_const(buffer).handle(),
@@ -239,7 +239,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
     });
 
     // Create the image barriers.
-    Array<VkImageMemoryBarrier> imageBarriers(m_impl->m_buffers.size());
+    Array<VkImageMemoryBarrier> imageBarriers(m_impl->m_images.size());
     std::ranges::generate(imageBarriers, [this, &lastStageToProduce, &firstStageToConsume, i = 0]() mutable {
         auto& imageElement = m_impl->m_images[i++];
         auto& image = std::get<0>(imageElement);
@@ -276,10 +276,10 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
         return VkImageMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
-            .srcAccessMask = ::getAccessFlags(sourceState),
-            .dstAccessMask = ::getAccessFlags(targetState),
-            .oldLayout = ::getImageLayout(sourceState),
-            .newLayout = ::getImageLayout(targetState),
+            .srcAccessMask = Vk::getAccessFlags(sourceState),
+            .dstAccessMask = Vk::getAccessFlags(targetState),
+            .oldLayout = Vk::getImageLayout(sourceState),
+            .newLayout = Vk::getImageLayout(targetState),
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = std::as_const(image).handle(),
@@ -337,8 +337,8 @@ void VulkanBarrier::executeInverse(const VulkanCommandBuffer& commandBuffer) con
         return VkBufferMemoryBarrier{
             .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
             .pNext = nullptr,
-            .srcAccessMask = ::getAccessFlags(sourceState),
-            .dstAccessMask = ::getAccessFlags(targetState),
+            .srcAccessMask = Vk::getAccessFlags(sourceState),
+            .dstAccessMask = Vk::getAccessFlags(targetState),
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .buffer = std::as_const(buffer).handle(),
@@ -385,10 +385,10 @@ void VulkanBarrier::executeInverse(const VulkanCommandBuffer& commandBuffer) con
         return VkImageMemoryBarrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
-            .srcAccessMask = ::getAccessFlags(sourceState),
-            .dstAccessMask = ::getAccessFlags(targetState),
-            .oldLayout = ::getImageLayout(sourceState),
-            .newLayout = ::getImageLayout(targetState),
+            .srcAccessMask = Vk::getAccessFlags(sourceState),
+            .dstAccessMask = Vk::getAccessFlags(targetState),
+            .oldLayout = Vk::getImageLayout(sourceState),
+            .newLayout = Vk::getImageLayout(targetState),
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = std::as_const(image).handle(),

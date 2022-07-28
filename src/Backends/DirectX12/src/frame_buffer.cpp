@@ -19,14 +19,15 @@ private:
     Size2d m_size;
     UInt32 m_bufferIndex;
     UInt64 m_lastFence{ 0 };
+    const DirectX12RenderPass& m_renderPass;
 
 public:
-    DirectX12FrameBufferImpl(DirectX12FrameBuffer* parent, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
-        base(parent), m_bufferIndex(bufferIndex), m_size(renderArea)
+    DirectX12FrameBufferImpl(DirectX12FrameBuffer* parent, const DirectX12RenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
+        base(parent), m_renderPass(renderPass), m_bufferIndex(bufferIndex), m_size(renderArea)
     {
         // Initialize the command buffers from the graphics queue.
         m_commandBuffers.resize(commandBuffers);
-        std::ranges::generate(m_commandBuffers, [this]() { return m_parent->getDevice()->graphicsQueue().createCommandBuffer(false); });
+        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.device().graphicsQueue().createCommandBuffer(false); });
     }
 
 public:
@@ -37,8 +38,8 @@ public:
         m_renderTargetViews.clear();
 
         // Create descriptor heaps for RTVs and DSVs.
-        UInt32 renderTargets = std::ranges::count_if(m_parent->parent().renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
-        UInt32 depthStencilTargets = static_cast<UInt32>(m_parent->parent().renderTargets().size()) - renderTargets;
+        UInt32 renderTargets = std::ranges::count_if(m_renderPass.renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
+        UInt32 depthStencilTargets = static_cast<UInt32>(m_renderPass.renderTargets().size()) - renderTargets;
 
         if (depthStencilTargets > 1)
             LITEFX_WARNING(DIRECTX12_LOG, "There are {0} depth/stencil targets mapped on the frame buffer. This will probably not work as intended, since only one depth/stencil target can be bound to a render pass.", depthStencilTargets);
@@ -46,28 +47,28 @@ public:
         D3D12_DESCRIPTOR_HEAP_DESC renderTargetHeapDesc = {};
         renderTargetHeapDesc.NumDescriptors = renderTargets;
         renderTargetHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        m_renderTargetDescriptorSize = m_parent->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        m_renderTargetDescriptorSize = m_renderPass.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
         D3D12_DESCRIPTOR_HEAP_DESC depthStencilHeapDesc = {};
         depthStencilHeapDesc.NumDescriptors = depthStencilTargets;
         depthStencilHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-        m_depthStencilDescriptorSize = m_parent->getDevice()->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        m_depthStencilDescriptorSize = m_renderPass.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-        raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateDescriptorHeap(&renderTargetHeapDesc, IID_PPV_ARGS(&m_renderTargetHeap)), "Unable to create render target descriptor heap.");
+        raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateDescriptorHeap(&renderTargetHeapDesc, IID_PPV_ARGS(&m_renderTargetHeap)), "Unable to create render target descriptor heap.");
         CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewDescriptor(m_renderTargetHeap->GetCPUDescriptorHandleForHeapStart());
-        raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateDescriptorHeap(&depthStencilHeapDesc, IID_PPV_ARGS(&m_depthStencilHeap)), "Unable to create depth/stencil descriptor heap.");
+        raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateDescriptorHeap(&depthStencilHeapDesc, IID_PPV_ARGS(&m_depthStencilHeap)), "Unable to create depth/stencil descriptor heap.");
         CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilViewDescriptor(m_depthStencilHeap->GetCPUDescriptorHandleForHeapStart());
 
         // Initialize the output attachments from render targets of the parent render pass.
         // NOTE: Again, we assume, that the parent render pass provides the render targets in an sorted manner.
-        std::ranges::for_each(m_parent->parent().renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
+        std::ranges::for_each(m_renderPass.renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
             if (renderTarget.location() != i++) [[unlikely]]
                 LITEFX_WARNING(DIRECTX12_LOG, "Remapped render target from location {0} to location {1}. Please make sure that the render targets are sorted within the render pass and do not have any gaps in their location mappings.", renderTarget.location(), i - 1);
 
             // Check if the device supports the multi sampling level for the render target.
-            auto samples = m_parent->parent().multiSamplingLevel();
+            auto samples = m_renderPass.multiSamplingLevel();
 
-            if (m_parent->getDevice()->maximumMultiSamplingLevel(renderTarget.format()) < samples)
+            if (m_renderPass.device().maximumMultiSamplingLevel(renderTarget.format()) < samples)
                 throw InvalidArgumentException("Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), static_cast<UInt32>(samples));
 
             const IDirectX12Image* renderTargetView;
@@ -76,7 +77,7 @@ public:
             {
                 // If the render target is a present target and should not be multi-sampled, acquire an image view directly from the swap chain.
                 // NOTE: Multi-sampling back-buffers directly is not supported (see https://docs.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#remarks).
-                auto swapChainImages = m_parent->getDevice()->swapChain().images();
+                auto swapChainImages = m_renderPass.device().swapChain().images();
                 renderTargetView = swapChainImages[m_bufferIndex];
             }
             else
@@ -84,7 +85,7 @@ public:
                 // Create an image view for the render target.
                 // TODO: Pass the optimized clear value from the render target to the attachment. (May need to refactor `CreateAttachment` to accept the render target and a size). Then
                 //       remove the warning from the info queue.
-                auto image = m_parent->getDevice()->factory().createAttachment(renderTarget.format(), m_size, m_parent->parent().multiSamplingLevel());
+                auto image = m_renderPass.device().factory().createAttachment(renderTarget.format(), m_size, m_renderPass.multiSamplingLevel());
                 renderTargetView = image.get();
                 m_outputAttachments.push_back(std::move(image));
             }
@@ -92,23 +93,23 @@ public:
             if (renderTarget.type() == RenderTargetType::DepthStencil)
             {
                 D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = { };
-                depthStencilViewDesc.Format = ::getFormat(renderTarget.format());
+                depthStencilViewDesc.Format = DX12::getFormat(renderTarget.format());
                 depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
                 depthStencilViewDesc.Texture2D = { .MipSlice = 0 };
                 depthStencilViewDesc.ViewDimension = samples == MultiSamplingLevel::x1 ? D3D12_DSV_DIMENSION_TEXTURE2D : D3D12_DSV_DIMENSION_TEXTURE2DMS;
 
-                m_parent->getDevice()->handle()->CreateDepthStencilView(renderTargetView->handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
+                m_renderPass.device().handle()->CreateDepthStencilView(renderTargetView->handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
                 depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(m_depthStencilDescriptorSize);
             }
             else
             {
                 D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
-                renderTargetViewDesc.Format = ::getFormat(renderTarget.format());
+                renderTargetViewDesc.Format = DX12::getFormat(renderTarget.format());
                 renderTargetViewDesc.ViewDimension = samples == MultiSamplingLevel::x1 ? D3D12_RTV_DIMENSION_TEXTURE2D : D3D12_RTV_DIMENSION_TEXTURE2DMS;
                 renderTargetViewDesc.Texture2D = { .MipSlice = 0, .PlaneSlice = 0 };
                 renderTargetViewDesc.Buffer = { .FirstElement = 0, .NumElements = 1 };
 
-                m_parent->getDevice()->handle()->CreateRenderTargetView(renderTargetView->handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
+                m_renderPass.device().handle()->CreateRenderTargetView(renderTargetView->handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
                 renderTargetViewDescriptor = renderTargetViewDescriptor.Offset(m_renderTargetDescriptorSize);
             }
 
@@ -122,7 +123,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12RenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
-    m_impl(makePimpl<DirectX12FrameBufferImpl>(this, bufferIndex, renderArea, commandBuffers)), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice())
+    m_impl(makePimpl<DirectX12FrameBufferImpl>(this, renderPass, bufferIndex, renderArea, commandBuffers))
 {
     m_impl->initialize();
 }

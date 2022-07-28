@@ -1,406 +1,11 @@
 #pragma once
 
-#include <litefx/app.hpp>
-#include <litefx/math.hpp>
 #include <litefx/rendering_api.hpp>
 #include <litefx/rendering_formatters.hpp>
 
 namespace LiteFX::Rendering {
     using namespace LiteFX;
     using namespace LiteFX::Math;
-
-    /// <summary>
-    /// Describes a buffer layout.
-    /// </summary>
-    /// <seealso cref="IVertexBufferLayout" />
-    /// <seealso cref="IIndexBufferLayout" />
-    /// <seealso cref="IDescriptorLayout" />
-    class IBufferLayout {
-    public:
-        virtual ~IBufferLayout() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the size of a single element within the buffer.
-        /// </summary>
-        /// <returns>The size of a single element within the buffer.</returns>
-        virtual size_t elementSize() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the binding point, the buffer will be bound to.
-        /// </summary>
-        /// <remarks>
-        /// In GLSL, the binding point is identified by the <c>binding</c> keyword, whilst in HLSL the binding maps to a register.
-        /// </remarks>
-        /// <returns>The binding point, the buffer will be bound to.</returns>
-        virtual const UInt32& binding() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the buffer type of the buffer.
-        /// </summary>
-        /// <returns>The buffer type of the buffer.</returns>
-        virtual const BufferType& type() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// Describes a vertex buffer layout.
-    /// </summary>
-    /// <seealso cref="IVertexBufferBuffer" />
-    class IVertexBufferLayout : public IBufferLayout {
-    public:
-        virtual ~IVertexBufferLayout() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the vertex buffer attributes.
-        /// </summary>
-        /// <returns>The vertex buffer attributes.</returns>
-        virtual Array<const BufferAttribute*> attributes() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TVertexBufferLayout, typename TParent> requires
-        rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
-    class VertexBufferLayoutBuilder : public Builder<TDerived, TVertexBufferLayout, TParent> {
-    public:
-        using Builder<TDerived, TVertexBufferLayout, TParent>::Builder;
-
-    public:
-        virtual TDerived& addAttribute(UniquePtr<BufferAttribute>&& attribute) = 0;
-    };
-
-    /// <summary>
-    /// Describes a index buffer layout.
-    /// </summary>
-    /// <seealso cref="IIndexBuffer" />
-    class IIndexBufferLayout : public IBufferLayout {
-    public:
-        virtual ~IIndexBufferLayout() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the index type of the index buffer.
-        /// </summary>
-        /// <returns>The index type of the index buffer.</returns>
-        virtual const IndexType& indexType() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// Describes a the layout of a single descriptor within a <see cref="IDescriptorSet" />.
-    /// </summary>
-    /// <seealso cref="IDescriptorSetLayout" />
-    class IDescriptorLayout : public IBufferLayout {
-    public:
-        virtual ~IDescriptorLayout() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the type of the descriptor.
-        /// </summary>
-        /// <returns>The type of the descriptor.</returns>
-        virtual const DescriptorType& descriptorType() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the number of descriptors in the descriptor array.
-        /// </summary>
-        /// <returns>The number of descriptors in the descriptor array.</returns>
-        virtual const UInt32& descriptors() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// Allows for data to be mapped into the object.
-    /// </summary>
-    class IMappable {
-    public:
-        virtual ~IMappable() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Maps the memory at <paramref name="data" /> to the internal memory of this object.
-        /// </summary>
-        /// <param name="data">The address that marks the beginning of the data to map.</param>
-        /// <param name="size">The number of bytes to map.</param>
-        /// <param name="element">The array element to map the data to.</param>
-        virtual void map(const void* const data, const size_t& size, const UInt32& element = 0) = 0;
-
-        /// <summary>
-        /// Maps the memory blocks within <paramref name="data" /> to the internal memory of an array.
-        /// </summary>
-        /// <param name="data">The data blocks to map.</param>
-        /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firsElement">The first element of the array to map.</param>
-        virtual void map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement = 0) = 0;
-    };
-
-    /// <summary>
-    /// Describes a chunk of device memory.
-    /// </summary>
-    class IDeviceMemory {
-    public:
-        virtual ~IDeviceMemory() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Gets the number of sub-resources inside the memory chunk.
-        /// </summary>
-        /// <remarks>
-        /// For buffers, this equals the number of array elements. For images, this equals the product of layers, levels and planes. This number represents the number of states, that 
-        /// can be obtained by calling the <see cref="state" /> method.
-        /// </remarks>
-        /// <returns>The number of array elements inside the memory chunk.</returns>
-        /// <seealso cref="state" />
-        virtual const UInt32& elements() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the size (in bytes) of the aligned memory chunk.
-        /// </summary>
-        /// <remarks>
-        /// The size of the device memory block depends on different factors. The actual used memory of one element can be obtained by calling by the <see cref="elementSize" />. For 
-        /// different reasons, though, elements may be required to be aligned to a certain size. The size of one aligned element is returned by <see cref="alignedElementSize" />.
-        /// The size of the memory block, the elements get aligned to is returned by <see cref="elementAlignment" />.
-        /// </remarks>
-        /// <returns>The size (in bytes) of the memory chunk.</returns>
-        /// <seealso cref="elements" />
-        /// <seealso cref="elementSize" />
-        /// <seealso cref="elementAlignment" />
-        /// <seealso cref="alignedElementSize" />
-        virtual size_t size() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the size of a single element within the buffer. If there is only one element, this is equal to <see cref="size" />.
-        /// </summary>
-        /// <remarks>
-        /// For images, this method will return a value that equals the result of <see cref="size" />.
-        /// </remarks>
-        /// <returns>The size of a single element within the buffer</returns>
-        /// <seealso cref="elementAlignment" />
-        /// <seealso cref="alignedElementSize" />
-        virtual size_t elementSize() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the alignment of a single element.
-        /// </summary>
-        /// <returns>The alignment of a single element.</returns>
-        /// <seealso cref="elementSize" />
-        /// <seealso cref="alignedElementSize" />
-        virtual size_t elementAlignment() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the actual size of the element in device memory.
-        /// </summary>
-        /// <remarks>
-        /// For images, this method will return a value that equals the result of <see cref="size" />, aligned by <see cref="elementAlignment" />.
-        /// </remarks>
-        /// <returns>The actual size of the element in device memory.</returns>
-        /// <seealso cref="elementAlignment" />
-        /// <seealso cref="elementSize" />
-        virtual size_t alignedElementSize() const noexcept = 0;
-
-        /// <summary>
-        /// Returns <c>true</c>, if the resource can be bound to a read/write descriptor.
-        /// </summary>
-        /// <remarks>
-        /// If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception.
-        /// </remarks>
-        /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
-        virtual const bool& writable() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the current state of the resource.
-        /// </summary>
-        /// <param name="subresource">The index of the sub-resource for which the state is requested.</param>
-        /// <returns>The current state of the resource.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the specified sub-resource is not an element of the resource.</exception>
-        virtual const ResourceState& state(const UInt32& subresource = 0) const = 0;
-
-        /// <summary>
-        /// Returns a reference of the current state of the resource.
-        /// </summary>
-        /// <remarks>
-        /// This overload can be used to change the internal resource state. It exists, to support external resource transitions in certain scenarios, where 
-        /// automatic resource state tracking is not supported. For example, there might be implicit state transitions in some scenarios. Usually those scenarios
-        /// do not require you to transition the resource into another state, however if you have to, the internal state of the resource does not match the 
-        /// actual state. In order for the barrier to be well-formed, you have to set the proper state first.
-        /// 
-        /// In most cases, however, use a <see cref="IBarrier" /> to transition between resource states.
-        /// </remarks>
-        /// <param name="subresource">The index of the sub-resource for which the state is requested.</param>
-        /// <returns>A reference of the current state of the resource.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the specified sub-resource is not an element of the resource.</exception>
-        virtual ResourceState& state(const UInt32& subresource = 0) = 0;
-    };
-
-    /// <summary>
-    /// Base interface for buffer objects.
-    /// </summary>
-    class IBuffer : public virtual IDeviceMemory, public virtual IMappable {
-    public:
-        virtual ~IBuffer() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the type of the buffer.
-        /// </summary>
-        /// <returns>The type of the buffer.</returns>
-        virtual const BufferType& type() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// Describes a generic image.
-    /// </summary>
-    class IImage : public virtual IDeviceMemory {
-    public:
-        virtual ~IImage() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the size (in bytes) of an image at a specified mip map level. If the image does not contain the provided mip map level, the method returns <c>0</c>.
-        /// </summary>
-        /// <remarks>
-        /// Note that the size will only be returned for one layer. You have to multiply this value by the number of layers, if you want to receive the size of all layers
-        /// of a certain mip-map level. This is especially important, if you use cube mapping, because this method will only return the size of one face.
-        /// </remarks>
-        /// <param name="level">The mip map level to return the size for.</param>
-        /// <returns>The size (in bytes) of an image at a specified mip map level.</returns>
-        virtual size_t size(const UInt32& level) const noexcept = 0;
-
-        /// <summary>
-        /// Gets the extent of the image at a certain mip-map level.
-        /// </summary>
-        /// <remarks>
-        /// Not all components of the extent are actually used. Check the <see cref="dimensions" /> to see, which components are required. The extent will be 0 for invalid 
-        /// mip-map levels and 1 or more for valid mip map levels.
-        /// </remarks>
-        /// <returns>The extent of the image at a certain mip-map level.</returns>
-        /// <seealso cref="dimensions" />
-        virtual Size3d extent(const UInt32& level = 0) const noexcept = 0;
-
-        /// <summary>
-        /// Gets the internal format of the image.
-        /// </summary>
-        /// <returns>The internal format of the image.</returns>
-        virtual const Format& format() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the images dimensionality.
-        /// </summary>
-        /// <remarks>
-        /// The dimensions imply various things, most importantly, which components of the <see cref="extent" /> are used. Note that cube maps behave like 2D images when the 
-        /// extent is used.
-        /// </remarks>
-        /// <returns>The images dimensionality.</returns>
-        virtual const ImageDimensions& dimensions() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the number of mip-map levels of the image.
-        /// </summary>
-        /// <returns>The number of mip-map levels of the image.</returns>
-        virtual const UInt32& levels() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the number of layers (slices) of the image.
-        /// </summary>
-        /// <returns>The number of layers (slices) of the image.</returns>
-        virtual const UInt32& layers() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the number of planes of the image resource.
-        /// </summary>
-        /// <remarks>
-        /// The number of planes is dictated by the image format.
-        /// </remarks>
-        /// <returns>The number of planes of the image resource.</returns>
-        /// <seealso cref="format" />
-        virtual const UInt32& planes() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the number of samples of the texture.
-        /// </summary>
-        /// <returns>The number of samples of the texture.</returns>
-        virtual const MultiSamplingLevel& samples() const noexcept = 0;
-
-        // TODO: getSampler() for combined samplers?
-
-    public:
-        inline virtual UInt32 subresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane) const noexcept
-        {
-            return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
-        }
-    };
-
-    /// <summary>
-    /// Describes a texture sampler.
-    /// </summary>
-    class ISampler {
-    public:
-        virtual ~ISampler() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Gets the filtering mode that is used for minifying lookups.
-        /// </summary>
-        /// <returns>The filtering mode that is used for minifying lookups.</returns>
-        virtual const FilterMode& getMinifyingFilter() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the filtering mode that is used for magnifying lookups.
-        /// </summary>
-        /// <returns>The filtering mode that is used for magnifying lookups.</returns>
-        virtual const FilterMode& getMagnifyingFilter() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the addressing mode at the horizontal border.
-        /// </summary>
-        /// <returns>The addressing mode at the horizontal border.</returns>
-        virtual const BorderMode& getBorderModeU() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the addressing mode at the vertical border.
-        /// </summary>
-        /// <returns>The addressing mode at the vertical border.</returns>
-        virtual const BorderMode& getBorderModeV() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the addressing mode at the depth border.
-        /// </summary>
-        /// <returns>The addressing mode at the depth border.</returns>
-        virtual const BorderMode& getBorderModeW() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the anisotropy value used when sampling this texture.
-        /// </summary>
-        /// <remarks>
-        /// Anisotropy will be disabled, if this value is set to <c>0.0</c>.
-        /// </remarks>
-        /// <returns>The anisotropy value used when sampling this texture.</returns>
-        virtual const Float& getAnisotropy() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the mip-map selection mode.
-        /// </summary>
-        /// <returns>The mip-map selection mode.</returns>
-        virtual const MipMapMode& getMipMapMode() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the mip-map level of detail bias.
-        /// </summary>
-        /// <returns>The mip-map level of detail bias.</returns>
-        virtual const Float& getMipMapBias() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the maximum texture level of detail.
-        /// </summary>
-        /// <returns>The maximum texture level of detail.</returns>
-        virtual const Float& getMaxLOD() const noexcept = 0;
-
-        /// <summary>
-        /// Gets the minimum texture level of detail.
-        /// </summary>
-        /// <returns>The minimum texture level of detail.</returns>
-        virtual const Float& getMinLOD() const noexcept = 0;
-    };
 
     /// <summary>
     /// A barrier that transitions a set of resources backed by <see cref="IDeviceMemory" /> into different <see cref="ResourceState" />.
@@ -411,101 +16,85 @@ namespace LiteFX::Rendering {
     template <typename TBuffer, typename TImage> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TImage, IImage>
-    class IBarrier {
+    class Barrier : public IBarrier {
     public:
         using buffer_type = TBuffer;
         using image_type = TImage;
 
     public:
-        virtual ~IBarrier() noexcept = default;
+        virtual ~Barrier() noexcept = default;
 
     public:
-        /// <summary>
-        /// Inserts a transition for all sub-resources of <paramref name="buffer"/> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="buffer">The resource to transition.</param>
-        /// <param name="targetState">The target state to transition the resource to.</param>
-        virtual void transition(TBuffer& buffer, const ResourceState& targetState) = 0;
+        /// <inheritdoc />
+        virtual void transition(buffer_type& buffer, const ResourceState& targetState) = 0;
 
-        /// <summary>
-        /// Inserts a transition for the sub-resource <paramref name="element" /> of <paramref name="buffer" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="buffer">The resource to transition.</param>
-        /// <param name="element">The element of the resource to transition.</param>
-        /// <param name="targetState">The target state to transition the sub-resource to.</param>
-        virtual void transition(TBuffer& buffer, const UInt32& element, const ResourceState& targetState) = 0;
+        /// <inheritdoc />
+        virtual void transition(buffer_type& buffer, const UInt32& element, const ResourceState& targetState) = 0;
 
-        /// <summary>
-        /// Inserts a transition for all sub-resources of <paramref name="buffer"/> from <paramref name="sourceState" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="buffer">The resource to transition.</param>
-        /// <param name="sourceState">The source state to transition the resource from.</param>
-        /// <param name="targetState">The target state to transition the resource to.</param>
-        virtual void transition(TBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) = 0;
+        /// <inheritdoc />
+        virtual void transition(buffer_type& buffer, const ResourceState& sourceState, const ResourceState& targetState) = 0;
 
-        /// <summary>
-        /// Inserts a transition for the sub-resource <paramref name="element" /> of <paramref name="buffer" /> from <paramref name="sourceState" /> into 
-        /// <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="buffer">The resource to transition.</param>
-        /// <param name="sourceState">The source state to transition the sub-resource from.</param>
-        /// <param name="element">The element of the resource to transition.</param>
-        /// <param name="targetState">The target state to transition the sub-resource to.</param>
-        virtual void transition(TBuffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) = 0;
+        /// <inheritdoc />
+        virtual void transition(buffer_type& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) = 0;
 
-        /// <summary>
-        /// Inserts a transition for all sub-resources of <paramref name="image"/> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="image">The resource to transition.</param>
-        /// <param name="targetState">The target state to transition the resource to.</param>
-        virtual void transition(TImage& image, const ResourceState& targetState) = 0;
+        /// <inheritdoc />
+        virtual void transition(image_type& image, const ResourceState& targetState) = 0;
 
-        /// <summary>
-        /// Inserts a transition for a sub-resource of <paramref name="image" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="image">The resource to transition.</param>
-        /// <param name="level">The mip-map level of the sub-resource.</param>
-        /// <param name="layer">The array layer of the sub-resource.</param>
-        /// <param name="plane">The plane of the sub-resource.</param>
-        /// <param name="targetState">The target state to transition the sub-resource to.</param>
-        virtual void transition(TImage& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
+        /// <inheritdoc />
+        virtual void transition(image_type& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
 
-        /// <summary>
-        /// Inserts a transition for all sub-resources of <paramref name="image"/> from <paramref name="sourceState" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="image">The resource to transition.</param>
-        /// <param name="sourceState">The source state to transition the resource from.</param>
-        /// <param name="targetState">The target state to transition the resource to.</param>
-        virtual void transition(TImage& image, const ResourceState& sourceState, const ResourceState& targetState) = 0;
+        /// <inheritdoc />
+        virtual void transition(image_type& image, const ResourceState& sourceState, const ResourceState& targetState) = 0;
 
-        /// <summary>
-        /// Inserts a transition for a sub-resource of <paramref name="image" /> from <paramref name="sourceState" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="image">The resource to transition.</param>
-        /// <param name="sourceState">The source state to transition the sub-resource from.</param>
-        /// <param name="level">The mip-map level of the sub-resource.</param>
-        /// <param name="layer">The array layer of the sub-resource.</param>
-        /// <param name="plane">The plane of the sub-resource.</param>
-        /// <param name="targetState">The target state to transition the sub-resource to.</param>
-        virtual void transition(TImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
+        /// <inheritdoc />
+        virtual void transition(image_type& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
 
-        /// <summary>
-        /// Inserts a barrier that waits for all read/write accesses to <paramref name="buffer" /> to be finished before continuing.
-        /// </summary>
-        /// <remarks>
-        /// This translates to a UAV barrier in DirectX 12 and an execution + memory barrier with no layout transition in Vulkan.
-        /// </remarks>
-        /// <typeparam name="buffer">The buffer to wait for.</typeparam>
-        virtual void waitFor(const TBuffer& buffer) = 0;
+        /// <inheritdoc />
+        virtual void waitFor(const buffer_type& buffer) = 0;
 
-        /// <summary>
-        /// Inserts a barrier that waits for all read/write accesses to <paramref name="image" /> to be finished before continuing.
-        /// </summary>
-        /// <remarks>
-        /// This translates to a UAV barrier in DirectX 12 and an execution + memory barrier with no layout transition in Vulkan.
-        /// </remarks>
-        /// <typeparam name="image">The image to wait for.</typeparam>
-        virtual void waitFor(const TImage& image) = 0;
+        /// <inheritdoc />
+        virtual void waitFor(const image_type& image) = 0;
+
+    private:
+        virtual void doTransition(IBuffer& buffer, const ResourceState& targetState) override { 
+            this->transition(dynamic_cast<buffer_type&>(buffer), targetState);
+        }
+
+        virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceState& targetState) override {
+            this->transition(dynamic_cast<buffer_type&>(buffer), element, targetState);
+        }
+
+        virtual void doTransition(IBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) override {
+            this->transition(dynamic_cast<buffer_type&>(buffer), sourceState, targetState);
+        }
+
+        virtual void doTransition(IBuffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) override {
+            this->transition(dynamic_cast<buffer_type&>(buffer), sourceState, element, targetState);
+        }
+
+        virtual void doTransition(IImage& image, const ResourceState& targetState) override {
+            this->transition(dynamic_cast<image_type&>(image), targetState);
+        }
+
+        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override {
+            this->transition(dynamic_cast<image_type&>(image), level, layer, plane, targetState);
+        }
+
+        virtual void doTransition(IImage& image, const ResourceState& sourceState, const ResourceState& targetState) override {
+            this->transition(dynamic_cast<image_type&>(image), sourceState, targetState);
+        }
+
+        virtual void doTransition(IImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override {
+            this->transition(dynamic_cast<image_type&>(image), sourceState, level, layer, plane, targetState);
+        }
+
+        virtual void doWaitFor(const IBuffer& buffer) override {
+            this->waitFor(dynamic_cast<const buffer_type&>(buffer));
+        }
+
+        virtual void doWaitFor(const IImage& image) override {
+            this->waitFor(dynamic_cast<const image_type&>(image));
+        }
     };
 
     /// <summary>
@@ -521,12 +110,12 @@ namespace LiteFX::Rendering {
     /// <c>register</c> (HLSL). Descriptor sets are read from GPU-visible memory, depending on how they are bound during the current draw call.
     /// 
     /// From a CPU perspective, think of a descriptor set as an array of pointers to different buffers (i.e. descriptors) for the shader. A descriptor can be bound to a set by 
-    /// calling <see cref="IDescriptorSet::update" />. Note that this does not automatically ensure, that the buffer memory is visible for the GPU. Instead, a buffer may also 
+    /// calling <see cref="DescriptorSet::update" />. Note that this does not automatically ensure, that the buffer memory is visible for the GPU. Instead, a buffer may also 
     /// require a transfer into GPU visible memory, depending on the <see cref="BufferUsage" />. However, as long as a descriptor within a set is mapped to a buffer, modifying 
     /// this buffer also reflects the change to the shader, without requiring to update the descriptor, similarly to how modifying the object behind a pointer does not require 
     /// the pointer to change.
     /// 
-    /// Note, that there might be multiple descriptor set instances of the same <see cref="IDescriptorSetLayout" />, pointing to different <see cref="IBuffer" /> instances, 
+    /// Note, that there might be multiple descriptor set instances of the same <see cref="DescriptorSetLayout" />, pointing to different <see cref="IBuffer" /> instances, 
     /// depending on the number of <i>frames in flight</i>. Since multiple frames can be computed concurrently, it is important to properly synchronize descriptor set updates.
     /// Generally, there are three strategies to choose from, that you can implement or mix in custom flavors, depending on your use case:
     /// 
@@ -566,74 +155,55 @@ namespace LiteFX::Rendering {
     /// 
     /// Also note, that another buffer management strategy is currently not available: the <i>Monolithic Buffer</i>. In this strategy, there is only one large buffer for 
     /// <i>all</i> buffers. Differently from the ring buffer strategy, where there is one buffer per descriptor type, a monolithic buffer combines multiple constant buffers, 
-    /// containing different data into one giant buffer block. Calling <see cref="IRenderPipeline::bind" /> for a descriptor set would then receive an additional dynamic 
+    /// containing different data into one giant buffer block. Calling <see cref="RenderPipeline::bind" /> for a descriptor set would then receive an additional dynamic 
     /// offset for each descriptor within the descriptor set.
     /// </remarks>
     /// <typeparam name="TBuffer">The type of the buffer interface. Must inherit from <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TSampler">The type of the sampler interface. Must inherit from <see cref="ISampler"/>.</typeparam>
-    /// <seealso cref="IDescriptorSetLayout" />
+    /// <seealso cref="DescriptorSetLayout" />
     template <typename TBuffer, typename TImage, typename TSampler> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TSampler, ISampler> &&
         std::derived_from<TImage, IImage>
-    class IDescriptorSet {
+    class DescriptorSet : public IDescriptorSet {
     public:
         using buffer_type = TBuffer;
         using sampler_type = TSampler;
         using image_type = TImage;
 
     public:
-        virtual ~IDescriptorSet() noexcept = default;
+        virtual ~DescriptorSet() noexcept = default;
 
     public:
-        /// <summary>
-        /// Updates a constant buffer within the current descriptor set.
-        /// </summary>
-        /// <param name="binding">The buffer binding point.</param>
-        /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
-        /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
-        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set.</param>
-        /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
-        virtual void update(const UInt32& binding, const TBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const = 0;
+        /// <inheritdoc />
+        virtual void update(const UInt32& binding, const buffer_type& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const = 0;
 
-        /// <summary>
-        /// Updates a texture within the current descriptor set.
-        /// </summary>
-        /// <remarks>
-        /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the 
-        /// <paramref name="binding" /> parameter.
-        /// 
-        /// If the texture itself is not an array (i.e. the number of layers equals `1`), the parameters <paramref name="firstLayer" /> and <paramref name="layers" /> are ignored.
-        /// 
-        /// The descriptor type dictates, how mip-maps can be provided. If the descriptor type identifies a *writable texture*, the <paramref name="firstLevel" /> parameter specifies 
-        /// the mip-map level to write to (or read from). Multiple levels are not allowed in this case, so the <paramref name="levels" /> parameter is ignored. Instead, you have to 
-        /// bind them to separate descriptors. Furthermore, the <paramref name="firstLayer" /> and <paramref name="layers" /> parameter can be used to specify the number of depth
-        /// or W-slices of a writable 3D texture or the side(s) of a cube map.
-        /// </remarks>
-        /// <param name="binding">The texture binding point.</param>
-        /// <param name="texture">The texture to write to the descriptor set.</param>
-        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the texture to.</param>
-        /// <param name="firstLevel">The index of the first mip-map level to bind.</param>
-        /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
-        /// <param name="firstLayer">The index of the first layer to bind.</param>
-        /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
-        virtual void update(const UInt32& binding, const TImage& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const = 0;
+        /// <inheritdoc />
+        virtual void update(const UInt32& binding, const image_type& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const = 0;
 
-        /// <summary>
-        /// Updates a sampler within the current descriptor set.
-        /// </summary>
-        /// <param name="binding">The sampler binding point.</param>
-        /// <param name="sampler">The sampler to write to the descriptor set.</param>
-        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the sampler to.</param>
-        virtual void update(const UInt32& binding, const TSampler& sampler, const UInt32& descriptor = 0) const = 0;
+        /// <inheritdoc />
+        virtual void update(const UInt32& binding, const sampler_type& sampler, const UInt32& descriptor = 0) const = 0;
 
-        /// <summary>
-        /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
-        /// </summary>
-        /// <param name="binding">The input attachment binding point.</param>
-        /// <param name="image">The image to bind to the input attachment descriptor.</param>
-        virtual void attach(const UInt32& binding, const TImage& image) const = 0;
+        /// <inheritdoc />
+        virtual void attach(const UInt32& binding, const image_type& image) const = 0;
+
+    private:
+        virtual void doUpdate(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const override {
+            this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor);
+        }
+
+        virtual void doUpdate(const UInt32& binding, const IImage& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const  override {
+            this->update(binding, dynamic_cast<const image_type&>(texture), descriptor, firstLevel, levels, firstLayer, layers);
+        }
+
+        virtual void doUpdate(const UInt32& binding, const ISampler& sampler, const UInt32& descriptor) const  override {
+            this->update(binding, dynamic_cast<const sampler_type&>(sampler), descriptor);
+        }
+
+        virtual void doAttach(const UInt32& binding, const IImage& image) const  override {
+            this->attach(binding, dynamic_cast<const image_type&>(image));
+        }
     };
 
     /// <summary>
@@ -642,233 +212,60 @@ namespace LiteFX::Rendering {
     /// <remarks>
     /// A descriptor set groups together multiple descriptors. This concept is identified by the <c>set</c> keyword in GLSL and <c>space</c> in HLSL.
     /// 
-    /// For more information on buffer binding and resource management, refer to the remarks of the <see cref="IDescriptorSet" /> interface.
+    /// For more information on buffer binding and resource management, refer to the remarks of the <see cref="DescriptorSet" /> interface.
     /// </remarks>
     /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout"/>.</typeparam>
-    /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
+    /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="DescriptorSet"/>.</typeparam>
     /// <seealso cref="IDescriptorLayout" />
-    /// <seealso cref="IDescriptorSet" />
-    template <typename TDescriptorLayout, typename TDescriptorSet, typename TBuffer = TDescriptorSet::buffer_type, typename TSampler = TDescriptorSet::sampler_type, typename TImage = TDescriptorSet::image_type> requires
+    /// <seealso cref="DescriptorSet" />
+    template <typename TDescriptorLayout, typename TDescriptorSet> requires
         rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-        rtti::implements<TDescriptorSet, IDescriptorSet<TBuffer, TImage, TSampler>>
-    class IDescriptorSetLayout {
+        rtti::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type>>
+    class DescriptorSetLayout : public IDescriptorSetLayout {
     public:
         using descriptor_layout_type = TDescriptorLayout;
         using descriptor_set_type = TDescriptorSet;
 
     public:
-        virtual ~IDescriptorSetLayout() noexcept = default;
+        virtual ~DescriptorSetLayout() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the layouts of the descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The layouts of the descriptors within the descriptor set.</returns>
-        virtual Array<const TDescriptorLayout*> descriptors() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Array<const descriptor_layout_type*> descriptors() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.
-        /// </summary>
-        /// <param name="binding">The binding point of the requested descriptor layout.</param>
-        /// <returns>The descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.</returns>
-        virtual const TDescriptorLayout& descriptor(const UInt32& binding) const = 0;
+        /// <inheritdoc />
+        virtual const descriptor_layout_type& descriptor(const UInt32& binding) const = 0;
 
-        /// <summary>
-        /// Returns the space index of the descriptor set.
-        /// </summary>
-        /// <remarks>
-        /// The descriptor set space maps to the space index in HLSL and the set index in GLSL.
-        /// </remarks>
-        /// <returns>The space index of the descriptor set.</returns>
-        virtual const UInt32& space() const noexcept = 0;
+        /// <inheritdoc />
+        virtual UniquePtr<descriptor_set_type> allocate() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the shader stages, the descriptor set is used in.
-        /// </summary>
-        /// <returns>The shader stages, the descriptor set is used in.</returns>
-        virtual const ShaderStage& shaderStages() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Array<UniquePtr<descriptor_set_type>> allocate(const UInt32& descriptorSets) const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of uniform/constant buffer descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of uniform/constant buffer descriptors.</returns>
-        virtual UInt32 uniforms() const noexcept = 0;
+        /// <inheritdoc />
+        virtual void free(const descriptor_set_type& descriptorSet) const noexcept = 0;
 
-        /// <summary>
-        /// Returns the number of shader storage buffer/unordered access view descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of shader storage buffer/unordered access view descriptors.</returns>
-        virtual UInt32 storages() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the number of image descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of image descriptors.</returns>
-        virtual UInt32 images() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the number of texel/structured buffer descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of texel/structured buffer descriptors.</returns>
-        virtual UInt32 buffers() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the number of sampler descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of sampler descriptors.</returns>
-        virtual UInt32 samplers() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the number of input attachment descriptors within the descriptor set.
-        /// </summary>
-        /// <returns>The number of input attachment descriptors.</returns>
-        virtual UInt32 inputAttachments() const noexcept = 0;
-
-    public:
-        /// <summary>
-        /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
-        /// </summary>
-        /// <remarks>
-        /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of
-        /// created descriptor sets. It does this by never releasing them. Instead, when a <see cref="IDescriptorSet" /> instance gets destroyed, it should call 
-        /// <see cref="free" /> in order to mark itself (i.e. its handle) as not being used any longer.
-        /// 
-        /// Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries 
-        /// to hand out descriptor sets that marked as unused.
-        /// 
-        /// Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted.
-        /// </remarks>
-        /// <returns>The instance of the descriptor set.</returns>
-        virtual UniquePtr<TDescriptorSet> allocate() const noexcept = 0;
-
-        /// <summary>
-        /// Allocates an array of descriptor sets.
-        /// </summary>
-        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
-        /// <returns>The array of descriptor set instances.</returns>
-        virtual Array<UniquePtr<TDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept = 0;
-
-        /// <summary>
-        /// Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
-        /// </summary>
-        virtual void free(const TDescriptorSet& descriptorSet) const noexcept = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TDescriptorSetLayout, typename TParent, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type> requires
-        rtti::implements<TDescriptorSetLayout, IDescriptorSetLayout<TDescriptorLayout, TDescriptorSet>>
-    class DescriptorSetLayoutBuilder : public Builder<TDerived, TDescriptorSetLayout, TParent> {
-    public:
-        using Builder<TDerived, TDescriptorSetLayout, TParent>::Builder;
-
-    public:
-        virtual TDerived& addDescriptor(UniquePtr<TDescriptorLayout>&& layout) = 0;
-        virtual TDerived& addDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) = 0;
-
-    public:
-        /// <summary>
-        /// Adds an uniform/constant buffer descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptorSize">The size of a single descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        virtual TDerived& addUniform(const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) {
-            return this->addDescriptor(DescriptorType::Uniform, binding, descriptorSize, descriptors);
+    private:
+        virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept override {
+            auto descriptors = this->descriptors();
+            return Array<const IDescriptorLayout*>(descriptors.begin(), descriptors.end());
         }
 
-        /// <summary>
-        /// Adds a texel buffer descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
-        virtual TDerived& addBuffer(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->addDescriptor(writable ? DescriptorType::WritableBuffer : DescriptorType::Buffer, binding, 0, descriptors);
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet() const noexcept override {
+            return this->allocate();
         }
 
-        /// <summary>
-        /// Adds a storage/structured buffer descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
-        virtual TDerived& addStorage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->addDescriptor(writable ? DescriptorType::WritableStorage : DescriptorType::Storage, binding, 0, descriptors);
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets) const noexcept override {
+            auto sets = this->allocate(descriptorSets);
+            Array<UniquePtr<IDescriptorSet>> results;
+            results.reserve(sets.size());
+            std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
+            return results;
         }
 
-        /// <summary>
-        /// Adds an image/texture descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
-        virtual TDerived& addImage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->addDescriptor(writable ? DescriptorType::WritableTexture : DescriptorType::Texture, binding, 0, descriptors);
+        virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
+            this->releaseDescriptorSet(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
-
-        /// <summary>
-        /// Adds an input attachment descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        virtual TDerived& addInputAttachment(const UInt32& binding) {
-            return this->addDescriptor(DescriptorType::InputAttachment, binding, 0);
-        }
-
-        /// <summary>
-        /// Adds a sampler descriptor.
-        /// </summary>
-        /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
-        virtual TDerived& addSampler(const UInt32& binding, const UInt32& descriptors = 1) {
-            return this->addDescriptor(DescriptorType::Sampler, binding, 0, descriptors);
-        }
-
-        virtual void use(UniquePtr<TDescriptorLayout>&& layout) {
-            this->addDescriptor(std::move(layout));
-        }
-    };
-
-    /// <summary>
-    /// Describes a range within a <see cref="IPushConstantsLayout" />.
-    /// </summary>
-    class IPushConstantsRange {
-    public:
-        virtual ~IPushConstantsRange() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the shader space the push constants can be accessed from.
-        /// </summary>
-        /// <returns>The shader space the push constants can be accessed from.</returns>
-        virtual const UInt32& space() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the binding point or register, the push constants are made available at.
-        /// </summary>
-        /// <returns>The binding point or register, the push constants are made available at.</returns>
-        virtual const UInt32& binding() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the offset from the push constants backing memory block, the range starts at.
-        /// </summary>
-        /// <returns>The offset from the push constants backing memory block, the range starts at.</returns>
-        /// <seealso cref="size" />
-        virtual const UInt32& offset() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the size (in bytes) of the range.
-        /// </summary>
-        /// <returns>The size (in bytes) of the range.</returns>
-        /// <seealso cref="offset" />
-        virtual const UInt32& size() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the shader stage(s), the range is accessible from.
-        /// </summary>
-        /// <returns>The shader stage(s), the range is accessible from.</returns>
-        virtual const ShaderStage& stage() const noexcept = 0;
     };
 
     /// <summary>
@@ -888,57 +285,30 @@ namespace LiteFX::Rendering {
     ///     <item>Only one <see cref="IPushConstantsRange" /> per shader stage is permitted. Shader stages can be combined together, however in this case, no other ranges must be defined for the stages.</item>
     /// </list>
     /// 
-    /// Push constants can be updated by calling <see cref="ICommandBuffer::PushConstants" /> and are visible to subsequent draw calls immediately, until another update is performed or
+    /// Push constants can be updated by calling <see cref="CommandBuffer::PushConstants" /> and are visible to subsequent draw calls immediately, until another update is performed or
     /// the command buffer is ended.
     /// </remarks>
     /// <typeparam name="TPushConstantsRange">The type of the push constant range. Must implement <see cref="IPushConstantsRange" />.</typeparam>
     /// <seealso cref="IPushConstantsRange" />
-    /// <seealso cref="IDescriptorSetLayout" />
+    /// <seealso cref="DescriptorSetLayout" />
     template <typename TPushConstantsRange> requires
         rtti::implements<TPushConstantsRange, IPushConstantsRange>
-    class IPushConstantsLayout {
+    class PushConstantsLayout : public IPushConstantsLayout {
     public:
         using push_constants_range_type = TPushConstantsRange;
 
     public:
-        virtual ~IPushConstantsLayout() noexcept = default;
+        virtual ~PushConstantsLayout() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the size (in bytes) of the push constants backing memory.
-        /// </summary>
-        /// <returns>The size (in bytes) of the push constants backing memory.</returns>
-        virtual const UInt32& size() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Array<const push_constants_range_type*> ranges() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the push constant range associated with the shader stage provided in <paramref name="stage" />.
-        /// </summary>
-        /// <param name="stage">The shader stage to request the associated push constant range for. Specifying multiple stages is not supported and will raise an exception.</param>
-        /// <returns>The push constant range associated with the provided shader stage.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no range is mapped to the provided shader stage.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="stage" /> contains multiple shader stages.</exception>
-        /// <seealso cref="ranges" />
-        virtual const TPushConstantsRange& range(const ShaderStage& stage) const = 0;
-
-        /// <summary>
-        /// Returns all push constant ranges.
-        /// </summary>
-        /// <returns>All push constant ranges.</returns>
-        /// <seealso cref="range" />
-        virtual Array<const TPushConstantsRange*> ranges() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TPushConstantsLayout, typename TParent, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type> requires
-        rtti::implements<TPushConstantsLayout, IPushConstantsLayout<TPushConstantsRange>>
-    class PushConstantsLayoutBuilder : public Builder<TDerived, TPushConstantsLayout, TParent> {
-    public:
-        using Builder<TDerived, TPushConstantsLayout, TParent>::Builder;
-
-    public:
-        virtual TDerived& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) = 0;
+    private:
+        virtual Array<const IPushConstantsRange*> getRanges() const noexcept override {
+            auto ranges = this->ranges();
+            return Array<const IPushConstantsRange*>(ranges.begin(), ranges.end());
+        }
     };
 
     /// <summary>
@@ -947,122 +317,55 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TShaderModule">The type of the shader module. Must implement <see cref="IShaderModule"/>.</typeparam>
     template <typename TShaderModule> requires
         rtti::implements<TShaderModule, IShaderModule>
-    class IShaderProgram {
+    class ShaderProgram : public IShaderProgram {
     public:
         using shader_module_type = TShaderModule;
 
     public:
-        virtual ~IShaderProgram() noexcept = default;
+        virtual ~ShaderProgram() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the modules, the shader program is build from.
-        /// </summary>
-        /// <returns>The modules, the shader program is build from.</returns>
-        virtual Array<const TShaderModule*> modules() const noexcept = 0;
-    };
+        /// <inheritdoc />
+        virtual Array<const shader_module_type*> modules() const noexcept = 0;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TShaderProgram, typename TParent, typename TShaderModule = typename TShaderProgram::shader_module_type> requires
-        rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
-    class ShaderProgramBuilder : public Builder<TDerived, TShaderProgram, TParent> {
-    public:
-        using Builder<TDerived, TShaderProgram, TParent>::Builder;
-
-    public:
-        virtual TDerived& addShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TShaderProgram, typename TParent>
-    class GraphicsShaderProgramBuilder : public ShaderProgramBuilder<TDerived, TShaderProgram, TParent> {
-    public:
-        using ShaderProgramBuilder<TDerived, TShaderProgram, TParent>::ShaderProgramBuilder;
-
-    public:
-        virtual TDerived& addVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& addTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& addTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& addGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-        virtual TDerived& addFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TShaderProgram, typename TParent>
-    class ComputeShaderProgramBuilder : public ShaderProgramBuilder<TDerived, TShaderProgram, TParent> {
-    public:
-        using ShaderProgramBuilder<TDerived, TShaderProgram, TParent>::ShaderProgramBuilder;
-
-    public:
-        virtual TDerived& addComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+    private:
+        virtual Array<const IShaderModule*> getModules() const noexcept {
+            auto modules = this->modules();
+            return Array<const IShaderModule*>(modules.begin(), modules.end());
+        }
     };
     
     /// <summary>
-    /// Represents a the layout of a <see cref="IRenderPipeline" />.
+    /// Represents a the layout of a <see cref="RenderPipeline" /> or a <see cref="ComputePipeline" />.
     /// </summary>
-    /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="IDescriptorSetLayout"/>.</typeparam>
-    /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="IPushConstantsLayout"/>.</typeparam>
-    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="IShaderProgram"/>.</typeparam>
-    template <typename TDescriptorSetLayout, typename TPushConstantsLayout, typename TShaderProgram, typename TDescriptorLayout = TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSet = TDescriptorSetLayout::descriptor_set_type, typename TPushConstantsRange = TPushConstantsLayout::push_constants_range_type, typename TShaderModule = TShaderProgram::shader_module_type> requires
-        rtti::implements<TDescriptorSetLayout, IDescriptorSetLayout<TDescriptorLayout, TDescriptorSet>> &&
-        rtti::implements<TPushConstantsLayout, IPushConstantsLayout<TPushConstantsRange>> &&
-        rtti::implements<TShaderProgram, IShaderProgram<TShaderModule>>
-    class IPipelineLayout {
+    /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
+    /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
+    template <typename TDescriptorSetLayout, typename TPushConstantsLayout> requires
+        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<typename TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSetLayout::descriptor_set_type>> &&
+        rtti::implements<TPushConstantsLayout, PushConstantsLayout<typename TPushConstantsLayout::push_constants_range_type>>
+    class PipelineLayout : public IPipelineLayout {
     public:
         using descriptor_set_layout_type = TDescriptorSetLayout;
         using push_constants_layout_type = TPushConstantsLayout;
-        using shader_program_type = TShaderProgram;
-        using descriptor_set_type = TDescriptorSet;
 
     public:
-        virtual ~IPipelineLayout() noexcept = default;
+        virtual ~PipelineLayout() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the shader program, the pipeline uses for drawing.
-        /// </summary>
-        /// <returns>The shader program, the pipeline uses for drawing.</returns>
-        virtual const TShaderProgram& program() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const descriptor_set_layout_type& descriptorSet(const UInt32& space) const = 0;
 
-        /// <summary>
-        /// Returns the descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.
-        /// </summary>
-        /// <param name="space">The space to request the descriptor set layout for.</param>
-        /// <returns>The descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.</returns>
-        virtual const TDescriptorSetLayout& descriptorSet(const UInt32& space) const = 0;
+        /// <inheritdoc />
+        virtual Array<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
 
-        /// <summary>
-        /// Returns all descriptor set layouts, the pipeline has been initialized with.
-        /// </summary>
-        /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
-        virtual Array<const TDescriptorSetLayout*> descriptorSets() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const push_constants_layout_type* pushConstants() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.
-        /// </summary>
-        /// <returns>The push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.</returns>
-        virtual const TPushConstantsLayout* pushConstants() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TPipelineLayout, typename TParent, typename TDescriptorSetLayout = TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type, typename TShaderProgram = TPipelineLayout::shader_program_type> requires
-        rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
-    class PipelineLayoutBuilder : public Builder<TDerived, TPipelineLayout, TParent> {
-    public:
-        using Builder<TDerived, TPipelineLayout, TParent>::Builder;
-
-    public:
-        virtual void use(UniquePtr<TShaderProgram>&& program) = 0;
-        virtual void use(UniquePtr<TDescriptorSetLayout>&& layout) = 0;
-        virtual void use(UniquePtr<TPushConstantsLayout>&& layout) = 0;
+    private:
+        virtual Array<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
+            auto layouts = this->descriptorSets();
+            return Array<const IDescriptorSetLayout*>(layouts.begin(), layouts.end());
+        }
     };
 
     /// <summary>
@@ -1071,19 +374,16 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
     template <typename TVertexBufferLayout> requires
         rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
-    class IVertexBuffer : public virtual IBuffer {
+    class VertexBuffer : public virtual IVertexBuffer {
     public:
         using vertex_buffer_layout_type = TVertexBufferLayout;
 
     public:
-        virtual ~IVertexBuffer() noexcept = default;
+        virtual ~VertexBuffer() noexcept = default;
 
     public:
-        /// <summary>
-        /// Gets the layout of the vertex buffer.
-        /// </summary>
-        /// <returns>The layout of the vertex buffer.</returns>
-        virtual const TVertexBufferLayout& layout() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const vertex_buffer_layout_type& layout() const noexcept = 0;
     };
 
     /// <summary>
@@ -1092,139 +392,105 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
     template <typename TIndexBufferLayout> requires
         rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
-    class IIndexBuffer : public virtual IBuffer {
+    class IndexBuffer : public virtual IIndexBuffer {
     public:
         using index_buffer_layout_type = TIndexBufferLayout;
 
     public:
-        virtual ~IIndexBuffer() noexcept = default;
+        virtual ~IndexBuffer() noexcept = default;
 
     public:
-        /// <summary>
-        /// Gets the layout of the index buffer.
-        /// </summary>
-        /// <returns>The layout of the index buffer.</returns>
-        virtual const TIndexBufferLayout& layout() const noexcept = 0;
+        /// <inheritdoc/>
+        virtual const index_buffer_layout_type& layout() const noexcept = 0;
     };
 
     /// <summary>
-    /// Represents a the input assembler state of a <see cref="IRenderPipeline" />.
+    /// Represents a the input assembler state of a <see cref="RenderPipeline" />.
     /// </summary>
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
     /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
     template <typename TVertexBufferLayout, typename TIndexBufferLayout> requires
         rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
         rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
-    class IInputAssembler {
+    class InputAssembler : public IInputAssembler {
     public:
         using vertex_buffer_layout_type = TVertexBufferLayout;
         using index_buffer_layout_type = TIndexBufferLayout;
 
     public:
-        virtual ~IInputAssembler() noexcept = default;
+        virtual ~InputAssembler() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns all vertex buffer layouts of the input assembly.
-        /// </summary>
-        /// <returns>All vertex buffer layouts of the input assembly.</returns>
-        virtual Array<const TVertexBufferLayout*> vertexBufferLayouts() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Array<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the vertex buffer layout for binding provided with <paramref name="binding" />.
-        /// </summary>
-        /// <param name="binding">The binding point of the vertex buffer layout.</param>
-        /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
-        virtual const TVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const = 0;
+        /// <inheritdoc />
+        virtual const vertex_buffer_layout_type& vertexBufferLayout(const UInt32& binding) const = 0;
 
-        /// <summary>
-        /// Returns the index buffer layout.
-        /// </summary>
-        /// <returns>The index buffer layout.</returns>
-        virtual const TIndexBufferLayout& indexBufferLayout() const = 0;
+        /// <inheritdoc />
+        virtual const index_buffer_layout_type& indexBufferLayout() const = 0;
 
-        /// <summary>
-        /// Returns the primitive topology.
-        /// </summary>
-        /// <returns>The primitive topology.</returns>
-        virtual const PrimitiveTopology& topology() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// Builds a <see cref="IInputAssembler" />.
-    /// </summary>
-    template <typename TDerived, typename TInputAssembler, typename TParent, typename TVertexBufferLayout = TInputAssembler::vertex_buffer_layout_type, typename TIndexBufferLayout = TInputAssembler::index_buffer_layout_type> requires
-        rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>>
-    class InputAssemblerBuilder : public Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>> {
-    public:
-        using Builder<TDerived, TInputAssembler, TParent, SharedPtr<TInputAssembler>>::Builder;
-
-    public:
-        /// <summary>
-        /// Specifies the topology to initialize the input assembler with.
-        /// </summary>
-        /// <param name="topology">The topology to initialize the input assembler with.</param>
-        virtual TDerived& withTopology(const PrimitiveTopology& topology) = 0;
-
-        /// <summary>
-        /// Adds a vertex buffer layout to the input assembler. Can be called multiple times.
-        /// </summary>
-        /// <param name="layout">The layout to add to the input assembler.</param>
-        virtual void use(UniquePtr<TVertexBufferLayout>&& layout) = 0;
-
-        /// <summary>
-        /// Adds an index buffer layout to the input assembler. Can only be called once.
-        /// </summary>
-        /// <param name="layout"></param>
-        /// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</excpetion>
-        virtual void use(UniquePtr<TIndexBufferLayout>&& layout) = 0;
+    private:
+        virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
+            auto layouts = this->vertexBufferLayouts();
+            return Array<const IVertexBufferLayout*>(layouts.begin(), layouts.end());
+        }
     };
 
     /// <summary>
     /// Represents a pipeline state.
     /// </summary>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
-    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="IShaderProgram"/>.</typeparam>
-    /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="IDescriptorSetLayout"/>.</typeparam>
-    /// <typeparam name="TDescriptorSet">The type of the descriptor set. Must implement <see cref="IDescriptorSet"/>.</typeparam>
-    /// <seealso cref="IRenderPipeline" />
-    /// <seealso cref="IComputePipeline" />
-    template <typename TPipelineLayout, typename TDescriptorSetLayout = typename TPipelineLayout::descriptor_set_layout_type, typename TPushConstantsLayout = typename TPipelineLayout::push_constants_layout_type, typename TShaderProgram = typename TPipelineLayout::shader_program_type, typename TDescriptorSet = typename TDescriptorSetLayout::descriptor_set_type> requires 
-        rtti::implements<TPipelineLayout, IPipelineLayout<TDescriptorSetLayout, TPushConstantsLayout, TShaderProgram>>
-    class IPipeline {
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
+    /// <seealso cref="RenderPipeline" />
+    /// <seealso cref="ComputePipeline" />
+    template <typename TPipelineLayout, typename TShaderProgram> requires
+        rtti::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>> &&
+        rtti::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
+    class Pipeline : public virtual IPipeline, public virtual StateResource {
     public:
+        using shader_program_type = TShaderProgram;
         using pipeline_layout_type = TPipelineLayout;
 
     public:
-        virtual ~IPipeline() noexcept = default;
+        virtual ~Pipeline() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the name of the render pipeline.
-        /// </summary>
-        /// <returns>The name of the render pipeline.</returns>
-        virtual const String& name() const noexcept = 0;
+        /// <inheritdoc />
+        virtual SharedPtr<const shader_program_type> program() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the layout of the render pipeline.
-        /// </summary>
-        /// <returns>The layout of the render pipeline.</returns>
-        virtual const TPipelineLayout& layout() const noexcept = 0;
+        /// <inheritdoc />
+        virtual SharedPtr<const pipeline_layout_type> layout() const noexcept = 0;
+
+    private:
+        virtual SharedPtr<const IShaderProgram> getProgram() const noexcept override {
+            return std::static_pointer_cast<const IShaderProgram>(this->program());
+        }
+
+        virtual SharedPtr<const IPipelineLayout> getLayout() const noexcept override {
+            return std::static_pointer_cast<const IPipelineLayout>(this->layout());
+        }
     };
 
     /// <summary>
-    /// Represents a command buffer, that buffers commands that should be submitted to a <see cref="ICommandQueue" />.
+    /// Represents a command buffer, that buffers commands that should be submitted to a <see cref="CommandQueue" />.
     /// </summary>
     /// <typeparam name="TBuffer">The generic buffer type. Must implement <see cref="IBuffer"/>.</typeparam>
-    /// <typeparam name="TVertexBuffer">The vertex buffer type. Must implement <see cref="IVertexBuffer"/>.</typeparam>
-    /// <typeparam name="TIndexBuffer">The index buffer type. Must implement <see cref="IIndexBuffer"/>.</typeparam>
+    /// <typeparam name="TVertexBuffer">The vertex buffer type. Must implement <see cref="VertexBuffer"/>.</typeparam>
+    /// <typeparam name="TIndexBuffer">The index buffer type. Must implement <see cref="IndexBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
-    /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="IBarrier"/>.</typeparam>
-    /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="IPipeline"/>.</typeparam>
-    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TPipelineLayout = TPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TPushConstantsLayout = TPipelineLayout::push_constants_layout_type> requires
-        rtti::implements<TBarrier, IBarrier<TBuffer, TImage>> &&
-        std::derived_from<TPipeline, IPipeline<TPipelineLayout>>
-    class ICommandBuffer {
+    /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="Barrier"/>.</typeparam>
+    /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
+    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
+        rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
+        std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>>
+    class CommandBuffer : public ICommandBuffer {
+        using ICommandBuffer::begin;
+        using ICommandBuffer::end;
+        using ICommandBuffer::dispatch;
+        using ICommandBuffer::draw;
+        using ICommandBuffer::drawIndexed;
+
     public:
         using buffer_type = TBuffer;
         using vertex_buffer_type = TVertexBuffer;
@@ -1232,543 +498,223 @@ namespace LiteFX::Rendering {
         using image_type = TImage;
         using barrier_type = TBarrier;
         using pipeline_type = TPipeline;
+        using pipeline_layout_type = pipeline_type::pipeline_layout_type;
+        using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
+        using push_constants_layout_type = pipeline_layout_type::push_constants_layout_type;
+        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
 
     public:
-        virtual ~ICommandBuffer() noexcept = default;
+        virtual ~CommandBuffer() noexcept = default;
 
     public:
-        /// <summary>
-        /// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="ICommandQueue" />.
-        /// </summary>
-        /// <remarks>
-        /// Note that you have to wait for a command buffer to be executed on the parent <see cref="ICommandQueue" /> before you can begin recording on it again.
-        /// </remarks>
-        /// <exception cref="RuntimeException">Thrown, if the command buffer is already recording.</exception>
-        /// <seealso cref="end" />
-        virtual void begin() const = 0;
+        /// <inheritdoc />
+        virtual void barrier(const barrier_type& barrier, const bool& invert = false) const noexcept = 0;
 
-        /// <summary>
-        /// Ends recording commands on the command buffer.
-        /// </summary>
-        /// <remarks>
-        /// It is valid to call this method multiple times. If a command buffer is already closed, nothing will happen.
-        /// </remarks>
-        /// <seealso cref="begin" />
-        virtual void end() const = 0;
+        /// <inheritdoc />
+        virtual void generateMipMaps(image_type& image) noexcept = 0;
 
-    public:
-        /// <summary>
-        /// Executes the transitions that have been added to <paramref name="barrier" />.
-        /// </summary>
-        /// <remarks>
-        /// Calling this method will also update the resource states of each resource within the barrier. However, the actual state of the resource does not change until the barrier
-        /// is executed on the command queue. Keep this in mind when inserting multiple barriers from different threads or in different command buffers, which may not be executed in 
-        /// order. You might have to manually synchronize barrier execution.
-        /// </remarks>
-        /// <param name="barrier">The barrier containing the transitions to perform.</param>
-        /// <param name="invert">If set to <c>true</c>, the barrier will perform a transition back to the original resource states.</param>
-        virtual void barrier(const TBarrier& barrier, const bool& invert = false) const noexcept = 0;
+        /// <inheritdoc />
+        virtual void transfer(const buffer_type& source, const buffer_type& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const = 0;
 
-        /// <summary>
-        /// Uses the image at level *0* to generate mip-maps for the remaining levels.
-        /// </summary>
-        /// <remarks>
-        /// It is strongly advised, not to generate mip maps at runtime. Instead, prefer using a format that supports pre-computed mip maps. If you have to, prefer computing
-        /// mip maps in a pre-process.
-        /// 
-        /// Note that not all texture formats and sizes are supported for mip map generation and the result might not be satisfactory. For example, it is not possible to compute 
-        /// proper mip maps for pre-compressed formats. Textures should have power of two sizes in order to not appear under-sampled.
-        /// 
-        /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
-        virtual void generateMipMaps(TImage& image) noexcept = 0;
+        /// <inheritdoc />
+        virtual void transfer(const buffer_type& source, const image_type& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const = 0;
 
-        /// <summary>
-        /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <param name="source">The source buffer to transfer data from.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
-        /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
-        /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        virtual void transfer(const TBuffer& source, const TBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const = 0;
+        /// <inheritdoc />
+        virtual void transfer(const image_type& source, const image_type& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const = 0;
 
-        /// <summary>
-        /// Performs a buffer-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="subresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
-        /// resources are counted in the following order:
-        /// 
-        /// <list type="bullet">
-        ///     <item>
-        ///         <term>Level</term>
-        ///         <description>Contains the mip-map levels.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Layer</term>
-        ///         <description>Contains the array slices.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Plane</term>
-        ///         <description>Contains planes for multi-planar formats.</description>
-        ///     </item>
-        /// </list>
-        /// 
-        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
-        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
-        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
-        /// </remarks>
-        /// <param name="source">The source buffer to transfer data from.</param>
-        /// <param name="target">The target image to transfer data to.</param>
-        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
-        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
-        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        virtual void transfer(const TBuffer& source, const TImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const = 0;
+        /// <inheritdoc />
+        virtual void transfer(const image_type& source, const buffer_type& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const = 0;
 
-        /// <summary>
-        /// Performs an image-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <param name="source">The source image to transfer data from.</param>
-        /// <param name="target">The target image to transfer data to.</param>
-        /// <param name="sourceSubresource">The index of the first sub-resource to copy from the source image.</param>
-        /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
-        /// <param name="subresources">The number of sub-resources to copy between the images.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        virtual void transfer(const TImage& source, const TImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const = 0;
+        /// <inheritdoc />
+        virtual void use(const pipeline_type& pipeline) const noexcept = 0;
 
-        /// <summary>
-        /// Performs an image-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="firstSubresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
-        /// resources are counted in the following order:
-        /// 
-        /// <list type="bullet">
-        ///     <item>
-        ///         <term>Level</term>
-        ///         <description>Contains the mip-map levels.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Layer</term>
-        ///         <description>Contains the array slices.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term>Plane</term>
-        ///         <description>Contains planes for multi-planar formats.</description>
-        ///     </item>
-        /// </list>
-        /// 
-        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
-        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
-        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
-        /// </remarks>
-        /// <param name="source">The source image to transfer data from.</param>
-        /// <param name="target">The target buffer to transfer data to.</param>
-        /// <param name="firstSubresource">The index of the first sub-resource to copy from the source image.</param>
-        /// <param name="targetElement">The index of the first target element to receive data.</param>
-        /// <param name="subresources">The number of sub-resources to copy.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        virtual void transfer(const TImage& source, const TBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const = 0;
+        /// <inheritdoc />
+        virtual void bind(const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
 
-        /// <summary>
-        /// Sets the active pipeline state.
-        /// </summary>
-        virtual void use(const TPipeline& pipeline) const noexcept = 0;
+        /// <inheritdoc />
+        virtual void bind(const vertex_buffer_type& buffer) const noexcept = 0;
 
-        /// <summary>
-        /// Binds the provided descriptor set.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to bind.</param>
-        virtual void bind(const TDescriptorSet& descriptorSet) const noexcept = 0;
+        /// <inheritdoc />
+        virtual void bind(const index_buffer_type& buffer) const noexcept = 0;
 
-        /// <summary>
-        /// Binds a vertex buffer to the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// After binding the vertex buffer, the next call to <see cref="draw" /> or <see cref="drawIndexed" /> will read from it, until another vertex buffer is bound. 
-        /// </remarks>
-        /// <param name="buffer">The vertex buffer to bind to the pipeline.</param>
-        /// <seealso cref="IVertexBuffer" />
-        /// <seealso cref="draw" />
-        /// <seealso cref="drawIndexed" />
-        virtual void bind(const TVertexBuffer& buffer) const noexcept = 0;
+        /// <inheritdoc />
+        virtual void pushConstants(const push_constants_layout_type& layout, const void* const memory) const noexcept = 0;
 
-        /// <summary>
-        /// Binds a index buffer to the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// After binding the index buffer, the next call to <see cref="drawIndexed" /> will read from it, until another index buffer is bound. 
-        /// </remarks>
-        /// <param name="buffer">The index buffer to bind to the pipeline.</param>
-        /// <seealso cref="IIndexBuffer" />
-        /// <seealso cref="drawIndexed" />
-        virtual void bind(const TIndexBuffer& buffer) const noexcept = 0;
-
-        /// <summary>
-        /// Executes a compute shader.
-        /// </summary>
-        /// <param name="threadCount">The number of thread groups per axis.</param>
-        virtual void dispatch(const Vector3u& threadCount) const noexcept = 0;
-
-        /// <summary>
-        /// Draws a number of vertices from the currently bound vertex buffer.
-        /// </summary>
-        /// <param name="vertices">The number of vertices to draw.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const noexcept = 0;
-
-        /// <summary>
-        /// Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.
-        /// </summary>
-        /// <param name="indices">The number of indices to draw.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
-        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept = 0;
-
-        /// <summary>
-        /// Pushes a block of memory into the push constants backing memory.
-        /// </summary>
-        /// <param name="layout">The layout of the push constants to update.</param>
-        /// <param name="memory">A pointer to the source memory.</param>
-        virtual void pushConstants(const TPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
-
-    public:
-        /// <summary>
-        /// Draws all vertices from the vertex buffer provided in <paramref name="vertexBuffer" />.
-        /// </summary>
-        /// <remarks>
-        /// This helper method binds the vertex buffer and issues a draw command for all vertices.
-        /// </remarks>
-        /// <param name="vertexBuffer">The vertex buffer to draw from.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        virtual void draw(const TVertexBuffer& vertexBuffer, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const {
+        /// <inheritdoc />
+        virtual void draw(const vertex_buffer_type& vertexBuffer, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const {
             this->bind(vertexBuffer);
             this->draw(vertexBuffer.elements(), instances, firstVertex, firstInstance);
         }
 
-        /// <summary>
-        /// Draws the currently bound vertex buffer using the index buffer provided in <paramref name="indexBuffer" />.
-        /// </summary>
-        /// <remarks>
-        /// This helper method binds the index buffer and issues a draw command for all indices.
-        /// </remarks>
-        /// <param name="indexBuffer">The index buffer to draw with.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
-        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        virtual void drawIndexed(const TIndexBuffer& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
+        /// <inheritdoc />
+        virtual void drawIndexed(const index_buffer_type& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
             this->bind(indexBuffer);
             this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
         }
 
-        /// <summary>
-        /// Draws the vertex buffer provided by <paramref name="vertexBuffer" /> using the index buffer, provided by <paramref name="indexBuffer" />.
-        /// </summary>
-        /// <remarks>
-        /// This helper method binds the provided vertex and index buffers and issues a draw command for all indices.
-        /// </remarks>
-        /// <param name="vertexBuffer">The vertex buffer to draw from.</param>
-        /// <param name="indexBuffer">The index buffer to draw with.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
-        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        virtual void drawIndexed(const TVertexBuffer& vertexBuffer, const TIndexBuffer& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
+        /// <inheritdoc />
+        virtual void drawIndexed(const vertex_buffer_type& vertexBuffer, const index_buffer_type& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
             this->bind(vertexBuffer);
             this->bind(indexBuffer);
             this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
         }
+
+    private:
+        virtual void cmdBarrier(const IBarrier& barrier, const bool& invert) const noexcept override { 
+            this->barrier(dynamic_cast<const barrier_type&>(barrier), invert);
+        }
+
+        virtual void cmdGenerateMipMaps(IImage& image) noexcept override { 
+            this->generateMipMaps(dynamic_cast<image_type&>(image));
+        }
+
+        virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const override { 
+            this->transfer(dynamic_cast<const buffer_type&>(source), dynamic_cast<const buffer_type&>(target), sourceElement, targetElement, elements);
+        }
+        
+        virtual void cmdTransfer(const IBuffer& source, const IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const override { 
+            this->transfer(dynamic_cast<const buffer_type&>(source), dynamic_cast<const image_type&>(target), sourceElement, firstSubresource, elements);
+        }
+        
+        virtual void cmdTransfer(const IImage& source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const override {
+            this->transfer(dynamic_cast<const image_type&>(source), dynamic_cast<const image_type&>(target), sourceSubresource, targetSubresource, subresources);
+        }
+
+        virtual void cmdTransfer(const IImage& source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const override {
+            this->transfer(dynamic_cast<const image_type&>(source), dynamic_cast<const buffer_type&>(target), firstSubresource, targetElement, subresources);
+        }
+
+        virtual void cmdUse(const IPipeline& pipeline) const noexcept override { 
+            this->use(dynamic_cast<const pipeline_type&>(pipeline));
+        }
+
+        virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override { 
+            this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
+        }
+        
+        virtual void cmdBind(const IVertexBuffer& buffer) const noexcept override { 
+            this->bind(dynamic_cast<const vertex_buffer_type&>(buffer));
+        }
+
+        virtual void cmdBind(const IIndexBuffer& buffer) const noexcept override { 
+            this->bind(dynamic_cast<const index_buffer_type&>(buffer));
+        }
+        
+        virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept override { 
+            this->pushConstants(dynamic_cast<const push_constants_layout_type&>(layout), memory);
+        }
+        
+        virtual void cmdDraw(const IVertexBuffer& vertexBuffer, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const override { 
+            this->draw(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), instances, firstVertex, firstInstance);
+        }
+        
+        virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const override { 
+            this->drawIndexed(dynamic_cast<const index_buffer_type&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
+        }
+        
+        virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const override { 
+            this->drawIndexed(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), dynamic_cast<const index_buffer_type&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
+        }
     };
 
     /// <summary>
-    /// Represents a graphics <see cref="IPipeline" />.
+    /// Represents a graphics <see cref="Pipeline" />.
     /// </summary>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
-    /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="IInputAssembler"/>.</typeparam>
-    /// <typeparam name="TVertexBufferInterface">The type of the vertex buffer interface. Must inherit from <see cref="IVertexBuffer"/>.</typeparam>
-    /// <typeparam name="TIndexBufferInterface">The type of the index buffer interface. Must inherit from <see cref="IIndexBuffer"/>.</typeparam>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
-    /// <seealso cref="IRenderPipelineBuilder" />
-    template <typename TPipelineLayout, typename TInputAssembler, typename TVertexBufferInterface, typename TIndexBufferInterface, typename TVertexBufferLayout = TVertexBufferInterface::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBufferInterface::index_buffer_layout_type> requires
-        rtti::implements<TInputAssembler, IInputAssembler<TVertexBufferLayout, TIndexBufferLayout>> &&
-        std::derived_from<TVertexBufferInterface, IVertexBuffer<TVertexBufferLayout>> &&
-        std::derived_from<TIndexBufferInterface, IIndexBuffer<TIndexBufferLayout>>
-    class IRenderPipeline : public IPipeline<TPipelineLayout> {
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
+    /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="InputAssembler"/>.</typeparam>
+    /// <typeparam name="TRasterizer">The type of the rasterizer state. Must implement <see cref="Rasterizer"/>.</typeparam>
+    /// <seealso cref="RenderPipelineBuilder" />
+    template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TRasterizer> requires
+        rtti::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>> &&
+        rtti::implements<TRasterizer, Rasterizer>
+    class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
     public:
-        using vertex_buffer_interface_type = TVertexBufferInterface;
-        using index_buffer_interface_type = TIndexBufferInterface;
         using input_assembler_type = TInputAssembler;
+        using rasterizer_type = TRasterizer;
 
     public:
-        virtual ~IRenderPipeline() noexcept = default;
+        virtual ~RenderPipeline() noexcept = default;
 
     public:
-        /// <summary>
-        /// Gets the ID of the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// The pipeline ID must be unique within the render pass.
-        /// </remarks>
-        /// <returns>The ID of the pipeline.</returns>
-        virtual const UInt32& id() const noexcept = 0;
+        /// <inheritdoc />
+        virtual SharedPtr<input_assembler_type> inputAssembler() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the input assembler state used by the render pipeline.
-        /// </summary>
-        /// <returns>The input assembler state used by the render pipeline.</returns>
-        virtual SharedPtr<TInputAssembler> inputAssembler() const noexcept = 0;
+        /// <inheritdoc />
+        virtual SharedPtr<rasterizer_type> rasterizer() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the rasterizer state used by the render pipeline.
-        /// </summary>
-        /// <returns>The rasterizer state used by the render pipeline.</returns>
-        virtual SharedPtr<IRasterizer> rasterizer() const noexcept = 0;
+    private:
+        virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept override {
+            return this->inputAssembler();
+        }
 
-        /// <summary>
-        /// Returns the viewports, the render pipeline can draw to.
-        /// </summary>
-        /// <returns>The viewports, the render pipeline can draw to.</returns>
-        virtual Array<const IViewport*> viewports() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the scissors of the render pipeline.
-        /// </summary>
-        /// <returns>The scissors of the render pipeline.</returns>
-        virtual Array<const IScissor*> scissors() const noexcept = 0;
-
-        /// <summary>
-        /// Returns a reference to the stencil reference value.
-        /// </summary>
-        /// <remarks>
-        /// The stencil reference value is used by the stencil test and is set with each call to <see cref="IRenderPipeline::use" />.
-        /// </remarks>
-        /// <returns>A reference to the stencil reference value.</returns>
-        virtual UInt32& stencilRef() const noexcept = 0;
-
-        /// <summary>
-        /// Returns a reference of the constant blend factors for the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// You can change the values inside this vector reference to influence the constant blend factors. Blend factors are set for all render targets that use the
-        /// blend factors <c>BlendFactor::ConstantColor</c>, <c>BlendFactor::OneMinusConstantColor</c>, <c>BlendFactor::ConstantAlpha</c> or 
-        /// <c>BlendFactor::OneMinusConstantAlpha</c>. They are set on each call to <see cref="IRenderPipeline::use" />.
-        /// </remarks>
-        /// <returns>A reference of the constant blend factors for the pipeline.</returns>
-        virtual Vector4f& blendFactors() const noexcept = 0;
-
-        /// <summary>
-        /// Returns <c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.
-        /// </summary>
-        /// <remarks>
-        /// Alpha-to-Coverage is a multi-sampling technique used for partially transparent sprites or textures (such as foliage) to prevent visible flickering 
-        /// along edges. If enabled, the alpha-channel of the first (non-depth/stencil) render target is used to generate a temporary coverage mask that is combined
-        /// with the fragment coverage mask using a logical <b>AND</b>.
-        /// </remarks>
-        /// <returns><c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.</returns>
-        /// <seealso href="https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f" />
-        /// <seealso href="https://en.wikipedia.org/wiki/Alpha_to_coverage" />
-        /// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg" />
-        /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage" />
-        virtual const bool& alphaToCoverage() const noexcept = 0;
+        virtual SharedPtr<IRasterizer> getRasterizer() const noexcept override {
+            return this->rasterizer();
+        }
     };
 
     /// <summary>
-    /// Describes the interface of a render pipeline builder.
+    /// Represents a compute <see cref="Pipeline" />.
     /// </summary>
-    /// <seealso cref="IRenderPipeline" />
-    template <typename TDerived, typename TRenderPipeline, typename TInputAssembler = TRenderPipeline::input_assembler_type, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TVertexBufferInterface = TRenderPipeline::vertex_buffer_interface_type, typename TIndexBufferInterface = TRenderPipeline::index_buffer_interface_type> requires
-        rtti::implements<TRenderPipeline, IRenderPipeline<TPipelineLayout, TInputAssembler, TVertexBufferInterface, TIndexBufferInterface>>
-    class RenderPipelineBuilder : public Builder<TDerived, TRenderPipeline> {
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
+    /// <seealso cref="ComputePipelineBuilder" />
+    template <typename TPipelineLayout, typename TShaderProgram>
+    class ComputePipeline : public IComputePipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
     public:
-        using Builder<TDerived, TRenderPipeline>::Builder;
-
-    public:
-        /// <summary>
-        /// Uses the provided pipeline layout to initialize the render pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="layout">The pipeline layout to initialize the render pipeline with.</param>
-        virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
-
-        /// <summary>
-        /// Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IRasterizer> rasterizer) = 0;
-
-        /// <summary>
-        /// Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="inputAssembler">The input assembler state to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<TInputAssembler> inputAssembler) = 0;
-
-        /// <summary>
-        /// Uses the provided viewport to initialize the render pipeline. Can be invoked multiple times.
-        /// </summary>
-        /// <param name="viewport">A viewport to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IViewport> viewport) = 0;
-
-        /// <summary>
-        /// Uses the provided scissor to initialize the render pipeline. Can be invoked multiple times.
-        /// </summary>
-        /// <param name="scissor">A scissor to initialize the render pipeline with.</param>
-        virtual void use(SharedPtr<IScissor> scissor) = 0;
-
-        /// <summary>
-        /// Enables <i>Alpha-to-Coverage</i> multi-sampling on the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// For more information on <i>Alpha-to-Coverage</i> multi-sampling see the remarks of <see cref="IRenderPipeline::alphaToCoverage" />.
-        /// </remarks>
-        /// <param name="enable">Whether or not to use <i>Alpha-to-Coverage</i> multi-sampling.</param>
-        virtual TDerived& enableAlphaToCoverage(const bool& enable = true) = 0;
+        virtual ~ComputePipeline() noexcept = default;
     };
 
     /// <summary>
-    /// Represents a compute <see cref="IPipeline" />.
+    /// Stores the images for the output attachments for a back buffer of a <see cref="RenderPass" />, as well as a <see cref="CommandBuffer" /> instance, that records draw commands.
     /// </summary>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout"/>.</typeparam>
-    /// <seealso cref="IComputePipelineBuilder" />
-    template <typename TPipelineLayout>
-    class IComputePipeline : public IPipeline<TPipelineLayout> {
-    public:
-        virtual ~IComputePipeline() noexcept = default;
-    };
-
-    /// <summary>
-    /// Describes the interface of a render pipeline builder.
-    /// </summary>
-    /// <seealso cref="IComputePipeline" />
-    template <typename TDerived, typename TComputePipeline, typename TPipelineLayout = TComputePipeline::pipeline_layout_type> requires
-        rtti::implements<TComputePipeline, IComputePipeline<TPipelineLayout>>
-    class ComputePipelineBuilder : public Builder<TDerived, TComputePipeline> {
-    public:
-        using Builder<TDerived, TComputePipeline>::Builder;
-
-    public:
-        /// <summary>
-        /// Uses the provided pipeline layout to initialize the compute pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="layout">The pipeline layout to initialize the compute pipeline with.</param>
-        virtual void use(UniquePtr<TPipelineLayout>&& layout) = 0;
-    };
-
-    /// <summary>
-    /// Stores the images for the output attachments for a back buffer of a <see cref="IRenderPass" />, as well as a <see cref="ICommandBuffer" /> instance, that records draw commands.
-    /// </summary>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
+    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
-    template <typename TCommandBuffer, typename TBuffer = TCommandBuffer::buffer_type, typename TVertexBuffer = TCommandBuffer::vertex_buffer_type, typename TIndexBuffer = TCommandBuffer::index_buffer_type, typename TImage = TCommandBuffer::image_type, typename TBarrier = TCommandBuffer::barrier_type, typename TPipeline = TCommandBuffer::pipeline_type> requires
-        rtti::implements<TCommandBuffer, ICommandBuffer<TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline>>
-    class IFrameBuffer {
+    template <typename TCommandBuffer> requires
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+    class FrameBuffer : public IFrameBuffer {
     public:
         using command_buffer_type = TCommandBuffer;
+        using image_type = command_buffer_type::image_type;
 
     public:
-        virtual ~IFrameBuffer() noexcept = default;
+        virtual ~FrameBuffer() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the index of the buffer within the <see cref="IRenderPass" />.
-        /// </summary>
-        /// <remarks>
-        /// A render pass stores multiple frame buffers, each with their own index. Calling <see cref="IRenderPass::frameBuffer" /> with this index on the frame buffers render
-        /// pass returns the current frame buffer instance (i.e. the same instance, as the one, the index has been requested from).
-        /// </remarks>
-        /// <returns>the index of the buffer within the <see cref="IRenderPass" />.</returns>
-        virtual const UInt32& bufferIndex() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Array<const command_buffer_type*> commandBuffers() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the current size of the frame buffer.
-        /// </summary>
-        /// <returns>The current size of the frame buffer.</returns>
-        /// <seealso cref="height" />
-        /// <seealso cref="width" />
-        /// <seealso cref="resize" />
-        virtual const Size2d& size() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const command_buffer_type& commandBuffer(const UInt32& index) const = 0;
 
-        /// <summary>
-        /// Returns the current width of the frame buffer.
-        /// </summary>
-        /// <returns>The current width of the frame buffer.</returns>
-        /// <seealso cref="height" />
-        /// <seealso cref="size" />
-        /// <seealso cref="resize" />
-        virtual size_t getWidth() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Array<const image_type*> images() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the current height of the frame buffer.
-        /// </summary>
-        /// <returns>The current height of the frame buffer.</returns
-        /// <seealso cref="width" />
-        /// <seealso cref="size" />
-        /// <seealso cref="resize" />
-        virtual size_t getHeight() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const image_type& image(const UInt32& location) const = 0;
 
-        /// <summary>
-        /// Returns all command buffers, the frame buffer stores.
-        /// </summary>
-        /// <returns>All command buffers, the frame buffer stores.</returns>
-        /// <seealso cref="commandBuffer" />
-        virtual Array<const TCommandBuffer*> commandBuffers() const noexcept = 0;
+    private:
+        virtual Array<const ICommandBuffer*> getCommandBuffers() const noexcept override {
+            auto commandBuffers = this->commandBuffers();
+            return Array<const ICommandBuffer*>(commandBuffers.begin(), commandBuffers.end());
+        }
 
-        /// <summary>
-        /// Returns a command buffer that records draw commands for the frame buffer.
-        /// </summary>
-        /// <param name="index">The index of the command buffer.</param>
-        /// <returns>A command buffer that records draw commands for the frame buffer</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
-        /// <seealso cref="commandBuffers" />
-        virtual const TCommandBuffer& commandBuffer(const UInt32& index) const = 0;
-
-        /// <summary>
-        /// Returns the images that store the output attachments for the render targets of the <see cref="IRenderPass" />.
-        /// </summary>
-        /// <returns>The images that store the output attachments for the render targets of the <see cref="IRenderPass" />.</returns>
-        virtual Array<const TImage*> images() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.
-        /// </summary>
-        /// <returns>The image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.</returns>
-        virtual const TImage& image(const UInt32& location) const = 0;
-
-    public:
-        /// <summary>
-        /// Causes the frame buffer to be invalidated and recreated with a new size.
-        /// </summary>
-        /// <remarks>
-        /// A frame buffer resize causes all render target resources (i.e. images) to be re-created. This is done by the implementation itself, except for present targets, which require
-        /// a view of an image created on a <see cref="ISwapChain" />. If the frame buffer has a present target, it calls <see cref="ISwapChain::images" /> on the parent devices' swap 
-        /// chain. Note that there should only be one render pass, that contains present targets, otherwise the images are written by different render passes, which may result in 
-        /// undefined behavior.
-        /// </remarks>
-        /// <param name="renderArea">The new dimensions of the frame buffer.</param>
-        virtual void resize(const Size2d& renderArea) = 0;
+        virtual Array<const IImage*> getImages() const noexcept override {
+            auto images = this->images();
+            return Array<const IImage*>(images.begin(), images.end());
+        }
     };
 
     /// <summary>
     /// Represents the source for an input attachment mapping.
     /// </summary>
     /// <remarks>
-    /// This interface is implemented by a <see cref="IRenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="IFrameBuffer" /> 
+    /// This interface is implemented by a <see cref="RenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="FrameBuffer" /> 
     /// during initialization or re-creation, in order to resolve input attachment dependencies.
     /// </remarks>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
-    template <typename TFrameBuffer, typename TCommandBuffer = typename TFrameBuffer::command_buffer_type> requires
-        rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer>>
+    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
+    template <typename TFrameBuffer> requires
+        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>>
     class IInputAttachmentMappingSource {
     public:
         using frame_buffer_type = TFrameBuffer;
@@ -1783,15 +729,15 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The index of a frame buffer within the source.</param>
         /// <returns>The frame buffer with the index provided in <paramref name="buffer" />.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="buffer" /> does not map to a frame buffer within the source.</exception>
-        virtual const TFrameBuffer& frameBuffer(const UInt32& buffer) const = 0;
+        virtual const frame_buffer_type& frameBuffer(const UInt32& buffer) const = 0;
     };
 
     /// <summary>
-    /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="IRenderPass" />.
+    /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="RenderPass" />.
     /// </summary>
     /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="IInputAttachmentMappingSource" />.</typeparam>
-    template <typename TInputAttachmentMappingSource, typename TFrameBuffer = TInputAttachmentMappingSource::frame_buffer_type> requires
-        rtti::implements<TInputAttachmentMappingSource, IInputAttachmentMappingSource<TFrameBuffer>>
+    template <typename TInputAttachmentMappingSource> requires
+        rtti::implements<TInputAttachmentMappingSource, IInputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
     class IInputAttachmentMapping {
     public:
         using input_attachment_mapping_source_type = TInputAttachmentMappingSource;
@@ -1804,7 +750,7 @@ namespace LiteFX::Rendering {
         /// Returns the source of the input attachment render target.
         /// </summary>
         /// <returns>The source of the input attachment render target.</returns>
-        virtual const TInputAttachmentMappingSource* inputAttachmentSource() const noexcept = 0;
+        virtual const input_attachment_mapping_source_type* inputAttachmentSource() const noexcept = 0;
 
         /// <summary>
         /// Returns a reference of the render target that is mapped to the input attachment.
@@ -1828,657 +774,530 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <remarks>
     /// A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the
-    /// GPU, that processes data using different <see cref="IRenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="IFrameBuffer" />.
+    /// GPU, that processes data using different <see cref="RenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="FrameBuffer" />.
     /// </remarks>
-    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
-    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="IPipelineLayout" />.</typeparam>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
+    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
+    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer"/>.</typeparam>
-    // TODO: Add concepts to constrain render pipeline and input attachments properly.
-    template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping, typename TPipelineLayout = TRenderPipeline::pipeline_layout_type, typename TDescriptorSet = TPipelineLayout::descriptor_set_type, typename TCommandBuffer = TFrameBuffer::command_buffer_type> requires
-        rtti::implements<TFrameBuffer, IFrameBuffer<TCommandBuffer>> /*&&
-        rtti::implements<TRenderPipeline, IRenderPipeline<TPipelineLayout>> &&
+    template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping> requires
+        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
+        rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
-    class IRenderPass : public IInputAttachmentMappingSource<TFrameBuffer> {
+    class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
     public:
         using frame_buffer_type = TFrameBuffer;
         using render_pipeline_type = TRenderPipeline;
         using input_attachment_mapping_type = TInputAttachmentMapping;
+        using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
+        using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
+        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
 
     public:
-        virtual ~IRenderPass() noexcept = default;
+        virtual ~RenderPass() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the current frame buffer from of the render pass.
-        /// </summary>
-        /// <remarks>
-        /// The frame buffer can only be obtained, if the render pass has been started by calling <see cref="begin" />. If the render pass has ended or not yet started, the
-        /// method will instead raise an exception.
-        /// </remarks>
-        /// <param name="buffer">The index of the frame buffer.</param>
-        /// <returns>A back buffer used by the render pass.</returns>
-        virtual const TFrameBuffer& activeFrameBuffer() const = 0;
+        /// <inheritdoc />
+        virtual const frame_buffer_type& activeFrameBuffer() const = 0;
 
-        /// <summary>
-        /// Returns a list of all frame buffers.
-        /// </summary>
-        /// <returns>A list of all frame buffers. </returns>
-        virtual Array<const TFrameBuffer*> frameBuffers() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Array<const frame_buffer_type*> frameBuffers() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.
-        /// </summary>
-        /// <param name="id">The ID of the requested render pipeline.</param>
-        /// <returns>The render pipeline with the <paramref name="id" />, or <c>nullptr</c>, if the render pass does not contain a matching pipeline.</returns>
-        /// <seealso cref="IRenderPipeline" />
-        virtual const TRenderPipeline& pipeline(const UInt32& id) const = 0;
+        /// <inheritdoc />
+        virtual Array<const render_pipeline_type*> pipelines() const noexcept = 0;
 
-        /// <summary>
-        /// Returns an array of all render pipelines, owned by the render pass.
-        /// </summary>
-        /// <returns>An array of all render pipelines, owned by the render pass.</returns>
-        /// <seealso cref="IRenderPipeline" />
-        virtual Array<const TRenderPipeline*> pipelines() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Span<const input_attachment_mapping_type> inputAttachments() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the render target mapped to the location provided by <paramref name="location" />.
-        /// </summary>
-        /// <param name="location">The location to return the render target for.</param>
-        /// <returns>The render target mapped to the location provided by <paramref name="location" />.</returns>
-        virtual const RenderTarget& renderTarget(const UInt32& location) const = 0;
+        /// <inheritdoc />
+        virtual void updateAttachments(const descriptor_set_type& descriptorSet) const = 0;
 
-        /// <summary>
-        /// Returns the list of render targets, the render pass renders into.
-        /// </summary>
-        /// <remarks>
-        /// Note that the actual render target image resources are stored within the individual <see cref="IFrameBuffer" />s of the render pass.
-        /// </remarks>
-        /// <returns>A list of render targets, the render pass renders into.</returns>
-        /// <seealso cref="IFrameBuffer" />
-        /// <seealso cref="frameBuffer" />
-        virtual Span<const RenderTarget> renderTargets() const noexcept = 0;
+    private:
+        virtual Array<const IFrameBuffer*> getFrameBuffers() const noexcept override {
+            auto frameBuffers = this->frameBuffers();
+            return Array<const IFrameBuffer*>(frameBuffers.begin(), frameBuffers.end());
+        }
 
-        /// <summary>
-        /// Returns <c>true</c>, if one of the render targets is used for presentation on a swap chain.
-        /// </summary>
-        /// <returns><c>true</c>, if one of the render targets is used for presentation on a swap chain.</returns>
-        /// <seealso cref="renderTargets" />
-        virtual bool hasPresentTarget() const noexcept = 0;
+        virtual Array<const IRenderPipeline*> getPipelines() const noexcept override {
+            auto pipelines = this->pipelines();
+            return Array<const IRenderPipeline*>(pipelines.begin(), pipelines.end());
+        }
 
-        /// <summary>
-        /// Returns the input attachment the render pass is consuming.
-        /// </summary>
-        /// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
-        virtual Span<const TInputAttachmentMapping> inputAttachments() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the number of samples, the render targets are sampled with.
-        /// </summary>
-        /// <returns>The number of samples, the render targets are sampled with.</returns>
-        virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept = 0;
-
-    public:
-        /// <summary>
-        /// Begins the render pass.
-        /// </summary>
-        /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
-        virtual void begin(const UInt32& buffer) = 0;
-
-        /// <summary>
-        /// Ends the render pass.
-        /// </summary>
-        /// <remarks>
-        /// If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.
-        /// </remarks>
-        /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
-        virtual void end() const = 0;
-
-        /// <summary>
-        /// Resets the frame buffers of the render pass.
-        /// </summary>
-        /// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
-        virtual void resizeFrameBuffers(const Size2d& renderArea) = 0;
-
-        /// <summary>
-        /// Changes the multi sampling level of the render pass.
-        /// </summary>
-        /// <remarks>
-        /// The method causes the frame buffers to be re-created. It checks, if the <paramref name="samples" /> are supported by the device for each render target 
-        /// format. If not, an exception will be thrown. To prevent this, call <see cref=IGraphicsDevice::maximumMultiSamplingLevel" /> for each render target format on 
-        /// your own, in order to request the maximum number of samples supported.
-        /// </remarks>
-        /// <param name="samples">The number of samples per edge pixel.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</exception>
-        virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) = 0;
-
-        /// <summary>
-        /// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
-        virtual void updateAttachments(const TDescriptorSet& descriptorSet) const = 0;
-    };
-
-    /// <summary>
-    /// 
-    /// </summary>
-    template <typename TDerived, typename TRenderPass, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TInputAttachmentMapping = typename TRenderPass::input_attachment_mapping_type> requires
-        rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
-    class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
-    public:
-        using Builder<TDerived, TRenderPass>::Builder;
-
-    public:
-        virtual void use(RenderTarget&& target) = 0;
-        virtual void use(TInputAttachmentMapping&& inputAttachment) = 0;
-
-    public:
-        virtual TDerived& commandBuffers(const UInt32& count) = 0;
-        virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& renderTarget(TInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& renderTarget(TInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        virtual TDerived& setMultiSamplingLevel(const MultiSamplingLevel& samples = MultiSamplingLevel::x4) = 0;
-        virtual TDerived& inputAttachment(const TInputAttachmentMapping& inputAttachment) = 0;
-        virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const UInt32& outputLocation) = 0;
-        virtual TDerived& inputAttachment(const UInt32& inputLocation, const TRenderPass& renderPass, const RenderTarget& renderTarget) = 0;
+        virtual void setAttachments(const IDescriptorSet& descriptorSet) const override {
+            this->updateAttachments(dynamic_cast<const descriptor_set_type&>(descriptorSet));
+        }
     };
 
     /// <summary>
     /// Represents a swap chain, i.e. a chain of multiple <see cref="IImage" /> instances, that can be presented to a <see cref="ISurface" />.
     /// </summary>
     /// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-    template <typename TImageInterface> requires
+    template <typename TImageInterface, typename TFrameBuffer> requires
+        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
         std::derived_from<TImageInterface, IImage>
-    class ISwapChain {
+    class SwapChain : public ISwapChain {
     public:
         using image_interface_type = TImageInterface;
+        using frame_buffer_type = TFrameBuffer;
 
     public:
-        virtual ~ISwapChain() noexcept = default;
+        virtual ~SwapChain() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the swap chain image format.
-        /// </summary>
-        /// <returns>The swap chain image format.</returns>
-        virtual const Format& surfaceFormat() const noexcept = 0;
+        /// <inheritdoc />
+        virtual Array<const image_interface_type*> images() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of images in the swap chain.
+        /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
         /// </summary>
-        /// <returns>The number of images in the swap chain.</returns>
-        virtual const UInt32& buffers() const noexcept = 0;
+        /// <param name="frameBuffer">The frame buffer for which the present should wait.</param>
+        virtual void present(const frame_buffer_type& frameBuffer) const = 0;
 
-        /// <summary>
-        /// Returns the size of the render area.
-        /// </summary>
-        /// <returns>The size of the render area.</returns>
-        virtual const Size2d& renderArea() const noexcept = 0;
+        /// <inheritdoc />
+        virtual void present(const IFrameBuffer& frameBuffer) const override {
+            this->present(dynamic_cast<const frame_buffer_type&>(frameBuffer));
+        }
 
-        /// <summary>
-        /// Returns an array of the swap chain present images.
-        /// </summary>
-        /// <returns>Returns an array of the swap chain present images.</returns>
-        virtual Array<const TImageInterface*> images() const noexcept = 0;
-
-    public:
-        /// <summary>
-        /// Returns an array of supported formats, that can be drawn to the surface.
-        /// </summary>
-        /// <returns>An array of supported formats, that can be drawn to the surface.</returns>
-        /// <see cref="surface" />
-        /// <seealso cref="ISurface" />
-        virtual Array<Format> getSurfaceFormats() const noexcept = 0;
-
-        /// <summary>
-        /// Causes the swap chain to be re-created. All frame and command buffers will be invalidated and rebuilt.
-        /// </summary>
-        /// <remarks>
-        /// There is no guarantee, that the swap chain images will end up in the exact format, as specified by <paramref name="surfaceFormat" />. If the format itself is not
-        /// supported, a compatible format may be looked up. If the lookup fails, the method may raise an exception.
-        /// 
-        /// Similarly, it is not guaranteed, that the number of images returned by <see cref="images" /> matches the number specified in <paramref name="buffers" />. A swap chain may 
-        /// require a minimum number of images or may constraint a maximum number of images. In both cases, <paramref name="buffers" /> will be clamped.
-        /// </remarks>
-        /// <param name="surfaceFormat">The swap chain image format.</param>
-        /// <param name="renderArea">The dimensions of the frame buffers.</param>
-        /// <param name="buffers">The number of buffers in the swap chain.</param>
-        /// <seealso cref="multiSamplingLevel" />
-        virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
-
-        /// <summary>
-        /// Swaps the front buffer with the next back buffer in order.
-        /// </summary>
-        /// <returns>A reference of the front buffer after the buffer swap.</returns>
-        [[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
+    private:
+        virtual Array<const IImage*> getImages() const noexcept override {
+            auto images = this->images();
+            return Array<const IImage*>(images.begin(), images.end());
+        }
     };
 
     /// <summary>
     /// Represents a command queue.
     /// </summary>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="ICommandBuffer"/>.</typeparam>
-    template <typename TCommandBuffer, typename TBuffer = TCommandBuffer::buffer_type, typename TVertexBuffer = TCommandBuffer::vertex_buffer_type, typename TIndexBuffer = TCommandBuffer::index_buffer_type, typename TImage = TCommandBuffer::image_type, typename TBarrier = TCommandBuffer::barrier_type, typename TPipeline = TCommandBuffer::pipeline_type> requires
-        rtti::implements<TCommandBuffer, ICommandBuffer<TBuffer, TVertexBuffer, TIndexBuffer, TImage, TBarrier, TPipeline>>
-    class ICommandQueue {
+    /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="CommandBuffer"/>.</typeparam>
+    template <typename TCommandBuffer> requires
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+    class CommandQueue : public ICommandQueue {
     public:
         using command_buffer_type = TCommandBuffer;
 
     public:
-        virtual ~ICommandQueue() noexcept = default;
+        virtual ~CommandQueue() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns <c>true</c>, if the command queue is bound on the parent device.
-        /// </summary>
-        /// <remarks>
-        /// Before a command queue can receive commands, it needs to be bound to a device. This ensures, that the queue is actually able to allocate commands. A 
-        /// command queue starts in unbound state until <see cref="bind" /> gets called. Destroying the queue also releases it by calling <see cref="release" />.
-        /// </remarks>
-        /// <seealso cref="bind" />
-        /// <seealso cref="release" />
-        /// <returns><c>true</c>, if the command queue is bound on a device.</returns>
-        virtual bool isBound() const noexcept = 0;
+        /// <inheritdoc />
+        virtual UniquePtr<command_buffer_type> createCommandBuffer(const bool& beginRecording = false) const = 0;
 
-        /// <summary>
-        /// Returns the priority of the queue.
-        /// </summary>
-        /// <returns>The priority of the queue.</returns>
-        virtual const QueuePriority& priority() const noexcept = 0;
+        /// <inheritdoc />
+        virtual UInt64 submit(const command_buffer_type& commandBuffer) const = 0;
 
-        /// <summary>
-        /// Returns the type of the queue.
-        /// </summary>
-        /// <returns>The type of the queue.</returns>
-        virtual const QueueType& type() const noexcept = 0;
+        /// <inheritdoc />
+        virtual UInt64 submit(const Array<const command_buffer_type*>& commandBuffers) const = 0;
 
-    public:
-        /// <summary>
-        /// Binds the queue on the parent device.
-        /// </summary>
-        /// <seealso cref="isBound" />
-        virtual void bind() = 0;
+    private:
+        virtual UniquePtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const override {
+            return this->createCommandBuffer(beginRecording);
+        }
 
-        /// <summary>
-        /// Releases the queue from the parent device.
-        /// </summary>
-        virtual void release() = 0;
+        virtual UInt64 submitCommandBuffer(const ICommandBuffer& commandBuffer) const override {
+            return this->submit(dynamic_cast<const command_buffer_type&>(commandBuffer));
+        }
 
-        /// <summary>
-        /// Creates a command buffer that can be used to allocate commands on the queue.
-        /// </summary>
-        /// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
-        /// <returns>The instance of the command buffer.</returns>
-        virtual UniquePtr<TCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const = 0;
-
-        /// <summary>
-        /// Submits a single command buffer and inserts a fence to wait for it.
-        /// </summary>
-        /// <remarks>
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffer.</returns>
-        /// <seealso cref="waitFor" />
-        virtual UInt64 submit(const TCommandBuffer& commandBuffer) const = 0;
-
-        /// <summary>
-        /// Submits a set of command buffers and inserts a fence to wait for them.
-        /// </summary>
-        /// <remarks>
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffers.</returns>
-        /// <seealso cref="waitFor" />
-        virtual UInt64 submit(const Array<const TCommandBuffer*>& commandBuffers) const = 0;
-
-        /// <summary>
-        /// Waits for a certain fence value to complete on the command queue.
-        /// </summary>
-        /// <remarks>
-        /// Each time one or more command buffers are submitted to the queue, a fence is inserted and its value will be returned. By calling this method, it is possible to
-        /// wait for this fence. A fence value is guaranteed to be larger than earlier fences, so the method returns, if the latest signaled fence value is larger or equal
-        /// to the value specified in <paramref name="fence" />. 
-        /// 
-        /// Note that this behavior can cause overflows when performing *excessive* fencing! Take for example a scenario, where each frame requires 80 fences to be signaled
-        /// and an application that runs at 60 frames per second in average. In this case, each second 4.800 fences are inserted into the queue. Given the limit of an 64
-        /// bit unsigned integer fence value, the application can run ~2.9 billion years before overflowing. Drop me an e-mail or open an issue, if you ever happen to run 
-        /// into such a situation.
-        /// </remarks>
-        /// <param name="fence">The value of the fence to wait for.</param>
-        /// <seealso cref="submit" />
-        virtual void waitFor(const UInt64& fence) const noexcept = 0;
-
-        /// <summary>
-        /// Returns the value of the latest fence inserted into the queue.
-        /// </summary>
-        /// <returns>The value of the latest fence inserted into the queue.</returns>
-        /// <seealso cref="waitFor" />
-        virtual UInt64 currentFence() const noexcept = 0;
+        virtual UInt64 submitCommandBuffers(const Array<const ICommandBuffer*>& commandBuffers) const override {
+            Array<const command_buffer_type*> buffers;
+            buffers.reserve(commandBuffers.size());
+            std::transform(commandBuffers.begin(), commandBuffers.end(), buffers.begin(), [](auto buffer) { return dynamic_cast<const command_buffer_type*>(buffer); });
+            return this->submit(buffers);
+        }
     };
 
     /// <summary>
-    /// Describes a factory that creates objects for a <see cref="IGraphicsDevice" />.
+    /// Describes a factory that creates objects for a <see cref="GraphicsDevice" />.
     /// </summary>
     /// <remarks>
     /// Initial resource states depend on the provided <see cref="BufferUsage" />. *Staging* and *Dynamic* resources are always initialized in <see cref="ResourceState::GenericRead" /> 
     /// state, while *Resource* and *Readback* resources are initialized in <see cref="ResourceState::CopyDestination" /> state. Images (and attachments) can only be used as *Resource*,
-    /// so they are always created as copy destination. Images require a transfer from a buffer, followed by an explicit <see cref="IBarrier" /> into the state required by the shader.
+    /// so they are always created as copy destination. Images require a transfer from a buffer, followed by an explicit <see cref="Barrier" /> into the state required by the shader.
     /// Attachments are implicitly transitioned at the beginning and end of a render pass, so you typically do not need to create an explicit barrier for them.
     /// </remarks>
     /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-    /// <typeparam name="TVertexBuffer">The type of the vertex buffer. Must implement <see cref="IVertexBuffer" />.</typeparam>
-    /// <typeparam name="TIndexBuffer">The type of the index buffer. Must implement <see cref="IIndexBuffer" />.</typeparam>
+    /// <typeparam name="TVertexBuffer">The type of the vertex buffer. Must implement <see cref="VertexBuffer" />.</typeparam>
+    /// <typeparam name="TIndexBuffer">The type of the index buffer. Must implement <see cref="IndexBuffer" />.</typeparam>
     /// <typeparam name="TImage">The type of the image. Must inherit from <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TSampler">The type of the sampler. Must inherit from <see cref="ISampler"/>.</typeparam>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
-    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler, typename TVertexBufferLayout = TVertexBuffer::vertex_buffer_layout_type, typename TIndexBufferLayout = TIndexBuffer::index_buffer_layout_type> requires
+    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler> requires
         rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-        std::derived_from<TVertexBuffer, IVertexBuffer<TVertexBufferLayout>> &&
-        std::derived_from<TIndexBuffer, IIndexBuffer<TIndexBufferLayout>> &&
+        std::derived_from<TVertexBuffer, VertexBuffer<typename TVertexBuffer::vertex_buffer_layout_type>> &&
+        std::derived_from<TIndexBuffer, IndexBuffer<typename TIndexBuffer::index_buffer_layout_type>> &&
         std::derived_from<TImage, IImage> &&
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TSampler, ISampler>
-    class IGraphicsFactory {
+    class GraphicsFactory : public IGraphicsFactory {
     public:
         using descriptor_layout_type = TDescriptorLayout;
         using vertex_buffer_type = TVertexBuffer;
+        using vertex_buffer_layout_type = vertex_buffer_type::vertex_buffer_layout_type;
         using index_buffer_type = TIndexBuffer;
+        using index_buffer_layout_type = index_buffer_type::index_buffer_layout_type;
         using buffer_type = TBuffer;
         using image_type = TImage;
         using sampler_type = TSampler;
 
     public:
-        virtual ~IGraphicsFactory() noexcept = default;
+        virtual ~GraphicsFactory() noexcept = default;
 
     public:
-        /// <summary>
-        /// Creates a buffer of type <paramref name="type" />.
-        /// </summary>
-        /// <param name="type">The type of the buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
-        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
-        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
-        /// <returns>The instance of the buffer.</returns>
+        /// <inheritdoc />
         virtual UniquePtr<TBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
+        
+        /// <inheritdoc />
+        virtual UniquePtr<TBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
 
-        /// <summary>
-        /// Creates a vertex buffer, based on the <paramref name="layout" />
-        /// </summary>
-        /// <remarks>
-        /// A vertex buffer can be used by different <see cref="IRenderPipeline" />s, as long as they share a common input assembler state.
-        /// 
-        /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
-        /// </remarks>
-        /// <param name="layout">The layout of the vertex buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
-        /// <returns>The instance of the vertex buffer.</returns>
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const TVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
+        /// <inheritdoc />
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 
-        /// <summary>
-        /// Creates an index buffer, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <remarks>
-        /// An index buffer can be used by different <see cref="IRenderPipeline" />s, as long as they share a common input assembler state.
-        /// 
-        /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
-        /// </remarks>
-        /// <param name="layout">The layout of the index buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <returns>The instance of the index buffer.</returns>
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const TIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        /// <inheritdoc />
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
 
-        /// <summary>
-        /// Creates an image that is used as render target attachment.
-        /// </summary>
-        /// <param name="format">The format of the image.</param>
-        /// <param name="size">The extent of the image.</param>
-        /// <param name="samples">The number of samples, the image should be sampled with.</param>
-        /// <returns>The instance of the attachment image.</returns>
+        /// <inheritdoc />
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+
+        /// <inheritdoc />
         virtual UniquePtr<TImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
 
-        /// <summary>
-        /// Creates a texture, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <remarks>
-        /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
-        /// <see cref="createBuffer" /> first that holds the actual image bytes. You than can transfer/copy the contents into the texture.
-        /// </remarks>
-        /// <param name="format">The format of the texture image.</param>
-        /// <param name="size">The dimensions of the texture.</param>
-        /// <param name="dimension">The dimensionality of the texture.</param>
-        /// <param name="layers">The number of layers (slices) in this texture.</param>
-        /// <param name="levels">The number of mip map levels of the texture.</param>
-        /// <param name="samples">The number of samples, the texture should be sampled with.</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
-        /// <returns>The instance of the texture.</returns>
-        /// <seealso cref="createTextures" />
+        /// <inheritdoc />
+        virtual UniquePtr<TImage> createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+
+        /// <inheritdoc />
         virtual UniquePtr<TImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
-        /// <summary>
-        /// Creates an array of textures, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <param name="layout">The layout of the textures.</param>
-        /// <param name="elements">The number of textures to create.</param>
-        /// <param name="format">The format of the texture images.</param>
-        /// <param name="size">The dimensions of the textures.</param>
-        /// <param name="layers">The number of layers (slices) in this texture.</param>
-        /// <param name="levels">The number of mip map levels of the textures.</param>
-        /// <param name="samples">The number of samples, the textures should be sampled with.</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
-        /// <returns>An array of texture instances.</returns>
-        /// <seealso cref="createTexture" />
+        /// <inheritdoc />
+        virtual UniquePtr<TImage> createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+
+        /// <inheritdoc />
         virtual Array<UniquePtr<TImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
-        /// <summary>
-        /// Creates a texture sampler, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <param name="magFilter">The filter operation used for magnifying.</param>
-        /// <param name="minFilter">The filter operation used for minifying.</param>
-        /// <param name="borderU">The border mode along the U-axis.</param>
-        /// <param name="borderV">The border mode along the V-axis.</param>
-        /// <param name="borderW">The border mode along the W-axis.</param>
-        /// <param name="mipMapMode">The mip map mode.</param>
-        /// <param name="mipMapBias">The mip map bias.</param>
-        /// <param name="maxLod">The maximum level of detail value.</param>
-        /// <param name="minLod">The minimum level of detail value.</param>
-        /// <param name="anisotropy">The level of anisotropic filtering.</param>
-        /// <returns>The instance of the sampler.</returns>
-        /// <seealso cref="createSamplers" />
+        /// <inheritdoc />
         virtual UniquePtr<TSampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 
-        /// <summary>
-        /// Creates an array of texture samplers, based on the <paramref name="layout" />.
-        /// </summary>
-        /// <param name="elements">The number of samplers to create.</param>
-        /// <param name="magFilter">The filter operation used for magnifying.</param>
-        /// <param name="minFilter">The filter operation used for minifying.</param>
-        /// <param name="borderU">The border mode along the U-axis.</param>
-        /// <param name="borderV">The border mode along the V-axis.</param>
-        /// <param name="borderW">The border mode along the W-axis.</param>
-        /// <param name="mipMapMode">The mip map mode.</param>
-        /// <param name="mipMapBias">The mip map bias.</param>
-        /// <param name="maxLod">The maximum level of detail value.</param>
-        /// <param name="minLod">The minimum level of detail value.</param>
-        /// <param name="anisotropy">The level of anisotropic filtering.</param>
-        /// <returns>An array of sampler instances.</returns>
-        /// <seealso cref="createSampler" />
+        /// <inheritdoc />
+        virtual UniquePtr<TSampler> createSampler(const String& name, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+
+        /// <inheritdoc />
         virtual Array<UniquePtr<TSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+
+    private:
+        virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const override { 
+            return this->createBuffer(type, usage, elementSize, elements, allowWrite);
+        }
+
+        virtual UniquePtr<IBuffer> getBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const override {
+            return this->createBuffer(name, type, usage, elementSize, elements, allowWrite);
+        }
+
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override { 
+            return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
+        }
+
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override {
+            return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
+        }
+        
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override {
+            return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
+        }
+
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override {
+            return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
+        }
+
+        virtual UniquePtr<IImage> getAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const override { 
+            return this->createAttachment(format, size, samples);
+        }
+
+        virtual UniquePtr<IImage> getAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const override {
+            return this->createAttachment(name, format, size, samples);
+        }
+        
+        virtual UniquePtr<IImage> getTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const override { 
+            return this->createTexture(format, size, dimension, levels, layers, samples, allowWrite);
+        }
+
+        virtual UniquePtr<IImage> getTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const override {
+            return this->createTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
+        }
+
+        virtual Array<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const override { 
+            auto textures = this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite);
+            Array<UniquePtr<IImage>> results;
+            results.reserve(textures.size());
+            std::move(std::begin(textures), std::end(textures), std::inserter(results, std::end(results)));
+            return results;
+        }
+        
+        virtual UniquePtr<ISampler> getSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override { 
+            return this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+        }
+
+        virtual UniquePtr<ISampler> getSampler(const String& name, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
+            return this->createSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+        }
+        
+        virtual Array<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
+            auto samplers = this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+            Array<UniquePtr<ISampler>> results;
+            results.reserve(samplers.size());
+            std::move(std::begin(samplers), std::end(samplers), std::inserter(results, std::end(results)));
+            return results;
+        }
     };
 
     /// <summary>
     /// Represents the graphics device that a rendering back-end is doing work on.
     /// </summary>
     /// <remarks>
-    /// The graphics device is the central instance of a renderer. It has two major roles. First, it maintains the <see cref="IGraphicsFactory" /> instance, that is used to facilitate
+    /// The graphics device is the central instance of a renderer. It has two major roles. First, it maintains the <see cref="GraphicsFactory" /> instance, that is used to facilitate
     /// common objects. Second, it owns the device state, which contains objects required for communication between your application and the graphics driver. Most notably, those objects
-    /// contain the <see cref="ISwapChain" /> instance and the <see cref="ICommandQueue" /> instances used for data and command transfer.
+    /// contain the <see cref="SwapChain" /> instance and the <see cref="CommandQueue" /> instances used for data and command transfer.
     /// </remarks>
-    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
+    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="GraphicsFactory" />.</typeparam>
     /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
     /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
-    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
-    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
-    /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="IRenderPass" />.</typeparam>
-    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="IRenderPipeline" />.</typeparam>
-    /// <typeparam name="TImage">The type of the swap chain image. Must inherit from <see cref="IImage" />.</typeparam>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="IFrameBuffer" />.</typeparam>
-    /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="ICommandBuffer" />.</typeparam>
-    /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
-    /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout" />.</typeparam>
-    /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
-    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TFrameBuffer = TRenderPass::frame_buffer_type, typename TRenderPipeline = TRenderPass::render_pipeline_type, typename TInputAttachmentMapping = TRenderPass::input_attachment_mapping_type, typename TCommandBuffer = TCommandQueue::command_buffer_type, typename TImage = TFactory::image_type, typename TVertexBuffer = TFactory::vertex_buffer_type, typename TIndexBuffer = TFactory::index_buffer_type, typename TDescriptorLayout = TFactory::descriptor_layout_type, typename TBuffer = TFactory::buffer_type, typename TSampler = TFactory::sampler_type> requires
+    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="SwapChain" />.</typeparam>
+    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
+    /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
+    /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
+    /// <typeparam name="TBarrier">The type of the memory barrier. Must implement <see cref="Barrier" />.</typeparam>
+    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TBarrier> requires
         rtti::implements<TSurface, ISurface> &&
         rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-        rtti::implements<TSwapChain, ISwapChain<TImage>> &&
-        rtti::implements<TCommandQueue, ICommandQueue<TCommandBuffer>> &&
-        rtti::implements<TFactory, IGraphicsFactory<TDescriptorLayout, TBuffer, TVertexBuffer, TIndexBuffer, TImage, TSampler>> &&
-        rtti::implements<TRenderPass, IRenderPass<TRenderPipeline, TFrameBuffer, TInputAttachmentMapping>>
-    class IGraphicsDevice {
+        rtti::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
+        rtti::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
+        rtti::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type>> &&
+        rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
+        rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
+        rtti::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
+    class GraphicsDevice : public IGraphicsDevice {
     public:
         using surface_type = TSurface;
         using adapter_type = TGraphicsAdapter;
         using swap_chain_type = TSwapChain;
         using command_queue_type = TCommandQueue;
+        using command_buffer_type = command_queue_type::command_buffer_type;
         using factory_type = TFactory;
-        using frame_buffer_type = TFrameBuffer;
+        using barrier_type = TBarrier;
+        using descriptor_layout_type = factory_type::descriptor_layout_type;
+        using vertex_buffer_type = factory_type::vertex_buffer_type;
+        using index_buffer_type = factory_type::index_buffer_type;
+        using buffer_type = factory_type::buffer_type;
+        using image_type = factory_type::image_type;
+        using sampler_type = factory_type::sampler_type;
         using render_pass_type = TRenderPass;
+        using frame_buffer_type = render_pass_type::frame_buffer_type;
+        using render_pipeline_type = render_pass_type::render_pipeline_type;
+        using compute_pipeline_type = TComputePipeline;
+        using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
+        using shader_program_type = render_pipeline_type::shader_program_type;
+        using input_assembler_type = render_pipeline_type::input_assembler_type;
+        using rasterizer_type = render_pipeline_type::rasterizer_type;
+        using shader_program_type = render_pipeline_type::shader_program_type;
 
     public:
-        virtual ~IGraphicsDevice() noexcept = default;
+        virtual ~GraphicsDevice() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the surface, the device draws to.
-        /// </summary>
-        /// <returns>A reference of the surface, the device draws to.</returns>
-        virtual const TSurface& surface() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const surface_type& surface() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the graphics adapter, the device uses for drawing.
-        /// </summary>
-        /// <returns>A reference of the graphics adapter, the device uses for drawing.</returns>
-        virtual const TGraphicsAdapter& adapter() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const adapter_type& adapter() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the swap chain, that contains the back and front buffers used for presentation.
-        /// </summary>
-        /// <returns>The swap chain, that contains the back and front buffers used for presentation.</returns>
-        virtual const TSwapChain& swapChain() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const swap_chain_type& swapChain() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the factory instance, used to create instances from the device.
-        /// </summary>
-        /// <returns>The factory instance, used to create instances from the device.</returns>
-        virtual const TFactory& factory() const noexcept = 0;
+        /// <inheritdoc />
+        virtual swap_chain_type& swapChain() noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the queue, used to process draw calls.
-        /// </summary>
-        /// <returns>The instance of the queue, used to process draw calls.</returns>
-        virtual const TCommandQueue& graphicsQueue() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const factory_type& factory() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the queue used for device-device transfers (e.g. between render-passes).
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for device-device transfers (e.g. between render-passes).</returns>
-        virtual const TCommandQueue& transferQueue() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const command_queue_type& graphicsQueue() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the queue used for host-device transfers.
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for host-device transfers.</returns>
-        virtual const TCommandQueue& bufferQueue() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const command_queue_type& transferQueue() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the instance of the queue used for compute calls.
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated compute queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for compute calls.</returns>
-        virtual const TCommandQueue& computeQueue() const noexcept = 0;
+        /// <inheritdoc />
+        virtual const command_queue_type& bufferQueue() const noexcept = 0;
 
-        /// <summary>
-        /// Queries the device for the maximum supported number of multi-sampling levels.
-        /// </summary>
-        /// <remarks>
-        /// This method returns the maximum supported multi-sampling level for a certain format. Typically you want to pass a back-buffer format for your swap-chain here. All lower 
-        /// multi-sampling levels are implicitly supported for this format.
-        /// </remarks>
-        /// <param name="format">The target (i.e. back-buffer) format.</param>
-        /// <returns>The maximum multi-sampling level.</returns>
-        virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept = 0;
+        /// <inheritdoc />
+        virtual const command_queue_type& computeQueue() const noexcept = 0;
 
+        /// <inheritdoc />
+        virtual UniquePtr<barrier_type> makeBarrier() const noexcept = 0;
+
+    private:
+        virtual UniquePtr<IBarrier> getNewBarrier() const noexcept override {
+            return this->makeBarrier();
+        }
+
+#if defined(BUILD_DEFINE_BUILDERS)
     public:
+        using render_pass_builder_type = render_pass_type::builder_type;
+        using render_pipeline_builder_type = render_pipeline_type::builder_type;
+        using compute_pipeline_builder_type = compute_pipeline_type::builder_type;
+        using pipeline_layout_builder_type = pipeline_layout_type::builder_type;
+        using input_assembler_builder_type = input_assembler_type::builder_type;
+        using rasterizer_builder_type = rasterizer_type::builder_type;
+        using shader_program_builder_type = shader_program_type::builder_type;
+
         /// <summary>
-        /// Waits until the device is idle.
+        /// Returns a builder for a <see cref="RenderPass" />.
         /// </summary>
-        /// <remarks>
-        /// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
-        /// may safely be released.
-        /// </remarks>
-        virtual void wait() const = 0;
+        /// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <returns>An instance of a builder that is used to create a new render pass.</returns>
+        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="RenderPass" />.
+        /// </summary>
+        /// <param name="name">The name of the render pass.</param>
+        /// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <returns>An instance of a builder that is used to create a new render pass.</returns>
+        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="ComputePipeline" />.
+        /// </summary>
+        /// <param name="name">The name of the compute pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
+        [[nodiscard]] virtual compute_pipeline_builder_type buildComputePipeline(const String& name) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="RenderPipeline" />.
+        /// </summary>
+        /// <param name="name">The name of the render pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new render pipeline.</returns>
+        //[[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const String& name) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="RenderPipeline" />.
+        /// </summary>
+        /// <param name="renderPass">The parent render pass of the pipeline.</param>
+        /// <param name="name">The name of the render pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new render pipeline.</returns>
+        [[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const render_pass_type& renderPass, const String& name) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="PipelineLayout" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new pipeline layout.</returns>
+        [[nodiscard]] virtual pipeline_layout_builder_type buildPipelineLayout() const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="InputAssembler" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new input assembler.</returns>
+        [[nodiscard]] virtual input_assembler_builder_type buildInputAssembler() const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="Rasterizer" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new rasterizer.</returns>
+        [[nodiscard]] virtual rasterizer_builder_type buildRasterizer() const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="ShaderProgram" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new shader program.</returns>
+        [[nodiscard]] virtual shader_program_builder_type buildShaderProgram() const = 0;
+#endif // defined(BUILD_DEFINE_BUILDERS)
     };
 
     /// <summary>
     /// Defines a back-end, that provides a device instance for a certain surface and graphics adapter.
     /// </summary>
-    /// <typeparam name="TGraphicsAdapter">The type of the graphics adapter. Must implement <see cref="IGraphicsAdapter" />.</typeparam>
-    /// <typeparam name="TSurface">The type of the surface. Must implement <see cref="ISurface" />.</typeparam>
-    /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="ISwapChain" />.</typeparam>
-    /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="IGraphicsDevice" />.</typeparam>
-    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="ICommandQueue" />.</typeparam>
-    /// <typeparam name="TFactory">The type of the graphics factory. Must implement <see cref="IGraphicsFactory" />.</typeparam>
-    template <typename TGraphicsDevice, typename TGraphicsAdapter = TGraphicsDevice::adapter_type, typename TSurface = TGraphicsDevice::surface_type, typename TSwapChain = TGraphicsDevice::swap_chain_type, typename TFrameBuffer = TGraphicsDevice::frame_buffer_type, typename TCommandQueue = TGraphicsDevice::command_queue_type, typename TFactory = TGraphicsDevice::factory_type, typename TRenderPass = TGraphicsDevice::render_pass_type> requires
-        rtti::implements<TGraphicsDevice, IGraphicsDevice<TFactory, TSurface, TGraphicsAdapter, TSwapChain, TCommandQueue, TRenderPass>>
-    class IRenderBackend : public IBackend {
+    /// <typeparam name="TBackend">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
+    /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
+    template <typename TBackend, typename TGraphicsDevice> requires
+        rtti::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::barrier_type>>
+    class RenderBackend : public IRenderBackend {
     public:
-        virtual ~IRenderBackend() noexcept = default;
+        using device_type = TGraphicsDevice;
+        using surface_type = device_type::surface_type;
+        using adapter_type = device_type::adapter_type;
+        using swap_chain_type = device_type::swap_chain_type;
+        using command_queue_type = device_type::command_queue_type;
+        using command_buffer_type = device_type::command_buffer_type;
+        using factory_type = device_type::factory_type;
+        using barrier_type = device_type::barrier_type;
+        using descriptor_layout_type = factory_type::descriptor_layout_type;
+        using vertex_buffer_type = factory_type::vertex_buffer_type;
+        using index_buffer_type = factory_type::index_buffer_type;
+        using buffer_type = factory_type::buffer_type;
+        using image_type = factory_type::image_type;
+        using sampler_type = factory_type::sampler_type;
+        using frame_buffer_type = device_type::frame_buffer_type;
+        using render_pass_type = device_type::render_pass_type;
+        using pipeline_layout_type = device_type::pipeline_layout_type;
+        using render_pipeline_type = device_type::render_pipeline_type;
+        using compute_pipeline_type = device_type::compute_pipeline_type;
+        using shader_program_type = device_type::shader_program_type;
+        using input_assembler_type = device_type::input_assembler_type;
+        using rasterizer_type = device_type::rasterizer_type;
 
     public:
-        /// <summary>
-        /// Lists all available graphics adapters.
-        /// </summary>
-        /// <returns>An array of pointers to all available graphics adapters.</returns>
-        virtual Array<const TGraphicsAdapter*> listAdapters() const = 0;
-
-        /// <summary>
-        /// Finds an adapter using its unique ID.
-        /// </summary>
-        /// <remarks>
-        /// Note that the adapter ID is optional, which allows the back-end to return a default adapter instance. Which adapter is used as <i>default</i> adapter, depends on
-        /// the actual back-end implementation. The interface does not make any constraints on the default adapter to choose. A naive implementation might simply return the 
-        /// first available adapter.
-        /// </remarks>
-        /// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
-        /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
-        /// <seealso cref="IGraphicsAdapter" />
-        virtual const TGraphicsAdapter* findAdapter(const Optional<uint32_t>& adapterId = std::nullopt) const = 0;
+        virtual ~RenderBackend() noexcept = default;
 
     public:
+        /// <inheritdoc />
+        virtual Array<const adapter_type*> listAdapters() const = 0;
+
+        /// <inheritdoc />
+        virtual const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
+
+        /// <inheritdoc />
+        virtual void registerDevice(String name, UniquePtr<device_type>&& device) = 0;
+
         /// <summary>
         /// Creates a new graphics device.
         /// </summary>
-        /// <param name="..._args">The arguments that are passed to the graphics device constructor.</param>
+        /// <param name="_args">The arguments that are passed to the graphics device constructor.</param>
         /// <returns>A pointer of the created graphics device instance.</returns>
         template <typename ...TArgs>
-        [[nodiscard]] UniquePtr<TGraphicsDevice> createDevice(const TGraphicsAdapter& adapter, const TSurface& surface, TArgs&&... _args) const {
-            return makeUnique<TGraphicsDevice>(adapter, surface, std::forward<TArgs>(_args)...);
+        device_type* createDevice(String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
+            auto device = makeUnique<device_type>(static_cast<const TBackend&>(*this), adapter, std::move(surface), std::forward<TArgs>(_args)...);
+            auto devicePointer = device.get();
+            this->registerDevice(name, std::move(device));
+            return devicePointer;
+        }
+
+        /// <summary>
+        /// Destroys and removes a device from the backend.
+        /// </summary>
+        /// <param name="name">The name of the device.</param>
+        virtual void releaseDevice(const String& name) = 0;
+
+        /// <inheritdoc />
+        virtual device_type* device(const String& name) noexcept = 0;
+
+        /// <inheritdoc />
+        virtual const device_type* device(const String& name) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual const device_type* operator[](const String& name) const noexcept {
+            return this->device(name);
+        };
+
+        /// <inheritdoc />
+        virtual device_type* operator[](const String& name) noexcept {
+            return this->device(name);
+        };
+
+        // IRenderBackend interface
+    private:
+        virtual Array<const IGraphicsAdapter*> getAdapters() const override {
+            auto adapters = this->listAdapters();
+            return Array<const IGraphicsAdapter*>(adapters.begin(), adapters.end());
         }
     };
 }

@@ -34,4 +34,9 @@ namespace LiteFX {
 		Rendering = 0x01,
 		Other = 0xFF
 	};
+
+	enum class LITEFX_APPMODEL_API BackendState {
+		Inactive = 0x01,
+		Active = 0x02
+	};
 }

@@ -35,7 +35,7 @@ const String& Log::getName() const noexcept
     return m_impl->m_name;
 }
 
-void Log::log(const LogLevel& level, const String& message) const noexcept
+void Log::log(const LogLevel& level, StringView message)
 {
     auto logger = spdlog::get(this->getName());
     assert(logger != nullptr);
@@ -60,5 +60,7 @@ void Log::log(const LogLevel& level, const String& message) const noexcept
     case LogLevel::Fatal:
         logger->log(spdlog::level::critical, message);
         break;
+    default:
+        throw std::invalid_argument("The specified log level is not valid.");
     }
 }

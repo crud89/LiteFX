@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include <litefx/backends/dx12_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -12,39 +13,41 @@ public:
 	friend class DirectX12RenderPipeline;
 
 private:
-	UniquePtr<DirectX12PipelineLayout> m_layout;
+	SharedPtr<DirectX12PipelineLayout> m_layout;
+	SharedPtr<DirectX12ShaderProgram> m_program;
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
 	Array<SharedPtr<IScissor>> m_scissors;
-	UInt32 m_id;
-	String m_name;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
+	const DirectX12RenderPass& m_renderPass;
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const UInt32& id, const String& name, const bool& alphaToCoverage, UniquePtr<DirectX12PipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
-		base(parent), m_id(id), m_name(name), m_alphaToCoverage(alphaToCoverage), m_layout(std::move(layout)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
+		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
 	{
 	}
 
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent) :
-		base(parent)
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass) :
+		base(parent), m_renderPass(renderPass)
 	{
 	}
 
 public:
 	ComPtr<ID3D12PipelineState> initialize()
 	{
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
+
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {};
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		D3D12_RASTERIZER_DESC rasterizerState = {};
 		rasterizerState.DepthClipEnable = FALSE;
-		rasterizerState.FillMode = ::getPolygonMode(rasterizer.polygonMode());
-		rasterizerState.CullMode = ::getCullMode(rasterizer.cullMode());
+		rasterizerState.FillMode = DX12::getPolygonMode(rasterizer.polygonMode());
+		rasterizerState.CullMode = DX12::getCullMode(rasterizer.cullMode());
 		rasterizerState.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise;
 		rasterizerState.MultisampleEnable = FALSE;
 		rasterizerState.AntialiasedLineEnable = FALSE;
@@ -65,7 +68,7 @@ public:
 
 		// Setup input assembler state.
 		LITEFX_TRACE(DIRECTX12_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", m_inputAssembler->topology());
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = ::getPrimitiveTopologyType(m_inputAssembler->topology());
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = DX12::getPrimitiveTopologyType(m_inputAssembler->topology());
 
 		auto vertexLayouts = m_inputAssembler->vertexBufferLayouts();
 
@@ -78,9 +81,9 @@ public:
 
 			std::ranges::for_each(bufferAttributes, [&](const BufferAttribute* attribute) {
 				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {};
-				elementDescriptor.SemanticName = ::getSemanticName(attribute->semantic());
+				elementDescriptor.SemanticName = DX12::getSemanticName(attribute->semantic());
 				elementDescriptor.SemanticIndex = attribute->semanticIndex();
-				elementDescriptor.Format = ::getFormat(attribute->format());
+				elementDescriptor.Format = DX12::getFormat(attribute->format());
 				elementDescriptor.InputSlot = bindingPoint;
 				elementDescriptor.InputSlotClass = D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
 				elementDescriptor.AlignedByteOffset = attribute->offset();	// TODO: May not include packing, but packing is required - need to test this!
@@ -95,14 +98,14 @@ public:
 		inputLayout.NumElements = static_cast<UInt32>(inputLayoutElements.size());
 
 		// Setup multi-sampling state.
-		auto samples = m_parent->parent().multiSamplingLevel();
+		auto samples = m_renderPass.multiSamplingLevel();
 		DXGI_SAMPLE_DESC multisamplingState = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 
 		// Setup render target states.
 		// NOTE: We assume, that the targets are returned sorted by location and the location range is contiguous.
 		D3D12_BLEND_DESC blendState = {};
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
-		auto targets = m_parent->parent().renderTargets();
+		auto targets = m_renderPass.renderTargets();
 		pipelineStateDescription.NumRenderTargets = std::ranges::count_if(targets, [](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
 		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - pipelineStateDescription.NumRenderTargets;
 
@@ -118,42 +121,42 @@ public:
 			if (renderTarget.type() == RenderTargetType::DepthStencil)
 			{
 				// Setup depth/stencil format.
-				pipelineStateDescription.DSVFormat = ::getFormat(renderTarget.format());
+				pipelineStateDescription.DSVFormat = DX12::getFormat(renderTarget.format());
 
 				// Setup depth/stencil state.
 				// TODO: From depth/stencil state.
 				depthStencilState.DepthEnable = rasterizer.depthStencilState().depthState().Enable;
 				depthStencilState.DepthWriteMask = rasterizer.depthStencilState().depthState().Write ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
-				depthStencilState.DepthFunc = ::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
+				depthStencilState.DepthFunc = DX12::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
 
 				depthStencilState.StencilEnable = rasterizer.depthStencilState().stencilState().Enable;
 				depthStencilState.StencilReadMask = rasterizer.depthStencilState().stencilState().ReadMask;
 				depthStencilState.StencilWriteMask = rasterizer.depthStencilState().stencilState().WriteMask;
-				depthStencilState.FrontFace.StencilFunc = ::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
-				depthStencilState.FrontFace.StencilDepthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
-				depthStencilState.FrontFace.StencilFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
-				depthStencilState.FrontFace.StencilPassOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
-				depthStencilState.BackFace.StencilFunc = ::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
-				depthStencilState.BackFace.StencilDepthFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
-				depthStencilState.BackFace.StencilFailOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
-				depthStencilState.BackFace.StencilPassOp = ::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
+				depthStencilState.FrontFace.StencilFunc = DX12::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
+				depthStencilState.FrontFace.StencilDepthFailOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
+				depthStencilState.FrontFace.StencilFailOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
+				depthStencilState.FrontFace.StencilPassOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
+				depthStencilState.BackFace.StencilFunc = DX12::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
+				depthStencilState.BackFace.StencilDepthFailOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
+				depthStencilState.BackFace.StencilFailOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
+				depthStencilState.BackFace.StencilPassOp = DX12::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
 			}
 			else
 			{
 				// Setup target formats.
 				UInt32 target = i++;
-				pipelineStateDescription.RTVFormats[target] = ::getFormat(renderTarget.format());
+				pipelineStateDescription.RTVFormats[target] = DX12::getFormat(renderTarget.format());
 
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
 				targetBlendState.BlendEnable = renderTarget.blendState().Enable;
 				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().WriteMask);
-				targetBlendState.SrcBlend = ::getBlendFactor(renderTarget.blendState().SourceColor);
-				targetBlendState.SrcBlendAlpha = ::getBlendFactor(renderTarget.blendState().SourceAlpha);
-				targetBlendState.DestBlend = ::getBlendFactor(renderTarget.blendState().DestinationColor);
-				targetBlendState.DestBlendAlpha = ::getBlendFactor(renderTarget.blendState().DestinationAlpha);
-				targetBlendState.BlendOp = ::getBlendOperation(renderTarget.blendState().ColorOperation);
-				targetBlendState.BlendOpAlpha = ::getBlendOperation(renderTarget.blendState().AlphaOperation);
+				targetBlendState.SrcBlend = DX12::getBlendFactor(renderTarget.blendState().SourceColor);
+				targetBlendState.SrcBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().SourceAlpha);
+				targetBlendState.DestBlend = DX12::getBlendFactor(renderTarget.blendState().DestinationColor);
+				targetBlendState.DestBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().DestinationAlpha);
+				targetBlendState.BlendOp = DX12::getBlendOperation(renderTarget.blendState().ColorOperation);
+				targetBlendState.BlendOpAlpha = DX12::getBlendOperation(renderTarget.blendState().AlphaOperation);
 
 				// TODO: We should also implement this, but this restricts all blend states to be equal and IndependentBlendEnable set to false.
 				targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
@@ -165,8 +168,8 @@ public:
 		blendState.IndependentBlendEnable = TRUE;
 
 		// Setup shader stages.
-		auto modules = m_layout->program().modules();
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(&m_layout->program()), modules.size());
+		auto modules = m_program->modules();
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
 			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
@@ -210,7 +213,7 @@ public:
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed<RuntimeException>(m_parent->getDevice()->handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 
 		return pipelineState;
 	}
@@ -220,32 +223,32 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const UInt32& id, UniquePtr<DirectX12PipelineLayout>&& layout, SharedPtr<DirectX12InputAssembler>&& inputAssembler, SharedPtr<DirectX12Rasterizer>&& rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, id, name, enableAlphaToCoverage, std::move(layout), std::move(inputAssembler), std::move(rasterizer), std::move(viewports), std::move(scissors))), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), DirectX12PipelineState(nullptr)
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, std::move(viewports), std::move(scissors))), DirectX12PipelineState(nullptr)
 {
 	this->handle() = m_impl->initialize();
+
+	if (!name.empty())
+		this->name() = name;
 }
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass) noexcept :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this)), DirectX12RuntimeObject<DirectX12RenderPass>(renderPass, renderPass.getDevice()), DirectX12PipelineState(nullptr)
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) noexcept :
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass)), DirectX12PipelineState(nullptr)
 {
+	if (!name.empty())
+		this->name() = name;
 }
 
 DirectX12RenderPipeline::~DirectX12RenderPipeline() noexcept = default;
 
-const String& DirectX12RenderPipeline::name() const noexcept
+SharedPtr<const DirectX12ShaderProgram> DirectX12RenderPipeline::program() const noexcept
 {
-	return m_impl->m_name;
+	return m_impl->m_program;
 }
 
-const UInt32& DirectX12RenderPipeline::id() const noexcept
+SharedPtr<const DirectX12PipelineLayout> DirectX12RenderPipeline::layout() const noexcept
 {
-	return m_impl->m_id;
-}
-
-const DirectX12PipelineLayout& DirectX12RenderPipeline::layout() const noexcept
-{
-	return *m_impl->m_layout;
+	return m_impl->m_layout;
 }
 
 SharedPtr<DirectX12InputAssembler> DirectX12RenderPipeline::inputAssembler() const noexcept
@@ -253,7 +256,7 @@ SharedPtr<DirectX12InputAssembler> DirectX12RenderPipeline::inputAssembler() con
 	return m_impl->m_inputAssembler;
 }
 
-SharedPtr<IRasterizer> DirectX12RenderPipeline::rasterizer() const noexcept
+SharedPtr<DirectX12Rasterizer> DirectX12RenderPipeline::rasterizer() const noexcept
 {
 	return m_impl->m_rasterizer;
 }
@@ -306,20 +309,21 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
 	commandBuffer.handle()->OMSetStencilRef(m_impl->m_stencilRef);
 	commandBuffer.handle()->OMSetBlendFactor(blendFactor);
-	commandBuffer.handle()->IASetPrimitiveTopology(::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
+	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
 
 class DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilderImpl : public Implement<DirectX12RenderPipelineBuilder> {
 public:
-	friend class DirectX12RenderPipelineBuilderBuilder;
 	friend class DirectX12RenderPipelineBuilder;
 
 private:
-	UniquePtr<DirectX12PipelineLayout> m_layout;
+	SharedPtr<DirectX12PipelineLayout> m_layout;
+	SharedPtr<DirectX12ShaderProgram> m_program;
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
 	Array<SharedPtr<IViewport>> m_viewports;
@@ -337,55 +341,61 @@ public:
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const UInt32& id, const String& name) :
+DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
 	m_impl(makePimpl<DirectX12RenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<DirectX12RenderPipeline>(new DirectX12RenderPipeline(renderPass)))
 {
-	this->instance()->m_impl->m_id = id;
-	this->instance()->m_impl->m_name = name;
+	this->instance()->name() = name;
 }
 
 DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
 
-UniquePtr<DirectX12RenderPipeline> DirectX12RenderPipelineBuilder::go()
+void DirectX12RenderPipelineBuilder::build()
 {
 	auto instance = this->instance();
 	instance->m_impl->m_layout = std::move(m_impl->m_layout);
+	instance->m_impl->m_program = std::move(m_impl->m_program);
 	instance->m_impl->m_inputAssembler = std::move(m_impl->m_inputAssembler);
 	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
 	instance->m_impl->m_viewports = std::move(m_impl->m_viewports);
 	instance->m_impl->m_scissors = std::move(m_impl->m_scissors);
 	instance->m_impl->m_alphaToCoverage = std::move(m_impl->m_alphaToCoverage);
 	instance->handle() = instance->m_impl->initialize();
-
-	return RenderPipelineBuilder::go();
 }
 
-void DirectX12RenderPipelineBuilder::use(UniquePtr<DirectX12PipelineLayout>&& layout)
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::shaderProgram(SharedPtr<DirectX12ShaderProgram> program)
+{
+#ifndef NDEBUG
+	if (m_impl->m_program != nullptr)
+		LITEFX_WARNING(DIRECTX12_LOG, "Another shader program has already been initialized and will be replaced. A pipeline can only have one shader program.");
+#endif
+
+	m_impl->m_program = program;
+	return *this;
+}
+
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::layout(SharedPtr<DirectX12PipelineLayout> layout)
 {
 #ifndef NDEBUG
 	if (m_impl->m_layout != nullptr)
 		LITEFX_WARNING(DIRECTX12_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
 #endif
 
-	m_impl->m_layout = std::move(layout);
+	m_impl->m_layout = layout;
+	return *this;
 }
 
-void DirectX12RenderPipelineBuilder::use(SharedPtr<IRasterizer> rasterizer)
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::rasterizer(SharedPtr<DirectX12Rasterizer> rasterizer)
 {
 #ifndef NDEBUG
 	if (m_impl->m_rasterizer != nullptr)
 		LITEFX_WARNING(DIRECTX12_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
 #endif
 
-	auto dx12Rasterizer = std::dynamic_pointer_cast<DirectX12Rasterizer>(rasterizer);
-
-	if (dx12Rasterizer == nullptr)
-		throw InvalidArgumentException("The provided rasterizer must be a DirectX12 rasterizer instance.");
-
-	m_impl->m_rasterizer = dx12Rasterizer;
+	m_impl->m_rasterizer = rasterizer;
+	return *this;
 }
 
-void DirectX12RenderPipelineBuilder::use(SharedPtr<DirectX12InputAssembler> inputAssembler)
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::inputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler)
 {
 #ifndef NDEBUG
 	if (m_impl->m_inputAssembler != nullptr)
@@ -393,16 +403,19 @@ void DirectX12RenderPipelineBuilder::use(SharedPtr<DirectX12InputAssembler> inpu
 #endif
 
 	m_impl->m_inputAssembler = inputAssembler;
+	return *this;
 }
 
-void DirectX12RenderPipelineBuilder::use(SharedPtr<IViewport> viewport)
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::viewport(SharedPtr<IViewport> viewport)
 {
 	m_impl->m_viewports.push_back(viewport);
+	return *this;
 }
 
-void DirectX12RenderPipelineBuilder::use(SharedPtr<IScissor> scissor)
+DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::scissor(SharedPtr<IScissor> scissor)
 {
 	m_impl->m_scissors.push_back(scissor);
+	return *this;
 }
 
 DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::enableAlphaToCoverage(const bool& enable)
@@ -410,42 +423,4 @@ DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::enableAlphaToCov
 	m_impl->m_alphaToCoverage = enable;
 	return *this;
 }
-
-DirectX12RenderPipelineLayoutBuilder DirectX12RenderPipelineBuilder::layout()
-{
-	return DirectX12RenderPipelineLayoutBuilder(*this);
-}
-
-DirectX12RasterizerBuilder DirectX12RenderPipelineBuilder::rasterizer()
-{
-	return DirectX12RasterizerBuilder(*this);
-}
-
-DirectX12InputAssemblerBuilder DirectX12RenderPipelineBuilder::inputAssembler()
-{
-	return DirectX12InputAssemblerBuilder(*this);
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::withRasterizer(SharedPtr<IRasterizer> rasterizer)
-{
-	this->use(std::move(rasterizer));
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::withInputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler)
-{
-	this->use(std::move(inputAssembler));
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::withViewport(SharedPtr<IViewport> viewport)
-{
-	this->use(std::move(viewport));
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::withScissor(SharedPtr<IScissor> scissor)
-{
-	this->use(std::move(scissor));
-	return *this;
-}
+#endif // defined(BUILD_DEFINE_BUILDERS)

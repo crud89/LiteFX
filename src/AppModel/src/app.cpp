@@ -11,25 +11,14 @@ public:
 	friend class App;
 
 private:
-	Dictionary<BackendType, UniquePtr<IBackend>> m_backends;
+	Dictionary<std::type_index, UniquePtr<IBackend>> m_backends;
+	std::multimap<std::type_index, const std::function<bool()>> m_startCallbacks;
+	std::multimap<std::type_index, const std::function<void()>> m_stopCallbacks;
 
 public:
 	AppImpl(App* parent) : 
 		base(parent) 
 	{
-	}
-
-public:
-	const IBackend* findBackend(const BackendType& type)
-	{
-		return m_backends.contains(type) ? m_backends[type].get() : nullptr;
-	}
-
-public:
-	void useBackend(UniquePtr<IBackend>&& backend)
-	{
-		auto type = backend->getType();
-		m_backends[type] = std::move(backend);
 	}
 };
 
@@ -42,9 +31,13 @@ App::App() :
 {
 }
 
-App::~App() noexcept = default;
+App::~App() noexcept
+{
+	for (auto& backend : m_impl->m_backends | std::views::filter([](const auto& b) { return b.second->state() == BackendState::Active; }))
+		this->stopBackend(backend.first);
+}
 
-Platform App::getPlatform() const noexcept
+Platform App::platform() const noexcept
 {
 #if defined(_WIN32) || defined(WINCE)
 	return Platform::Win32;
@@ -53,41 +46,135 @@ Platform App::getPlatform() const noexcept
 #endif
 }
 
-const IBackend* App::operator[](const BackendType& type) const
+const IBackend* App::operator[](std::type_index type) const
 {
-	return m_impl->findBackend(type);
+	return this->getBackend(type);
+}
+
+const IBackend* App::getBackend(std::type_index type) const
+{
+	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
+}
+
+IBackend* App::getBackend(std::type_index type)
+{
+	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
+}
+
+void App::startBackend(std::type_index type) const
+{
+	auto backend = const_cast<IBackend*>(this->getBackend(type));
+
+	if (backend == nullptr)
+		throw InvalidArgumentException("No backend of type {0} has been registered.", type.name());
+
+	if (backend->state() == BackendState::Active)
+		return;
+
+	// Stop all active backends.
+	this->stopActiveBackends(backend->type());
+
+	// Call the start callbacks for the backend.
+	const auto callbacks = m_impl->m_startCallbacks.equal_range(type);
+
+	for (auto it = callbacks.first; it != callbacks.second; ++it)
+		if (!it->second())
+			throw RuntimeException("Unable to start backend {0}.", type.name());
+
+	// Set the backend to active.
+	backend->activate();
+}
+
+void App::stopBackend(std::type_index type) const
+{
+	auto backend = const_cast<IBackend*>(this->getBackend(type));
+
+	if (backend == nullptr)
+		throw InvalidArgumentException("No backend of type {0} has been registered.", type.name());
+
+	if (backend->state() != BackendState::Inactive)
+	{
+		// Call the stop callbacks for the backend.
+		const auto callbacks = m_impl->m_stopCallbacks.equal_range(type);
+
+		for (auto it = callbacks.first; it != callbacks.second; ++it)
+			it->second();
+
+		// Set the backend state to inactive.
+		static_cast<IBackend*>(backend)->deactivate();
+	}
+}
+
+void App::stopActiveBackends(const BackendType& type) const
+{
+	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
+		this->stopBackend(backend.first);
+}
+
+IBackend* App::activeBackend(const BackendType& type) const
+{
+	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
+		return backend.second.get();
+
+	return nullptr;
+}
+
+std::type_index App::activeBackendType(const BackendType& type) const
+{
+	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
+		return backend.first;
+	
+	return typeid(std::nullptr_t);
+}
+
+void App::registerStartCallback(std::type_index type, const std::function<bool()>& callback)
+{
+	m_impl->m_startCallbacks.insert(std::make_pair(type, callback));
+}
+
+void App::registerStopCallback(std::type_index type, const std::function<void()>& callback)
+{
+	m_impl->m_stopCallbacks.insert(std::make_pair(type, callback));
+}
+
+Array<const IBackend*> App::getBackends(const BackendType type) const noexcept
+{
+	return m_impl->m_backends |
+		std::views::transform([](const auto& backend) { return backend.second.get(); }) |
+		std::views::filter([type](const auto backend) { return backend->type() == type; }) |
+		ranges::to<Array<const IBackend*>>();
 }
 
 void App::use(UniquePtr<IBackend>&& backend)
 {
-	Logger::get(this->getName()).trace("Using backend {0} (current backend: {1})...", fmt::ptr(backend.get()), fmt::ptr(m_impl->findBackend(backend->getType())));
-	return m_impl->useBackend(std::move(backend));
+	auto type = backend->typeId();
+
+	if (m_impl->m_backends.contains(type))
+		throw InvalidArgumentException("Another backend of type {0} already has been registered. An application may only contain one backend of a certain type.", type.name());
+
+	m_impl->m_backends[type] = std::move(backend);
+
+	Logger::get(this->name()).debug("Registered backend type {0}.", type.name());
 }
 
 void App::resize(int width, int height)
 {
-	Logger::get(this->getName()).trace("OnResize (width = {0}, height = {1}).", width, height);
+	Logger::get(this->name()).trace("OnResize (width = {0}, height = {1}).", width, height);
 }
 
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-const IBackend* AppBuilder::findBackend(const BackendType& type) const noexcept
-{
-	return this->instance()->operator[](type);
-}
-
 void AppBuilder::use(UniquePtr<IBackend>&& backend)
 {
 	this->instance()->use(std::move(backend));
 }
 
-UniquePtr<App> AppBuilder::go()
+void AppBuilder::build()
 {
-	Logger::get(this->instance()->getName()).info("Starting app (Version {1}) on platform {0}...", this->instance()->getPlatform(), this->instance()->getVersion());
-	Logger::get(this->instance()->getName()).debug("Using engine: {0:e}.", this->instance()->getVersion());
+	Logger::get(this->instance()->name()).info("Starting app (Version {1}) on platform {0}...", this->instance()->platform(), this->instance()->version());
+	Logger::get(this->instance()->name()).debug("Using engine: {0:e}.", this->instance()->version());
 
-	this->instance()->run();
-	return builder_type::go();
+	this->instance()->initialize();
 }

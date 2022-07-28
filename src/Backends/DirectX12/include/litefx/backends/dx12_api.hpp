@@ -28,6 +28,9 @@
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
+#include <litefx/config.h>
+#include <litefx/rendering.hpp>
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -68,22 +71,19 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12Image;
     class IDirectX12Sampler;
 
+#if defined(BUILD_DEFINE_BUILDERS)
     // Builder declarations.
     class DirectX12VertexBufferLayoutBuilder;
-    class DirectX12RenderPipelineDescriptorSetLayoutBuilder;
-    class DirectX12ComputePipelineDescriptorSetLayoutBuilder;
-    class DirectX12RenderPipelinePushConstantsLayoutBuilder;
-    class DirectX12ComputePipelinePushConstantsLayoutBuilder;
-    class DirectX12RenderPipelineLayoutBuilder;
-    class DirectX12ComputePipelineLayoutBuilder;
-    class DirectX12GraphicsShaderProgramBuilder;
-    class DirectX12ComputeShaderProgramBuilder;
+    class DirectX12DescriptorSetLayoutBuilder;
+    class DirectX12PushConstantsLayoutBuilder;
+    class DirectX12PipelineLayoutBuilder;
+    class DirectX12ShaderProgramBuilder;
     class DirectX12InputAssemblerBuilder;
     class DirectX12RasterizerBuilder;
     class DirectX12RenderPipelineBuilder;
     class DirectX12ComputePipelineBuilder;
     class DirectX12RenderPassBuilder;
-    class DirectX12BackendBuilder;
+#endif // defined(BUILD_DEFINE_BUILDERS)
 
     /// <summary>
     /// A resource that is hold by a <c>ComPtr</c>.
@@ -93,103 +93,108 @@ namespace LiteFX::Rendering::Backends {
     using ComResource = Resource<ComPtr<THandle>>;
     // TODO: We could overwrite the handle() methods here and return `.AsWeak` from the ComPtr and create an overload to get a reference-counted handle, if required.
 
-    // Conversion helpers.
     /// <summary>
-    /// 
+    /// Contains conversion helpers for DirectX 12.
     /// </summary>
-    Format LITEFX_DIRECTX12_API getFormat(const DXGI_FORMAT& format);
+    namespace DX12
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        Format LITEFX_DIRECTX12_API getFormat(const DXGI_FORMAT& format);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const Format& format);
+        /// <summary>
+        /// 
+        /// </summary>
+        DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const Format& format);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const BufferFormat& format);
+        /// <summary>
+        /// 
+        /// </summary>
+        DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const BufferFormat& format);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    bool LITEFX_DIRECTX12_API isSRGB(const Format& format);
+        /// <summary>
+        /// 
+        /// </summary>
+        bool LITEFX_DIRECTX12_API isSRGB(const Format& format);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_RESOURCE_DIMENSION LITEFX_DIRECTX12_API getImageType(const ImageDimensions& dimensions);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_RESOURCE_DIMENSION LITEFX_DIRECTX12_API getImageType(const ImageDimensions& dimensions);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    PolygonMode LITEFX_DIRECTX12_API getPolygonMode(const D3D12_FILL_MODE& mode);
+        /// <summary>
+        /// 
+        /// </summary>
+        PolygonMode LITEFX_DIRECTX12_API getPolygonMode(const D3D12_FILL_MODE& mode);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_FILL_MODE LITEFX_DIRECTX12_API getPolygonMode(const PolygonMode& mode);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_FILL_MODE LITEFX_DIRECTX12_API getPolygonMode(const PolygonMode& mode);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    CullMode LITEFX_DIRECTX12_API getCullMode(const D3D12_CULL_MODE& mode);
+        /// <summary>
+        /// 
+        /// </summary>
+        CullMode LITEFX_DIRECTX12_API getCullMode(const D3D12_CULL_MODE& mode);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_CULL_MODE LITEFX_DIRECTX12_API getCullMode(const CullMode& mode);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_CULL_MODE LITEFX_DIRECTX12_API getCullMode(const CullMode& mode);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    PrimitiveTopology LITEFX_DIRECTX12_API getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology);
+        /// <summary>
+        /// 
+        /// </summary>
+        PrimitiveTopology LITEFX_DIRECTX12_API getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_PRIMITIVE_TOPOLOGY LITEFX_DIRECTX12_API getPrimitiveTopology(const PrimitiveTopology& topology);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_PRIMITIVE_TOPOLOGY LITEFX_DIRECTX12_API getPrimitiveTopology(const PrimitiveTopology& topology);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_PRIMITIVE_TOPOLOGY_TYPE LITEFX_DIRECTX12_API getPrimitiveTopologyType(const PrimitiveTopology& topology);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_PRIMITIVE_TOPOLOGY_TYPE LITEFX_DIRECTX12_API getPrimitiveTopologyType(const PrimitiveTopology& topology);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    LPCTSTR LITEFX_DIRECTX12_API getSemanticName(const AttributeSemantic& semantic);
+        /// <summary>
+        /// 
+        /// </summary>
+        LPCTSTR LITEFX_DIRECTX12_API getSemanticName(const AttributeSemantic& semantic);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="vendorId"></param>
-    /// <returns></returns>
-    String LITEFX_DIRECTX12_API getVendorName(const UInt32& vendorId);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vendorId"></param>
+        /// <returns></returns>
+        String LITEFX_DIRECTX12_API getVendorName(const UInt32& vendorId);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API getCompareOp(const CompareOperation& compareOp);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API getCompareOp(const CompareOperation& compareOp);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_STENCIL_OP LITEFX_DIRECTX12_API getStencilOp(const StencilOperation& stencilOp);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_STENCIL_OP LITEFX_DIRECTX12_API getStencilOp(const StencilOperation& stencilOp);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_BLEND LITEFX_DIRECTX12_API getBlendFactor(const BlendFactor& blendFactor);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_BLEND LITEFX_DIRECTX12_API getBlendFactor(const BlendFactor& blendFactor);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_BLEND_OP LITEFX_DIRECTX12_API getBlendOperation(const BlendOperation& blendOperation);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_BLEND_OP LITEFX_DIRECTX12_API getBlendOperation(const BlendOperation& blendOperation);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    D3D12_RESOURCE_STATES LITEFX_DIRECTX12_API getResourceState(const ResourceState& resourceState);
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_RESOURCE_STATES LITEFX_DIRECTX12_API getResourceState(const ResourceState& resourceState);
+    }
 
     /// <summary>
     /// Implements a DirectX12 <see cref="IGraphicsAdapter" />.
@@ -209,31 +214,34 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        virtual String getName() const noexcept override;
+        virtual String name() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 getVendorId() const noexcept override;
+        virtual UInt64 uniqueId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 getDeviceId() const noexcept override;
+        virtual UInt32 vendorId() const noexcept override;
 
         /// <inheritdoc />
-        virtual GraphicsAdapterType getType() const noexcept override;
+        virtual UInt32 deviceId() const noexcept override;
 
         /// <inheritdoc />
-        /// <remarks>
-        /// This property is not supported by DirectX 12. The method always returns `0`.
-        /// </remarks>
-        virtual UInt32 getDriverVersion() const noexcept override;
+        virtual GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
         /// <remarks>
         /// This property is not supported by DirectX 12. The method always returns `0`.
         /// </remarks>
-        virtual UInt32 getApiVersion() const noexcept override;
+        virtual UInt32 driverVersion() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt64 getDedicatedMemory() const noexcept override;
+        /// <remarks>
+        /// This property is not supported by DirectX 12. The method always returns `0`.
+        /// </remarks>
+        virtual UInt32 apiVersion() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt64 dedicatedMemory() const noexcept override;
     };
 
     /// <summary>
@@ -251,33 +259,10 @@ namespace LiteFX::Rendering::Backends {
         virtual ~DirectX12Surface() noexcept;
     };
 
-    template <typename TParent>
-    class LITEFX_DIRECTX12_API DirectX12RuntimeObject {
-    private:
-        const TParent& m_parent;
-        const DirectX12Device* m_device;
-
-    public:
-        explicit DirectX12RuntimeObject(const TParent& parent, const DirectX12Device* device) :
-            m_parent(parent), m_device(device)
-        {
-            if (device == nullptr)
-                throw ArgumentNotInitializedException("The device must be initialized.");
-        }
-
-        DirectX12RuntimeObject(DirectX12RuntimeObject&&) = delete;
-        DirectX12RuntimeObject(const DirectX12RuntimeObject&) = delete;
-        virtual ~DirectX12RuntimeObject() noexcept = default;
-
-    public:
-        virtual const TParent& parent() const noexcept { return m_parent; }
-        virtual const DirectX12Device* getDevice() const noexcept { return m_device; };
-    };
-
     DEFINE_EXCEPTION(DX12PlatformException, std::runtime_error);
 
     template <typename TException, typename ...TArgs>
-    inline void raiseIfFailed(HRESULT hr, const std::string& message, TArgs&&... args) {
+    inline void raiseIfFailed(HRESULT hr, StringView message, TArgs&&... args) {
         if (SUCCEEDED(hr)) [[likely]]
             return;
 

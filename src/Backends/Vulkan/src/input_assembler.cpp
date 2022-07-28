@@ -1,10 +1,12 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/backends/vulkan_builders.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
+
 class VulkanInputAssembler::VulkanInputAssemblerImpl : public Implement<VulkanInputAssembler> {
 public:
     friend class VulkanInputAssembler;
@@ -47,14 +49,14 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssembler::VulkanInputAssembler(const VulkanDevice& device, Array<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
-    m_impl(makePimpl<VulkanInputAssemblerImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device)
+VulkanInputAssembler::VulkanInputAssembler(Array<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
+    m_impl(makePimpl<VulkanInputAssemblerImpl>(this))
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
-VulkanInputAssembler::VulkanInputAssembler(const VulkanDevice& device) noexcept :
-    m_impl(makePimpl<VulkanInputAssemblerImpl>(this)), VulkanRuntimeObject<VulkanDevice>(device, &device)
+VulkanInputAssembler::VulkanInputAssembler() noexcept :
+    m_impl(makePimpl<VulkanInputAssemblerImpl>(this))
 {
 }
 
@@ -85,6 +87,7 @@ const PrimitiveTopology& VulkanInputAssembler::topology() const noexcept
     return m_impl->m_primitiveTopology;
 }
 
+#if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -110,25 +113,19 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder(VulkanRenderPipelineBuilder& parent) noexcept :
-    m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler, VulkanRenderPipelineBuilder>(parent, SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler(*std::as_const(parent).instance()->getDevice())))
+VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() noexcept :
+    m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<VulkanInputAssemblerBuilder, VulkanInputAssembler>(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler()))
 {
 }
 
 VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
 
-VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::addVertexBuffer(const size_t& elementSize, const UInt32& binding)
+void VulkanInputAssemblerBuilder::build()
 {
-    return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(*this->instance(), elementSize, binding));
+    this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
 }
 
-VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withIndexType(const IndexType& type)
-{
-    this->use(makeUnique<VulkanIndexBufferLayout>(*this->instance(), type));
-    return *this;
-}
-
-VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::withTopology(const PrimitiveTopology& topology)
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::topology(const PrimitiveTopology& topology)
 {
     m_impl->m_primitiveTopology = topology;
     return *this;
@@ -144,8 +141,14 @@ void VulkanInputAssemblerBuilder::use(UniquePtr<VulkanIndexBufferLayout>&& layou
     m_impl->m_indexBufferLayout = std::move(layout);
 }
 
-VulkanRenderPipelineBuilder& VulkanInputAssemblerBuilder::go()
+VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(const size_t& elementSize, const UInt32& binding)
 {
-    this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
-    return InputAssemblerBuilder::go();
+    return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding));
 }
+
+VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::indexType(const IndexType& type)
+{
+    this->use(makeUnique<VulkanIndexBufferLayout>(type));
+    return *this;
+}
+#endif // defined(BUILD_DEFINE_BUILDERS)

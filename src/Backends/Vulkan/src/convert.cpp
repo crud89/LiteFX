@@ -2,7 +2,7 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-Format LiteFX::Rendering::Backends::getFormat(const VkFormat& format)
+Format LiteFX::Rendering::Backends::Vk::getFormat(const VkFormat& format)
 {
 	switch (format)
 	{
@@ -303,7 +303,7 @@ Format LiteFX::Rendering::Backends::getFormat(const VkFormat& format)
 	}
 }
 
-VkFormat LiteFX::Rendering::Backends::getFormat(const Format& format)
+VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const Format& format)
 {
 	switch (format)
 	{
@@ -604,7 +604,7 @@ VkFormat LiteFX::Rendering::Backends::getFormat(const Format& format)
 	}
 }
 
-VkFormat LiteFX::Rendering::Backends::getFormat(const BufferFormat& format)
+VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const BufferFormat& format)
 {
 	switch (format)
 	{
@@ -661,7 +661,7 @@ VkFormat LiteFX::Rendering::Backends::getFormat(const BufferFormat& format)
 	}
 }
 
-PolygonMode LiteFX::Rendering::Backends::getPolygonMode(const VkPolygonMode& mode)
+PolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const VkPolygonMode& mode)
 {
 	switch (mode)
 	{
@@ -676,7 +676,7 @@ PolygonMode LiteFX::Rendering::Backends::getPolygonMode(const VkPolygonMode& mod
 	}
 }
 
-VkPolygonMode LiteFX::Rendering::Backends::getPolygonMode(const PolygonMode& mode)
+VkPolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const PolygonMode& mode)
 {
 	switch (mode)
 	{
@@ -691,7 +691,7 @@ VkPolygonMode LiteFX::Rendering::Backends::getPolygonMode(const PolygonMode& mod
 	}
 }
 
-CullMode LiteFX::Rendering::Backends::getCullMode(const VkCullModeFlags& mode)
+CullMode LiteFX::Rendering::Backends::Vk::getCullMode(const VkCullModeFlags& mode)
 {
 	switch (mode)
 	{
@@ -708,7 +708,7 @@ CullMode LiteFX::Rendering::Backends::getCullMode(const VkCullModeFlags& mode)
 	}
 }
 
-VkCullModeFlags LiteFX::Rendering::Backends::getCullMode(const CullMode& mode)
+VkCullModeFlags LiteFX::Rendering::Backends::Vk::getCullMode(const CullMode& mode)
 {
 	switch (mode)
 	{
@@ -725,7 +725,7 @@ VkCullModeFlags LiteFX::Rendering::Backends::getCullMode(const CullMode& mode)
 	}
 }
 
-PrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const VkPrimitiveTopology& topology)
+PrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const VkPrimitiveTopology& topology)
 {
 	switch (topology)
 	{
@@ -744,7 +744,7 @@ PrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const VkPrim
 	}
 }
 
-VkPrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const PrimitiveTopology& topology)
+VkPrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const PrimitiveTopology& topology)
 {
 	switch (topology)
 	{
@@ -763,7 +763,7 @@ VkPrimitiveTopology LiteFX::Rendering::Backends::getPrimitiveTopology(const Prim
 	}
 }
 
-ShaderStage LiteFX::Rendering::Backends::getShaderStage(const VkShaderStageFlagBits& shaderType)
+ShaderStage LiteFX::Rendering::Backends::Vk::getShaderStage(const VkShaderStageFlagBits& shaderType)
 {
 	switch (shaderType)
 	{
@@ -784,7 +784,7 @@ ShaderStage LiteFX::Rendering::Backends::getShaderStage(const VkShaderStageFlagB
 	}
 }
 
-VkShaderStageFlagBits LiteFX::Rendering::Backends::getShaderStage(const ShaderStage& shaderType)
+VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(const ShaderStage& shaderType)
 {
 	switch (shaderType)
 	{
@@ -806,7 +806,7 @@ VkShaderStageFlagBits LiteFX::Rendering::Backends::getShaderStage(const ShaderSt
 	}
 }
 
-MultiSamplingLevel LiteFX::Rendering::Backends::getSamples(const VkSampleCountFlagBits& samples)
+MultiSamplingLevel LiteFX::Rendering::Backends::Vk::getSamples(const VkSampleCountFlagBits& samples)
 {
 	switch (samples)
 	{
@@ -829,7 +829,7 @@ MultiSamplingLevel LiteFX::Rendering::Backends::getSamples(const VkSampleCountFl
 	}
 }
 
-VkImageType LiteFX::Rendering::Backends::getImageType(const ImageDimensions& dimension)
+VkImageType LiteFX::Rendering::Backends::Vk::getImageType(const ImageDimensions& dimension)
 {
 	switch (dimension)
 	{
@@ -845,7 +845,7 @@ VkImageType LiteFX::Rendering::Backends::getImageType(const ImageDimensions& dim
 	}
 }
 
-VkImageViewType LiteFX::Rendering::Backends::getImageViewType(const ImageDimensions& dimension, const UInt32& layers)
+VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(const ImageDimensions& dimension, const UInt32& layers)
 {
 	switch (dimension)
 	{
@@ -862,7 +862,7 @@ VkImageViewType LiteFX::Rendering::Backends::getImageViewType(const ImageDimensi
 	}
 }
 
-VkSampleCountFlagBits LiteFX::Rendering::Backends::getSamples(const MultiSamplingLevel& samples)
+VkSampleCountFlagBits LiteFX::Rendering::Backends::Vk::getSamples(const MultiSamplingLevel& samples)
 {
 	switch (samples)
 	{
@@ -885,7 +885,7 @@ VkSampleCountFlagBits LiteFX::Rendering::Backends::getSamples(const MultiSamplin
 	}
 }
 
-VkCompareOp LiteFX::Rendering::Backends::getCompareOp(const CompareOperation& compareOp)
+VkCompareOp LiteFX::Rendering::Backends::Vk::getCompareOp(const CompareOperation& compareOp)
 {
 	switch (compareOp) {
 	case CompareOperation::Never: return VkCompareOp::VK_COMPARE_OP_NEVER;
@@ -900,7 +900,7 @@ VkCompareOp LiteFX::Rendering::Backends::getCompareOp(const CompareOperation& co
 	}
 }
 
-VkStencilOp LiteFX::Rendering::Backends::getStencilOp(const StencilOperation& stencilOp)
+VkStencilOp LiteFX::Rendering::Backends::Vk::getStencilOp(const StencilOperation& stencilOp)
 {
 	switch (stencilOp) {
 	case StencilOperation::Keep: return VkStencilOp::VK_STENCIL_OP_KEEP;
@@ -915,7 +915,7 @@ VkStencilOp LiteFX::Rendering::Backends::getStencilOp(const StencilOperation& st
 	}
 }
 
-VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::getBlendFactor(const BlendFactor& blendFactor)
+VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendFactor(const BlendFactor& blendFactor)
 {
 	switch (blendFactor) {
 	case BlendFactor::Zero: return VkBlendFactor::VK_BLEND_FACTOR_ZERO;
@@ -941,7 +941,7 @@ VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::getBlendFactor(cons
 	}
 }
 
-VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::getBlendOperation(const BlendOperation& blendOperation)
+VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendOperation(const BlendOperation& blendOperation)
 {
 	switch (blendOperation) {
 	case BlendOperation::Add: return VkBlendOp::VK_BLEND_OP_ADD;
@@ -953,7 +953,7 @@ VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::getBlendOperation(const
 	}
 }
 
-VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::getImageLayout(const ResourceState& resourceState) 
+VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(const ResourceState& resourceState)
 {
 	switch (resourceState) {
 	case ResourceState::Common: return VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED;
@@ -971,7 +971,7 @@ VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::getImageLayout(cons
 	}
 }
 
-VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::getAccessFlags(const ResourceState& resourceState)
+VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getAccessFlags(const ResourceState& resourceState)
 {
 	switch (resourceState) {
 	case ResourceState::Common: return 0; //return VkAccessFlagBits::VK_ACCESS_NONE_KHR;
