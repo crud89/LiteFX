@@ -197,6 +197,11 @@ BackendType VulkanBackend::type() const noexcept
     return BackendType::Rendering;
 }
 
+String VulkanBackend::name() const noexcept
+{
+    return "Vulkan";
+}
+
 void VulkanBackend::activate()
 {
     this->state() = BackendState::Active;

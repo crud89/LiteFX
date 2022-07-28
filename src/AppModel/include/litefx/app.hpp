@@ -39,6 +39,12 @@ namespace LiteFX {
 		/// <seealso cref="BackendState" />
 		const BackendState& state() const noexcept { return m_state; }
 
+		/// <summary>
+		/// Gets the name of the backend.
+		/// </summary>
+		/// <returns>The name of the backend.</returns>
+		virtual String name() const noexcept = 0;
+
 	protected:
 		/// <summary>
 		/// Returns the state of the backend.

@@ -90,6 +90,11 @@ BackendType DirectX12Backend::type() const noexcept
     return BackendType::Rendering;
 }
 
+String DirectX12Backend::name() const noexcept
+{
+    return "DirectX 12";
+}
+
 void DirectX12Backend::activate()
 {
     this->state() = BackendState::Active;

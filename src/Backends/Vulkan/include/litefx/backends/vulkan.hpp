@@ -1609,6 +1609,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual BackendType type() const noexcept override;
 
+		/// <inheritdoc />
+		virtual String name() const noexcept override;
+
 	protected:
 		/// <inheritdoc />
 		virtual void activate() override;
