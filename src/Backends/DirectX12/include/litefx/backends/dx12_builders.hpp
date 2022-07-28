@@ -265,7 +265,7 @@ namespace LiteFX::Rendering::Backends {
 
 		// PushConstantsLayoutBuilder interface.
 	public:
-		virtual DirectX12PushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
+		virtual DirectX12PushConstantsLayoutBuilder& withRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
 	};
 
 	/// <summary>

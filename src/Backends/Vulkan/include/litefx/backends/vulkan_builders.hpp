@@ -267,7 +267,7 @@ namespace LiteFX::Rendering::Backends {
 		// PushConstantsLayoutBuilder interface.
 	public:
 		/// <inheritdoc />
-		virtual VulkanPushConstantsLayoutBuilder& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
+		virtual VulkanPushConstantsLayoutBuilder& withRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) override;
 	};
 
 	/// <summary>

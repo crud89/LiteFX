@@ -129,7 +129,7 @@ void DirectX12PushConstantsLayoutBuilder::build()
     instance->m_impl->setRanges(std::move(m_impl->m_ranges));
 }
 
-DirectX12PushConstantsLayoutBuilder& DirectX12PushConstantsLayoutBuilder::addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
+DirectX12PushConstantsLayoutBuilder& DirectX12PushConstantsLayoutBuilder::withRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
 {
     m_impl->m_ranges.push_back(makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding));
     return *this;

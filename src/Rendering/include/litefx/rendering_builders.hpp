@@ -273,7 +273,7 @@ namespace LiteFX::Rendering {
         /// <param name="size">The size of the range.</param>
         /// <param name="space">The descriptor space, the range is bound to.</param>
         /// <param name="binding">The binding point for the range.</param>
-        virtual TDerived& addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) = 0;
+        virtual TDerived& withRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) = 0;
     };
 
     /// <summary>

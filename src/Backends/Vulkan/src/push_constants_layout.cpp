@@ -136,7 +136,7 @@ void VulkanPushConstantsLayoutBuilder::build()
     this->instance()->m_impl->setRanges(std::move(m_impl->m_ranges));
 }
 
-VulkanPushConstantsLayoutBuilder& VulkanPushConstantsLayoutBuilder::addRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
+VulkanPushConstantsLayoutBuilder& VulkanPushConstantsLayoutBuilder::withRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
 {
     m_impl->m_ranges.push_back(makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding));
     return *this;
