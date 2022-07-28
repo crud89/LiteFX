@@ -199,8 +199,8 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 	barrier.subresourceRange.baseArrayLayer = 0;
 	barrier.subresourceRange.layerCount = image.layers();
 	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = image.levels();
-	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier.subresourceRange.levelCount = image.levels() - 1;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	barrier.newLayout = layout;
 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
