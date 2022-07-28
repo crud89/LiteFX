@@ -1064,14 +1064,16 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
-    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline> requires
+    /// <typeparam name="TBarrier">The type of the memory barrier. Must implement <see cref="Barrier" />.</typeparam>
+    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TBarrier> requires
         rtti::implements<TSurface, ISurface> &&
         rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
         rtti::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
         rtti::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
         rtti::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type>> &&
         rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
-        rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>>
+        rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
+        rtti::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
     class GraphicsDevice : public IGraphicsDevice {
     public:
         using surface_type = TSurface;
@@ -1080,6 +1082,7 @@ namespace LiteFX::Rendering {
         using command_queue_type = TCommandQueue;
         using command_buffer_type = command_queue_type::command_buffer_type;
         using factory_type = TFactory;
+        using barrier_type = TBarrier;
         using descriptor_layout_type = factory_type::descriptor_layout_type;
         using vertex_buffer_type = factory_type::vertex_buffer_type;
         using index_buffer_type = factory_type::index_buffer_type;
@@ -1126,6 +1129,14 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual const command_queue_type& computeQueue() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<barrier_type> makeBarrier() const noexcept = 0;
+
+    private:
+        virtual UniquePtr<IBarrier> getNewBarrier() const noexcept override {
+            return this->makeBarrier();
+        }
 
 #if defined(BUILD_DEFINE_BUILDERS)
     public:
@@ -1208,7 +1219,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TBackend">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
     template <typename TBackend, typename TGraphicsDevice> requires
-        rtti::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type>>
+        rtti::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::barrier_type>>
     class RenderBackend : public IRenderBackend {
     public:
         using device_type = TGraphicsDevice;
@@ -1218,6 +1229,7 @@ namespace LiteFX::Rendering {
         using command_queue_type = device_type::command_queue_type;
         using command_buffer_type = device_type::command_buffer_type;
         using factory_type = device_type::factory_type;
+        using barrier_type = device_type::barrier_type;
         using descriptor_layout_type = factory_type::descriptor_layout_type;
         using vertex_buffer_type = factory_type::vertex_buffer_type;
         using index_buffer_type = factory_type::index_buffer_type;

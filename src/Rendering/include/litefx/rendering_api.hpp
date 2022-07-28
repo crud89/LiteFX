@@ -4511,6 +4511,14 @@ namespace LiteFX::Rendering {
         virtual const ICommandQueue& computeQueue() const noexcept = 0;
 
         /// <summary>
+        /// Creates a memory barrier instance.
+        /// </summary>
+        /// <returns>The instance of the memory barrier.</returns>
+        UniquePtr<IBarrier> makeBarrier() const noexcept {
+            return this->getNewBarrier();
+        }
+
+        /// <summary>
         /// Queries the device for the maximum supported number of multi-sampling levels.
         /// </summary>
         /// <remarks>
@@ -4530,6 +4538,9 @@ namespace LiteFX::Rendering {
         /// may safely be released.
         /// </remarks>
         virtual void wait() const = 0;
+
+    private:
+        virtual UniquePtr<IBarrier> getNewBarrier() const noexcept = 0;
     };
 
     /// <summary>

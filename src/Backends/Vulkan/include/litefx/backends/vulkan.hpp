@@ -1420,7 +1420,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan graphics device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline>, public Resource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanBarrier>, public Resource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -1488,6 +1488,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const VulkanQueue& computeQueue() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UniquePtr<VulkanBarrier> makeBarrier() const noexcept override;
 
 		/// <inheritdoc />
 		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;

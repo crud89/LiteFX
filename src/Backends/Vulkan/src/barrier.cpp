@@ -239,7 +239,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
     });
 
     // Create the image barriers.
-    Array<VkImageMemoryBarrier> imageBarriers(m_impl->m_buffers.size());
+    Array<VkImageMemoryBarrier> imageBarriers(m_impl->m_images.size());
     std::ranges::generate(imageBarriers, [this, &lastStageToProduce, &firstStageToConsume, i = 0]() mutable {
         auto& imageElement = m_impl->m_images[i++];
         auto& image = std::get<0>(imageElement);

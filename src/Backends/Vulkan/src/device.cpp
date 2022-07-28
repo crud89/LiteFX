@@ -399,6 +399,11 @@ const VulkanQueue& VulkanDevice::computeQueue() const noexcept
 	return *m_impl->m_computeQueue;
 }
 
+UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier() const noexcept
+{
+	return makeUnique<VulkanBarrier>();
+}
+
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept
 {
 	auto limits = m_impl->m_adapter.limits();

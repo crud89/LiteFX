@@ -435,6 +435,11 @@ const DirectX12Queue& DirectX12Device::computeQueue() const noexcept
 	return *m_impl->m_computeQueue;
 }
 
+UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier() const noexcept
+{
+	return makeUnique<DirectX12Barrier>();
+}
+
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& format) const noexcept
 {
 	constexpr std::array<MultiSamplingLevel, 7> allLevels = { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
