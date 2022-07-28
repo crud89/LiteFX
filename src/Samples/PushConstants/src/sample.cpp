@@ -111,7 +111,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
                 .withUniform(0, sizeof(CameraBuffer))
                 .add()
             .pushConstants(sizeof(ObjectBuffer))
-                .addRange(ShaderStage::Vertex, 0, sizeof(ObjectBuffer), 1, 0)
+                .withRange(ShaderStage::Vertex, 0, sizeof(ObjectBuffer), 1, 0)
                 .add())
         .shaderProgram(device->buildShaderProgram()
             .withVertexShaderModule("shaders/push_constants_vs." + FileExtensions<TRenderBackend>::SHADER)
