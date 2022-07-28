@@ -12,45 +12,32 @@ An extensible, descriptive, modern computer graphics and rendering engine, writt
 
 [LiteFX](https://litefx.crudolph.io) is a computer graphics engine, that can be used to quick-start developing applications using Vulkan 🌋 and/or DirectX 12 ❎ rendering APIs. It provides a flexible abstraction layer over modern graphics pipelines. Furthermore, it can easily be build and integrated using CMake. It naturally extents build scripts with functions that can be used to handle assets and compile shaders † and model dependencies to both.
 
-The engine design follows an descriptive approach, which means that an application focuses on configuring what it needs and the engine then takes care of handling those requirements. To support this, the API also provides a fluent interface. Here is an example of how to easily setup a render pass graphics pipeline with a few lines of code:
+The engine design follows an descriptive approach, which means that an application focuses on configuring what it needs and the engine then takes care of handling those requirements. To support this, the API also provides a fluent builder interface. Here is an example of how to easily setup a render pass graphics pipeline with a few lines of code:
 
 ```cxx
-auto renderPass = device->buildRenderPass()
+UniquePtr<RenderPass> renderPass = device->buildRenderPass("Geometry")
     .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false)
-    .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false)
-    .go();
+    .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false);
 
-auto pipeline = renderPass->makePipeline(0, "Basic Pipeline")
-    .withViewport(viewport)
-    .withScissor(scissor)
-    .layout()
-        .shaderProgram()
-            .addVertexShaderModule("shaders/vs.dxi")
-            .addFragmentShaderModule("shaders/ps.dxi")
-            .go()
-        .addDescriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
-            .addUniform(0, sizeof(CameraBuffer))
-            .addImage(1)
-            .go()
-        .addDescriptorSet(1, ShaderStage::Fragment)
-            .addSampler(0)
-            .go()
-        .go()
-    .rasterizer()
-        .withPolygonMode(PolygonMode::Solid)
-        .withCullMode(CullMode::BackFaces)
-        .withCullOrder(CullOrder::ClockWise)
-        .withLineWidth(lineWidth)
-        .go()
-    .inputAssembler()
-        .withTopology(PrimitiveTopology::TriangleList)
-        .withIndexType(IndexType::UInt16)
-        .addVertexBuffer(sizeof(Vertex), binding)
-            .addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-            .addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
-            .go()
-        .go()
-    .go();
+UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
+    .viewport(viewport)
+    .scissor(scissor)
+    .inputAssembler(inputAssembler)
+    .rasterizer(device->buildRasterizer()
+        .polygonMode(PolygonMode::Solid)
+        .cullMode(CullMode::BackFaces)
+        .cullOrder(CullOrder::ClockWise)
+        .lineWidth(1.f))
+    .layout(device->buildPipelineLayout()
+        .descriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
+            .withUniform(0, sizeof(CameraBuffer))
+            .add()
+        .descriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
+            .withUniform(0, sizeof(TransformBuffer))
+            .add())
+    .shaderProgram(device->buildShaderProgram()
+        .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER));
 ```
 
 LiteFX is written in modern C++20, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
