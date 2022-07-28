@@ -187,7 +187,7 @@ auto surface = backend->createSurface([this](const VkInstance& instance) {
 	return surface;
 });
 
-// For DX12:
+// For DX12 (and Vulkan under Windows):
 auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(m_window));
 ```
 
@@ -227,8 +227,7 @@ The other values that are provided to a render target are:
 
 ```cxx
 m_renderPass = m_device->buildRenderPass()
-	.renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false)
-	.go();
+	.renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false);
 ```
 
 #### Creating a Render Pipeline
@@ -243,7 +242,7 @@ Furthermore, each pipeline can be assigned an ID, which must be unique for the r
 m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
-m_pipeline = m_renderPass->makePipeline(0, "Basic Pipeline")
+m_pipeline = m_renderPass->buildRenderPipeline("Basic Pipeline")
 	.withViewport(m_viewport)
 	.withScissor(m_scissor)
 ```
@@ -255,14 +254,13 @@ Next we tell our pipeline how to handle geometry inputs. Geometry is described b
 Finally, we define out vertex buffer layout. This means, that we tell the input assembler state about the memory layout of a single vertex. We use the `Vertex` object, defined in the `LiteFX::Graphics` namespace, but it is possible to use a custom structure, too. Each property is of the vertex is mapped to an attribute, which describes the memory layout of the property and where to find it within the buffer. Furthermore, it tells the renderer, where the attribute should be bound to. For example, the `Position` property of the vertex object is a 3-component 32-bit float vector, so its format is `XYZ32F`. In the shader, the position is the first element of the vertex, so we set its location to `0`.
 
 ```cxx
-	.inputAssembler()
+    .inputAssembler(device->buildInputAssembler()
 		.withTopology(PrimitiveTopology::TriangleList)
 		.withIndexType(IndexType::UInt16)
-		.addVertexBuffer(sizeof(Vertex), 0)
-			.addAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-			.addAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-			.go()
-		.go()
+		.vertexBuffer(sizeof(Vertex), 0)
+			.withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+			.withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+			.add())
 ```
 
 ##### Rasterizer State
@@ -270,23 +268,20 @@ Finally, we define out vertex buffer layout. This means, that we tell the input 
 Next, we tell the pipeline about how those primitives (i.e. triangles in our example) should be drawn. We want to draw solid faces, so we set the `PolygonMode` to `Solid`. Another property of the rasterizer state is the face culling state. First, we set the order of vertices, which dictates which side of the primitive is interpreted as *front* and which one is the *back*. We set the `CullOrder` to `ClockWise` to tell the pipeline to treat this ordering as *front face*. Finally, we tell the pipeline  to draw both sides of a polygon, by setting the `CullMode` to `Disabled`.
 
 ```cxx
-	.rasterizer()
+	.rasterizer(device->buildRasterizer()
 		.withPolygonMode(PolygonMode::Solid)
 		.withCullOrder(CullOrder::ClockWise)
-		.withCullMode(CullMode::Disabled)
-		.go()
+		.withCullMode(CullMode::Disabled))
 ```
 
 ##### Render Pipeline Layout
 
-Each pipeline is defined using a *Pipeline Layout*. The layout stores meta-data about the pipeline state. This includes the shader program to use and the how the buffers are addressed by this shader. We start by defining the shader program, which in our simple example should contain two stages: *Vertex* and *Fragment* shaders (those are also called *Pixel* shaders in DirectX). A program is built from multiple modules, where each module type may only exist once within a program. The modules are loaded from files and must be in a compatible binary format. For Vulkan this format is *SPIR-V*, for DirectX it's *DXIL*. We define those shaders later, for now it is only important that they are written to the *shaders* directory and called *vs.spv* (vertex shader) and *fs.spv* (fragment shader).
+Each pipeline is defined using a *Shader Program* and a *Pipeline Layout*. We start by defining the shader program, which in our simple example should contain two stages: *Vertex* and *Fragment* shaders (those are also called *Pixel* shaders in DirectX). A program is built from multiple modules, where each module type may only exist once within a program. The modules are loaded from files and must be in a compatible binary format. For Vulkan this format is *SPIR-V*, for DirectX it's *DXIL*. We define those shaders later, for now it is only important that they are written to the *shaders* directory and called *vs.spv* (vertex shader) and *fs.spv* (fragment shader).
 
 ```cxx
-	.layout()
-		.shaderProgram()
-			.addVertexShaderModule("shaders/vs.spv")		// .dxi for DXIL
-			.addFragmentShaderModule("shaders/fs.spv")
-			.go()
+	.shaderProgram(device->buildShaderProgram()
+		.withVertexShaderModule("shaders/vs.spv")		// .dxi for DXIL
+		.withFragmentShaderModule("shaders/fs.spv"))
 ```
 
 Finally we need to tell the pipeline layout about the buffers that are used by the shader. Buffers are grouped into descriptor sets. Each descriptor set can contain multiple buffers and is visible to a pre-defined range of shader stages. Each buffer is bound to a certain location within the descriptor set. It is a good pracitce to group buffers into descriptor sets, based on update frequency. We have two buffers in our example, that are updated in different frequencies:
@@ -297,14 +292,13 @@ Finally we need to tell the pipeline layout about the buffers that are used by t
 For now, we will only define the descriptor sets and take a look at the `CameraBuffer` and `TransformBuffer` objects later.
 
 ```cxx
-		.addDescriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
-			.addUniform(0, sizeof(CameraBuffer))
-			.go()
-		.addDescriptorSet(1, ShaderStage::Vertex)
-			.addUniform(0, sizeof(TransformBuffer))
-			.go()
-		.go()	// Build pipeline layout.
-	.go();	// Build render pipeline.
+	.layout(device->buildPipelineLayout()
+		.descriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
+			.withUniform(0, sizeof(CameraBuffer))
+			.add()
+		.descriptorSet(1, ShaderStage::Vertex)
+			.withUniform(0, sizeof(TransformBuffer))
+			.add())
 ```
 
 For more details about buffers and descriptor sets, kindly refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Resource-Bindings) or read the API documentation about descriptor sets.
@@ -488,7 +482,7 @@ Note that we are using *glm* to store the matrix here, but you can use any other
 Next, we create the two buffers that should store the camera data:
 
 ```cxx
-auto& cameraBindingLayout = m_pipeline->layout().descriptorSet(0);
+auto& cameraBindingLayout = m_pipeline->layout()->descriptorSet(0);
 auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
 m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
 m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
@@ -546,7 +540,7 @@ struct TransformBuffer {
 Next, we create three `Dynamic` buffers and map them to the descriptor set at space *1* that holds the per-frame transform buffer descriptors. There are three buffers, since we have three *frames in flight*, i.e. three frames that are computed concurrently. This equals the number of back-buffers in the swap chain, we created earlier. Since we have three buffers, we also need three descriptor sets, each containing a descriptor that points to the buffer for the current frame. The three buffers are stored in one *buffer array* with three elements, so each descriptor points to an individual element in the transform buffer array.
 
 ```cxx
-auto& transformBindingLayout = m_pipeline->layout().descriptorSet(1);
+auto& transformBindingLayout = m_pipeline->layout()->descriptorSet(1);
 auto& transformBufferLayout = transformBindingLayout.descriptor(0);
 m_perFrameBindings = transformBindingLayout.allocate(3);
 m_transformBuffer = m_device->factory().createConstantBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
