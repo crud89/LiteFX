@@ -189,7 +189,9 @@ void SampleApp::loadTexture(UniquePtr<IImage>& texture, UniquePtr<ISampler>& sam
         throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
 
     // Create the texture from the constant buffer descriptor set, since we only load the texture once and use it for all frames.
-    texture = m_device->factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2);
+    // NOTE: For Vulkan, the texture does not need to be writable, however DX12 does not support mip-map generation out of the box. This functionality is emulated
+    //       in the backend using a compute shader, that needs to write back to the texture.
+    texture = m_device->factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, true);
 
     // Create a staging buffer for the first mip-map of the texture.
     auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, texture->size(0));
@@ -200,9 +202,7 @@ void SampleApp::loadTexture(UniquePtr<IImage>& texture, UniquePtr<ISampler>& sam
     commandBuffer->transfer(*stagedTexture, *texture);
 
     // Generate the rest of the mip maps.
-    // NOTE: Vulkan does not like it, if the texture is writable here; DX12 requires it. Also transitioning from UAV->SRV is not yet 
-    //       supported in DX12. Instead you have to copy from a writable into another texture, that is read-only.
-    //commandBuffer->generateMipMaps(*texture);
+    commandBuffer->generateMipMaps(*texture);
 
     // Transition the texture into a shader-visible resource.
     auto barrier = m_device->makeBarrier();
