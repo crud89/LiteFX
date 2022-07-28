@@ -61,7 +61,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.f, 0.f, 0.f, 1.f }, true, false, false)
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
         .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false);
 
     // Create a render pipeline.
@@ -174,42 +174,14 @@ void SampleApp::run()
     m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
-    // Register the Vulkan backend de-/initializer.
-    this->onBackendStart<VulkanBackend>([this, &window](auto backend) {
+    // Create a callback for backend startup and shutdown.
+    auto startCallback = [this, &window]<typename TBackend>(TBackend* backend) {
         auto adapter = backend->findAdapter(m_adapterId);
 
         if (adapter == nullptr)
             adapter = backend->findAdapter(std::nullopt);
 
-        auto surface = backend->createSurface([&window](const VkInstance& instance) {
-            VkSurfaceKHR surface;
-            raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, window, nullptr, &surface), "Unable to create GLFW window surface.");
-
-            return surface;
-        });
-
-        // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_SRGB, m_viewport->getRectangle().extent(), 3);
-
-        // Initialize resources.
-        ::initRenderGraph(backend, m_viewport, m_scissor, m_inputAssembler);
-        this->initBuffers(backend);
-
-        return true;
-    });
-
-    this->onBackendStop<VulkanBackend>([this](auto backend) {
-        backend->releaseDevice("Default");
-    });
-
-    // Register the DirectX 12 backend de-/initializer.
-    this->onBackendStart<DirectX12Backend>([this, &window](auto backend) {
-        auto adapter = backend->findAdapter(m_adapterId);
-
-        if (adapter == nullptr)
-            adapter = backend->findAdapter(std::nullopt);
-
-        auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(window));
+        auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
         m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
@@ -219,11 +191,19 @@ void SampleApp::run()
         this->initBuffers(backend);
 
         return true;
-    });
+    };
 
-    this->onBackendStop<DirectX12Backend>([this](auto backend) {
+    auto stopCallback = []<typename TBackend>(TBackend * backend) {
         backend->releaseDevice("Default");
-    });
+    };
+
+    // Register the Vulkan backend de-/initializer.
+    this->onBackendStart<VulkanBackend>(startCallback);
+    this->onBackendStop<VulkanBackend>(stopCallback);
+
+    // Register the DirectX 12 backend de-/initializer.
+    this->onBackendStart<DirectX12Backend>(startCallback);
+    this->onBackendStop<DirectX12Backend>(stopCallback);
 
     // Start with the Vulkan backend.
     this->startBackend<VulkanBackend>();
