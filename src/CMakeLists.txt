@@ -46,6 +46,7 @@ IF(BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/BasicRendering)
     ADD_SUBDIRECTORY(Samples/RenderPasses)
     ADD_SUBDIRECTORY(Samples/PushConstants)
+    ADD_SUBDIRECTORY(Samples/UniformArrays)
 ENDIF(BUILD_EXAMPLES)
 
 # Install license notice.
