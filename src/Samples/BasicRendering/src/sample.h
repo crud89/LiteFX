@@ -16,6 +16,14 @@
 #include <GLFW/glfw3native.h>
 #include <memory>
 
+#include "config.h"
+
+#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+#include <renderdoc_app.h>
+
+extern RENDERDOC_API_1_5_0* renderDoc;
+#endif
+
 using namespace LiteFX;
 using namespace LiteFX::Rendering;
 using namespace LiteFX::Rendering::Backends;

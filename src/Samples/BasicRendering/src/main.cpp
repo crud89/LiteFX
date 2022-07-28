@@ -38,7 +38,26 @@ bool loadPixCapturer()
 
 	return true;
 }
-#endif
+#endif // BUILD_EXAMPLES_DX12_PIX_LOADER
+
+#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+RENDERDOC_API_1_5_0* renderDoc = nullptr;
+
+bool loadRenderDocApi()
+{
+	HMODULE renderDocModule = ::GetModuleHandleW(L"renderdoc.dll");
+
+	if (renderDocModule != 0)
+	{
+		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)::GetProcAddress(renderDocModule, "RENDERDOC_GetAPI");
+		int result = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, reinterpret_cast<void**>(&::renderDoc));
+
+		return result == 1;
+	}
+
+	return false;
+}
+#endif // BUILD_EXAMPLES_RENDERDOC_LOADER
 
 int main(const int argc, const char** argv)
 {
@@ -65,7 +84,12 @@ int main(const int argc, const char** argv)
 #ifdef BUILD_EXAMPLES_DX12_PIX_LOADER
 	bool loadPix{ false };
 	app.add_option("--dx-load-pix", loadPix)->take_first();
-#endif
+#endif // BUILD_EXAMPLES_DX12_PIX_LOADER
+
+#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+	bool loadRenderDoc{ false };
+	app.add_option("--load-render-doc", loadRenderDoc)->take_first();
+#endif // BUILD_EXAMPLES_RENDERDOC_LOADER
 
 	try
 	{
@@ -79,7 +103,12 @@ int main(const int argc, const char** argv)
 #ifdef BUILD_EXAMPLES_DX12_PIX_LOADER
 	if (loadPix && !loadPixCapturer())
 		std::cout << "No PIX distribution found. Make sure you have installed PIX for Windows." << std::endl;
-#endif
+#endif // BUILD_EXAMPLES_DX12_PIX_LOADER
+
+#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+	if (loadRenderDoc && !loadRenderDocApi())
+		std::cout << "RenderDoc API could not be loaded. Make sure you have version 1.5 or higher installed on your system." << std::endl;
+#endif // BUILD_EXAMPLES_RENDERDOC_LOADER
 
 	// Turn the validation layers into a list.
 	Array<String> enabledLayers;
