@@ -31,8 +31,12 @@ struct FileExtensions {
     static const String SHADER;
 };
 
+#ifdef BUILD_VULKAN_BACKEND
 const String FileExtensions<VulkanBackend>::SHADER = "spv";
+#endif // BUILD_VULKAN_BACKEND
+#ifdef BUILD_DIRECTX_12_BACKEND
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
+#endif // BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
@@ -197,23 +201,32 @@ void SampleApp::run()
         backend->releaseDevice("Default");
     };
 
+#ifdef BUILD_VULKAN_BACKEND
     // Register the Vulkan backend de-/initializer.
     this->onBackendStart<VulkanBackend>(startCallback);
     this->onBackendStop<VulkanBackend>(stopCallback);
+#endif // BUILD_VULKAN_BACKEND
 
+#ifdef BUILD_DIRECTX_12_BACKEND
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
+#endif // BUILD_DIRECTX_12_BACKEND
 
-    // Start with the Vulkan backend.
-    this->startBackend<VulkanBackend>();
-
-    // Run application loop until the window is closed.
-    while (!::glfwWindowShouldClose(window))
+    // Start the first registered rendering backend.
+    auto backends = this->getBackends(BackendType::Rendering);
+    
+    if (!backends.empty())
     {
-        this->handleEvents();
-        this->drawFrame();
-        this->updateWindowTitle();
+        this->startBackend(typeid(*backends[0]));
+
+        // Run application loop until the window is closed.
+        while (!::glfwWindowShouldClose(window))
+        {
+            this->handleEvents();
+            this->drawFrame();
+            this->updateWindowTitle();
+        }
     }
 
     // Destroy the window.
@@ -269,11 +282,15 @@ void SampleApp::resize(int width, int height)
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
 {
+#ifdef BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
         this->startBackend<VulkanBackend>();
-    
+#endif // BUILD_VULKAN_BACKEND
+
+#ifdef BUILD_DIRECTX_12_BACKEND
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
         this->startBackend<DirectX12Backend>();
+#endif // BUILD_DIRECTX_12_BACKEND
 }
 
 void SampleApp::updateWindowTitle()
@@ -282,10 +299,7 @@ void SampleApp::updateWindowTitle()
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-
-    title << this->name() << " | " <<
-        "Backend: " << (this->activeBackendType(BackendType::Rendering) == typeid(VulkanBackend) ? "Vulkan" : "DirectX 12") << " | " <<
-        (1000.0f / frameTime) << " FPS";
+    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << (1000.0f / frameTime) << " FPS";
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();

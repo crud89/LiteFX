@@ -145,8 +145,13 @@ int main(const int argc, const char** argv)
 		UniquePtr<App> app = App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
+#ifdef BUILD_VULKAN_BACKEND
 			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
-			.useBackend<DirectX12Backend>();
+#endif // BUILD_VULKAN_BACKEND
+#ifdef BUILD_DIRECTX_12_BACKEND
+			.useBackend<DirectX12Backend>()
+#endif // BUILD_DIRECTX_12_BACKEND
+			;
 
 		app->run();
 	}
