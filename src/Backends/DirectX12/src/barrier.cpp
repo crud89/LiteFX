@@ -78,12 +78,16 @@ void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& s
 
 void DirectX12Barrier::waitFor(const IDirectX12Buffer& buffer)
 {
-	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(buffer.handle().Get()));
+	// We cannot wait for read-only resources.
+	if (buffer.writable())
+		m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(buffer.handle().Get()));
 }
 
 void DirectX12Barrier::waitFor(const IDirectX12Image& image)
 {
-	m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(image.handle().Get()));
+	// We cannot wait for read-only resources.
+	if (image.writable())
+		m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(image.handle().Get()));
 }
 
 void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const noexcept
