@@ -3,18 +3,27 @@ title: "Fluent Interface"
 weight: 2
 ---
 
-The explicit nature of modern graphics APIs can be pretty obstrusive. LiteFX offers a fluent interface that helps you to quickly configure commonly used objects, such as render passes, pipeline state and devices.
+The explicit nature of modern graphics APIs can be pretty obtrusive. LiteFX offers a fluent builder interface that helps you to quickly configure commonly used objects in a domain language. Here is an example:
 
 ```cxx
-auto pipeline = renderPass->makePipeline(0, "Basic Pipeline")
-    .layout()
-        .shaderProgram()
-            .addVertexShaderModule("shaders/vs.dxi")
-            .addFragmentShaderModule("shaders/ps.dxi")
-            .go()
-        .addDescriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
-            .addUniform(0, sizeof(CameraBuffer))
-            .addImage(1)
-            .go()
-// ...
+SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
+    .topology(PrimitiveTopology::TriangleList)
+    .indexType(IndexType::UInt16)
+    .vertexBuffer(sizeof(Vertex), 0)
+        .withAttribute(0, BufferFormat::XYZ32F, 
+            offsetof(Vertex, Position), AttributeSemantic::Position)
+        .withAttribute(1, BufferFormat::XYZW32F,
+            offsetof(Vertex, Color), AttributeSemantic::Color)
+        .add();
+
+UniquePtr<RenderPass> renderPass = device->
+    buildRenderPass("Render Pass")
+    .renderTarget(RenderTargetType::Present, 
+        Format::B8G8R8A8_UNORM, { 0.0f, 0.0f, 0.0f, 1.f })
+
+UniquePtr<RenderPipeline> renderPipeline = 
+    device->buildRenderPipeline(*renderPass, "Render Pipeline")
+    .viewport(viewport)
+    .scissor(scissor)
+    .inputAssembler(inputAssembler)
 ```
