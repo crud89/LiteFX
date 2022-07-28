@@ -190,7 +190,10 @@ public:
 			}) | ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
 		// Define the device features.
-		VkPhysicalDeviceFeatures deviceFeatures = {};
+		VkPhysicalDeviceFeatures deviceFeatures = {
+			.geometryShader = true,
+			.tessellationShader = true,
+		};
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
 			.timelineSemaphore = true
