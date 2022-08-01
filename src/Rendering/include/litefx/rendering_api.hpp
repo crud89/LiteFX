@@ -3260,8 +3260,17 @@ namespace LiteFX::Rendering {
             return this->getModules();
         }
 
+        /// <summary>
+        /// Uses shader reflection to extract the pipeline layout of a shader. May not be available in all backends.
+        /// </summary>
+        /// <returns>The pipeline layout extracted from shader reflection.</returns>
+        SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
+            return this->parsePipelineLayout();
+        };
+
     private:
         virtual Array<const IShaderModule*> getModules() const noexcept = 0;
+        virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const = 0;
     };
 
     /// <summary>

@@ -48,6 +48,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
     using Rasterizer = TRenderBackend::rasterizer_type;
+    using ShaderProgram = TRenderBackend::shader_program_type;
 
     // Get the default device.
     auto device = backend->device("Default");
@@ -68,6 +69,11 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
         .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
         .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false);
 
+    // Create the shader program.
+    SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
+        .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER);
+
     // Create a render pipeline.
     UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
         .viewport(viewport)
@@ -78,16 +84,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
             .cullMode(CullMode::BackFaces)
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f))
-        .layout(device->buildPipelineLayout()
-            .descriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
-                .withUniform(0, sizeof(CameraBuffer))
-                .add()
-            .descriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
-                .withUniform(0, sizeof(TransformBuffer))
-                .add())
-        .shaderProgram(device->buildShaderProgram()
-            .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
-            .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER));
+        .layout(shaderProgram->reflectPipelineLayout())
+        .shaderProgram(shaderProgram);
 
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));

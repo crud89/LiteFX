@@ -335,8 +335,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new Vulkan shader program.
 		/// </summary>
+		/// <param name="device">The parent device of the shader program.</param>
 		/// <param name="modules">The shader modules used by the shader program.</param>
-		explicit VulkanShaderProgram(Array<UniquePtr<VulkanShaderModule>>&& modules);
+		explicit VulkanShaderProgram(const VulkanDevice& device, Array<UniquePtr<VulkanShaderModule>>&& modules);
 		VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
 		VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
 		virtual ~VulkanShaderProgram() noexcept;
@@ -345,11 +346,19 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new Vulkan shader program.
 		/// </summary>
-		explicit VulkanShaderProgram() noexcept;
+		explicit VulkanShaderProgram(const VulkanDevice& device) noexcept;
 
 	public:
 		/// <inheritdoc />
 		virtual Array<const VulkanShaderModule*> modules() const noexcept override;
+
+		/// <inheritdoc />
+		virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout() const;
+
+	private:
+		virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
+			return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
+		}
 	};
 
 	/// <summary>

@@ -315,6 +315,14 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		/// <inheritdoc />
 		virtual Array<const DirectX12ShaderModule*> modules() const noexcept override;
+
+		/// <inheritdoc />
+		virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout() const;
+
+	private:
+		virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
+			return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
+		}
 	};
 
 	/// <summary>

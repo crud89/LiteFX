@@ -50,6 +50,11 @@ Array<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noex
         ranges::to<Array<const DirectX12ShaderModule*>>();
 }
 
+SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout() const
+{
+    throw;
+}
+
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Shader program builder implementation.
