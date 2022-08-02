@@ -356,7 +356,7 @@ public:
     }
 };
 
-static void suppressMissingRootSignatureWarning(bool disableWarning) noexcept
+void DirectX12ShaderProgram::suppressMissingRootSignatureWarning(bool disableWarning) noexcept
 {
     SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = disableWarning;
 }

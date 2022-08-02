@@ -302,21 +302,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const ShaderStage& type() const noexcept override;
-
-	public:
-		/// <summary>
-		/// Suppresses the warning that is issued, if no root signature is found on a shader module when calling <see cref="reflectPipelineLayout" />.
-		/// </summary>
-		/// <remarks>
-		/// When a shader program is asked to build a pipeline layout, it first checks if a root signature is provided within the shader bytecode. If no root signature could 
-		/// be found, it falls back to using plain reflection to extract the descriptor sets. This has the drawback, that some features are not or only partially supported.
-		/// Most notably, it is not possible to reflect a pipeline layout that uses push constants this way. To ensure that you are not missing the root signature by accident,
-		/// the engine warns you when it encounters this situation. However, if you are only using plain descriptor sets, this can result in noise warnings that clutter the 
-		/// log. You can call this function to disable the warnings explicitly.
-		/// </remarks>
-		/// <param name="disableWarning"><c>true</c> to stop issuing the warning or <c>false</c> to continue.</param>
-		/// <seealso cref="reflectPipelineLayout" />
-		static void suppressMissingRootSignatureWarning(bool disableWarning = true) noexcept;
 	};
 
 	/// <summary>
@@ -357,6 +342,21 @@ namespace LiteFX::Rendering::Backends {
 		virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
 			return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
 		}
+
+	public:
+		/// <summary>
+		/// Suppresses the warning that is issued, if no root signature is found on a shader module when calling <see cref="reflectPipelineLayout" />.
+		/// </summary>
+		/// <remarks>
+		/// When a shader program is asked to build a pipeline layout, it first checks if a root signature is provided within the shader bytecode. If no root signature could 
+		/// be found, it falls back to using plain reflection to extract the descriptor sets. This has the drawback, that some features are not or only partially supported.
+		/// Most notably, it is not possible to reflect a pipeline layout that uses push constants this way. To ensure that you are not missing the root signature by accident,
+		/// the engine warns you when it encounters this situation. However, if you are only using plain descriptor sets, this can result in noise warnings that clutter the 
+		/// log. You can call this function to disable the warnings explicitly.
+		/// </remarks>
+		/// <param name="disableWarning"><c>true</c> to stop issuing the warning or <c>false</c> to continue.</param>
+		/// <seealso cref="reflectPipelineLayout" />
+		static void suppressMissingRootSignatureWarning(bool disableWarning = true) noexcept;
 	};
 
 	/// <summary>
