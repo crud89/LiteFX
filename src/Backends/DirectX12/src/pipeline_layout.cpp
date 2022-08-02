@@ -28,6 +28,34 @@ public:
     {
     }
 
+private:
+    D3D12_FILTER getFilterMode(const FilterMode& minFilter, const FilterMode& magFilter, const MipMapMode& mipFilter, const Float& anisotropy = 0.f)
+    {
+        if (anisotropy > 0.f)
+            return D3D12_ENCODE_ANISOTROPIC_FILTER(D3D12_FILTER_REDUCTION_TYPE_STANDARD);
+        else
+        {
+            D3D12_FILTER_TYPE minType = minFilter == FilterMode::Nearest ? D3D12_FILTER_TYPE_POINT : D3D12_FILTER_TYPE_LINEAR;
+            D3D12_FILTER_TYPE magType = magFilter == FilterMode::Nearest ? D3D12_FILTER_TYPE_POINT : D3D12_FILTER_TYPE_LINEAR;
+            D3D12_FILTER_TYPE mipType = mipFilter == MipMapMode::Nearest ? D3D12_FILTER_TYPE_POINT : D3D12_FILTER_TYPE_LINEAR;
+
+            return D3D12_ENCODE_BASIC_FILTER(minType, magType, mipType, D3D12_FILTER_REDUCTION_TYPE_STANDARD);
+        }
+    }
+
+    D3D12_TEXTURE_ADDRESS_MODE getBorderMode(const BorderMode& mode)
+    {
+        switch (mode)
+        {
+        case BorderMode::Repeat: return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        case BorderMode::ClampToEdge: return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        case BorderMode::ClampToBorder: return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+        case BorderMode::RepeatMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+        case BorderMode::ClampToEdgeMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+        default: throw std::invalid_argument("Invalid border mode.");
+        }
+    }
+
 public:
     ComPtr<ID3D12RootSignature> initialize()
     {
@@ -36,6 +64,7 @@ public:
         Array<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
         Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
         bool hasInputAttachments = false;
+        bool hasInputAttachmentSampler = false;
         UInt32 rootParameterIndex{ 0 };
 
         LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
@@ -95,10 +124,41 @@ public:
                 case DescriptorType::WritableStorage:
                 case DescriptorType::WritableTexture:   descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
                 case DescriptorType::Sampler:
-                    if (stages != ShaderStage::Compute && range->binding() == 0 && space == 0)  // NOTE: This is valid for compute shaders and shaders in render passes without input attachments.
-                        LITEFX_WARNING(DIRECTX12_LOG, "Sampler bound to register 0 of space 0, which is reserved for input attachments. If your render pass does not have any input attachments, this is fine. You might still want to use another register or space, to disable this warning.");
+                    // Static samplers can be added without any restrictions.
+                    if (range->staticSampler() != nullptr)
+                    {
+                        // Remember, that there's a manually defined input attachment sampler.
+                        if (range->binding() == 0 && space == 0)
+                            hasInputAttachmentSampler = true;
 
-                    descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+                        auto sampler = range->staticSampler();
+
+                        D3D12_STATIC_SAMPLER_DESC samplerInfo = {
+                            .Filter = getFilterMode(sampler->getMinifyingFilter(), sampler->getMagnifyingFilter(), sampler->getMipMapMode(), sampler->getAnisotropy()),
+                            .AddressU = getBorderMode(sampler->getBorderModeU()),
+                            .AddressV = getBorderMode(sampler->getBorderModeV()),
+                            .AddressW = getBorderMode(sampler->getBorderModeW()),
+                            .MipLODBias = sampler->getMipMapBias(),
+                            .MaxAnisotropy = static_cast<UInt32>(sampler->getAnisotropy()),
+                            .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
+                            //.BorderColor = { 0.f, 0.f, 0.f, 0.f },
+                            .MinLOD = sampler->getMinLOD(),
+                            .MaxLOD = sampler->getMaxLOD(),
+                            .ShaderRegister = range->binding(),
+                            .RegisterSpace = space,
+                            .ShaderVisibility = shaderStages
+                        };
+
+                        staticSamplers.push_back(samplerInfo);
+                    }
+                    else
+                    {
+                        if (stages != ShaderStage::Compute && range->binding() == 0 && space == 0)  // NOTE: This is valid for compute shaders and shaders in render passes without input attachments.
+                            LITEFX_WARNING(DIRECTX12_LOG, "Sampler bound to register 0 of space 0, which is reserved for input attachment samplers. If your render pass does not have any input attachments, this is fine. To disable this warning, bind the sampler to another register or space, or provide a static sampler state through the root signature instead and use shader reflection to create the pipeline layout.");
+
+                        descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
+                    }
+                    break;
                 default: throw InvalidArgumentException("Invalid descriptor type: {0}.", range->descriptorType());
                 }
 
@@ -115,8 +175,8 @@ public:
             descriptorParameters.push_back(rootParameter);
         });
 
-        // Define a static sampler to sample the G-Buffer, if there are any input attachments.
-        if (hasInputAttachments)
+        // Define a static sampler to sample the G-Buffer, if it is not manually defined.
+        if (hasInputAttachments && !hasInputAttachmentSampler)
             staticSamplers.push_back(CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR));
 
         // Create root signature descriptor.
