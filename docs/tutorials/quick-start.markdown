@@ -394,7 +394,7 @@ The shader helper attempts to find the *GLSLC* and *DXC* compilers automatically
 
 Using `TARGET_LINK_SHADERS` we setup a dependency for between the shaders and our application, so that the shaders are copied to the build directory properly. Note that by default, the shaders are copied into a `shaders/` subdirectory. You can change this subdirectory by changing the `SHADER_DEFAULT_SUBDIR` variable. Keep in mind to also update the pipeline state definition, if you do change the directory.
 
-For more information on how to use the helpers, refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Shader-Module-Targets).
+**NOTE:** If you want to learn more about how to write portable shaders, refer to the [shader development guide](https://github.com/crud89/LiteFX/wiki/Shader-Development). For more information on how to use the helpers, refer to the [shader module targets](https://github.com/crud89/LiteFX/wiki/Shader-Module-Targets) page in the project wiki.
 
 ### Creating and Managing Buffers
 
