@@ -46,8 +46,12 @@ public:
             
             if (layout->descriptorType() == DescriptorType::Sampler)
             {
-                m_bindingToDescriptor[layout->binding()] = m_samplers;
-                m_samplers += layout->descriptors();
+                // Only count dynamic samplers.
+                if (layout->staticSampler() == nullptr)
+                {
+                    m_bindingToDescriptor[layout->binding()] = m_samplers;
+                    m_samplers += layout->descriptors();
+                }
             }
             else
             {
@@ -185,7 +189,7 @@ UInt32 DirectX12DescriptorSetLayout::images() const noexcept
 
 UInt32 DirectX12DescriptorSetLayout::samplers() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() == nullptr; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept

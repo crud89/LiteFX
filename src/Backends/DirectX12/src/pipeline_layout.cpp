@@ -110,6 +110,7 @@ public:
             // Define the root parameter ranges.
             Array<const DirectX12DescriptorLayout*> layouts = layout->descriptors();
             Array<D3D12_DESCRIPTOR_RANGE1> rangeSet = layouts |
+                std::views::filter([](const DirectX12DescriptorLayout* range) { return range->staticSampler() == nullptr; }) |
                 std::views::transform([&](const DirectX12DescriptorLayout* range) {
                 CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
 
@@ -124,46 +125,46 @@ public:
                 case DescriptorType::WritableStorage:
                 case DescriptorType::WritableTexture:   descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
                 case DescriptorType::Sampler:
-                    // Static samplers can be added without any restrictions.
-                    if (range->staticSampler() != nullptr)
-                    {
-                        // Remember, that there's a manually defined input attachment sampler.
-                        if (range->binding() == 0 && space == 0)
-                            hasInputAttachmentSampler = true;
+                    if (stages != ShaderStage::Compute && range->binding() == 0 && space == 0)  // NOTE: This is valid for compute shaders and shaders in render passes without input attachments.
+                        LITEFX_WARNING(DIRECTX12_LOG, "Sampler bound to register 0 of space 0, which is reserved for input attachment samplers. If your render pass does not have any input attachments, this is fine. To disable this warning, bind the sampler to another register or space, or provide a static sampler state through the root signature instead and use shader reflection to create the pipeline layout.");
 
-                        auto sampler = range->staticSampler();
-
-                        D3D12_STATIC_SAMPLER_DESC samplerInfo = {
-                            .Filter = getFilterMode(sampler->getMinifyingFilter(), sampler->getMagnifyingFilter(), sampler->getMipMapMode(), sampler->getAnisotropy()),
-                            .AddressU = getBorderMode(sampler->getBorderModeU()),
-                            .AddressV = getBorderMode(sampler->getBorderModeV()),
-                            .AddressW = getBorderMode(sampler->getBorderModeW()),
-                            .MipLODBias = sampler->getMipMapBias(),
-                            .MaxAnisotropy = static_cast<UInt32>(sampler->getAnisotropy()),
-                            .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
-                            //.BorderColor = { 0.f, 0.f, 0.f, 0.f },
-                            .MinLOD = sampler->getMinLOD(),
-                            .MaxLOD = sampler->getMaxLOD(),
-                            .ShaderRegister = range->binding(),
-                            .RegisterSpace = space,
-                            .ShaderVisibility = shaderStages
-                        };
-
-                        staticSamplers.push_back(samplerInfo);
-                    }
-                    else
-                    {
-                        if (stages != ShaderStage::Compute && range->binding() == 0 && space == 0)  // NOTE: This is valid for compute shaders and shaders in render passes without input attachments.
-                            LITEFX_WARNING(DIRECTX12_LOG, "Sampler bound to register 0 of space 0, which is reserved for input attachment samplers. If your render pass does not have any input attachments, this is fine. To disable this warning, bind the sampler to another register or space, or provide a static sampler state through the root signature instead and use shader reflection to create the pipeline layout.");
-
-                        descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
-                    }
+                    descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
                     break;
                 default: throw InvalidArgumentException("Invalid descriptor type: {0}.", range->descriptorType());
                 }
 
                 return descriptorRange;
             }) | ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
+
+            // Define the static samplers.
+            std::ranges::for_each(layouts, [&](const DirectX12DescriptorLayout* range) {
+                if (range->staticSampler() != nullptr)
+                {
+                    // Remember, that there's a manually defined input attachment sampler.
+                    if (range->binding() == 0 && space == 0)
+                        hasInputAttachmentSampler = true;
+
+                    auto sampler = range->staticSampler();
+
+                    D3D12_STATIC_SAMPLER_DESC samplerInfo = {
+                        .Filter = getFilterMode(sampler->getMinifyingFilter(), sampler->getMagnifyingFilter(), sampler->getMipMapMode(), sampler->getAnisotropy()),
+                        .AddressU = getBorderMode(sampler->getBorderModeU()),
+                        .AddressV = getBorderMode(sampler->getBorderModeV()),
+                        .AddressW = getBorderMode(sampler->getBorderModeW()),
+                        .MipLODBias = sampler->getMipMapBias(),
+                        .MaxAnisotropy = static_cast<UInt32>(sampler->getAnisotropy()),
+                        .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
+                        //.BorderColor = { 0.f, 0.f, 0.f, 0.f },
+                        .MinLOD = sampler->getMinLOD(),
+                        .MaxLOD = sampler->getMaxLOD(),
+                        .ShaderRegister = range->binding(),
+                        .RegisterSpace = space,
+                        .ShaderVisibility = shaderStages
+                    };
+
+                    staticSamplers.push_back(samplerInfo);
+                }
+            });
 
             // Define the root parameter.
             CD3DX12_ROOT_PARAMETER1 rootParameter = {};

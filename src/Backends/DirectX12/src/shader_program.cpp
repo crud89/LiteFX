@@ -108,15 +108,10 @@ public:
             }
 
             // Find the sampler for the register and overwrite it. If it does not exist, create it.
-            if (auto match = std::ranges::find_if(descriptorSetLayouts[staticSampler.RegisterSpace].descriptors, [&staticSampler](const auto& descriptor) { return descriptor.location == staticSampler.ShaderRegister; }); match == descriptorSetLayouts[staticSampler.RegisterSpace].descriptors.end())
+            if (auto match = std::ranges::find_if(descriptorSetLayouts[staticSampler.RegisterSpace].descriptors, [&staticSampler](const auto& descriptor) { return descriptor.type == DescriptorType::Sampler && descriptor.location == staticSampler.ShaderRegister; }); match == descriptorSetLayouts[staticSampler.RegisterSpace].descriptors.end())
                 descriptorSetLayouts[staticSampler.RegisterSpace].descriptors.push_back(DescriptorInfo{ .location = staticSampler.ShaderRegister, .elementSize = 0, .elements = 1, .type = DescriptorType::Sampler, .staticSamplerState = staticSampler });
             else
-            {
-                if (match->type != DescriptorType::Sampler) [[unlikely]]
-                    throw InvalidArgumentException("Type mismatch detected between root signature definition and shader reflection at binding point {0}, space {1}. Expected sampler, but found {2}.", staticSampler.ShaderRegister, staticSampler.RegisterSpace, match->type);
-
                 match->staticSamplerState = staticSampler;
-            }
         }
 
         // Iterate the root parameters.
