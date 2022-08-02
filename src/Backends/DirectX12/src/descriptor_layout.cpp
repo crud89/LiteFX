@@ -36,6 +36,9 @@ public:
     DirectX12DescriptorLayoutImpl(DirectX12DescriptorLayout* parent, UniquePtr<IDirectX12Sampler>&& staticSampler, const UInt32& binding) :
         DirectX12DescriptorLayoutImpl(parent, DescriptorType::Sampler, binding, 0, 1)
     {
+        if (staticSampler == nullptr)
+            throw ArgumentNotInitializedException("The static sampler must be initialized.");
+
         m_staticSampler = std::move(staticSampler);
     }
 };
@@ -52,8 +55,6 @@ DirectX12DescriptorLayout::DirectX12DescriptorLayout(const DescriptorType& type,
 DirectX12DescriptorLayout::DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, const UInt32& binding) :
     m_impl(makePimpl<DirectX12DescriptorLayoutImpl>(this, std::move(staticSampler), binding))
 {
-    if (staticSampler == nullptr)
-        throw ArgumentNotInitializedException("The static sampler must be initialized.");
 }
 
 DirectX12DescriptorLayout::~DirectX12DescriptorLayout() noexcept = default;
