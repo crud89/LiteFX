@@ -287,6 +287,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanShaderProgram" />
 	/// <seealso cref="VulkanDevice" />
+	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
 	class LITEFX_VULKAN_API VulkanShaderModule : public IShaderModule, public Resource<VkShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
@@ -327,6 +328,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanShaderProgramBuilder" />
 	/// <seealso cref="VulkanShaderModule" />
+	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
 	class LITEFX_VULKAN_API VulkanShaderProgram : public ShaderProgram<VulkanShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
 		LITEFX_BUILDER(VulkanShaderProgramBuilder);
@@ -346,6 +348,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new Vulkan shader program.
 		/// </summary>
+		/// <param name="device">The parent device of the shader program.</param>
 		explicit VulkanShaderProgram(const VulkanDevice& device) noexcept;
 
 	public:

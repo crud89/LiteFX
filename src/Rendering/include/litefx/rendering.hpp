@@ -315,6 +315,7 @@ namespace LiteFX::Rendering {
     /// Represents a shader program, consisting of multiple <see cref="IShaderModule" />s.
     /// </summary>
     /// <typeparam name="TShaderModule">The type of the shader module. Must implement <see cref="IShaderModule"/>.</typeparam>
+    /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     template <typename TShaderModule> requires
         rtti::implements<TShaderModule, IShaderModule>
     class ShaderProgram : public IShaderProgram {

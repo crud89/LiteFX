@@ -1795,6 +1795,7 @@ namespace LiteFX::Rendering {
     /// <remarks>
     /// A shader module corresponds to a single shader source file.
     /// </remarks>
+    /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     class LITEFX_RENDERING_API IShaderModule {
     public:
         virtual ~IShaderModule() noexcept = default;
@@ -3247,6 +3248,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a shader program.
     /// </summary>
+    /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     class LITEFX_RENDERING_API IShaderProgram {
     public:
         virtual ~IShaderProgram() noexcept = default;
@@ -3263,7 +3265,12 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Uses shader reflection to extract the pipeline layout of a shader. May not be available in all backends.
         /// </summary>
+        /// <remarks>
+        /// Note that shader reflection may not yield different results than you would expect, especially when using DirectX 12. For more information on how to use shader
+        /// reflection and how to write portable shaders, refer to the [shader development guide](https://github.com/crud89/LiteFX/wiki/Shader-Development) in the wiki.
+        /// </remarks>
         /// <returns>The pipeline layout extracted from shader reflection.</returns>
+        /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
         SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
             return this->parsePipelineLayout();
         };
@@ -3567,6 +3574,9 @@ namespace LiteFX::Rendering {
         void use(const IPipeline& pipeline) const noexcept {
             this->cmdUse(pipeline);
         }
+
+        // TODO: Allow bind to last used pipeline (throw, if no pipeline is in use.
+        //void bind(const IDescriptorSet& descriptorSet) const;
 
         /// <summary>
         /// Binds the provided descriptor set to the provided pipeline.
