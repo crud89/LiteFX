@@ -23,6 +23,7 @@
 #include <directx/d3dx12.h>
 #include <dxguids/dxguids.h>
 #include <dxgi1_6.h>
+#include <dxcapi.h>
 #include <comdef.h>
 
 #include <wrl.h>

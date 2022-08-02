@@ -102,6 +102,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="elementSize">The size of the descriptor.</param>
 		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
 		explicit DirectX12DescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
+
+		/// <summary>
+		/// Initializes a new DirectX 12 descriptor layout for a static sampler.
+		/// </summary>
+		/// <param name="staticSampler">The static sampler to initialize the state with.</param>
+		/// <param name="binding">The binding point for the descriptor.</param>
+		explicit DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, const UInt32& binding);
 		DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
 		DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
 		virtual ~DirectX12DescriptorLayout() noexcept;
@@ -124,6 +131,14 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const BufferType& type() const noexcept override;
+
+		// DirectX 12 descriptor layout.
+	public:
+		/// <summary>
+		/// If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <c>nullptr</c>.
+		/// </summary>
+		/// <returns>The state of the static sampler, or <c>nullptr</c>, if the descriptor is not a static sampler.</returns>
+		virtual const IDirectX12Sampler* staticSampler() const noexcept;
 	};
 
 	/// <summary>
@@ -260,7 +275,8 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a DirectX 12 <see cref="IShaderModule" />.
 	/// </summary>
 	/// <seealso cref="DirectX12ShaderProgram" />
-	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public IShaderModule, public ComResource<ID3DBlob> {
+	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
+	class LITEFX_DIRECTX12_API DirectX12ShaderModule : public IShaderModule, public ComResource<IDxcBlob> {
 		LITEFX_IMPLEMENTATION(DirectX12ShaderModuleImpl);
 
 	public:
@@ -286,12 +302,28 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual const ShaderStage& type() const noexcept override;
+
+	public:
+		/// <summary>
+		/// Suppresses the warning that is issued, if no root signature is found on a shader module when calling <see cref="reflectPipelineLayout" />.
+		/// </summary>
+		/// <remarks>
+		/// When a shader program is asked to build a pipeline layout, it first checks if a root signature is provided within the shader bytecode. If no root signature could 
+		/// be found, it falls back to using plain reflection to extract the descriptor sets. This has the drawback, that some features are not or only partially supported.
+		/// Most notably, it is not possible to reflect a pipeline layout that uses push constants this way. To ensure that you are not missing the root signature by accident,
+		/// the engine warns you when it encounters this situation. However, if you are only using plain descriptor sets, this can result in noise warnings that clutter the 
+		/// log. You can call this function to disable the warnings explicitly.
+		/// </remarks>
+		/// <param name="disableWarning"><c>true</c> to stop issuing the warning or <c>false</c> to continue.</param>
+		/// <seealso cref="reflectPipelineLayout" />
+		static void suppressMissingRootSignatureWarning(bool disableWarning = true) noexcept;
 	};
 
 	/// <summary>
 	/// Implements a DirectX 12 <see cref="ShaderProgram" />.
 	/// </summary>
 	/// <seealso cref="DirectX12ShaderProgramBuilder" />
+	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
 	class LITEFX_DIRECTX12_API DirectX12ShaderProgram : public ShaderProgram<DirectX12ShaderModule> {
 		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
 		LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
@@ -300,8 +332,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new DirectX 12 shader program.
 		/// </summary>
+		/// <param name="device">The parent device of the shader program.</param>
 		/// <param name="modules">The shader modules used by the shader program.</param>
-		explicit DirectX12ShaderProgram(Array<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept;
+		explicit DirectX12ShaderProgram(const DirectX12Device& device, Array<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept;
 		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
 		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
 		virtual ~DirectX12ShaderProgram() noexcept;
@@ -310,7 +343,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new DirectX 12 shader program.
 		/// </summary>
-		explicit DirectX12ShaderProgram() noexcept;
+		/// <param name="device">The parent device of the shader program.</param>
+		explicit DirectX12ShaderProgram(const DirectX12Device& device) noexcept;
 
 	public:
 		/// <inheritdoc />
