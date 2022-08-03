@@ -269,7 +269,7 @@ public:
                 default: throw RuntimeException("The shader exposes an unknown resource type in binding {0}.", i);
                 }
 
-                auto descriptor = DescriptorInfo{
+                auto descriptor = DescriptorInfo {
                     .location = inputDesc.BindPoint,
                     .elementSize = elementSize,
                     .elements = inputDesc.BindCount,
@@ -283,7 +283,12 @@ public:
                 {
                     auto& descriptorSetLayout = descriptorSetLayouts[inputDesc.Space];
                     descriptorSetLayout.stage = descriptorSetLayouts[inputDesc.Space].stage | shaderModule->type();
-                    descriptorSetLayout.descriptors.push_back(descriptor);
+
+                    // If another descriptor is bound to the same register, check if they are compatible. Otherwise, simply add the descriptor.
+                    if (auto match = std::ranges::find_if(descriptorSetLayouts[inputDesc.Space].descriptors, [&](const auto& descriptor) { return descriptor.location == inputDesc.BindPoint; }); match == descriptorSetLayouts[inputDesc.Space].descriptors.end())
+                        descriptorSetLayout.descriptors.push_back(descriptor);
+                    else if (!match->equals(descriptor)) [[unlikely]]
+                        LITEFX_WARNING(DIRECTX12_LOG, "Two incompatible descriptors are bound to the same location ({0} in space {1}) at different shader stages.", descriptor.location, inputDesc.Space);
                 }
             }
         });
