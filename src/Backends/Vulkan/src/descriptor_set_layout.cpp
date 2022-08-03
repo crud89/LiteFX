@@ -100,12 +100,16 @@ public:
             case DescriptorType::Texture:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
             case DescriptorType::WritableBuffer:
             case DescriptorType::Buffer:          binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
-            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
             case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
+            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
             default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");    return;
             }
 
-            m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
+            if (type == DescriptorType::Sampler && layout->staticSampler() != nullptr)
+                m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
+            else
+                binding.pImmutableSamplers = &layout->staticSampler()->handle();
+            
             bindings.push_back(binding);
         });
 
@@ -244,6 +248,11 @@ UInt32 VulkanDescriptorSetLayout::images() const noexcept
 UInt32 VulkanDescriptorSetLayout::samplers() const noexcept
 {
     return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLER].descriptorCount;
+}
+
+UInt32 VulkanDescriptorSetLayout::staticSamplers() const noexcept
+{
+    return std::ranges::count_if(m_impl->m_descriptorLayouts, [](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() != nullptr; });
 }
 
 UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept

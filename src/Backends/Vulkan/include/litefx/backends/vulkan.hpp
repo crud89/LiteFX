@@ -83,50 +83,6 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a Vulkan <see cref="IDescriptorLayout" />
-	/// </summary>
-	/// <seealso cref="IVulkanBuffer" />
-	/// <seealso cref="IVulkanImage" />
-	/// <seealso cref="IVulkanSampler" />
-	/// <seealso cref="VulkanDescriptorSet" />
-	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorLayout : public IDescriptorLayout {
-		LITEFX_IMPLEMENTATION(VulkanDescriptorLayoutImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a new Vulkan descriptor layout.
-		/// </summary>
-		/// <param name="type">The type of the descriptor.</param>
-		/// <param name="binding">The binding point for the descriptor.</param>
-		/// <param name="elementSize">The size of the descriptor.</param>
-		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
-		explicit VulkanDescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
-		VulkanDescriptorLayout(VulkanDescriptorLayout&&) = delete;
-		VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;
-		virtual ~VulkanDescriptorLayout() noexcept;
-
-		// IDescriptorLayout interface.
-	public:
-		/// <inheritdoc />
-		virtual const DescriptorType& descriptorType() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const UInt32& descriptors() const noexcept override;
-
-		// IBufferLayout interface.
-	public:
-		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const BufferType& type() const noexcept override;
-	};
-
-	/// <summary>
 	/// Represents the base interface for a Vulkan buffer implementation.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSet" />
@@ -404,6 +360,61 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Implements a Vulkan <see cref="IDescriptorLayout" />
+	/// </summary>
+	/// <seealso cref="IVulkanBuffer" />
+	/// <seealso cref="IVulkanImage" />
+	/// <seealso cref="IVulkanSampler" />
+	/// <seealso cref="VulkanDescriptorSet" />
+	/// <seealso cref="VulkanDescriptorSetLayout" />
+	class LITEFX_VULKAN_API VulkanDescriptorLayout : public IDescriptorLayout {
+		LITEFX_IMPLEMENTATION(VulkanDescriptorLayoutImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new Vulkan descriptor layout.
+		/// </summary>
+		/// <param name="type">The type of the descriptor.</param>
+		/// <param name="binding">The binding point for the descriptor.</param>
+		/// <param name="elementSize">The size of the descriptor.</param>
+		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
+		explicit VulkanDescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
+
+		/// <summary>
+		/// Initializes a new Vulkan descriptor layout for a static sampler.
+		/// </summary>
+		/// <param name="staticSampler">The static sampler to initialize the state with.</param>
+		/// <param name="binding">The binding point for the descriptor.</param>
+		explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, const UInt32& binding);
+
+		VulkanDescriptorLayout(VulkanDescriptorLayout&&) = delete;
+		VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;
+		virtual ~VulkanDescriptorLayout() noexcept;
+
+		// IDescriptorLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual const DescriptorType& descriptorType() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& descriptors() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const IVulkanSampler* staticSampler() const noexcept override;
+
+		// IBufferLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual size_t elementSize() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BufferType& type() const noexcept override;
+	};
+
+	/// <summary>
 	/// Implements a Vulkan <see cref="DescriptorSetLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSet" />
@@ -467,6 +478,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual UInt32 samplers() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32 staticSamplers() const noexcept override;
 
 		/// <inheritdoc />
 		virtual UInt32 inputAttachments() const noexcept override;

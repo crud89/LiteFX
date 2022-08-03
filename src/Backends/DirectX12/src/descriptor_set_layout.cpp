@@ -192,6 +192,11 @@ UInt32 DirectX12DescriptorSetLayout::samplers() const noexcept
     return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() == nullptr; });
 }
 
+UInt32 DirectX12DescriptorSetLayout::staticSamplers() const noexcept
+{
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() != nullptr; });
+}
+
 UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
 {
     return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::InputAttachment; });

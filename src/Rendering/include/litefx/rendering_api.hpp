@@ -2557,6 +2557,17 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The number of descriptors in the descriptor array.</returns>
         virtual const UInt32& descriptors() const noexcept = 0;
+
+        /// <summary>
+        /// If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <c>nullptr</c>.
+        /// </summary>
+        /// <remarks>
+        /// Static samplers are called immutable samplers in Vulkan and describe sampler states, that are defined along the pipeline layout. While they do
+        /// occupy a descriptor, they must not be bound explicitly. Instead, static samplers are automatically bound if the pipeline gets used. If a static
+        /// sampler is set, the <see cref="descriptorType" /> must be set to <see cref="DescriptorType::Sampler" />.
+        /// </remarks>
+        /// <returns>The state of the static sampler, or <c>nullptr</c>, if the descriptor is not a static sampler.</returns>
+        virtual const ISampler* staticSampler() const noexcept = 0;
     };
 
     /// <summary>
@@ -3114,10 +3125,18 @@ namespace LiteFX::Rendering {
         virtual UInt32 buffers() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of sampler descriptors within the descriptor set.
+        /// Returns the number of dynamic sampler descriptors within the descriptor set.
         /// </summary>
-        /// <returns>The number of sampler descriptors.</returns>
+        /// <returns>The number of dynamic sampler descriptors.</returns>
+        /// <seealso cref="staticSamplers" />
         virtual UInt32 samplers() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the number of static or immutable sampler descriptors within the descriptor set.
+        /// </summary>
+        /// <returns>The number of static or immutable sampler descriptors.</returns>
+        /// <seealso cref="samplers" />
+        virtual UInt32 staticSamplers() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of input attachment descriptors within the descriptor set.

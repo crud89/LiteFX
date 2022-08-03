@@ -83,65 +83,6 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Implements a DirectX 12 <see cref="IDescriptorLayout" />
-	/// </summary>
-	/// <seealso cref="IDirectX12Buffer" />
-	/// <seealso cref="IDirectX12Image" />
-	/// <seealso cref="IDirectX12Sampler" />
-	/// <seealso cref="DirectX12DescriptorSet" />
-	/// <seealso cref="DirectX12DescriptorSetLayout" />
-	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public IDescriptorLayout {
-		LITEFX_IMPLEMENTATION(DirectX12DescriptorLayoutImpl);
-
-	public:
-		/// <summary>
-		/// Initializes a new DirectX 12 descriptor layout.
-		/// </summary>
-		/// <param name="type">The type of the descriptor.</param>
-		/// <param name="binding">The binding point for the descriptor.</param>
-		/// <param name="elementSize">The size of the descriptor.</param>
-		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
-		explicit DirectX12DescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
-
-		/// <summary>
-		/// Initializes a new DirectX 12 descriptor layout for a static sampler.
-		/// </summary>
-		/// <param name="staticSampler">The static sampler to initialize the state with.</param>
-		/// <param name="binding">The binding point for the descriptor.</param>
-		explicit DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, const UInt32& binding);
-		DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
-		DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
-		virtual ~DirectX12DescriptorLayout() noexcept;
-
-		// IDescriptorLayout interface.
-	public:
-		/// <inheritdoc />
-		virtual const DescriptorType& descriptorType() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const UInt32& descriptors() const noexcept override;
-
-		// IBufferLayout interface.
-	public:
-		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
-
-		/// <inheritdoc />
-		virtual const BufferType& type() const noexcept override;
-
-		// DirectX 12 descriptor layout.
-	public:
-		/// <summary>
-		/// If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <c>nullptr</c>.
-		/// </summary>
-		/// <returns>The state of the static sampler, or <c>nullptr</c>, if the descriptor is not a static sampler.</returns>
-		virtual const IDirectX12Sampler* staticSampler() const noexcept;
-	};
-
-	/// <summary>
 	/// Represents the base interface for a DirectX 12 buffer implementation.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSet" />
@@ -413,6 +354,61 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Implements a DirectX 12 <see cref="IDescriptorLayout" />
+	/// </summary>
+	/// <seealso cref="IDirectX12Buffer" />
+	/// <seealso cref="IDirectX12Image" />
+	/// <seealso cref="IDirectX12Sampler" />
+	/// <seealso cref="DirectX12DescriptorSet" />
+	/// <seealso cref="DirectX12DescriptorSetLayout" />
+	class LITEFX_DIRECTX12_API DirectX12DescriptorLayout : public IDescriptorLayout {
+		LITEFX_IMPLEMENTATION(DirectX12DescriptorLayoutImpl);
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX 12 descriptor layout.
+		/// </summary>
+		/// <param name="type">The type of the descriptor.</param>
+		/// <param name="binding">The binding point for the descriptor.</param>
+		/// <param name="elementSize">The size of the descriptor.</param>
+		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
+		explicit DirectX12DescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
+
+		/// <summary>
+		/// Initializes a new DirectX 12 descriptor layout for a static sampler.
+		/// </summary>
+		/// <param name="staticSampler">The static sampler to initialize the state with.</param>
+		/// <param name="binding">The binding point for the descriptor.</param>
+		explicit DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, const UInt32& binding);
+
+		DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
+		DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
+		virtual ~DirectX12DescriptorLayout() noexcept;
+
+		// IDescriptorLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual const DescriptorType& descriptorType() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& descriptors() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const IDirectX12Sampler* staticSampler() const noexcept override;
+
+		// IBufferLayout interface.
+	public:
+		/// <inheritdoc />
+		virtual size_t elementSize() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const UInt32& binding() const noexcept override;
+
+		/// <inheritdoc />
+		virtual const BufferType& type() const noexcept override;
+	};
+
+	/// <summary>
 	/// Implements a DirectX 12 <see cref="DescriptorSetLayout" />.
 	/// </summary>
 	/// <seealso cref="DirectX12DescriptorSet" />
@@ -498,6 +494,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual UInt32 samplers() const noexcept override;
+
+		/// <inheritdoc />
+		virtual UInt32 staticSamplers() const noexcept override;
 
 		/// <inheritdoc />
 		virtual UInt32 inputAttachments() const noexcept override;
