@@ -106,7 +106,7 @@ public:
             default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");    return;
             }
 
-            if (type == DescriptorType::Sampler && layout->staticSampler() != nullptr)
+            if (type != DescriptorType::Sampler || (type == DescriptorType::Sampler && layout->staticSampler() == nullptr))
                 m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
             else
                 binding.pImmutableSamplers = &layout->staticSampler()->handle();
