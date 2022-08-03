@@ -75,7 +75,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
     using Rasterizer = TRenderBackend::rasterizer_type;
-    using ShaderProgram = TRenderBackend::shader_program_type;
 
     // Get the default device.
     auto device = backend->device("Default");
@@ -112,13 +111,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f)
             .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
-        //.layout(device->buildPipelineLayout()
-        //    .descriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
-        //        .withUniform(0, sizeof(CameraBuffer))
-        //        .add()
-        //    .pushConstants(sizeof(ObjectBuffer))
-        //        .withRange(ShaderStage::Vertex, 0, sizeof(ObjectBuffer), 1, 0)
-        //        .add())
         .layout(shaderProgram->reflectPipelineLayout())
         .shaderProgram(shaderProgram);
 

@@ -9,6 +9,7 @@ struct VertexData
 struct FragmentData
 {
     float4 Color : SV_TARGET0;
+    float Depth : SV_DEPTH;
 };
 
 #ifdef SPIRV
@@ -26,8 +27,10 @@ FragmentData main(VertexData input)
 
 #ifdef SPIRV  
     fragment.Color = gDiffuse.SubpassLoad();
+    fragment.Depth = gDepth.SubpassLoad();
 #elif DXIL
     fragment.Color = gDiffuse.Sample(gBuffer, input.TextureCoordinate).rgba;
+    fragment.Depth = gDepth.Sample(gBuffer, input.TextureCoordinate).r;
 #endif
     
     return fragment;

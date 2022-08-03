@@ -81,6 +81,11 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
         .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
         .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false);
 
+    // Create a shader program.
+    SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
+        .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER);
+
     // Create a render pipeline.
     UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
         .viewport(viewport)
@@ -92,16 +97,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f)
             .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
-        .layout(device->buildPipelineLayout()
-            .descriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
-                .withUniform(0, sizeof(CameraBuffer))
-                .add()
-            .descriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
-                .withUniform(0, sizeof(TransformBuffer))
-                .add())
-        .shaderProgram(device->buildShaderProgram()
-            .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
-            .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER));
+        .layout(shaderProgram->reflectPipelineLayout())
+        .shaderProgram(shaderProgram);
 
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));
@@ -222,6 +219,9 @@ void SampleApp::run()
 #endif // BUILD_VULKAN_BACKEND
 
 #ifdef BUILD_DIRECTX_12_BACKEND
+    // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
+    DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
+
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);

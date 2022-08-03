@@ -82,7 +82,17 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
     UniquePtr<RenderPass> lightingPass = device->buildRenderPass("Lighting Pass")
         .inputAttachment(0, *geometryPass, 0)  // Color attachment.
         .inputAttachment(1, *geometryPass, 1)  // Depth/Stencil attachment.
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false);
+        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
+        .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, true, false);
+
+    // Create the shader programs.
+    SharedPtr<ShaderProgram> geometryPassShader = device->buildShaderProgram()
+        .withVertexShaderModule("shaders/geometry_pass_vs." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/geometry_pass_fs." + FileExtensions<TRenderBackend>::SHADER);
+
+    SharedPtr<ShaderProgram> lightingPassShader = device->buildShaderProgram()
+        .withVertexShaderModule("shaders/lighting_pass_vs." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/lighting_pass_fs." + FileExtensions<TRenderBackend>::SHADER);
 
     // Create a render pipeline for each render pass.
     UniquePtr<RenderPipeline> geometryPipeline = device->buildRenderPipeline(*geometryPass, "Geometry Pipeline")
@@ -94,16 +104,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
             .cullMode(CullMode::BackFaces)
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f))
-        .layout(device->buildPipelineLayout()
-            .descriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
-                .withUniform(0, sizeof(CameraBuffer))
-                .add()
-            .descriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
-                .withUniform(0, sizeof(TransformBuffer))
-                .add())
-        .shaderProgram(device->buildShaderProgram()
-            .withVertexShaderModule("shaders/geometry_pass_vs." + FileExtensions<TRenderBackend>::SHADER)
-            .withFragmentShaderModule("shaders/geometry_pass_fs." + FileExtensions<TRenderBackend>::SHADER));
+        .layout(geometryPassShader->reflectPipelineLayout())
+        .shaderProgram(geometryPassShader);
 
     UniquePtr<RenderPipeline> lightingPipeline = device->buildRenderPipeline(*lightingPass, "Lighting Pipeline")
         .viewport(viewport)
@@ -114,14 +116,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
             .cullMode(CullMode::BackFaces)
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f))
-        .layout(device->buildPipelineLayout()
-            .descriptorSet(0, ShaderStage::Fragment)
-                .withInputAttachment(0)     // Color
-                .withInputAttachment(1)     // Depth
-                .add())
-        .shaderProgram(device->buildShaderProgram()
-            .withVertexShaderModule("shaders/lighting_pass_vs." + FileExtensions<TRenderBackend>::SHADER)
-            .withFragmentShaderModule("shaders/lighting_pass_fs." + FileExtensions<TRenderBackend>::SHADER));
+        .layout(lightingPassShader->reflectPipelineLayout())
+        .shaderProgram(lightingPassShader);
 
     // Add the resources to the device state.
     device->state().add(std::move(geometryPass));
