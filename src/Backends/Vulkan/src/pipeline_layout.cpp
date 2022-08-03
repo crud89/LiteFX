@@ -31,6 +31,9 @@ public:
 public:
     VkPipelineLayout initialize()
     {
+        // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
+        std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
+
         // Store the pipeline layout on the push constants.
         if (m_pushConstantsLayout != nullptr)
             m_pushConstantsLayout->pipelineLayout(*this->m_parent);
