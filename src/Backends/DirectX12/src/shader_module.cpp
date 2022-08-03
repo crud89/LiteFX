@@ -1,5 +1,4 @@
 #include <litefx/backends/dx12.hpp>
-#include <d3dcompiler.h>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -23,10 +22,16 @@ public:
 	}
 
 public:
-	ComPtr<ID3DBlob> initialize()
+	ComPtr<IDxcBlob> initialize()
 	{
-		ComPtr<ID3DBlob> blob;
-		raiseIfFailed<RuntimeException>(::D3DReadFileToBlob(::Widen(m_fileName).c_str(), &blob), "Unable to load shader: {0}.", m_fileName.c_str());
+		// TODO: We share the library handle over the whole api by moving them to the device level at least.
+		ComPtr<IDxcLibrary> library;
+		raiseIfFailed<RuntimeException>(::DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library)), "Unable to access DirectX shader compiler library.");
+
+		// Read the blob.
+		ComPtr<IDxcBlobEncoding> blob;
+		raiseIfFailed<RuntimeException>(library->CreateBlobFromFile(::Widen(m_fileName).c_str(), CP_ACP, &blob), "Unable to load shader: {0}.", m_fileName.c_str());
+
 		return blob;
 	}
 };
@@ -36,7 +41,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, const ShaderStage& type, const String& fileName, const String& entryPoint) :
-	m_impl(makePimpl<DirectX12ShaderModuleImpl>(this, device, type, fileName, entryPoint)), ComResource<ID3DBlob>(nullptr)
+	m_impl(makePimpl<DirectX12ShaderModuleImpl>(this, device, type, fileName, entryPoint)), ComResource<IDxcBlob>(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }

@@ -1,5 +1,6 @@
 #include <litefx/backends/vulkan.hpp>
 #include <litefx/backends/vulkan_builders.hpp>
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -100,12 +101,16 @@ public:
             case DescriptorType::Texture:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
             case DescriptorType::WritableBuffer:
             case DescriptorType::Buffer:          binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
-            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
             case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
+            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
             default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");    return;
             }
 
-            m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
+            if (type != DescriptorType::Sampler || (type == DescriptorType::Sampler && layout->staticSampler() == nullptr))
+                m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
+            else
+                binding.pImmutableSamplers = &layout->staticSampler()->handle();
+            
             bindings.push_back(binding);
         });
 
@@ -246,6 +251,11 @@ UInt32 VulkanDescriptorSetLayout::samplers() const noexcept
     return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLER].descriptorCount;
 }
 
+UInt32 VulkanDescriptorSetLayout::staticSamplers() const noexcept
+{
+    return std::ranges::count_if(m_impl->m_descriptorLayouts, [](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() != nullptr; });
+}
+
 UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
 {
     return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT].descriptorCount;
@@ -340,6 +350,11 @@ VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescript
 VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
 {
     return this->withDescriptor(makeUnique<VulkanDescriptorLayout>(type, binding, descriptorSize, descriptors));
+}
+
+VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withStaticSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy)
+{
+    return this->withDescriptor(makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding));
 }
 
 VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept

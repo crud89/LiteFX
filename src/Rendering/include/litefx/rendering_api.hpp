@@ -1795,6 +1795,7 @@ namespace LiteFX::Rendering {
     /// <remarks>
     /// A shader module corresponds to a single shader source file.
     /// </remarks>
+    /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     class LITEFX_RENDERING_API IShaderModule {
     public:
         virtual ~IShaderModule() noexcept = default;
@@ -2556,6 +2557,17 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The number of descriptors in the descriptor array.</returns>
         virtual const UInt32& descriptors() const noexcept = 0;
+
+        /// <summary>
+        /// If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <c>nullptr</c>.
+        /// </summary>
+        /// <remarks>
+        /// Static samplers are called immutable samplers in Vulkan and describe sampler states, that are defined along the pipeline layout. While they do
+        /// occupy a descriptor, they must not be bound explicitly. Instead, static samplers are automatically bound if the pipeline gets used. If a static
+        /// sampler is set, the <see cref="descriptorType" /> must be set to <see cref="DescriptorType::Sampler" />.
+        /// </remarks>
+        /// <returns>The state of the static sampler, or <c>nullptr</c>, if the descriptor is not a static sampler.</returns>
+        virtual const ISampler* staticSampler() const noexcept = 0;
     };
 
     /// <summary>
@@ -3113,10 +3125,18 @@ namespace LiteFX::Rendering {
         virtual UInt32 buffers() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of sampler descriptors within the descriptor set.
+        /// Returns the number of dynamic sampler descriptors within the descriptor set.
         /// </summary>
-        /// <returns>The number of sampler descriptors.</returns>
+        /// <returns>The number of dynamic sampler descriptors.</returns>
+        /// <seealso cref="staticSamplers" />
         virtual UInt32 samplers() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the number of static or immutable sampler descriptors within the descriptor set.
+        /// </summary>
+        /// <returns>The number of static or immutable sampler descriptors.</returns>
+        /// <seealso cref="samplers" />
+        virtual UInt32 staticSamplers() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of input attachment descriptors within the descriptor set.
@@ -3247,6 +3267,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a shader program.
     /// </summary>
+    /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     class LITEFX_RENDERING_API IShaderProgram {
     public:
         virtual ~IShaderProgram() noexcept = default;
@@ -3260,8 +3281,37 @@ namespace LiteFX::Rendering {
             return this->getModules();
         }
 
+        /// <summary>
+        /// Uses shader reflection to extract the pipeline layout of a shader. May not be available in all backends.
+        /// </summary>
+        /// <remarks>
+        /// Note that shader reflection may not yield different results than you would expect, especially when using DirectX 12. For more information on how to use shader
+        /// reflection and how to write portable shaders, refer to the [shader development guide](https://github.com/crud89/LiteFX/wiki/Shader-Development) in the wiki.
+        /// 
+        /// In particular, shader reflection is not able to restore:
+        /// 
+        /// <list type="bullet">
+        /// <item>
+        /// <description>
+        /// Input attachments in DirectX. Instead, input attachments are treated as <c>DescriptorType::Texture</c>. This is usually not a problem, since DirectX does not
+        /// have a concept of render pass outputs/inputs anyway. However, keep this in mind, if you want to filter descriptors based on their type, for example.
+        /// </description>
+        /// <description>
+        /// Immutable sampler states in Vulkan. Those are only restored in DirectX, if an explicit root signature has been provided. For this reason, it is best not to use
+        /// them, if you want to use shader reflection.
+        /// </description>
+        /// </item>
+        /// </list>
+        /// </remarks>
+        /// <returns>The pipeline layout extracted from shader reflection.</returns>
+        /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
+        SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
+            return this->parsePipelineLayout();
+        };
+
     private:
         virtual Array<const IShaderModule*> getModules() const noexcept = 0;
+        virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const = 0;
     };
 
     /// <summary>
@@ -3558,6 +3608,9 @@ namespace LiteFX::Rendering {
         void use(const IPipeline& pipeline) const noexcept {
             this->cmdUse(pipeline);
         }
+
+        // TODO: Allow bind to last used pipeline (throw, if no pipeline is in use.
+        //void bind(const IDescriptorSet& descriptorSet) const;
 
         /// <summary>
         /// Binds the provided descriptor set to the provided pipeline.

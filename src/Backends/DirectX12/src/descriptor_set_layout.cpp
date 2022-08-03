@@ -1,5 +1,6 @@
 #include <litefx/backends/dx12.hpp>
 #include <litefx/backends/dx12_builders.hpp>
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -46,8 +47,12 @@ public:
             
             if (layout->descriptorType() == DescriptorType::Sampler)
             {
-                m_bindingToDescriptor[layout->binding()] = m_samplers;
-                m_samplers += layout->descriptors();
+                // Only count dynamic samplers.
+                if (layout->staticSampler() == nullptr)
+                {
+                    m_bindingToDescriptor[layout->binding()] = m_samplers;
+                    m_samplers += layout->descriptors();
+                }
             }
             else
             {
@@ -185,7 +190,12 @@ UInt32 DirectX12DescriptorSetLayout::images() const noexcept
 
 UInt32 DirectX12DescriptorSetLayout::samplers() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() == nullptr; });
+}
+
+UInt32 DirectX12DescriptorSetLayout::staticSamplers() const noexcept
+{
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() != nullptr; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
@@ -266,6 +276,11 @@ DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withDe
 DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
 {
     return this->withDescriptor(makeUnique<DirectX12DescriptorLayout>(type, binding, descriptorSize, descriptors));
+}
+
+DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withStaticSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy)
+{
+    return this->withDescriptor(makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding));
 }
 
 DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::space(const UInt32& space) noexcept

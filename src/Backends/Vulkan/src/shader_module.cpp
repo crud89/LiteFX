@@ -25,7 +25,7 @@ public:
 
 private:
 	String readFileContents(const String& fileName) {
-		std::ifstream file(m_fileName, std::ios::in | std::ios::binary);
+		std::ifstream file(fileName, std::ios::in | std::ios::binary);
 
 		if (!file.is_open())
 			throw std::runtime_error("Unable to open shader file.");

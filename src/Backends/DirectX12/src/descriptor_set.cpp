@@ -42,18 +42,18 @@ public:
         }
     }
 
-      D3D12_TEXTURE_ADDRESS_MODE getBorderMode(const BorderMode& mode)
-      {
-          switch (mode)
-          {
-          case BorderMode::Repeat: return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-          case BorderMode::ClampToEdge: return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-          case BorderMode::ClampToBorder: return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-          case BorderMode::RepeatMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
-          case BorderMode::ClampToEdgeMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
-          default: throw std::invalid_argument("Invalid border mode.");
-          }
-      }
+    D3D12_TEXTURE_ADDRESS_MODE getBorderMode(const BorderMode& mode)
+    {
+        switch (mode)
+        {
+        case BorderMode::Repeat: return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        case BorderMode::ClampToEdge: return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        case BorderMode::ClampToBorder: return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+        case BorderMode::RepeatMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+        case BorderMode::ClampToEdgeMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+        default: throw std::invalid_argument("Invalid border mode.");
+        }
+    }
 };
 
 // ------------------------------------------------------------------------------------------------

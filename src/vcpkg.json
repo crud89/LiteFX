@@ -18,6 +18,7 @@
     "spdlog",
     "stb",
     "vulkan",
+    "spirv-reflect",
     "vulkan-memory-allocator",
     "d3d12-memory-allocator"
   ]

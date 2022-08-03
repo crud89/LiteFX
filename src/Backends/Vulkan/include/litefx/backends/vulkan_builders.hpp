@@ -220,6 +220,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual VulkanDescriptorSetLayoutBuilder& withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) override;
 
+		/// <inheritdoc />
+		virtual VulkanDescriptorSetLayoutBuilder& withStaticSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f) override;
+
 		// VulkanDescriptorSetLayoutBuilder.
 	public:
 		/// <summary>

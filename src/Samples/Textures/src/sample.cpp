@@ -30,7 +30,7 @@ struct TransformBuffer {
 } transform;
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+rtti::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
     static const String SHADER;
 };
@@ -43,7 +43,7 @@ const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+rtti::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, SharedPtr<IScissor> scissor, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
@@ -61,10 +61,10 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
         .topology(PrimitiveTopology::TriangleList)
         .indexType(IndexType::UInt16)
         .vertexBuffer(sizeof(Vertex), 0)
-            .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
-            .withAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0), AttributeSemantic::TextureCoordinate, 0)
-            .add();
+        .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+        .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
+        .withAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0), AttributeSemantic::TextureCoordinate, 0)
+        .add();
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
@@ -72,6 +72,11 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
         .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
         .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false);
+
+    // Create a shader program.
+    SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
+        .withVertexShaderModule("shaders/textures_vs." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/textures_fs." + FileExtensions<TRenderBackend>::SHADER);
 
     // Create a render pipeline.
     UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
@@ -83,20 +88,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
             .cullMode(CullMode::BackFaces)
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f))
-        .layout(device->buildPipelineLayout()
-            .descriptorSet(DescriptorSets::Constant, ShaderStage::Vertex | ShaderStage::Fragment)
-                .withUniform(0, sizeof(CameraBuffer))
-                .withImage(1)
-                .add()
-            .descriptorSet(DescriptorSets::Samplers, ShaderStage::Vertex | ShaderStage::Fragment)
-                .withSampler(0)
-                .add()
-            .descriptorSet(DescriptorSets::PerFrame, ShaderStage::Vertex)
-                .withUniform(0, sizeof(TransformBuffer))
-                .add())
-        .shaderProgram(device->buildShaderProgram()
-            .withVertexShaderModule("shaders/textures_vs." + FileExtensions<TRenderBackend>::SHADER)
-            .withFragmentShaderModule("shaders/textures_fs." + FileExtensions<TRenderBackend>::SHADER));
+        .layout(shaderProgram->reflectPipelineLayout())
+        .shaderProgram(shaderProgram);
 
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));
@@ -113,7 +106,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     //       whole buffer.
     auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
-    
+
     // Create the actual vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
     commandBuffer->transfer(*stagedVertices, *vertexBuffer, 0, 0, vertices.size());
@@ -159,7 +152,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto transformBindings = transformBindingLayout.allocate(3);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
     std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++); });
-    
+
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);
     m_device->bufferQueue().waitFor(fence);
@@ -230,7 +223,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagi
     commandBuffer.transfer(stagingBuffer, buffer);
 }
 
-void SampleApp::run() 
+void SampleApp::run()
 {
     // Store the window handle.
     auto window = m_window.get();
@@ -244,7 +237,7 @@ void SampleApp::run()
     m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this, &window]<typename TBackend>(TBackend* backend) {
+    auto startCallback = [this, &window]<typename TBackend>(TBackend * backend) {
         auto adapter = backend->findAdapter(m_adapterId);
 
         if (adapter == nullptr)
@@ -273,6 +266,9 @@ void SampleApp::run()
 #endif // BUILD_VULKAN_BACKEND
 
 #ifdef BUILD_DIRECTX_12_BACKEND
+    // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
+    DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
+
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
@@ -280,7 +276,7 @@ void SampleApp::run()
 
     // Start the first registered rendering backend.
     auto backends = this->getBackends(BackendType::Rendering);
-    
+
     if (!backends.empty())
     {
         this->startBackend(typeid(*backends[0]));
@@ -303,15 +299,15 @@ void SampleApp::initialize()
 {
     ::glfwSetWindowUserPointer(m_window.get(), this);
 
-    ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) { 
+    ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) {
         auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
-        app->resize(width, height); 
-    });
+        app->resize(width, height);
+        });
 
     ::glfwSetKeyCallback(m_window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
         app->keyDown(key, scancode, action, mods);
-    });
+        });
 }
 
 void SampleApp::resize(int width, int height)

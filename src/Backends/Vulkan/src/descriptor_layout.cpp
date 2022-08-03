@@ -15,6 +15,7 @@ private:
     UInt32 m_binding, m_descriptors;
     DescriptorType m_descriptorType;
     BufferType m_bufferType;
+    UniquePtr<IVulkanSampler> m_staticSampler;
 
 public:
     VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
@@ -30,6 +31,15 @@ public:
         default:                            m_bufferType = BufferType::Other; break;
         }
     }
+
+    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, UniquePtr<IVulkanSampler>&& staticSampler, const UInt32& binding) :
+        VulkanDescriptorLayoutImpl(parent, DescriptorType::Sampler, binding, 0, 1)
+    {
+        if (staticSampler == nullptr)
+            throw ArgumentNotInitializedException("The static sampler must be initialized.");
+
+        m_staticSampler = std::move(staticSampler);
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -38,6 +48,11 @@ public:
 
 VulkanDescriptorLayout::VulkanDescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
     m_impl(makePimpl<VulkanDescriptorLayoutImpl>(this, type, binding, elementSize, descriptors))
+{
+}
+
+VulkanDescriptorLayout::VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, const UInt32& binding) :
+    m_impl(makePimpl<VulkanDescriptorLayoutImpl>(this, std::move(staticSampler), binding))
 {
 }
 
@@ -66,4 +81,9 @@ const BufferType& VulkanDescriptorLayout::type() const noexcept
 const DescriptorType& VulkanDescriptorLayout::descriptorType() const noexcept
 {
     return m_impl->m_descriptorType;
+}
+
+const IVulkanSampler* VulkanDescriptorLayout::staticSampler() const noexcept
+{
+    return m_impl->m_staticSampler.get();
 }

@@ -182,6 +182,22 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors to bind.</param>
         virtual TDerived& withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) = 0;
 
+        /// <summary>
+        /// Defines a static sampler at the descriptor bound to <see cref="binding" />.
+        /// </summary>
+        /// <param name="binding">The binding point for the descriptor.</param>
+        /// <param name="magFilter">The magnifying filter operation.</param>
+        /// <param name="minFilter">The minifying filter operation.</param>
+        /// <param name="borderU">The border address mode into U direction.</param>
+        /// <param name="borderV">The border address mode into V direction.</param>
+        /// <param name="borderW">The border address mode into W direction.</param>
+        /// <param name="mipMapMode">The mip map filter operation.</param>
+        /// <param name="mipMapBias">The mip map bias.</param>
+        /// <param name="minLod">The closest mip map distance level.</param>
+        /// <param name="maxLod">The furthest mip map distance level. </param>
+        /// <param name="anisotropy">The maximum anisotropy.</param>
+        virtual TDerived& withStaticSampler(const UInt32& binding, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f) = 0;
+
     public:
         /// <summary>
         /// Adds an uniform/constant buffer descriptor.
