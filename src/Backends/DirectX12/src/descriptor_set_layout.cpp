@@ -1,5 +1,6 @@
 #include <litefx/backends/dx12.hpp>
 #include <litefx/backends/dx12_builders.hpp>
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -275,6 +276,11 @@ DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withDe
 DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
 {
     return this->withDescriptor(makeUnique<DirectX12DescriptorLayout>(type, binding, descriptorSize, descriptors));
+}
+
+DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withStaticSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy)
+{
+    return this->withDescriptor(makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding));
 }
 
 DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::space(const UInt32& space) noexcept

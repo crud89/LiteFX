@@ -3287,6 +3287,21 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// Note that shader reflection may not yield different results than you would expect, especially when using DirectX 12. For more information on how to use shader
         /// reflection and how to write portable shaders, refer to the [shader development guide](https://github.com/crud89/LiteFX/wiki/Shader-Development) in the wiki.
+        /// 
+        /// In particular, shader reflection is not able to restore:
+        /// 
+        /// <list type="bullet">
+        /// <item>
+        /// <description>
+        /// Input attachments in DirectX. Instead, input attachments are treated as <c>DescriptorType::Texture</c>. This is usually not a problem, since DirectX does not
+        /// have a concept of render pass outputs/inputs anyway. However, keep this in mind, if you want to filter descriptors based on their type, for example.
+        /// </description>
+        /// <description>
+        /// Immutable sampler states in Vulkan. Those are only restored in DirectX, if an explicit root signature has been provided. For this reason, it is best not to use
+        /// them, if you want to use shader reflection.
+        /// </description>
+        /// </item>
+        /// </list>
         /// </remarks>
         /// <returns>The pipeline layout extracted from shader reflection.</returns>
         /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />

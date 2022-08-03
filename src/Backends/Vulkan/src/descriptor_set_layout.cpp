@@ -1,5 +1,6 @@
 #include <litefx/backends/vulkan.hpp>
 #include <litefx/backends/vulkan_builders.hpp>
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -349,6 +350,11 @@ VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescript
 VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
 {
     return this->withDescriptor(makeUnique<VulkanDescriptorLayout>(type, binding, descriptorSize, descriptors));
+}
+
+VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withStaticSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy)
+{
+    return this->withDescriptor(makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding));
 }
 
 VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
