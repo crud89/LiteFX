@@ -499,6 +499,18 @@ namespace LiteFX::Rendering {
         virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
 
         /// <summary>
+        /// Adds a render target to the render pass by assigning it an incremental location number.
+        /// </summary>
+        /// <param name="name">The name of the render target.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The color format of the render target.</param>
+        /// <param name="clearValues">The fixed clear value for the render target.</param>
+        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
+        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
+        virtual TDerived& renderTarget(const String& name, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+
+        /// <summary>
         /// Adds a render target to the render pass.
         /// </summary>
         /// <param name="location">The location of the render target.</param>
@@ -509,6 +521,19 @@ namespace LiteFX::Rendering {
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+
+        /// <summary>
+        /// Adds a render target to the render pass.
+        /// </summary>
+        /// <param name="name">The name of the render target.</param>
+        /// <param name="location">The location of the render target.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The color format of the render target.</param>
+        /// <param name="clearValues">The fixed clear value for the render target.</param>
+        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
+        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
+        virtual TDerived& renderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
 
         /// <summary>
         /// Adds a render target to the render pass, that maps to an input attachment of another render pass. The location is assigned incrementally.
@@ -523,6 +548,19 @@ namespace LiteFX::Rendering {
         virtual TDerived& renderTarget(input_attachment_mapping_type& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
 
         /// <summary>
+        /// Adds a render target to the render pass, that maps to an input attachment of another render pass. The location is assigned incrementally.
+        /// </summary>
+        /// <param name="name">The name of the render target.</param>
+        /// <param name="output">The input attachment mapping to map to.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The color format of the render target.</param>
+        /// <param name="clearValues">The fixed clear value for the render target.</param>
+        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
+        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
+        virtual TDerived& renderTarget(const String& name, input_attachment_mapping_type& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+
+        /// <summary>
         /// Adds a render target to the render pass, that maps to an input attachment of another render pass.
         /// </summary>
         /// <param name="output">The input attachment mapping to map to.</param>
@@ -534,6 +572,20 @@ namespace LiteFX::Rendering {
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         virtual TDerived& renderTarget(input_attachment_mapping_type& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+
+        /// <summary>
+        /// Adds a render target to the render pass, that maps to an input attachment of another render pass.
+        /// </summary>
+        /// <param name="name">The name of the render target.</param>
+        /// <param name="output">The input attachment mapping to map to.</param>
+        /// <param name="location">The location of the render target.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The color format of the render target.</param>
+        /// <param name="clearValues">The fixed clear value for the render target.</param>
+        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
+        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
+        virtual TDerived& renderTarget(const String& name, input_attachment_mapping_type& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
         
         /// <summary>
         /// Adds an input attachment to the render pass.

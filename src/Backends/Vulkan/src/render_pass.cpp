@@ -242,6 +242,40 @@ public:
 
         return renderPass;
     }
+
+    void initializeFrameBuffers(const UInt32& commandBuffers)
+    {
+        // Initialize the frame buffers.
+        this->m_frameBuffers.resize(this->m_device.swapChain().buffers());
+        std::ranges::generate(this->m_frameBuffers, [this, &commandBuffers, i = 0]() mutable { 
+            auto frameBuffer = makeUnique<VulkanFrameBuffer>(*m_parent, i++, this->m_device.swapChain().renderArea(), commandBuffers);
+
+#ifndef NDEBUG
+            m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*frameBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT, fmt::format("Framebuffer {0}-{1}", m_parent->name(), i));
+
+            auto images = frameBuffer->images();
+            int renderTarget = 0;
+
+            for (auto& image : images)
+                m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, m_renderTargets[renderTarget++].name());
+
+            auto secondaryCommandBuffers = frameBuffer->commandBuffers();
+            int commandBuffer = 0;
+
+            for (auto& buffer : secondaryCommandBuffers)
+                m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*buffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, fmt::format("Command Buffer {0}-{1}", m_parent->name(), commandBuffer++));
+#endif
+
+            return frameBuffer;
+        });
+
+        // Initialize the command buffers.
+        this->m_primaryCommandBuffer = this->m_device.graphicsQueue().createCommandBuffer(false);
+
+#ifndef NDEBUG
+        m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*this->m_primaryCommandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, fmt::format("{0} Primary Command Buffer", m_parent->name()));
+#endif
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -252,13 +286,7 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget
     m_impl(makePimpl<VulkanRenderPassImpl>(this, device, renderTargets, samples, inputAttachments)), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
-
-    // Initialize the frame buffers.
-    m_impl->m_frameBuffers.resize(m_impl->m_device.swapChain().buffers());
-    std::ranges::generate(m_impl->m_frameBuffers, [this, &commandBuffers, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*this, i++, m_impl->m_device.swapChain().renderArea(), commandBuffers); });
-
-    // Initialize the command buffers.
-    m_impl->m_primaryCommandBuffer = m_impl->m_device.graphicsQueue().createCommandBuffer(false);
+    m_impl->initializeFrameBuffers(commandBuffers);
 }
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
@@ -502,13 +530,7 @@ void VulkanRenderPassBuilder::build()
     instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
     instance->m_impl->m_samples = std::move(m_impl->m_samples);
     instance->handle() = instance->m_impl->initialize();
-
-    // Initialize the frame buffers.
-    instance->m_impl->m_frameBuffers.resize(instance->device().swapChain().buffers());
-    std::ranges::generate(instance->m_impl->m_frameBuffers, [this, &instance, i = 0]() mutable { return makeUnique<VulkanFrameBuffer>(*instance, i++, instance->device().swapChain().renderArea(), m_impl->m_commandBuffers); });
-
-    // Initialize the command buffers.
-    instance->m_impl->m_primaryCommandBuffer = instance->device().graphicsQueue().createCommandBuffer(false);
+    instance->m_impl->initializeFrameBuffers(m_impl->m_commandBuffers);
 }
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::commandBuffers(const UInt32& count)
@@ -525,27 +547,47 @@ VulkanRenderPassBuilder& VulkanRenderPassBuilder::multiSamplingLevel(const Multi
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
+    return this->renderTarget("", type, format, clearValues, clear, clearStencil, isVolatile);
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const String& name, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+{
     // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
     //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
+    return this->renderTarget(name, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
 }
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    m_impl->m_renderTargets.push_back(RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile));
+    return this->renderTarget("", location, type, format, clearValues, clear, clearStencil, isVolatile);
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+{
+    m_impl->m_renderTargets.push_back(RenderTarget(name, location, type, format, clear, clearValues, clearStencil, isVolatile));
     return *this;
 }
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
+    return this->renderTarget("", output, type, format, clearValues, clear, clearStencil, isVolatile);
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const String& name, VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+{
     // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
     //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
+    return this->renderTarget(name, output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
 }
 
 VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
 {
-    auto renderTarget = RenderTarget(location, type, format, clear, clearValues, clearStencil, isVolatile);
+    return this->renderTarget("", output, location, type, format, clearValues, clear, clearStencil, isVolatile);
+}
+
+VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const String& name, VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
+{
+    auto renderTarget = RenderTarget(name, location, type, format, clear, clearValues, clearStencil, isVolatile);
     output = std::move(VulkanInputAttachmentMapping(*this->instance(), renderTarget, location));
     m_impl->m_renderTargets.push_back(renderTarget);
     return *this;
