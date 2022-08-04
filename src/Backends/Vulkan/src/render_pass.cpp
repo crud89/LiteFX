@@ -236,6 +236,10 @@ public:
         VkRenderPass renderPass;
         raiseIfFailed<RuntimeException>(::vkCreateRenderPass(m_device.handle(), &renderPassState, nullptr, &renderPass), "Unable to create render pass.");
 
+#ifndef NDEBUG
+        m_device.setDebugName(*reinterpret_cast<const UInt64*>(&renderPass), VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT, m_parent->name());
+#endif
+
         return renderPass;
     }
 };

@@ -54,6 +54,10 @@ public:
 		VkPipeline pipeline;
 		raiseIfFailed<RuntimeException>(::vkCreateComputePipelines(m_device.handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
 
+#ifndef NDEBUG
+		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
+#endif
+
 		return pipeline;
 	}
 };

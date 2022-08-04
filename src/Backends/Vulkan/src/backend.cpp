@@ -230,6 +230,10 @@ void VulkanBackend::registerDevice(String name, UniquePtr<VulkanDevice>&& device
     if (m_impl->m_devices.contains(name))
         throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
 
+#ifndef NDEBUG
+    device->setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*device).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, name);
+#endif
+
     m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
 }
 

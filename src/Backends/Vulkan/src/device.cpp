@@ -68,6 +68,10 @@ private:
 	UniquePtr<VulkanSurface> m_surface;
 	UniquePtr<VulkanGraphicsFactory> m_factory;
 
+#ifndef NDEBUG
+	PFN_vkDebugMarkerSetObjectNameEXT debugMarkerSetObjectName = nullptr;
+#endif
+
 public:
 	VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
 		base(parent), m_adapter(adapter), m_surface(std::move(surface))
@@ -106,6 +110,13 @@ private:
 #else
 		m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 #endif // BUILD_DIRECTX_12_BACKEND
+
+#ifndef NDEBUG
+		auto availableExtensions = m_adapter.getAvailableDeviceExtensions();
+
+		if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }); match != availableExtensions.end())
+			m_extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+#endif
 	}
 
 public:
@@ -215,6 +226,10 @@ public:
 		VkDevice device;
 		raiseIfFailed<RuntimeException>(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 
+#ifndef NDEBUG
+		debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
+#endif
+
 		return device;
 	}
 
@@ -308,6 +323,24 @@ VulkanDevice::~VulkanDevice() noexcept
 Span<const String> VulkanDevice::enabledExtensions() const noexcept
 {
 	return m_impl->m_extensions;
+}
+
+void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type, StringView name) const noexcept
+{
+#ifndef NDEBUG
+	if (m_impl->debugMarkerSetObjectName != nullptr)
+	{
+		VkDebugMarkerObjectNameInfoEXT nameInfo = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
+			.objectType = type,
+			.object = handle,
+			.pObjectName = name.data()
+		};
+		
+		if (m_impl->debugMarkerSetObjectName(this->handle(), &nameInfo) != VK_SUCCESS)
+			LITEFX_WARNING(VULKAN_LOG, "Unable to set object name for object handle {0}.", fmt::ptr(reinterpret_cast<void*>(handle)));
+	}
+#endif
 }
 
 VulkanSwapChain& VulkanDevice::swapChain() noexcept

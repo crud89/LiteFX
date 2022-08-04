@@ -114,12 +114,14 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	UniquePtr<IVulkanBuffer> buffer;
+
 	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
 	{
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -132,8 +134,15 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
+
+#ifndef NDEBUG
+	if (!name.empty())
+		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*buffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+#endif
+
+	return buffer;
 }
 
 UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
@@ -171,12 +180,14 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::GenericRead : ResourceState::CopyDestination;
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	UniquePtr<IVulkanVertexBuffer> buffer;
+
 	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
 	{
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanVertexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanVertexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -189,8 +200,15 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanVertexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanVertexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
+
+#ifndef NDEBUG
+	if (!name.empty())
+		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*buffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+#endif
+
+	return buffer;
 }
 
 UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
@@ -228,12 +246,14 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::GenericRead : ResourceState::CopyDestination;
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	UniquePtr<IVulkanIndexBuffer> buffer;
+
 	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
 	{
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		return VulkanIndexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanIndexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -246,8 +266,15 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		return VulkanIndexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanIndexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
+
+#ifndef NDEBUG
+	if (!name.empty())
+		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*buffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+#endif
+
+	return buffer;
 }
 
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
@@ -279,10 +306,19 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
+	UniquePtr<IVulkanImage> image;
+
 	if (::hasDepth(format)) [[unlikely]]
-		return VulkanImage::allocate(name, m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
 	else
-		return VulkanImage::allocate(name, m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
+
+#ifndef NDEBUG
+	if (!name.empty())
+		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
+#endif
+
+	return image;
 }
 
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
@@ -330,7 +366,14 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	return VulkanImage::allocate(name, m_impl->m_device, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, m_impl->m_allocator, imageInfo, allocInfo);
+	auto image = VulkanImage::allocate(name, m_impl->m_device, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, m_impl->m_allocator, imageInfo, allocInfo);
+
+#ifndef NDEBUG
+	if (!name.empty())
+		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
+#endif
+
+	return image;
 }
 
 Array<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
@@ -347,7 +390,14 @@ UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const FilterMode&
 
 UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& name, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
-	return makeUnique<VulkanSampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
+	auto sampler = makeUnique<VulkanSampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
+
+#ifndef NDEBUG
+	if (!name.empty())
+		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*sampler).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT, name);
+#endif
+
+	return sampler;
 }
 
 Array<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
