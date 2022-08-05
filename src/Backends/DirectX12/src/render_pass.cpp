@@ -124,6 +124,41 @@ public:
             std::get<1>(m_contexts[backBuffer]) = D3D12_RENDER_PASS_DEPTH_STENCIL_DESC{ depthStencilView, depthBeginAccess, stencilBeginAccess, depthEndAccess, stencilEndAccess };
         }
     }
+
+    void initializeFrameBuffers(const UInt32& commandBuffers)
+    {
+        // Initialize the frame buffers.
+        this->m_frameBuffers.resize(m_device.swapChain().buffers());
+        this->m_contexts.resize(m_device.swapChain().buffers());
+        std::ranges::generate(this->m_frameBuffers, [&, i = 0]() mutable {
+            auto frameBuffer = makeUnique<DirectX12FrameBuffer>(*m_parent, i++, m_device.swapChain().renderArea(), commandBuffers);
+
+#ifndef NDEBUG
+            auto images = frameBuffer->images();
+            int renderTarget = 0;
+
+            for (auto& image : images)
+                image->handle()->SetName(Widen(m_renderTargets[renderTarget++].name()).c_str());
+
+            auto secondaryCommandBuffers = frameBuffer->commandBuffers();
+            int commandBuffer = 0;
+
+            for (auto& buffer : secondaryCommandBuffers)
+                buffer->handle()->SetName(Widen(fmt::format("Command Buffer {0}-{1}", m_parent->name(), commandBuffer++)).c_str());
+#endif
+
+            return frameBuffer;
+        });
+
+        // Initialize the command buffers.
+        this->m_beginCommandBuffer = m_device.graphicsQueue().createCommandBuffer(false);
+        this->m_endCommandBuffer = m_device.graphicsQueue().createCommandBuffer(false);
+
+#ifndef NDEBUG
+        std::as_const(*this->m_beginCommandBuffer).handle()->SetName(Widen(fmt::format("{0} - Begin Commands", m_parent->name())).c_str());
+        std::as_const(*this->m_endCommandBuffer).handle()->SetName(Widen(fmt::format("{0} - End Commands", m_parent->name())).c_str());
+#endif
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -133,14 +168,7 @@ public:
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
     m_impl(makePimpl<DirectX12RenderPassImpl>(this, device, renderTargets, samples, inputAttachments))
 {
-    // Initialize the frame buffers.
-    m_impl->m_frameBuffers.resize(device.swapChain().buffers());
-    m_impl->m_contexts.resize(device.swapChain().buffers());
-    std::ranges::generate(m_impl->m_frameBuffers, [this, &device, &commandBuffers, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*this, i++, device.swapChain().renderArea(), commandBuffers); });
-
-    // Initialize the command buffers.
-    m_impl->m_beginCommandBuffer = device.graphicsQueue().createCommandBuffer(false);
-    m_impl->m_endCommandBuffer   = device.graphicsQueue().createCommandBuffer(false);
+    m_impl->initializeFrameBuffers(commandBuffers);
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
@@ -433,15 +461,7 @@ void DirectX12RenderPassBuilder::build()
     instance->m_impl->mapRenderTargets(m_impl->m_renderTargets);
     instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
     instance->m_impl->m_multiSamplingLevel = std::move(m_impl->m_multiSamplingLevel);
-
-    // Initialize the frame buffers.
-    instance->m_impl->m_frameBuffers.resize(instance->device().swapChain().buffers());
-    instance->m_impl->m_contexts.resize(instance->device().swapChain().buffers());
-    std::ranges::generate(instance->m_impl->m_frameBuffers, [this, &instance, i = 0]() mutable { return makeUnique<DirectX12FrameBuffer>(*instance, i++, instance->device().swapChain().renderArea(), m_impl->m_commandBuffers); });
-
-    // Initialize the command buffers.
-    instance->m_impl->m_beginCommandBuffer = instance->device().graphicsQueue().createCommandBuffer(false);
-    instance->m_impl->m_endCommandBuffer   = instance->device().graphicsQueue().createCommandBuffer(false);
+    instance->m_impl->initializeFrameBuffers(m_impl->m_commandBuffers);
 }
 
 DirectX12RenderPassBuilder& DirectX12RenderPassBuilder::commandBuffers(const UInt32& count)
