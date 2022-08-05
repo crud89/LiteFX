@@ -42,7 +42,13 @@ DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resou
 	this->handle() = std::move(image);
 
 	if (!name.empty())
+	{
 		this->name() = name;
+
+#ifndef NDEBUG
+		this->handle()->SetName(Widen(name).c_str());
+#endif
+	}
 }
 
 DirectX12Image::~DirectX12Image() noexcept = default;

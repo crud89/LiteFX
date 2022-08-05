@@ -26,6 +26,7 @@ private:
     MultiSamplingLevel m_multiSamplingLevel{ MultiSamplingLevel::x1 };
     Array<RenderPassContext> m_contexts;
     const DirectX12Device& m_device;
+    String m_name;
 
 public:
     DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
@@ -146,14 +147,20 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
     DirectX12RenderPass(device, renderTargets, commandBuffers, samples, inputAttachments)
 {
     if (!name.empty())
+    {
         this->name() = name;
+        m_impl->m_name = name;
+    }
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name) noexcept :
     m_impl(makePimpl<DirectX12RenderPassImpl>(this, device))
 {
     if (!name.empty())
+    {
         this->name() = name;
+        m_impl->m_name = name;
+    }
 }
 
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
@@ -248,6 +255,11 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     std::ranges::for_each(m_impl->m_renderTargets, [&transitionBarrier, &frameBuffer](const RenderTarget& renderTarget) { transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), renderTarget.type() != RenderTargetType::DepthStencil ? ResourceState::RenderTarget : ResourceState::DepthWrite); });
     m_impl->m_beginCommandBuffer->barrier(transitionBarrier);
 
+#ifndef NDEBUG
+    if (!m_impl->m_name.empty())
+        m_impl->m_device.graphicsQueue().handle()->BeginEvent(1, m_impl->m_name.c_str(), m_impl->m_name.size());
+#endif
+
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
     std::as_const(*m_impl->m_beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
     std::as_const(*m_impl->m_beginCommandBuffer).handle()->EndRenderPass();
@@ -316,6 +328,11 @@ void DirectX12RenderPass::end() const
     commandBuffers.insert(commandBuffers.begin(), m_impl->m_beginCommandBuffer.get());
     commandBuffers.push_back(m_impl->m_endCommandBuffer.get());
     m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
+
+#ifndef NDEBUG
+    if (!m_impl->m_name.empty())
+        m_impl->m_device.graphicsQueue().handle()->EndEvent();
+#endif
 
     // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
     //       frame in the queue has been drawn and the back buffer can be written again.

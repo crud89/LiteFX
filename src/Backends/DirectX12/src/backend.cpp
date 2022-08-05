@@ -123,6 +123,10 @@ void DirectX12Backend::registerDevice(String name, UniquePtr<DirectX12Device>&& 
     if (m_impl->m_devices.contains(name)) [[unlikely]]
         throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
 
+#ifndef NDEBUG
+    std::as_const(*device).handle()->SetName(Widen(name).c_str());
+#endif
+
     m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
 }
 

@@ -37,7 +37,13 @@ DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, const BufferTy
 	this->handle() = std::move(buffer);
 
 	if (!name.empty())
+	{
 		this->name() = name;
+
+#ifndef NDEBUG
+		this->handle()->SetName(Widen(name).c_str());
+#endif
+	}
 }
 
 DirectX12Buffer::~DirectX12Buffer() noexcept = default;
