@@ -955,9 +955,6 @@ namespace LiteFX::Rendering::Backends {
 		// Pipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual const String& name() const noexcept override;
-
-		/// <inheritdoc />
 		virtual SharedPtr<const VulkanShaderProgram> program() const noexcept override;
 
 		/// <inheritdoc />

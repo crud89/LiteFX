@@ -15,12 +15,11 @@ public:
 private:
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<DirectX12ShaderProgram> m_program;
-	String m_name;
 	const DirectX12Device& m_device;
 
 public:
-	DirectX12ComputePipelineImpl(DirectX12ComputePipeline* parent, const DirectX12Device& device, const String& name, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram) :
-		base(parent), m_device(device), m_name(name), m_layout(layout), m_program(shaderProgram)
+	DirectX12ComputePipelineImpl(DirectX12ComputePipeline* parent, const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram) :
+		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram)
 	{
 	}
 
@@ -60,6 +59,10 @@ public:
 		ComPtr<ID3D12PipelineState> pipelineState;
 		raiseIfFailed<RuntimeException>(m_device.handle()->CreateComputePipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create compute pipeline state.");
 
+#ifndef NDEBUG
+		pipelineState->SetName(Widen(m_parent->name()).c_str());
+#endif
+
 		return pipelineState;
 	}
 };
@@ -69,8 +72,11 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, const String& name) :
-	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device, name, layout, shaderProgram)), DirectX12PipelineState(nullptr)
+	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device, layout, shaderProgram)), DirectX12PipelineState(nullptr)
 {
+	if (!name.empty())
+		this->name() = name;
+
 	this->handle() = m_impl->initialize();
 }
 
@@ -80,11 +86,6 @@ DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device
 }
 
 DirectX12ComputePipeline::~DirectX12ComputePipeline() noexcept = default;
-
-const String& DirectX12ComputePipeline::name() const noexcept
-{
-	return m_impl->m_name;
-}
 
 SharedPtr<const DirectX12ShaderProgram> DirectX12ComputePipeline::program() const noexcept
 {
@@ -129,7 +130,7 @@ public:
 DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name) :
 	m_impl(makePimpl<DirectX12ComputePipelineBuilderImpl>(this)), ComputePipelineBuilder(UniquePtr<DirectX12ComputePipeline>(new DirectX12ComputePipeline(device)))
 {
-	this->instance()->m_impl->m_name = name;
+	this->instance()->name() = name;
 }
 
 DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = default;
