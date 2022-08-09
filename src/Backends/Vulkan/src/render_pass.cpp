@@ -257,7 +257,11 @@ public:
             int renderTarget = 0;
 
             for (auto& image : images)
-                m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, m_renderTargets[renderTarget++].name());
+                if (renderTarget < m_renderTargets.size())  // Resolve target is not included in render targets, but appended to the image list in the frame buffer.
+                    m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, m_renderTargets[renderTarget++].name());
+                else
+                    m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, "Multisampling Resolve");
+
 
             auto secondaryCommandBuffers = frameBuffer->commandBuffers();
             int commandBuffer = 0;

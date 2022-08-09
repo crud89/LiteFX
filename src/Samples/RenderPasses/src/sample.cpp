@@ -75,15 +75,16 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry and lighting render passes.
+    // NOTE: For Vulkan, input attachments need to be in a continuous range, starting at index 0.
     UniquePtr<RenderPass> geometryPass = device->buildRenderPass("Geometry Pass")
-        .renderTarget(RenderTargetType::Color, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
-        .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, true, false);
+        .renderTarget("G-Buffer Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
+        .renderTarget("G-Buffer Depth/Stencil", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, true, false);
     
     UniquePtr<RenderPass> lightingPass = device->buildRenderPass("Lighting Pass")
-        .inputAttachment(0, *geometryPass, 0)  // Color attachment.
-        .inputAttachment(1, *geometryPass, 1)  // Depth/Stencil attachment.
-        .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
-        .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, true, false);
+        .inputAttachment(0, *geometryPass, 0)  // Map color attachment from geometry pass render target 0 to location 0.
+        .inputAttachment(1, *geometryPass, 1)  // Map depth/stencil attachment from geometry pass render target 1 to location 1.
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
+        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, true, false);
 
     // Create the shader programs.
     SharedPtr<ShaderProgram> geometryPassShader = device->buildShaderProgram()
