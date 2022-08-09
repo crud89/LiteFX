@@ -266,7 +266,7 @@ private:
 	ComPtr<IDXGISwapChain4> m_swapChain;
 	ComPtr<ID3D12CommandQueue> m_presentQueue;
 	bool m_supportsTearing = false;
-	UInt32 m_lastFence = 0;
+	Array<UInt32> m_fences;
 
 public:
 	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
@@ -547,6 +547,9 @@ public:
 			return semaphore;
 		});
 
+		// Initialize the fences.
+		m_fences.resize(buffers, 0);
+
 		// Store state variables.
 		m_renderArea = renderArea;
 		m_format = format;
@@ -559,6 +562,7 @@ public:
 		// Release the image memory of the previously allocated images.
 		m_imageResources.clear();
 		m_presentImages.clear();
+		m_fences.clear();
 
 		// Destroy the swap chain and interop device.
 		this->waitForInteropDevice();
@@ -579,8 +583,8 @@ public:
 	UInt32 swapBackBuffer()
 	{
 		// Get the current back buffer index.
-		m_device.graphicsQueue().waitFor(m_lastFence);
 		m_currentImage = m_swapChain->GetCurrentBackBufferIndex();
+		m_device.graphicsQueue().waitFor(this->currentFence());
 
 		// We need to manually signal the current semaphore on the graphics queue.
 		VkSubmitInfo submitInfo {
@@ -597,13 +601,18 @@ public:
 
 	void present(const VulkanFrameBuffer& frameBuffer)
 	{
-		m_lastFence = frameBuffer.lastFence();
+		this->currentFence() = frameBuffer.lastFence();
 		D3D::raiseIfFailed<RuntimeException>(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
 	}
 
 	const VkSemaphore& currentSemaphore()
 	{
 		return m_swapSemaphores[m_currentImage];
+	}
+
+	UInt32& currentFence()
+	{
+		return m_fences[m_currentImage];
 	}
 
 public:
