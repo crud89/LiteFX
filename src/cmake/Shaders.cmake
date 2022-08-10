@@ -402,8 +402,12 @@ int main(int argc, char* argv[]) {
             "#include <streambuf>" << std::endl << std::endl;
             
         file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
-        file << "struct _pcksl_mem_buf : std::streambuf {" << std::endl;
-        file << "    _pcksl_mem_buf(char* begin, size_t size) { this->setg(begin, begin, begin + size); }" << std::endl;
+        file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
+        file << "    _pcksl_mem_buf(const char* begin, size_t size) { char* b = const_cast<char*>(begin); this->setg(b, b, b + size); }" << std::endl;
+        file << "};" << std::endl << std::endl;
+        file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
+        file << "    explicit _pcksl_mem_istream(const char* begin, size_t size) :" << std::endl;
+        file << "        _pcksl_mem_buf(begin, size), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
         file << "};" << std::endl;
         file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
         file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
@@ -435,7 +439,7 @@ int main(int argc, char* argv[]) {
         file << "        ~" << resourceName << "() = delete;" << std::endl;
         file << "" << std::endl;
         file << "        static const std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
-        file << "        static std::istream open() {" << std::endl;
+        file << "        static _pcksl_mem_istream open() {" << std::endl;
         file << "            static std::array<uint8_t, " << buffer.size() << "> _data = {" << std::endl;
         file << "                ";
 
@@ -444,8 +448,7 @@ int main(int argc, char* argv[]) {
 
         file << std::endl;
         file << "            };" << std::endl << std::endl;
-        file << "            static _pcksl_mem_buf buffer(reinterpret_cast<char*>(_data.data()), _data.size());" << std::endl;
-        file << "            return std::istream(&buffer);" << std::endl;
+        file << "            return ::_pcksl_mem_istream(reinterpret_cast<const char*>(_data.data()), _data.size());" << std::endl;
         file << "        }" << std::endl;
         file << "    };" << std::endl;
         file << "}" << std::endl << std::endl;
