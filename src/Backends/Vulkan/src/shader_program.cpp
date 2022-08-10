@@ -272,9 +272,20 @@ VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withShaderModule(const S
     return *this;
 }
 
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withShaderModule(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint)
+{
+    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint));
+    return *this;
+}
+
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withVertexShaderModule(const String& fileName, const String& entryPoint)
 {
     return this->withShaderModule(ShaderStage::Vertex, fileName, entryPoint);
+}
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withVertexShaderModule(std::istream& stream, const String& name, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::Vertex, stream, name, entryPoint);
 }
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationControlShaderModule(const String& fileName, const String& entryPoint)
@@ -282,9 +293,19 @@ VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationControlS
     return this->withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
 }
 
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationControlShaderModule(std::istream& stream, const String& name, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint);
+}
+
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
 {
     return this->withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
+}
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationEvaluationShaderModule(std::istream& stream, const String& name, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint);
 }
 
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withGeometryShaderModule(const String& fileName, const String& entryPoint)
@@ -292,13 +313,28 @@ VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withGeometryShaderModule
     return this->withShaderModule(ShaderStage::Geometry, fileName, entryPoint);
 }
 
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withGeometryShaderModule(std::istream& stream, const String& name, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::Geometry, stream, name, entryPoint);
+}
+
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withFragmentShaderModule(const String& fileName, const String& entryPoint)
 {
     return this->withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
 }
 
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withFragmentShaderModule(std::istream& stream, const String& name, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::Fragment, stream, name, entryPoint);
+}
+
 VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withComputeShaderModule(const String& fileName, const String& entryPoint)
 {
     return this->withShaderModule(ShaderStage::Compute, fileName, entryPoint);
+}
+
+VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withComputeShaderModule(std::istream& stream, const String& name, const String& entryPoint)
+{
+    return this->withShaderModule(ShaderStage::Compute, stream, name, entryPoint);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

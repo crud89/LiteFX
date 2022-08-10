@@ -37,22 +37,43 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanShaderProgramBuilder& withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
 
 		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& withShaderModule(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
 		virtual VulkanShaderProgramBuilder& withVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& withVertexShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
 
 		/// <inheritdoc />
 		virtual VulkanShaderProgramBuilder& withTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
 		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& withTessellationControlShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
 		virtual VulkanShaderProgramBuilder& withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& withTessellationEvaluationShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
 
 		/// <inheritdoc />
 		virtual VulkanShaderProgramBuilder& withGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
 		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& withGeometryShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
 		virtual VulkanShaderProgramBuilder& withFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
 
 		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& withFragmentShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
 		virtual VulkanShaderProgramBuilder& withComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
+
+		/// <inheritdoc />
+		virtual VulkanShaderProgramBuilder& withComputeShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
 	};
 
 	/// <summary>
