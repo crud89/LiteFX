@@ -34,6 +34,20 @@ public:
 
 		return blob;
 	}
+
+	ComPtr<IDxcBlob> initialize(std::istream& stream)
+	{
+		// TODO: We share the library handle over the whole api by moving them to the device level at least.
+		ComPtr<IDxcLibrary> library;
+		raiseIfFailed<RuntimeException>(::DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library)), "Unable to access DirectX shader compiler library.");
+
+		// Create a blob by copying the buffer.
+		ComPtr<IDxcBlobEncoding> blob;
+		String buffer(std::istreambuf_iterator<char>(stream), {});
+		raiseIfFailed<RuntimeException>(library->CreateBlobWithEncodingOnHeapCopy(buffer.data(), buffer.size(), CP_ACP, &blob), "Unable to load shader from stream: {0}.", m_fileName.c_str());
+
+		return blob;
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -44,6 +58,12 @@ DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, cons
 	m_impl(makePimpl<DirectX12ShaderModuleImpl>(this, device, type, fileName, entryPoint)), ComResource<IDxcBlob>(nullptr)
 {
 	this->handle() = m_impl->initialize();
+}
+
+DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint) :
+	m_impl(makePimpl<DirectX12ShaderModuleImpl>(this, device, type, name, entryPoint)), ComResource<IDxcBlob>(nullptr)
+{
+	this->handle() = m_impl->initialize(stream);
 }
 
 DirectX12ShaderModule::~DirectX12ShaderModule() noexcept = default;

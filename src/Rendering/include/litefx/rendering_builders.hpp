@@ -30,11 +30,28 @@ namespace LiteFX::Rendering {
         virtual TDerived& withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") = 0;
 
         /// <summary>
+        /// Adds a shader module to the program.
+        /// </summary>
+        /// <param name="type">The type of the shader module.</param>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withShaderModule(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint = "main") = 0;
+
+        /// <summary>
         /// Adds a vertex shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         virtual TDerived& withVertexShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+
+        /// <summary>
+        /// Adds a vertex shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withVertexShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") = 0;
 
         /// <summary>
         /// Adds a tessellation control shader module to the program.
@@ -44,11 +61,27 @@ namespace LiteFX::Rendering {
         virtual TDerived& withTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
 
         /// <summary>
+        /// Adds a tessellation control shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withTessellationControlShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") = 0;
+
+        /// <summary>
         /// Adds a tessellation evaluation shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         virtual TDerived& withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+
+        /// <summary>
+        /// Adds a tessellation evaluation shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withTessellationEvaluationShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") = 0;
 
         /// <summary>
         /// Adds a geometry shader module to the program.
@@ -58,6 +91,14 @@ namespace LiteFX::Rendering {
         virtual TDerived& withGeometryShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
 
         /// <summary>
+        /// Adds a geometry shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withGeometryShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") = 0;
+
+        /// <summary>
         /// Adds a fragment shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
@@ -65,11 +106,27 @@ namespace LiteFX::Rendering {
         virtual TDerived& withFragmentShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
 
         /// <summary>
+        /// Adds a fragment shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withFragmentShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") = 0;
+
+        /// <summary>
         /// Adds a compute shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         virtual TDerived& withComputeShaderModule(const String& fileName, const String& entryPoint = "main") = 0;
+
+        /// <summary>
+        /// Adds a compute shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        virtual TDerived& withComputeShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") = 0;
     };
 
     /// <summary>

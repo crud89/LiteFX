@@ -71,6 +71,7 @@ SET(SHADER_DEFAULT_SUBDIR "shaders" CACHE STRING "Default subdirectory for shade
 SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL shaders.")
 SET(SPIRV_DEFAULT_SUFFIX ".spv" CACHE STRING "Default file extension for SPIR-V shaders.")
 
+
 FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type)
   GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
 
@@ -218,6 +219,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
   ENDIF(${compile_with} STREQUAL "GLSLC")
 ENDFUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type)
 
+
 FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type)
   GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
 
@@ -286,8 +288,9 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
   ENDIF(NOT ${compile_with} STREQUAL "GLSLC")
 ENDFUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_to shader_type)
 
+
 FUNCTION(ADD_SHADER_MODULE module_name)
-  CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER" "INCLUDES" ${ARGN})
+  CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY" "INCLUDES" ${ARGN})
   
   # TODO: There's also the shader type ms (mesh shader) and as (amplification shader; used as a second ms stage) since shader model 6.5.
   #       see: https://microsoft.github.io/DirectX-Specs/d3d/HLSL_ShaderModel6_5.html
@@ -299,6 +302,22 @@ FUNCTION(ADD_SHADER_MODULE module_name)
   ELSE()
     MESSAGE(SEND_ERROR "Unsupported shader language: ${SHADER_LANGUAGE}.")
   ENDIF(${SHADER_LANGUAGE} STREQUAL "GLSL")
+
+  # If a library is specified, append the shader target it to the library target.
+  IF(SHADER_LIBRARY)
+    ADD_DEPENDENCIES(${SHADER_LIBRARY} ${module_name})
+    GET_TARGET_PROPERTY(SHADER_LIBRARY_NAMESPACE ${SHADER_LIBRARY} NAMESPACE)
+    GET_TARGET_PROPERTY(SHADER_LIBRARY_DIR ${SHADER_LIBRARY} INTERFACE_INCLUDE_DIRECTORIES)
+    GET_TARGET_PROPERTY(SHADER_LIBRARY_SOURCE ${SHADER_LIBRARY} OUTPUT_NAME)
+    GET_TARGET_PROPERTY(SHADER_PROGRAM_NAME ${module_name} OUTPUT_NAME)
+    GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${module_name} SUFFIX)
+    GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${module_name} RUNTIME_OUTPUT_DIRECTORY)
+
+    ADD_CUSTOM_COMMAND(TARGET ${SHADER_LIBRARY}
+      COMMAND pcksl pack "\"${SHADER_LIBRARY_DIR}/${SHADER_LIBRARY_SOURCE}\"" "\"${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}\"" ${SHADER_LIBRARY_NAMESPACE} "${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}"
+      DEPENDS pcksl ${module_name}
+    )
+  ENDIF(SHADER_LIBRARY)
 ENDFUNCTION(ADD_SHADER_MODULE module_name)
 
 FUNCTION(TARGET_LINK_SHADERS target_name)
@@ -314,3 +333,136 @@ FUNCTION(TARGET_LINK_SHADERS target_name)
     INSTALL(FILES "${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}" DESTINATION ${CMAKE_INSTALL_PREFIX}/${SHADER_INSTALL_DESTINATION})
   ENDFOREACH(shader_module ${SHADER_SHADERS})
 ENDFUNCTION(TARGET_LINK_SHADERS target_name)
+
+
+FUNCTION(ADD_SHADER_LIBRARY library_name)
+  CMAKE_PARSE_ARGUMENTS(SHADER_LIBRARY "" "SOURCE_FILE;NAMESPACE" "" ${ARGN})
+
+  # Define a target for the shader library.
+  ADD_CUSTOM_TARGET(${library_name}
+    COMMENT "Packing shader library ${library_name} to '${CMAKE_CURRENT_BINARY_DIR}/shaders/${SHADER_LIBRARY_SOURCE_FILE}'..."
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/shaders/"
+  )
+
+  ADD_CUSTOM_COMMAND(TARGET ${library_name}
+    COMMAND pcksl init "${CMAKE_CURRENT_BINARY_DIR}/shaders/${SHADER_LIBRARY_SOURCE_FILE}"
+    DEPENDS pcksl
+  )
+
+  SET_TARGET_PROPERTIES(${library_name} PROPERTIES 
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/shaders/"
+    NAMESPACE "${SHADER_LIBRARY_NAMESPACE}"
+    OUTPUT_NAME "${SHADER_LIBRARY_SOURCE_FILE}"
+  )
+ENDFUNCTION(ADD_SHADER_LIBRARY library_name)
+
+
+FUNCTION(TARGET_LINK_SHADER_LIBRARIES target_name)
+  CMAKE_PARSE_ARGUMENTS(SHADER "" "" "LIBRARIES" ${ARGN})
+  
+  ADD_DEPENDENCIES(${target_name} ${SHADER_LIBRARIES})
+
+  FOREACH(shader_library ${SHADER_LIBRARIES})
+    GET_TARGET_PROPERTY(SHADER_LIBRARY_INCLUDE_DIR ${shader_library} INTERFACE_INCLUDE_DIRECTORIES)
+    TARGET_INCLUDE_DIRECTORIES(${target_name} PRIVATE ${SHADER_LIBRARY_INCLUDE_DIR})
+  ENDFOREACH(shader_library ${SHADER_LIBRARIES})
+ENDFUNCTION(TARGET_LINK_SHADER_LIBRARIES target_name)
+
+
+###################################################################################################
+#####                                                                                         #####
+##### Define auxiliary targets.                                                               #####
+#####                                                                                         #####
+###################################################################################################
+
+FILE(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx" CONTENT [==[
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <string>
+#include <algorithm>
+#include <iterator>
+#include <vector>
+
+int main(int argc, char* argv[]) {
+    if (argc < 2)
+        return -1;
+
+    std::string command(argv[1]);
+
+    if (command == "init")
+    { 
+        std::string sourceFile(argv[2]);
+        std::ofstream file(sourceFile);
+        file << "#pragma once" << std::endl << 
+            "#include <iostream>" << std::endl <<
+            "#include <array>" << std::endl <<
+            "#include <istream>" << std::endl <<
+            "#include <string>" << std::endl <<
+            "#include <streambuf>" << std::endl << std::endl;
+            
+        file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+        file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
+        file << "    _pcksl_mem_buf(const char* begin, size_t size) { char* b = const_cast<char*>(begin); this->setg(b, b, b + size); }" << std::endl;
+        file << "};" << std::endl << std::endl;
+        file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
+        file << "    explicit _pcksl_mem_istream(const char* begin, size_t size) :" << std::endl;
+        file << "        _pcksl_mem_buf(begin, size), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
+        file << "};" << std::endl;
+        file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+        file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
+
+        file.close();
+    }
+    else if (command == "pack")
+    {
+        if (argc != 6)
+            return -1;
+
+        std::string sourceFile(argv[2]);
+        std::string resourceFile(argv[3]);
+        std::string ns(argv[4]);
+        std::string resourceName(argv[5]);
+        std::string name(argv[5]);
+        std::replace(resourceName.begin(), resourceName.end(), '.', '_');
+        std::replace(resourceName.begin(), resourceName.end(), ':', '_');
+
+        std::ifstream resource(resourceFile, std::ios::binary);
+        std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(resource), { });
+
+        std::ofstream file(sourceFile, std::ios::app);
+        file << "namespace " << ns << " {" << std::endl;
+        file << "    // Shader source: " << resourceFile << "." << std::endl;
+        file << "    class " << resourceName << " {" << std::endl;
+        file << "    public:" << std::endl;
+        file << "        " << resourceName << "() = delete;" << std::endl;
+        file << "        ~" << resourceName << "() = delete;" << std::endl;
+        file << "" << std::endl;
+        file << "        static const std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
+        file << "        static _pcksl_mem_istream open() {" << std::endl;
+        file << "            static std::array<uint8_t, " << buffer.size() << "> _data = {" << std::endl;
+        file << "                ";
+
+        for (const auto& v : buffer) 
+            file << "0x" << std::setfill('0') << std::setw(sizeof(v) * 2) << std::hex << +v << ", ";
+
+        file << std::endl;
+        file << "            };" << std::endl << std::endl;
+        file << "            return ::_pcksl_mem_istream(reinterpret_cast<const char*>(_data.data()), _data.size());" << std::endl;
+        file << "        }" << std::endl;
+        file << "    };" << std::endl;
+        file << "}" << std::endl << std::endl;
+
+        file.close();
+    }
+    else
+    {
+        return -1;
+    }
+
+    return 0;
+}
+]==])
+
+ADD_EXECUTABLE(pcksl "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx")
+SET_PROPERTY(TARGET pcksl PROPERTY FOLDER "Auxiliary")
