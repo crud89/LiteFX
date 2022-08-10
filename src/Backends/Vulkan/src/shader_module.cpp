@@ -1,5 +1,4 @@
 #include <litefx/backends/vulkan.hpp>
-#include <sstream>
 #include <fstream>
 
 using namespace LiteFX::Rendering::Backends;
@@ -14,7 +13,7 @@ public:
 
 private:
 	ShaderStage m_type;
-	String m_fileName, m_entryPoint;
+	String m_fileName, m_entryPoint, m_bytecode;
 	const VulkanDevice& m_device;
 
 public:
@@ -26,21 +25,31 @@ public:
 private:
 	String readFileContents(const String& fileName) {
 		std::ifstream file(fileName, std::ios::in | std::ios::binary);
-
+		
 		if (!file.is_open())
 			throw std::runtime_error("Unable to open shader file.");
 
-		std::stringstream buffer;
-		buffer << file.rdbuf();
+		return this->readStreamContents(file);
+	}
 
-		return buffer.str();
+	String readStreamContents(std::istream& stream)
+	{
+		return String(std::istreambuf_iterator<char>(stream), {});
 	}
 
 public:
 	VkShaderModule initialize()
 	{
-		String fileContents = this->readFileContents(m_fileName);
+		return this->initialize(this->readFileContents(m_fileName));
+	}
 
+	VkShaderModule initialize(std::istream& stream)
+	{
+		return this->initialize(this->readStreamContents(stream));
+	}
+
+	VkShaderModule initialize(String fileContents)
+	{
 		VkShaderModuleCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = fileContents.size();
@@ -55,6 +64,7 @@ public:
 		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&module), VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, fmt::format("{0}: {1}", m_fileName, m_entryPoint));
 #endif
 
+		m_bytecode = fileContents;
 		return module;
 	}
 };
@@ -67,6 +77,12 @@ VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, const ShaderS
 	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, fileName, entryPoint))
 {
 	this->handle() = m_impl->initialize();
+}
+
+VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint) :
+	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, name, entryPoint))
+{
+	this->handle() = m_impl->initialize(stream);
 }
 
 VulkanShaderModule::~VulkanShaderModule() noexcept
@@ -87,6 +103,11 @@ const String& VulkanShaderModule::fileName() const noexcept
 const String& VulkanShaderModule::entryPoint() const noexcept
 {
 	return m_impl->m_entryPoint;
+}
+
+const String& VulkanShaderModule::bytecode() const noexcept
+{
+	return m_impl->m_bytecode;
 }
 
 VkPipelineShaderStageCreateInfo VulkanShaderModule::shaderStageDefinition() const

@@ -63,18 +63,6 @@ public:
     }
 
 public:
-    String readFileContents(const String& fileName) {
-        std::ifstream file(fileName, std::ios::in | std::ios::binary);
-
-        if (!file.is_open())
-            throw std::runtime_error("Unable to open shader file.");
-
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-
-        return buffer.str();
-    }
-
     SharedPtr<VulkanPipelineLayout> reflectPipelineLayout()
     {
         // First, filter the descriptor sets and push constant ranges.
@@ -84,8 +72,8 @@ public:
         // Extract reflection data from all shader modules.
         std::ranges::for_each(m_modules, [this, &descriptorSetLayouts, &pushConstantRanges](UniquePtr<VulkanShaderModule>& shaderModule) {
             // Read the file and initialize a reflection module.
-            auto contents = this->readFileContents(shaderModule->fileName());
-            spv_reflect::ShaderModule reflection(contents.size(), contents.c_str());
+            auto bytecode = shaderModule->bytecode();
+            spv_reflect::ShaderModule reflection(bytecode.size(), bytecode.c_str());
             auto result = reflection.GetResult();
 
             if (result != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]

@@ -256,6 +256,16 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="fileName">The file name of the module source.</param>
 		/// <param name="entryPoint">The name of the module entry point.</param>
 		explicit VulkanShaderModule(const VulkanDevice& device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
+
+		/// <summary>
+		/// Initializes a new Vulkan shader module.
+		/// </summary>
+		/// <param name="device">The parent device, this shader module has been created from.</param>
+		/// <param name="type">The shader stage, this module is used in.</param>
+		/// <param name="stream">The file stream of the module source.</param>
+		/// <param name="name">The file name of the module source.</param>
+		/// <param name="entryPoint">The name of the module entry point.</param>
+		explicit VulkanShaderModule(const VulkanDevice& device, const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint = "main");
 		VulkanShaderModule(const VulkanShaderModule&) noexcept = delete;
 		VulkanShaderModule(VulkanShaderModule&&) noexcept = delete;
 		virtual ~VulkanShaderModule() noexcept;
@@ -272,6 +282,12 @@ namespace LiteFX::Rendering::Backends {
 		virtual const ShaderStage& type() const noexcept override;
 
 	public:
+		/// <summary>
+		/// Returns the shader byte code.
+		/// </summary>
+		/// <returns>The shader byte code.</returns>
+		virtual const String& bytecode() const noexcept;
+
 		/// <summary>
 		/// Returns the shader stage creation info for convenience.
 		/// </summary>
