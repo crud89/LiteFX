@@ -398,6 +398,7 @@ int main(int argc, char* argv[]) {
             "#include <iostream>" << std::endl <<
             "#include <array>" << std::endl <<
             "#include <istream>" << std::endl <<
+            "#include <string>" << std::endl <<
             "#include <streambuf>" << std::endl << std::endl;
             
         file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
@@ -418,6 +419,7 @@ int main(int argc, char* argv[]) {
         std::string resourceFile(argv[3]);
         std::string ns(argv[4]);
         std::string resourceName(argv[5]);
+        std::string name(argv[5]);
         std::replace(resourceName.begin(), resourceName.end(), '.', '_');
         std::replace(resourceName.begin(), resourceName.end(), ':', '_');
 
@@ -432,6 +434,7 @@ int main(int argc, char* argv[]) {
         file << "        " << resourceName << "() = delete;" << std::endl;
         file << "        ~" << resourceName << "() = delete;" << std::endl;
         file << "" << std::endl;
+        file << "        static const std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
         file << "        static std::istream open() {" << std::endl;
         file << "            static std::array<uint8_t, " << buffer.size() << "> _data = {" << std::endl;
         file << "                ";
