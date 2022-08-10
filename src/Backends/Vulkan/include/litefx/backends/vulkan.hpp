@@ -955,9 +955,6 @@ namespace LiteFX::Rendering::Backends {
 		// Pipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual const String& name() const noexcept override;
-
-		/// <inheritdoc />
 		virtual SharedPtr<const VulkanShaderProgram> program() const noexcept override;
 
 		/// <inheritdoc />
@@ -1483,6 +1480,18 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference to the array that stores the extensions that were used to initialize the device.</returns>
 		virtual Span<const String> enabledExtensions() const noexcept;
 
+		/// <summary>
+		/// Sets the debug name for an object.
+		/// </summary>
+		/// <remarks>
+		/// This function sets the debug name for an object to make it easier to identify when using an external debugger. This function will do nothing
+		/// in release mode or if the device extension VK_EXT_debug_marker is not available.
+		/// </remarks>
+		/// <param name="objectHandle">The handle of the object casted to an integer.</param>
+		/// <param name="objectType">The type of the object.</param>
+		/// <param name="name">The debug name of the object.</param>
+		virtual void setDebugName(UInt64 objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept;
+
 		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
@@ -1521,7 +1530,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
 
-	public:
 		/// <inheritdoc />
 		virtual void wait() const override;
 

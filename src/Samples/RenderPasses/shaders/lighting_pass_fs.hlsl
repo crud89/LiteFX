@@ -18,7 +18,7 @@ struct FragmentData
 #elif DXIL
 Texture2D gDiffuse : register(t0, space0);
 Texture2D gDepth : register(t1, space0);
-SamplerState gBuffer : register(s0);
+SamplerState gBuffer : register(s2);
 #endif
 
 FragmentData main(VertexData input)

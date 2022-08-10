@@ -1884,6 +1884,12 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Returns the name of the render target.
+        /// </summary>
+        /// <returns>The name of the render target.</returns>
+        virtual const String& name() const noexcept = 0;
+
+        /// <summary>
         /// Returns the location of the render target output attachment within the fragment shader.
         /// </summary>
         /// <remarks>
@@ -1975,6 +1981,20 @@ namespace LiteFX::Rendering {
         /// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
         /// <param name="blendState">The render target blend state.</param>
         explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
+
+        /// <summary>
+        /// Initializes the render target.
+        /// </summary>
+        /// <param name="location">The name of the render target.</param>
+        /// <param name="location">The location of the render target output attachment.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The format of the render target.</param>
+        /// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
+        /// <param name="clearValues">The values with which the render target gets cleared.</param>
+        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
+        /// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
+        /// <param name="blendState">The render target blend state.</param>
+        explicit RenderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
         RenderTarget(const RenderTarget&) noexcept;
         RenderTarget(RenderTarget&&) noexcept;
         virtual ~RenderTarget() noexcept;
@@ -1984,6 +2004,9 @@ namespace LiteFX::Rendering {
         inline RenderTarget& operator=(RenderTarget&&) noexcept;
 
     public:
+        /// <inheritdoc />
+        virtual const String& name() const noexcept override;
+
         /// <inheritdoc />
         virtual const UInt32& location() const noexcept override;
 

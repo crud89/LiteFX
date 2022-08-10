@@ -214,6 +214,10 @@ public:
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
 		raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		
+#ifndef NDEBUG
+		pipelineState->SetName(Widen(m_parent->name()).c_str());
+#endif
 
 		return pipelineState;
 	}
@@ -226,10 +230,10 @@ public:
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
 	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, std::move(viewports), std::move(scissors))), DirectX12PipelineState(nullptr)
 {
-	this->handle() = m_impl->initialize();
-
 	if (!name.empty())
 		this->name() = name;
+
+	this->handle() = m_impl->initialize();
 }
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) noexcept :

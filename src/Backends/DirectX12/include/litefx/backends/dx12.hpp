@@ -922,9 +922,6 @@ namespace LiteFX::Rendering::Backends {
 		// Pipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual const String& name() const noexcept override;
-
-		/// <inheritdoc />
 		virtual SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
 
 		/// <inheritdoc />
