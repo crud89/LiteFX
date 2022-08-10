@@ -200,13 +200,23 @@ public:
 				return queueCreateInfo;
 			}) | ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
-		// Define the device features.
+		// Allow geometry and tessellation shader stages.
 		VkPhysicalDeviceFeatures deviceFeatures = {
 			.geometryShader = true,
 			.tessellationShader = true,
 		};
+
+		// Enable unbounded descriptor arrays (for bindless descriptors).
+		VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = {
+			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
+			.descriptorBindingPartiallyBound = VK_TRUE,
+			.runtimeDescriptorArray = VK_TRUE
+		};
+
+		// Enable timeline semaphores.
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+			.pNext = &indexingFeatures,
 			.timelineSemaphore = true
 		};
 
