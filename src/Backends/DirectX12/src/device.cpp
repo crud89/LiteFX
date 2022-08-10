@@ -1,5 +1,6 @@
 #include <litefx/backends/dx12.hpp>
 #include <litefx/backends/dx12_builders.hpp>
+#include <shader_resources.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -178,7 +179,8 @@ public:
 		{
 			// Allocate shader module.
 			Array<UniquePtr<DirectX12ShaderModule>> modules;
-			modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, "shaders/blit.dxi", "main")));
+			auto blitShader = LiteFX::Backends::DirectX12::Shaders::blit_dxi::open();
+			modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, blitShader, LiteFX::Backends::DirectX12::Shaders::blit_dxi::name(), "main")));
 			auto shaderProgram = makeShared<DirectX12ShaderProgram>(*m_parent, std::move(modules));
 
 			// Allocate descriptor set layouts.
