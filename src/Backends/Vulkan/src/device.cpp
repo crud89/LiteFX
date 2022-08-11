@@ -210,6 +210,7 @@ public:
 		VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = {
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
 			.descriptorBindingPartiallyBound = VK_TRUE,
+			.descriptorBindingVariableDescriptorCount = VK_TRUE,
 			.runtimeDescriptorArray = VK_TRUE
 		};
 
