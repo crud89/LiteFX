@@ -131,6 +131,9 @@ public:
                     for (int i(0); i < descriptor->array.dims_count; ++i)
                         descriptors *= descriptor->array.dims[i];
 
+                    if (descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray)
+                        descriptors = std::numeric_limits<UInt32>::max();   // Unbounded.
+
                     // Create the descriptor layout.
                     return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .type = type };
                 });
