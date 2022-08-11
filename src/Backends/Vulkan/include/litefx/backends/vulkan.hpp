@@ -393,7 +393,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="type">The type of the descriptor.</param>
 		/// <param name="binding">The binding point for the descriptor.</param>
 		/// <param name="elementSize">The size of the descriptor.</param>
-		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
+		/// <param name="descriptors">The number of descriptors in the descriptor array. If set to `-1`, the descriptor will be unbounded.</param>
+		/// <seealso cref="descriptors" />
 		explicit VulkanDescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
 
 		/// <summary>
@@ -503,10 +504,10 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanDescriptorSet> allocate() const noexcept override;
+		virtual UniquePtr<VulkanDescriptorSet> allocate(const UInt32& descriptors = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<VulkanDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept override;
+		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const noexcept override;
 
 		/// <inheritdoc />
 		virtual void free(const VulkanDescriptorSet& descriptorSet) const noexcept override;

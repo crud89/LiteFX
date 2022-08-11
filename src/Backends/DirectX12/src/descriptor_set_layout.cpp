@@ -203,7 +203,7 @@ UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
     return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::InputAttachment; });
 }
 
-UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate() const noexcept
+UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(const UInt32& descriptors) const noexcept
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
     ComPtr<ID3D12DescriptorHeap> bufferHeap, samplerHeap;
@@ -212,10 +212,10 @@ UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate() const
     return makeUnique<DirectX12DescriptorSet>(*this, std::move(bufferHeap), std::move(samplerHeap));
 }
 
-Array<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocate(const UInt32& count) const noexcept
+Array<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors) const noexcept
 {
     Array<UniquePtr<DirectX12DescriptorSet>> descriptorSets(count);
-    std::ranges::generate(descriptorSets, [this]() { return this->allocate(); });
+    std::ranges::generate(descriptorSets, [this, descriptors]() { return this->allocate(descriptors); });
     return descriptorSets;
 }
 

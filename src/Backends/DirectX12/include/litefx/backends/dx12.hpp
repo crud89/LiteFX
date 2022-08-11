@@ -513,10 +513,10 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<DirectX12DescriptorSet> allocate() const noexcept override;
+		virtual UniquePtr<DirectX12DescriptorSet> allocate(const UInt32& descriptors = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<DirectX12DescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept override;
+		virtual Array<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const noexcept override;
 
 		/// <inheritdoc />
 		virtual void free(const DirectX12DescriptorSet& descriptorSet) const noexcept override;

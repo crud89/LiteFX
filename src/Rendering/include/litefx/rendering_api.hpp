@@ -2563,6 +2563,24 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a the layout of a single descriptor within a <see cref="DescriptorSet" />.
     /// </summary>
+    /// <remarks>
+    /// A common metaphor for a descriptor to think of it as a "pointer for the GPU". Basically, a descriptor points to a buffer in a shader. A descriptor 
+    /// can have different types and sizes. The types a descriptor can have are described by the <see cref="DescriptorType" />.
+    /// 
+    /// If the descriptor is a sampler, it can either be a dynamic or static sampler. A dynamic sampler needs to be bound during runtime just like any other
+    /// descriptor by calling <see cref="IDescriptorSet::update" />. A static sampler is defined alongside the descriptor layout and is automatically set
+    /// when the pipeline that uses the descriptor layout gets bound. In this case, the descriptor must not be updated with another sampler. If a descriptor
+    /// layout describes a static sampler, the <see cref="IDescriptorLayout::staticSampler" /> returns a pointer to the static sampler state.
+    /// 
+    /// Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case,
+    /// <see cref="IDescriptorLayout::descriptors" /> returns the number of elements in the array. If it returns `-1` (or `0xFFFFFFFF`), the descriptor 
+    /// array is called `unbounded`. In this case, the number of descriptors in the array can be specified when allocating the descriptor set. Unbounded
+    /// descriptor arrays behave different to normal descriptor arrays in different ways. They are typically used for bindless descriptors. If a descriptor
+    /// represents an unbounded array, it must be the only descriptor in this descriptor set. Furthermore, unbounded arrays are not cached by the descriptor
+    /// set layout. Descriptors within unbounded arrays may be updated after binding them to a command buffer. However, this must be done with special care,
+    /// to prevent descriptors that are in use to be overwritten. For more information on how to manage unbounded arrays, refer to 
+    /// <see cref="IDescriptorSetLayout::allocate" />.
+    /// </remarks>
     /// <seealso cref="DescriptorSetLayout" />
     class LITEFX_RENDERING_API IDescriptorLayout : public IBufferLayout {
     public:
@@ -2576,9 +2594,15 @@ namespace LiteFX::Rendering {
         virtual const DescriptorType& descriptorType() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of descriptors in the descriptor array.
+        /// Returns the number of descriptors in the descriptor array, or `-1` if the array is unbounded.
         /// </summary>
-        /// <returns>The number of descriptors in the descriptor array.</returns>
+        /// <remarks>
+        /// If the number of descriptors is `-1` (or `0xFFFFFFFF`), the descriptor array is unbounded. In that case, the size of the array must be specified,
+        /// when allocating the descriptor set. This can be done by specifying the `descriptors` parameter when calling 
+        /// <see cref="IDescriptorSetLayout::allocate" />.
+        /// </remarks>
+        /// <returns>The number of descriptors in the descriptor array, or `-1` if the array is unbounded.</returns>
+        /// <seealso cref="IDescriptorLayout" />
         virtual const UInt32& descriptors() const noexcept = 0;
 
         /// <summary>
@@ -3171,28 +3195,40 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
         /// </summary>
+        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
         /// <remarks>
         /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of
         /// created descriptor sets. It does this by never releasing them. Instead, when a <see cref="DescriptorSet" /> instance gets destroyed, it should call 
         /// <see cref="free" /> in order to mark itself (i.e. its handle) as not being used any longer.
         /// 
         /// Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries 
-        /// to hand out descriptor sets that marked as unused.
+        /// to hand out descriptor sets that marked as unused. Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are 
+        /// deleted.
         /// 
-        /// Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted.
+        /// The above does not apply to unbounded descriptor arrays. A unbounded descriptor array is one, for which <see cref="IDescriptorLayout::descriptors" /> 
+        /// returns `-1` (or `0xFFFFFFFF`). They must be allocated by specifying the <paramref name="descriptors" /> parameter. This parameter defines the number of
+        /// descriptors to allocate in the array. 
+        /// 
+        /// Note that descriptor sets, that contain an unbounded descriptor array must only contain one single descriptor (the one that identifies this array). Such 
+        /// descriptor sets are never cached. Instead, they are released when calling <see cref="free" />. It is a good practice to cache such descriptor sets as 
+        /// global descriptor tables once and never release them. They provide more flexibility than regular descriptor arrays, since they may be updated, even after
+        /// they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
+        /// in use.
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
-        UniquePtr<IDescriptorSet> allocate() const noexcept {
-            return this->getDescriptorSet();
+        /// <seealso cref="IDescriptorLayout" />
+        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors = 0) const noexcept {
+            return this->getDescriptorSet(descriptors);
         }
 
         /// <summary>
         /// Allocates an array of descriptor sets.
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
         /// <returns>The array of descriptor set instances.</returns>
-        Array<UniquePtr<IDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept {
-            return this->getDescriptorSets(descriptorSets);
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const noexcept {
+            return this->getDescriptorSets(descriptorSets, descriptors);
         }
 
         /// <summary>
@@ -3204,8 +3240,8 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet() const noexcept = 0;
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets) const noexcept = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors) const noexcept = 0;
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors) const noexcept = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept = 0;
     };
 
