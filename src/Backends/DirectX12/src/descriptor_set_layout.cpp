@@ -251,7 +251,7 @@ public:
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& /*poolSize*/) :
+DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& /*poolSize*/, const UInt32& /*maxUnboundedArraySize*/) :
     m_impl(makePimpl<DirectX12DescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
 {
 }

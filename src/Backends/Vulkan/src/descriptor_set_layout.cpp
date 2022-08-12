@@ -54,7 +54,7 @@ public:
     }
 
 public:
-    VkDescriptorSetLayout initialize()
+    VkDescriptorSetLayout initialize(const UInt32& maxUnboundedArraySize)
     {
         LITEFX_TRACE(VULKAN_LOG, "Defining layout for descriptor set {0} {{ Stages: {1}, Pool Size: {2} }}...", m_space, m_stages, m_poolSize);
 
@@ -124,6 +124,7 @@ public:
 
                 bindingFlags.push_back(VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT_EXT);
                 m_usesDescriptorIndexing = true;
+                binding.descriptorCount = maxUnboundedArraySize;
             }
 
             bindings.push_back(binding);
@@ -226,10 +227,10 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
     m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages, poolSize)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
-    this->handle() = m_impl->initialize();
+    this->handle() = m_impl->initialize(maxUnboundedArraySize);
 }
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device) noexcept :
@@ -344,20 +345,24 @@ void VulkanDescriptorSetLayout::free(const VulkanDescriptorSet& descriptorSet) c
         // Unbounded descriptor sets must be destroyed, because every set may have different descriptor counts.
         auto handle = &descriptorSet.handle();
 
-        if (!m_impl->m_descriptorSetSources.contains(handle)) [[unlikely]]
-            throw InvalidArgumentException("The provided descriptor set has been created from a different descriptor set layout.");
-
-        auto pool = m_impl->m_descriptorSetSources[handle];
-        raiseIfFailed<RuntimeException>(::vkFreeDescriptorSets(m_impl->m_device.handle(), *pool, 1, handle), "Unable to release descriptor set.");
-        m_impl->m_descriptorSetSources.erase(handle);
-
-        // We can even release the pool, if it isn't the current active one and no descriptor sets are in use anymore.
-        if (pool != &m_impl->m_descriptorPools.back() && std::ranges::count_if(m_impl->m_descriptorSetSources, [&](const auto& sourceMapping) { return sourceMapping.second == pool; }) == 0)
+        if (m_impl->m_descriptorSetSources.contains(handle))
         {
-            ::vkDestroyDescriptorPool(m_impl->m_device.handle(), *pool, nullptr);
+            auto pool = m_impl->m_descriptorSetSources[handle];
+            auto result = ::vkFreeDescriptorSets(m_impl->m_device.handle(), *pool, 1, handle);
             
-            if (auto match = std::ranges::find(m_impl->m_descriptorPools, *pool); match != m_impl->m_descriptorPools.end()) [[likely]]
-                m_impl->m_descriptorPools.erase(match);
+            if (result != VK_SUCCESS) [[unlikely]]
+                LITEFX_WARNING(VULKAN_LOG, "Unable to properly release descriptor set: {0}.", result);
+
+            m_impl->m_descriptorSetSources.erase(handle);
+
+            // We can even release the pool, if it isn't the current active one and no descriptor sets are in use anymore.
+            if (pool != &m_impl->m_descriptorPools.back() && std::ranges::count_if(m_impl->m_descriptorSetSources, [&](const auto& sourceMapping) { return sourceMapping.second == pool; }) == 0)
+            {
+                ::vkDestroyDescriptorPool(m_impl->m_device.handle(), *pool, nullptr);
+
+                if (auto match = std::ranges::find(m_impl->m_descriptorPools, *pool); match != m_impl->m_descriptorPools.end()) [[likely]]
+                    m_impl->m_descriptorPools.erase(match);
+            }
         }
     }
 }
@@ -383,12 +388,12 @@ public:
 
 private:
     Array<UniquePtr<VulkanDescriptorLayout>> m_descriptorLayouts;
-    UInt32 m_poolSize, m_space;
+    UInt32 m_poolSize, m_space, m_maxArraySize;
     ShaderStage m_stages;
 
 public:
-    VulkanDescriptorSetLayoutBuilderImpl(VulkanDescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-        base(parent), m_poolSize(poolSize), m_space(space), m_stages(stages)
+    VulkanDescriptorSetLayoutBuilderImpl(VulkanDescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
+        base(parent), m_poolSize(poolSize), m_space(space), m_stages(stages), m_maxArraySize(maxUnboundedArraySize)
     {
     }
 };
@@ -397,8 +402,8 @@ public:
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(parent.device())))
+VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
+    m_impl(makePimpl<VulkanDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize, maxUnboundedArraySize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(parent.device())))
 {
 }
 
@@ -411,7 +416,7 @@ void VulkanDescriptorSetLayoutBuilder::build()
     instance->m_impl->m_poolSize = std::move(m_impl->m_poolSize);
     instance->m_impl->m_space = std::move(m_impl->m_space);
     instance->m_impl->m_stages = std::move(m_impl->m_stages);
-    instance->handle() = instance->m_impl->initialize();
+    instance->handle() = instance->m_impl->initialize(m_impl->m_maxArraySize);
 }
 
 VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescriptor(UniquePtr<VulkanDescriptorLayout>&& layout)
