@@ -206,18 +206,29 @@ public:
 			.tessellationShader = true,
 		};
 
-		// Enable unbounded descriptor arrays (for bindless descriptors).
-		VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = {
-			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
-			.descriptorBindingPartiallyBound = VK_TRUE,
-			.descriptorBindingVariableDescriptorCount = VK_TRUE,
-			.runtimeDescriptorArray = VK_TRUE
-		};
-
-		// Enable timeline semaphores.
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-			.pNext = &indexingFeatures,
+			.descriptorIndexing = true,
+			.shaderInputAttachmentArrayDynamicIndexing = true,
+			.shaderUniformTexelBufferArrayDynamicIndexing = true,
+			.shaderStorageTexelBufferArrayDynamicIndexing = true,
+			.shaderUniformBufferArrayNonUniformIndexing = true,
+			.shaderSampledImageArrayNonUniformIndexing = true,
+			.shaderStorageBufferArrayNonUniformIndexing = true,
+			.shaderStorageImageArrayNonUniformIndexing = true,
+			.shaderInputAttachmentArrayNonUniformIndexing = true,
+			.shaderUniformTexelBufferArrayNonUniformIndexing = true,
+			.shaderStorageTexelBufferArrayNonUniformIndexing = true,
+			//.descriptorBindingUniformBufferUpdateAfterBind = true,	// Causes problems on some NVidia cards.
+			.descriptorBindingSampledImageUpdateAfterBind = true,
+			.descriptorBindingStorageImageUpdateAfterBind = true,
+			.descriptorBindingStorageBufferUpdateAfterBind = true,
+			.descriptorBindingUniformTexelBufferUpdateAfterBind = true,
+			.descriptorBindingStorageTexelBufferUpdateAfterBind = true,
+			.descriptorBindingUpdateUnusedWhilePending = true,
+			.descriptorBindingPartiallyBound = true,
+			.descriptorBindingVariableDescriptorCount = true,
+			.runtimeDescriptorArray = true,
 			.timelineSemaphore = true
 		};
 
