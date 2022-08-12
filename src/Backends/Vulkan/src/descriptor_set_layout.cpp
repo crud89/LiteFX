@@ -40,6 +40,7 @@ private:
     mutable std::mutex m_mutex;
     const VulkanDevice& m_device;
     bool m_usesDescriptorIndexing = false;
+    Dictionary<const VkDescriptorSet*, const VkDescriptorPool*> m_descriptorSetSources;
 
 public:
     VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
@@ -206,9 +207,14 @@ public:
         auto result = ::vkAllocateDescriptorSets(m_device.handle(), &descriptorSetInfo, &descriptorSet);
 
         if (result == VK_SUCCESS) [[likely]]
+        {
+            m_descriptorSetSources.insert(std::make_pair(&descriptorSet, &m_descriptorPools.back()));
             return descriptorSet;
+        }
         else if (result != VK_ERROR_OUT_OF_POOL_MEMORY)
+        {
             raiseIfFailed<RuntimeException>(result, "Unable to allocate descriptor set.");
+        }
 
         // The pool is full, so we have to create a new one and retry.
         this->addDescriptorPool();
@@ -327,8 +333,33 @@ Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultipl
 
 void VulkanDescriptorSetLayout::free(const VulkanDescriptorSet& descriptorSet) const noexcept
 {
-    std::lock_guard<std::mutex> lock(m_impl->m_mutex);
-    m_impl->m_freeDescriptorSets.push(descriptorSet.handle());
+    if (!m_impl->m_usesDescriptorIndexing)
+    {
+        // Keep the descriptor set around (get's automatically released when the pool gets destroyed).
+        std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+        m_impl->m_freeDescriptorSets.push(descriptorSet.handle());
+    }
+    else
+    {
+        // Unbounded descriptor sets must be destroyed, because every set may have different descriptor counts.
+        auto handle = &descriptorSet.handle();
+
+        if (!m_impl->m_descriptorSetSources.contains(handle)) [[unlikely]]
+            throw InvalidArgumentException("The provided descriptor set has been created from a different descriptor set layout.");
+
+        auto pool = m_impl->m_descriptorSetSources[handle];
+        raiseIfFailed<RuntimeException>(::vkFreeDescriptorSets(m_impl->m_device.handle(), *pool, 1, handle), "Unable to release descriptor set.");
+        m_impl->m_descriptorSetSources.erase(handle);
+
+        // We can even release the pool, if it isn't the current active one and no descriptor sets are in use anymore.
+        if (pool != &m_impl->m_descriptorPools.back() && std::ranges::count_if(m_impl->m_descriptorSetSources, [&](const auto& sourceMapping) { return sourceMapping.second == pool; }) == 0)
+        {
+            ::vkDestroyDescriptorPool(m_impl->m_device.handle(), *pool, nullptr);
+            
+            if (auto match = std::ranges::find(m_impl->m_descriptorPools, *pool); match != m_impl->m_descriptorPools.end()) [[likely]]
+                m_impl->m_descriptorPools.erase(match);
+        }
+    }
 }
 
 const UInt32& VulkanDescriptorSetLayout::poolSize() const noexcept
