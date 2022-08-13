@@ -93,6 +93,9 @@ public:
 		// This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
 		m_families.clear();
 
+		// Release the swap chain.
+		m_swapChain = nullptr;
+
 		// Destroy the surface.
 		m_surface = nullptr;
 	}
