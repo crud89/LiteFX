@@ -67,6 +67,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
         break;
     case DescriptorType::Storage:
     case DescriptorType::WritableStorage:
+        descriptorWrite.descriptorCount = elements;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         break;
     case DescriptorType::Buffer:
@@ -89,34 +90,22 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
     // Create a buffer view for (writable) buffers.
     Array<VkDescriptorBufferInfo> bufferInfos;
     
-    if (descriptorLayout.descriptorType() == DescriptorType::Uniform)
+    if (descriptorLayout.descriptorType() == DescriptorType::Uniform || descriptorLayout.descriptorType() == DescriptorType::Storage || descriptorLayout.descriptorType() == DescriptorType::WritableStorage)
     {
         bufferInfos.resize(elements);
         std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
-            VkDescriptorBufferInfo bufferInfo{ };
-
-            bufferInfo.buffer = buffer.handle();
-            bufferInfo.range = buffer.elementSize();
-            bufferInfo.offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++);
-
-            return bufferInfo;
-        });
-
-        descriptorWrite.pBufferInfo = bufferInfos.data();
-    }
-    else if (descriptorLayout.descriptorType() == DescriptorType::Storage || descriptorLayout.descriptorType() == DescriptorType::WritableStorage)
-    {
-        bufferInfos.push_back(VkDescriptorBufferInfo {
-            .buffer = buffer.handle(),
-            .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement),
-            .range = buffer.alignedElementSize() * static_cast<size_t>(elements)
+            return VkDescriptorBufferInfo {
+                .buffer = buffer.handle(),
+                .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++),
+                .range = buffer.elementSize()
+            };
         });
 
         descriptorWrite.pBufferInfo = bufferInfos.data();
     }
     else if (descriptorLayout.descriptorType() == DescriptorType::Buffer || descriptorLayout.descriptorType() == DescriptorType::WritableBuffer)
     {
-        VkBufferViewCreateInfo bufferViewDesc{
+        VkBufferViewCreateInfo bufferViewDesc = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
