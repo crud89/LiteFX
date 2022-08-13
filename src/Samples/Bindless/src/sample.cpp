@@ -1,10 +1,12 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <random>
 
 enum DescriptorSets : UInt32
 {
-    Constant = 0,                                       // All buffers that are immutable.
-    PerFrame = 1,                                       // All buffers that are updated each frame.
+    CameraData = 0,
+    DrawData = 1,
+    InstanceData = 2
 };
 
 const Array<Vertex> vertices =
@@ -21,9 +23,18 @@ struct CameraBuffer {
     glm::mat4 ViewProjection;
 } camera;
 
-struct TransformBuffer {
-    glm::mat4 World;
-} transform;
+struct DrawData {
+    float Time;
+    float Speed;
+} drawData;
+
+#define NUM_INSTANCES 100000
+
+struct InstanceBuffer {
+    glm::mat4 Transform;
+    glm::vec4 Color;
+    glm::vec4 Axis;
+} instanceData[NUM_INSTANCES];
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
@@ -37,6 +48,26 @@ const String FileExtensions<VulkanBackend>::SHADER = "spv";
 #ifdef BUILD_DIRECTX_12_BACKEND
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // BUILD_DIRECTX_12_BACKEND
+
+static void initInstanceData()
+{
+    std::srand(std::time(nullptr));
+    int i = 0;
+
+    for (int z = 0; z < 10; z++)
+    {
+        for (int x = 0; x < 100; x++)
+        {
+            for (int y = 0; y < 100; y++)
+            {
+                auto& instance = instanceData[i++];
+                instance.Transform = glm::translate(glm::mat4(1.0f), glm::vec3(x - 50.0f, y - 50.0f, z * 2.0f) * 2.0f);
+                instance.Color = glm::vec4(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, 1.0f);
+                instance.Axis = glm::vec4(glm::normalize(glm::vec3(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 1.0f);
+            }
+        }
+    }
+}
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
@@ -58,7 +89,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
         .indexType(IndexType::UInt16)
         .vertexBuffer(sizeof(Vertex), 0)
             .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
             .add();
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
@@ -82,7 +112,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
             .polygonMode(PolygonMode::Solid)
             .cullMode(CullMode::BackFaces)
             .cullOrder(CullOrder::ClockWise)
-            .lineWidth(1.f))
+            .lineWidth(1.f)
+            .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
         .layout(shaderProgram->reflectPipelineLayout())
         .shaderProgram(shaderProgram);
 
@@ -117,7 +148,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
+    auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::CameraData);
     auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
     auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
     auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
@@ -129,14 +160,30 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraStagingBuffer, *cameraBuffer);
 
-    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
-    // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
-    auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto& transformBufferLayout = transformBindingLayout.descriptor(0);
-    auto transformBindings = transformBindingLayout.allocate(3);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
-    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++); });
-    
+    // Next, we create the descriptor sets for the draw-data buffer
+    auto& drawDataBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::DrawData);
+    auto& drawDataBufferLayout = drawDataBindingLayout.descriptor(0);
+    auto drawDataBindings = drawDataBindingLayout.allocateMultiple(3);
+    auto drawDataBuffer = m_device->factory().createBuffer("Draw Data", drawDataBufferLayout.type(), BufferUsage::Dynamic, drawDataBufferLayout.elementSize(), 3);
+    std::ranges::for_each(drawDataBindings, [&drawDataBufferLayout, &drawDataBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(drawDataBufferLayout.binding(), *drawDataBuffer, i++); });
+
+    // Next, we create the descriptor set for the instance buffer. The shader is designed to handle an arbitrary number of instances using an unbounded buffer array, so
+    // we have to specify how many instances we are actually allocating. We do this only once and then bind this array to all command buffers, since we do not need to 
+    // update it regularly. In case, updates are required, we either would have to allocate multiple descriptor sets (as in the other examples), or handle the frame index
+    // in the shader manually (which is a little bit more tricky, but we could then pack everything in one descriptor set. This descriptor set would then receive updates
+    // to the indices currently not in use (i.e. each instance buffer needs to be inside the array multiple times, once for each frame in flight). This is allowed for 
+    // unbounded descriptor arrays, as long as we ensure, not to overwrite descriptors that are currently in use.
+    auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::InstanceData);
+    auto& instanceBufferLayout = instanceBindingLayout.descriptor(0);
+    auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES);
+
+    // Since we are using an unstructured storage buffer, we need to specify the element size manually.
+    auto instanceStagingBuffer = m_device->factory().createBuffer("Instance Staging", instanceBufferLayout.type(), BufferUsage::Staging, sizeof(InstanceBuffer), NUM_INSTANCES);
+    auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBufferLayout.type(), BufferUsage::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
+    instanceBinding->update(instanceBufferLayout.binding(), *instanceBuffer, 0, NUM_INSTANCES);
+    instanceStagingBuffer->map(reinterpret_cast<const void*>(&instanceData), sizeof(instanceData));
+    commandBuffer->transfer(*instanceStagingBuffer, *instanceBuffer, 0, 0, NUM_INSTANCES);
+
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);
     m_device->bufferQueue().waitFor(fence);
@@ -146,16 +193,18 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(indexBuffer));
     m_device->state().add(std::move(cameraStagingBuffer));
     m_device->state().add(std::move(cameraBuffer));
-    m_device->state().add(std::move(transformBuffer));
+    m_device->state().add(std::move(drawDataBuffer));
+    m_device->state().add(std::move(instanceBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
-    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(drawDataBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Draw Data Bindings {0}", i++), std::move(binding)); });
+    m_device->state().add("Instance Bindings", std::move(instanceBinding));
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagingBuffer, const IBuffer& buffer) const
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 view = glm::lookAt(glm::vec3(-155.f, -145.f, 42.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     stagingBuffer.map(reinterpret_cast<const void*>(&camera), sizeof(camera));
@@ -164,6 +213,9 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagi
 
 void SampleApp::run() 
 {
+    // Initialize the instance data.
+    ::initInstanceData();
+
     // Store the window handle.
     auto window = m_window.get();
 
@@ -320,9 +372,10 @@ void SampleApp::drawFrame()
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& transformBuffer = m_device->state().buffer("Transform");
+    auto& drawDataBuffer = m_device->state().buffer("Draw Data");
+    auto& drawDataBindings = m_device->state().descriptorSet(fmt::format("Draw Data Bindings {0}", backBuffer));
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-    auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
+    auto& instanceBindings = m_device->state().descriptorSet("Instance Bindings");
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
@@ -335,19 +388,21 @@ void SampleApp::drawFrame()
     auto now = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    // Compute world transform and update the transform buffer.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+    // Set the draw call meta-data.
+    drawData.Time = time;
+    drawData.Speed = glm::radians(42.0f);
+    drawDataBuffer.map(reinterpret_cast<const void*>(&drawData), sizeof(drawData), backBuffer);
 
-    // Bind both descriptor sets to the pipeline.
+    // Bind all descriptor sets to the pipeline.
     commandBuffer.bind(cameraBindings, geometryPipeline);
-    commandBuffer.bind(transformBindings, geometryPipeline);
+    commandBuffer.bind(drawDataBindings, geometryPipeline);
+    commandBuffer.bind(instanceBindings, geometryPipeline);
 
     // Bind the vertex and index buffers.
     commandBuffer.bind(vertexBuffer);
     commandBuffer.bind(indexBuffer);
 
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer.drawIndexed(indexBuffer.elements());
+    commandBuffer.drawIndexed(indexBuffer.elements(), NUM_INSTANCES);
     renderPass.end();
 }
