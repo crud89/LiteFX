@@ -17,11 +17,12 @@ private:
     Array<RenderTarget> m_renderTargets;
     Array<VulkanInputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<VulkanFrameBuffer>> m_frameBuffers;
+    Array<UniquePtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
     const VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
+    const VulkanCommandBuffer* m_activeCommandBuffer = nullptr;
     Array<VkClearValue> m_clearValues;
     UInt32 m_backBuffer{ 0 };
     MultiSamplingLevel m_samples;
-    UniquePtr<VulkanCommandBuffer> m_primaryCommandBuffer;
     const VulkanDevice& m_device;
 
 public:
@@ -273,12 +274,17 @@ public:
             return frameBuffer;
         });
 
-        // Initialize the command buffers.
-        this->m_primaryCommandBuffer = this->m_device.graphicsQueue().createCommandBuffer(false);
+        // Initialize the primary command buffers, that are used to record begin and end commands for the render pass on each frame buffer.
+        m_primaryCommandBuffers.resize(this->m_device.swapChain().buffers());
+        std::ranges::generate(m_primaryCommandBuffers, [&, i = 0]() mutable {
+            auto commandBuffer = this->m_device.graphicsQueue().createCommandBuffer(false);
 
 #ifndef NDEBUG
-        m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*this->m_primaryCommandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, fmt::format("{0} Primary Command Buffer", m_parent->name()));
+            m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*commandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, fmt::format("{0} Primary Command Buffer {1}", m_parent->name(), i++));
 #endif
+
+            return commandBuffer;
+        });
     }
 };
 
@@ -386,11 +392,12 @@ void VulkanRenderPass::begin(const UInt32& buffer)
         throw ArgumentOutOfRangeException("The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
+    auto commandBuffer = m_impl->m_activeCommandBuffer = m_impl->m_primaryCommandBuffers[buffer].get();
     m_impl->m_backBuffer = buffer;
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
     m_impl->m_device.graphicsQueue().waitFor(frameBuffer->lastFence());
-    m_impl->m_primaryCommandBuffer->begin();
+    commandBuffer->begin();
 
     // Begin the render pass.
     VkRenderPassBeginInfo renderPassInfo{};
@@ -403,7 +410,7 @@ void VulkanRenderPass::begin(const UInt32& buffer)
     renderPassInfo.clearValueCount = m_impl->m_clearValues.size();
     renderPassInfo.pClearValues = m_impl->m_clearValues.data();
 
-    ::vkCmdBeginRenderPass(std::as_const(*m_impl->m_primaryCommandBuffer).handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+    ::vkCmdBeginRenderPass(std::as_const(*commandBuffer).handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
     // Begin the frame buffer command buffers.
     std::ranges::for_each(frameBuffer->commandBuffers(), [this](const VulkanCommandBuffer* commandBuffer) { commandBuffer->begin(*this); });
@@ -416,25 +423,26 @@ void VulkanRenderPass::end() const
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
 
     auto frameBuffer = m_impl->m_activeFrameBuffer;
+    auto commandBuffer = m_impl->m_activeCommandBuffer;
 
     // End the render pass and the command buffer recording.
     auto secondaryBuffers = frameBuffer->commandBuffers();
     auto secondaryHandles = secondaryBuffers |
         std::views::transform([](const VulkanCommandBuffer* commandBuffer) { commandBuffer->end(); return commandBuffer->handle(); }) |
         ranges::to<Array<VkCommandBuffer>>();
-    ::vkCmdExecuteCommands(std::as_const(*m_impl->m_primaryCommandBuffer).handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
-    ::vkCmdEndRenderPass(std::as_const(*m_impl->m_primaryCommandBuffer).handle());
+    ::vkCmdExecuteCommands(std::as_const(*commandBuffer).handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
+    ::vkCmdEndRenderPass(std::as_const(*commandBuffer).handle());
 
     // Submit the command buffer.
     if (!this->hasPresentTarget())
-        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(*m_impl->m_primaryCommandBuffer);
+        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(*commandBuffer);
     else
     {
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
         std::array<VkSemaphore, 1> waitForSemaphores = { m_impl->m_device.swapChain().semaphore() };
         std::array<VkPipelineStageFlags, 1> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
         std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
-        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(*m_impl->m_primaryCommandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
+        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(*commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
 
         // Present the swap chain.
         m_impl->m_device.swapChain().present(*frameBuffer);
@@ -442,6 +450,7 @@ void VulkanRenderPass::end() const
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
+    m_impl->m_activeCommandBuffer = nullptr;
 }
 
 void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
