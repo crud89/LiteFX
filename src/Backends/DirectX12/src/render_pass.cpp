@@ -1,5 +1,6 @@
 #include <litefx/backends/dx12.hpp>
 #include <litefx/backends/dx12_builders.hpp>
+#include "debug.hpp"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -284,13 +285,8 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     m_impl->m_beginCommandBuffer->barrier(transitionBarrier);
 
 #ifndef NDEBUG
-    // NOTE: Using those APIs is fine, however they trigger an annoying warning in the debug layer about using PIXBeginEvent/PIXEndEvent instead. To do 
-    //       this, it is required to link against the PIX runtime, which I don't want to just to be able to have debug events. Unfortunately, the error
-    //       ID is CORRUPTED_PARAMETER2, which should not be filtered out. To fix this issue, we should provide "compatible" PIX metadata instead of 
-    //       plain strings. For now, we simply check if a debugger is attached and in this case do not call those APIs, which should silence the info 
-    //       queue.
-    if (!::IsDebuggerPresent() && !m_impl->m_name.empty())
-        m_impl->m_device.graphicsQueue().handle()->BeginEvent(1, m_impl->m_name.c_str(), m_impl->m_name.size());
+    if (!m_impl->m_name.empty())
+        ::BeginEvent(m_impl->m_device.graphicsQueue().handle(), "{0} Render Pass ", m_impl->m_name);
 #endif
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
@@ -363,8 +359,8 @@ void DirectX12RenderPass::end() const
     m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
 
 #ifndef NDEBUG
-    if (!::IsDebuggerPresent() && !m_impl->m_name.empty())
-        m_impl->m_device.graphicsQueue().handle()->EndEvent();
+    if (!m_impl->m_name.empty())
+        ::EndEvent(m_impl->m_device.graphicsQueue().handle());
 #endif
 
     // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
