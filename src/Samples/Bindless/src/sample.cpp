@@ -350,7 +350,7 @@ void SampleApp::updateWindowTitle()
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << (1000.0f / frameTime) << " FPS";
+    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS";
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();
