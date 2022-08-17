@@ -19,7 +19,7 @@ private:
     Array<RenderTarget> m_renderTargets;
     Array<DirectX12InputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<DirectX12FrameBuffer>> m_frameBuffers;
-    UniquePtr<DirectX12CommandBuffer> m_beginCommandBuffer, m_endCommandBuffer;
+    Array<UniquePtr<DirectX12CommandBuffer>> m_beginCommandBuffers, m_endCommandBuffers;
     const DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
     UInt32 m_backBuffer{ 0 };
     const RenderTarget* m_presentTarget = nullptr;
@@ -151,14 +151,28 @@ public:
             return frameBuffer;
         });
 
-        // Initialize the command buffers.
-        this->m_beginCommandBuffer = m_device.graphicsQueue().createCommandBuffer(false);
-        this->m_endCommandBuffer = m_device.graphicsQueue().createCommandBuffer(false);
+        // Initialize the primary command buffers used to begin and end the render pass.
+        this->m_beginCommandBuffers.resize(m_device.swapChain().buffers());
+        std::ranges::generate(this->m_beginCommandBuffers, [&, i = 0]() mutable {
+            auto commandBuffer = m_device.graphicsQueue().createCommandBuffer(false);
 
 #ifndef NDEBUG
-        std::as_const(*this->m_beginCommandBuffer).handle()->SetName(Widen(fmt::format("{0} - Begin Commands", m_parent->name())).c_str());
-        std::as_const(*this->m_endCommandBuffer).handle()->SetName(Widen(fmt::format("{0} - End Commands", m_parent->name())).c_str());
+            std::as_const(*commandBuffer).handle()->SetName(Widen(fmt::format("{0} Begin Commands {1}", m_parent->name(), i++)).c_str());
 #endif
+
+            return commandBuffer;
+        });
+
+        this->m_endCommandBuffers.resize(m_device.swapChain().buffers());
+        std::ranges::generate(this->m_endCommandBuffers, [&, i = 0]() mutable {
+            auto commandBuffer = m_device.graphicsQueue().createCommandBuffer(false);
+
+#ifndef NDEBUG
+            std::as_const(*commandBuffer).handle()->SetName(Widen(fmt::format("{0} End Commands {1}", m_parent->name(), i++)).c_str());
+#endif
+
+            return commandBuffer;
+        });
     }
 };
 
@@ -275,14 +289,15 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     const auto& context = m_impl->m_contexts[buffer];
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
-    m_impl->m_device.graphicsQueue().waitFor(frameBuffer->lastFence());
-    m_impl->m_beginCommandBuffer->begin();
+    //m_impl->m_device.graphicsQueue().waitFor(frameBuffer->lastFence());   // Done by swapping back buffers.
+    auto& beginCommandBuffer = m_impl->m_beginCommandBuffers[buffer];
+    beginCommandBuffer->begin();
 
     // Declare render pass input transition barriers.
     // TODO: This could possibly be pre-defined as a part of the frame buffer, but would it also safe much time?
     DirectX12Barrier transitionBarrier;
     std::ranges::for_each(m_impl->m_renderTargets, [&transitionBarrier, &frameBuffer](const RenderTarget& renderTarget) { transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), renderTarget.type() != RenderTargetType::DepthStencil ? ResourceState::RenderTarget : ResourceState::DepthWrite); });
-    m_impl->m_beginCommandBuffer->barrier(transitionBarrier);
+    beginCommandBuffer->barrier(transitionBarrier);
 
 #ifndef NDEBUG
     if (!m_impl->m_name.empty())
@@ -290,8 +305,8 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
 #endif
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
-    std::as_const(*m_impl->m_beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
-    std::as_const(*m_impl->m_beginCommandBuffer).handle()->EndRenderPass();
+    std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
+    std::as_const(*beginCommandBuffer).handle()->EndRenderPass();
     std::ranges::for_each(frameBuffer->commandBuffers(), [&context](const DirectX12CommandBuffer* commandBuffer) { 
         commandBuffer->begin(); 
         commandBuffer->handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
@@ -310,10 +325,11 @@ void DirectX12RenderPass::end() const
     // Resume and end the render pass.
     const auto& buffer = m_impl->m_backBuffer;
     const auto& context = m_impl->m_contexts[buffer];
+    auto& endCommandBuffer = m_impl->m_endCommandBuffers[buffer];
     std::ranges::for_each(frameBuffer->commandBuffers(), [&context](const DirectX12CommandBuffer* commandBuffer) { commandBuffer->handle()->EndRenderPass(); });
-    m_impl->m_endCommandBuffer->begin();
-    std::as_const(*m_impl->m_endCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
-    std::as_const(*m_impl->m_endCommandBuffer).handle()->EndRenderPass();
+    endCommandBuffer->begin();
+    std::as_const(*endCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+    std::as_const(*endCommandBuffer).handle()->EndRenderPass();
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
     bool requiresResolve = this->hasPresentTarget() && m_impl->m_multiSamplingLevel > MultiSamplingLevel::x1;
@@ -336,26 +352,26 @@ void DirectX12RenderPass::end() const
     if (requiresResolve)
         transitionBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceState::ResolveDestination);
 
-    m_impl->m_endCommandBuffer->barrier(transitionBarrier);
+    endCommandBuffer->barrier(transitionBarrier);
 
     // If required, we need to resolve the present target.
     if (requiresResolve)
     {
         const IDirectX12Image* multiSampledImage = &frameBuffer->image(m_impl->m_presentTarget->location());
-        std::as_const(*m_impl->m_endCommandBuffer).handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, DX12::getFormat(m_impl->m_presentTarget->format()));
+        std::as_const(*endCommandBuffer).handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, DX12::getFormat(m_impl->m_presentTarget->format()));
 
         // Transition the present target back to the present state.
         DirectX12Barrier presentBarrier;
         presentBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceState::Present);
-        m_impl->m_endCommandBuffer->barrier(presentBarrier);
+        endCommandBuffer->barrier(presentBarrier);
     }
 
     // End the command buffer recording and submit all command buffers.
     // NOTE: In order to suspend/resume render passes, we need to pass them to the queue in one `ExecuteCommandLists` (i.e. submit) call. The order we pass them to the call is 
     //       important, since the first command list also gets executed first.
     Array<const DirectX12CommandBuffer*> commandBuffers = frameBuffer->commandBuffers();
-    commandBuffers.insert(commandBuffers.begin(), m_impl->m_beginCommandBuffer.get());
-    commandBuffers.push_back(m_impl->m_endCommandBuffer.get());
+    commandBuffers.insert(commandBuffers.begin(), m_impl->m_beginCommandBuffers[buffer].get());
+    commandBuffers.push_back(endCommandBuffer.get());
     m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
 
 #ifndef NDEBUG
