@@ -20,6 +20,7 @@ private:
     Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets, m_freeSamplerSets;
     Dictionary<UInt32, UInt32> m_bindingToDescriptor;
     const DirectX12Device& m_device;
+    bool m_isUnboundedArray = false;
     mutable std::mutex m_mutex;
 
 public:
@@ -45,6 +46,14 @@ public:
         std::ranges::for_each(m_layouts, [&, i = 0](const UniquePtr<DirectX12DescriptorLayout>& layout) mutable {
             LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout->descriptorType(), layout->elementSize(), 0, layout->binding(), layout->descriptors());
             
+            if (layout->descriptors() == -1)
+            {
+                if (m_layouts.size() != 1) [[unlikely]]
+                    throw InvalidArgumentException("If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
+                else
+                    m_isUnboundedArray = true;
+            }
+            
             if (layout->descriptorType() == DescriptorType::Sampler)
             {
                 // Only count dynamic samplers.
@@ -63,11 +72,14 @@ public:
     }
 
 public:
-    void tryAllocate(ComPtr<ID3D12DescriptorHeap>& bufferHeap, ComPtr<ID3D12DescriptorHeap>& samplerHeap)
+    void tryAllocate(ComPtr<ID3D12DescriptorHeap>& bufferHeap, ComPtr<ID3D12DescriptorHeap>& samplerHeap, const UInt32& descriptorCount)
     {
         // Use descriptor heaps from the queues, if possible.
         if (m_descriptors > 0)
         {
+            // If the descriptor set has an unbounded array, use the descriptor count from the parameter to allocate it.
+            UInt32 descriptors = m_descriptors == -1 ? descriptorCount : m_descriptors;
+
             if (!m_freeDescriptorSets.empty())
             {
                 bufferHeap = m_freeDescriptorSets.front();
@@ -76,7 +88,7 @@ public:
             else
             {
                 D3D12_DESCRIPTOR_HEAP_DESC bufferHeapDesc = {};
-                bufferHeapDesc.NumDescriptors = m_descriptors;
+                bufferHeapDesc.NumDescriptors = descriptors;
                 bufferHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
                 bufferHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
                 raiseIfFailed<RuntimeException>(m_device.handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
@@ -86,6 +98,9 @@ public:
         // Repeat for sampler heaps.
         if (m_samplers > 0)
         {
+            // If the descriptor set has an unbounded array, use the descriptor count from the parameter to allocate it.
+            UInt32 samplers = m_samplers == -1 ? descriptorCount : m_samplers;
+
             if (!m_freeSamplerSets.empty())
             {
                 bufferHeap = m_freeSamplerSets.front();
@@ -94,7 +109,7 @@ public:
             else
             {
                 D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {};
-                samplerHeapDesc.NumDescriptors = m_samplers;
+                samplerHeapDesc.NumDescriptors = samplers;
                 samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
                 samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
                 raiseIfFailed<RuntimeException>(m_device.handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
@@ -207,7 +222,7 @@ UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(const U
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
     ComPtr<ID3D12DescriptorHeap> bufferHeap, samplerHeap;
-    m_impl->tryAllocate(bufferHeap, samplerHeap);
+    m_impl->tryAllocate(bufferHeap, samplerHeap, descriptors);
 
     return makeUnique<DirectX12DescriptorSet>(*this, std::move(bufferHeap), std::move(samplerHeap));
 }
@@ -222,8 +237,13 @@ Array<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateM
 void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptorSet) const noexcept
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
-    m_impl->m_freeDescriptorSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.bufferHeap()));
-    m_impl->m_freeSamplerSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.samplerHeap()));
+
+    // Unbounded array descriptor sets aren't cached.
+    if (!m_impl->m_isUnboundedArray)
+    {
+        m_impl->m_freeDescriptorSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.bufferHeap()));
+        m_impl->m_freeSamplerSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.samplerHeap()));
+    }
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)

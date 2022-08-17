@@ -243,6 +243,12 @@ public:
                     type = inputDesc.Type == D3D_SIT_UAV_RWSTRUCTURED ? DescriptorType::WritableStorage : DescriptorType::Storage;
                     break;
                 }
+                case D3D_SIT_BYTEADDRESS:
+                case D3D_SIT_UAV_RWBYTEADDRESS:
+                {
+                    type = inputDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS ? DescriptorType::WritableStorage : DescriptorType::Storage;
+                    break;
+                }
                 case D3D_SIT_UAV_CONSUME_STRUCTURED:
                 case D3D_SIT_UAV_APPEND_STRUCTURED:
                 case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
@@ -262,8 +268,6 @@ public:
                 case D3D_SIT_TEXTURE:     type = DescriptorType::Texture; break;
                 case D3D_SIT_UAV_RWTYPED: type = DescriptorType::WritableTexture; break;
                 case D3D_SIT_SAMPLER:     type = DescriptorType::Sampler; break;
-                case D3D_SIT_BYTEADDRESS:
-                case D3D_SIT_UAV_RWBYTEADDRESS:
                 case D3D_SIT_RTACCELERATIONSTRUCTURE:
                 case D3D_SIT_UAV_FEEDBACKTEXTURE: throw RuntimeException("The shader exposes an unsupported resource of type {1} at binding point {0}.", i, inputDesc.Type);
                 default: throw RuntimeException("The shader exposes an unknown resource type in binding {0}.", i);
@@ -275,6 +279,10 @@ public:
                     .elements = inputDesc.BindCount,
                     .type = type
                 };
+
+                // Unbounded arrays have a bind count of -1.
+                if (inputDesc.BindCount == 0)
+                    descriptor.elements = -1;
 
                 // Check if a descriptor set has already been defined for the space.
                 if (!descriptorSetLayouts.contains(inputDesc.Space))

@@ -52,7 +52,11 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const BufferT
 
 UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
 {
-	constexpr size_t elementAlignment = 0xFF;
+	// TODO: Query alignment by calling m_impl->m_device.handle()->GetResourceAllocationInfo() with a D3D12_RESOURCE_DESC with the alignment set to 0.
+	size_t elementAlignment = 0xFF;
+
+	if (type == BufferType::Storage)
+		elementAlignment = 0x04;	// Align storage buffers to 4 bytes.
 
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
