@@ -12,6 +12,7 @@ public:
 
 private:
     ComPtr<ID3D12DescriptorHeap> m_bufferHeap, m_samplerHeap;
+    UInt32 m_bufferOffset{ 0 }, m_samplerOffset{ 0 };
     const DirectX12DescriptorSetLayout& m_layout;
 
 public:
@@ -54,6 +55,11 @@ public:
         default: throw std::invalid_argument("Invalid border mode.");
         }
     }
+
+    void updateGlobalBuffers(const UInt32& offset, const UInt32& descriptors)
+    {
+        m_layout.device().updateBufferDescriptors(*this->m_parent, offset, descriptors);
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -63,10 +69,12 @@ public:
 DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
     m_impl(makePimpl<DirectX12DescriptorSetImpl>(this, layout, std::move(bufferHeap), std::move(samplerHeap)))
 {
+    layout.device().allocateGlobalDescriptors(*this, m_impl->m_bufferOffset, m_impl->m_samplerOffset);
 }
 
 DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
 {
+    m_impl->m_layout.device().releaseGlobalDescriptors(*this);
     m_impl->m_layout.free(*this);
 }
 
@@ -77,6 +85,8 @@ const DirectX12DescriptorSetLayout& DirectX12DescriptorSet::layout() const noexc
 
 void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const
 {
+    // TODO: Check UAV (DescriptorType::Buffer, DescriptorType::WritableBuffer).
+
     if (bufferElement + elements > buffer.elements()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elements, bufferElement);
 
@@ -100,6 +110,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
             descriptorHandle = descriptorHandle.Offset(descriptorSize);
         }
 
+        m_impl->updateGlobalBuffers(offset, elements);
         break;
     }
     case DescriptorType::Storage:
@@ -116,6 +127,8 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
             m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
             descriptorHandle = descriptorHandle.Offset(descriptorSize);
         }
+
+        m_impl->updateGlobalBuffers(offset, elements);
         break;
     }
     case DescriptorType::WritableStorage:
@@ -135,6 +148,8 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
             m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
             descriptorHandle = descriptorHandle.Offset(descriptorSize);
         }
+
+        m_impl->updateGlobalBuffers(offset, elements);
         break;
     }
     case DescriptorType::Buffer:
@@ -147,6 +162,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
         };
 
         m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
+        m_impl->updateGlobalBuffers(offset, 1);
         break;
     }
     case DescriptorType::WritableBuffer:
@@ -162,6 +178,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
         };
 
         m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
+        m_impl->updateGlobalBuffers(offset, 1);
         break;
     }
     default: [[unlikely]]
@@ -297,6 +314,8 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
     {
         throw InvalidArgumentException("The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
     }
+
+    m_impl->updateGlobalBuffers(offset, 1);
 }
 
 void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampler& sampler, const UInt32& descriptor) const
@@ -318,6 +337,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampl
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
     m_impl->m_layout.device().handle()->CreateSampler(&samplerInfo, descriptorHandle);
+    m_impl->m_layout.device().updateSamplerDescriptors(*this, offset, 1);
 }
 
 void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const
@@ -348,6 +368,7 @@ void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
     m_impl->m_layout.device().handle()->CreateShaderResourceView(image.handle().Get(), &inputAttachmentView, descriptorHandle);
+    m_impl->updateGlobalBuffers(offset, 1);
 }
 
 const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const noexcept 
@@ -355,7 +376,17 @@ const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const n
     return m_impl->m_bufferHeap;
 }
 
+const UInt32& DirectX12DescriptorSet::bufferOffset() const noexcept
+{
+    return m_impl->m_bufferOffset;
+}
+
 const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::samplerHeap() const noexcept
 {
     return m_impl->m_samplerHeap;
+}
+
+const UInt32& DirectX12DescriptorSet::samplerOffset() const noexcept
+{
+    return m_impl->m_samplerOffset;
 }

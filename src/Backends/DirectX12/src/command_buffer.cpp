@@ -256,7 +256,7 @@ void DirectX12CommandBuffer::use(const DirectX12PipelineState& pipeline) const n
 
 void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
 {
-	m_impl->m_queue.device().updateGlobalDescriptors(*this, descriptorSet, pipeline);
+	m_impl->m_queue.device().bindDescriptorSet(*this, descriptorSet, pipeline);
 }
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 
