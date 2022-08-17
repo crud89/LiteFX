@@ -237,10 +237,10 @@ namespace LiteFX::Rendering {
         virtual const descriptor_layout_type& descriptor(const UInt32& binding) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const UInt32& descriptors = 0) const noexcept = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(const UInt32& descriptors = 0) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const noexcept = 0;
+        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const = 0;
 
         /// <inheritdoc />
         virtual void free(const descriptor_set_type& descriptorSet) const noexcept = 0;
@@ -251,11 +251,11 @@ namespace LiteFX::Rendering {
             return Array<const IDescriptorLayout*>(descriptors.begin(), descriptors.end());
         }
 
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors) const noexcept override {
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors) const override {
             return this->allocate(descriptors);
         }
 
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors) const noexcept override {
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors) const override {
             auto sets = this->allocateMultiple(descriptorSets, descriptors);
             Array<UniquePtr<IDescriptorSet>> results;
             results.reserve(sets.size());

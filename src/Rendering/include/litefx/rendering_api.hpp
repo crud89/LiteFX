@@ -3213,11 +3213,12 @@ namespace LiteFX::Rendering {
         /// descriptor sets are never cached. Instead, they are released when calling <see cref="free" />. It is a good practice to cache such descriptor sets as 
         /// global descriptor tables once and never release them. They provide more flexibility than regular descriptor arrays, since they may be updated, even after
         /// they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
-        /// in use.
+        /// in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause
+        /// the allocation to fail, if the heap is full.
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors = 0) const noexcept {
+        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors = 0) const {
             return this->getDescriptorSet(descriptors);
         }
 
@@ -3227,21 +3228,23 @@ namespace LiteFX::Rendering {
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
         /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
         /// <returns>The array of descriptor set instances.</returns>
-        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const noexcept {
+        /// <seealso cref="allocate" />
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const {
             return this->getDescriptorSets(descriptorSets, descriptors);
         }
 
         /// <summary>
         /// Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
         /// </summary>
+        /// <seealso cref="allocate" />
         void free(const IDescriptorSet& descriptorSet) const noexcept {
             this->releaseDescriptorSet(descriptorSet);
         }
 
     private:
         virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors) const noexcept = 0;
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors) const noexcept = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors) const = 0;
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept = 0;
     };
 

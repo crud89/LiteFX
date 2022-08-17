@@ -510,10 +510,10 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanDescriptorSet> allocate(const UInt32& descriptors = 0) const noexcept override;
+		virtual UniquePtr<VulkanDescriptorSet> allocate(const UInt32& descriptors = 0) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const noexcept override;
+		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const override;
 
 		/// <inheritdoc />
 		virtual void free(const VulkanDescriptorSet& descriptorSet) const noexcept override;

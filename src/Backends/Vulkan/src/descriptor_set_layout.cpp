@@ -310,7 +310,7 @@ UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
     return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT].descriptorCount;
 }
 
-UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32& descriptors) const noexcept
+UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32& descriptors) const
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -325,7 +325,7 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32&
     return descriptorSet;
 }
 
-Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors) const noexcept
+Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors) const
 {
     Array<UniquePtr<VulkanDescriptorSet>> descriptorSets(count);
     std::ranges::generate(descriptorSets, [this, descriptors]() { return this->allocate(descriptors); });
