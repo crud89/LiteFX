@@ -19,7 +19,6 @@ private:
 	Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
 	bool m_supportsVariableRefreshRates{ false };
 	const DirectX12Device& m_device;
-	UInt32 m_lastPresentFence = 0;
 
 public:
 	DirectX12SwapChainImpl(DirectX12SwapChain* parent, const DirectX12Device& device) :
@@ -119,9 +118,6 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
-		// TODO: We don't want to wait for the last fence here, but for the last fence of a certain frame buffer. If the frame buffer is not currently 
-		// in use, we don't need to wait for the fence of another frame buffer.
-		m_device.graphicsQueue().waitFor(m_lastPresentFence);
 		return m_parent->handle()->GetCurrentBackBufferIndex();
 	}
 
@@ -175,7 +171,11 @@ Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
 {
-	m_impl->m_lastPresentFence = frameBuffer.lastFence();
+	// NOTE: We have to wait for the frame to finish before presenting it. Unfortunately, there is no async frame concept in
+	//       DirectX. Instead the swap chain blocks until the next back-buffer is ready. If there are multiple back buffers,
+	//       this is immediate, even if the frame to present isn't immediately drawn. This means, that the GPU may fall idle
+	//       between presenting one frame and starting a new one.
+	m_impl->m_device.graphicsQueue().waitFor(frameBuffer.lastFence());
 	raiseIfFailed<RuntimeException>(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 
