@@ -89,7 +89,8 @@ UInt32 DirectX12GraphicsAdapter::driverVersion() const noexcept
 		return INVALID_DRIVER_VERSION;
 
 	// Allocate a string that contains the sub-key name.
-	String subKeyName(subKeyLength + 1, '\0');
+	subKeyLength++;		// To also include terminating character.
+	String subKeyName(subKeyLength, '\0');
 	UInt64 driverVersion = 0;
 	bool foundSubkey = false;
 	LUID adapterId {};
@@ -99,6 +100,7 @@ UInt32 DirectX12GraphicsAdapter::driverVersion() const noexcept
 	// Parse each adapter individually until we found the current one.
 	for (DWORD i(0); i < adapters; ++i)
 	{
+		subKeyLength = subKeyName.size();	// Reset, since it might have been overwritten by an earlier iteration of the loop.
 		status = ::RegEnumKeyEx(dxKey, i, subKeyName.data(), &subKeyLength, nullptr, nullptr, nullptr, nullptr);
 
 		if (status != ERROR_SUCCESS)
