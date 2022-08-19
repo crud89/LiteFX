@@ -87,10 +87,12 @@ public:
             }
             else
             {
-                D3D12_DESCRIPTOR_HEAP_DESC bufferHeapDesc = {};
-                bufferHeapDesc.NumDescriptors = descriptors;
-                bufferHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-                bufferHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+                D3D12_DESCRIPTOR_HEAP_DESC bufferHeapDesc = {
+                    .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+                    .NumDescriptors = descriptors,
+                    .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
+                };
+
                 raiseIfFailed<RuntimeException>(m_device.handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
             }
         }
@@ -108,10 +110,12 @@ public:
             }
             else
             {
-                D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {};
-                samplerHeapDesc.NumDescriptors = samplers;
-                samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-                samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+                D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {
+                    .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
+                    .NumDescriptors = samplers,
+                    .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
+                };
+
                 raiseIfFailed<RuntimeException>(m_device.handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
             }
         }
