@@ -32,7 +32,7 @@ struct InstanceData
 
 ConstantBuffer<CameraData> camera  : register(b0, space0);
 ConstantBuffer<DrawData> drawData  : register(b0, space1);
-ByteAddressBuffer instanceBuffer[] : register(t0, space2);
+StructuredBuffer<InstanceData> instanceBuffer[] : register(t0, space2);
 
 float4x4 angleAxis(float angle, float4 axis)
 {
@@ -51,8 +51,8 @@ float4x4 angleAxis(float angle, float4 axis)
 VertexData main(in VertexInput input, uint id : SV_InstanceID)
 {
     VertexData vertex;
-    
-    InstanceData instance = instanceBuffer[NonUniformResourceIndex(id)].Load<InstanceData>(0);
+        
+    InstanceData instance = instanceBuffer[NonUniformResourceIndex(id)].Load(0);
     float4x4 rotation = angleAxis(drawData.Time * drawData.Speed, instance.Axis);
     
     // Double-rotation: first around object center, then around a common center.
