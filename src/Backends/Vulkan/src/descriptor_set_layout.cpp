@@ -24,7 +24,8 @@ private:
         { VK_DESCRIPTOR_TYPE_SAMPLER, 0 },
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 0 },
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 0 },
-        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 0 }
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 0 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 0 }
     };
     Dictionary<VkDescriptorType, UInt32> m_poolSizeMapping {
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0 },
@@ -33,7 +34,8 @@ private:
         { VK_DESCRIPTOR_TYPE_SAMPLER, 3 },
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 4 },
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 5 },
-        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 6 }
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 6 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 7 }
     };
     ShaderStage m_stages;
     UInt32 m_space, m_poolSize;
@@ -96,16 +98,18 @@ public:
 
             switch (type)
             {
-            case DescriptorType::Uniform:         binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
-            case DescriptorType::WritableStorage:
-            case DescriptorType::Storage:         binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
-            case DescriptorType::WritableTexture: binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
-            case DescriptorType::Texture:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
-            case DescriptorType::WritableBuffer:
-            case DescriptorType::Buffer:          binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
-            case DescriptorType::InputAttachment: binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
-            case DescriptorType::Sampler:         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
-            default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");    return;
+            case DescriptorType::ConstantBuffer:     binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
+            case DescriptorType::ByteAddressBuffer:
+            case DescriptorType::RWByteAddressBuffer:
+            case DescriptorType::StructuredBuffer:
+            case DescriptorType::RWStructuredBuffer: binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
+            case DescriptorType::RWTexture:          binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
+            case DescriptorType::Texture:            binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
+            case DescriptorType::RWBuffer:           binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+            case DescriptorType::Buffer:             binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
+            case DescriptorType::InputAttachment:    binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
+            case DescriptorType::Sampler:            binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
+            default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");       return;
             }
 
             if (type != DescriptorType::Sampler || (type == DescriptorType::Sampler && layout->staticSampler() == nullptr))
@@ -282,12 +286,12 @@ UInt32 VulkanDescriptorSetLayout::uniforms() const noexcept
 
 UInt32 VulkanDescriptorSetLayout::storages() const noexcept
 {
-    return  m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER].descriptorCount;
+    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER].descriptorCount;
 }
 
 UInt32 VulkanDescriptorSetLayout::buffers() const noexcept
 {
-    return  m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER].descriptorCount;
+    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER].descriptorCount + m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER].descriptorCount;
 }
 
 UInt32 VulkanDescriptorSetLayout::images() const noexcept

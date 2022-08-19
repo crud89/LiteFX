@@ -262,8 +262,8 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         /// <param name="descriptorSize">The size of a single descriptor.</param>
         /// <param name="descriptors">The number of descriptors in the array.</param>
-        virtual TDerived& withUniform(const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) {
-            return this->withDescriptor(DescriptorType::Uniform, binding, descriptorSize, descriptors);
+        virtual TDerived& withConstantBuffer(const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors = 1) {
+            return this->withDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, descriptors);
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         virtual TDerived& withBuffer(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->withDescriptor(writable ? DescriptorType::WritableBuffer : DescriptorType::Buffer, binding, 0, descriptors);
+            return this->withDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0, descriptors);
         }
 
         /// <summary>
@@ -282,8 +282,18 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
-        virtual TDerived& withStorage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->withDescriptor(writable ? DescriptorType::WritableStorage : DescriptorType::Storage, binding, 0, descriptors);
+        virtual TDerived& withStructuredBuffer(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->withDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0, descriptors);
+        }
+
+        /// <summary>
+        /// Adds a byte address buffer buffer descriptor.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        virtual TDerived& withByteAddressBuffer(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->withDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0, descriptors);
         }
 
         /// <summary>
@@ -292,8 +302,8 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
-        virtual TDerived& withImage(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
-            return this->withDescriptor(writable ? DescriptorType::WritableTexture : DescriptorType::Texture, binding, 0, descriptors);
+        virtual TDerived& withTexture(const UInt32& binding, const UInt32& descriptors = 1, const bool& writable = false) {
+            return this->withDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0, descriptors);
         }
 
         /// <summary>

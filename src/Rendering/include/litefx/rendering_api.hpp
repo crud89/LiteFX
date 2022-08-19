@@ -413,7 +413,7 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// A uniform or constant buffer is read-only. In GLSL, use the <c>uniform</c> keyword to access a uniform buffer. In HLSL, use the <c>ConstantBuffer</c> keyword.
         /// </remarks>
-        Uniform         = 0x00000001,
+        ConstantBuffer = 0x00000001,
 
         /// <summary>
         /// A shader storage buffer object in Vulkan. Maps to a structured buffer in DirectX.
@@ -425,7 +425,7 @@ namespace LiteFX::Rendering {
         /// 
         /// The difference between <see cref="Uniform" /> and storage buffers is, that storage buffers can have variable length. However, they are typically less efficient.
         /// </remarks>
-        Storage         = 0x00000002,
+        StructuredBuffer = 0x00000002,
 
         /// <summary>
         /// A writable shader storage object in Vulkan. Maps to a read/write structured buffer in DirectX.
@@ -433,7 +433,7 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>RWStructuredBuffer</c> keyword.
         /// </remarks>
-        WritableStorage = 0x00000012,
+        RWStructuredBuffer = 0x00000012,
 
         /// <summary>
         /// A read-only sampled image.
@@ -445,7 +445,7 @@ namespace LiteFX::Rendering {
         /// 
         /// Note, that textures are typically not be accessed directly, but instead are sampled using a <see cref="Sampler" />.
         /// </remarks>
-        Texture         = 0x00000003,
+        Texture = 0x00000003,
 
         /// <summary>
         /// A writable image.
@@ -453,12 +453,12 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// In GLSL, use the <c>uniform image</c> keywords to access the texture. In HLSL, use the <c>RWTexture</c> keywords.
         /// </remaks>
-        WritableTexture = 0x00000013,
+        RWTexture = 0x00000013,
         
         /// <summary>
         /// A sampler state of a texture or image.
         /// </summary>
-        Sampler         = 0x00000004,
+        Sampler = 0x00000004,
 
         /// <summary>
         /// The result of a render target from an earlier render pass. Maps to a <c>SubpassInput</c> in HLSL.
@@ -466,20 +466,36 @@ namespace LiteFX::Rendering {
         InputAttachment = 0x00000005,
 
         /// <summary>
-        /// Represents a read-only texel buffer.
+        /// Represents a read-only texel buffer (uniform texel buffer).
         /// </summary>
         /// <remarks>
-        /// Use the <c>uniform samplerBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>Buffer</c> keyword.
+        /// Use the <c>uniform imageBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>Buffer</c> keyword.
         /// </remarks>
-        Buffer          = 0x00000006,
+        Buffer = 0x00000006,
 
         /// <summary>
-        /// Represents a writable texel buffer.
+        /// Represents a writable texel buffer (storage texel buffer).
         /// </summary>
         /// <remarks>
         /// Use the <c>uniform imageBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>RWBuffer</c> keyword.
         /// </remarks>
-        WritableBuffer  = 0x00000016
+        RWBuffer = 0x00000016,
+
+        /// <summary>
+        /// Represents an unformatted buffer.
+        /// </summary>
+        /// <remarks>
+        /// In GLSL, use the <c>buffer</c> keyword to access byte address buffers. In HLSL, use the <c>ByteAddressBuffer</c> keyword.
+        /// </remarks>
+        ByteAddressBuffer = 0x00000007,
+
+        /// <summary>
+        /// Represents an unformatted writable buffer.
+        /// </summary>
+        /// <remarks>
+        /// In GLSL, use the <c>buffer</c> keyword to access byte address buffers. In HLSL, use the <c>RWByteAddressBuffer</c> keyword.
+        /// </remarks>
+        RWByteAddressBuffer = 0x00000017,
     };
 
     /// <summary>
@@ -500,21 +516,33 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Describes an uniform buffer object (Vulkan) or constant buffer view (DirectX).
         /// </summary>
+        /// <remarks>
+        /// Buffers of this type can be bound to `ConstantBuffer` descriptors.
+        /// </remarks>
         Uniform = 0x00000003,
 
         /// <summary>
         /// Describes a shader storage buffer object (Vulkan) or unordered access view (DirectX).
         /// </summary>
+        /// <remarks>
+        /// Buffers of this type can be bound to `StructuredBuffer`/`RWStructuredBuffer` or `ByteAddressBuffer`/`RWByteAddressBuffer` descriptors.
+        /// </remarks>
         Storage = 0x00000004,
 
         /// <summary>
         /// Describes a shader texel storage buffer object (Vulkan) or unordered access view (DirectX).
         /// </summary>
+        /// <remarks>
+        /// Buffers of this type can be bound to `Buffer`/`RWBuffer` descriptors.
+        /// </remarks>
         Texel = 0x00000005,
 
         /// <summary>
         /// Describes another type of buffer, such as samplers or images.
         /// </summary>
+        /// <remarks>
+        /// Buffers of this type must not be bound to any descriptor, but can be used as copy/transfer targets and sources.
+        /// </remarks>
         Other = 0x7FFFFFFF
     };
 
@@ -3154,21 +3182,21 @@ namespace LiteFX::Rendering {
         virtual UInt32 uniforms() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of shader storage buffer/unordered access view descriptors within the descriptor set.
+        /// Returns the number of structured and byte address buffer descriptors within the descriptor set.
         /// </summary>
-        /// <returns>The number of shader storage buffer/unordered access view descriptors.</returns>
+        /// <returns>The number of structured and byte address buffer descriptors.</returns>
         virtual UInt32 storages() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of image descriptors within the descriptor set.
+        /// Returns the number of image (i.e. texture) descriptors within the descriptor set.
         /// </summary>
-        /// <returns>The number of image descriptors.</returns>
+        /// <returns>The number of image (i.e. texture) descriptors.</returns>
         virtual UInt32 images() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of texel/structured buffer descriptors within the descriptor set.
+        /// Returns the number of texel buffer descriptors within the descriptor set.
         /// </summary>
-        /// <returns>The number of texel/structured buffer descriptors.</returns>
+        /// <returns>The number of texel buffer descriptors.</returns>
         virtual UInt32 buffers() const noexcept = 0;
 
         /// <summary>
