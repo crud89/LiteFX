@@ -489,6 +489,15 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference of the index of the descriptor set root parameter.</returns>
 		virtual UInt32& rootParameterIndex() noexcept;
 
+		/// <summary>
+		/// Returns <c>true</c>, if the descriptor set contains an (unbounded) runtime array.
+		/// </summary>
+		/// <remarks>
+		/// A descriptor set is a runtime array, if it contains exactly one descriptor, which is an unbounded array, i.e. which has a descriptor count of `-1` (or `0xFFFFFFFF`).
+		/// </remarks>
+		/// <returns><c>true</c>, if the descriptor set contains an (unbounded) runtime array and <c>false</c> otherwise.</returns>
+		virtual bool isRuntimeArray() const noexcept;
+
 	public:
 		/// <inheritdoc />
 		virtual Array<const DirectX12DescriptorLayout*> descriptors() const noexcept override;

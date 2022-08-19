@@ -85,8 +85,6 @@ const DirectX12DescriptorSetLayout& DirectX12DescriptorSet::layout() const noexc
 
 void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const
 {
-    // TODO: Check UAV (DescriptorType::Buffer, DescriptorType::WritableBuffer).
-
     if (bufferElement + elements > buffer.elements()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elements, bufferElement);
 
@@ -94,10 +92,10 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
-
+    
     switch (descriptorLayout.descriptorType())
     {
-    case DescriptorType::Uniform:
+    case DescriptorType::ConstantBuffer:
     {
         for (UInt32 i(0); i < elements; ++i)
         {
@@ -110,10 +108,43 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
             descriptorHandle = descriptorHandle.Offset(descriptorSize);
         }
 
-        m_impl->updateGlobalBuffers(offset, elements);
         break;
     }
-    case DescriptorType::Storage:
+    case DescriptorType::StructuredBuffer:
+    {
+        for (UInt32 i(0); i < elements; ++i)
+        {
+            D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+                .Format = DXGI_FORMAT_UNKNOWN,
+                .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                .Buffer = { .FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .Flags = D3D12_BUFFER_SRV_FLAG_NONE }
+            };
+
+            m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
+            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+        }
+
+        break;
+    }
+    case DescriptorType::RWStructuredBuffer:
+    {
+        // TODO: Support counter in AppendStructuredBuffer.
+        for (UInt32 i(0); i < elements; ++i)
+        {
+            D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
+                .Format = DXGI_FORMAT_UNKNOWN,
+                .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+                .Buffer = { .FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_NONE }
+            };
+
+            m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
+            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+        }
+
+        break;
+    }
+    case DescriptorType::ByteAddressBuffer:
     {
         for (UInt32 i(0); i < elements; ++i)
         {
@@ -128,17 +159,12 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
             descriptorHandle = descriptorHandle.Offset(descriptorSize);
         }
 
-        m_impl->updateGlobalBuffers(offset, elements);
         break;
     }
-    case DescriptorType::WritableStorage:
+    case DescriptorType::RWByteAddressBuffer:
     {
-        if (!buffer.writable())
-            throw InvalidArgumentException("The provided buffer is not writable and cannot be bound to a read/write descriptor.");
-
         for (UInt32 i(0); i < elements; ++i)
         {
-            // TODO: Support allocating counter resources?
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS,
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
@@ -149,41 +175,46 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
             descriptorHandle = descriptorHandle.Offset(descriptorSize);
         }
 
-        m_impl->updateGlobalBuffers(offset, elements);
         break;
     }
     case DescriptorType::Buffer:
     {
-        D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
-            .Format = DXGI_FORMAT_UNKNOWN,
-            .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-            .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-            .Buffer = {.FirstElement = bufferElement, .NumElements = elements, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .Flags = D3D12_BUFFER_SRV_FLAG_NONE }
-        };
+        for (UInt32 i(0); i < elements; ++i)
+        {
+            D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+                .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
+                .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                .Buffer = { .FirstElement = ((bufferElement + i) * buffer.alignedElementSize()) / 4, .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / 4), .StructureByteStride = 0, .Flags = D3D12_BUFFER_SRV_FLAG_RAW }
+            };
 
-        m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
-        m_impl->updateGlobalBuffers(offset, 1);
+            m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
+            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+        }
+
         break;
     }
-    case DescriptorType::WritableBuffer:
+    case DescriptorType::RWBuffer:
     {
-        if (!buffer.writable())
-            throw InvalidArgumentException("The provided buffer is not writable and cannot be bound to a read/write descriptor.");
+        for (UInt32 i(0); i < elements; ++i)
+        {
+            D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
+                .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
+                .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+                .Buffer = { .FirstElement = ((bufferElement + i) * buffer.alignedElementSize()) / 4, .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / 4), .StructureByteStride = 0, .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_RAW }
+            };
 
-        // TODO: Support allocating counter resources?
-        D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
-            .Format = DXGI_FORMAT_UNKNOWN,
-            .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-            .Buffer = { .FirstElement = bufferElement, .NumElements = elements, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_NONE }
-        };
+            m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
+            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+        }
 
-        m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
-        m_impl->updateGlobalBuffers(offset, 1);
         break;
     }
     default: [[unlikely]]
         throw InvalidArgumentException("The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
     }
+
+    m_impl->updateGlobalBuffers(offset, elements);
 }
 
 void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
@@ -261,7 +292,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
 
         m_impl->m_layout.device().handle()->CreateShaderResourceView(texture.handle().Get(), &textureView, descriptorHandle);
     }
-    else if (descriptorLayout.descriptorType() == DescriptorType::WritableTexture)
+    else if (descriptorLayout.descriptorType() == DescriptorType::RWTexture)
     {
         if (!texture.writable())
             throw InvalidArgumentException("The provided texture is not writable and cannot be bound to a read/write descriptor.");
@@ -310,7 +341,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
 
         m_impl->m_layout.device().handle()->CreateUnorderedAccessView(texture.handle().Get(), nullptr, &textureView, descriptorHandle);
     }
-    else
+    else [[unlikely]]
     {
         throw InvalidArgumentException("The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
     }

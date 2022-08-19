@@ -20,7 +20,7 @@ private:
     Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets, m_freeSamplerSets;
     Dictionary<UInt32, UInt32> m_bindingToDescriptor;
     const DirectX12Device& m_device;
-    bool m_isUnboundedArray = false;
+    bool m_isRuntimeArray = false;
     mutable std::mutex m_mutex;
 
 public:
@@ -51,7 +51,7 @@ public:
                 if (m_layouts.size() != 1) [[unlikely]]
                     throw InvalidArgumentException("If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
                 else
-                    m_isUnboundedArray = true;
+                    m_isRuntimeArray = true;
             }
             
             if (layout->descriptorType() == DescriptorType::Sampler)
@@ -153,6 +153,11 @@ UInt32& DirectX12DescriptorSetLayout::rootParameterIndex() noexcept
     return m_impl->m_rootParameterIndex;
 }
 
+bool DirectX12DescriptorSetLayout::isRuntimeArray() const noexcept
+{
+    return m_impl->m_isRuntimeArray;
+}
+
 const DirectX12Device& DirectX12DescriptorSetLayout::device() const noexcept
 {
     return m_impl->m_device;
@@ -185,22 +190,22 @@ const ShaderStage& DirectX12DescriptorSetLayout::shaderStages() const noexcept
 
 UInt32 DirectX12DescriptorSetLayout::uniforms() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Uniform; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::ConstantBuffer; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::storages() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Storage || layout->descriptorType() == DescriptorType::WritableStorage; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::StructuredBuffer || layout->descriptorType() == DescriptorType::RWStructuredBuffer || layout->descriptorType() == DescriptorType::ByteAddressBuffer || layout->descriptorType() == DescriptorType::RWByteAddressBuffer; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::buffers() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Buffer || layout->descriptorType() == DescriptorType::WritableBuffer; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Buffer || layout->descriptorType() == DescriptorType::RWBuffer; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::images() const noexcept
 {
-    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Texture || layout->descriptorType() == DescriptorType::WritableTexture; });
+    return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Texture || layout->descriptorType() == DescriptorType::RWTexture; });
 }
 
 UInt32 DirectX12DescriptorSetLayout::samplers() const noexcept
@@ -239,7 +244,7 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
     // Unbounded array descriptor sets aren't cached.
-    if (!m_impl->m_isUnboundedArray)
+    if (!m_impl->m_isRuntimeArray)
     {
         m_impl->m_freeDescriptorSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.bufferHeap()));
         m_impl->m_freeSamplerSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.samplerHeap()));

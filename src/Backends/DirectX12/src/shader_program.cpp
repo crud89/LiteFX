@@ -224,49 +224,47 @@ public:
                     raiseIfFailed<RuntimeException>(constantBuffer->GetDesc(&bufferDesc), "Unable to query constant buffer \"{0}\" from shader module {1}.", inputDesc.Name, shaderModule->type());
                     
                     elementSize = bufferDesc.Size;
-                    type = DescriptorType::Uniform;
-                    break;
-                }
-                case D3D_SIT_TBUFFER:
-                case D3D_SIT_STRUCTURED:
-                case D3D_SIT_UAV_RWSTRUCTURED:
-                {
-                    auto variable = shaderReflection->GetVariableByName(inputDesc.Name);
-
-                    if (variable == nullptr) [[unlikely]]
-                        throw RuntimeException("The shader variable \"{0}\" could not be queried.", inputDesc.Name);
-
-                    D3D12_SHADER_VARIABLE_DESC desc;
-                    raiseIfFailed<RuntimeException>(variable->GetDesc(&desc), "Unable to query variable \"{0}\" from shader module {1}.", inputDesc.Name, shaderModule->type());
-                    
-                    elementSize = desc.Size;
-                    type = inputDesc.Type == D3D_SIT_UAV_RWSTRUCTURED ? DescriptorType::WritableStorage : DescriptorType::Storage;
+                    type = DescriptorType::ConstantBuffer;
                     break;
                 }
                 case D3D_SIT_BYTEADDRESS:
-                case D3D_SIT_UAV_RWBYTEADDRESS:
                 {
-                    type = inputDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS ? DescriptorType::WritableStorage : DescriptorType::Storage;
+                    elementSize = 4;    // Byte address buffers align to DWORDs.
+                    type = DescriptorType::ByteAddressBuffer;
                     break;
                 }
+                case D3D_SIT_UAV_RWBYTEADDRESS:
+                {
+                    elementSize = 4;    // Byte address buffers align to DWORDs.
+                    type = DescriptorType::RWByteAddressBuffer;
+                    break;
+                }
+                case D3D_SIT_TBUFFER:   // Exotic mixture between constant buffer and structured buffer. We'll map it to StructuredBuffer for now.
+                case D3D_SIT_STRUCTURED:
                 case D3D_SIT_UAV_CONSUME_STRUCTURED:
+                {
+                    elementSize = inputDesc.NumSamples;
+                    type = DescriptorType::StructuredBuffer;
+                    break;
+                }
+                case D3D_SIT_UAV_RWSTRUCTURED:
                 case D3D_SIT_UAV_APPEND_STRUCTURED:
                 case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
                 {
-                    auto variable = shaderReflection->GetVariableByName(inputDesc.Name);
-
-                    if (variable == nullptr) [[unlikely]]
-                        throw RuntimeException("The shader variable \"{0}\" could not be queried.", inputDesc.Name);
-
-                    D3D12_SHADER_VARIABLE_DESC desc;
-                    raiseIfFailed<RuntimeException>(variable->GetDesc(&desc), "Unable to query variable \"{0}\" from shader module {1}.", inputDesc.Name, shaderModule->type());
-
-                    elementSize = desc.Size;
-                    type = inputDesc.Type == D3D_SIT_UAV_CONSUME_STRUCTURED ? DescriptorType::Buffer : DescriptorType::WritableBuffer;
+                    elementSize = inputDesc.NumSamples;
+                    type = DescriptorType::RWStructuredBuffer;
                     break;
                 }
-                case D3D_SIT_TEXTURE:     type = DescriptorType::Texture; break;
-                case D3D_SIT_UAV_RWTYPED: type = DescriptorType::WritableTexture; break;
+                case D3D_SIT_TEXTURE:
+                {
+                    type = inputDesc.Dimension == D3D_SRV_DIMENSION_BUFFER ? DescriptorType::Buffer : DescriptorType::Texture;
+                    break;
+                }
+                case D3D_SIT_UAV_RWTYPED:
+                {
+                    type = inputDesc.Dimension == D3D_SRV_DIMENSION_BUFFER ? DescriptorType::RWBuffer : DescriptorType::RWTexture;
+                    break;
+                }
                 case D3D_SIT_SAMPLER:     type = DescriptorType::Sampler; break;
                 case D3D_SIT_RTACCELERATIONSTRUCTURE:
                 case D3D_SIT_UAV_FEEDBACKTEXTURE: throw RuntimeException("The shader exposes an unsupported resource of type {1} at binding point {0}.", i, inputDesc.Type);

@@ -188,9 +188,9 @@ public:
 			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
 			Array<UniquePtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts;
 			Array<UniquePtr<DirectX12DescriptorLayout>> bufferLayouts, samplerLayouts;
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Uniform, 0, 16));
+			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16));
 			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0));
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::WritableTexture, 2, 0));
+			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0));
 			samplerLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0));
 			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute));
 			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute));
@@ -290,7 +290,10 @@ void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& de
 		samplers = descriptorSet.samplerHeap()->GetDesc().NumDescriptors;
 
 	if (m_impl->m_bufferOffset + buffers <= m_impl->m_globalBufferHeapSize) [[likely]]
-		bufferOffset = (m_impl->m_bufferOffset += buffers);
+	{
+		bufferOffset = m_impl->m_bufferOffset;
+		m_impl->m_bufferOffset += buffers;
+	}
 	else [[unlikely]]
 	{
 		m_impl->m_bufferOffset = m_impl->m_globalBufferHeapSize;
@@ -314,7 +317,10 @@ void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& de
 	}
 
 	if (m_impl->m_samplerOffset + samplers <= m_impl->m_globalSamplerHeapSize) [[likely]]
-		samplerOffset = (m_impl->m_samplerOffset += samplers);
+	{
+		samplerOffset = m_impl->m_samplerOffset;
+		m_impl->m_samplerOffset += samplers;
+	}
 	else [[unlikely]]
 	{
 		m_impl->m_samplerOffset = m_impl->m_globalSamplerHeapSize;
