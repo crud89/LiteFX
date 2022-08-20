@@ -76,6 +76,7 @@ In order for the project to be built, there are a few prerequisites that need to
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
 † CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using older Visual Studio versions, consider installing CMake manually.
+
 ‡ Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
 #### Cloning the Repository
@@ -130,11 +131,13 @@ Within the cache variables, you can override the build options, LiteFX exports. 
 
 - `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later to be installed on your system).
 - `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
+- `BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
 - `BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
 - `BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
 - `BUILD_HLSL_SHADER_MODEL` (default: `6_3`): specifies the default HLSL shader model.
 - `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
 - `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
+- `BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
 
 For example, if you only want to build the Vulkan backend and samples and don't want to use DirectX Math, a preset would look like this:
 
