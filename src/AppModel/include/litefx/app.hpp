@@ -309,7 +309,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="width">The new width of the application window.</param>
 		/// <param name="height">The new height of the application window.</param>
-		virtual void resize(int width, int height);
+		virtual void resize(int& width, int& height);
 
 	public:
 		/// <summary>
