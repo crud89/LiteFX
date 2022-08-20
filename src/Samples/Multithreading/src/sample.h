@@ -21,6 +21,7 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <memory>
+#include <future>
 
 #include "config.h"
 
@@ -86,7 +87,7 @@ private:
 	/// <summary>
 	/// Stores the array of worker threads.
 	/// </summary>
-	Array<std::thread> m_workers = Array<std::thread>(NUM_WORKERS);
+	Array<std::future<void>> m_workers = Array<std::future<void>>(NUM_WORKERS);
 
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 

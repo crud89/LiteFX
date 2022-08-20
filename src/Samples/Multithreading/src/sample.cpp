@@ -148,8 +148,14 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto& transformBufferLayout = transformBindingLayout.descriptor(0);
     auto transformBindings = transformBindingLayout.allocateMultiple(3 * NUM_WORKERS);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3 * NUM_WORKERS);
-    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++); });
+    
+    // Create a transform buffer array for each worker and bind it to one of the descriptor sets.
+    Array<UniquePtr<IBuffer>> transformBuffers(NUM_WORKERS);
+    std::ranges::generate(transformBuffers, [&, i = 0]() mutable { return m_device->factory().createBuffer(fmt::format("Transform {0}", i++), transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3); });
+    
+    for (int s(0); s < 3; ++s)
+        for (int i(0); i < NUM_WORKERS; ++i)
+            transformBindings[(s * NUM_WORKERS) + i]->update(transformBufferLayout.binding(), *transformBuffers[i], s);
     
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);
@@ -160,8 +166,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(indexBuffer));
     m_device->state().add(std::move(cameraStagingBuffer));
     m_device->state().add(std::move(cameraBuffer));
-    m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
+    std::ranges::for_each(transformBuffers, [this](auto& buffer) { m_device->state().add(std::move(buffer)); });
     std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
@@ -327,7 +333,7 @@ void SampleApp::drawObject(const IRenderPass* renderPass, int index, int backBuf
 {
     // Query state. Be careful here, not to alter the state somewhere else!
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& transformBuffer = m_device->state().buffer("Transform");
+    auto& transformBuffer = m_device->state().buffer(fmt::format("Transform {0}", index));
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer * NUM_WORKERS + index));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
@@ -341,7 +347,7 @@ void SampleApp::drawObject(const IRenderPass* renderPass, int index, int backBuf
 
     // Compute world transform and update the transform buffer.
     transform[index].World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[index]);
-    transformBuffer.map(reinterpret_cast<const void*>(&transform[index]), sizeof(TransformBuffer), backBuffer * NUM_WORKERS + index);
+    transformBuffer.map(reinterpret_cast<const void*>(&transform[index]), sizeof(TransformBuffer), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
     commandBuffer.bind(cameraBindings, geometryPipeline);
@@ -374,9 +380,8 @@ void SampleApp::drawFrame()
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     // Initialize the worker threads.
-    // NOTE: You probably do not want to do this each frame. Instead use a thread pool or an array of endlessly running threads, that execute once per frame.
-    std::ranges::generate(m_workers, [this, &backBuffer, &time, &renderPass, i = 0]() mutable { return std::thread(&SampleApp::drawObject, this, &renderPass, i++, backBuffer, time); });
-    std::ranges::for_each(m_workers, [](std::thread& thread) { thread.join(); });
+    std::ranges::generate(m_workers, [this, &backBuffer, &time, &renderPass, i = 0]() mutable { return std::async(std::launch::async, &SampleApp::drawObject, this, &renderPass, i++, backBuffer, time); });
+    std::ranges::for_each(m_workers, [](std::future<void>& future) { future.wait(); });
 
     renderPass.end();
 }
