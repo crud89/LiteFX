@@ -307,6 +307,9 @@ namespace LiteFX {
 		/// <summary>
 		/// Called, if the application window resizes.
 		/// </summary>
+		/// <remarks>
+		/// Calling this method ensures, that the <paramref name="width" /> and <paramref name="height" /> parameters are valid.
+		/// </remarks>
 		/// <param name="width">The new width of the application window.</param>
 		/// <param name="height">The new height of the application window.</param>
 		virtual void resize(int& width, int& height);
