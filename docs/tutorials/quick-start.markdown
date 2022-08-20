@@ -65,7 +65,7 @@ public:
 public:
 	virtual void initialize() override;
 	virtual void run() override;
-	virtual void resize(int width, int height) override;
+	virtual void resize(int& width, int& height) override;
 };
 
 static void onResize(GLFWwindow* window, int width, int height)
@@ -84,7 +84,7 @@ void SimpleApp::run()
 {
 }
 
-void SimpleApp::resize(int width, int height) 
+void SimpleApp::resize(int& width, int& height) 
 {
 }
 
@@ -641,7 +641,7 @@ if (m_device == nullptr)
     return;
 ```
 
-Since this method is inherited from the `App` base class, we first invoke the base class method. We then check, if the device has already been initialize, since resize-events may occur before any initialization has been done. If it is not initialized, there's no need for us to do anything else here. However, this during rendering it will be initialized, so let's continue with the implementation:
+Since this method is inherited from the `App` base class, we first invoke the base class method. This ensures, that the render area is valid. We then check, if the device has already been initialized, since resize-events may occur before any initialization has been done. If it is not initialized, there's no need for us to do anything else here. However, this during rendering it will be initialized, so let's continue with the implementation:
 
 ```cxx
 m_device->wait();

@@ -108,7 +108,7 @@ private:
 public:
 	virtual void run() override;
 	virtual void initialize() override;
-	virtual void resize(int width, int height) override;
+	virtual void resize(int& width, int& height) override;
 	void keyDown(int key, int scancode, int action, int mods);
 	void handleEvents();
 	void drawFrame();

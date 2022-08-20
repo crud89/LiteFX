@@ -157,8 +157,12 @@ void App::use(UniquePtr<IBackend>&& backend)
 	Logger::get(this->name()).debug("Registered backend type {0}.", type.name());
 }
 
-void App::resize(int width, int height)
+void App::resize(int& width, int& height)
 {
+	// Ensure the area is at least 1 pixel into each direction.
+	width = std::max(width, 1);
+	height = std::max(height, 1);
+
 	Logger::get(this->name()).trace("OnResize (width = {0}, height = {1}).", width, height);
 }
 
