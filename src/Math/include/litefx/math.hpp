@@ -622,6 +622,28 @@ namespace LiteFX::Math {
 		inline size_t& height() noexcept;
 	};
 
+	class LITEFX_MATH_API RectI : public Vector<Int32, 4> {
+	public:
+		RectI() noexcept;
+		RectI(const Vector<Int32, 2>& pos, const Int32& w, const Int32& h) noexcept;
+		RectI(const Int32& x, const Int32& y, const Int32& w, const Int32& h) noexcept;
+		RectI(const RectI&) noexcept;
+		RectI(RectI&&) noexcept;
+		//virtual ~RectI() noexcept = default;
+
+	public:
+		inline RectI& operator=(const RectI& _other) noexcept;
+		inline RectI& operator=(RectI&& _other) noexcept;
+
+	public:
+		inline Vector<Int32, 2> position() const noexcept;
+		inline Size2d extent() const noexcept;
+		inline const Int32& width() const noexcept;
+		inline Int32& width() noexcept;
+		inline const Int32& height() const noexcept;
+		inline Int32& height() noexcept;
+	};
+
 	class LITEFX_MATH_API RectF : public Vector<Float, 4> {
 	public:
 		RectF() noexcept;
