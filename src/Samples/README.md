@@ -2,6 +2,19 @@
 
 This folder contains various samples that demonstrate how to use the LiteFX engine. The following table lists the samples and describes the key features.
 
+## Controls
+
+All samples can be controlled using the following keys:
+
+- `F8`: Toggle full-screen.
+- `F9`: Switch to Vulkan backend (if supported).
+- `F10`: Switch to DirectX 12 backend (if supported).
+- `Esc`: Exit application.
+
+Note that `F11` and `F12` are reserved keys, for example to be used by debuggers like Visual Studio, RenderDoc and PIX.
+
+## Sample List
+
 | Number | Name            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 |:------:|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |   01   | Basic Rendering | This sample shows how to setup a basic renderer using the LiteFX engine. It shows how to create multiple rendering backends and how to switch between them. It also creates the supported backends based on their availability in the build configuration.  The application creates a single render pass that exposes a single render pipeline. A vertex and index buffer is created, as well as a constant/uniform buffer for the camera. Multiple back-buffers are used to draw frames in flight.   **NOTE:** The pre-processor defines might be different when the engine gets imported from CMake. Instead of `BUILD_VULKAN_BACKEND`/`BUILD_DIRECTX_12_BACKEND` you have to use `LITEFX_HAS_VULKAN_BACKEND`/`LITEFX_HAS_DIRECTX12_BACKEND`. |

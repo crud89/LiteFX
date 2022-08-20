@@ -249,7 +249,7 @@ void SampleApp::initialize()
     });
 }
 
-void SampleApp::resize(int width, int height)
+void SampleApp::resize(int& width, int& height)
 {
     App::resize(width, height);
 
@@ -290,6 +290,63 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
         this->startBackend<DirectX12Backend>();
 #endif // BUILD_DIRECTX_12_BACKEND
+
+    if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
+    {
+        static RectI windowRect;
+
+        // Check if we're switching from fullscreen to windowed or the other way around.
+        if (::glfwGetWindowMonitor(m_window.get()) == nullptr)
+        {
+            // Find the monitor, that contains most of the window.
+            RectI clientRect, monitorRect;
+            GLFWmonitor* currentMonitor = nullptr;
+            const GLFWvidmode* currentVideoMode = nullptr;
+            int monitorCount;
+
+            ::glfwGetWindowPos(m_window.get(), &clientRect.x(), &clientRect.y());
+            ::glfwGetWindowSize(m_window.get(), &clientRect.width(), &clientRect.height());
+            auto monitors = ::glfwGetMonitors(&monitorCount);
+            int highestOverlap = 0;
+
+            for (int i(0); i < monitorCount; ++i)
+            {
+                auto monitor = monitors[i];
+                auto mode = ::glfwGetVideoMode(monitor);
+                ::glfwGetMonitorPos(monitor, &monitorRect.x(), &monitorRect.y());
+                monitorRect.width() = mode->width;
+                monitorRect.height() = mode->height;
+
+                auto overlap =
+                    std::max(0, std::min(clientRect.x() + clientRect.width(), monitorRect.x() + monitorRect.width()) - std::max(clientRect.x(), monitorRect.x())) *
+                    std::max(0, std::min(clientRect.y() + clientRect.height(), monitorRect.y() + monitorRect.height()) - std::max(clientRect.y(), monitorRect.y()));
+
+                if (highestOverlap < overlap)
+                {
+                    highestOverlap = overlap;
+                    currentMonitor = monitor;
+                    currentVideoMode = mode;
+                }
+            }
+
+            // Save the current window rect in order to restore it later.
+            windowRect = clientRect;
+
+            // Switch to fullscreen.
+            ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
+        }
+        else
+        {
+            // NOTE: If we were to launch in fullscreen mode, we should use something like `max(windowRect.width(), defaultWidth)`.
+            ::glfwSetWindowMonitor(m_window.get(), nullptr, windowRect.x(), windowRect.y(), windowRect.width(), windowRect.height(), 0);
+        }
+    }
+
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        // Close the window with the next loop.
+        ::glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE);
+    }
 }
 
 void SampleApp::updateWindowTitle()
