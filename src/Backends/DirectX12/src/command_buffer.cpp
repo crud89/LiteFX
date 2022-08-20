@@ -127,7 +127,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 
 	// Create and bind the parameters.
 	const auto& resourceBindingsLayout = pipeline.layout()->descriptorSet(0);
-	auto resourceBindings = resourceBindingsLayout.allocate();
+	auto resourceBindings = resourceBindingsLayout.allocateMultiple(image.levels() * image.layers());
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
 	auto parameters = m_impl->m_queue.device().factory().createBuffer(parametersLayout.type(), BufferUsage::Dynamic, parametersLayout.elementSize(), image.levels());
 	parameters->map(parametersBlock, sizeof(Parameters));
@@ -145,26 +145,28 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	waitBarrier.waitFor(image);
 	this->barrier(barrier);
 	auto size = image.extent();
+	int resource = 0;
 
 	for (int l(0); l < image.layers(); ++l)
 	{
 		for (UInt32 i(1); i < image.levels(); ++i, size /= 2)
 		{
 			// Update the invocation parameters.
-			resourceBindings->update(parametersLayout.binding(), *parameters, i);
+			resourceBindings[resource]->update(parametersLayout.binding(), *parameters, i);
 
 			// Bind the previous mip map level to the SRV at binding point 1.
-			resourceBindings->update(1, image, 0, i - 1, 1, l, 1);
+			resourceBindings[resource]->update(1, image, 0, i - 1, 1, l, 1);
 
 			// Bind the current level to the UAV at binding point 2.
-			resourceBindings->update(2, image, 0, i, 1, l, 1);
+			resourceBindings[resource]->update(2, image, 0, i, 1, l, 1);
 
 			// Dispatch the pipeline.
-			this->bind(*resourceBindings, pipeline);
+			this->bind(*resourceBindings[resource], pipeline);
 			this->dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
 
 			// Wait for all writes.
 			this->barrier(waitBarrier);
+			resource++;
 		}
 	}
 
