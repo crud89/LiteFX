@@ -15,13 +15,12 @@
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32
 #else 
-#  pragma message ("Multithreading Sample: No supported surface platform detected.")
+#  pragma message ("Bindless Descriptors Sample: No supported surface platform detected.")
 #endif
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <memory>
-#include <future>
 
 #include "config.h"
 
@@ -43,11 +42,9 @@ struct GlfwWindowDeleter {
 
 typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
-#define NUM_WORKERS 9
-
 class SampleApp : public LiteFX::App {
 public:
-	static String Name() noexcept { return "LiteFX Sample: Multithreading"; }
+	static String Name() noexcept { return "LiteFX Sample: Bindless Descriptors"; }
 	String name() const noexcept override { return Name(); }
 
 	static AppVersion Version() noexcept { return AppVersion(1, 0, 0, 0); }
@@ -84,11 +81,6 @@ private:
 	/// </summary>
 	IGraphicsDevice* m_device;
 
-	/// <summary>
-	/// Stores the array of worker threads.
-	/// </summary>
-	Array<std::future<void>> m_workers = Array<std::future<void>>(NUM_WORKERS);
-
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)
@@ -114,7 +106,6 @@ public:
 	virtual void resize(int width, int height) override;
 	void keyDown(int key, int scancode, int action, int mods);
 	void handleEvents();
-	void drawObject(const IRenderPass* renderPass, int i, int backBuffer, float time);
 	void drawFrame();
 	void updateWindowTitle();
 };

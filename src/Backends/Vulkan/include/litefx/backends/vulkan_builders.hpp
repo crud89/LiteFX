@@ -223,7 +223,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="space">The space the descriptor set is bound to.</param>
 		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
 		/// <param name="poolSize">The size of the descriptor pools used for descriptor set allocations.</param>
-		explicit VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 1024);
+		/// <param name="maxUnboundedArraySize">The maximum number of descriptors in an unbounded array.</param>
+		/// <seealso cref="VulkanDescriptorSetLayout" />
+		explicit VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 1024, const UInt32& maxUnboundedArraySize = 104857);
 		VulkanDescriptorSetLayoutBuilder(const VulkanDescriptorSetLayoutBuilder&) = delete;
 		VulkanDescriptorSetLayoutBuilder(VulkanDescriptorSetLayoutBuilder&&) = delete;
 		virtual ~VulkanDescriptorSetLayoutBuilder() noexcept;

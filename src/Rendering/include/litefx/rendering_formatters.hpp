@@ -231,13 +231,15 @@ struct LITEFX_RENDERING_API fmt::formatter<DescriptorType> : formatter<string_vi
 		switch (t) {
 		using enum DescriptorType;
 		case Sampler: name = "Sampler"; break;
-		case Uniform: name = "Uniform"; break;
-		case Storage: name = "Storage"; break;
-		case WritableStorage: name = "WritableStorage"; break;
+		case ConstantBuffer: name = "ContantBuffer"; break;
+		case StructuredBuffer: name = "StructuredBuffer"; break;
+		case RWStructuredBuffer: name = "RWStructuredBuffer"; break;
 		case Texture: name = "Texture"; break;
-		case WritableTexture: name = "WritableTexture"; break;
-		case Buffer:  name = "Buffer"; break;
-		case WritableBuffer:  name = "WritableBuffer"; break;
+		case RWTexture: name = "RWTexture"; break;
+		case Buffer: name = "Buffer"; break;
+		case RWBuffer: name = "RWBuffer"; break;
+		case ByteAddressBuffer: name = "ByteAddressBuffer"; break;
+		case RWByteAddressBuffer: name = "RWByteAddressBuffer"; break;
 		case InputAttachment: name = "Input Attachment"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
@@ -251,11 +253,12 @@ struct LITEFX_RENDERING_API fmt::formatter<BufferType> : formatter<string_view> 
 		string_view name = "Invalid";
 		switch (t) {
 		using enum BufferType;
-		case Index:      name = "Index";      break;
-		case Vertex:     name = "Vertex";     break;
+		case Index:      name = "Index";   break;
+		case Vertex:     name = "Vertex";  break;
 		case Uniform:    name = "Uniform"; break;
 		case Storage:    name = "Storage"; break;
-		case Other:      name = "Other"; break;
+		case Texel:      name = "Texel";   break;
+		case Other:      name = "Other";   break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}

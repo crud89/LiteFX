@@ -20,6 +20,7 @@ SET(DIRECTX12_BACKEND_HEADERS
 )
 
 SET(DIRECTX12_BACKEND_SOURCES
+    "src/debug.hpp"
     "src/buffer.h"
     "src/buffer.cpp"
     "src/image.h"

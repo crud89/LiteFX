@@ -222,7 +222,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="space">The space the descriptor set is bound to.</param>
 		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
 		/// <param name="poolSize">Ignored for DirectX 12, but required for compatibility.</param>
-		explicit DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 1024);
+		/// <param name="maxUnboundedArraySize">Ignored for DirectX 12, but required for compatibility.</param>
+		explicit DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& space = 0, const ShaderStage& stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, const UInt32& poolSize = 0, const UInt32& maxUnboundedArraySize = 0);
 		DirectX12DescriptorSetLayoutBuilder(const DirectX12DescriptorSetLayoutBuilder&) = delete;
 		DirectX12DescriptorSetLayoutBuilder(DirectX12DescriptorSetLayoutBuilder&&) = delete;
 		virtual ~DirectX12DescriptorSetLayoutBuilder() noexcept;

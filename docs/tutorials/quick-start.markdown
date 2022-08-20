@@ -294,10 +294,10 @@ For now, we will only define the descriptor sets and take a look at the `CameraB
 ```cxx
 	.layout(device->buildPipelineLayout()
 		.descriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
-			.withUniform(0, sizeof(CameraBuffer))
+			.withConstantBuffer(0, sizeof(CameraBuffer))
 			.add()
 		.descriptorSet(1, ShaderStage::Vertex)
-			.withUniform(0, sizeof(TransformBuffer))
+			.withConstantBuffer(0, sizeof(TransformBuffer))
 			.add())
 ```
 
@@ -484,8 +484,8 @@ Next, we create the two buffers that should store the camera data:
 ```cxx
 auto& cameraBindingLayout = m_pipeline->layout()->descriptorSet(0);
 auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
-m_cameraStagingBuffer = m_device->factory().createConstantBuffer(cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
-m_cameraBuffer = m_device->factory().createConstantBuffer(cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
+m_cameraStagingBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
+m_cameraBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
 ```
 
 First, we request a reference of the descriptor set layout (at space *0*), that contains the camera buffer descriptor layout (at binding point 0). We then create two constant buffers for and store them in a member variable, since we want to be able to update the camera buffer later (for example, if a resize-event occurs). The camera buffer is still static, since such events occur infrequently.
@@ -542,8 +542,8 @@ Next, we create three `Dynamic` buffers and map them to the descriptor set at sp
 ```cxx
 auto& transformBindingLayout = m_pipeline->layout()->descriptorSet(1);
 auto& transformBufferLayout = transformBindingLayout.descriptor(0);
-m_perFrameBindings = transformBindingLayout.allocate(3);
-m_transformBuffer = m_device->factory().createConstantBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
+m_perFrameBindings = transformBindingLayout.allocateMultiple(3);
+m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
 std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
 ```
 

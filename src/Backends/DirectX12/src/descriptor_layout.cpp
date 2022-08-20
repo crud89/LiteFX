@@ -24,12 +24,21 @@ public:
     {
         switch (m_descriptorType)
         {
-        case DescriptorType::Uniform:       m_bufferType = BufferType::Uniform; break;
-        case DescriptorType::WritableStorage:
-        case DescriptorType::Storage:       m_bufferType = BufferType::Storage; break;
-        case DescriptorType::WritableBuffer:
-        case DescriptorType::Buffer:        m_bufferType = BufferType::Texel; break;
-        default:                            m_bufferType = BufferType::Other; break;
+        case DescriptorType::ConstantBuffer:
+            m_bufferType = BufferType::Uniform;
+            break;
+        case DescriptorType::RWStructuredBuffer:
+        case DescriptorType::StructuredBuffer:
+        case DescriptorType::RWByteAddressBuffer:
+        case DescriptorType::ByteAddressBuffer:
+            m_bufferType = BufferType::Storage;
+            break;
+        case DescriptorType::RWBuffer:
+        case DescriptorType::Buffer:
+            m_bufferType = BufferType::Texel;
+            break;
+        default:
+            m_bufferType = BufferType::Other;
         }
     }
 

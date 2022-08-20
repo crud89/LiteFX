@@ -413,7 +413,7 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// A uniform or constant buffer is read-only. In GLSL, use the <c>uniform</c> keyword to access a uniform buffer. In HLSL, use the <c>ConstantBuffer</c> keyword.
         /// </remarks>
-        Uniform         = 0x00000001,
+        ConstantBuffer = 0x00000001,
 
         /// <summary>
         /// A shader storage buffer object in Vulkan. Maps to a structured buffer in DirectX.
@@ -425,7 +425,7 @@ namespace LiteFX::Rendering {
         /// 
         /// The difference between <see cref="Uniform" /> and storage buffers is, that storage buffers can have variable length. However, they are typically less efficient.
         /// </remarks>
-        Storage         = 0x00000002,
+        StructuredBuffer = 0x00000002,
 
         /// <summary>
         /// A writable shader storage object in Vulkan. Maps to a read/write structured buffer in DirectX.
@@ -433,7 +433,7 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>RWStructuredBuffer</c> keyword.
         /// </remarks>
-        WritableStorage = 0x00000012,
+        RWStructuredBuffer = 0x00000012,
 
         /// <summary>
         /// A read-only sampled image.
@@ -445,7 +445,7 @@ namespace LiteFX::Rendering {
         /// 
         /// Note, that textures are typically not be accessed directly, but instead are sampled using a <see cref="Sampler" />.
         /// </remarks>
-        Texture         = 0x00000003,
+        Texture = 0x00000003,
 
         /// <summary>
         /// A writable image.
@@ -453,12 +453,12 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// In GLSL, use the <c>uniform image</c> keywords to access the texture. In HLSL, use the <c>RWTexture</c> keywords.
         /// </remaks>
-        WritableTexture = 0x00000013,
+        RWTexture = 0x00000013,
         
         /// <summary>
         /// A sampler state of a texture or image.
         /// </summary>
-        Sampler         = 0x00000004,
+        Sampler = 0x00000004,
 
         /// <summary>
         /// The result of a render target from an earlier render pass. Maps to a <c>SubpassInput</c> in HLSL.
@@ -466,20 +466,36 @@ namespace LiteFX::Rendering {
         InputAttachment = 0x00000005,
 
         /// <summary>
-        /// Represents a read-only texel buffer.
+        /// Represents a read-only texel buffer (uniform texel buffer).
         /// </summary>
         /// <remarks>
-        /// Use the <c>uniform samplerBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>Buffer</c> keyword.
+        /// Use the <c>uniform imageBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>Buffer</c> keyword.
         /// </remarks>
-        Buffer          = 0x00000006,
+        Buffer = 0x00000006,
 
         /// <summary>
-        /// Represents a writable texel buffer.
+        /// Represents a writable texel buffer (storage texel buffer).
         /// </summary>
         /// <remarks>
         /// Use the <c>uniform imageBuffer</c> keyword in GLSL to access the buffer. In HLSL, use the <c>RWBuffer</c> keyword.
         /// </remarks>
-        WritableBuffer  = 0x00000016
+        RWBuffer = 0x00000016,
+
+        /// <summary>
+        /// Represents an unformatted buffer.
+        /// </summary>
+        /// <remarks>
+        /// In GLSL, use the <c>buffer</c> keyword to access byte address buffers. In HLSL, use the <c>ByteAddressBuffer</c> keyword.
+        /// </remarks>
+        ByteAddressBuffer = 0x00000007,
+
+        /// <summary>
+        /// Represents an unformatted writable buffer.
+        /// </summary>
+        /// <remarks>
+        /// In GLSL, use the <c>buffer</c> keyword to access byte address buffers. In HLSL, use the <c>RWByteAddressBuffer</c> keyword.
+        /// </remarks>
+        RWByteAddressBuffer = 0x00000017,
     };
 
     /// <summary>
@@ -500,21 +516,33 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Describes an uniform buffer object (Vulkan) or constant buffer view (DirectX).
         /// </summary>
+        /// <remarks>
+        /// Buffers of this type can be bound to `ConstantBuffer` descriptors.
+        /// </remarks>
         Uniform = 0x00000003,
 
         /// <summary>
         /// Describes a shader storage buffer object (Vulkan) or unordered access view (DirectX).
         /// </summary>
+        /// <remarks>
+        /// Buffers of this type can be bound to `StructuredBuffer`/`RWStructuredBuffer` or `ByteAddressBuffer`/`RWByteAddressBuffer` descriptors.
+        /// </remarks>
         Storage = 0x00000004,
 
         /// <summary>
         /// Describes a shader texel storage buffer object (Vulkan) or unordered access view (DirectX).
         /// </summary>
+        /// <remarks>
+        /// Buffers of this type can be bound to `Buffer`/`RWBuffer` descriptors.
+        /// </remarks>
         Texel = 0x00000005,
 
         /// <summary>
         /// Describes another type of buffer, such as samplers or images.
         /// </summary>
+        /// <remarks>
+        /// Buffers of this type must not be bound to any descriptor, but can be used as copy/transfer targets and sources.
+        /// </remarks>
         Other = 0x7FFFFFFF
     };
 
@@ -2563,6 +2591,24 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a the layout of a single descriptor within a <see cref="DescriptorSet" />.
     /// </summary>
+    /// <remarks>
+    /// A common metaphor for a descriptor to think of it as a "pointer for the GPU". Basically, a descriptor points to a buffer in a shader. A descriptor 
+    /// can have different types and sizes. The types a descriptor can have are described by the <see cref="DescriptorType" />.
+    /// 
+    /// If the descriptor is a sampler, it can either be a dynamic or static sampler. A dynamic sampler needs to be bound during runtime just like any other
+    /// descriptor by calling <see cref="IDescriptorSet::update" />. A static sampler is defined alongside the descriptor layout and is automatically set
+    /// when the pipeline that uses the descriptor layout gets bound. In this case, the descriptor must not be updated with another sampler. If a descriptor
+    /// layout describes a static sampler, the <see cref="IDescriptorLayout::staticSampler" /> returns a pointer to the static sampler state.
+    /// 
+    /// Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case,
+    /// <see cref="IDescriptorLayout::descriptors" /> returns the number of elements in the array. If it returns `-1` (or `0xFFFFFFFF`), the descriptor 
+    /// array is called `unbounded`. In this case, the number of descriptors in the array can be specified when allocating the descriptor set. Unbounded
+    /// descriptor arrays behave different to normal descriptor arrays in different ways. They are typically used for bindless descriptors. If a descriptor
+    /// represents an unbounded array, it must be the only descriptor in this descriptor set. Furthermore, unbounded arrays are not cached by the descriptor
+    /// set layout. Descriptors within unbounded arrays may be updated after binding them to a command buffer. However, this must be done with special care,
+    /// to prevent descriptors that are in use to be overwritten. For more information on how to manage unbounded arrays, refer to 
+    /// <see cref="IDescriptorSetLayout::allocate" />.
+    /// </remarks>
     /// <seealso cref="DescriptorSetLayout" />
     class LITEFX_RENDERING_API IDescriptorLayout : public IBufferLayout {
     public:
@@ -2576,9 +2622,15 @@ namespace LiteFX::Rendering {
         virtual const DescriptorType& descriptorType() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of descriptors in the descriptor array.
+        /// Returns the number of descriptors in the descriptor array, or `-1` if the array is unbounded.
         /// </summary>
-        /// <returns>The number of descriptors in the descriptor array.</returns>
+        /// <remarks>
+        /// If the number of descriptors is `-1` (or `0xFFFFFFFF`), the descriptor array is unbounded. In that case, the size of the array must be specified,
+        /// when allocating the descriptor set. This can be done by specifying the `descriptors` parameter when calling 
+        /// <see cref="IDescriptorSetLayout::allocate" />.
+        /// </remarks>
+        /// <returns>The number of descriptors in the descriptor array, or `-1` if the array is unbounded.</returns>
+        /// <seealso cref="IDescriptorLayout" />
         virtual const UInt32& descriptors() const noexcept = 0;
 
         /// <summary>
@@ -3130,21 +3182,21 @@ namespace LiteFX::Rendering {
         virtual UInt32 uniforms() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of shader storage buffer/unordered access view descriptors within the descriptor set.
+        /// Returns the number of structured and byte address buffer descriptors within the descriptor set.
         /// </summary>
-        /// <returns>The number of shader storage buffer/unordered access view descriptors.</returns>
+        /// <returns>The number of structured and byte address buffer descriptors.</returns>
         virtual UInt32 storages() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of image descriptors within the descriptor set.
+        /// Returns the number of image (i.e. texture) descriptors within the descriptor set.
         /// </summary>
-        /// <returns>The number of image descriptors.</returns>
+        /// <returns>The number of image (i.e. texture) descriptors.</returns>
         virtual UInt32 images() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of texel/structured buffer descriptors within the descriptor set.
+        /// Returns the number of texel buffer descriptors within the descriptor set.
         /// </summary>
-        /// <returns>The number of texel/structured buffer descriptors.</returns>
+        /// <returns>The number of texel buffer descriptors.</returns>
         virtual UInt32 buffers() const noexcept = 0;
 
         /// <summary>
@@ -3171,41 +3223,56 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
         /// </summary>
+        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
         /// <remarks>
         /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of
         /// created descriptor sets. It does this by never releasing them. Instead, when a <see cref="DescriptorSet" /> instance gets destroyed, it should call 
         /// <see cref="free" /> in order to mark itself (i.e. its handle) as not being used any longer.
         /// 
         /// Before allocating a new descriptor set from a pool (which may even result in the creation of a new pool, if the existing pools are full), the layout tries 
-        /// to hand out descriptor sets that marked as unused.
+        /// to hand out descriptor sets that marked as unused. Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are 
+        /// deleted.
         /// 
-        /// Descriptor sets are only deleted, if the whole layout instance and therefore the descriptor pools are deleted.
+        /// The above does not apply to unbounded descriptor arrays. A unbounded descriptor array is one, for which <see cref="IDescriptorLayout::descriptors" /> 
+        /// returns `-1` (or `0xFFFFFFFF`). They must be allocated by specifying the <paramref name="descriptors" /> parameter. This parameter defines the number of
+        /// descriptors to allocate in the array. 
+        /// 
+        /// Note that descriptor sets, that contain an unbounded descriptor array must only contain one single descriptor (the one that identifies this array). Such 
+        /// descriptor sets are never cached. Instead, they are released when calling <see cref="free" />. It is a good practice to cache such descriptor sets as 
+        /// global descriptor tables once and never release them. They provide more flexibility than regular descriptor arrays, since they may be updated, even after
+        /// they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
+        /// in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause
+        /// the allocation to fail, if the heap is full.
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
-        UniquePtr<IDescriptorSet> allocate() const noexcept {
-            return this->getDescriptorSet();
+        /// <seealso cref="IDescriptorLayout" />
+        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors = 0) const {
+            return this->getDescriptorSet(descriptors);
         }
 
         /// <summary>
         /// Allocates an array of descriptor sets.
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
         /// <returns>The array of descriptor set instances.</returns>
-        Array<UniquePtr<IDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept {
-            return this->getDescriptorSets(descriptorSets);
+        /// <seealso cref="allocate" />
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const {
+            return this->getDescriptorSets(descriptorSets, descriptors);
         }
 
         /// <summary>
         /// Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
         /// </summary>
+        /// <seealso cref="allocate" />
         void free(const IDescriptorSet& descriptorSet) const noexcept {
             this->releaseDescriptorSet(descriptorSet);
         }
 
     private:
         virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet() const noexcept = 0;
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets) const noexcept = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors) const = 0;
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept = 0;
     };
 

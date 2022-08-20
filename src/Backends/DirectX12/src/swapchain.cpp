@@ -15,11 +15,11 @@ private:
 	Size2d m_renderArea{ };
 	Format m_format{ Format::None };
 	UInt32 m_buffers{ };
-	std::atomic_uint32_t m_currentImage{ };
+	UInt32 m_currentImage{ };
 	Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
+	Array<UInt64> m_presentFences{ };
 	bool m_supportsVariableRefreshRates{ false };
 	const DirectX12Device& m_device;
-	UInt32 m_lastPresentFence = 0;
 
 public:
 	DirectX12SwapChainImpl(DirectX12SwapChain* parent, const DirectX12Device& device) :
@@ -73,6 +73,7 @@ public:
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(swapChainDesc.BufferCount);
+		m_presentFences.resize(swapChainDesc.BufferCount);
 		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, &swapChain, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
@@ -96,6 +97,7 @@ public:
 
 		// Release all back buffers.
 		m_presentImages.clear();
+		m_presentFences.clear();	// No need to wait on them, since we are not going to hand out those back-buffers again anyway.
 
 		// Store a backend reference.
 		const auto& backend = m_device.backend();
@@ -106,6 +108,7 @@ public:
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
+		m_presentFences.resize(buffers);
 		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
@@ -115,14 +118,14 @@ public:
 		m_format = format;
 		m_renderArea = frameBufferSize;
 		m_buffers = buffers;
+		m_currentImage = 0;
 	}
 
 	UInt32 swapBackBuffer()
 	{
-		// TODO: We don't want to wait for the last fence here, but for the last fence of a certain frame buffer. If the frame buffer is not currently 
-		// in use, we don't need to wait for the fence of another frame buffer.
-		m_device.graphicsQueue().waitFor(m_lastPresentFence);
-		return m_parent->handle()->GetCurrentBackBufferIndex();
+		m_currentImage = m_parent->handle()->GetCurrentBackBufferIndex();
+		m_device.graphicsQueue().waitFor(m_presentFences[m_currentImage]);
+		return m_currentImage;
 	}
 
 private:
@@ -175,7 +178,10 @@ Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
 {
-	m_impl->m_lastPresentFence = frameBuffer.lastFence();
+	// NOTE: Present is similar to issuing a command on the graphics queue, so there is no need to wait for the fence here. However,
+	//       we must wait for the fence before handing out the back-buffer to a new frame again, so we queue up the fence to be able
+	//       to wait for it later.
+	m_impl->m_presentFences[m_impl->m_currentImage] = frameBuffer.lastFence();
 	raiseIfFailed<RuntimeException>(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 

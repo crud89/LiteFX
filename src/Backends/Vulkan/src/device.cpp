@@ -93,6 +93,9 @@ public:
 		// This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
 		m_families.clear();
 
+		// Release the swap chain.
+		m_swapChain = nullptr;
+
 		// Destroy the surface.
 		m_surface = nullptr;
 	}
@@ -200,13 +203,35 @@ public:
 				return queueCreateInfo;
 			}) | ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
-		// Define the device features.
+		// Allow geometry and tessellation shader stages.
 		VkPhysicalDeviceFeatures deviceFeatures = {
 			.geometryShader = true,
 			.tessellationShader = true,
 		};
+
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+			.descriptorIndexing = true,
+			.shaderInputAttachmentArrayDynamicIndexing = true,
+			.shaderUniformTexelBufferArrayDynamicIndexing = true,
+			.shaderStorageTexelBufferArrayDynamicIndexing = true,
+			.shaderUniformBufferArrayNonUniformIndexing = true,
+			.shaderSampledImageArrayNonUniformIndexing = true,
+			.shaderStorageBufferArrayNonUniformIndexing = true,
+			.shaderStorageImageArrayNonUniformIndexing = true,
+			.shaderInputAttachmentArrayNonUniformIndexing = true,
+			.shaderUniformTexelBufferArrayNonUniformIndexing = true,
+			.shaderStorageTexelBufferArrayNonUniformIndexing = true,
+			//.descriptorBindingUniformBufferUpdateAfterBind = true,	// Causes problems on some NVidia cards.
+			.descriptorBindingSampledImageUpdateAfterBind = true,
+			.descriptorBindingStorageImageUpdateAfterBind = true,
+			.descriptorBindingStorageBufferUpdateAfterBind = true,
+			.descriptorBindingUniformTexelBufferUpdateAfterBind = true,
+			.descriptorBindingStorageTexelBufferUpdateAfterBind = true,
+			.descriptorBindingUpdateUnusedWhilePending = true,
+			.descriptorBindingPartiallyBound = true,
+			.descriptorBindingVariableDescriptorCount = true,
+			.runtimeDescriptorArray = true,
 			.timelineSemaphore = true
 		};
 

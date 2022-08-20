@@ -181,7 +181,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto& transformBufferLayout = transformBindingLayout.descriptor(0);
-    auto transformBindings = transformBindingLayout.allocate(3);
+    auto transformBindings = transformBindingLayout.allocateMultiple(3);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
     std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++); });
     
@@ -361,7 +361,7 @@ void SampleApp::updateWindowTitle()
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << (1000.0f / frameTime) << " FPS";
+    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS";
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();

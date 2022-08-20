@@ -58,65 +58,52 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
     descriptorWrite.descriptorCount = 1;
 
     auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
+    Array<VkDescriptorBufferInfo> bufferInfos;
 
     switch (descriptorLayout.descriptorType())
     {
-    case DescriptorType::Uniform:
+    case DescriptorType::ConstantBuffer:
+    {
         descriptorWrite.descriptorCount = elements;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        break;
-    case DescriptorType::Storage:
-    case DescriptorType::WritableStorage:
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        break;
-    case DescriptorType::Buffer:
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-        break;
-    case DescriptorType::WritableBuffer:
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-        break;
-    default: [[unlikely]]
-        throw InvalidArgumentException("Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", binding);
-    }
 
-    // Remove the buffer view, if there is one bound to the current descriptor.
-    if (m_impl->m_bufferViews.contains(binding))
-    {
-        ::vkDestroyBufferView(m_impl->m_layout.device().handle(), m_impl->m_bufferViews[binding], nullptr);
-        m_impl->m_bufferViews.erase(binding);
-    }
-
-    // Create a buffer view for (writable) buffers.
-    Array<VkDescriptorBufferInfo> bufferInfos;
-    
-    if (descriptorLayout.descriptorType() == DescriptorType::Uniform)
-    {
         bufferInfos.resize(elements);
         std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
-            VkDescriptorBufferInfo bufferInfo{ };
-
-            bufferInfo.buffer = buffer.handle();
-            bufferInfo.range = buffer.elementSize();
-            bufferInfo.offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++);
-
-            return bufferInfo;
+            return VkDescriptorBufferInfo {
+                .buffer = buffer.handle(),
+                .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++),
+                .range = buffer.elementSize()
+            };
         });
 
         descriptorWrite.pBufferInfo = bufferInfos.data();
+        break;
     }
-    else if (descriptorLayout.descriptorType() == DescriptorType::Storage || descriptorLayout.descriptorType() == DescriptorType::WritableStorage)
+    case DescriptorType::StructuredBuffer:
+    case DescriptorType::RWStructuredBuffer:
+    case DescriptorType::ByteAddressBuffer:
+    case DescriptorType::RWByteAddressBuffer:
     {
-        bufferInfos.push_back(VkDescriptorBufferInfo {
-            .buffer = buffer.handle(),
-            .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement),
-            .range = buffer.alignedElementSize() * static_cast<size_t>(elements)
+        descriptorWrite.descriptorCount = elements;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+        bufferInfos.resize(elements);
+        std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
+            return VkDescriptorBufferInfo {
+                .buffer = buffer.handle(),
+                .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++),
+                .range = buffer.elementSize()
+            };
         });
 
         descriptorWrite.pBufferInfo = bufferInfos.data();
+        break;
     }
-    else if (descriptorLayout.descriptorType() == DescriptorType::Buffer || descriptorLayout.descriptorType() == DescriptorType::WritableBuffer)
+    case DescriptorType::Buffer:
     {
-        VkBufferViewCreateInfo bufferViewDesc{
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+
+        VkBufferViewCreateInfo bufferViewDesc {
             .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
@@ -129,7 +116,40 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
         VkBufferView bufferView;
         raiseIfFailed<RuntimeException>(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
         m_impl->m_bufferViews[binding] = bufferView;
+
         descriptorWrite.pTexelBufferView = &bufferView;
+        break;
+    }
+    case DescriptorType::RWBuffer:
+    {
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+
+        VkBufferViewCreateInfo bufferViewDesc {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .buffer = buffer.handle(),
+            .format = VK_FORMAT_UNDEFINED,
+            .offset = buffer.alignedElementSize() * bufferElement,     // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
+            .range = buffer.alignedElementSize() * elements
+        };
+
+        VkBufferView bufferView;
+        raiseIfFailed<RuntimeException>(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
+        m_impl->m_bufferViews[binding] = bufferView;
+
+        descriptorWrite.pTexelBufferView = &bufferView;
+        break;
+    }
+    default: [[unlikely]]
+        throw InvalidArgumentException("Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", binding);
+    }
+
+    // Remove the buffer view, if there is one bound to the current descriptor.
+    if (m_impl->m_bufferViews.contains(binding))
+    {
+        ::vkDestroyBufferView(m_impl->m_layout.device().handle(), m_impl->m_bufferViews[binding], nullptr);
+        m_impl->m_bufferViews.erase(binding);
     }
 
     // Update the descriptor set.
@@ -155,7 +175,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanImage& text
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         break;
-    case DescriptorType::WritableTexture:
+    case DescriptorType::RWTexture:
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
         break;

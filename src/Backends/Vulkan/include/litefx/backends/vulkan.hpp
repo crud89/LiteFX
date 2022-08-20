@@ -393,7 +393,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="type">The type of the descriptor.</param>
 		/// <param name="binding">The binding point for the descriptor.</param>
 		/// <param name="elementSize">The size of the descriptor.</param>
-		/// <param name="elementSize">The number of descriptors in the descriptor array.</param>
+		/// <param name="descriptors">The number of descriptors in the descriptor array. If set to `-1`, the descriptor will be unbounded.</param>
+		/// <seealso cref="descriptors" />
 		explicit VulkanDescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
 
 		/// <summary>
@@ -443,12 +444,18 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a Vulkan descriptor set layout.
 		/// </summary>
+		/// <remarks>
+		/// If the descriptor set contains an unbounded array, it still is not truly unbounded. Instead, only maximum number of descriptors can be allocated from the descriptor set. This
+		/// number is defined by the device limits and depends on the descriptor type. If you need more descriptors in one array, increase the <paramref name="maxUnboundedArraySize" />
+		/// parameter. Keep in mind that you may be only able to use less or smaller unbounded descriptor arrays in other descriptor sets as a result.
+		/// </remarks>
 		/// <param name="device">The parent device, the pipeline layout has been created from.</param>
 		/// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
 		/// <param name="space">The space or set id of the descriptor set.</param>
 		/// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
 		/// <param name="poolSize">The size of a descriptor pool.</param>
-		explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize = 1024);
+		/// <param name="maxUnboundedArraySize">The maximum number of descriptors in an unbounded array.</param>
+		explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize = 1024, const UInt32& maxUnboundedArraySize = 104857);
 		VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) = delete;
 		VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
 		virtual ~VulkanDescriptorSetLayout() noexcept;
@@ -503,10 +510,10 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanDescriptorSet> allocate() const noexcept override;
+		virtual UniquePtr<VulkanDescriptorSet> allocate(const UInt32& descriptors = 0) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<VulkanDescriptorSet>> allocate(const UInt32& descriptorSets) const noexcept override;
+		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const override;
 
 		/// <inheritdoc />
 		virtual void free(const VulkanDescriptorSet& descriptorSet) const noexcept override;
