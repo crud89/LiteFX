@@ -93,7 +93,7 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.profile }}-debug'
-          buildPreset: '{{ matrix.profile }}-debug'
+          buildPreset: '${{ matrix.profile }}-debug'
           
       - name: Upload build artifacts (Debug)
         uses: actions/upload-artifact@v2
