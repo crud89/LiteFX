@@ -72,7 +72,7 @@ SET(DXIL_DEFAULT_SUFFIX ".dxi" CACHE STRING "Default file extension for DXIL sha
 SET(SPIRV_DEFAULT_SUFFIX ".spv" CACHE STRING "Default file extension for SPIR-V shaders.")
 
 
-FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type)
+FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type compile_options)
   GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
 
   SET(SHADER_SOURCES ${shader_source})
@@ -111,7 +111,8 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
     ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
     
-    SET(compiler_options "")
+    SET(compiler_options ${compile_options})
+    SEPARATE_ARGUMENTS(compiler_options)
 
     IF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
       LIST(APPEND compiler_options -finvert-y)
@@ -162,8 +163,9 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     ELSE()
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
     ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-
-    SET(compiler_options "")
+    
+    SET(compiler_options ${compile_options})
+    SEPARATE_ARGUMENTS(compiler_options)
     
     IF(${compile_as} STREQUAL "SPIRV")
       LIST(APPEND compiler_options -D SPIRV)
@@ -171,7 +173,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       IF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
         LIST(APPEND compiler_options -fvk-invert-y)
       ENDIF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
-
+      
       ADD_CUSTOM_TARGET(${target_name} 
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
         COMMENT "dxc: compiling hlsl shader '${shader_source}' (profile: ${SHADER_PROFILE}) to SPIR-V..."
@@ -198,7 +200,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
         COMMENT "dxc: compiling hlsl shader '${shader_source}' (profile: ${SHADER_PROFILE}) to DXIL..."
         DEPENDS ${SHADER_SOURCES}
       )
-
+      
       ADD_CUSTOM_COMMAND(TARGET ${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ${BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source}
@@ -217,10 +219,10 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
   ELSE()
     MESSAGE(SEND_ERROR "Unrecognized compiler: ${compile_with}. Only DXC and GLSLC are allowed.")
   ENDIF(${compile_with} STREQUAL "GLSLC")
-ENDFUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type)
+ENDFUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as compile_with shader_type compile_options)
 
 
-FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type)
+FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type compile_options)
   GET_FILENAME_COMPONENT(out_name ${shader_source} NAME_WE)
 
   SET(SHADER_SOURCES ${shader_source})
@@ -258,14 +260,14 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
     ELSE()
       SET(OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADER_DEFAULT_SUBDIR})
     ENDIF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-
-    SET(compiler_options "")
+    
+    SET(compiler_options ${compile_options})
+    SEPARATE_ARGUMENTS(compiler_options)
 
     IF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
       LIST(APPEND compiler_options -finvert-y)
     ENDIF(${shader_type} STREQUAL "VERTEX" OR ${shader_type} STREQUAL "GEOMETRY" OR ${shader_type} STREQUAL "DOMAIN" OR ${shader_type} STREQUAL "TESSELATION_EVALUATION")
-
-
+    
     # TODO: Check if we can use a generator expression to build the output directory and file names, so it is possible to set the target properties to control the result file name.
     ADD_CUSTOM_TARGET(${target_name} 
       COMMENT "glslc: compiling glsl shader '${shader_source}'..."
@@ -286,19 +288,23 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
       RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR}
     )
   ENDIF(NOT ${compile_with} STREQUAL "GLSLC")
-ENDFUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_to shader_type)
+ENDFUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with shader_type compile_options)
 
 
 FUNCTION(ADD_SHADER_MODULE module_name)
-  CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY" "INCLUDES" ${ARGN})
-  
+  CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY;COMPILE_OPTIONS" "INCLUDES" ${ARGN})
+
+  IF(NOT SHADER_COMPILE_OPTIONS)
+    SET(SHADER_COMPILE_OPTIONS " ")  # This must be set to some valie, since all variable arguments are reserved for shader includes. A whitespace does not hurt.
+  ENDIF(NOT SHADER_COMPILE_OPTIONS)
+
   # TODO: There's also the shader type ms (mesh shader) and as (amplification shader; used as a second ms stage) since shader model 6.5.
   #       see: https://microsoft.github.io/DirectX-Specs/d3d/HLSL_ShaderModel6_5.html
 
   IF(${SHADER_LANGUAGE} STREQUAL "GLSL")
-    TARGET_GLSL_SHADER(${module_name} ${SHADER_SOURCE} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_INCLUDES})
+    TARGET_GLSL_SHADER(${module_name} ${SHADER_SOURCE} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
   ELSEIF(${SHADER_LANGUAGE} STREQUAL "HLSL")
-    TARGET_HLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_SHADER_MODEL} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_INCLUDES})
+    TARGET_HLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_SHADER_MODEL} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
   ELSE()
     MESSAGE(SEND_ERROR "Unsupported shader language: ${SHADER_LANGUAGE}.")
   ENDIF(${SHADER_LANGUAGE} STREQUAL "GLSL")
