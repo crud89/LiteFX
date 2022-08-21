@@ -248,8 +248,8 @@ private:
 
 	public:
 		ComPtr<ID3D12Resource> image = nullptr;
-		VkDevice device = nullptr;
-		VkDeviceMemory memory = nullptr;
+		VkDevice device = VK_NULL_HANDLE;
+		VkDeviceMemory memory = VK_NULL_HANDLE;
 		HANDLE handle = nullptr;
 	};
 
@@ -592,7 +592,7 @@ public:
 			.pSignalSemaphores = &this->currentSemaphore()
 		};
 
-		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, nullptr), "Unable to submit the present queue signal.");
+		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
 
 		// Return the new back buffer index.
 		return m_currentImage;
@@ -611,7 +611,7 @@ public:
 		};
 
 		// Wait for the frame buffer semaphore, as well as for the rendering fence to complete.
-		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, nullptr), "Unable to submit the present queue signal.");
+		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
 
 		// Present needs to happen on UI thread, so we cannot do this asynchronously.
 		m_device.graphicsQueue().waitFor(frameBuffer.lastFence());
