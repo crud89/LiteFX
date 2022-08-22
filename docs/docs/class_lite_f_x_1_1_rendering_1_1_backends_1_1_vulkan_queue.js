@@ -10,6 +10,7 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue =
     [ "createCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a910333138e1b2bc7183e14a793b2ae28", null ],
     [ "createCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a42d6961404d3cb78308a4f16f161fe92", null ],
     [ "currentFence", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ad308995a0783ad3639e84505fb5304ba", null ],
+    [ "device", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#aa602caaf82cfd2311c0bb0ad99f0dc09", null ],
     [ "familyId", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a8dd4d1f7add080086c786dbb4ca81ad0", null ],
     [ "isBound", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#ad17264b41ef5672143fe673c63000b93", null ],
     [ "priority", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_queue.html#a94344091ff9f60576f6d7eef059f1f3a", null ],

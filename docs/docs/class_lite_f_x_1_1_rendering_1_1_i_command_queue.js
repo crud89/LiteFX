@@ -1,15 +1,14 @@
 var class_lite_f_x_1_1_rendering_1_1_i_command_queue =
 [
-    [ "command_buffer_type", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#aaa5aedea7a89994c7c4db7025406d66e", null ],
-    [ "~ICommandQueue", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a5a8156e016a24f6c5505a7a43e4f8b3a", null ],
-    [ "bind", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#afc8e45ebf000946858082349abbb8c6b", null ],
-    [ "createCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#afa9c3ebe5c551c04cb0891c359be7d70", null ],
-    [ "currentFence", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ae34c25a906f202b1e86c65e4df447d7f", null ],
-    [ "isBound", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a5a5394da7aa1543bca98f04a94a22fae", null ],
-    [ "priority", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#abb7f34585f26689e078074bdb2487b7a", null ],
-    [ "release", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a6b5acb1af675457537d69a9c8d08c81e", null ],
-    [ "submit", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a2c843f4b558ac3a401e1ab73e7a4be61", null ],
-    [ "submit", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a398903b1e09a24cc7dc6af79b2f75a97", null ],
-    [ "type", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a1f7ff565dd9164549929d3e07e85cfdd", null ],
-    [ "waitFor", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#aff1a27a568ec9ad4cab1fc6d08b22610", null ]
+    [ "~ICommandQueue", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a228f31df8ad0db4db6b65701d4a84e5b", null ],
+    [ "bind", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#aa099244ddcda9aa494a799b767e2529a", null ],
+    [ "createCommandBuffer", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#aa11ac5ccd84960c4cbbab4bd32462d7f", null ],
+    [ "currentFence", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a46159f8ced178e93698477af42cf4412", null ],
+    [ "isBound", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ac3a4be828c39793f037fb1be01ca39af", null ],
+    [ "priority", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ad00f147b21343f2532c06b7493e935fc", null ],
+    [ "release", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a39e871c21e6bc422f05970273885df69", null ],
+    [ "submit", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a7421912f9f43cbfa1a691ac3935229b2", null ],
+    [ "submit", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a5108953a9b07a1e6023bd5f18ec4b70a", null ],
+    [ "type", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#a9fc1daa3abf269a8b6a3c1b9daf08314", null ],
+    [ "waitFor", "class_lite_f_x_1_1_rendering_1_1_i_command_queue.html#ae3f0a32e6c0ae0fabead1dcccae5456b", null ]
 ];

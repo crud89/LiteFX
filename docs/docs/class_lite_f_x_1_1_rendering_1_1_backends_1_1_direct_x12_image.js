@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image =
 [
     [ "DirectX12ImageImpl", "class_direct_x12_image_1_1_direct_x12_image_impl.html", "class_direct_x12_image_1_1_direct_x12_image_impl" ],
-    [ "DirectX12Image", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a510eb0e7e92d588bd7bd3899492cd6e0", null ],
+    [ "DirectX12Image", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a4d126cb196dbda6e577521348f79ee44", null ],
     [ "DirectX12Image", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a32affd55c00fb65a7c41f1238601d062", null ],
     [ "DirectX12Image", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#a156b6a98c27284e751fdfac7529c6249", null ],
     [ "~DirectX12Image", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_image.html#ac4ec92872ec68f3d73d643582e0d42f7", null ],

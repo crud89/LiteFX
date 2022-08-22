@@ -8,6 +8,7 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain =
     [ "buffers", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a1fbd2639c1b92e35c9cbb43d5d8cfee5", null ],
     [ "getSurfaceFormats", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a2129fe8303d1ff36745f90d0192ff620", null ],
     [ "images", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a572c7e0d0f08d981932634dad0cee36f", null ],
+    [ "present", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a7d7592efa16fb0c8a8a3e392bd344cb9", null ],
     [ "renderArea", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a25057540983ff692357f5a29d89bec4a", null ],
     [ "reset", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a40df81cabc4fe9c1e6face051cec2fb4", null ],
     [ "supportsVariableRefreshRate", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_swap_chain.html#a4fe36dbaa01d83376031a93ea6daaa25", null ],

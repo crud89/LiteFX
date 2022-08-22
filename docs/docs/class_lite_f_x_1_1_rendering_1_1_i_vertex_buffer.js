@@ -1,6 +1,5 @@
 var class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer =
 [
-    [ "vertex_buffer_layout_type", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a13d36bda6217cd387b093b595920fba6", null ],
-    [ "~IVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a76837c1100479851d187ffca44e5aa3e", null ],
-    [ "layout", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a63c3331bfefd4a46dba5c0fe550e12c3", null ]
+    [ "~IVertexBuffer", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a8c80f0440d24ff9d69d35ea4abfa6f5e", null ],
+    [ "layout", "class_lite_f_x_1_1_rendering_1_1_i_vertex_buffer.html#a0a04a52e5a8501b46dc92cc7fd40fe23", null ]
 ];

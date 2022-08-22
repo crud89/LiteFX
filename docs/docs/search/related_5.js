@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['makepimpl_0',['makePimpl',['../class_lite_f_x_1_1_pimpl_ptr.html#a5a4343922e633d2e2078e7ef44a087a8',1,'LiteFX::PimplPtr']]]
+  ['log_0',['Log',['../class_log_1_1_log_impl.html#acd1b2a0733103b7bbeb76b467ea85446',1,'Log::LogImpl']]],
+  ['logger_1',['Logger',['../class_lite_f_x_1_1_logging_1_1_i_sink.html#aff02b76416d2846736b7ecd798921a0a',1,'LiteFX::Logging::ISink']]]
 ];

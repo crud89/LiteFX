@@ -40,6 +40,7 @@ var namespace_lite_f_x_1_1_math =
     ] ],
     [ "Rect", "class_lite_f_x_1_1_math_1_1_rect.html", "class_lite_f_x_1_1_math_1_1_rect" ],
     [ "RectF", "class_lite_f_x_1_1_math_1_1_rect_f.html", "class_lite_f_x_1_1_math_1_1_rect_f" ],
+    [ "RectI", "class_lite_f_x_1_1_math_1_1_rect_i.html", "class_lite_f_x_1_1_math_1_1_rect_i" ],
     [ "Size2d", "class_lite_f_x_1_1_math_1_1_size2d.html", "class_lite_f_x_1_1_math_1_1_size2d" ],
     [ "Size3d", "class_lite_f_x_1_1_math_1_1_size3d.html", "class_lite_f_x_1_1_math_1_1_size3d" ],
     [ "Size4d", "class_lite_f_x_1_1_math_1_1_size4d.html", "class_lite_f_x_1_1_math_1_1_size4d" ],

@@ -18,7 +18,7 @@ var namespace_lite_f_x =
     [ "PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html", "class_lite_f_x_1_1_pimpl_ptr" ],
     [ "Resource", "class_lite_f_x_1_1_resource.html", "class_lite_f_x_1_1_resource" ],
     [ "Array", "namespace_lite_f_x.html#a44a0ba2aca32b92906c89ef4df069dbe", null ],
-    [ "Dictionary", "namespace_lite_f_x.html#a2a58aafe7d0cd3789b76c2a54cb90039", null ],
+    [ "Dictionary", "namespace_lite_f_x.html#abbdfcadb6d19d31a18d6c3ad3888a0db", null ],
     [ "Exception", "namespace_lite_f_x.html#a0dde517531e4377f2f9e79477114c3f5", null ],
     [ "Handle", "namespace_lite_f_x.html#a7edc73fc055d8c77a030bfa34bb60e27", null ],
     [ "Optional", "namespace_lite_f_x.html#ac6089b6fa025767daca688358f020daa", null ],
@@ -26,11 +26,13 @@ var namespace_lite_f_x =
     [ "SharedPtr", "namespace_lite_f_x.html#aa52ad23bc54bbe17777ad27849e37bb1", null ],
     [ "Span", "namespace_lite_f_x.html#a85a38f9f70328977942a7105fe170364", null ],
     [ "String", "namespace_lite_f_x.html#a011c7594818b9883306e7b5465a4a602", null ],
+    [ "StringView", "namespace_lite_f_x.html#ac48550c817dfd5727b2cda668a5a469d", null ],
     [ "Tuple", "namespace_lite_f_x.html#acd7ae68efb21a0f34984756062e5e93f", null ],
     [ "UniquePtr", "namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4", null ],
     [ "Variant", "namespace_lite_f_x.html#ac099dd887095b689102749041cbe8403", null ],
     [ "WeakPtr", "namespace_lite_f_x.html#a84bce93d3c2238937e451ac712f4dc63", null ],
     [ "WString", "namespace_lite_f_x.html#a9e25a15de5d170fec677c95788835020", null ],
+    [ "WStringView", "namespace_lite_f_x.html#a81496d832619c7f4e2d5b08e583c541d", null ],
     [ "DEFINE_EXCEPTION", "namespace_lite_f_x.html#a191de74eda9144a92c3aa20b3cf73077", null ],
     [ "DEFINE_EXCEPTION", "namespace_lite_f_x.html#acb943d281a5804dc87253e735a2f7c1b", null ],
     [ "DEFINE_EXCEPTION", "namespace_lite_f_x.html#a33f5e486f562f1f244824f66231bb031", null ],
@@ -42,6 +44,6 @@ var namespace_lite_f_x =
     [ "makeShared", "namespace_lite_f_x.html#aa5882db0959053166b0b1e98834c5eda", null ],
     [ "makeUnique", "namespace_lite_f_x.html#a240172a23832ed83af09e9afba46d512", null ],
     [ "makeUnique", "namespace_lite_f_x.html#a284fd9b0bfaca67072209f5562b31123", null ],
-    [ "Narrow", "namespace_lite_f_x.html#ae8e2d2164f6ec38c33ea1e8fe0ed7491", null ],
-    [ "Widen", "namespace_lite_f_x.html#adbec9ea925881ebc75552228cf75ebba", null ]
+    [ "Narrow", "namespace_lite_f_x.html#a1902d1bd024d902bc3997317bcf9e98f", null ],
+    [ "Widen", "namespace_lite_f_x.html#a36f82b645889ef7f15bff0b2a5c875a1", null ]
 ];

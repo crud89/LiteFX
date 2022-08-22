@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer =
 [
     [ "DirectX12BufferImpl", "class_direct_x12_buffer_1_1_direct_x12_buffer_impl.html", "class_direct_x12_buffer_1_1_direct_x12_buffer_impl" ],
-    [ "DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#aee91c1d87c595d83313f48cc5af44ef2", null ],
+    [ "DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a8d8867e8c6290552b87a77e06cffe072", null ],
     [ "DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#a9696396c7ea03ef923564effaf2bf053", null ],
     [ "DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#aa9578c1528a64cf52387ee24c540d345", null ],
     [ "~DirectX12Buffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_buffer.html#ac29672e59cf2f07515736c386ba0135f", null ],

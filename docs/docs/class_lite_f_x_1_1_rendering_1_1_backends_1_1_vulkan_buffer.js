@@ -1,7 +1,7 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer =
 [
     [ "VulkanBufferImpl", "class_vulkan_buffer_1_1_vulkan_buffer_impl.html", "class_vulkan_buffer_1_1_vulkan_buffer_impl" ],
-    [ "VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#ac1197dcfa8be6984d4310f31273191e5", null ],
+    [ "VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a1e5b0a79796082ba1008cecb7df73b30", null ],
     [ "VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#afe5945d5b1397e0a8e8c959d30d07316", null ],
     [ "VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a9b833e54ec69d5389aa1ee11b62f2dcb", null ],
     [ "~VulkanBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_buffer.html#a44ab62ef3847ffb5981aaa5f30d997e6", null ],

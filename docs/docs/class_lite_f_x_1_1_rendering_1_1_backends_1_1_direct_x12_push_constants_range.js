@@ -11,5 +11,6 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_rang
     [ "rootParameterIndex", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html#af89d25b2611824b75c4254b1de63181d", null ],
     [ "size", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html#a4fb4e7b15d9fd3835b6e5a600be562f2", null ],
     [ "space", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html#abef782f216bee62d57dd9421c6c6cbfe", null ],
-    [ "stage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html#aa52c3b0d76354bc6e1ebd30908dde823", null ]
+    [ "stage", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html#aa52c3b0d76354bc6e1ebd30908dde823", null ],
+    [ "DirectX12PipelineLayout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_push_constants_range.html#a18721112542d4abdfc086d97825873fa", null ]
 ];

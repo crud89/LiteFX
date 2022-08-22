@@ -1,12 +1,12 @@
 var class_lite_f_x_1_1_rendering_1_1_i_swap_chain =
 [
-    [ "image_interface_type", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a489dd640dbd2c80bc217a2924f91fcf0", null ],
-    [ "~ISwapChain", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a219f7304f35bf3fe4b22e06df375c501", null ],
-    [ "buffers", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#aff099cf32e9d303d2d0107c0145b6035", null ],
-    [ "getSurfaceFormats", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a93c3e7598956b355afe4cb8c9d133bd3", null ],
-    [ "images", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a632f4843b31d2e70466460fcfd78161c", null ],
-    [ "renderArea", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a60ee2ebcacbef38250729b4f36f0028e", null ],
-    [ "reset", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a4ba336975b3e3006345577bae3f5a90a", null ],
-    [ "surfaceFormat", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#af2806d9546b07882f9464e3421244c9d", null ],
-    [ "swapBackBuffer", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#aa2e7e67539fbef599144bf017b68f3ab", null ]
+    [ "~ISwapChain", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#aefe11fa113356d3bfd34e4fafe3a161f", null ],
+    [ "buffers", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a292d19082bca85d85d4f57b623af411b", null ],
+    [ "getSurfaceFormats", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#ad6e39a6e2fa76d90df913c034267974b", null ],
+    [ "images", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a8e6a8ab1657d625cede42a555756216a", null ],
+    [ "present", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a6971d80a2ef986bdbe756ae693294e93", null ],
+    [ "renderArea", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#ae1f109d6c3d2d08e5c26d5fc43a125c2", null ],
+    [ "reset", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a36807477aaac3c2c6c917d2e7348ed4a", null ],
+    [ "surfaceFormat", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a675612769b6a0fc2a7d9c06eb681087d", null ],
+    [ "swapBackBuffer", "class_lite_f_x_1_1_rendering_1_1_i_swap_chain.html#a362a8c6c7482ba266a2e1ee3bf42b413", null ]
 ];

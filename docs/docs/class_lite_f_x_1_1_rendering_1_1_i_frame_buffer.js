@@ -1,14 +1,13 @@
 var class_lite_f_x_1_1_rendering_1_1_i_frame_buffer =
 [
-    [ "command_buffer_type", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ad7fa9041195cce896ce67e1f3df427f4", null ],
-    [ "~IFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a79553cafbe9ed2deac4d207f442da11e", null ],
-    [ "bufferIndex", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a21ebb719c44a2317ca93b3267ae21e06", null ],
-    [ "commandBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#afc739666d2e052e22fde0d6b020d4916", null ],
-    [ "commandBuffers", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a3974e11c1919953d8e6a6603b1610cb5", null ],
-    [ "getHeight", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ae7fbebb54bd9e0091a3d7b9be8553f04", null ],
-    [ "getWidth", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ac882426d23febaeaa7bdabb5bd63ef69", null ],
-    [ "image", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a67dc8b9db9d65a5a3a2db22946b2f89d", null ],
-    [ "images", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a02e1e1aa97b46af605bfae4024e71699", null ],
-    [ "resize", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a7fa83140cd82f67f8ec0427c25e18586", null ],
-    [ "size", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a381ec620ca7ddbc1b8b9618976ccf995", null ]
+    [ "~IFrameBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#abd800ccaaace43bddf4ec2d293d3734d", null ],
+    [ "bufferIndex", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a54151d3c1d530e84d4bde372d67faf22", null ],
+    [ "commandBuffer", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a5629cf829f2c294b53a862c177e1a5f7", null ],
+    [ "commandBuffers", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ab812f8511f925170d1587018ae1be789", null ],
+    [ "getHeight", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#ad9fad855ef6a57ce1d0685467ac4f130", null ],
+    [ "getWidth", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a84b9fed4d09d8432a52d7b7f7c073d98", null ],
+    [ "image", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a674fe30e4f032d6135a89b7d1e4d7fe0", null ],
+    [ "images", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a878ffe5e7ec1b1c6cb0de4d2fdd32c0c", null ],
+    [ "resize", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a2a66c16c36ff580bc3d7e0c15f38c66f", null ],
+    [ "size", "class_lite_f_x_1_1_rendering_1_1_i_frame_buffer.html#a38f4c01f88c828885dea6509af7b0cb3", null ]
 ];

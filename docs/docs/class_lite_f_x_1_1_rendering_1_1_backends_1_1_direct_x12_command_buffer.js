@@ -7,7 +7,7 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer =
     [ "~DirectX12CommandBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a3949346a03f33c33bc806abb409a8665", null ],
     [ "barrier", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#aea82ea0f53d76d49e4e91b89d4fae0e9", null ],
     [ "begin", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a52eb140093df379bc743c18025869ab2", null ],
-    [ "bind", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a9c69d92ff0780afae5ac19e68437f4ef", null ],
+    [ "bind", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a58a33f401b09d05badd5684a7f1a3f4d", null ],
     [ "bind", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a8b675e287b5e0487f0c6f24d5e73a978", null ],
     [ "bind", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a4908a75811b9238c7837fbd385f08587", null ],
     [ "dispatch", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_command_buffer.html#a5a595df75528e08d2771a1a14fd08375", null ],

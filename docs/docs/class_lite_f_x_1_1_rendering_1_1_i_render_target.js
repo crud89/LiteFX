@@ -9,5 +9,6 @@ var class_lite_f_x_1_1_rendering_1_1_i_render_target =
     [ "format", "class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a77c8d7c43d9b0624a5341f31e1ba228f", null ],
     [ "isVolatile", "class_lite_f_x_1_1_rendering_1_1_i_render_target.html#ab2f720f7a9b6050dd69bd37ff7990e95", null ],
     [ "location", "class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a1f0d465f625123bea42eda3431e32ccf", null ],
+    [ "name", "class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a0c27a34c178071c23128e6e13d2e0a89", null ],
     [ "type", "class_lite_f_x_1_1_rendering_1_1_i_render_target.html#a06870def8f8d4fd6ca31f86ce68e01a8", null ]
 ];

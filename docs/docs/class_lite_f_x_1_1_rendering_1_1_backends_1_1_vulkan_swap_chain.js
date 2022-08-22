@@ -8,6 +8,7 @@ var class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain =
     [ "buffers", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html#a1ba2e2b25b82931382d50b90eda096f7", null ],
     [ "getSurfaceFormats", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html#afabf84d14b85b25296bf6439534204ce", null ],
     [ "images", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html#a4ada7ae4c1a8ece2ad8431eaaf74e51e", null ],
+    [ "present", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html#a3785e989019583a7087be0f43ddd35e6", null ],
     [ "renderArea", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html#a452cd7d4f63e992c1648be3d400ea22a", null ],
     [ "reset", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html#a23e2d216421f17cfd6e0694580d5881a", null ],
     [ "semaphore", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_swap_chain.html#a75720528b3fb69db3543a5bbc6bf8dda", null ],
