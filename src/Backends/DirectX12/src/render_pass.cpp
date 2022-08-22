@@ -299,7 +299,7 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     std::ranges::for_each(m_impl->m_renderTargets, [&transitionBarrier, &frameBuffer](const RenderTarget& renderTarget) { transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), renderTarget.type() != RenderTargetType::DepthStencil ? ResourceState::RenderTarget : ResourceState::DepthWrite); });
     beginCommandBuffer->barrier(transitionBarrier);
 
-#ifndef NDEBUG
+#if defined(DEBUG) && defined(_WIN64)   // Unfortunately, this only works in x64 for some reason.
     if (!m_impl->m_name.empty())
         ::BeginEvent(m_impl->m_device.graphicsQueue().handle(), "{0} Render Pass ", m_impl->m_name);
 #endif
@@ -374,7 +374,7 @@ void DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer.get());
     m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
 
-#ifndef NDEBUG
+#if defined(DEBUG) && defined(_WIN64)
     if (!m_impl->m_name.empty())
         ::EndEvent(m_impl->m_device.graphicsQueue().handle());
 #endif
