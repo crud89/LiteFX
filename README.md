@@ -186,6 +186,7 @@ Depending on which rendering backends are build, the following dependencies are 
 
 - [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend
 - [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/): Required by the Vulkan backend. Handles memory allocations.
+- [SPIR-V Reflect](https://github.com/KhronosGroup/SPIRV-Reflect): Required by the Vulkan backend. Used to implement shader reflection.
 - [DirectX Headers](https://github.com/microsoft/DirectX-Headers): Required by the DirectX 12 backend.
 - [D3D12 Memory Allocator](https://gpuopen.com/d3d12-memory-allocator/): Required by the DirectX 12 backend. Handles memory allocations.
 
