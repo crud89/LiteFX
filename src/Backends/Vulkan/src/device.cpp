@@ -43,7 +43,10 @@ private:
 	public:
 		VulkanQueue* createQueue(const VulkanDevice& device, const QueuePriority& priority) {
 			if (this->active() >= this->total())
-				throw RuntimeException("Unable to create another queue for family {0}, since all {1} queues are already created.", m_id, m_queueCount);
+			{
+				LITEFX_ERROR(VULKAN_LOG, "Unable to create another queue for family {0}, since all {1} queues are already created.", m_id, m_queueCount);
+				return nullptr;
+			}
 
 			auto queue = makeUnique<VulkanQueue>(device, m_type, priority, m_id, this->active());
 			auto queuePointer = queue.get();

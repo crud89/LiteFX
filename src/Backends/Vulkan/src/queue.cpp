@@ -15,7 +15,7 @@ private:
 	QueueType m_type;
 	QueuePriority m_priority;
 	UInt32 m_familyId, m_queueId;
-	VkSemaphore m_timelineSemaphore;
+	VkSemaphore m_timelineSemaphore{};
 	UInt64 m_fenceValue{ 0 };
 	mutable std::mutex m_mutex;
 	bool m_bound;
@@ -35,13 +35,15 @@ public:
 public:
 	void release()
 	{
-		::vkDestroySemaphore(m_device.handle(), m_timelineSemaphore, nullptr);
+		if (m_timelineSemaphore != nullptr)
+			::vkDestroySemaphore(m_device.handle(), m_timelineSemaphore, nullptr);
 
 		if (m_bound)
 			::vkDestroyCommandPool(m_device.handle(), m_commandPool, nullptr);
 
 		m_bound = false;
 		m_commandPool = {};
+		m_timelineSemaphore = {};
 	}
 
 	void bind()
