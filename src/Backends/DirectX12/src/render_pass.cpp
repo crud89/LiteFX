@@ -1,6 +1,8 @@
 #include <litefx/backends/dx12.hpp>
 #include <litefx/backends/dx12_builders.hpp>
-#include "debug.hpp"
+#include <pix3.h>
+
+#define PIX_RENDER_PASS_COLOR PIX_COLOR(107, 133, 138)
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -299,9 +301,9 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     std::ranges::for_each(m_impl->m_renderTargets, [&transitionBarrier, &frameBuffer](const RenderTarget& renderTarget) { transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), renderTarget.type() != RenderTargetType::DepthStencil ? ResourceState::RenderTarget : ResourceState::DepthWrite); });
     beginCommandBuffer->barrier(transitionBarrier);
 
-#if defined(DEBUG) && defined(_WIN64)   // Unfortunately, this only works in x64 for some reason.
+#if defined(_DEBUG) && defined(_WIN64)   // Unfortunately, PIX only supports x64 for some reason.
     if (!m_impl->m_name.empty())
-        ::BeginEvent(m_impl->m_device.graphicsQueue().handle(), "{0} Render Pass ", m_impl->m_name);
+        ::PIXBeginEvent(m_impl->m_device.graphicsQueue().handle().Get(), PIX_RENDER_PASS_COLOR, "{0} Render Pass ", m_impl->m_name);
 #endif
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
@@ -374,9 +376,9 @@ void DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer.get());
     m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
 
-#if defined(DEBUG) && defined(_WIN64)
+#if defined(_DEBUG) && defined(_WIN64)
     if (!m_impl->m_name.empty())
-        ::EndEvent(m_impl->m_device.graphicsQueue().handle());
+        ::PIXEndEvent(m_impl->m_device.graphicsQueue().handle().Get());
 #endif
 
     // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
