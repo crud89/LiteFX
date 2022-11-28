@@ -93,12 +93,10 @@ jobs:
           
       - name: Sign binaries
         if: ${{ github.event.inputs.signArtifacts == 'true' }}
-        uses: GabrielAcostaEngler/signtool-code-sign@1.0.6
+        uses: dlemstra/code-sign-action@v1
         with:
           certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
-          cert-password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          cert-sha1: '${{ secrets.SIGN_CERTIFICATE_SHA1 }}'
-          cert-description: 'LiteFX Graphics Engine'
+          password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
           folder: '${{ github.workspace }}/out/install/'
           recursive: true
 
