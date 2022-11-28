@@ -76,11 +76,6 @@ jobs:
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
 
-      - name: Setup MSVC CLI
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: '${{ matrix.architecture }}'
-
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v10
         with:
@@ -126,15 +121,20 @@ jobs:
         run: |
           Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
           cmake --install .
+
+      #- name: Setup MSVC CLI
+      #  uses: ilammy/msvc-dev-cmd@v1
+      #  with:
+      #    arch: '${{ matrix.architecture }}'
           
       # TODO: Check this, since it does not appear to work properly.
-      - name: Sign binaries
-        uses: DanaBear/code-sign-action@v4
-        with:
-          certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
-          password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          folder: '${{ github.workspace }}/out/install/'
-          recursive: true
+      #- name: Sign binaries
+      #  uses: DanaBear/code-sign-action@v4
+      #  with:
+      #    certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
+      #    password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
+      #    folder: '${{ github.workspace }}/out/install/'
+      #    recursive: true
 
       - name: Upload install artifacts
         uses: actions/upload-artifact@v2
