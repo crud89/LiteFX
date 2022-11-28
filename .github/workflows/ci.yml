@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload install artifacts
         if: ${{ github.event.inputs.uploadArtifacts == 'true' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: LiteFX-${{ matrix.triplet }}-install
           path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'
