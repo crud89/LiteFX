@@ -8,6 +8,10 @@ on:
         description: 'Upload Artifacts'
         required: true
         default: 'false'
+      signArtifacts:
+        description: 'Attempt Code Sign'
+        required: true
+        default: 'false'
         
   pull_request:
     branches:
@@ -86,6 +90,17 @@ jobs:
         run: |
           Set-Location '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
           cmake --install .
+          
+      - name: Sign binaries
+        if: ${{ github.event.inputs.signArtifacts == 'true' }}
+        uses: GabrielAcostaEngler/signtool-code-sign@1.0.6
+        with:
+          certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
+          cert-password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
+          cert-sha1: '${{ secrets.SIGN_CERTIFICATE_SHA1 }}'
+          cert-description: 'LiteFX Graphics Engine'
+          folder: '${{ github.workspace }}/out/install/'
+          recursive: true
 
       - name: Upload install artifacts
         if: ${{ github.event.inputs.uploadArtifacts == 'true' }}
