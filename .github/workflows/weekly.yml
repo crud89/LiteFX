@@ -41,7 +41,7 @@ jobs:
           echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
 
       - name: Setup Vulkan SDK 
-        uses: humbletim/install-vulkan-sdk@latest
+        uses: humbletim/install-vulkan-sdk@v1.1.1
         with:
           version: ${{ env.vulkanSdkVersion }}
           cache: true
