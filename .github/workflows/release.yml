@@ -54,24 +54,12 @@ jobs:
         id: setup-environment
         run: |
           echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
-          $vulkanDir = "C:\VulkanSDK\${{ env.vulkanSdkVersion }}"
-          echo "Installing Vulkan SDK to: $($vulkanDir)..."
-          echo "VULKAN_SDK=$($vulkanDir)" >> $env:GITHUB_ENV
-          New-Item -ItemType directory -Path $vulkanDir
 
-      - name: Setup Vulkan SDK cache
-        id: vulkan-sdk-cache
-        uses: actions/cache@v3
+      - name: Setup Vulkan SDK 
+        uses: humbletim/install-vulkan-sdk@latest
         with:
-          path: ${{ env.VULKAN_SDK }}
-          key: VulkanSDK-${{ env.vulkanSdkVersion }}-Windows
-
-      - name: Setup Vulkan SDK
-        if: steps.vulkan-sdk-cache.outputs.cache-hit != 'true'
-        run: | 
-          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/${{ env.vulkanSdkVersion }}/windows/VulkanSDK-${{ env.vulkanSdkVersion }}-Installer.exe" -OutFile VulkanSDK.exe           
-          $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("/S");           
-          $installer.WaitForExit();
+          version: ${{ env.vulkanSdkVersion }}
+          cache: true
 
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
