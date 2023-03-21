@@ -2,6 +2,13 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// Exported extensions (we should probably find a better solution for this).
+PFN_vkCreateDebugUtilsMessengerEXT   vkCreateDebugUtilsMessenger;
+PFN_vkDestroyDebugUtilsMessengerEXT  vkDestroyDebugUtilsMessenger;
+PFN_vkQueueBeginDebugUtilsLabelEXT   vkQueueBeginDebugUtilsLabel;
+PFN_vkQueueEndDebugUtilsLabelEXT     vkQueueEndDebugUtilsLabel;
+PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -46,8 +53,6 @@ public:
 private:
     VkDebugUtilsMessengerEXT m_debugMessenger{ VK_NULL_HANDLE };
     VkInstance m_instance{ nullptr };
-    PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger{ nullptr };
-    PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger{ nullptr };
 
 private:    
     static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData) 
@@ -133,8 +138,11 @@ public:
         raiseIfFailed<RuntimeException>(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
 #ifndef NDEBUG
-        vkCreateDebugUtilsMessenger = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-        vkDestroyDebugUtilsMessenger = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+        vkCreateDebugUtilsMessenger     = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+        vkDestroyDebugUtilsMessenger    = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+        vkQueueBeginDebugUtilsLabel     = (PFN_vkQueueBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT");
+        vkQueueEndDebugUtilsLabel       = (PFN_vkQueueEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT");
+        vkQueueInsertDebugUtilsLabel    = (PFN_vkQueueInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT");
 
         if (vkCreateDebugUtilsMessenger == nullptr)
             LITEFX_WARNING(VULKAN_LOG, "The debug messenger factory \"vkCreateDebugUtilsMessengerEXT\" could not be loaded. Debug utilities will not be enabled.");
