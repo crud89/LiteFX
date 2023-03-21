@@ -35,6 +35,11 @@ public:
         // Interop swap chain requires external memory access.
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
 #endif // BUILD_DIRECTX_12_BACKEND
+
+#ifndef NDEBUG
+        // Debugging extension should be guaranteed to be available.
+        m_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif // NDEBUG
     }
 
 #ifndef NDEBUG
