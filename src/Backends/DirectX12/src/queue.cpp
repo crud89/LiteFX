@@ -113,7 +113,7 @@ const QueueType& DirectX12Queue::type() const noexcept
 }
 
 #if !defined(NDEBUG) && defined(_WIN64)
-void DirectX12Queue::BeginDebugRegion(const String label, const Vectors::ByteVector3& color) const noexcept
+void DirectX12Queue::BeginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	::PIXBeginEvent(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
@@ -123,7 +123,7 @@ void DirectX12Queue::EndDebugRegion() const noexcept
 	::PIXEndEvent(this->handle().Get());
 }
 
-void DirectX12Queue::SetDebugMarker(const String label, const Vectors::ByteVector3& color) const noexcept
+void DirectX12Queue::SetDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	::PIXSetMarker(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
