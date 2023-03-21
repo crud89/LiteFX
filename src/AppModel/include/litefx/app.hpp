@@ -67,6 +67,283 @@ namespace LiteFX {
 	};
 
 	/// <summary>
+	/// Base class for additional event arguments.
+	/// </summary>
+	/// <seealso cref="Event" />
+	class LITEFX_APPMODEL_API EventArgs {
+	public:
+		EventArgs() = default;
+		EventArgs(const EventArgs&) = default;
+		EventArgs(EventArgs&&) = default;
+		virtual ~EventArgs() noexcept = default;
+
+	public:
+		EventArgs& operator=(const EventArgs&) = default;
+		EventArgs& operator=(EventArgs&&) = default;
+	};
+
+	/// <summary>
+	/// Represents a handler for an <see cref="Event" />, that is assigned a unique token when created, so that it can be identified later.
+	/// </summary>
+	/// <remarks>
+	/// Since a `std::function` or callable us not comparable, it is not possible to identify and remove event handlers from an event, after registering 
+	/// them. To support this functionality, the event handler will be encapsulated in a delegate, which gets assigned with a token. This token is unique
+	/// for the event, the delegate has been registered to.
+	/// </remarks>
+	/// <typeparam name="TResult">The result of the delegate function.</typeparam>
+	/// <typeparam name="...TArgs">The arguments of the delegate function.</typeparam>
+	template <typename TResult, typename... TArgs>
+	class Delegate {
+	public:
+		using function_type = std::function<TResult(TArgs...)>;
+		using token_type = size_t;
+
+	private:
+		function_type m_target;
+		token_type m_token;
+
+	public:
+		/// <summary>
+		/// Creates a new delegate.
+		/// </summary>
+		/// <param name="fn">The delegate function.</param>
+		/// <param name="t">The unique token of the delegate within the parent event.</param>
+		inline Delegate(function_type fn, token_type t) noexcept : m_target(fn), m_token(t) { }
+		
+	public:
+		/// <summary>
+		/// Invokes the delegate function.
+		/// </summary>
+		/// <param name="...args">The arguments passed to the function.</param>
+		/// <returns>The result of the delegate function call.</returns>
+		TResult inline invoke(TArgs... args) const {
+			return m_target(args...);
+		}
+
+		/// <summary>
+		/// Returns the unique token of the delegate.
+		/// </summary>
+		/// <returns>The unique token of the delegate.</returns>
+		token_type inline token() const {
+			return m_token;
+		}
+
+	public:
+		/// <summary>
+		/// Invokes the delegate function.
+		/// </summary>
+		/// <param name="...args">The arguments passed to the function.</param>
+		/// <returns>The result of the delegate function call.</returns>
+		TResult inline operator()(TArgs... args) const {
+			return this->invoke(args...);
+		}
+	};
+
+	/// <summary>
+	/// A class that is used to declare an event, which a number of listeners can subscribe to.
+	/// </summary>
+	/// <remarks>
+	/// A listener that subscribes to the event is called *event handler*. The event handler needs to be invokable and identifiable. Because of this, a
+	/// <see cref="Delegate" /> is created for the event handler. A delegate stores the event handler, as well as a token to identify the event handler.
+	/// Event handlers must expose the a common signature: they do not return anything and accept two parameters. The first parameter is an unformatted 
+	/// pointer to the event sender (i.e., the object that invoked the event handlers). The second parameter contains additional arguments 
+	/// (<typeparamref name="TEventArgs" />), that are passed to all handlers. Note that the sender can also be `nullptr`.
+	/// </remarks>
+	/// <typeparam name="TEventArgs">The type of the additional event arguments.</typeparam>
+	/// <seealso cref="EventArgs" />
+	template <typename TEventArgs>
+	class Event {
+	public:
+		using event_args_type = TEventArgs;
+		using delegate_type = Delegate<void, const void*, TEventArgs>;
+		using function_type = typename delegate_type::function_type;
+		using event_token_type = typename delegate_type::token_type;
+
+	private:
+		Array<delegate_type> m_subscribers;
+
+	public:
+		/// <summary>
+		/// Initializes a new event.
+		/// </summary>
+		Event() = default;
+		Event(const Event&) = delete;
+		Event(Event&&) = delete;
+
+	public:
+		/// <summary>
+		/// Subscribes an event handler to the event.
+		/// </summary>
+		/// <param name="subscriber">A delegate for the event handler.</param>
+		/// <returns>A unique token of the event handler.</returns>
+		event_token_type add(function_type subscriber) noexcept {
+			const auto match = std::max_element(m_subscribers.begin(), m_subscribers.end(), [](const auto& lhs, const auto& rhs) { return lhs.token() < rhs.token(); });
+			event_token_type token = match == m_subscribers.end() ? 0 : match->token() + 1;
+			m_subscribers.emplace_back(subscriber, token);
+			return token;
+		}
+
+		/// <summary>
+		/// Unsubscribes an event handler from the event.
+		/// </summary>
+		/// <param name="subscriber">A delegate for the event handler.</param>
+		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
+		bool remove(delegate_type subscriber) noexcept {
+			return this->remove(subscriber.token());
+		}
+
+		/// <summary>
+		/// Unsubscribes an event handler from the event.
+		/// </summary>
+		/// <param name="toke">The unique token of the event handler.</param>
+		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
+		bool remove(event_token_type token) noexcept {
+			const auto last = std::remove_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& s) { return s.token() == token; });
+
+			if (last == m_subscribers.end())
+				return false;
+
+			m_subscribers.erase(last, m_subscribers.end());
+			return true;
+		}
+
+		/// <summary>
+		/// Clears the event handlers.
+		/// </summary>
+		void clear() noexcept {
+			m_subscribers.clear();
+		}
+
+		/// <summary>
+		/// Invokes all event handlers of the event.
+		/// </summary>
+		/// <param name="sender">The source of the event.</param>
+		/// <param name="args">The additional event arguments.</param>
+		void invoke(const void* sender, TEventArgs args) const {
+			for (const auto& handler : m_subscribers)
+				handler(sender, args);
+		}
+
+		/// <summary>
+		/// Returns `true`, if the event contains a subscriber with the provided <paramref name="token" />.
+		/// </summary>
+		/// <param name="token">The token of an event.</param>
+		/// <returns>`true`, if the event contains a subscriber with the provided <paramref name="token" />, `false` otherwise.</returns>
+		bool contains(event_token_type token) const noexcept {
+			return std::find_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& d) { return d.token() == token; }) != m_subscribers.end();
+		}
+
+		/// <summary>
+		/// Returns the delegate associated with <paramref name="token" />.
+		/// </summary>
+		/// <param name="token">The token to query for.</param>
+		/// <returns>A reference of the delegate associated with <paramref name="token" />.</returns>
+		/// <exception cref="InvalidArgumentException">Thrown, if the event does not have a subscriber with the provided token.</exception>
+		const delegate_type& handler(event_token_type token) const {
+			if (auto match = std::find_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& d) { return d.token() == token; }); match != m_subscribers.end()) [[likely]]
+				return *match;
+				
+			throw InvalidArgumentException("The event does not contain the provided token.");
+		}
+
+	public:
+		/// <summary>
+		/// Returns `true`, if any event handler is attached to the event, `false` otherwise. 
+		/// </summary>
+		/// <returns>`true`, if any event handler is attached to the event, `false` otherwise.</returns>
+		explicit operator bool() const noexcept {
+			return !m_subscribers.empty();
+		}
+
+		/// <summary>
+		/// Subscribes an event handler to the event.
+		/// </summary>
+		/// <param name="subscriber">A delegate for the event handler.</param>
+		/// <returns>A unique token of the event handler.</returns>
+		event_token_type operator +=(function_type subscriber) {
+			return this->add(subscriber);
+		}
+
+		/// <summary>
+		/// Unsubscribes an event handler from the event.
+		/// </summary>
+		/// <param name="subscriber">A delegate for the event handler.</param>
+		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
+		bool operator -=(delegate_type subscriber) noexcept {
+			return this->remove(subscriber);
+		}
+
+		/// <summary>
+		/// Unsubscribes an event handler from the event.
+		/// </summary>
+		/// <param name="toke">The unique token of the event handler.</param>
+		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
+		bool operator -=(event_token_type token) noexcept {
+			return this->remove(token);
+		}
+
+		/// <summary>
+		/// Invokes all event handlers of the event.
+		/// </summary>
+		/// <param name="sender">The source of the event.</param>
+		/// <param name="args">The additional event arguments.</param>
+		void operator ()(const void* sender, TEventArgs args) const {
+			this->invoke(sender, args);
+		}
+
+		/// <summary>
+		/// Returns the delegate associated with <paramref name="token" />.
+		/// </summary>
+		/// <param name="token">The token to query for.</param>
+		/// <returns>A reference of the delegate associated with <paramref name="token" />.</returns>
+		/// <exception cref="InvalidArgumentException">Thrown, if the event does not have a subscriber with the provided token.</exception>
+		const delegate_type& operator [](event_token_type token) const {
+			return this->handler(token);
+		}
+	};
+
+	/// <summary>
+	/// Stores event arguments of a window resize event.
+	/// </summary>
+	/// <seealso cref="App::resize" />
+	struct LITEFX_APPMODEL_API ResizeEventArgs : public EventArgs {
+	private:
+		int m_width, m_height;
+
+	public:
+		/// <summary>
+		/// Creates a new set of window resize event arguments.
+		/// </summary>
+		/// <param name="width">The old window width.</param>
+		/// <param name="height">The old window height.</param>
+		ResizeEventArgs(int width, int height) : m_width(width), m_height(height) { }
+		ResizeEventArgs(const ResizeEventArgs&) = default;
+		ResizeEventArgs(ResizeEventArgs&&) = default;
+		virtual ~ResizeEventArgs() = default;
+
+	public:
+		ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
+		ResizeEventArgs& operator=(ResizeEventArgs&&) = default;
+
+	public:
+		/// <summary>
+		/// Returns the new window width.
+		/// </summary>
+		/// <returns>The new window width.</returns>
+		const int& width() const noexcept {
+			return m_width;
+		}
+
+		/// <summary>
+		/// Returns the new window height.
+		/// </summary>
+		/// <returns>The new window height.</returns>
+		const int& height() const noexcept {
+			return m_height;
+		}
+	};
+
+	/// <summary>
 	/// The base class for an application.
 	/// </summary>
 	/// <seealso cref="AppBuilder" />
@@ -205,6 +482,16 @@ namespace LiteFX {
 
 	public:
 		/// <summary>
+		/// Invoked, if a backend has been started.
+		/// </summary>
+		Event<const IBackend*> backendStarted;
+
+		/// <summary>
+		/// Invoked, if a backend has been stopped.
+		/// </summary>
+		Event<const IBackend*> backendStopped;
+
+		/// <summary>
 		/// Sets a callback that is called, if a backend is started.
 		/// </summary>
 		/// <remarks>
@@ -287,6 +574,16 @@ namespace LiteFX {
 
 	public:
 		/// <summary>
+		/// Invoked, if the application has been started.
+		/// </summary>
+		Event<EventArgs> startup;
+
+		/// <summary>
+		/// Invoked during initialization.
+		/// </summary>
+		Event<EventArgs> initializing;
+
+		/// <summary>
 		/// Adds a backend to the app.
 		/// </summary>
 		/// <param name="backend">The backend to add.</param>
@@ -296,14 +593,14 @@ namespace LiteFX {
 		/// <summary>
 		/// Starts the application.
 		/// </summary>
-		virtual void run() = 0;
-
-		/// <summary>
-		/// Called to initialize the application state.
-		/// </summary>
-		virtual void initialize() = 0;
+		void run();
 
 	public:
+		/// <summary>
+		/// Invoked, if the app window or context gets resized.
+		/// </summary>
+		Event<ResizeEventArgs> resized;
+
 		/// <summary>
 		/// Called, if the application window resizes.
 		/// </summary>
@@ -312,7 +609,7 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="width">The new width of the application window.</param>
 		/// <param name="height">The new height of the application window.</param>
-		virtual void resize(int& width, int& height);
+		void resize(int& width, int& height);
 
 	public:
 		/// <summary>
@@ -330,10 +627,6 @@ namespace LiteFX {
 	class LITEFX_APPMODEL_API AppBuilder : public Builder<AppBuilder, App> {
 	public:
 		using builder_type::Builder;
-
-	protected:
-		/// <inheritdoc />
-		virtual void build() override;
 
 	public:
 		/// <inheritdoc />

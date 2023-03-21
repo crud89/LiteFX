@@ -211,7 +211,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagi
     commandBuffer.transfer(stagingBuffer, buffer);
 }
 
-void SampleApp::run() 
+void SampleApp::onStartup() 
 {
     // Initialize the instance data.
     ::initInstanceData();
@@ -286,7 +286,7 @@ void SampleApp::run()
     ::glfwTerminate();
 }
 
-void SampleApp::initialize()
+void SampleApp::onInit()
 {
     ::glfwSetWindowUserPointer(m_window.get(), this);
 
@@ -301,16 +301,14 @@ void SampleApp::initialize()
     });
 }
 
-void SampleApp::resize(int& width, int& height)
+void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 {
-    App::resize(width, height);
-
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
 
     // Resize the frame buffer and recreate the swap chain.
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
-    auto renderArea = Size2d(width, height);
+    auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
 
     // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
@@ -319,8 +317,8 @@ void SampleApp::resize(int& width, int& height)
     m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
 
     // Also resize viewport and scissor.
-    m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-    m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+    m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
+    m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
 
     // Also update the camera.
     auto& cameraStagingBuffer = m_device->state().buffer("Camera Staging");

@@ -85,7 +85,9 @@ public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)
 	{
-		this->initialize();
+		this->initializing += std::bind(&SampleApp::onInit, this);
+		this->startup += std::bind(&SampleApp::onStartup, this);
+		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
 private:
@@ -100,10 +102,12 @@ private:
 	/// </summary>
 	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagingBuffer, const IBuffer& buffer) const;
 
+private:
+	void onInit();
+	void onStartup();
+	void onResize(const void* sender, ResizeEventArgs e);
+
 public:
-	virtual void run() override;
-	virtual void initialize() override;
-	virtual void resize(int& width, int& height) override;
 	void keyDown(int key, int scancode, int action, int mods);
 	void handleEvents();
 	void drawFrame();
