@@ -499,9 +499,14 @@ namespace LiteFX {
 		/// a device and surface for an application. An application might use multiple callbacks, if it creates multiple devices, for example to
 		/// create a plugin architecture.
 		/// </remarks>
+		/// <remarks>
+		/// Different to the <see cref="backendStarted" /> event, this event can be strongly typed at compile time, thus different callbacks can be 
+		/// provided per backend type without requiring to differentiate them at run-time.
+		/// </remarks>
 		/// <typeparam name="TBackend">The type of the backend.</typeparam>
 		/// <param name="callback">The function to call during backend startup.</param>
 		/// <seealso cref="onBackendStop" />
+		/// <seealso cref="backendStarted" />
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
 		void onBackendStart(const std::function<bool(TBackend*)>& callback) {
@@ -521,9 +526,14 @@ namespace LiteFX {
 		/// <summary>
 		/// Sets a callback that is called, if a backend is stopped.
 		/// </summary>
+		/// <remarks>
+		/// Different to the <see cref="backendStopped" /> event, this event can be strongly typed at compile time, thus different callbacks can be 
+		/// provided per backend type without requiring to differentiate them at run-time.
+		/// </remarks>
 		/// <typeparam name="TBackend">The type of the backend.</typeparam>
 		/// <param name="callback">The function to call during backend shutdown.</param>
 		/// <seealso cref="onBackendStart" />
+		/// <seealso cref="backendStopped" />
 		template <typename TBackend> requires
 			rtti::implements<TBackend, IBackend>
 		void onBackendStop(const std::function<void(TBackend*)>& callback) {
