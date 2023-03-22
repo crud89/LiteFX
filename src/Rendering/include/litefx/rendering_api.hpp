@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #if !defined (LITEFX_RENDERING_API)
 #  if defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
@@ -3080,9 +3080,9 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The buffer binding point.</param>
         /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
         /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
-        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set.</param>
+        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
         /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
-        void update(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const {
+        void update(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 0, const UInt32& firstDescriptor = 0) const {
             this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor);
         }
 

@@ -338,7 +338,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual void update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const override;
+		virtual void update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 0, const UInt32& firstDescriptor = 0) const override;
 
 		/// <inheritdoc />
 		virtual void update(const UInt32& binding, const IDirectX12Image& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const override;

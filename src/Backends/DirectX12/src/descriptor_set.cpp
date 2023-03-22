@@ -85,8 +85,10 @@ const DirectX12DescriptorSetLayout& DirectX12DescriptorSet::layout() const noexc
 
 void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const
 {
-    if (bufferElement + elements > buffer.elements()) [[unlikely]]
-        LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elements, bufferElement);
+    UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
+
+    if (bufferElement + elementCount > buffer.elements()) [[unlikely]]
+        LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
 
     const auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
@@ -97,7 +99,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     {
     case DescriptorType::ConstantBuffer:
     {
-        for (UInt32 i(0); i < elements; ++i)
+        for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferView = {
                 .BufferLocation = buffer.handle()->GetGPUVirtualAddress() + static_cast<size_t>(bufferElement + i) * buffer.alignedElementSize(),
@@ -112,7 +114,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     }
     case DescriptorType::StructuredBuffer:
     {
-        for (UInt32 i(0); i < elements; ++i)
+        for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_UNKNOWN,
@@ -130,7 +132,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     case DescriptorType::RWStructuredBuffer:
     {
         // TODO: Support counter in AppendStructuredBuffer.
-        for (UInt32 i(0); i < elements; ++i)
+        for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_UNKNOWN,
@@ -146,7 +148,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     }
     case DescriptorType::ByteAddressBuffer:
     {
-        for (UInt32 i(0); i < elements; ++i)
+        for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS,
@@ -163,7 +165,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     }
     case DescriptorType::RWByteAddressBuffer:
     {
-        for (UInt32 i(0); i < elements; ++i)
+        for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS,
@@ -179,7 +181,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     }
     case DescriptorType::Buffer:
     {
-        for (UInt32 i(0); i < elements; ++i)
+        for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
@@ -196,7 +198,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     }
     case DescriptorType::RWBuffer:
     {
-        for (UInt32 i(0); i < elements; ++i)
+        for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
@@ -214,7 +216,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
         throw InvalidArgumentException("The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
     }
 
-    m_impl->updateGlobalBuffers(offset, elements);
+    m_impl->updateGlobalBuffers(offset, elementCount);
 }
 
 void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
