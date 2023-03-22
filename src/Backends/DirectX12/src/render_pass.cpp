@@ -2,8 +2,6 @@
 #include <litefx/backends/dx12_builders.hpp>
 #include <pix3.h>
 
-#define PIX_RENDER_PASS_COLOR PIX_COLOR(107, 133, 138)
-
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
@@ -301,10 +299,8 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
     std::ranges::for_each(m_impl->m_renderTargets, [&transitionBarrier, &frameBuffer](const RenderTarget& renderTarget) { transitionBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), renderTarget.type() != RenderTargetType::DepthStencil ? ResourceState::RenderTarget : ResourceState::DepthWrite); });
     beginCommandBuffer->barrier(transitionBarrier);
 
-#if defined(_DEBUG) && defined(_WIN64)   // Unfortunately, PIX only supports x64 for some reason.
     if (!m_impl->m_name.empty())
-        ::PIXBeginEvent(m_impl->m_device.graphicsQueue().handle().Get(), PIX_RENDER_PASS_COLOR, "{0} Render Pass ", m_impl->m_name);
-#endif
+        m_impl->m_device.graphicsQueue().BeginDebugRegion(fmt::format("{0} Render Pass", m_impl->m_name));
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
     std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
@@ -376,10 +372,8 @@ void DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer.get());
     m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
 
-#if defined(_DEBUG) && defined(_WIN64)
     if (!m_impl->m_name.empty())
-        ::PIXEndEvent(m_impl->m_device.graphicsQueue().handle().Get());
-#endif
+        m_impl->m_device.graphicsQueue().EndDebugRegion();
 
     // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
     //       frame in the queue has been drawn and the back buffer can be written again.
