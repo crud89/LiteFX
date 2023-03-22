@@ -152,7 +152,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 		for (UInt32 i(1); i < image.levels(); ++i, size /= 2)
 		{
 			// Update the invocation parameters.
-			resourceBindings[resource]->update(parametersLayout.binding(), *parameters, i);
+			resourceBindings[resource]->update(parametersLayout.binding(), *parameters, i, 1);
 
 			// Bind the previous mip map level to the SRV at binding point 1.
 			resourceBindings[resource]->update(1, image, 0, i - 1, 1, l, 1);

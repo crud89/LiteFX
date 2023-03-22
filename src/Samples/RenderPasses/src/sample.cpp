@@ -171,7 +171,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& transformBufferLayout = transformBindingLayout.descriptor(0);
     auto transformBindings = transformBindingLayout.allocateMultiple(3);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
-    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++); });
+    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++, 1); });
 
     // Create buffers for lighting pass, i.e. the view plane vertex and index buffers.
     auto stagedViewPlaneVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, viewPlaneVertices.size());

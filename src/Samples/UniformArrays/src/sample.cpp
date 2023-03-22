@@ -171,7 +171,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& lightsBufferLayout = staticBindingLayout.descriptor(1);
     auto lightsStagingBuffer = m_device->factory().createBuffer("Lights Staging", lightsBufferLayout.type(), BufferUsage::Staging, lightsBufferLayout.elementSize(), LIGHT_SOURCES);
     auto lightsBuffer = m_device->factory().createBuffer("Lights", lightsBufferLayout.type(), BufferUsage::Resource, lightsBufferLayout.elementSize(), LIGHT_SOURCES);
-    staticBindings->update(lightsBufferLayout.binding(), *lightsBuffer, 0, LIGHT_SOURCES);
+    staticBindings->update(lightsBufferLayout.binding(), *lightsBuffer, 0);
 
     auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | ranges::to<Array<const void*>>();
     lightsStagingBuffer->map(lightsData, sizeof(LightBuffer));
@@ -183,7 +183,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& transformBufferLayout = transformBindingLayout.descriptor(0);
     auto transformBindings = transformBindingLayout.allocateMultiple(3);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
-    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++); });
+    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++, 1); });
     
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);

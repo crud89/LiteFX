@@ -165,7 +165,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& drawDataBufferLayout = drawDataBindingLayout.descriptor(0);
     auto drawDataBindings = drawDataBindingLayout.allocateMultiple(3);
     auto drawDataBuffer = m_device->factory().createBuffer("Draw Data", drawDataBufferLayout.type(), BufferUsage::Dynamic, drawDataBufferLayout.elementSize(), 3);
-    std::ranges::for_each(drawDataBindings, [&drawDataBufferLayout, &drawDataBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(drawDataBufferLayout.binding(), *drawDataBuffer, i++); });
+    std::ranges::for_each(drawDataBindings, [&drawDataBufferLayout, &drawDataBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(drawDataBufferLayout.binding(), *drawDataBuffer, i++, 1); });
 
     // Next, we create the descriptor set for the instance buffer. The shader is designed to handle an arbitrary number of instances using an unbounded buffer array, so
     // we have to specify how many instances we are actually allocating. We do this only once and then bind this array to all command buffers, since we do not need to 
@@ -180,7 +180,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Since we are using an unstructured storage buffer, we need to specify the element size manually.
     auto instanceStagingBuffer = m_device->factory().createBuffer("Instance Staging", instanceBufferLayout.type(), BufferUsage::Staging, sizeof(InstanceBuffer), NUM_INSTANCES);
     auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBufferLayout.type(), BufferUsage::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
-    instanceBinding->update(instanceBufferLayout.binding(), *instanceBuffer, 0, NUM_INSTANCES);
+    instanceBinding->update(instanceBufferLayout.binding(), *instanceBuffer, 0);
     instanceStagingBuffer->map(reinterpret_cast<const void*>(&instanceData), sizeof(instanceData));
     commandBuffer->transfer(*instanceStagingBuffer, *instanceBuffer, 0, 0, NUM_INSTANCES);
 

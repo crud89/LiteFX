@@ -155,7 +155,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     
     for (int s(0); s < 3; ++s)
         for (int i(0); i < NUM_WORKERS; ++i)
-            transformBindings[(s * NUM_WORKERS) + i]->update(transformBufferLayout.binding(), *transformBuffers[i], s);
+            transformBindings[(s * NUM_WORKERS) + i]->update(transformBufferLayout.binding(), *transformBuffers[i], s, 1);
     
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);

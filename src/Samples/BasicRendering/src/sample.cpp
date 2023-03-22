@@ -101,7 +101,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     //       whole buffer.
     auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
-    
+
     // Create the actual vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
     commandBuffer->transfer(*stagedVertices, *vertexBuffer, 0, 0, vertices.size());
@@ -135,7 +135,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& transformBufferLayout = transformBindingLayout.descriptor(0);
     auto transformBindings = transformBindingLayout.allocateMultiple(3);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
-    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++); });
+    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++, 1); });
     
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);

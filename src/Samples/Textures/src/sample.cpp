@@ -151,7 +151,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& transformBufferLayout = transformBindingLayout.descriptor(0);
     auto transformBindings = transformBindingLayout.allocateMultiple(3);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
-    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++); });
+    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++, 1); });
 
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);
