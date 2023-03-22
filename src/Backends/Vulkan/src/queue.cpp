@@ -174,11 +174,13 @@ const QueuePriority& VulkanQueue::priority() const noexcept
 void VulkanQueue::bind()
 {
 	m_impl->bind();
+	this->bound(this, { });
 }
 
 void VulkanQueue::release()
 {
 	m_impl->release();
+	this->released(this, { });
 }
 
 UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const

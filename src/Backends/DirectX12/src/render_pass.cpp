@@ -309,6 +309,9 @@ void DirectX12RenderPass::begin(const UInt32& buffer)
         commandBuffer->begin(); 
         commandBuffer->handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
     });
+
+    // Publish beginning event.
+    this->beginning(this, { buffer });
 }
 
 void DirectX12RenderPass::end() const
@@ -316,6 +319,9 @@ void DirectX12RenderPass::end() const
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr)
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
+
+    // Publish ending event.
+    this->ending(this, { });
 
     auto frameBuffer = m_impl->m_activeFrameBuffer;
     const auto& swapChain = m_impl->m_device.swapChain();

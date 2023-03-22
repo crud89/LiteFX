@@ -60,7 +60,8 @@ namespace LiteFX::Rendering {
     class IGraphicsDevice;
     class IRenderBackend;
 
-    // Define enumerations.
+#pragma region "Enumerations"
+
     /// <summary>
     /// Defines different types of graphics adapters.
     /// </summary>
@@ -1383,13 +1384,18 @@ namespace LiteFX::Rendering {
         Undefined = 0x7FFFFFFF
     };
 
-    // Define flags.
+#pragma endregion
+
+#pragma region "Flags"
+
     LITEFX_DEFINE_FLAGS(QueueType);
     LITEFX_DEFINE_FLAGS(ShaderStage);
     LITEFX_DEFINE_FLAGS(BufferFormat);
     LITEFX_DEFINE_FLAGS(WriteMask);
 
-    // Helper functions.
+#pragma endregion
+
+#pragma region "Helper Functions"
 
     /// <summary>
     /// Returns the number of channels for a buffer format.
@@ -1431,6 +1437,8 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="DepthStencilState" />
     bool LITEFX_RENDERING_API hasStencil(const Format& format);
+
+#pragma endregion
 
     /// <summary>
     /// The interface for a state resource.
@@ -4178,6 +4186,36 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API IRenderPass : public virtual IStateResource {
     public:
+        /// <summary>
+        /// Event arguments that are published to subscribers when a render pass is beginning.
+        /// </summary>
+        /// <seealso cref="IRenderPass::beginning" />
+        struct BeginRenderPassEventArgs : public EventArgs {
+        private:
+            const UInt32& m_backBuffer;
+
+        public:
+            BeginRenderPassEventArgs(const UInt32& backBuffer) : 
+                EventArgs(), m_backBuffer(backBuffer) { }
+            BeginRenderPassEventArgs(const BeginRenderPassEventArgs&) = default;
+            BeginRenderPassEventArgs(BeginRenderPassEventArgs&&) = default;
+            virtual ~BeginRenderPassEventArgs() noexcept = default;
+
+        public:
+            BeginRenderPassEventArgs& operator=(const BeginRenderPassEventArgs&) = default;
+            BeginRenderPassEventArgs& operator=(BeginRenderPassEventArgs&&) = default;
+
+        public:
+            /// <summary>
+            /// Gets the index of the next back-buffer used in the render pass.
+            /// </summary>
+            /// <returns>The index of the next back-buffer used in the render pass.</returns>
+            const UInt32& backBuffer() const noexcept {
+                return m_backBuffer;
+            }
+        };
+
+    public:
         virtual ~IRenderPass() noexcept = default;
 
     public:
@@ -4248,6 +4286,18 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Invoked, when the render pass is beginning.
+        /// </summary>
+        /// <seealso cref="begin" />
+        Event<BeginRenderPassEventArgs> beginning;
+
+        /// <summary>
+        /// Invoked, when the render pass is ending.
+        /// </summary>
+        /// <seealso cref="end" />
+        Event<EventArgs> ending;
+
+        /// <summary>
         /// Begins the render pass.
         /// </summary>
         /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
@@ -4299,6 +4349,53 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API ISwapChain {
     public:
+        /// <summary>
+        /// Event arguments for a <see cref="ISwapChain::reseted" /> event.
+        /// </summary>
+        struct SwapChainResetEventArgs : public EventArgs {
+        private:
+            const Format& m_surfaceFormat;
+            const Size2d& m_renderArea;
+            const UInt32& m_buffers;
+
+        public:
+            SwapChainResetEventArgs(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
+                EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers) { }
+            SwapChainResetEventArgs(const SwapChainResetEventArgs&) = default;
+            SwapChainResetEventArgs(SwapChainResetEventArgs&&) = default;
+            virtual ~SwapChainResetEventArgs() noexcept = default;
+
+        public:
+            SwapChainResetEventArgs& operator=(const SwapChainResetEventArgs&) = default;
+            SwapChainResetEventArgs& operator=(SwapChainResetEventArgs&&) = default;
+
+        public:
+            /// <summary>
+            /// Gets the new surface format of the swap chain back-buffers.
+            /// </summary>
+            /// <returns>The new surface format of the swap chain back-buffers.</returns>
+            const Format& surfaceFormat() const noexcept {
+                return m_surfaceFormat;
+            }
+
+            /// <summary>
+            /// Gets the new render area of the swap chain back-buffers.
+            /// </summary>
+            /// <returns>The size of the new render area of the swap chain back-buffers.</returns>
+            const Size2d& renderArea() const noexcept {
+                return m_renderArea;
+            }
+
+            /// <summary>
+            /// Gets the number of back-buffers in the swap chain.
+            /// </summary>
+            /// <returns>The number of back-buffers in the swap chain.</returns>
+            const UInt32& buffers() const noexcept {
+                return m_buffers;
+            }
+        };
+
+    public:
         virtual ~ISwapChain() noexcept = default;
 
     public:
@@ -4335,6 +4432,18 @@ namespace LiteFX::Rendering {
         virtual void present(const IFrameBuffer& frameBuffer) const = 0;
 
     public:
+        /// <summary>
+        /// Invoked, when the swap chain has swapped the back buffers.
+        /// </summary>
+        /// <seealso cref="swapBackBuffer" />
+        Event<EventArgs> swapped;
+
+        /// <summary>
+        /// Invoked, after the swap chain has been reseted.
+        /// </summary>
+        /// <seealso cref="reset" />
+        Event<SwapChainResetEventArgs> reseted;
+
         /// <summary>
         /// Returns an array of supported formats, that can be drawn to the surface.
         /// </summary>
@@ -4373,6 +4482,63 @@ namespace LiteFX::Rendering {
     /// The interface for a command queue.
     /// </summary>
     class LITEFX_RENDERING_API ICommandQueue {
+    public:
+        /// <summary>
+        /// Event arguments for a <see cref="ICommandQueue::submitting" /> event.
+        /// </summary>
+        struct QueueSubmittingEventArgs : public EventArgs {
+        private:
+            const Array<const ICommandBuffer*>& m_commandBuffers;
+
+        public:
+            QueueSubmittingEventArgs(const Array<const ICommandBuffer*>& commandBuffers) :
+                EventArgs(), m_commandBuffers(commandBuffers) { }
+            QueueSubmittingEventArgs(const QueueSubmittingEventArgs&) = default;
+            QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) = default;
+            virtual ~QueueSubmittingEventArgs() noexcept = default;
+
+        public:
+            QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) = default;
+            QueueSubmittingEventArgs& operator=(QueueSubmittingEventArgs&&) = default;
+
+        public:
+            /// <summary>
+            /// Gets the command buffers that are about to be submitted to the queue.
+            /// </summary>
+            /// <returns>An array containing the command buffers that are about to be submitted to the queue.</returns>
+            const Array<const ICommandBuffer*>& commandBuffers() const noexcept {
+                return m_commandBuffers;
+            }
+        };
+
+        /// <summary>
+        /// Event arguments for a <see cref="ICommandQueue::submitted" /> event.
+        /// </summary>
+        struct QueueSubmittedEventArgs : public EventArgs {
+        private:
+            const UInt64& m_fence;
+
+        public:
+            QueueSubmittedEventArgs(const UInt64& fence) :
+                EventArgs(), m_fence(fence) { }
+            QueueSubmittedEventArgs(const QueueSubmittedEventArgs&) = default;
+            QueueSubmittedEventArgs(QueueSubmittedEventArgs&&) = default;
+            virtual ~QueueSubmittedEventArgs() noexcept = default;
+
+        public:
+            QueueSubmittedEventArgs& operator=(const QueueSubmittedEventArgs&) = default;
+            QueueSubmittedEventArgs& operator=(QueueSubmittedEventArgs&&) = default;
+
+        public:
+            /// <summary>
+            /// Gets the fence that is triggered, if the command buffers have been executed.
+            /// </summary>
+            /// <returns>The fence that is triggered, if the command buffers have been executed.</returns>
+            const UInt64& fence() const noexcept {
+                return m_fence;
+            }
+        };
+
     public:
         virtual ~ICommandQueue() noexcept = default;
 
@@ -4432,6 +4598,26 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Invoked, when the queue has been bound on the parent device.
+        /// </summary>
+        Event<EventArgs> bound;
+
+        /// <summary>
+        /// Invoked, when the queue is released from the parent device.
+        /// </summary>
+        Event<EventArgs> released;
+
+        /// <summary>
+        /// Invoked, when one or more command buffers are submitted to the queue.
+        /// </summary>
+        Event<QueueSubmittingEventArgs> submitting;
+
+        /// <summary>
+        /// Invoked, after one or more command buffers have been submitted to the queue.
+        /// </summary>
+        Event<QueueSubmittedEventArgs> submitted;
+
+        /// <summary>
         /// Binds the queue on the parent device.
         /// </summary>
         /// <seealso cref="isBound" />
@@ -4461,7 +4647,11 @@ namespace LiteFX::Rendering {
         /// <returns>The value of the fence, inserted after the command buffer.</returns>
         /// <seealso cref="waitFor" />
         UInt64 submit(const ICommandBuffer& commandBuffer) const {
-            return this->submitCommandBuffer(commandBuffer);
+            Array<const ICommandBuffer*> buffers{ &commandBuffer };
+            this->submitting(this, { buffers });
+            auto fence = this->submitCommandBuffer(commandBuffer);
+            this->submitted(this, { fence });
+            return fence;
         }
 
         /// <summary>
@@ -4474,7 +4664,10 @@ namespace LiteFX::Rendering {
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
         UInt64 submit(const Array<const ICommandBuffer*>& commandBuffers) const {
-            return this->submitCommandBuffers(commandBuffers);
+            this->submitting(this, { commandBuffers });
+            auto fence = this->submitCommandBuffers(commandBuffers);
+            this->submitted(this, { fence });
+            return fence;
         }
 
         /// <summary>

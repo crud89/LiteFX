@@ -734,9 +734,12 @@ Array<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
 void VulkanSwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
 {
 	m_impl->reset(surfaceFormat, renderArea, buffers);
+	this->reseted(this, { surfaceFormat, renderArea, buffers });
 }
 
 UInt32 VulkanSwapChain::swapBackBuffer() const
 {
-	return m_impl->swapBackBuffer();
+	auto backBuffer = m_impl->swapBackBuffer();
+	this->swapped(this, { });
+	return backBuffer;
 }

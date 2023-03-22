@@ -137,11 +137,13 @@ const QueuePriority& DirectX12Queue::priority() const noexcept
 void DirectX12Queue::bind()
 {
 	m_impl->bind();
+	this->bound(this, { });
 }
 
 void DirectX12Queue::release()
 {
 	m_impl->release();
+	this->released(this, { });
 }
 
 UniquePtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording) const
