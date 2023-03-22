@@ -83,6 +83,9 @@ void App::startBackend(std::type_index type) const
 
 	// Set the backend to active.
 	backend->activate();
+
+	// Publish event.
+	this->backendStarted(this, backend);
 }
 
 void App::stopBackend(std::type_index type) const
@@ -102,6 +105,9 @@ void App::stopBackend(std::type_index type) const
 
 		// Set the backend state to inactive.
 		static_cast<IBackend*>(backend)->deactivate();
+
+		// Publish event.
+		this->backendStopped(this, backend);
 	}
 }
 
@@ -157,13 +163,27 @@ void App::use(UniquePtr<IBackend>&& backend)
 	Logger::get(this->name()).debug("Registered backend type {0}.", type.name());
 }
 
+void App::run()
+{
+	// Initialize the app.
+	Logger::get(this->name()).debug("Initializing app...");
+	this->initializing(this, { });
+
+	// Start the app.
+	Logger::get(this->name()).info("Starting app (Version {1}) on platform {0}...", this->platform(), this->version());
+	Logger::get(this->name()).debug("Using engine: {0:e}.", this->version());
+	this->startup(this, { });
+}
+
 void App::resize(int& width, int& height)
 {
 	// Ensure the area is at least 1 pixel into each direction.
 	width = std::max(width, 1);
 	height = std::max(height, 1);
 
+	// Publish event.
 	Logger::get(this->name()).trace("OnResize (width = {0}, height = {1}).", width, height);
+	this->resized(this, { width, height });
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -173,12 +193,4 @@ void App::resize(int& width, int& height)
 void AppBuilder::use(UniquePtr<IBackend>&& backend)
 {
 	this->instance()->use(std::move(backend));
-}
-
-void AppBuilder::build()
-{
-	Logger::get(this->instance()->name()).info("Starting app (Version {1}) on platform {0}...", this->instance()->platform(), this->instance()->version());
-	Logger::get(this->instance()->name()).debug("Using engine: {0:e}.", this->instance()->version());
-
-	this->instance()->initialize();
 }
