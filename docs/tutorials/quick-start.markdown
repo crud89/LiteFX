@@ -59,32 +59,34 @@ public:
 	SimpleApp(GLFWwindow* window) : 
 		App(), m_window(window)
 	{
-		this->initialize();
+		this->initializing += std::bind(&SampleApp::onInit, this);
+		this->startup += std::bind(&SampleApp::onStartup, this);
+		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
-public:
-	virtual void initialize() override;
-	virtual void run() override;
-	virtual void resize(int& width, int& height) override;
+private:
+	void onInit();
+	void onStartup();
+	void onResize(const void* sender, ResizeEventArgs e);
 };
 
-static void onResize(GLFWwindow* window, int width, int height)
+static void resize(GLFWwindow* window, int width, int height)
 {
     auto app = reinterpret_cast<SimpleApp*>(::glfwGetWindowUserPointer(window));
     app->resize(width, height);
 }
 
-void SimpleApp::initialize()
+void SimpleApp::onInit()
 {
     ::glfwSetWindowUserPointer(m_window, this);
-    ::glfwSetFramebufferSizeCallback(m_window, ::onResize); 
+    ::glfwSetFramebufferSizeCallback(m_window, ::resize); 
 }
 
-void SimpleApp::run() 
+void SimpleApp::onStartup() 
 {
 }
 
-void SimpleApp::resize(int& width, int& height) 
+void SimpleApp::onResize(const void* sender, ResizeEventArgs e)
 {
 }
 
@@ -132,17 +134,17 @@ Let's take a look at the code together. First, we create a window to paint on us
 
 We then specify a log target (which is completely optional) to be a console window. and tell the app to initialize a `VulkanBackend` for rendering. The `.go()` calls cause the builder to perform the actual object initialization and you will see it frequently when using the fluent API. However, using the fluent builder syntax is also optional - you could in fact create all the instances on your own. All classes follow an [RAII](https://en.cppreference.com/w/cpp/language/raii) idiom, so it is clear from the constructors parameter, which objects are required to be initialized in which order.
 
-Let's go on and take a look at the `SimpleApp` class. It implements the `LiteFX::App` base class, which is an abstract class, that requires us to provide some overrides, that implement the basic application control flow. Most notably, those are:
+Let's go on and take a look at the `SimpleApp` class. It implements the `LiteFX::App` base class. In the constructor, it subscribes to the following events:
 
-- `initialize`, which is called by the `LiteFX::App` constructor.
-- `run`, which is called by the `AppBuilder`, after the app has been initialized. Note that, if you prefer not using the fluent builder syntax, you would have to call it on your own.
-- `resize`, which is called if an resize event occurs.
+- `initializing`, called during startup to setup native callbacks and prepare the app for running.
+- `startup`, called after startup to initialize backends.
+- `resized`, which is called if an resize event occurs.
 
 Since the app itself is agnostic towards the actual window manager, we have to manually invoke the resize event. We do this by storing the application instance pointer using `glfwSetWindowUserPointer` and calling the `resize` method within the *GLFW* framebuffer resize event callback.
 
 ### Running the Application
 
-The app model automatically calls `SampleApp::run` as soon as the app is ready. This method is the main method, that should implement the game loop. If it returns, the application will close. In its most simple form, the method can be implemented like this:
+The app model automatically calls `SampleApp::onStartup` as soon as the app is ready. This method is the main method, that should implement the game loop. If it returns, the application will close. In its most simple form, the method can be implemented like this:
 
 ```cxx
 // TODO: initialize.
@@ -632,18 +634,14 @@ First we wait for the device to finish drawing the remaining frames. This ensure
 
 ### Handling Resize-Events
 
-If you resize the window, you might notice that the backend will return an error. This is caused by the swap chain rendering to an outdated back-buffer. In order to support window resize events, let's implement the `SimpleApp::resize` method:
+If you resize the window, you might notice that the backend will return an error. This is caused by the swap chain rendering to an outdated back-buffer. In order to support window resize events, let's implement the `SimpleApp::onResize` method.
+
+First, let's check if the device has already been initialized, since resize-events may occur before any initialization has been done. If it is not initialized, there's no need for us to do anything else here. However, this during rendering it will be initialized, so let's continue with the implementation:
 
 ```cxx
-App::resize(width, height);
-
 if (m_device == nullptr)
     return;
-```
 
-Since this method is inherited from the `App` base class, we first invoke the base class method. This ensures, that the render area is valid. We then check, if the device has already been initialized, since resize-events may occur before any initialization has been done. If it is not initialized, there's no need for us to do anything else here. However, this during rendering it will be initialized, so let's continue with the implementation:
-
-```cxx
 m_device->wait();
 auto surfaceFormat = m_device->swapChain().surfaceFormat();
 auto renderArea = Size2d(width, height);

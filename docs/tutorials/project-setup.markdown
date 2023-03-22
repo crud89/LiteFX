@@ -27,7 +27,7 @@ Apart from the *CMakeLists.txt* file, we are not going to write any code in this
 Go ahead and open the *CMakeLists.txt* file with any text editor. Copy the following code into the file:
 
 ```cmake
-CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
 PROJECT(MyLiteFXApp LANGUAGES CXX)
 
 SET(CMAKE_CXX_STANDARD 20)
@@ -73,7 +73,7 @@ This loop looks complicated at first, but all it does is to look for the right l
 If you choose to use *vcpkg*, then the *CMakeLists.txt* file will look slightly different. If you want to go ahead with the manual installation, you can skip this section.
 
 ```cmake
-CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
 
 SET(VCPKG_MODULE_DIRECTORY "...")
 SET(CMAKE_TOOLCHAIN_FILE "${VCPKG_MODULE_DIRECTORY}/scripts/buildsystems/vcpkg.cmake")
