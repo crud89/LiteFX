@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if !defined (LITEFX_RENDERING_API)
 #  if defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
@@ -3138,6 +3138,75 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes a resource binding to a descriptor or descriptor set.
+    /// </summary>
+    /// <seealso cref="IDescriptorSet" />
+    /// <seealso cref="IDescriptorSetLayout" />
+    struct LITEFX_RENDERING_API DescriptorBinding {
+    public:
+        using resource_container = Variant<Ref<IBuffer>, Ref<IImage>, Ref<ISampler>>;
+        
+    public:
+        /// <summary>
+        /// The binding point to bind the resource at.
+        /// </summary>
+        UInt32 binding;
+
+        /// <summary>
+        /// The resource to bind.
+        /// </summary>
+        /// <seealso cref="IBuffer" />
+        /// <seealso cref="IImage" />
+        /// <seealso cref="ISampler" />
+        resource_container resource;
+
+        /// <summary>
+        /// The index of the descriptor in a descriptor array at which binding the resource arrays starts.
+        /// </summary>
+        /// <remarks>
+        /// If the resource contains an array, the individual elements (*layers* for images) will be be bound, starting at this descriptor. The first element/layer to be
+        /// bound is identified by <see cref="firstElement" />. The number of elements/layers to be bound is stored in <see cref="elements" />.
+        /// </remarks>
+        /// <seealso cref="firstElement" />
+        /// <seealso cref="elements" />
+        UInt32 firstDescriptor = 0;
+
+        /// <summary>
+        /// The index of the first array element or image layer to bind, starting at <see cref="firstDescriptor" />.
+        /// </summary>
+        /// <remarks>
+        /// This property is ignored, if the resource is a <see cref="ISampler" />.
+        /// </remarks>
+        /// <seealso cref="firstDescriptor" />
+        UInt32 firstElement = 0;
+
+        /// <summary>
+        /// The number of array elements or image layers to bind, starting at <see cref="firstDescriptor" />.
+        /// </summary>
+        /// <remarks>
+        /// This property is ignored, if the resource is a <see cref="ISampler" />.
+        /// </remarks>
+        /// <seealso cref="firstDescriptor" />
+        UInt32 elements = 0;
+
+        /// <summary>
+        /// If the resource is an image, this describes the first level to be bound.
+        /// </summary>
+        /// <remarks>
+        /// This property is ignored, if the resource is a <see cref="ISampler" /> or <see cref="IBuffer" />.
+        /// </remarks>
+        UInt32 firstLevel = 0;
+
+        /// <summary>
+        /// If the resource is an image, this describes the number of levels to be bound.
+        /// </summary>
+        /// <remarks>
+        /// This property is ignored, if the resource is a <see cref="ISampler" /> or <see cref="IBuffer" />.
+        /// </remarks>
+        UInt32 levels = 0;
+    };
+
+    /// <summary>
     /// The interface for a descriptor set layout.
     /// </summary>
     class LITEFX_RENDERING_API IDescriptorSetLayout {
@@ -3223,7 +3292,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
         /// </summary>
-        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
+        /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
         /// <remarks>
         /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of
         /// created descriptor sets. It does this by never releasing them. Instead, when a <see cref="DescriptorSet" /> instance gets destroyed, it should call 
@@ -3246,8 +3315,42 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors = 0) const {
-            return this->getDescriptorSet(descriptors);
+        UniquePtr<IDescriptorSet> allocate(const Array<DescriptorBinding>& bindings = { }) const {
+            return this->allocate(0, bindings);
+        }
+
+        /// <summary>
+        /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
+        /// </summary>
+        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
+        /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
+        /// <returns>The instance of the descriptor set.</returns>
+        /// <seealso cref="IDescriptorLayout" />
+        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const {
+            // Allocate a descriptor set.
+            auto descriptorSet = this->getDescriptorSet(descriptors);
+
+            // Automatically apply the bindings.
+            for (auto& binding : bindings)
+                std::visit(type_switch {
+                    [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
+                    [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                    [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+                }, binding.resource);
+
+            // Return the descriptor set.
+            return descriptorSet;
+        }
+
+        /// <summary>
+        /// Allocates an array of descriptor sets.
+        /// </summary>
+        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
+        /// <returns>The array of descriptor set instances.</returns>
+        /// <seealso cref="allocate" />
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, 0, bindings);
         }
 
         /// <summary>
@@ -3255,10 +3358,27 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
         /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
+        /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const {
-            return this->getDescriptorSets(descriptorSets, descriptors);
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const {
+            // Allocate the descriptor sets.
+            auto sets = this->getDescriptorSets(descriptorSets, descriptors);
+
+            // Automatically apply the bindings.
+            for (size_t i(0); i < bindings.size() && i < descriptorSets; ++i) {
+                auto& descriptorSet = sets[i];
+
+                for (auto& binding : bindings[i])
+                    std::visit(type_switch {
+                        [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
+                        [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                        [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+                    }, binding.resource);
+            }
+
+            // Return the descriptor sets.
+            return sets;
         }
 
         /// <summary>
