@@ -146,13 +146,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
-    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
-
-    // Allocate the descriptor set and bind the camera buffer to it.
-    auto cameraBindings = cameraBindingLayout.allocate();
-    cameraBindings->update(cameraBufferLayout.binding(), *cameraBuffer, 0);
+    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBindingLayout, 0, BufferUsage::Staging);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBindings = cameraBindingLayout.allocate({ { 0, *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraStagingBuffer, *cameraBuffer);
@@ -346,7 +342,8 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
             windowRect = clientRect;
 
             // Switch to fullscreen.
-            ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
+            if (currentVideoMode != nullptr)
+                ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
         }
         else
         {

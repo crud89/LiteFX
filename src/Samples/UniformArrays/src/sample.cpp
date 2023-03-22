@@ -155,36 +155,33 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& staticBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto& cameraBufferLayout = staticBindingLayout.descriptor(0);
-    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
-
-    // Allocate the descriptor set and bind the camera buffer to it.
-    auto staticBindings = staticBindingLayout.allocate();
-    staticBindings->update(cameraBufferLayout.binding(), *cameraBuffer, 0);
+    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", staticBindingLayout, 0, BufferUsage::Staging, 1);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", staticBindingLayout, 0, BufferUsage::Resource, 1);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraStagingBuffer, *cameraBuffer);
 
     // Allocate the lights buffer and the lights staging buffer.
     this->initLights();
-    auto& lightsBufferLayout = staticBindingLayout.descriptor(1);
-    auto lightsStagingBuffer = m_device->factory().createBuffer("Lights Staging", lightsBufferLayout.type(), BufferUsage::Staging, lightsBufferLayout.elementSize(), LIGHT_SOURCES);
-    auto lightsBuffer = m_device->factory().createBuffer("Lights", lightsBufferLayout.type(), BufferUsage::Resource, lightsBufferLayout.elementSize(), LIGHT_SOURCES);
-    staticBindings->update(lightsBufferLayout.binding(), *lightsBuffer, 0);
-
+    auto lightsStagingBuffer = m_device->factory().createBuffer("Lights Staging", staticBindingLayout, 1, BufferUsage::Staging, LIGHT_SOURCES);
+    auto lightsBuffer = m_device->factory().createBuffer("Lights", staticBindingLayout, 1, BufferUsage::Resource, LIGHT_SOURCES);
     auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | ranges::to<Array<const void*>>();
     lightsStagingBuffer->map(lightsData, sizeof(LightBuffer));
     commandBuffer->transfer(*lightsStagingBuffer, *lightsBuffer, 0, 0, LIGHT_SOURCES);
 
+    // Allocate the static bindings.
+    auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *lightsBuffer } });
+
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto& transformBufferLayout = transformBindingLayout.descriptor(0);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
-    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++, 1); });
-    
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+    });
+
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);
     m_device->bufferQueue().waitFor(fence);
@@ -394,7 +391,8 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
             windowRect = clientRect;
 
             // Switch to fullscreen.
-            ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
+            if (currentVideoMode != nullptr)
+                ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
         }
         else
         {

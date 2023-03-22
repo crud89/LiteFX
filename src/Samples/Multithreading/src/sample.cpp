@@ -132,13 +132,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
-    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
-
-    // Allocate the descriptor set and bind the camera buffer to it.
-    auto cameraBindings = cameraBindingLayout.allocate();
-    cameraBindings->update(cameraBufferLayout.binding(), *cameraBuffer, 0);
+    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBindingLayout, 0, BufferUsage::Staging);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBindings = cameraBindingLayout.allocate({ { 0, *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraStagingBuffer, *cameraBuffer);
@@ -146,16 +142,15 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto& transformBufferLayout = transformBindingLayout.descriptor(0);
     auto transformBindings = transformBindingLayout.allocateMultiple(3 * NUM_WORKERS);
     
     // Create a transform buffer array for each worker and bind it to one of the descriptor sets.
     Array<UniquePtr<IBuffer>> transformBuffers(NUM_WORKERS);
-    std::ranges::generate(transformBuffers, [&, i = 0]() mutable { return m_device->factory().createBuffer(fmt::format("Transform {0}", i++), transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3); });
-    
+    std::ranges::generate(transformBuffers, [&, i = 0]() mutable { return m_device->factory().createBuffer(fmt::format("Transform {0}", i++), transformBindingLayout, 0, BufferUsage::Dynamic, 3); });
+
     for (int s(0); s < 3; ++s)
         for (int i(0); i < NUM_WORKERS; ++i)
-            transformBindings[(s * NUM_WORKERS) + i]->update(transformBufferLayout.binding(), *transformBuffers[i], s, 1);
+            transformBindings[(s * NUM_WORKERS) + i]->update(0, *transformBuffers[i], s, 1);
     
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);
@@ -351,7 +346,8 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
             windowRect = clientRect;
 
             // Switch to fullscreen.
-            ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
+            if (currentVideoMode != nullptr)
+                ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
         }
         else
         {

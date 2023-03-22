@@ -96,7 +96,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
         .withFragmentShaderModule("shaders/lighting_pass_fs." + FileExtensions<TRenderBackend>::SHADER);
 
     // Create a render pipeline for each render pass.
-    UniquePtr<RenderPipeline> geometryPipeline = device->buildRenderPipeline(*geometryPass, "Geometry Pipeline")
+    UniquePtr<RenderPipeline> geometryPipeline = device->buildRenderPipeline(*geometryPass, "Geometry")
         .viewport(viewport)
         .scissor(scissor)
         .inputAssembler(inputAssembler)
@@ -108,7 +108,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
         .layout(geometryPassShader->reflectPipelineLayout())
         .shaderProgram(geometryPassShader);
 
-    UniquePtr<RenderPipeline> lightingPipeline = device->buildRenderPipeline(*lightingPass, "Lighting Pipeline")
+    UniquePtr<RenderPipeline> lightingPipeline = device->buildRenderPipeline(*lightingPass, "Lighting")
         .viewport(viewport)
         .scissor(scissor)
         .inputAssembler(inputAssembler)
@@ -152,15 +152,11 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    auto& geometryPipeline = m_device->state().pipeline("Geometry Pipeline");
+    auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
-    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
-
-    // Allocate the descriptor set and bind the camera buffer to it.
-    auto cameraBindings = cameraBindingLayout.allocate();
-    cameraBindings->update(cameraBufferLayout.binding(), *cameraBuffer, 0);
+    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBindingLayout, 0, BufferUsage::Staging);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBindings = cameraBindingLayout.allocate({ { 0, *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraStagingBuffer, *cameraBuffer);
@@ -168,10 +164,12 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto& transformBufferLayout = transformBindingLayout.descriptor(0);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
-    std::ranges::for_each(transformBindings, [&transformBufferLayout, &transformBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *transformBuffer, i++, 1); });
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+    });
 
     // Create buffers for lighting pass, i.e. the view plane vertex and index buffers.
     auto stagedViewPlaneVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, viewPlaneVertices.size());
@@ -185,7 +183,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->transfer(*stagedViewPlaneIndices, *viewPlaneIndexBuffer, 0, 0, viewPlaneIndices.size());
 
     // Create the G-Buffer bindings.
-    auto& lightingPipeline = m_device->state().pipeline("Lighting Pipeline");
+    auto& lightingPipeline = m_device->state().pipeline("Lighting");
     auto gBufferBindings = lightingPipeline.layout()->descriptorSet(0).allocateMultiple(3);
 
     // End and submit the command buffer.
@@ -383,7 +381,8 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
             windowRect = clientRect;
 
             // Switch to fullscreen.
-            ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
+            if (currentVideoMode != nullptr)
+                ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
         }
         else
         {
@@ -427,7 +426,7 @@ void SampleApp::drawFrame()
     {
         // Query state.
         auto& geometryPass = m_device->state().renderPass("Geometry Pass");
-        auto& geometryPipeline = m_device->state().pipeline("Geometry Pipeline");
+        auto& geometryPipeline = m_device->state().pipeline("Geometry");
         auto& transformBuffer = m_device->state().buffer("Transform");
         auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
         auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
@@ -463,7 +462,7 @@ void SampleApp::drawFrame()
     {
         // Query state.
         auto& lightingPass = m_device->state().renderPass("Lighting Pass");
-        auto& lightingPipeline = m_device->state().pipeline("Lighting Pipeline");
+        auto& lightingPipeline = m_device->state().pipeline("Lighting");
         auto& gBufferBinding = m_device->state().descriptorSet(fmt::format("G-Buffer {0}", backBuffer));
         auto& viewPlaneVertexBuffer = m_device->state().vertexBuffer("View Plane Vertices");
         auto& viewPlaneIndexBuffer = m_device->state().indexBuffer("View Plane Indices");
