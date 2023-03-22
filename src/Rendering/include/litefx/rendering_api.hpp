@@ -4369,6 +4369,34 @@ namespace LiteFX::Rendering {
         };
 
         /// <summary>
+        /// Creates a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->createBuffer(descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
+        };
+
+        /// <summary>
         /// Creates a buffer of type <paramref name="type" />.
         /// </summary>
         /// <param name="name">The name of the buffer.</param>
@@ -4380,6 +4408,36 @@ namespace LiteFX::Rendering {
         /// <returns>The instance of the buffer.</returns>
         UniquePtr<IBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
             return this->getBuffer(name, type, usage, elementSize, elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->createBuffer(name, descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
         };
 
         /// <summary>
