@@ -2,6 +2,11 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// Import required extensions.
+extern PFN_vkQueueBeginDebugUtilsLabelEXT   vkQueueBeginDebugUtilsLabel;
+extern PFN_vkQueueEndDebugUtilsLabelEXT     vkQueueEndDebugUtilsLabel;
+extern PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -131,6 +136,35 @@ const QueueType& VulkanQueue::type() const noexcept
 {
 	return m_impl->m_type;
 }
+
+#ifndef NDEBUG
+void VulkanQueue::BeginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
+{
+	VkDebugUtilsLabelEXT labelInfo {
+		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+		.pLabelName = label.c_str(),
+		.color = { color.x() / 255.0f, color.y() / 255.0f,color.z() / 255.0f, 1.0f }
+	};
+	
+	::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
+}
+
+void VulkanQueue::EndDebugRegion() const noexcept
+{
+	::vkQueueEndDebugUtilsLabel(this->handle());
+}
+
+void VulkanQueue::SetDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
+{
+	VkDebugUtilsLabelEXT labelInfo{
+		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+		.pLabelName = label.c_str(),
+		.color = { color.x() / 255.0f, color.y() / 255.0f,color.z() / 255.0f, 1.0f }
+	};
+
+	::vkQueueInsertDebugUtilsLabel(this->handle(), &labelInfo);
+}
+#endif
 
 const QueuePriority& VulkanQueue::priority() const noexcept
 {

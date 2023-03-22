@@ -134,11 +134,6 @@ int main(const int argc, const char** argv)
 	for (uint32_t i(0); i < extensions; ++i)
 		requiredExtensions.push_back(String(extensionNames[i]));
 
-#if defined(DEBUG) && defined(BUILD_VULKAN_BACKEND)
-	// Use debug output, if in debug mode.
-	requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
-
 	// Create the app.
 	try 
 	{

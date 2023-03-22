@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include <pix3.h>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -110,6 +111,23 @@ const QueueType& DirectX12Queue::type() const noexcept
 {
 	return m_impl->m_type;
 }
+
+#if !defined(NDEBUG) && defined(_WIN64)
+void DirectX12Queue::BeginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
+{
+	::PIXBeginEvent(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
+}
+
+void DirectX12Queue::EndDebugRegion() const noexcept
+{
+	::PIXEndEvent(this->handle().Get());
+}
+
+void DirectX12Queue::SetDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
+{
+	::PIXSetMarker(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
+}
+#endif // !defined(NDEBUG) && defined(_WIN64)
 
 const QueuePriority& DirectX12Queue::priority() const noexcept
 {

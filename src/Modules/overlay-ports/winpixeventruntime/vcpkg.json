@@ -1,0 +1,9 @@
+{
+    "name": "winpixeventruntime",
+    "version": "1.0.220810001",
+    "description": "Allows applications to be instrumented with marker events, for use with Microsoft PIX.",
+    "homepage": "https://devblogs.microsoft.com/pix/winpixeventruntime/",
+    "documentation": "https://devblogs.microsoft.com/pix/winpixeventruntime/",
+    "license": null,
+    "supports": "(windows & (x64 | arm64)) & !uwp & !staticcrt"
+}
