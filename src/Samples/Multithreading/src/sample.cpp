@@ -142,15 +142,13 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3 * NUM_WORKERS);
     
     // Create a transform buffer array for each worker and bind it to one of the descriptor sets.
     Array<UniquePtr<IBuffer>> transformBuffers(NUM_WORKERS);
     std::ranges::generate(transformBuffers, [&, i = 0]() mutable { return m_device->factory().createBuffer(fmt::format("Transform {0}", i++), transformBindingLayout, 0, BufferUsage::Dynamic, 3); });
-
-    for (int s(0); s < 3; ++s)
-        for (int i(0); i < NUM_WORKERS; ++i)
-            transformBindings[(s * NUM_WORKERS) + i]->update(0, *transformBuffers[i], s, 1);
+    auto transformBindings = transformBindingLayout.allocateMultiple(3 * NUM_WORKERS, [&transformBuffers](const UInt32& set) -> Array<DescriptorBinding> { 
+        return { { .binding = 0, .resource = *transformBuffers[set % NUM_WORKERS], .firstElement = set / NUM_WORKERS, .elements = 1 } }; 
+    });
     
     // End and submit the command buffer.
     auto fence = m_device->bufferQueue().submit(*commandBuffer);

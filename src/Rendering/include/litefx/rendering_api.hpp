@@ -3357,6 +3357,17 @@ namespace LiteFX::Rendering {
         /// Allocates an array of descriptor sets.
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
+        /// <returns>The array of descriptor set instances.</returns>
+        /// <seealso cref="allocate" />
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const {
+            return this->allocateMultiple(descriptorSets, 0, bindingFactory);
+        }
+
+        /// <summary>
+        /// Allocates an array of descriptor sets.
+        /// </summary>
+        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
         /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
@@ -3370,6 +3381,35 @@ namespace LiteFX::Rendering {
                 auto& descriptorSet = sets[i];
 
                 for (auto& binding : bindings[i])
+                    std::visit(type_switch {
+                        [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
+                        [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                        [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+                    }, binding.resource);
+            }
+
+            // Return the descriptor sets.
+            return sets;
+        }
+
+        /// <summary>
+        /// Allocates an array of descriptor sets.
+        /// </summary>
+        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
+        /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
+        /// <returns>The array of descriptor set instances.</returns>
+        /// <seealso cref="allocate" />
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const {
+            // Allocate the descriptor sets.
+            auto sets = this->getDescriptorSets(descriptorSets, descriptors);
+
+            // Automatically apply the bindings.
+            for (size_t i(0); i < descriptorSets; ++i) {
+                auto& descriptorSet = sets[i];
+                auto bindings = bindingFactory(i);
+
+                for (auto& binding : bindings)
                     std::visit(type_switch {
                         [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
                         [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
