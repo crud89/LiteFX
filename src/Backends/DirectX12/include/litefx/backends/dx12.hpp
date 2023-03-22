@@ -1307,6 +1307,18 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual const QueueType& type() const noexcept override;
 
+#if !defined(NDEBUG) && defined(_WIN64)
+	public:
+		/// <inheritdoc />
+		virtual void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void EndDebugRegion() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+#endif // !defined(NDEBUG) && defined(_WIN64)
+
 	public:
 		/// <inheritdoc />
 		virtual void bind() override;

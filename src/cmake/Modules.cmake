@@ -8,3 +8,6 @@
 IF("${CMAKE_MODULE_PATH}" STREQUAL "")
     SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/" CACHE PATH "Module directory." FORCE)
 ENDIF("${CMAKE_MODULE_PATH}" STREQUAL "")
+
+# Define overlay ports (separated by `;`).
+SET(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/modules/overlay-ports/winpixeventruntime/")

@@ -40,6 +40,42 @@ namespace LiteFX::Math {
 	using Float = float_t;
 	using Double = double_t;
 
+	inline constexpr Byte operator "" _b(unsigned long long int arg) noexcept {
+		return static_cast<Byte>(arg);
+	}
+
+	inline constexpr Int16 operator "" _i16(unsigned long long int arg) noexcept {
+		return static_cast<Int16>(arg);
+	}
+
+	inline constexpr UInt16 operator "" _ui16(unsigned long long int arg) noexcept {
+		return static_cast<UInt16>(arg);
+	}
+
+	inline constexpr Int32 operator "" _i32(unsigned long long int arg) noexcept {
+		return static_cast<Int32>(arg);
+	}
+
+	inline constexpr UInt32 operator "" _ui32(unsigned long long int arg) noexcept {
+		return static_cast<UInt32>(arg);
+	}
+
+	inline constexpr Int64 operator "" _i64(unsigned long long int arg) noexcept {
+		return static_cast<Int64>(arg);
+	}
+
+	inline constexpr UInt64 operator "" _ui64(unsigned long long int arg) noexcept {
+		return static_cast<UInt64>(arg);
+	}
+
+	inline constexpr Float operator "" _f32(long double arg) noexcept {
+		return static_cast<Float>(arg);
+	}
+
+	inline constexpr Double operator "" _f64(long double arg) noexcept {
+		return static_cast<Double>(arg);
+	}
+
 #pragma region Vector
 	class LITEFX_MATH_API Vector1f : public Vector<Float, 1> {
 	public:

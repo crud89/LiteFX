@@ -10,6 +10,7 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 # Resolve package dependencies.
 FIND_PACKAGE(directx-headers CONFIG REQUIRED)
 FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
+FIND_PACKAGE(winpixeventruntime CONFIG REQUIRED)
 
 # Attempt to find the proper dxcompiler.dll file from the Windows SDK and copy it to the runtime directory. This fixes an issue where the wrong (x64) dll
 # is picked up from the Vulkan SDK in x86 builds.
@@ -34,7 +35,6 @@ SET(DIRECTX12_BACKEND_HEADERS
 )
 
 SET(DIRECTX12_BACKEND_SOURCES
-    "src/debug.hpp"
     "src/buffer.h"
     "src/buffer.cpp"
     "src/image.h"
@@ -99,7 +99,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids d3d12 dxcore dxgi dxcompiler
-    PRIVATE unofficial::d3d12-memory-allocator
+    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime
 )
 
 # Add shader modules.

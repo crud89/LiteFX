@@ -4243,6 +4243,35 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Starts a new debug region.
+        /// </summary>
+        /// <remarks>
+        /// This method is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
+        /// </remarks>
+        /// <param name="label">The name of the debug region.</param>
+        /// <param name="color">The color of the debug region.</param>
+        virtual void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        
+        /// <summary>
+        /// Ends the current debug region.
+        /// </summary>
+        /// <remarks>
+        /// This is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
+        /// </remarks>
+        virtual void EndDebugRegion() const noexcept { };
+
+        /// <summary>
+        /// Inserts a debug marker.
+        /// </summary>
+        /// <remarks>
+        /// This method is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
+        /// </remarks>
+        /// <param name="label">The name of the debug marker.</param>
+        /// <param name="color">The color of the debug marker.</param>
+        virtual void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+
+    public:
+        /// <summary>
         /// Binds the queue on the parent device.
         /// </summary>
         /// <seealso cref="isBound" />

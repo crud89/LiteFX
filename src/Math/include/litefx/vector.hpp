@@ -26,6 +26,24 @@ namespace LiteFX::Math {
 		inline Vector(vec_type&& _other) noexcept { operator=(_other); }
 		//virtual inline ~Vector() noexcept = default;
 
+		Vector(T x, T y) noexcept requires(DIM == 2) {
+			m_elements[0] = x;
+			m_elements[1] = y;
+		};
+
+		Vector(T x, T y, T z) noexcept requires(DIM == 3) {
+			m_elements[0] = x;
+			m_elements[1] = y;
+			m_elements[2] = z;
+		};
+
+		Vector(T x, T y, T z, T w) noexcept requires(DIM == 4) {
+			m_elements[0] = x;
+			m_elements[1] = y;
+			m_elements[2] = z;
+			m_elements[3] = w;
+		};
+
 	public:
 		Vector<T, DIM>& operator= (const Vector<T, DIM>& _other) noexcept {
 			std::copy(std::begin(_other.m_elements), std::end(_other.m_elements), std::begin(m_elements));
@@ -58,43 +76,35 @@ namespace LiteFX::Math {
 			return vec_size;
 		}
 
-		template<typename = std::enable_if_t<(DIM > 0)>>
-		inline const scalar_type& x() const noexcept {
+		inline const scalar_type& x() const noexcept requires (DIM > 0) {
 			return m_elements[0];
 		}
 
-		template<typename = std::enable_if_t<(DIM > 0)>>
-		inline scalar_type& x() noexcept {
+		inline scalar_type& x() noexcept requires (DIM > 0) {
 			return m_elements[0];
 		}
 
-		template<typename = std::enable_if_t<(DIM > 1)>>
-		inline const scalar_type& y() const noexcept {
+		inline const scalar_type& y() const noexcept requires (DIM > 1) {
 			return m_elements[1];
 		}
 
-		template<typename = std::enable_if_t<(DIM > 1)>>
-		inline scalar_type& y() noexcept {
+		inline scalar_type& y() noexcept requires (DIM > 1) {
 			return m_elements[1];
 		}
 
-		template<typename = std::enable_if_t<(DIM > 2)>>
-		inline const scalar_type& z() const noexcept {
+		inline const scalar_type& z() const noexcept requires (DIM > 2) {
 			return m_elements[2];
 		}
 
-		template<typename = std::enable_if_t<(DIM > 2)>>
-		inline scalar_type& z() noexcept {
+		inline scalar_type& z() noexcept requires (DIM > 2) {
 			return m_elements[2];
 		}
 
-		template<typename = std::enable_if_t<(DIM > 3)>>
-		inline const scalar_type& w() const noexcept {
+		inline const scalar_type& w() const noexcept requires (DIM > 3) {
 			return m_elements[3];
 		}
 
-		template<typename = std::enable_if_t<(DIM > 3)>>
-		inline scalar_type& w() noexcept {
+		inline scalar_type& w() noexcept requires (DIM > 3) {
 			return m_elements[3];
 		}
 	};
