@@ -177,7 +177,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual void update(const UInt32& binding, const buffer_type& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const = 0;
+        virtual void update(const UInt32& binding, const buffer_type& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 0, const UInt32& firstDescriptor = 0) const = 0;
 
         /// <inheritdoc />
         virtual void update(const UInt32& binding, const image_type& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const = 0;

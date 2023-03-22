@@ -3080,9 +3080,9 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The buffer binding point.</param>
         /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
         /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
-        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set.</param>
+        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
         /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
-        void update(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 1, const UInt32& firstDescriptor = 0) const {
+        void update(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 0, const UInt32& firstDescriptor = 0) const {
             this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor);
         }
 
@@ -3135,6 +3135,75 @@ namespace LiteFX::Rendering {
         virtual void doUpdate(const UInt32& binding, const IImage& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const = 0;
         virtual void doUpdate(const UInt32& binding, const ISampler& sampler, const UInt32& descriptor) const = 0;
         virtual void doAttach(const UInt32& binding, const IImage& image) const = 0;
+    };
+
+    /// <summary>
+    /// Describes a resource binding to a descriptor or descriptor set.
+    /// </summary>
+    /// <seealso cref="IDescriptorSet" />
+    /// <seealso cref="IDescriptorSetLayout" />
+    struct LITEFX_RENDERING_API DescriptorBinding {
+    public:
+        using resource_container = Variant<Ref<IBuffer>, Ref<IImage>, Ref<ISampler>>;
+        
+    public:
+        /// <summary>
+        /// The binding point to bind the resource at.
+        /// </summary>
+        UInt32 binding;
+
+        /// <summary>
+        /// The resource to bind.
+        /// </summary>
+        /// <seealso cref="IBuffer" />
+        /// <seealso cref="IImage" />
+        /// <seealso cref="ISampler" />
+        resource_container resource;
+
+        /// <summary>
+        /// The index of the descriptor in a descriptor array at which binding the resource arrays starts.
+        /// </summary>
+        /// <remarks>
+        /// If the resource contains an array, the individual elements (*layers* for images) will be be bound, starting at this descriptor. The first element/layer to be
+        /// bound is identified by <see cref="firstElement" />. The number of elements/layers to be bound is stored in <see cref="elements" />.
+        /// </remarks>
+        /// <seealso cref="firstElement" />
+        /// <seealso cref="elements" />
+        UInt32 firstDescriptor = 0;
+
+        /// <summary>
+        /// The index of the first array element or image layer to bind, starting at <see cref="firstDescriptor" />.
+        /// </summary>
+        /// <remarks>
+        /// This property is ignored, if the resource is a <see cref="ISampler" />.
+        /// </remarks>
+        /// <seealso cref="firstDescriptor" />
+        UInt32 firstElement = 0;
+
+        /// <summary>
+        /// The number of array elements or image layers to bind, starting at <see cref="firstDescriptor" />.
+        /// </summary>
+        /// <remarks>
+        /// This property is ignored, if the resource is a <see cref="ISampler" />.
+        /// </remarks>
+        /// <seealso cref="firstDescriptor" />
+        UInt32 elements = 0;
+
+        /// <summary>
+        /// If the resource is an image, this describes the first level to be bound.
+        /// </summary>
+        /// <remarks>
+        /// This property is ignored, if the resource is a <see cref="ISampler" /> or <see cref="IBuffer" />.
+        /// </remarks>
+        UInt32 firstLevel = 0;
+
+        /// <summary>
+        /// If the resource is an image, this describes the number of levels to be bound.
+        /// </summary>
+        /// <remarks>
+        /// This property is ignored, if the resource is a <see cref="ISampler" /> or <see cref="IBuffer" />.
+        /// </remarks>
+        UInt32 levels = 0;
     };
 
     /// <summary>
@@ -3223,7 +3292,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
         /// </summary>
-        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
+        /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
         /// <remarks>
         /// Allocating a new descriptor set may be an expensive operation. To improve performance, and prevent fragmentation, the descriptor set layout keeps track of
         /// created descriptor sets. It does this by never releasing them. Instead, when a <see cref="DescriptorSet" /> instance gets destroyed, it should call 
@@ -3246,8 +3315,53 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors = 0) const {
-            return this->getDescriptorSet(descriptors);
+        UniquePtr<IDescriptorSet> allocate(const Array<DescriptorBinding>& bindings = { }) const {
+            return this->allocate(0, bindings);
+        }
+
+        /// <summary>
+        /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
+        /// </summary>
+        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
+        /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
+        /// <returns>The instance of the descriptor set.</returns>
+        /// <seealso cref="IDescriptorLayout" />
+        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const {
+            // Allocate a descriptor set.
+            auto descriptorSet = this->getDescriptorSet(descriptors);
+
+            // Automatically apply the bindings.
+            for (auto& binding : bindings)
+                std::visit(type_switch {
+                    [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
+                    [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                    [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+                }, binding.resource);
+
+            // Return the descriptor set.
+            return descriptorSet;
+        }
+
+        /// <summary>
+        /// Allocates an array of descriptor sets.
+        /// </summary>
+        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
+        /// <returns>The array of descriptor set instances.</returns>
+        /// <seealso cref="allocate" />
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, 0, bindings);
+        }
+
+        /// <summary>
+        /// Allocates an array of descriptor sets.
+        /// </summary>
+        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
+        /// <returns>The array of descriptor set instances.</returns>
+        /// <seealso cref="allocate" />
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const {
+            return this->allocateMultiple(descriptorSets, 0, bindingFactory);
         }
 
         /// <summary>
@@ -3255,10 +3369,56 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
         /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
+        /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const {
-            return this->getDescriptorSets(descriptorSets, descriptors);
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const {
+            // Allocate the descriptor sets.
+            auto sets = this->getDescriptorSets(descriptorSets, descriptors);
+
+            // Automatically apply the bindings.
+            for (size_t i(0); i < bindings.size() && i < descriptorSets; ++i) {
+                auto& descriptorSet = sets[i];
+
+                for (auto& binding : bindings[i])
+                    std::visit(type_switch {
+                        [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
+                        [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                        [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+                    }, binding.resource);
+            }
+
+            // Return the descriptor sets.
+            return sets;
+        }
+
+        /// <summary>
+        /// Allocates an array of descriptor sets.
+        /// </summary>
+        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
+        /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
+        /// <returns>The array of descriptor set instances.</returns>
+        /// <seealso cref="allocate" />
+        Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const {
+            // Allocate the descriptor sets.
+            auto sets = this->getDescriptorSets(descriptorSets, descriptors);
+
+            // Automatically apply the bindings.
+            for (size_t i(0); i < descriptorSets; ++i) {
+                auto& descriptorSet = sets[i];
+                auto bindings = bindingFactory(i);
+
+                for (auto& binding : bindings)
+                    std::visit(type_switch {
+                        [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
+                        [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                        [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+                    }, binding.resource);
+            }
+
+            // Return the descriptor sets.
+            return sets;
         }
 
         /// <summary>
@@ -4369,6 +4529,34 @@ namespace LiteFX::Rendering {
         };
 
         /// <summary>
+        /// Creates a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->createBuffer(descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
+        };
+
+        /// <summary>
         /// Creates a buffer of type <paramref name="type" />.
         /// </summary>
         /// <param name="name">The name of the buffer.</param>
@@ -4378,8 +4566,70 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
             return this->getBuffer(name, type, usage, elementSize, elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->createBuffer(name, descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
+        };
+        
+        /// <summary>
+        /// Creates a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->createBuffer(name, descriptor.type(), usage, elementSize, elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
         };
 
         /// <summary>

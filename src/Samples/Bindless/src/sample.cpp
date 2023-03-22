@@ -149,23 +149,21 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::CameraData);
-    auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
-    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
-
-    // Allocate the descriptor set and bind the camera buffer to it.
-    auto cameraBindings = cameraBindingLayout.allocate();
-    cameraBindings->update(cameraBufferLayout.binding(), *cameraBuffer, 0);
+    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", cameraBindingLayout, 0, BufferUsage::Staging);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBindings = cameraBindingLayout.allocate({ { 0, *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraStagingBuffer, *cameraBuffer);
 
     // Next, we create the descriptor sets for the draw-data buffer
     auto& drawDataBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::DrawData);
-    auto& drawDataBufferLayout = drawDataBindingLayout.descriptor(0);
-    auto drawDataBindings = drawDataBindingLayout.allocateMultiple(3);
-    auto drawDataBuffer = m_device->factory().createBuffer("Draw Data", drawDataBufferLayout.type(), BufferUsage::Dynamic, drawDataBufferLayout.elementSize(), 3);
-    std::ranges::for_each(drawDataBindings, [&drawDataBufferLayout, &drawDataBuffer, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(drawDataBufferLayout.binding(), *drawDataBuffer, i++); });
+    auto drawDataBuffer = m_device->factory().createBuffer("Draw Data", drawDataBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto drawDataBindings = drawDataBindingLayout.allocateMultiple(3, {
+        { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 0, .elements = 1 } },
+        { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 1, .elements = 1 } },
+        { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 2, .elements = 1 } },
+    });
 
     // Next, we create the descriptor set for the instance buffer. The shader is designed to handle an arbitrary number of instances using an unbounded buffer array, so
     // we have to specify how many instances we are actually allocating. We do this only once and then bind this array to all command buffers, since we do not need to 
@@ -174,13 +172,11 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // to the indices currently not in use (i.e. each instance buffer needs to be inside the array multiple times, once for each frame in flight). This is allowed for 
     // unbounded descriptor arrays, as long as we ensure, not to overwrite descriptors that are currently in use.
     auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::InstanceData);
-    auto& instanceBufferLayout = instanceBindingLayout.descriptor(0);
-    auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES);
 
     // Since we are using an unstructured storage buffer, we need to specify the element size manually.
-    auto instanceStagingBuffer = m_device->factory().createBuffer("Instance Staging", instanceBufferLayout.type(), BufferUsage::Staging, sizeof(InstanceBuffer), NUM_INSTANCES);
-    auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBufferLayout.type(), BufferUsage::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
-    instanceBinding->update(instanceBufferLayout.binding(), *instanceBuffer, 0, NUM_INSTANCES);
+    auto instanceStagingBuffer = m_device->factory().createBuffer("Instance Staging", instanceBindingLayout, 0, BufferUsage::Staging, sizeof(InstanceBuffer), NUM_INSTANCES);
+    auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBindingLayout, 0, BufferUsage::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
+    auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES, { { 0, *instanceBuffer } });
     instanceStagingBuffer->map(reinterpret_cast<const void*>(&instanceData), sizeof(instanceData));
     commandBuffer->transfer(*instanceStagingBuffer, *instanceBuffer, 0, 0, NUM_INSTANCES);
 
@@ -383,7 +379,8 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
             windowRect = clientRect;
 
             // Switch to fullscreen.
-            ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
+            if (currentVideoMode != nullptr)
+                ::glfwSetWindowMonitor(m_window.get(), currentMonitor, 0, 0, currentVideoMode->width, currentVideoMode->height, currentVideoMode->refreshRate);
         }
         else
         {

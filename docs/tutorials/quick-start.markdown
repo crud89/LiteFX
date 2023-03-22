@@ -546,7 +546,7 @@ auto& transformBindingLayout = m_pipeline->layout()->descriptorSet(1);
 auto& transformBufferLayout = transformBindingLayout.descriptor(0);
 m_perFrameBindings = transformBindingLayout.allocateMultiple(3);
 m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
-std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++); });
+std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++, 1); });
 ```
 
 ### Drawing Frames

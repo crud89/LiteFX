@@ -59,15 +59,16 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
 
     auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
     Array<VkDescriptorBufferInfo> bufferInfos;
+    UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
 
     switch (descriptorLayout.descriptorType())
     {
     case DescriptorType::ConstantBuffer:
     {
-        descriptorWrite.descriptorCount = elements;
+        descriptorWrite.descriptorCount = elementCount;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-        bufferInfos.resize(elements);
+        bufferInfos.resize(elementCount);
         std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
             return VkDescriptorBufferInfo {
                 .buffer = buffer.handle(),
@@ -84,10 +85,10 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
     case DescriptorType::ByteAddressBuffer:
     case DescriptorType::RWByteAddressBuffer:
     {
-        descriptorWrite.descriptorCount = elements;
+        descriptorWrite.descriptorCount = elementCount;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-        bufferInfos.resize(elements);
+        bufferInfos.resize(elementCount);
         std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
             return VkDescriptorBufferInfo {
                 .buffer = buffer.handle(),
@@ -110,7 +111,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
             .buffer = buffer.handle(),
             .format = VK_FORMAT_UNDEFINED,
             .offset = buffer.alignedElementSize() * bufferElement,     // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
-            .range = buffer.alignedElementSize() * elements
+            .range = buffer.alignedElementSize() * elementCount
         };
 
         VkBufferView bufferView;
@@ -131,7 +132,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
             .buffer = buffer.handle(),
             .format = VK_FORMAT_UNDEFINED,
             .offset = buffer.alignedElementSize() * bufferElement,     // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
-            .range = buffer.alignedElementSize() * elements
+            .range = buffer.alignedElementSize() * elementCount
         };
 
         VkBufferView bufferView;

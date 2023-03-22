@@ -115,6 +115,21 @@ namespace LiteFX {
 	using Variant = std::variant<T...>;
 
 	/// <summary>
+	/// A switch that can be used to select a callable from a parameter type.
+	/// </summary>
+	template<class... TArgs> 
+	struct type_switch : TArgs... { 
+		using TArgs::operator()...; 
+	};
+
+	/// <summary>
+	/// Represents a copyable and assignable reference wrapper.
+	/// </summary>
+	/// <typeparam name="T">The base type of the reference.</typeparam>
+	template <class T>
+	using Ref = std::reference_wrapper<T>;
+
+	/// <summary>
 	/// Creates a new unique pointer.
 	/// </summary>
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
