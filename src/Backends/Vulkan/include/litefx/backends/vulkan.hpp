@@ -831,6 +831,18 @@ namespace LiteFX::Rendering::Backends {
 		virtual void end() const override;
 
 		/// <inheritdoc />
+		virtual void setViewports(Span<const IViewport*> viewports) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setScissors(Span<const IScissor*> scissors) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setStencilRef(const UInt32& stencilRef) const noexcept override;
+
+		/// <inheritdoc />
 		virtual void generateMipMaps(IVulkanImage& image) noexcept override;
 
 		/// <inheritdoc />

@@ -276,6 +276,9 @@ const bool& VulkanRenderPipeline::alphaToCoverage() const noexcept
 void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
+
+	// Set the line width (in case it has been changed). Currently we do not expose an command buffer interface for this, since this is mostly unsupported anyway and has no D3D12 counter-part.
+	::vkCmdSetLineWidth(commandBuffer.handle(), std::as_const(*m_impl->m_rasterizer).lineWidth());
 }
 
 void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept

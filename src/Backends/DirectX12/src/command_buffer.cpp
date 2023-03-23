@@ -95,6 +95,34 @@ void DirectX12CommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) const noexcept
+{
+	auto vps = viewports |
+		std::views::transform([](const auto& viewport) { return CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth()); }) |
+		ranges::to<Array<D3D12_VIEWPORT>>();
+
+	this->handle()->RSSetViewports(vps.size(), vps.data());
+}
+
+void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const noexcept
+{
+	auto scs = scissors |
+		std::views::transform([](const auto& scissor) { return CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height()); }) |
+		ranges::to<Array<D3D12_RECT>>();
+
+	this->handle()->RSSetScissorRects(scs.size(), scs.data());
+}
+
+void DirectX12CommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept
+{
+	this->handle()->OMSetBlendFactor(&blendFactors[0]);
+}
+
+void DirectX12CommandBuffer::setStencilRef(const UInt32& stencilRef) const noexcept
+{
+	this->handle()->OMSetStencilRef(stencilRef);
+}
+
 void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 {
 	struct Parameters {
