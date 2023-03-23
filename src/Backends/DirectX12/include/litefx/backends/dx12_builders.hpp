@@ -387,12 +387,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual DirectX12RenderPipelineBuilder& inputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler) override;
 
 		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& viewport(SharedPtr<IViewport> viewport) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& scissor(SharedPtr<IScissor> scissor) override;
-
-		/// <inheritdoc />
 		virtual DirectX12RenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
 	};
 

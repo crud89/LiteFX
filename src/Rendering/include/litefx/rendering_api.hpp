@@ -4019,38 +4019,6 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Returns the viewports, the render pipeline can draw to.
-        /// </summary>
-        /// <returns>The viewports, the render pipeline can draw to.</returns>
-        virtual Array<const IViewport*> viewports() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the scissors of the render pipeline.
-        /// </summary>
-        /// <returns>The scissors of the render pipeline.</returns>
-        virtual Array<const IScissor*> scissors() const noexcept = 0;
-
-        /// <summary>
-        /// Returns a reference to the stencil reference value.
-        /// </summary>
-        /// <remarks>
-        /// The stencil reference value is used by the stencil test and is set with each call to <see cref="RenderPipeline::use" />.
-        /// </remarks>
-        /// <returns>A reference to the stencil reference value.</returns>
-        virtual UInt32& stencilRef() const noexcept = 0;
-
-        /// <summary>
-        /// Returns a reference of the constant blend factors for the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// You can change the values inside this vector reference to influence the constant blend factors. Blend factors are set for all render targets that use the
-        /// blend factors <c>BlendFactor::ConstantColor</c>, <c>BlendFactor::OneMinusConstantColor</c>, <c>BlendFactor::ConstantAlpha</c> or 
-        /// <c>BlendFactor::OneMinusConstantAlpha</c>. They are set on each call to <see cref="RenderPipeline::use" />.
-        /// </remarks>
-        /// <returns>A reference of the constant blend factors for the pipeline.</returns>
-        virtual Vector4f& blendFactors() const noexcept = 0;
-
-        /// <summary>
         /// Returns <c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.
         /// </summary>
         /// <remarks>

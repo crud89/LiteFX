@@ -391,12 +391,6 @@ namespace LiteFX::Rendering::Backends {
 		virtual VulkanRenderPipelineBuilder& inputAssembler(SharedPtr<VulkanInputAssembler> inputAssembler) override;
 
 		/// <inheritdoc />
-		virtual VulkanRenderPipelineBuilder& viewport(SharedPtr<IViewport> viewport) override;
-
-		/// <inheritdoc />
-		virtual VulkanRenderPipelineBuilder& scissor(SharedPtr<IScissor> scissor) override;
-
-		/// <inheritdoc />
 		virtual VulkanRenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
 	};
 

@@ -871,7 +871,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
 		/// <param name="name">The optional name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
-		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage = false, const String& name = "");
+		explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, const bool enableAlphaToCoverage = false, const String& name = "");
 		DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
 		DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
 		virtual ~DirectX12RenderPipeline() noexcept;
@@ -899,18 +899,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual SharedPtr<DirectX12Rasterizer> rasterizer() const noexcept override;
-
-		/// <inheritdoc />
-		virtual Array<const IViewport*> viewports() const noexcept override;
-
-		/// <inheritdoc />
-		virtual Array<const IScissor*> scissors() const noexcept override;
-
-		/// <inheritdoc />
-		virtual UInt32& stencilRef() const noexcept override;
-
-		/// <inheritdoc />
-		virtual Vector4f& blendFactors() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const bool& alphaToCoverage() const noexcept override;
