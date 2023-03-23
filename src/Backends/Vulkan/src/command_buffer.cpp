@@ -145,7 +145,7 @@ void VulkanCommandBuffer::setViewports(const IViewport* viewport) const noexcept
 void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noexcept
 {
 	auto scs = scissors |
-		std::views::transform([](const auto& scissor) { return VkRect2D{ VkOffset2D{.x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, VkExtent2D{.width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} }; }) |
+		std::views::transform([](const auto& scissor) { return VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} }; }) |
 		ranges::to<Array<VkRect2D>>();
 
 	::vkCmdSetScissorWithCount(this->handle(), static_cast<UInt32>(scs.size()), scs.data());
@@ -153,7 +153,7 @@ void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noex
 
 void VulkanCommandBuffer::setScissors(const IScissor* scissor) const noexcept
 {
-	auto s = VkRect2D{ VkOffset2D{.x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, VkExtent2D{.width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };
+	auto s = VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())},  { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };
 	::vkCmdSetScissorWithCount(this->handle(), 1, &s);
 }
 

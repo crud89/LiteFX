@@ -114,6 +114,10 @@ public:
 		inputState.vertexAttributeDescriptionCount = static_cast<UInt32>(vertexInputAttributes.size());
 		inputState.pVertexAttributeDescriptions = vertexInputAttributes.data();
 
+		// Setup viewport state (still required, even if all viewports and scissors are dynamic).
+		VkPipelineViewportStateCreateInfo viewportState = {};
+		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+
 		// Setup dynamic state.
 		Array<VkDynamicState> dynamicStates { 
 			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, 
@@ -197,7 +201,7 @@ public:
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineInfo.pVertexInputState = &inputState;
 		pipelineInfo.pInputAssemblyState = &inputAssembly;
-		pipelineInfo.pViewportState = nullptr;
+		pipelineInfo.pViewportState = &viewportState;
 		pipelineInfo.pRasterizationState = &rasterizerState;
 		pipelineInfo.pMultisampleState = &multisampling;
 		pipelineInfo.pColorBlendState = &colorBlending;
