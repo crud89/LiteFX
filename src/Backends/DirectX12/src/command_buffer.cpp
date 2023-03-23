@@ -104,6 +104,12 @@ void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) cons
 	this->handle()->RSSetViewports(vps.size(), vps.data());
 }
 
+void DirectX12CommandBuffer::setViewports(const IViewport* viewport) const noexcept
+{
+	auto vp = CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth());
+	this->handle()->RSSetViewports(1, &vp);
+}
+
 void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const noexcept
 {
 	auto scs = scissors |
@@ -111,6 +117,12 @@ void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const n
 		ranges::to<Array<D3D12_RECT>>();
 
 	this->handle()->RSSetScissorRects(scs.size(), scs.data());
+}
+
+void DirectX12CommandBuffer::setScissors(const IScissor* scissor) const noexcept
+{
+	auto s = CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height());
+	this->handle()->RSSetScissorRects(1, &s);
 }
 
 void DirectX12CommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept

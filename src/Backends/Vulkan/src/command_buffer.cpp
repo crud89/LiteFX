@@ -136,6 +136,12 @@ void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const n
 	::vkCmdSetViewportWithCount(this->handle(), static_cast<UInt32>(vps.size()), vps.data());
 }
 
+void VulkanCommandBuffer::setViewports(const IViewport* viewport) const noexcept
+{
+	auto vp = VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() };
+	::vkCmdSetViewportWithCount(this->handle(), 1, &vp);
+}
+
 void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noexcept
 {
 	auto scs = scissors |
@@ -143,6 +149,12 @@ void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noex
 		ranges::to<Array<VkRect2D>>();
 
 	::vkCmdSetScissorWithCount(this->handle(), static_cast<UInt32>(scs.size()), scs.data());
+}
+
+void VulkanCommandBuffer::setScissors(const IScissor* scissor) const noexcept
+{
+	auto s = VkRect2D{ VkOffset2D{.x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, VkExtent2D{.width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };
+	::vkCmdSetScissorWithCount(this->handle(), 1, &s);
 }
 
 void VulkanCommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept

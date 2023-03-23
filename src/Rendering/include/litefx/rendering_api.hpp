@@ -3984,10 +3984,22 @@ namespace LiteFX::Rendering {
         virtual void setViewports(Span<const IViewport*> viewports) const noexcept = 0;
 
         /// <summary>
+        /// Sets the viewport used for the subsequent draw calls.
+        /// </summary>
+        /// <param name="viewport">The viewport used for the subsequent draw calls.</param>
+        virtual void setViewports(const IViewport* viewport) const noexcept = 0;
+
+        /// <summary>
         /// Sets the scissor rectangles used for the subsequent draw calls.
         /// </summary>
         /// <param name="scissors">The scissor rectangles used for the subsequent draw calls.</param>
         virtual void setScissors(Span<const IScissor*> scissors) const noexcept = 0;
+
+        /// <summary>
+        /// Sets the scissor rectangle used for the subsequent draw calls.
+        /// </summary>
+        /// <param name="scissors">The scissor rectangle used for the subsequent draw calls.</param>
+        virtual void setScissors(const IScissor* scissor) const noexcept = 0;
 
         /// <summary>
         /// Sets the blend factors for the subsequent draw calls.

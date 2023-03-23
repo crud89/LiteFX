@@ -834,7 +834,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual void setViewports(Span<const IViewport*> viewports) const noexcept override;
 
 		/// <inheritdoc />
+		virtual void setViewports(const IViewport* viewport) const noexcept override;
+
+		/// <inheritdoc />
 		virtual void setScissors(Span<const IScissor*> scissors) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setScissors(const IScissor* scissor) const noexcept override;
 
 		/// <inheritdoc />
 		virtual void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
