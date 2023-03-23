@@ -50,7 +50,7 @@ const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
-void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, SharedPtr<IScissor> scissor, SharedPtr<IInputAssembler>& inputAssemblerState)
+void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
@@ -97,8 +97,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
 
     // Create a render pipeline for each render pass.
     UniquePtr<RenderPipeline> geometryPipeline = device->buildRenderPipeline(*geometryPass, "Geometry")
-        .viewport(viewport)
-        .scissor(scissor)
         .inputAssembler(inputAssembler)
         .rasterizer(device->buildRasterizer()
             .polygonMode(PolygonMode::Solid)
@@ -109,8 +107,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
         .shaderProgram(geometryPassShader);
 
     UniquePtr<RenderPipeline> lightingPipeline = device->buildRenderPipeline(*lightingPass, "Lighting")
-        .viewport(viewport)
-        .scissor(scissor)
         .inputAssembler(inputAssembler)
         .rasterizer(device->buildRasterizer()
             .polygonMode(PolygonMode::Solid)
@@ -240,7 +236,7 @@ void SampleApp::onStartup()
         m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
 
         // Initialize resources.
-        ::initRenderGraph(backend, m_viewport, m_scissor, m_inputAssembler);
+        ::initRenderGraph(backend, m_inputAssembler);
         this->initBuffers(backend);
 
         return true;
@@ -437,6 +433,8 @@ void SampleApp::drawFrame()
         geometryPass.begin(backBuffer);
         auto& commandBuffer = geometryPass.activeFrameBuffer().commandBuffer(0);
         commandBuffer.use(geometryPipeline);
+        commandBuffer.setViewports(m_viewport.get());
+        commandBuffer.setScissors(m_scissor.get());
 
         // Get the amount of time that has passed since the first frame.
         auto now = std::chrono::high_resolution_clock::now();
@@ -471,6 +469,8 @@ void SampleApp::drawFrame()
         lightingPass.begin(backBuffer);
         auto& commandBuffer = lightingPass.activeFrameBuffer().commandBuffer(0);
         commandBuffer.use(lightingPipeline);
+        commandBuffer.setViewports(m_viewport.get());
+        commandBuffer.setScissors(m_scissor.get());
 
         // Bind the G-Buffer.
         lightingPass.updateAttachments(gBufferBinding);

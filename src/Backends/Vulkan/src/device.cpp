@@ -209,7 +209,7 @@ public:
 		// Allow geometry and tessellation shader stages.
 		VkPhysicalDeviceFeatures deviceFeatures = {
 			.geometryShader = true,
-			.tessellationShader = true,
+			.tessellationShader = true
 		};
 
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
@@ -238,10 +238,17 @@ public:
 			.timelineSemaphore = true
 		};
 
+		// Enable extended dynamic state.
+		VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeatures = {
+			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
+			.pNext = &deviceFeatures12,
+			.extendedDynamicState = true
+		};
+
 		// Define the device itself.
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pNext = &deviceFeatures12;
+		createInfo.pNext = &extendedDynamicStateFeatures;
 		createInfo.queueCreateInfoCount = static_cast<UInt32>(queueCreateInfos.size());
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.pEnabledFeatures = &deviceFeatures;

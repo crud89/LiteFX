@@ -473,18 +473,6 @@ namespace LiteFX::Rendering {
         virtual TDerived& inputAssembler(SharedPtr<input_assembler_type> inputAssembler) = 0;
 
         /// <summary>
-        /// Uses the provided viewport to initialize the render pipeline. Can be invoked multiple times.
-        /// </summary>
-        /// <param name="viewport">A viewport to initialize the render pipeline with.</param>
-        virtual TDerived& viewport(SharedPtr<IViewport> viewport) = 0;
-
-        /// <summary>
-        /// Uses the provided scissor to initialize the render pipeline. Can be invoked multiple times.
-        /// </summary>
-        /// <param name="scissor">A scissor to initialize the render pipeline with.</param>
-        virtual TDerived& scissor(SharedPtr<IScissor> scissor) = 0;
-
-        /// <summary>
         /// Enables <i>Alpha-to-Coverage</i> multi-sampling on the pipeline.
         /// </summary>
         /// <remarks>

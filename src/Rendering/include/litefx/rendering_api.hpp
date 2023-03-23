@@ -3977,6 +3977,46 @@ namespace LiteFX::Rendering {
             this->cmdDrawIndexed(vertexBuffer, indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
         }
 
+        /// <summary>
+        /// Sets the viewports used for the subsequent draw calls.
+        /// </summary>
+        /// <param name="viewports">The viewports used for the subsequent draw calls.</param>
+        virtual void setViewports(Span<const IViewport*> viewports) const noexcept = 0;
+
+        /// <summary>
+        /// Sets the viewport used for the subsequent draw calls.
+        /// </summary>
+        /// <param name="viewport">The viewport used for the subsequent draw calls.</param>
+        virtual void setViewports(const IViewport* viewport) const noexcept = 0;
+
+        /// <summary>
+        /// Sets the scissor rectangles used for the subsequent draw calls.
+        /// </summary>
+        /// <param name="scissors">The scissor rectangles used for the subsequent draw calls.</param>
+        virtual void setScissors(Span<const IScissor*> scissors) const noexcept = 0;
+
+        /// <summary>
+        /// Sets the scissor rectangle used for the subsequent draw calls.
+        /// </summary>
+        /// <param name="scissors">The scissor rectangle used for the subsequent draw calls.</param>
+        virtual void setScissors(const IScissor* scissor) const noexcept = 0;
+
+        /// <summary>
+        /// Sets the blend factors for the subsequent draw calls.
+        /// </summary>
+        /// <remarks>
+        /// Blend factors are set for all render targets that use the blend modes <c>BlendFactor::ConstantColor</c>, <c>BlendFactor::OneMinusConstantColor</c>, <c>BlendFactor::ConstantAlpha</c> or 
+        /// <c>BlendFactor::OneMinusConstantAlpha</c>.
+        /// </remarks>
+        /// <param name="blendFactors">The blend factors for the subsequent draw calls.</param>
+        virtual void setBlendFactors(const Vector4f& blendFactors) const noexcept = 0;
+
+        /// <summary>
+        /// Sets the stencil reference for the subsequent draw calls.
+        /// </summary>
+        /// <param name="stencilRef">The stencil reference for the subsequent draw calls.</param>
+        virtual void setStencilRef(const UInt32& stencilRef) const noexcept = 0;
+
     private:
         virtual void cmdBarrier(const IBarrier& barrier, const bool& invert) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
@@ -4017,38 +4057,6 @@ namespace LiteFX::Rendering {
         SharedPtr<IRasterizer> rasterizer() const noexcept {
             return this->getRasterizer();
         }
-
-        /// <summary>
-        /// Returns the viewports, the render pipeline can draw to.
-        /// </summary>
-        /// <returns>The viewports, the render pipeline can draw to.</returns>
-        virtual Array<const IViewport*> viewports() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the scissors of the render pipeline.
-        /// </summary>
-        /// <returns>The scissors of the render pipeline.</returns>
-        virtual Array<const IScissor*> scissors() const noexcept = 0;
-
-        /// <summary>
-        /// Returns a reference to the stencil reference value.
-        /// </summary>
-        /// <remarks>
-        /// The stencil reference value is used by the stencil test and is set with each call to <see cref="RenderPipeline::use" />.
-        /// </remarks>
-        /// <returns>A reference to the stencil reference value.</returns>
-        virtual UInt32& stencilRef() const noexcept = 0;
-
-        /// <summary>
-        /// Returns a reference of the constant blend factors for the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// You can change the values inside this vector reference to influence the constant blend factors. Blend factors are set for all render targets that use the
-        /// blend factors <c>BlendFactor::ConstantColor</c>, <c>BlendFactor::OneMinusConstantColor</c>, <c>BlendFactor::ConstantAlpha</c> or 
-        /// <c>BlendFactor::OneMinusConstantAlpha</c>. They are set on each call to <see cref="RenderPipeline::use" />.
-        /// </remarks>
-        /// <returns>A reference of the constant blend factors for the pipeline.</returns>
-        virtual Vector4f& blendFactors() const noexcept = 0;
 
         /// <summary>
         /// Returns <c>true</c>, if the pipeline uses <i>Alpha-to-Coverage</i> multi-sampling.

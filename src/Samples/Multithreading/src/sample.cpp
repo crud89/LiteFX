@@ -53,7 +53,7 @@ const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
-void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, SharedPtr<IScissor> scissor, SharedPtr<IInputAssembler>& inputAssemblerState)
+void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
@@ -88,8 +88,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IViewport> viewport, Sha
 
     // Create a render pipeline.
     UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
-        .viewport(viewport)
-        .scissor(scissor)
         .inputAssembler(inputAssembler)
         .rasterizer(device->buildRasterizer()
             .polygonMode(PolygonMode::Solid)
@@ -201,7 +199,7 @@ void SampleApp::onStartup()
         m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
 
         // Initialize resources.
-        ::initRenderGraph(backend, m_viewport, m_scissor, m_inputAssembler);
+        ::initRenderGraph(backend, m_inputAssembler);
         this->initBuffers(backend);
 
         return true;
@@ -393,6 +391,8 @@ void SampleApp::drawObject(const IRenderPass* renderPass, int index, int backBuf
 
     // Set the pipeline on the command buffer.
     commandBuffer.use(geometryPipeline);
+    commandBuffer.setViewports(m_viewport.get());
+    commandBuffer.setScissors(m_scissor.get());
 
     // Compute world transform and update the transform buffer.
     transform[index].World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[index]);

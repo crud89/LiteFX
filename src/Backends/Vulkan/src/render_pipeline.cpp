@@ -17,16 +17,12 @@ private:
 	SharedPtr<VulkanShaderProgram> m_program;
 	SharedPtr<VulkanInputAssembler> m_inputAssembler;
 	SharedPtr<VulkanRasterizer> m_rasterizer;
-	Array<SharedPtr<IViewport>> m_viewports;
-	Array<SharedPtr<IScissor>> m_scissors;
-	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
-	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
 	const VulkanRenderPass& m_renderPass;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors) :
-		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(viewports), m_scissors(scissors)
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
+		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
 	}
 
@@ -118,16 +114,14 @@ public:
 		inputState.vertexAttributeDescriptionCount = static_cast<UInt32>(vertexInputAttributes.size());
 		inputState.pVertexAttributeDescriptions = vertexInputAttributes.data();
 
-		// Setup viewport state.
+		// Setup viewport state (still required, even if all viewports and scissors are dynamic).
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-		viewportState.viewportCount = static_cast<UInt32>(m_viewports.size());
-		viewportState.scissorCount = static_cast<UInt32>(m_scissors.size());
 
 		// Setup dynamic state.
 		Array<VkDynamicState> dynamicStates { 
-			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT, 
-			VkDynamicState::VK_DYNAMIC_STATE_SCISSOR, 
+			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, 
+			VkDynamicState::VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT, 
 			VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH, 
 			VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS,
 			VkDynamicState::VK_DYNAMIC_STATE_STENCIL_REFERENCE
@@ -172,10 +166,6 @@ public:
 		colorBlending.logicOp = VK_LOGIC_OP_COPY;
 		colorBlending.attachmentCount = static_cast<UInt32>(colorBlendAttachments.size());
 		colorBlending.pAttachments = colorBlendAttachments.data();
-		colorBlending.blendConstants[0] = m_blendFactors.x();
-		colorBlending.blendConstants[1] = m_blendFactors.y();
-		colorBlending.blendConstants[2] = m_blendFactors.z();
-		colorBlending.blendConstants[3] = m_blendFactors.w();
 
 		// Setup depth/stencil state.
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
@@ -241,8 +231,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, viewports, scissors)), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, const bool& enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
 
@@ -282,30 +272,6 @@ SharedPtr<VulkanRasterizer> VulkanRenderPipeline::rasterizer() const noexcept
 	return m_impl->m_rasterizer;
 }
 
-Array<const IViewport*> VulkanRenderPipeline::viewports() const noexcept 
-{
-	return m_impl->m_viewports |
-		std::views::transform([](const SharedPtr<IViewport>& viewport) { return viewport.get(); }) |
-		ranges::to<Array<const IViewport*>>();
-}
-
-Array<const IScissor*> VulkanRenderPipeline::scissors() const noexcept 
-{
-	return m_impl->m_scissors |
-		std::views::transform([](const SharedPtr<IScissor>& scissor) { return scissor.get(); }) |
-		ranges::to<Array<const IScissor*>>();
-}
-
-UInt32& VulkanRenderPipeline::stencilRef() const noexcept
-{
-	return m_impl->m_stencilRef;
-}
-
-Vector4f& VulkanRenderPipeline::blendFactors() const noexcept
-{
-	return m_impl->m_blendFactors;
-}
-
 const bool& VulkanRenderPipeline::alphaToCoverage() const noexcept
 {
 	return m_impl->m_alphaToCoverage;
@@ -313,23 +279,10 @@ const bool& VulkanRenderPipeline::alphaToCoverage() const noexcept
 
 void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
 {
-	auto viewports = m_impl->m_viewports |
-		std::views::transform([](const auto& viewport) { return VkViewport{.x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth()}; }) |
-		ranges::to<Array<VkViewport>>();
-	
-	auto scissors = m_impl->m_scissors |
-		std::views::transform([](const auto& scissor) { return VkRect2D{VkOffset2D{.x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, VkExtent2D{.width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };}) |
-		ranges::to<Array<VkRect2D>>();
-
-	Float blendFactor[4] = { m_impl->m_blendFactors.x(), m_impl->m_blendFactors.y(), m_impl->m_blendFactors.z(), m_impl->m_blendFactors.w() };
-
-	// Bind the pipeline and setup the dynamic state.
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
-	::vkCmdSetViewport(commandBuffer.handle(), 0, static_cast<UInt32>(viewports.size()), viewports.data());
-	::vkCmdSetScissor(commandBuffer.handle(), 0, static_cast<UInt32>(scissors.size()), scissors.data());
+
+	// Set the line width (in case it has been changed). Currently we do not expose an command buffer interface for this, since this is mostly unsupported anyway and has no D3D12 counter-part.
 	::vkCmdSetLineWidth(commandBuffer.handle(), std::as_const(*m_impl->m_rasterizer).lineWidth());
-	::vkCmdSetBlendConstants(commandBuffer.handle(), blendFactor);
-	::vkCmdSetStencilReference(commandBuffer.handle(), VK_STENCIL_FACE_FRONT_AND_BACK, m_impl->m_stencilRef);
 }
 
 void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept
@@ -351,8 +304,6 @@ private:
 	SharedPtr<VulkanShaderProgram> m_program;
 	SharedPtr<VulkanInputAssembler> m_inputAssembler;
 	SharedPtr<VulkanRasterizer> m_rasterizer;
-	Array<SharedPtr<IViewport>> m_viewports;
-	Array<SharedPtr<IScissor>> m_scissors;
 	bool m_alphaToCoverage{ false };
 
 public:
@@ -381,8 +332,6 @@ void VulkanRenderPipelineBuilder::build()
 	instance->m_impl->m_layout = std::move(m_impl->m_layout);
 	instance->m_impl->m_inputAssembler = std::move(m_impl->m_inputAssembler);
 	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
-	instance->m_impl->m_viewports = std::move(m_impl->m_viewports);
-	instance->m_impl->m_scissors = std::move(m_impl->m_scissors);
 	instance->m_impl->m_alphaToCoverage = std::move(m_impl->m_alphaToCoverage);
 	instance->handle() = instance->m_impl->initialize();
 }
@@ -428,18 +377,6 @@ VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::inputAssembler(SharedP
 #endif
 
 	m_impl->m_inputAssembler = inputAssembler;
-	return *this;
-}
-
-VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::viewport(SharedPtr<IViewport> viewport)
-{
-	m_impl->m_viewports.push_back(viewport);
-	return *this;
-}
-
-VulkanRenderPipelineBuilder& VulkanRenderPipelineBuilder::scissor(SharedPtr<IScissor> scissor)
-{
-	m_impl->m_scissors.push_back(scissor);
 	return *this;
 }
 

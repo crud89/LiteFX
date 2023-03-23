@@ -831,6 +831,24 @@ namespace LiteFX::Rendering::Backends {
 		virtual void end() const override;
 
 		/// <inheritdoc />
+		virtual void setViewports(Span<const IViewport*> viewports) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setViewports(const IViewport* viewport) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setScissors(Span<const IScissor*> scissors) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setScissors(const IScissor* scissor) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
+
+		/// <inheritdoc />
+		virtual void setStencilRef(const UInt32& stencilRef) const noexcept override;
+
+		/// <inheritdoc />
 		virtual void generateMipMaps(IVulkanImage& image) noexcept override;
 
 		/// <inheritdoc />
@@ -893,7 +911,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
 		/// <param name="name">The optional name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
-		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, Array<SharedPtr<IViewport>> viewports, Array<SharedPtr<IScissor>> scissors, const bool& enableAlphaToCoverage = false, const String& name = "");
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, const bool& enableAlphaToCoverage = false, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -921,18 +939,6 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual SharedPtr<VulkanRasterizer> rasterizer() const noexcept override;
-
-		/// <inheritdoc />
-		virtual Array<const IViewport*> viewports() const noexcept override;
-
-		/// <inheritdoc />
-		virtual Array<const IScissor*> scissors() const noexcept override;
-
-		/// <inheritdoc />
-		virtual UInt32& stencilRef() const noexcept override;
-
-		/// <inheritdoc />
-		virtual Vector4f& blendFactors() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const bool& alphaToCoverage() const noexcept override;
