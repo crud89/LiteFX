@@ -127,6 +127,46 @@ void VulkanCommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const noexcept
+{
+	auto vps = viewports |
+		std::views::transform([](const auto& viewport) { return VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() }; }) |
+		ranges::to<Array<VkViewport>>();
+
+	::vkCmdSetViewportWithCount(this->handle(), static_cast<UInt32>(vps.size()), vps.data());
+}
+
+void VulkanCommandBuffer::setViewports(const IViewport* viewport) const noexcept
+{
+	auto vp = VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() };
+	::vkCmdSetViewportWithCount(this->handle(), 1, &vp);
+}
+
+void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noexcept
+{
+	auto scs = scissors |
+		std::views::transform([](const auto& scissor) { return VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} }; }) |
+		ranges::to<Array<VkRect2D>>();
+
+	::vkCmdSetScissorWithCount(this->handle(), static_cast<UInt32>(scs.size()), scs.data());
+}
+
+void VulkanCommandBuffer::setScissors(const IScissor* scissor) const noexcept
+{
+	auto s = VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())},  { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };
+	::vkCmdSetScissorWithCount(this->handle(), 1, &s);
+}
+
+void VulkanCommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept
+{
+	::vkCmdSetBlendConstants(this->handle(), &blendFactors[0]);
+}
+
+void VulkanCommandBuffer::setStencilRef(const UInt32& stencilRef) const noexcept
+{
+	::vkCmdSetStencilReference(this->handle(), VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef);
+}
+
 void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 {
 	// Use a native barrier for improved performance (we update it for each level).

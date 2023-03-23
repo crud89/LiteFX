@@ -71,13 +71,13 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
 - [CMake](https://cmake.org/download/) (version 3.20 or higher). †
-- Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later (required to build the Vulkan backend).
+- Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
 † CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using older Visual Studio versions, consider installing CMake manually.
 
-‡ Note that the LunarG Vulkan SDK (1.2.141.0 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
+‡ Note that the LunarG Vulkan SDK (1.3.204.1 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
 #### Cloning the Repository
 
@@ -129,7 +129,7 @@ You can customize the engine build, according to your specific needs. The most s
 
 Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `BUILD_` prefix and are described in detail below:
 
-- `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.2.148.0 or later to be installed on your system).
+- `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
 - `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
 - `BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
 - `BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †

@@ -203,6 +203,13 @@ int width, height;
 m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
 ```
 
+While we are at it, we can also initialize the viewport and scissor rectangle here:
+
+```cxx
+m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+```
+
 We store the device in a variable `m_device`, which we define as a member variable of `SampleApp`, since we are going to make heavy use of it throughout the whole application.
 
 ```cxx
@@ -236,17 +243,10 @@ m_renderPass = m_device->buildRenderPass()
 
 Next on our list is creating the render pipeline. The singular here is important, because in most applications you will have many pipelines created from one render pass. A pipeline contains the whole state that is used to render a buffer. It tells the GPU how to interpret inputs, how to store the outputs and which shader programs to use. More importantly, it tells the GPU about the shader program parameters and how they are layed out. A pipeline itself is a state object, that can be bound to a render pass. There can only be one pipeline active at a time and since there can also be only one render pass active at a time, there's only one active pipeline at each point in the drawing timeline. Changing the pipeline state may be an expensive operation and you should not do this frequently. Instead, group together objects that can be rendered with the same pipeline and draw all of them before switching to another pipeline.
 
-The first important states, a pipeline stores are the *Viewport* and *Scissor* states. Both tell the GPU which pixels to draw to the output render area, however a scissor does not imply a viewport transform (that is a scaling of the image to fit the viewport). For our example, we set both (the viewport and the scissor) to the whole size of our frame buffer. Note that it is possible to have multiple viewports and scissors. In order to do this, we use the `width` and `height` we've requested earlier.
-
-Furthermore, each pipeline can be assigned an ID, which must be unique for the render pass and a name, which is soley used for debugging purposes. Let's start by creating our viewport and scissor and then continue with building our pipeline state.
+To build a pipeline, we pass a reference to the parent render pass to the pipeline builder interface:
 
 ```cxx
-m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-
-m_pipeline = m_renderPass->buildRenderPipeline("Basic Pipeline")
-	.withViewport(m_viewport)
-	.withScissor(m_scissor)
+m_pipeline = device->buildRenderPipeline(*m_renderPass, "Basic Pipeline")
 ```
 
 ##### Input Assembler State
@@ -575,6 +575,13 @@ Next up, we want to handle drawing geometry. Each geometry draw call requires a 
 
 ```cxx
 commandBuffer.use(*m_pipeline);
+```
+
+Before any drawing can be done, it is also important to set the viewport and scissor rectangle for the subsequent draw calls.
+
+```cxx
+commandBuffer.setViewports(m_viewport.get());
+commandBuffer.setScissor(m_scissor.get());
 ```
 
 Now it's time to update the transform buffer for our object. We want to animate a rotating triangle, so we can use a clock to dictate the amount of rotation. We use the duration since the beginning to compute a rotation matrix, that we use to update the transform buffer:

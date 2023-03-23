@@ -17,16 +17,14 @@ private:
 	SharedPtr<DirectX12ShaderProgram> m_program;
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
-	Array<SharedPtr<IViewport>> m_viewports;
-	Array<SharedPtr<IScissor>> m_scissors;
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
 	const DirectX12RenderPass& m_renderPass;
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors) :
-		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_viewports(std::move(viewports)), m_scissors(std::move(scissors))
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
+		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
 	}
 
@@ -227,8 +225,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, Array<SharedPtr<IViewport>>&& viewports, Array<SharedPtr<IScissor>>&& scissors, const bool enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer, std::move(viewports), std::move(scissors))), DirectX12PipelineState(nullptr)
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, const bool enableAlphaToCoverage, const String& name) :
+	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)), DirectX12PipelineState(nullptr)
 {
 	if (!name.empty())
 		this->name() = name;
@@ -265,30 +263,6 @@ SharedPtr<DirectX12Rasterizer> DirectX12RenderPipeline::rasterizer() const noexc
 	return m_impl->m_rasterizer;
 }
 
-Array<const IViewport*> DirectX12RenderPipeline::viewports() const noexcept
-{
-	return m_impl->m_viewports |
-		std::views::transform([](const SharedPtr<IViewport>& viewport) { return viewport.get(); }) |
-		ranges::to<Array<const IViewport*>>();
-}
-
-Array<const IScissor*> DirectX12RenderPipeline::scissors() const noexcept
-{
-	return m_impl->m_scissors |
-		std::views::transform([](const SharedPtr<IScissor>& scissor) { return scissor.get(); }) |
-		ranges::to<Array<const IScissor*>>();
-}
-
-UInt32& DirectX12RenderPipeline::stencilRef() const noexcept
-{
-	return m_impl->m_stencilRef;
-}
-
-Vector4f& DirectX12RenderPipeline::blendFactors() const noexcept
-{
-	return m_impl->m_blendFactors;
-}
-
 const bool& DirectX12RenderPipeline::alphaToCoverage() const noexcept
 {
 	return m_impl->m_alphaToCoverage;
@@ -296,23 +270,8 @@ const bool& DirectX12RenderPipeline::alphaToCoverage() const noexcept
 
 void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
-	// TODO: Check if the arguments are right, or if they are in absolute coordinates.
-	auto viewports = m_impl->m_viewports |
-		std::views::transform([](const SharedPtr<IViewport>& viewport) { return CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth()); }) |
-		ranges::to<Array<D3D12_VIEWPORT>>();
-
-	auto scissors= m_impl->m_scissors |
-		std::views::transform([](const SharedPtr<IScissor>& scissor) { return CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height()); }) |
-		ranges::to<Array<D3D12_RECT>>();
-
-	Float blendFactor[4] = { m_impl->m_blendFactors.x(), m_impl->m_blendFactors.y(), m_impl->m_blendFactors.z(), m_impl->m_blendFactors.w() };
-
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
-	commandBuffer.handle()->RSSetViewports(viewports.size(), viewports.data());
-	commandBuffer.handle()->RSSetScissorRects(scissors.size(), scissors.data());
-	commandBuffer.handle()->OMSetStencilRef(m_impl->m_stencilRef);
-	commandBuffer.handle()->OMSetBlendFactor(blendFactor);
 	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 }
 
@@ -330,8 +289,6 @@ private:
 	SharedPtr<DirectX12ShaderProgram> m_program;
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
 	SharedPtr<DirectX12Rasterizer> m_rasterizer;
-	Array<SharedPtr<IViewport>> m_viewports;
-	Array<SharedPtr<IScissor>> m_scissors;
 	bool m_alphaToCoverage{ false };
 
 public:
@@ -360,8 +317,6 @@ void DirectX12RenderPipelineBuilder::build()
 	instance->m_impl->m_program = std::move(m_impl->m_program);
 	instance->m_impl->m_inputAssembler = std::move(m_impl->m_inputAssembler);
 	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
-	instance->m_impl->m_viewports = std::move(m_impl->m_viewports);
-	instance->m_impl->m_scissors = std::move(m_impl->m_scissors);
 	instance->m_impl->m_alphaToCoverage = std::move(m_impl->m_alphaToCoverage);
 	instance->handle() = instance->m_impl->initialize();
 }
@@ -407,18 +362,6 @@ DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::inputAssembler(S
 #endif
 
 	m_impl->m_inputAssembler = inputAssembler;
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::viewport(SharedPtr<IViewport> viewport)
-{
-	m_impl->m_viewports.push_back(viewport);
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::scissor(SharedPtr<IScissor> scissor)
-{
-	m_impl->m_scissors.push_back(scissor);
 	return *this;
 }
 
