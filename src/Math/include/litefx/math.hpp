@@ -101,14 +101,14 @@ namespace LiteFX::Math {
 	public:
 		Vector1f(const glm::f32vec1& v) noexcept;
 		Vector1f(glm::f32vec1&& v) noexcept;
-		inline operator glm::f32vec1() noexcept;
+		inline operator glm::f32vec1() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector1f(const DirectX::XMVECTOR& v) noexcept;
 		Vector1f(DirectX::XMVECTOR&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
 #endif
 	};
 
@@ -137,14 +137,14 @@ namespace LiteFX::Math {
 	public:
 		Vector1u(const glm::u32vec1& v) noexcept;
 		Vector1u(glm::u32vec1&& v) noexcept;
-		inline operator glm::u32vec1() noexcept;
+		inline operator glm::u32vec1() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector1u(const DirectX::XMVECTOR& v) noexcept;
 		Vector1u(DirectX::XMVECTOR&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
 #endif
 	};
 
@@ -173,7 +173,7 @@ namespace LiteFX::Math {
 	public:
 		Vector2f(const glm::f32vec2& v) noexcept;
 		Vector2f(glm::f32vec2&& v) noexcept;
-		inline operator glm::f32vec2() noexcept;
+		inline operator glm::f32vec2() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -182,8 +182,8 @@ namespace LiteFX::Math {
 		Vector2f(DirectX::XMVECTOR&& v) noexcept;
 		Vector2f(const DirectX::XMFLOAT2& v) noexcept;
 		Vector2f(DirectX::XMFLOAT2&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMFLOAT2() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMFLOAT2() const noexcept;
 #endif
 	};
 
@@ -212,7 +212,7 @@ namespace LiteFX::Math {
 	public:
 		Vector2u(const glm::u32vec2& v) noexcept;
 		Vector2u(glm::u32vec2&& v) noexcept;
-		inline operator glm::u32vec2() noexcept;
+		inline operator glm::u32vec2() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -221,8 +221,8 @@ namespace LiteFX::Math {
 		Vector2u(DirectX::XMVECTOR&& v) noexcept;
 		Vector2u(const DirectX::XMUINT2& v) noexcept;
 		Vector2u(DirectX::XMUINT2&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMUINT2() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMUINT2() const noexcept;
 #endif
 	};
 
@@ -251,7 +251,7 @@ namespace LiteFX::Math {
 	public:
 		Vector2i(const glm::i32vec2& v) noexcept;
 		Vector2i(glm::i32vec2&& v) noexcept;
-		inline operator glm::i32vec2() noexcept;
+		inline operator glm::i32vec2() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -260,8 +260,8 @@ namespace LiteFX::Math {
 		Vector2i(DirectX::XMVECTOR&& v) noexcept;
 		Vector2i(const DirectX::XMINT2& v) noexcept;
 		Vector2i(DirectX::XMINT2&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMINT2() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMINT2() const noexcept;
 #endif
 	};
 
@@ -290,7 +290,7 @@ namespace LiteFX::Math {
 	public:
 		Vector3f(const glm::f32vec3& v) noexcept;
 		Vector3f(glm::f32vec3&& v) noexcept;
-		inline operator glm::f32vec3() noexcept;
+		inline operator glm::f32vec3() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -299,8 +299,8 @@ namespace LiteFX::Math {
 		Vector3f(DirectX::XMVECTOR&& v) noexcept;
 		Vector3f(const DirectX::XMFLOAT3& v) noexcept;
 		Vector3f(DirectX::XMFLOAT3&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMFLOAT3() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMFLOAT3() const noexcept;
 #endif
 	};
 
@@ -329,7 +329,7 @@ namespace LiteFX::Math {
 	public:
 		Vector3u(const glm::u32vec3& v) noexcept;
 		Vector3u(glm::u32vec3&& v) noexcept;
-		inline operator glm::u32vec3() noexcept;
+		inline operator glm::u32vec3() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -338,8 +338,8 @@ namespace LiteFX::Math {
 		Vector3u(DirectX::XMVECTOR&& v) noexcept;
 		Vector3u(const DirectX::XMUINT3& v) noexcept;
 		Vector3u(DirectX::XMUINT3&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMUINT3() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMUINT3() const noexcept;
 #endif
 	};
 
@@ -368,7 +368,7 @@ namespace LiteFX::Math {
 	public:
 		Vector3i(const glm::i32vec3& v) noexcept;
 		Vector3i(glm::i32vec3&& v) noexcept;
-		inline operator glm::i32vec3() noexcept;
+		inline operator glm::i32vec3() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -377,8 +377,8 @@ namespace LiteFX::Math {
 		Vector3i(DirectX::XMVECTOR&& v) noexcept;
 		Vector3i(const DirectX::XMINT3& v) noexcept;
 		Vector3i(DirectX::XMINT3&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMINT3() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMINT3() const noexcept;
 #endif
 	};
 
@@ -407,7 +407,7 @@ namespace LiteFX::Math {
 	public:
 		Vector4f(const glm::f32vec4& v) noexcept;
 		Vector4f(glm::f32vec4&& v) noexcept;
-		inline operator glm::f32vec4() noexcept;
+		inline operator glm::f32vec4() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -416,8 +416,8 @@ namespace LiteFX::Math {
 		Vector4f(DirectX::XMVECTOR&& v) noexcept;
 		Vector4f(const DirectX::XMFLOAT4& v) noexcept;
 		Vector4f(DirectX::XMFLOAT4&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMFLOAT4() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMFLOAT4() const noexcept;
 #endif
 	};
 
@@ -446,7 +446,7 @@ namespace LiteFX::Math {
 	public:
 		Vector4u(const glm::u32vec4& v) noexcept;
 		Vector4u(glm::u32vec4&& v) noexcept;
-		inline operator glm::u32vec4() noexcept;
+		inline operator glm::u32vec4() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -455,8 +455,8 @@ namespace LiteFX::Math {
 		Vector4u(DirectX::XMVECTOR&& v) noexcept;
 		Vector4u(const DirectX::XMUINT4& v) noexcept;
 		Vector4u(DirectX::XMUINT4&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMUINT4() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMUINT4() const noexcept;
 #endif
 	};
 
@@ -485,7 +485,7 @@ namespace LiteFX::Math {
 	public:
 		Vector4i(const glm::i32vec4& v) noexcept;
 		Vector4i(glm::i32vec4&& v) noexcept;
-		inline operator glm::i32vec4() noexcept;
+		inline operator glm::i32vec4() const noexcept;
 #endif
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
@@ -494,8 +494,8 @@ namespace LiteFX::Math {
 		Vector4i(DirectX::XMVECTOR&& v) noexcept;
 		Vector4i(const DirectX::XMINT4& v) noexcept;
 		Vector4i(DirectX::XMINT4&& v) noexcept;
-		inline operator DirectX::XMVECTOR() noexcept;
-		inline operator DirectX::XMINT4() noexcept;
+		inline operator DirectX::XMVECTOR() const noexcept;
+		inline operator DirectX::XMINT4() const noexcept;
 #endif
 	};
 
