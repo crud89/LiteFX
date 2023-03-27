@@ -25,7 +25,7 @@ private:
 	mutable std::mutex m_mutex;
 	bool m_bound;
 	const VulkanDevice& m_device;
-	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_sharedCommandBuffers;
+	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_submittedCommandBuffers;
 
 public:
 	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
@@ -41,13 +41,14 @@ public:
 public:
 	void release()
 	{
+		m_submittedCommandBuffers.clear();
+
 		if (m_timelineSemaphore != nullptr)
 			::vkDestroySemaphore(m_device.handle(), m_timelineSemaphore, nullptr);
 
 		if (m_bound)
 			::vkDestroyCommandPool(m_device.handle(), m_commandPool, nullptr);
 
-		m_sharedCommandBuffers.clear();
 		m_bound = false;
 		m_commandPool = {};
 		m_timelineSemaphore = {};
@@ -183,19 +184,14 @@ void VulkanQueue::release()
 	m_impl->release();
 }
 
-UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
+SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
 {
 	return this->createCommandBuffer(false, beginRecording);
 }
 
-UniquePtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& secondary, const bool& beginRecording) const
+SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& secondary, const bool& beginRecording) const
 {
-	return makeUnique<VulkanCommandBuffer>(*this, beginRecording, !secondary);
-}
-
-UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer) const
-{
-	return this->submit(commandBuffer, {}, {}, {});
+	return makeShared<VulkanCommandBuffer>(*this, beginRecording, !secondary);
 }
 
 UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
@@ -205,18 +201,13 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
 
 UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
 {
-	auto fence = this->submit(*commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
-	m_impl->m_sharedCommandBuffers.push_back({ fence, commandBuffer });
+	if (commandBuffer == nullptr)
+		throw InvalidArgumentException("The command buffer must be initialized.");
 
-	return fence;
-}
-
-UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
-{
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// End the command buffer.
-	commandBuffer.end();
+	commandBuffer->end();
 
 	// Create an array of all signal semaphores.
 	Array<VkSemaphore> semaphoresToSignal(signalSemaphores.size());
@@ -224,11 +215,12 @@ UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer, Span<VkSema
 	semaphoresToSignal.insert(semaphoresToSignal.begin(), m_impl->m_timelineSemaphore);
 
 	// Submit the command buffer.
+	auto fence = ++m_impl->m_fenceValue;
 	Array<UInt64> waitValues(waitForSemaphores.size(), 0);
 	Array<UInt64> signalValues(semaphoresToSignal.size(), 0);
-	signalValues[0] = ++m_impl->m_fenceValue;
+	signalValues[0] = fence;
 
-	VkTimelineSemaphoreSubmitInfo timelineInfo {
+	VkTimelineSemaphoreSubmitInfo timelineInfo{
 		.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
 		.pNext = nullptr,
 		.waitSemaphoreValueCount = static_cast<UInt32>(waitValues.size()),
@@ -237,14 +229,14 @@ UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer, Span<VkSema
 		.pSignalSemaphoreValues = signalValues.data()
 	};
 
-	VkSubmitInfo submitInfo {
+	VkSubmitInfo submitInfo{
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.pNext = &timelineInfo,
 		.waitSemaphoreCount = static_cast<UInt32>(waitForSemaphores.size()),
 		.pWaitSemaphores = waitForSemaphores.data(),
 		.pWaitDstStageMask = waitForStages.data(),
 		.commandBufferCount = 1,
-		.pCommandBuffers = &commandBuffer.handle(),
+		.pCommandBuffers = &commandBuffer->handle(),
 		.signalSemaphoreCount = static_cast<UInt32>(semaphoresToSignal.size()),
 		.pSignalSemaphores = semaphoresToSignal.data()
 	};
@@ -252,12 +244,9 @@ UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer, Span<VkSema
 	// Submit the command buffer to the transfer queue.
 	raiseIfFailed<RuntimeException>(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
-	return signalValues[0];
-}
-
-UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffers) const
-{
-	return this->submit(commandBuffers, {}, {}, {});
+	// Add the command buffer to the submitted command buffers list and return the fence.
+	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
+	return fence;
 }
 
 UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const
@@ -267,18 +256,9 @@ UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& co
 
 UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
 {
-	auto buffers = commandBuffers |
-		std::views::transform([](auto& buffer) { return buffer.get(); }) |
-		ranges::to<Array<const VulkanCommandBuffer*>>();
+	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
+		throw InvalidArgumentException("At least one command buffer is not initialized.");
 
-	auto fence = this->submit(buffers, waitForSemaphores, waitForStages, signalSemaphores);
-	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_sharedCommandBuffers.push_back({ fence, buffer }); });
-
-	return fence;
-}
-
-UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
-{
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// End the command buffer.
@@ -295,11 +275,12 @@ UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffe
 	semaphoresToSignal.insert(semaphoresToSignal.begin(), m_impl->m_timelineSemaphore);
 
 	// Submit the command buffer.
+	auto fence = ++m_impl->m_fenceValue;
 	Array<UInt64> waitValues(waitForSemaphores.size(), 0);
 	Array<UInt64> signalValues(semaphoresToSignal.size(), 0);
-	signalValues[0] = ++m_impl->m_fenceValue;
+	signalValues[0] = fence;
 
-	VkTimelineSemaphoreSubmitInfo timelineInfo {
+	VkTimelineSemaphoreSubmitInfo timelineInfo{
 		.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
 		.pNext = nullptr,
 		.waitSemaphoreValueCount = static_cast<UInt32>(waitValues.size()),
@@ -308,7 +289,7 @@ UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffe
 		.pSignalSemaphoreValues = signalValues.data()
 	};
 
-	VkSubmitInfo submitInfo {
+	VkSubmitInfo submitInfo{
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.pNext = &timelineInfo,
 		.waitSemaphoreCount = static_cast<UInt32>(waitForSemaphores.size()),
@@ -323,7 +304,9 @@ UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffe
 	// Submit the command buffer to the transfer queue.
 	raiseIfFailed<RuntimeException>(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
-	return signalValues[0];
+	// Add the command buffers to the submitted command buffers list and return the fence.
+	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
+	return fence;
 }
 
 void VulkanQueue::waitFor(const UInt64& fence) const noexcept
@@ -346,14 +329,14 @@ void VulkanQueue::waitFor(const UInt64& fence) const noexcept
 	}
 
 	// Release all shared command buffers until this point.
-	const auto [from, to] = std::ranges::remove_if(m_impl->m_sharedCommandBuffers, [this, &completedValue](auto& pair) { 
+	const auto [from, to] = std::ranges::remove_if(m_impl->m_submittedCommandBuffers, [this, &completedValue](auto& pair) {
 		if (std::get<0>(pair) > completedValue)
 			return false;
 
 		this->releaseSharedState(*std::get<1>(pair));
 		return true;
 	});
-	m_impl->m_sharedCommandBuffers.erase(from, to);
+	m_impl->m_submittedCommandBuffers.erase(from, to);
 }
 
 UInt64 VulkanQueue::currentFence() const noexcept

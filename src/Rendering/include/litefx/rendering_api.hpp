@@ -4276,7 +4276,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All command buffers, the frame buffer stores.</returns>
         /// <seealso cref="commandBuffer" />
-        Array<const ICommandBuffer*> commandBuffers() const noexcept {
+        Array<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
             return this->getCommandBuffers();
         }
 
@@ -4287,7 +4287,9 @@ namespace LiteFX::Rendering {
         /// <returns>A command buffer that records draw commands for the frame buffer</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
         /// <seealso cref="commandBuffers" />
-        virtual const ICommandBuffer& commandBuffer(const UInt32& index) const = 0;
+        SharedPtr<const ICommandBuffer> commandBuffer(const UInt32& index) const {
+            return this->getCommandBuffer(index);
+        }
 
         /// <summary>
         /// Returns the images that store the output attachments for the render targets of the <see cref="RenderPass" />.
@@ -4317,7 +4319,8 @@ namespace LiteFX::Rendering {
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:
-        virtual Array<const ICommandBuffer*> getCommandBuffers() const noexcept = 0;
+        virtual SharedPtr<const ICommandBuffer> getCommandBuffer(const UInt32& index) const noexcept = 0;
+        virtual Array<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
         virtual Array<const IImage*> getImages() const noexcept = 0;
     };
 
@@ -4595,21 +4598,8 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
         /// <returns>The instance of the command buffer.</returns>
-        UniquePtr<ICommandBuffer> createCommandBuffer(const bool& beginRecording = false) const {
+        SharedPtr<ICommandBuffer> createCommandBuffer(const bool& beginRecording = false) const {
             return this->getCommandBuffer(beginRecording);
-        }
-
-        /// <summary>
-        /// Submits a single command buffer and inserts a fence to wait for it.
-        /// </summary>
-        /// <remarks>
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffer.</returns>
-        /// <seealso cref="waitFor" />
-        UInt64 submit(const ICommandBuffer& commandBuffer) const {
-            return this->submitCommandBuffer(commandBuffer);
         }
 
         /// <summary>
@@ -4626,19 +4616,6 @@ namespace LiteFX::Rendering {
         /// <seealso cref="waitFor" />
         UInt64 submit(SharedPtr<const ICommandBuffer> commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
-        }
-
-        /// <summary>
-        /// Submits a set of command buffers and inserts a fence to wait for them.
-        /// </summary>
-        /// <remarks>
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffers.</returns>
-        /// <seealso cref="waitFor" />
-        UInt64 submit(const Array<const ICommandBuffer*>& commandBuffers) const {
-            return this->submitCommandBuffers(commandBuffers);
         }
 
         /// <summary>
@@ -4682,10 +4659,8 @@ namespace LiteFX::Rendering {
         virtual UInt64 currentFence() const noexcept = 0;
 
     private:
-        virtual UniquePtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const = 0;
-        virtual UInt64 submitCommandBuffer(const ICommandBuffer& commandBuffer) const = 0;
+        virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const = 0;
         virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
-        virtual UInt64 submitCommandBuffers(const Array<const ICommandBuffer*>& commandBuffers) const = 0;
         virtual UInt64 submitCommandBuffers(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
         
     protected:

@@ -1065,10 +1065,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanCommandBuffer& commandBuffer(const UInt32& index) const override;
+		virtual SharedPtr<const VulkanCommandBuffer> commandBuffer(const UInt32& index) const override;
 
 		/// <inheritdoc />
-		virtual Array<const VulkanCommandBuffer*> commandBuffers() const noexcept override;
+		virtual Array<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
 		virtual Array<const IVulkanImage*> images() const noexcept override;
@@ -1355,34 +1355,6 @@ namespace LiteFX::Rendering::Backends {
 		/// Submits a single command buffer and inserts a fence to wait for it.
 		/// </summary>
 		/// <remarks>
-		/// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-		/// </remarks>
-		/// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
-		/// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
-		/// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
-		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
-		/// <returns>The value of the fence, inserted after the command buffer.</returns>
-		/// <seealso cref="waitFor" />
-		virtual UInt64 submit(const VulkanCommandBuffer& commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
-
-		/// <summary>
-		/// Submits a set of command buffers and inserts a fence to wait for them.
-		/// </summary>
-		/// <remarks>
-		/// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-		/// </remarks>
-		/// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-		/// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
-		/// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
-		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
-		/// <returns>The value of the fence, inserted after the command buffers.</returns>
-		/// <seealso cref="waitFor" />
-		virtual UInt64 submit(const Array<const VulkanCommandBuffer*>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
-		
-		/// <summary>
-		/// Submits a single command buffer and inserts a fence to wait for it.
-		/// </summary>
-		/// <remarks>
         /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
         /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
         /// 
@@ -1419,7 +1391,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="secondary">If set to <c>true</c>, the queue will create a secondary command buffer instance.</param>
 		/// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
 		/// <returns>The instance of the command buffer.</returns>
-		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer(const bool& secondary, const bool& beginRecording) const;
+		virtual SharedPtr<VulkanCommandBuffer> createCommandBuffer(const bool& secondary, const bool& beginRecording) const;
 
 		// CommandQueue interface.
 	public:
@@ -1452,16 +1424,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual void release() override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
-
-		/// <inheritdoc />
-		virtual UInt64 submit(const VulkanCommandBuffer& commandBuffer) const override;
+		virtual SharedPtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
 
 		/// <inheritdoc />
 		virtual UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
-
-		/// <inheritdoc />
-		virtual UInt64 submit(const Array<const VulkanCommandBuffer*>& commandBuffers) const override;
 
 		/// <inheritdoc />
 		virtual UInt64 submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
