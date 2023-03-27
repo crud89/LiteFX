@@ -25,6 +25,7 @@ private:
 	mutable std::mutex m_mutex;
 	bool m_bound;
 	const VulkanDevice& m_device;
+	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_sharedCommandBuffers;
 
 public:
 	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
@@ -46,6 +47,7 @@ public:
 		if (m_bound)
 			::vkDestroyCommandPool(m_device.handle(), m_commandPool, nullptr);
 
+		m_sharedCommandBuffers.clear();
 		m_bound = false;
 		m_commandPool = {};
 		m_timelineSemaphore = {};
@@ -196,6 +198,19 @@ UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer) const
 	return this->submit(commandBuffer, {}, {}, {});
 }
 
+UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
+{
+	return this->submit(commandBuffer, {}, {}, {});
+}
+
+UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
+{
+	auto fence = this->submit(*commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
+	m_impl->m_sharedCommandBuffers.push_back({ fence, commandBuffer });
+
+	return fence;
+}
+
 UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
 {
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
@@ -243,6 +258,23 @@ UInt64 VulkanQueue::submit(const VulkanCommandBuffer& commandBuffer, Span<VkSema
 UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffers) const
 {
 	return this->submit(commandBuffers, {}, {}, {});
+}
+
+UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const
+{
+	return this->submit(commandBuffers, {}, {}, {});
+}
+
+UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
+{
+	auto buffers = commandBuffers |
+		std::views::transform([](auto& buffer) { return buffer.get(); }) |
+		ranges::to<Array<const VulkanCommandBuffer*>>();
+
+	auto fence = this->submit(buffers, waitForSemaphores, waitForStages, signalSemaphores);
+	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_sharedCommandBuffers.push_back({ fence, buffer }); });
+
+	return fence;
 }
 
 UInt64 VulkanQueue::submit(const Array<const VulkanCommandBuffer*>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
@@ -312,6 +344,16 @@ void VulkanQueue::waitFor(const UInt64& fence) const noexcept
 		//raiseIfFailed<RuntimeException>(::vkWaitSemaphores(this->getDevice()->handle(), &waitInfo, std::numeric_limits<UInt64>::max()), "Unable to wait for queue timeline semaphore.");
 		::vkWaitSemaphores(m_impl->m_device.handle(), &waitInfo, std::numeric_limits<UInt64>::max());
 	}
+
+	// Release all shared command buffers until this point.
+	const auto [from, to] = std::ranges::remove_if(m_impl->m_sharedCommandBuffers, [this, &completedValue](auto& pair) { 
+		if (std::get<0>(pair) > completedValue)
+			return false;
+
+		this->releaseSharedState(*std::get<1>(pair));
+		return true;
+	});
+	m_impl->m_sharedCommandBuffers.erase(from, to);
 }
 
 UInt64 VulkanQueue::currentFence() const noexcept

@@ -134,9 +134,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     });
     
     // End and submit the command buffer.
-    auto fence = m_device->bufferQueue().submit(*commandBuffer);
-    m_device->bufferQueue().waitFor(fence);
-
+    m_loaderFence = m_device->bufferQueue().submit(asShared(std::move(commandBuffer)));
+    
     // Add everything to the state.
     m_device->state().add(std::move(vertexBuffer));
     m_device->state().add(std::move(indexBuffer));
@@ -377,6 +376,9 @@ void SampleApp::drawFrame()
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
+
+    // Wait for the initialization command buffer to finish.
+    m_device->bufferQueue().waitFor(m_loaderFence);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(backBuffer);

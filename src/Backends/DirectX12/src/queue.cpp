@@ -19,6 +19,7 @@ private:
 	bool m_bound;
 	mutable std::mutex m_mutex;
 	const DirectX12Device& m_device;
+	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_sharedCommandBuffers;
 
 public:
 	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, const QueueType& type, const QueuePriority& priority) :
@@ -149,6 +150,14 @@ UniquePtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool
 	return makeUnique<DirectX12CommandBuffer>(*this, beginRecording);
 }
 
+UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
+{
+	auto fence = this->submit(*commandBuffer);
+	m_impl->m_sharedCommandBuffers.push_back({ fence, commandBuffer });
+
+	return fence;
+}
+
 UInt64 DirectX12Queue::submit(const DirectX12CommandBuffer& commandBuffer) const
 {
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
@@ -164,6 +173,18 @@ UInt64 DirectX12Queue::submit(const DirectX12CommandBuffer& commandBuffer) const
 	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), ++m_impl->m_fenceValue), "Unable to add fence signal to command buffer.");
 
 	return m_impl->m_fenceValue;
+}
+
+UInt64 DirectX12Queue::submit(const Array<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const
+{
+	auto buffers = commandBuffers |
+		std::views::transform([](auto& buffer) { return buffer.get(); }) |
+		ranges::to<Array<const DirectX12CommandBuffer*>>();
+
+	auto fence = this->submit(buffers);
+	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_sharedCommandBuffers.push_back({ fence, buffer }); });
+
+	return fence;
 }
 
 UInt64 DirectX12Queue::submit(const Array<const DirectX12CommandBuffer*>& commandBuffers) const
@@ -188,7 +209,9 @@ UInt64 DirectX12Queue::submit(const Array<const DirectX12CommandBuffer*>& comman
 
 void DirectX12Queue::waitFor(const UInt64& fence) const noexcept
 {
-	if (m_impl->m_fence->GetCompletedValue() < fence)
+	auto completedValue = m_impl->m_fence->GetCompletedValue();
+
+	if (completedValue < fence)
 	{
 		HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
 		HRESULT hr = m_impl->m_fence->SetEventOnCompletion(fence, eventHandle);
@@ -199,6 +222,16 @@ void DirectX12Queue::waitFor(const UInt64& fence) const noexcept
 		::CloseHandle(eventHandle);
 		raiseIfFailed<RuntimeException>(hr, "Unable to register fence completion event.");
 	}
+
+	// Release all shared command buffers until this point.
+	const auto [from, to] = std::ranges::remove_if(m_impl->m_sharedCommandBuffers, [this, &completedValue](auto& pair) {
+		if (std::get<0>(pair) > completedValue)
+			return false;
+
+		this->releaseSharedState(*std::get<1>(pair));
+		return true;
+	});
+	m_impl->m_sharedCommandBuffers.erase(from, to);
 }
 
 UInt64 DirectX12Queue::currentFence() const noexcept

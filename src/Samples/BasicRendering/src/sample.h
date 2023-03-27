@@ -81,6 +81,11 @@ private:
 	/// </summary>
 	IGraphicsDevice* m_device;
 
+	/// <summary>
+	/// Stores the fence created at application load time.
+	/// </summary>
+	UInt64 m_loaderFence;
+
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)

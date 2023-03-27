@@ -14,6 +14,7 @@ private:
 	const VulkanQueue& m_queue;
 	bool m_recording{ false };
 	Optional<VkCommandPool> m_commandPool;
+	Array<SharedPtr<const IStateResource>> m_sharedResources;
 
 public:
 	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue) :
@@ -379,6 +380,30 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuff
 	::vkCmdCopyImageToBuffer(this->handle(), source.handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, target.handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
+void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+{
+	this->transfer(*source, target, sourceElement, targetElement, elements);
+	m_impl->m_sharedResources.push_back(source);
+}
+
+void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+{
+	this->transfer(*source, target, sourceElement, firstSubresource, elements);
+	m_impl->m_sharedResources.push_back(source);
+}
+
+void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanImage> source, const IVulkanImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+{
+	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
+	m_impl->m_sharedResources.push_back(source);
+}
+
+void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanImage> source, const IVulkanBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+{
+	this->transfer(*source, target, firstSubresource, targetElement, subresources);
+	m_impl->m_sharedResources.push_back(source);
+}
+
 void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcept
 {
 	pipeline.use(*this);
@@ -418,4 +443,9 @@ void VulkanCommandBuffer::drawIndexed(const UInt32& indices, const UInt32& insta
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept
 {
 	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.pipelineLayout().handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
+}
+
+void VulkanCommandBuffer::releaseSharedState() const
+{
+	m_impl->m_sharedResources.clear();
 }
