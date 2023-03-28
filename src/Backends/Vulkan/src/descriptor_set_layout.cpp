@@ -360,14 +360,14 @@ Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultipl
 Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings) const
 {
     Array<UniquePtr<VulkanDescriptorSet>> descriptorSets(count);
-    std::ranges::generate(descriptorSets, [this, descriptors, bindings, i = 0]() mutable { return i < bindings.size() ? this->allocate(descriptors, bindings[i]) : this->allocate(descriptors, { }); });
+    std::ranges::generate(descriptorSets, [this, descriptors, bindings, i = 0]() mutable { return i < bindings.size() ? this->allocate(descriptors, bindings[i++]) : this->allocate(descriptors, { }); });
     return descriptorSets;
 }
 
 Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const
 {
     Array<UniquePtr<VulkanDescriptorSet>> descriptorSets(count);
-    std::ranges::generate(descriptorSets, [this, descriptors, bindingFactory, i = 0]() mutable { return this->allocate(descriptors, bindingFactory(i)); });
+    std::ranges::generate(descriptorSets, [this, descriptors, bindingFactory, i = 0]() mutable { return this->allocate(descriptors, bindingFactory(i++)); });
     return descriptorSets;
 }
 
