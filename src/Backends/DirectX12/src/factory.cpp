@@ -175,11 +175,14 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Form
 
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
 {
+	auto width = std::max<UInt32>(1, size.width());
+	auto height = std::max<UInt32>(1, size.height());
+
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resourceDesc.Alignment = 0;
-	resourceDesc.Width = size.width();
-	resourceDesc.Height = size.height();
+	resourceDesc.Width = width;
+	resourceDesc.Height = height;
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = 1;
 	resourceDesc.Format = DX12::getFormat(format);
@@ -192,12 +195,12 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Stri
 	if (::hasDepth(format) || ::hasStencil(format))
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, resourceDesc, allocationDesc);
 	}
 	else
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, Size3d(size.width(), size.height(), 0), format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::ReadOnly, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::ReadOnly, resourceDesc, allocationDesc);
 	}
 }
 
@@ -214,12 +217,16 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
 		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
 
+	auto width = std::max<UInt32>(1, size.width());
+	auto height = std::max<UInt32>(1, size.height());
+	auto depth = std::max<UInt32>(1, size.depth());
+
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = DX12::getImageType(dimension);
 	resourceDesc.Alignment = 0;
-	resourceDesc.Width = size.width();
-	resourceDesc.Height = size.height();
-	resourceDesc.DepthOrArraySize = dimension == ImageDimensions::DIM_3 ? size.depth() : layers;
+	resourceDesc.Width = width;
+	resourceDesc.Height = height;
+	resourceDesc.DepthOrArraySize = dimension == ImageDimensions::DIM_3 ? depth : layers;
 	resourceDesc.MipLevels = levels;
 	resourceDesc.Format = DX12::getFormat(format);
 	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
@@ -229,7 +236,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	D3D12MA::ALLOCATION_DESC allocationDesc = {};
 	allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 	
-	return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, resourceDesc, allocationDesc);
 }
 
 Array<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
