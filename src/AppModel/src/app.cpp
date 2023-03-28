@@ -172,7 +172,26 @@ void App::run()
 	// Start the app.
 	Logger::get(this->name()).info("Starting app (Version {1}) on platform {0}...", this->platform(), this->version());
 	Logger::get(this->name()).debug("Using engine: {0:e}.", this->version());
+
+	// Start the first registered rendering backend for each backend type.
+	for (BackendType type : VALID_BACKEND_TYPES)
+	{
+		auto backends = this->getBackends(type);
+
+		if (!backends.empty())
+			this->startBackend(backends.front()->typeId());
+	}
+
+	// Fire startup event.
 	this->startup(this, { });
+
+	// Shutdown the app.
+	Logger::get(this->name()).debug("Shutting down app...", this->version());
+
+	for (auto& backend : m_impl->m_backends | std::views::filter([](const auto& b) { return b.second->state() == BackendState::Active; }))
+		this->stopBackend(backend.first);
+
+	this->shutdown(this, { });
 }
 
 void App::resize(int& width, int& height)
