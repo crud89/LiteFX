@@ -3327,19 +3327,7 @@ namespace LiteFX::Rendering {
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
         UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const {
-            // Allocate a descriptor set.
-            auto descriptorSet = this->getDescriptorSet(descriptors);
-
-            // Automatically apply the bindings.
-            for (auto& binding : bindings)
-                std::visit(type_switch {
-                    [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
-                    [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                    [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
-                }, binding.resource);
-
-            // Return the descriptor set.
-            return descriptorSet;
+            return this->getDescriptorSet(descriptors, bindings);
         }
 
         /// <summary>
@@ -3373,23 +3361,7 @@ namespace LiteFX::Rendering {
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
         Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const {
-            // Allocate the descriptor sets.
-            auto sets = this->getDescriptorSets(descriptorSets, descriptors);
-
-            // Automatically apply the bindings.
-            for (size_t i(0); i < bindings.size() && i < descriptorSets; ++i) {
-                auto& descriptorSet = sets[i];
-
-                for (auto& binding : bindings[i])
-                    std::visit(type_switch {
-                        [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
-                        [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                        [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
-                    }, binding.resource);
-            }
-
-            // Return the descriptor sets.
-            return sets;
+            return this->getDescriptorSets(descriptorSets, descriptors, bindings);
         }
 
         /// <summary>
@@ -3401,24 +3373,7 @@ namespace LiteFX::Rendering {
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
         Array<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const {
-            // Allocate the descriptor sets.
-            auto sets = this->getDescriptorSets(descriptorSets, descriptors);
-
-            // Automatically apply the bindings.
-            for (size_t i(0); i < descriptorSets; ++i) {
-                auto& descriptorSet = sets[i];
-                auto bindings = bindingFactory(i);
-
-                for (auto& binding : bindings)
-                    std::visit(type_switch {
-                        [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
-                        [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                        [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
-                    }, binding.resource);
-            }
-
-            // Return the descriptor sets.
-            return sets;
+            return this->getDescriptorSets(descriptorSets, descriptors, bindingFactory);
         }
 
         /// <summary>
@@ -3431,8 +3386,9 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors) const = 0;
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const = 0;
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept = 0;
     };
 
