@@ -4396,13 +4396,13 @@ namespace LiteFX::Rendering {
         /// Invoked, when the render pass is beginning.
         /// </summary>
         /// <seealso cref="begin" />
-        Event<BeginRenderPassEventArgs> beginning;
+        mutable Event<BeginRenderPassEventArgs> beginning;
 
         /// <summary>
         /// Invoked, when the render pass is ending.
         /// </summary>
         /// <seealso cref="end" />
-        Event<EventArgs> ending;
+        mutable Event<EventArgs> ending;
 
         /// <summary>
         /// Begins the render pass.
@@ -4543,13 +4543,13 @@ namespace LiteFX::Rendering {
         /// Invoked, when the swap chain has swapped the back buffers.
         /// </summary>
         /// <seealso cref="swapBackBuffer" />
-        Event<EventArgs> swapped;
+        mutable Event<EventArgs> swapped;
 
         /// <summary>
         /// Invoked, after the swap chain has been reseted.
         /// </summary>
         /// <seealso cref="reset" />
-        Event<SwapChainResetEventArgs> reseted;
+       mutable Event<SwapChainResetEventArgs> reseted;
 
         /// <summary>
         /// Returns an array of supported formats, that can be drawn to the surface.
@@ -4595,10 +4595,10 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct QueueSubmittingEventArgs : public EventArgs {
         private:
-            const Array<const ICommandBuffer*>& m_commandBuffers;
+            const Array<SharedPtr<const ICommandBuffer>> m_commandBuffers;
 
         public:
-            QueueSubmittingEventArgs(const Array<const ICommandBuffer*>& commandBuffers) :
+            QueueSubmittingEventArgs(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) :
                 EventArgs(), m_commandBuffers(commandBuffers) { }
             QueueSubmittingEventArgs(const QueueSubmittingEventArgs&) = default;
             QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) = default;
@@ -4613,7 +4613,7 @@ namespace LiteFX::Rendering {
             /// Gets the command buffers that are about to be submitted to the queue.
             /// </summary>
             /// <returns>An array containing the command buffers that are about to be submitted to the queue.</returns>
-            const Array<const ICommandBuffer*>& commandBuffers() const noexcept {
+            const Array<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
                 return m_commandBuffers;
             }
         };
@@ -4707,22 +4707,22 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Invoked, when the queue has been bound on the parent device.
         /// </summary>
-        Event<EventArgs> bound;
+        mutable Event<EventArgs> bound;
 
         /// <summary>
         /// Invoked, when the queue is released from the parent device.
         /// </summary>
-        Event<EventArgs> released;
+        mutable Event<EventArgs> released;
 
         /// <summary>
         /// Invoked, when one or more command buffers are submitted to the queue.
         /// </summary>
-        Event<QueueSubmittingEventArgs> submitting;
+        mutable Event<QueueSubmittingEventArgs> submitting;
 
         /// <summary>
         /// Invoked, after one or more command buffers have been submitted to the queue.
         /// </summary>
-        Event<QueueSubmittedEventArgs> submitted;
+        mutable Event<QueueSubmittedEventArgs> submitted;
 
         /// <summary>
         /// Binds the queue on the parent device.
