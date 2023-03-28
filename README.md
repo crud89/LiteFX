@@ -20,8 +20,6 @@ UniquePtr<RenderPass> renderPass = device->buildRenderPass("Geometry")
     .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false);
 
 UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
-    .viewport(viewport)
-    .scissor(scissor)
     .inputAssembler(inputAssembler)
     .rasterizer(device->buildRasterizer()
         .polygonMode(PolygonMode::Solid)
@@ -46,7 +44,7 @@ LiteFX is written in modern C++20, following established design patterns to make
 
 ### Key Features
 
-- **Fluent Builders**: the fluent vuilder API can help you to organize creation of your render context. Instances, render passes and pipeline states typically require a lot of code to set them up. LiteFX hides this code behind a flexible builder architecture. However, if you don't like it, you can still create all objects on your own.
+- **Fluent Builders**: the fluent builder API can help you to organize creation of your render context. Instances, render passes and pipeline states typically require a lot of code to set them up. LiteFX hides this code behind a flexible builder architecture. However, if you don't like it, you can still create all objects on your own.
 - **Runtime Backend Switching**: Switch between DirectX 12 and Vulkan at runtime without re-creating the window. The engine's app model supports flexible configuration and all domain types are abstracted in a way, that make it easy to provide different render paths.
 - **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it implements support for [DirectX 12 render passes](https://docs.microsoft.com/en-us/windows/win32/direct3d12/direct3d-12-render-passes) or [Vulkan timeline semaphores](https://www.khronos.org/blog/vulkan-timeline-semaphores) for improved thread synchronization.
 - **Multi-Threading Support**: LiteFX comes with support for multi-threaded render passes in order to maximize throughput and prevent GPU stalls. It takes care of the necessary synchronization between threads and exposes interfaces for manual synchronization. 

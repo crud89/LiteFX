@@ -14,7 +14,7 @@ private:
     const VulkanRenderPass& m_renderPass;
     Array<UniquePtr<IVulkanImage>> m_outputAttachments;
     Array<const IVulkanImage*> m_renderTargetViews;
-	Array<UniquePtr<VulkanCommandBuffer>> m_commandBuffers;
+	Array<SharedPtr<VulkanCommandBuffer>> m_commandBuffers;
 	Size2d m_size;
 	VkSemaphore m_semaphore;
     UInt32 m_bufferIndex;
@@ -164,19 +164,17 @@ size_t VulkanFrameBuffer::getHeight() const noexcept
 	return m_impl->m_size.height();
 }
 
-const VulkanCommandBuffer& VulkanFrameBuffer::commandBuffer(const UInt32& index) const
+SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(const UInt32& index) const
 {
     if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
         throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
 
-	return *m_impl->m_commandBuffers[index];
+	return m_impl->m_commandBuffers[index];
 }
 
-Array<const VulkanCommandBuffer*> VulkanFrameBuffer::commandBuffers() const noexcept
+Array<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
 {
-    return m_impl->m_commandBuffers |
-        std::views::transform([](const UniquePtr<VulkanCommandBuffer>& commandBuffer) { return commandBuffer.get(); }) |
-        ranges::to<Array<const VulkanCommandBuffer*>>();
+    return m_impl->m_commandBuffers | ranges::to<Array<SharedPtr<const VulkanCommandBuffer>>>();
 }
 
 Array<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept

@@ -73,8 +73,8 @@ public:
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.clipped = VK_TRUE;
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
-		createInfo.imageExtent.height = std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height);
-		createInfo.imageExtent.width = std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width);
+		createInfo.imageExtent.height = std::max<UInt32>(1, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
+		createInfo.imageExtent.width = std::max<UInt32>(1, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width));
 
 		// Set the present mode to VK_PRESENT_MODE_MAILBOX_KHR, since it offers best performance without tearing. For VSync use VK_PRESENT_MODE_FIFO_KHR, which is also the only one guaranteed to be available.
 		createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
@@ -470,7 +470,7 @@ public:
 				.pNext = &wrapperInfo,
 				.imageType = VK_IMAGE_TYPE_2D,
 				.format = Vk::getFormat(format),
-				.extent = { static_cast<UInt32>(renderArea.width()), static_cast<UInt32>(renderArea.height()), 1 },
+				.extent = { std::max<UInt32>(1, renderArea.width()), std::max<UInt32>(1, renderArea.height()), 1 },
 				.mipLevels = 1,
 				.arrayLayers = 1,
 				.samples = VK_SAMPLE_COUNT_1_BIT,
@@ -531,7 +531,7 @@ public:
 			m_imageResources[image].handle = resourceHandle;
 			m_imageResources[image].image = std::move(resource);
 
-			return makeUnique<VulkanImage>(m_device, backBuffer, Size3d { renderArea.width(), renderArea.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
+			return makeUnique<VulkanImage>(m_device, backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
 		});
 
 		// Destroy the image swap semaphores.

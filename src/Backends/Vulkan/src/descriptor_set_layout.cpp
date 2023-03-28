@@ -314,25 +314,60 @@ UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
     return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT].descriptorCount;
 }
 
-UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32& descriptors) const
+UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const Array<DescriptorBinding>& bindings) const
+{
+    return this->allocate(0, bindings);
+}
+
+UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings) const
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
     // If no descriptor sets are free, or the descriptor set contains an unbounded descriptor array, allocate a new descriptor set.
-    if (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty())
-        return makeUnique<VulkanDescriptorSet>(*this, m_impl->tryAllocate(descriptors));
-    
-    // Otherwise, pick and remove one from the list.
-    auto descriptorSet = makeUnique<VulkanDescriptorSet>(*this, m_impl->m_freeDescriptorSets.front());
-    m_impl->m_freeDescriptorSets.pop();
+    UniquePtr<VulkanDescriptorSet> descriptorSet;
 
+    if (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty())
+        descriptorSet = makeUnique<VulkanDescriptorSet>(*this, m_impl->tryAllocate(descriptors));
+    else
+    {
+        // Otherwise, pick and remove one from the list.
+        descriptorSet = makeUnique<VulkanDescriptorSet>(*this, m_impl->m_freeDescriptorSets.front());
+        m_impl->m_freeDescriptorSets.pop();
+    }
+
+    // Apply the default bindings.
+    for (auto& binding : bindings)
+        std::visit(type_switch{
+            [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
+            [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+            [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+        }, binding.resource);
+
+    // Return the descriptor set.
     return descriptorSet;
 }
 
-Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors) const
+Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings) const
+{
+    return this->allocateMultiple(descriptorSets, 0, bindings);
+}
+
+Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const
+{
+    return this->allocateMultiple(descriptorSets, 0, bindingFactory);
+}
+
+Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings) const
 {
     Array<UniquePtr<VulkanDescriptorSet>> descriptorSets(count);
-    std::ranges::generate(descriptorSets, [this, descriptors]() { return this->allocate(descriptors); });
+    std::ranges::generate(descriptorSets, [this, descriptors, bindings, i = 0]() mutable { return i < bindings.size() ? this->allocate(descriptors, bindings[i++]) : this->allocate(descriptors, { }); });
+    return descriptorSets;
+}
+
+Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const
+{
+    Array<UniquePtr<VulkanDescriptorSet>> descriptorSets(count);
+    std::ranges::generate(descriptorSets, [this, descriptors, bindingFactory, i = 0]() mutable { return this->allocate(descriptors, bindingFactory(i++)); });
     return descriptorSets;
 }
 

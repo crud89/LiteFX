@@ -139,7 +139,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     
     // Create the actual vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    commandBuffer->transfer(*stagedVertices, *vertexBuffer, 0, 0, vertices.size());
+    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
@@ -147,17 +147,16 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
     // Create the actual index buffer and transfer the staging buffer into it.
     auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    commandBuffer->transfer(*stagedIndices, *indexBuffer, 0, 0, indices.size());
+    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& staticBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraStagingBuffer = m_device->factory().createBuffer("Camera Staging", staticBindingLayout, 0, BufferUsage::Staging, 1);
     auto cameraBuffer = m_device->factory().createBuffer("Camera", staticBindingLayout, 0, BufferUsage::Resource, 1);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    this->updateCamera(*commandBuffer, *cameraStagingBuffer, *cameraBuffer);
+    this->updateCamera(*commandBuffer, *cameraBuffer);
 
     // Allocate the lights buffer and the lights staging buffer.
     this->initLights();
@@ -165,7 +164,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto lightsBuffer = m_device->factory().createBuffer("Lights", staticBindingLayout, 1, BufferUsage::Resource, LIGHT_SOURCES);
     auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | ranges::to<Array<const void*>>();
     lightsStagingBuffer->map(lightsData, sizeof(LightBuffer));
-    commandBuffer->transfer(*lightsStagingBuffer, *lightsBuffer, 0, 0, LIGHT_SOURCES);
+    commandBuffer->transfer(asShared(std::move(lightsStagingBuffer)), *lightsBuffer, 0, 0, LIGHT_SOURCES);
 
     // Allocate the static bindings.
     auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *lightsBuffer } });
@@ -181,15 +180,12 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     });
 
     // End and submit the command buffer.
-    auto fence = m_device->bufferQueue().submit(*commandBuffer);
-    m_device->bufferQueue().waitFor(fence);
+    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
 
     // Add everything to the state.
     m_device->state().add(std::move(vertexBuffer));
     m_device->state().add(std::move(indexBuffer));
-    m_device->state().add(std::move(cameraStagingBuffer));
     m_device->state().add(std::move(cameraBuffer));
-    m_device->state().add(std::move(lightsStagingBuffer));
     m_device->state().add(std::move(lightsBuffer));
     m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Static Bindings", std::move(staticBindings));
@@ -208,7 +204,7 @@ void SampleApp::initLights()
     lights[7] = LightBuffer{ .Position = {  1.f,  1.f,  1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
 }
 
-void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagingBuffer, const IBuffer& buffer) const
+void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, const IBuffer& buffer) const
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
@@ -216,8 +212,11 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagi
     glm::mat4 view = glm::lookAt(glm::vec3(camera.Position), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
-    stagingBuffer.map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    commandBuffer.transfer(stagingBuffer, buffer);
+
+    // Create a staging buffer and use to transfer the new uniform buffer to.
+    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, BufferUsage::Staging);
+    cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
 }
 
 void SampleApp::onStartup() 
@@ -327,12 +326,10 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
 
     // Also update the camera.
-    auto& cameraStagingBuffer = m_device->state().buffer("Camera Staging");
     auto& cameraBuffer = m_device->state().buffer("Camera");
     auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
-    this->updateCamera(*commandBuffer, cameraStagingBuffer, cameraBuffer);
-    auto fence = m_device->bufferQueue().submit(*commandBuffer);
-    m_device->bufferQueue().waitFor(fence);
+    this->updateCamera(*commandBuffer, cameraBuffer);
+    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
 }
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
@@ -428,6 +425,9 @@ void SampleApp::drawFrame()
     // Store the initial time this method has been called first.
     static auto start = std::chrono::high_resolution_clock::now();
 
+    // Wait for all transfers to finish.
+    m_device->bufferQueue().waitFor(m_transferFence);
+
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
@@ -442,10 +442,10 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(backBuffer);
-    auto& commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
-    commandBuffer.use(geometryPipeline);
-    commandBuffer.setViewports(m_viewport.get());
-    commandBuffer.setScissors(m_scissor.get());
+    auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
+    commandBuffer->use(geometryPipeline);
+    commandBuffer->setViewports(m_viewport.get());
+    commandBuffer->setScissors(m_scissor.get());
 
     // Get the amount of time that has passed since the first frame.
     auto now = std::chrono::high_resolution_clock::now();
@@ -456,14 +456,14 @@ void SampleApp::drawFrame()
     transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer.bind(staticBindings, geometryPipeline);
-    commandBuffer.bind(transformBindings, geometryPipeline);
+    commandBuffer->bind(staticBindings, geometryPipeline);
+    commandBuffer->bind(transformBindings, geometryPipeline);
 
     // Bind the vertex and index buffers.
-    commandBuffer.bind(vertexBuffer);
-    commandBuffer.bind(indexBuffer);
+    commandBuffer->bind(vertexBuffer);
+    commandBuffer->bind(indexBuffer);
 
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer.drawIndexed(indexBuffer.elements());
+    commandBuffer->drawIndexed(indexBuffer.elements());
     renderPass.end();
 }

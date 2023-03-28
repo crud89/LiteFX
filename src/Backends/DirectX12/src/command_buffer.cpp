@@ -14,6 +14,7 @@ private:
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 	bool m_recording{ false };
 	const DirectX12Queue& m_queue;
+	Array<SharedPtr<const IStateResource>> m_sharedResources;
 
 public:
 	DirectX12CommandBufferImpl(DirectX12CommandBuffer* parent, const DirectX12Queue& queue) :
@@ -291,6 +292,30 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 	}
 }
 
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+{
+	this->transfer(*source, target, sourceElement, targetElement, elements);
+	m_impl->m_sharedResources.push_back(source);
+}
+
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+{
+	this->transfer(*source, target, sourceElement, firstSubresource, elements);
+	m_impl->m_sharedResources.push_back(source);
+}
+
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+{
+	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
+	m_impl->m_sharedResources.push_back(source);
+}
+
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+{
+	this->transfer(*source, target, firstSubresource, targetElement, subresources);
+	m_impl->m_sharedResources.push_back(source);
+}
+
 void DirectX12CommandBuffer::use(const DirectX12PipelineState& pipeline) const noexcept
 {
 	pipeline.use(*this);
@@ -329,4 +354,9 @@ void DirectX12CommandBuffer::drawIndexed(const UInt32& indices, const UInt32& in
 void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept
 {
 	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const DirectX12PushConstantsRange* range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / 4, reinterpret_cast<const char* const>(memory) + range->offset(), 0); });
+}
+
+void DirectX12CommandBuffer::releaseSharedState() const
+{
+	m_impl->m_sharedResources.clear();
 }

@@ -155,6 +155,11 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12BarrierImpl);
 
 	public:
+		using base_type = Barrier<IDirectX12Buffer, IDirectX12Image>;
+		using base_type::transition;
+		using base_type::waitFor;
+
+	public:
 		explicit DirectX12Barrier() noexcept;
 		DirectX12Barrier(const DirectX12Barrier&) = delete;
 		DirectX12Barrier(DirectX12Barrier&&) = delete;
@@ -318,6 +323,11 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
 	public:
+		using base_type = DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler>;
+		using base_type::update;
+		using base_type::attach;
+
+	public:
 		/// <summary>
 		/// Initializes a new descriptor set.
 		/// </summary>
@@ -441,6 +451,10 @@ namespace LiteFX::Rendering::Backends {
 		friend class DirectX12PipelineLayout;
 
 	public:
+		using base_type = DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet>;
+		using base_type::free;
+
+	public:
 		/// <summary>
 		/// Initializes a DirectX 12 descriptor set layout.
 		/// </summary>
@@ -534,10 +548,22 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<DirectX12DescriptorSet> allocate(const UInt32& descriptors = 0) const override;
+		virtual UniquePtr<DirectX12DescriptorSet> allocate(const Array<DescriptorBinding>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const override;
+		virtual UniquePtr<DirectX12DescriptorSet> allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings = { }) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const override;
 
 		/// <inheritdoc />
 		virtual void free(const DirectX12DescriptorSet& descriptorSet) const noexcept override;
@@ -790,6 +816,18 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
 	public:
+		using base_type = CommandBuffer<IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
+		using base_type::dispatch;
+		using base_type::draw;
+		using base_type::drawIndexed;
+		using base_type::barrier;
+		using base_type::transfer;
+		using base_type::generateMipMaps;
+		using base_type::bind;
+		using base_type::use;
+		using base_type::pushConstants;
+
+	public:
 		/// <summary>
 		/// Initializes the command buffer from a command queue.
 		/// </summary>
@@ -845,6 +883,18 @@ namespace LiteFX::Rendering::Backends {
 		virtual void transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
 		virtual void use(const DirectX12PipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
@@ -867,6 +917,9 @@ namespace LiteFX::Rendering::Backends {
 		
 		/// <inheritdoc />
 		virtual void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
+
+	private:
+		virtual void releaseSharedState() const override;
 	};
 
 	/// <summary>
@@ -1048,10 +1101,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Array<const DirectX12CommandBuffer*> commandBuffers() const noexcept override;
+		virtual Array<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12CommandBuffer& commandBuffer(const UInt32& index) const override;
+		virtual SharedPtr<const DirectX12CommandBuffer> commandBuffer(const UInt32& index) const override;
 
 		/// <inheritdoc />
 		virtual Array<const IDirectX12Image*> images() const noexcept override;
@@ -1071,6 +1124,10 @@ namespace LiteFX::Rendering::Backends {
 	class LITEFX_DIRECTX12_API DirectX12RenderPass : public RenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
 		LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
 		LITEFX_BUILDER(DirectX12RenderPassBuilder);
+
+	public:
+		using base_type = RenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping>;
+		using base_type::updateAttachments;
 
 	public:
 		/// <summary>
@@ -1227,6 +1284,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
 
 	public:
+		using base_type = SwapChain<IDirectX12Image, DirectX12FrameBuffer>;
+		using base_type::present;
+
+	public:
 		/// <summary>
 		/// Initializes a DirectX 12 swap chain.
 		/// </summary>
@@ -1283,6 +1344,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
 
 	public:
+		using base_type = CommandQueue<DirectX12CommandBuffer>;
+		using base_type::submit;
+
+	public:
 		/// <summary>
 		/// Initializes the DirectX 12 command queue.
 		/// </summary>
@@ -1333,13 +1398,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual void release() override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
+		virtual SharedPtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const DirectX12CommandBuffer& commandBuffer) const override;
+		virtual UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const Array<const DirectX12CommandBuffer*>& commandBuffers) const override;
+		virtual UInt64 submit(const Array<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
 
 		/// <inheritdoc />
 		virtual void waitFor(const UInt64& fence) const noexcept override;
@@ -1356,6 +1421,17 @@ namespace LiteFX::Rendering::Backends {
 	/// </remarks>
 	class LITEFX_DIRECTX12_API DirectX12GraphicsFactory : public GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler> {
 		LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
+
+	public:
+		using base_type = GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler>;
+		using base_type::createBuffer;
+		using base_type::createVertexBuffer;
+		using base_type::createIndexBuffer;
+		using base_type::createAttachment;
+		using base_type::createTexture;
+		using base_type::createTextures;
+		using base_type::createSampler;
+		using base_type::createSamplers;
 
 	public:
 		/// <summary>
