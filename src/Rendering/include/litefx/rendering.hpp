@@ -18,6 +18,9 @@ namespace LiteFX::Rendering {
         std::derived_from<TImage, IImage>
     class Barrier : public IBarrier {
     public:
+        using IBarrier::transition;
+        using IBarrier::waitFor;
+
         using buffer_type = TBuffer;
         using image_type = TImage;
 
@@ -168,6 +171,9 @@ namespace LiteFX::Rendering {
         std::derived_from<TImage, IImage>
     class DescriptorSet : public IDescriptorSet {
     public:
+        using IDescriptorSet::attach;
+        using IDescriptorSet::update;
+
         using buffer_type = TBuffer;
         using sampler_type = TSampler;
         using image_type = TImage;
@@ -223,6 +229,8 @@ namespace LiteFX::Rendering {
         rtti::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type>>
     class DescriptorSetLayout : public IDescriptorSetLayout {
     public:
+        using IDescriptorSetLayout::free;
+
         using descriptor_layout_type = TDescriptorLayout;
         using descriptor_set_type = TDescriptorSet;
 
@@ -237,10 +245,22 @@ namespace LiteFX::Rendering {
         virtual const descriptor_layout_type& descriptor(const UInt32& binding) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const UInt32& descriptors = 0) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(const Array<DescriptorBinding>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const = 0;
+
+        /// <inheritdoc />
+        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings = { }) const = 0;
+
+        /// <inheritdoc />
+        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
+
+        /// <inheritdoc />
+        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const = 0;
+
+        /// <inheritdoc />
+        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
 
         /// <inheritdoc />
         virtual void free(const descriptor_set_type& descriptorSet) const noexcept = 0;
@@ -251,12 +271,20 @@ namespace LiteFX::Rendering {
             return Array<const IDescriptorLayout*>(descriptors.begin(), descriptors.end());
         }
 
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors) const override {
-            return this->allocate(descriptors);
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const override {
+            return this->allocate(descriptors, bindings);
         }
 
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors) const override {
-            auto sets = this->allocateMultiple(descriptorSets, descriptors);
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const override {
+            auto sets = this->allocateMultiple(descriptorSets, descriptors, bindings);
+            Array<UniquePtr<IDescriptorSet>> results;
+            results.reserve(sets.size());
+            std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
+            return results;
+        }
+
+        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const override {
+            auto sets = this->allocateMultiple(descriptorSets, descriptors, bindingFactory);
             Array<UniquePtr<IDescriptorSet>> results;
             results.reserve(sets.size());
             std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
@@ -486,11 +514,16 @@ namespace LiteFX::Rendering {
         rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
         std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>>
     class CommandBuffer : public ICommandBuffer {
-        using ICommandBuffer::begin;
-        using ICommandBuffer::end;
+    public:
         using ICommandBuffer::dispatch;
         using ICommandBuffer::draw;
         using ICommandBuffer::drawIndexed;
+        using ICommandBuffer::barrier;
+        using ICommandBuffer::transfer;
+        using ICommandBuffer::generateMipMaps;
+        using ICommandBuffer::bind;
+        using ICommandBuffer::use;
+        using ICommandBuffer::pushConstants;
 
     public:
         using buffer_type = TBuffer;
@@ -786,6 +819,8 @@ namespace LiteFX::Rendering {
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
     class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
     public:
+        using IRenderPass::updateAttachments;
+
         using frame_buffer_type = TFrameBuffer;
         using render_pipeline_type = TRenderPipeline;
         using input_attachment_mapping_type = TInputAttachmentMapping;
@@ -873,6 +908,8 @@ namespace LiteFX::Rendering {
         rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
     class CommandQueue : public ICommandQueue {
     public:
+        using ICommandQueue::submit;
+
         using command_buffer_type = TCommandBuffer;
 
     public:
@@ -929,6 +966,15 @@ namespace LiteFX::Rendering {
         std::derived_from<TSampler, ISampler>
     class GraphicsFactory : public IGraphicsFactory {
     public:
+        using IGraphicsFactory::createBuffer;
+        using IGraphicsFactory::createVertexBuffer;
+        using IGraphicsFactory::createIndexBuffer;
+        using IGraphicsFactory::createAttachment;
+        using IGraphicsFactory::createTexture;
+        using IGraphicsFactory::createTextures;
+        using IGraphicsFactory::createSampler;
+        using IGraphicsFactory::createSamplers;
+
         using descriptor_layout_type = TDescriptorLayout;
         using vertex_buffer_type = TVertexBuffer;
         using vertex_buffer_layout_type = vertex_buffer_type::vertex_buffer_layout_type;

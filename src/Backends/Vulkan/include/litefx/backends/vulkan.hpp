@@ -180,6 +180,11 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanBarrierImpl);
 
 	public:
+		using base_type = Barrier<IVulkanBuffer, IVulkanImage>;
+		using base_type::transition;
+		using base_type::waitFor;
+
+	public:
 		/// <summary>
 		/// Initializes a new Vulkan barrier.
 		/// </summary>
@@ -344,6 +349,11 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
 	public:
+		using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>;
+		using base_type::update;
+		using base_type::attach;
+
+	public:
 		/// <summary>
 		/// Initializes a new descriptor set.
 		/// </summary>
@@ -441,6 +451,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
 
 	public:
+		using base_type = DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>;
+		using base_type::free;
+
+	public:
 		/// <summary>
 		/// Initializes a Vulkan descriptor set layout.
 		/// </summary>
@@ -510,10 +524,22 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanDescriptorSet> allocate(const UInt32& descriptors = 0) const override;
+		virtual UniquePtr<VulkanDescriptorSet> allocate(const Array<DescriptorBinding>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors = 0) const override;
+		virtual UniquePtr<VulkanDescriptorSet> allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings = { }) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const override;
+
+		/// <inheritdoc />
+		virtual Array<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const override;
 
 		/// <inheritdoc />
 		virtual void free(const VulkanDescriptorSet& descriptorSet) const noexcept override;
@@ -803,6 +829,18 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
+		using base_type = CommandBuffer<IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>;
+		using base_type::dispatch;
+		using base_type::draw;
+		using base_type::drawIndexed;
+		using base_type::barrier;
+		using base_type::transfer;
+		using base_type::generateMipMaps;
+		using base_type::bind;
+		using base_type::use;
+		using base_type::pushConstants;
+
+	public:
 		/// <summary>
 		/// Initializes a command buffer from a command queue.
 		/// </summary>
@@ -1075,6 +1113,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
 	public:
+		using base_type = RenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>;
+		using base_type::updateAttachments;
+
+	public:
 		/// <summary>
 		/// Creates and initializes a new Vulkan render pass instance.
 		/// </summary>
@@ -1229,6 +1271,10 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
+		using base_type = SwapChain<IVulkanImage, VulkanFrameBuffer>;
+		using base_type::present;
+
+	public:
 		/// <summary>
 		/// Initializes a Vulkan swap chain.
 		/// </summary>
@@ -1283,7 +1329,11 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanCommandBuffer" />
 	class LITEFX_VULKAN_API VulkanQueue : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
-	
+
+	public:
+		using base_type = CommandQueue<VulkanCommandBuffer>;
+		using base_type::submit;
+
 	public:
 		/// <summary>
 		/// Initializes the Vulkan command queue.
@@ -1426,6 +1476,17 @@ namespace LiteFX::Rendering::Backends {
 	/// </remarks>
 	class LITEFX_VULKAN_API VulkanGraphicsFactory : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
+
+	public:
+		using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler>;
+		using base_type::createBuffer;
+		using base_type::createVertexBuffer;
+		using base_type::createIndexBuffer;
+		using base_type::createAttachment;
+		using base_type::createTexture;
+		using base_type::createTextures;
+		using base_type::createSampler;
+		using base_type::createSamplers;
 
 	public:
 		/// <summary>
