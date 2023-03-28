@@ -284,11 +284,14 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& fo
 
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
 {
+	auto width = std::max<UInt32>(1, size.width());
+	auto height = std::max<UInt32>(1, size.height());
+
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = size.width();
-	imageInfo.extent.height = size.height();
+	imageInfo.extent.width = width;
+	imageInfo.extent.height = height;
 	imageInfo.extent.depth = 1;
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
@@ -309,9 +312,9 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	UniquePtr<IVulkanImage> image;
 
 	if (::hasDepth(format)) [[unlikely]]
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
 	else
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ size.width(), size.height(), 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -334,12 +337,16 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
 		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
 
+	auto width = std::max<UInt32>(1, size.width());
+	auto height = std::max<UInt32>(1, size.height());
+	auto depth = std::max<UInt32>(1, size.depth());
+
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = Vk::getImageType(dimension);
-	imageInfo.extent.width = size.width();
-	imageInfo.extent.height = size.height();
-	imageInfo.extent.depth = size.depth();
+	imageInfo.extent.width = width;
+	imageInfo.extent.height = height;
+	imageInfo.extent.depth = depth;
 	imageInfo.mipLevels = levels;
 	imageInfo.arrayLayers = layers;
 	imageInfo.format = Vk::getFormat(format);
@@ -366,7 +373,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	auto image = VulkanImage::allocate(name, m_impl->m_device, size, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, m_impl->m_allocator, imageInfo, allocInfo);
+	auto image = VulkanImage::allocate(name, m_impl->m_device, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ResourceState::CopyDestination, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())

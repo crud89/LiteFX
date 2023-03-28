@@ -51,11 +51,12 @@ public:
 		const auto& backend = m_device.backend();
 
 		// Create the swap chain.
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_device.handle().Get()), frameBuffers, frameBufferSize.width(), frameBufferSize.height());
+		auto size = Size2d{ std::max<UInt32>(1, frameBufferSize.width()), std::max<UInt32>(1, frameBufferSize.height()) };
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px }}...", fmt::ptr(m_device.handle().Get()), frameBuffers, size.width(), size.height());
 		
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-		swapChainDesc.Width = static_cast<UInt32>(frameBufferSize.width());
-		swapChainDesc.Height = static_cast<UInt32>(frameBufferSize.height());
+		swapChainDesc.Width = static_cast<UInt32>(size.width());
+		swapChainDesc.Height = static_cast<UInt32>(size.height());
 		swapChainDesc.Format = DX12::getFormat(format);
 		swapChainDesc.Stereo = FALSE;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -74,17 +75,17 @@ public:
 		// Acquire the swap chain images.
 		m_presentImages.resize(swapChainDesc.BufferCount);
 		m_presentFences.resize(swapChainDesc.BufferCount);
-		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, &swapChain, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [this, &size, &format, &swapChain, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_device, std::move(resource), frameBufferSize, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
+			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
 		});
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
 		backend.handle()->MakeWindowAssociation(surface, DXGI_MWA_NO_ALT_ENTER);
 
 		m_format = format;
-		m_renderArea = frameBufferSize;
+		m_renderArea = size;
 		m_buffers = swapChainDesc.BufferCount;
 
 		return swapChain;
@@ -104,19 +105,20 @@ public:
 
 		// Resize the buffers.
 		UInt32 buffers = std::max<UInt32>(2, frameBuffers);
-		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(frameBufferSize.width()), static_cast<UInt32>(frameBufferSize.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
+		auto size = Size2d{ std::max<UInt32>(1, frameBufferSize.width()), std::max<UInt32>(1, frameBufferSize.height()) };
+		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(size.width()), static_cast<UInt32>(size.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
 		m_presentFences.resize(buffers);
-		std::ranges::generate(m_presentImages, [this, &frameBufferSize, &format, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [this, &size, &format, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed<RuntimeException>(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_device, std::move(resource), frameBufferSize, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
+			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
 		});
 
 		m_format = format;
-		m_renderArea = frameBufferSize;
+		m_renderArea = size;
 		m_buffers = buffers;
 		m_currentImage = 0;
 	}
