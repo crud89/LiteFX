@@ -84,7 +84,7 @@ private:
 	/// <summary>
 	/// Stores the fence created at application load time.
 	/// </summary>
-	UInt64 m_loaderFence;
+	UInt64 m_transferFence = 0;
 
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
@@ -105,7 +105,7 @@ private:
 	/// <summary>
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>
-	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& stagingBuffer, const IBuffer& buffer) const;
+	void updateCamera(const ICommandBuffer& commandBuffer, const IBuffer& buffer) const;
 
 private:
 	void onInit();
