@@ -17,9 +17,9 @@ private:
     Array<RenderTarget> m_renderTargets;
     Array<VulkanInputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<VulkanFrameBuffer>> m_frameBuffers;
-    Array<UniquePtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
+    Array<SharedPtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
     const VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
-    const VulkanCommandBuffer* m_activeCommandBuffer = nullptr;
+    SharedPtr<const VulkanCommandBuffer> m_activeCommandBuffer;
     Array<VkClearValue> m_clearValues;
     UInt32 m_backBuffer{ 0 };
     MultiSamplingLevel m_samples;
@@ -392,7 +392,7 @@ void VulkanRenderPass::begin(const UInt32& buffer)
         throw ArgumentOutOfRangeException("The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
-    auto commandBuffer = m_impl->m_activeCommandBuffer = m_impl->m_primaryCommandBuffers[buffer].get();
+    auto commandBuffer = m_impl->m_activeCommandBuffer = m_impl->m_primaryCommandBuffers[buffer];
     m_impl->m_backBuffer = buffer;
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
@@ -413,7 +413,7 @@ void VulkanRenderPass::begin(const UInt32& buffer)
     ::vkCmdBeginRenderPass(std::as_const(*commandBuffer).handle(), &renderPassInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
     // Begin the frame buffer command buffers.
-    std::ranges::for_each(frameBuffer->commandBuffers(), [this](const VulkanCommandBuffer* commandBuffer) { commandBuffer->begin(*this); });
+    std::ranges::for_each(frameBuffer->commandBuffers(), [this](auto commandBuffer) { commandBuffer->begin(*this); });
 }
 
 void VulkanRenderPass::end() const
@@ -428,21 +428,21 @@ void VulkanRenderPass::end() const
     // End the render pass and the command buffer recording.
     auto secondaryBuffers = frameBuffer->commandBuffers();
     auto secondaryHandles = secondaryBuffers |
-        std::views::transform([](const VulkanCommandBuffer* commandBuffer) { commandBuffer->end(); return commandBuffer->handle(); }) |
+        std::views::transform([](auto commandBuffer) { commandBuffer->end(); return commandBuffer->handle(); }) |
         ranges::to<Array<VkCommandBuffer>>();
     ::vkCmdExecuteCommands(std::as_const(*commandBuffer).handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
     ::vkCmdEndRenderPass(std::as_const(*commandBuffer).handle());
 
     // Submit the command buffer.
     if (!this->hasPresentTarget())
-        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(*commandBuffer);
+        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffer);
     else
     {
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
         std::array<VkSemaphore, 1> waitForSemaphores = { m_impl->m_device.swapChain().semaphore() };
         std::array<VkPipelineStageFlags, 1> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
         std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
-        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(*commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
+        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
 
         // Present the swap chain.
         m_impl->m_device.swapChain().present(*frameBuffer);

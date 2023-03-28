@@ -560,6 +560,18 @@ namespace LiteFX::Rendering {
         virtual void transfer(const image_type& source, const buffer_type& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const = 0;
 
         /// <inheritdoc />
+        virtual void transfer(SharedPtr<const buffer_type> source, const buffer_type& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const = 0;
+
+        /// <inheritdoc />
+        virtual void transfer(SharedPtr<const buffer_type> source, const image_type& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const = 0;
+
+        /// <inheritdoc />
+        virtual void transfer(SharedPtr<const image_type> source, const image_type& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const = 0;
+
+        /// <inheritdoc />
+        virtual void transfer(SharedPtr<const image_type> source, const buffer_type& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const = 0;
+
+        /// <inheritdoc />
         virtual void use(const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
@@ -616,6 +628,22 @@ namespace LiteFX::Rendering {
 
         virtual void cmdTransfer(const IImage& source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const override {
             this->transfer(dynamic_cast<const image_type&>(source), dynamic_cast<const buffer_type&>(target), firstSubresource, targetElement, subresources);
+        }
+
+        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const override {
+            this->transfer(std::dynamic_pointer_cast<const buffer_type>(source), dynamic_cast<const buffer_type&>(target), sourceElement, targetElement, elements);
+        }
+        
+        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const override {
+            this->transfer(std::dynamic_pointer_cast<const buffer_type>(source), dynamic_cast<const image_type&>(target), sourceElement, firstSubresource, elements);
+        }
+        
+        virtual void cmdTransfer(SharedPtr<const IImage> source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const override {
+            this->transfer(std::dynamic_pointer_cast<const image_type>(source), dynamic_cast<const image_type&>(target), sourceSubresource, targetSubresource, subresources);
+        }
+        
+        virtual void cmdTransfer(SharedPtr<const IImage> source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const override {
+            this->transfer(std::dynamic_pointer_cast<const image_type>(source), dynamic_cast<const buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
         virtual void cmdUse(const IPipeline& pipeline) const noexcept override { 
@@ -716,10 +744,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const command_buffer_type*> commandBuffers() const noexcept = 0;
+        virtual Array<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const command_buffer_type& commandBuffer(const UInt32& index) const = 0;
+        virtual SharedPtr<const command_buffer_type> commandBuffer(const UInt32& index) const = 0;
 
         /// <inheritdoc />
         virtual Array<const image_type*> images() const noexcept = 0;
@@ -728,9 +756,13 @@ namespace LiteFX::Rendering {
         virtual const image_type& image(const UInt32& location) const = 0;
 
     private:
-        virtual Array<const ICommandBuffer*> getCommandBuffers() const noexcept override {
+        virtual SharedPtr<const ICommandBuffer> getCommandBuffer(const UInt32& index) const noexcept override {
+            return this->commandBuffer(index);
+        }
+
+        virtual Array<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
             auto commandBuffers = this->commandBuffers();
-            return Array<const ICommandBuffer*>(commandBuffers.begin(), commandBuffers.end());
+            return Array<SharedPtr<const ICommandBuffer>>(commandBuffers.begin(), commandBuffers.end());
         }
 
         virtual Array<const IImage*> getImages() const noexcept override {
@@ -917,27 +949,28 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual UniquePtr<command_buffer_type> createCommandBuffer(const bool& beginRecording = false) const = 0;
+        virtual SharedPtr<command_buffer_type> createCommandBuffer(const bool& beginRecording = false) const = 0;
 
         /// <inheritdoc />
-        virtual UInt64 submit(const command_buffer_type& commandBuffer) const = 0;
+        virtual UInt64 submit(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual UInt64 submit(const Array<const command_buffer_type*>& commandBuffers) const = 0;
+        virtual UInt64 submit(const Array<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
 
     private:
-        virtual UniquePtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const override {
+        virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const override {
             return this->createCommandBuffer(beginRecording);
         }
 
-        virtual UInt64 submitCommandBuffer(const ICommandBuffer& commandBuffer) const override {
-            return this->submit(dynamic_cast<const command_buffer_type&>(commandBuffer));
+        virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const override {
+            return this->submit(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
 
-        virtual UInt64 submitCommandBuffers(const Array<const ICommandBuffer*>& commandBuffers) const override {
-            Array<const command_buffer_type*> buffers;
-            buffers.reserve(commandBuffers.size());
-            std::transform(commandBuffers.begin(), commandBuffers.end(), buffers.begin(), [](auto buffer) { return dynamic_cast<const command_buffer_type*>(buffer); });
+        virtual UInt64 submitCommandBuffers(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
+            Array<SharedPtr<const command_buffer_type>> buffers = commandBuffers |
+                std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) |
+                ranges::to<Array<SharedPtr<const command_buffer_type>>>();
+
             return this->submit(buffers);
         }
     };

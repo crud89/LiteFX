@@ -176,8 +176,8 @@ namespace LiteFX {
 	/// <param name="ptr">The unique pointer that should be turned into a shared pointer.</param>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	SharedPtr<T> makeShared(UniquePtr<T>&& ptr) {
-		return std::make_shared<T>(ptr.release());
+	SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
+		return SharedPtr<T>(ptr.release());
 	}
 
 	/// <summary>

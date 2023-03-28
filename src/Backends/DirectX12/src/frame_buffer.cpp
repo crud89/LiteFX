@@ -13,7 +13,7 @@ public:
 private:
     Array<UniquePtr<IDirectX12Image>> m_outputAttachments;
     Array<const IDirectX12Image*> m_renderTargetViews;
-    Array<UniquePtr<DirectX12CommandBuffer>> m_commandBuffers;
+    Array<SharedPtr<DirectX12CommandBuffer>> m_commandBuffers;
     ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap, m_depthStencilHeap;
     UInt32 m_renderTargetDescriptorSize, m_depthStencilDescriptorSize;
     Size2d m_size;
@@ -175,19 +175,17 @@ size_t DirectX12FrameBuffer::getHeight() const noexcept
     return m_impl->m_size.height();
 }
 
-const DirectX12CommandBuffer& DirectX12FrameBuffer::commandBuffer(const UInt32& index) const
+SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(const UInt32& index) const
 {
     if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
         throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
 
-    return *m_impl->m_commandBuffers[index];
+    return m_impl->m_commandBuffers[index];
 }
 
-Array<const DirectX12CommandBuffer*> DirectX12FrameBuffer::commandBuffers() const noexcept
+Array<SharedPtr<const DirectX12CommandBuffer>> DirectX12FrameBuffer::commandBuffers() const noexcept
 {
-    return m_impl->m_commandBuffers |
-        std::views::transform([](const UniquePtr<DirectX12CommandBuffer>& commandBuffer) { return commandBuffer.get(); }) |
-        ranges::to<Array<const DirectX12CommandBuffer*>>();
+    return m_impl->m_commandBuffers | ranges::to<Array<SharedPtr<const DirectX12CommandBuffer>>>();
 }
 
 Array<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept

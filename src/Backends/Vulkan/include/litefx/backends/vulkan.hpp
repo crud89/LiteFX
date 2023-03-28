@@ -905,6 +905,18 @@ namespace LiteFX::Rendering::Backends {
 		virtual void transfer(const IVulkanImage& source, const IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IVulkanImage> source, const IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IVulkanImage> source, const IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
 		virtual void use(const VulkanPipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
@@ -927,6 +939,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
+
+	private:
+		virtual void releaseSharedState() const override;
 	};
 
 	/// <summary>
@@ -1088,10 +1103,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanCommandBuffer& commandBuffer(const UInt32& index) const override;
+		virtual SharedPtr<const VulkanCommandBuffer> commandBuffer(const UInt32& index) const override;
 
 		/// <inheritdoc />
-		virtual Array<const VulkanCommandBuffer*> commandBuffers() const noexcept override;
+		virtual Array<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
 		virtual Array<const IVulkanImage*> images() const noexcept override;
@@ -1390,6 +1405,9 @@ namespace LiteFX::Rendering::Backends {
 		/// Submits a single command buffer and inserts a fence to wait for it.
 		/// </summary>
 		/// <remarks>
+        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
+        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
+        /// 
 		/// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
 		/// </remarks>
 		/// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
@@ -1398,12 +1416,15 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
 		/// <returns>The value of the fence, inserted after the command buffer.</returns>
 		/// <seealso cref="waitFor" />
-		virtual UInt64 submit(const VulkanCommandBuffer& commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
+		virtual UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
 
 		/// <summary>
 		/// Submits a set of command buffers and inserts a fence to wait for them.
 		/// </summary>
 		/// <remarks>
+        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
+        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
+        /// 
 		/// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
 		/// </remarks>
 		/// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
@@ -1412,7 +1433,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
 		/// <returns>The value of the fence, inserted after the command buffers.</returns>
 		/// <seealso cref="waitFor" />
-		virtual UInt64 submit(const Array<const VulkanCommandBuffer*>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
+		virtual UInt64 submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
 
 		/// <summary>
 		/// Creates a command buffer that can be used to allocate commands on the queue.
@@ -1420,7 +1441,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="secondary">If set to <c>true</c>, the queue will create a secondary command buffer instance.</param>
 		/// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
 		/// <returns>The instance of the command buffer.</returns>
-		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer(const bool& secondary, const bool& beginRecording) const;
+		virtual SharedPtr<VulkanCommandBuffer> createCommandBuffer(const bool& secondary, const bool& beginRecording) const;
 
 		// CommandQueue interface.
 	public:
@@ -1453,13 +1474,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual void release() override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
+		virtual SharedPtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const VulkanCommandBuffer& commandBuffer) const override;
+		virtual UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const Array<const VulkanCommandBuffer*>& commandBuffers) const override;
+		virtual UInt64 submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
 
 		/// <inheritdoc />
 		virtual void waitFor(const UInt64& fence) const noexcept override;

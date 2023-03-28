@@ -19,6 +19,7 @@ private:
 	bool m_bound;
 	mutable std::mutex m_mutex;
 	const DirectX12Device& m_device;
+	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_submittedCommandBuffers;
 
 public:
 	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, const QueueType& type, const QueuePriority& priority) :
@@ -67,6 +68,8 @@ public:
 	{
 		if (!m_bound)
 			return;
+
+		m_submittedCommandBuffers.clear();
 
 		// TODO: Destroy command pool, if bound.
 		m_bound = false;
@@ -144,30 +147,39 @@ void DirectX12Queue::release()
 	m_impl->release();
 }
 
-UniquePtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording) const
+SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording) const
 {
-	return makeUnique<DirectX12CommandBuffer>(*this, beginRecording);
+	return makeShared<DirectX12CommandBuffer>(*this, beginRecording);
 }
 
-UInt64 DirectX12Queue::submit(const DirectX12CommandBuffer& commandBuffer) const
+UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
 {
+	if (commandBuffer == nullptr)
+		throw InvalidArgumentException("The command buffer must be initialized.");
+
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// End the command buffer.
-	commandBuffer.end();
+	commandBuffer->end();
 	
 	// Submit the command buffer.
-	Array<ID3D12CommandList*> commandBuffers{ commandBuffer.handle().Get() };
+	Array<ID3D12CommandList*> commandBuffers{ commandBuffer->handle().Get() };
 	this->handle()->ExecuteCommandLists(1, commandBuffers.data());
 
 	// Insert a fence and return the value.
-	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), ++m_impl->m_fenceValue), "Unable to add fence signal to command buffer.");
+	auto fence = ++m_impl->m_fenceValue;
+	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
-	return m_impl->m_fenceValue;
+	// Add the command buffer to the submitted command buffers list and return the fence.
+	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
+	return fence;
 }
 
-UInt64 DirectX12Queue::submit(const Array<const DirectX12CommandBuffer*>& commandBuffers) const
+UInt64 DirectX12Queue::submit(const Array<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const
 {
+	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
+		throw InvalidArgumentException("At least one command buffer is not initialized.");
+
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// End and submit the command buffers.
@@ -181,14 +193,19 @@ UInt64 DirectX12Queue::submit(const Array<const DirectX12CommandBuffer*>& comman
 	this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
 
 	// Insert a fence and return the value.
-	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), ++m_impl->m_fenceValue), "Unable to add fence signal to command buffer.");
+	auto fence = ++m_impl->m_fenceValue;
+	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
-	return m_impl->m_fenceValue;
+	// Add the command buffers to the submitted command buffers list and return the fence.
+	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
+	return fence;
 }
 
 void DirectX12Queue::waitFor(const UInt64& fence) const noexcept
 {
-	if (m_impl->m_fence->GetCompletedValue() < fence)
+	auto completedValue = m_impl->m_fence->GetCompletedValue();
+
+	if (completedValue < fence)
 	{
 		HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
 		HRESULT hr = m_impl->m_fence->SetEventOnCompletion(fence, eventHandle);
@@ -199,6 +216,16 @@ void DirectX12Queue::waitFor(const UInt64& fence) const noexcept
 		::CloseHandle(eventHandle);
 		raiseIfFailed<RuntimeException>(hr, "Unable to register fence completion event.");
 	}
+
+	// Release all shared command buffers until this point.
+	const auto [from, to] = std::ranges::remove_if(m_impl->m_submittedCommandBuffers, [this, &completedValue](auto& pair) {
+		if (std::get<0>(pair) > completedValue)
+			return false;
+
+		this->releaseSharedState(*std::get<1>(pair));
+		return true;
+	});
+	m_impl->m_submittedCommandBuffers.erase(from, to);
 }
 
 UInt64 DirectX12Queue::currentFence() const noexcept

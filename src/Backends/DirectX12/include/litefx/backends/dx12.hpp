@@ -883,6 +883,18 @@ namespace LiteFX::Rendering::Backends {
 		virtual void transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
+		virtual void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+
+		/// <inheritdoc />
 		virtual void use(const DirectX12PipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
@@ -905,6 +917,9 @@ namespace LiteFX::Rendering::Backends {
 		
 		/// <inheritdoc />
 		virtual void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
+
+	private:
+		virtual void releaseSharedState() const override;
 	};
 
 	/// <summary>
@@ -1086,10 +1101,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Array<const DirectX12CommandBuffer*> commandBuffers() const noexcept override;
+		virtual Array<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12CommandBuffer& commandBuffer(const UInt32& index) const override;
+		virtual SharedPtr<const DirectX12CommandBuffer> commandBuffer(const UInt32& index) const override;
 
 		/// <inheritdoc />
 		virtual Array<const IDirectX12Image*> images() const noexcept override;
@@ -1383,13 +1398,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual void release() override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
+		virtual SharedPtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const DirectX12CommandBuffer& commandBuffer) const override;
+		virtual UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const Array<const DirectX12CommandBuffer*>& commandBuffers) const override;
+		virtual UInt64 submit(const Array<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
 
 		/// <inheritdoc />
 		virtual void waitFor(const UInt64& fence) const noexcept override;

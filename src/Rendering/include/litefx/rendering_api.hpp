@@ -3656,6 +3656,9 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API ICommandBuffer {
     public:
+        friend class ICommandQueue;
+
+    public:
         virtual ~ICommandBuffer() noexcept = default;
 
     public:
@@ -3722,6 +3725,27 @@ namespace LiteFX::Rendering {
         void transfer(const IBuffer& source, const IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
+        
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method takes shared ownership over <paramref name="source" />, which means that a reference is hold until the parent command queue finished using the command buffer. At this point,
+        /// the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this
+        /// method at some point after the command buffer has been executed.
+        /// 
+        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
+        /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        /// </remarks>
+        /// <param name="source">The source buffer to transfer data from.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
+        /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        void transfer(SharedPtr<const IBuffer> source, const IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
+            this->cmdTransfer(source, target, sourceElement, targetElement, elements);
+        }
 
         /// <summary>
         /// Performs a buffer-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
@@ -3760,6 +3784,49 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Performs a buffer-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="subresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
+        /// resources are counted in the following order:
+        /// 
+        /// <list type="bullet">
+        ///     <item>
+        ///         <term>Level</term>
+        ///         <description>Contains the mip-map levels.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Layer</term>
+        ///         <description>Contains the array slices.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Plane</term>
+        ///         <description>Contains planes for multi-planar formats.</description>
+        ///     </item>
+        /// </list>
+        /// 
+        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
+        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
+        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
+        /// 
+        /// This method takes shared ownership over <paramref name="source" />, which means that a reference is hold until the parent command queue finished using the command buffer. At this point,
+        /// the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this
+        /// method at some point after the command buffer has been executed.
+        /// 
+        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
+        /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        /// </remarks>
+        /// <param name="source">The source buffer to transfer data from.</param>
+        /// <param name="target">The target image to transfer data to.</param>
+        /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        void transfer(SharedPtr<const IBuffer> source, const IImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const {
+            this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
+        }
+
+        /// <summary>
         /// Performs an image-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
         /// </summary>
         /// <param name="source">The source image to transfer data from.</param>
@@ -3769,6 +3836,27 @@ namespace LiteFX::Rendering {
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
         void transfer(const IImage& source, const IImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const {
+            this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
+        }
+
+        /// <summary>
+        /// Performs an image-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method takes shared ownership over <paramref name="source" />, which means that a reference is hold until the parent command queue finished using the command buffer. At this point,
+        /// the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this
+        /// method at some point after the command buffer has been executed.
+        /// 
+        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
+        /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        /// </remarks>
+        /// <param name="source">The source image to transfer data from.</param>
+        /// <param name="target">The target image to transfer data to.</param>
+        /// <param name="sourceSubresource">The index of the first sub-resource to copy from the source image.</param>
+        /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
+        /// <param name="subresources">The number of sub-resources to copy between the images.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        void transfer(SharedPtr<const IImage> source, const IImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -3809,13 +3897,56 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Performs an image-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="firstSubresource" /> parameter describes the index of the first sub-resource to copy. Each element gets copied into the subsequent sub-resource, where 
+        /// resources are counted in the following order:
+        /// 
+        /// <list type="bullet">
+        ///     <item>
+        ///         <term>Level</term>
+        ///         <description>Contains the mip-map levels.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Layer</term>
+        ///         <description>Contains the array slices.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Plane</term>
+        ///         <description>Contains planes for multi-planar formats.</description>
+        ///     </item>
+        /// </list>
+        /// 
+        /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
+        /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
+        /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
+        /// 
+        /// This method takes shared ownership over <paramref name="source" />, which means that a reference is hold until the parent command queue finished using the command buffer. At this point,
+        /// the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this is a relaxed constraint. It is only guaranteed, that the queue calls this
+        /// method at some point after the command buffer has been executed.
+        /// 
+        /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
+        /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        /// </remarks>
+        /// <param name="source">The source image to transfer data from.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource to copy from the source image.</param>
+        /// <param name="targetElement">The index of the first target element to receive data.</param>
+        /// <param name="subresources">The number of sub-resources to copy.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        void transfer(SharedPtr<const IImage> source, const IBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const {
+            this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
+        }
+
+        /// <summary>
         /// Sets the active pipeline state.
         /// </summary>
         void use(const IPipeline& pipeline) const noexcept {
             this->cmdUse(pipeline);
         }
 
-        // TODO: Allow bind to last used pipeline (throw, if no pipeline is in use.
+        // TODO: Allow bind to last used pipeline (throw, if no pipeline is in use).
         //void bind(const IDescriptorSet& descriptorSet) const;
 
         /// <summary>
@@ -3980,6 +4111,10 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(const IBuffer& source, const IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
         virtual void cmdTransfer(const IImage& source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
         virtual void cmdTransfer(const IImage& source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IImage> source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IImage> source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
@@ -3988,6 +4123,11 @@ namespace LiteFX::Rendering {
         virtual void cmdDraw(const IVertexBuffer& vertexBuffer, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const = 0;
         virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const = 0;
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const = 0;
+        
+        /// <summary>
+        /// Called by the parent command queue to signal that the command buffer should release it's shared state.
+        /// </summary>
+        virtual void releaseSharedState() const = 0;
     };
 
     /// <summary>
@@ -4092,7 +4232,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All command buffers, the frame buffer stores.</returns>
         /// <seealso cref="commandBuffer" />
-        Array<const ICommandBuffer*> commandBuffers() const noexcept {
+        Array<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
             return this->getCommandBuffers();
         }
 
@@ -4103,7 +4243,9 @@ namespace LiteFX::Rendering {
         /// <returns>A command buffer that records draw commands for the frame buffer</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
         /// <seealso cref="commandBuffers" />
-        virtual const ICommandBuffer& commandBuffer(const UInt32& index) const = 0;
+        SharedPtr<const ICommandBuffer> commandBuffer(const UInt32& index) const {
+            return this->getCommandBuffer(index);
+        }
 
         /// <summary>
         /// Returns the images that store the output attachments for the render targets of the <see cref="RenderPass" />.
@@ -4133,7 +4275,8 @@ namespace LiteFX::Rendering {
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:
-        virtual Array<const ICommandBuffer*> getCommandBuffers() const noexcept = 0;
+        virtual SharedPtr<const ICommandBuffer> getCommandBuffer(const UInt32& index) const noexcept = 0;
+        virtual Array<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
         virtual Array<const IImage*> getImages() const noexcept = 0;
     };
 
@@ -4411,33 +4554,39 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
         /// <returns>The instance of the command buffer.</returns>
-        UniquePtr<ICommandBuffer> createCommandBuffer(const bool& beginRecording = false) const {
+        SharedPtr<ICommandBuffer> createCommandBuffer(const bool& beginRecording = false) const {
             return this->getCommandBuffer(beginRecording);
         }
 
         /// <summary>
-        /// Submits a single command buffer and inserts a fence to wait for it.
+        /// Submits a single command buffer with shared ownership and inserts a fence to wait for it.
         /// </summary>
         /// <remarks>
+        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffer" /> until the fence is passed. The reference will be released
+        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
+        /// 
         /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
         /// </remarks>
         /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffer.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(const ICommandBuffer& commandBuffer) const {
+        UInt64 submit(SharedPtr<const ICommandBuffer> commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
         /// <summary>
-        /// Submits a set of command buffers and inserts a fence to wait for them.
+        /// Submits a set of command buffers with shared ownership and inserts a fence to wait for them.
         /// </summary>
         /// <remarks>
+        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
+        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
+        /// 
         /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
         /// </remarks>
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(const Array<const ICommandBuffer*>& commandBuffers) const {
+        UInt64 submit(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
             return this->submitCommandBuffers(commandBuffers);
         }
 
@@ -4466,9 +4615,14 @@ namespace LiteFX::Rendering {
         virtual UInt64 currentFence() const noexcept = 0;
 
     private:
-        virtual UniquePtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const = 0;
-        virtual UInt64 submitCommandBuffer(const ICommandBuffer& commandBuffer) const = 0;
-        virtual UInt64 submitCommandBuffers(const Array<const ICommandBuffer*>& commandBuffers) const = 0;
+        virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const = 0;
+        virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
+        virtual UInt64 submitCommandBuffers(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
+        
+    protected:
+        void releaseSharedState(const ICommandBuffer& commandBuffer) const {
+            commandBuffer.releaseSharedState();
+        }
     };
 
     /// <summary>
@@ -4504,6 +4658,34 @@ namespace LiteFX::Rendering {
         UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->createBuffer(descriptor.type(), usage, elementSize, elements, allowWrite);
+        };
+
+        /// <summary>
+        /// Creates a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="usage">The buffer usage.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <returns>The instance of the buffer.</returns>
+        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
         };
 
         /// <summary>
