@@ -4761,6 +4761,22 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Submits a single command buffer with shared ownership and inserts a fence to wait for it.
+        /// </summary>
+        /// <remarks>
+        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffer" /> until the fence is passed. The reference will be released
+        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
+        /// 
+        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
+        /// <returns>The value of the fence, inserted after the command buffer.</returns>
+        /// <seealso cref="waitFor" />
+        UInt64 submit(SharedPtr<ICommandBuffer> commandBuffer) const {
+            return this->submitCommandBuffer(commandBuffer);
+        }
+
+        /// <summary>
         /// Submits a set of command buffers with shared ownership and inserts a fence to wait for them.
         /// </summary>
         /// <remarks>
@@ -4774,6 +4790,22 @@ namespace LiteFX::Rendering {
         /// <seealso cref="waitFor" />
         UInt64 submit(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
             return this->submitCommandBuffers(commandBuffers);
+        }
+
+        /// <summary>
+        /// Submits a set of command buffers with shared ownership and inserts a fence to wait for them.
+        /// </summary>
+        /// <remarks>
+        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
+        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
+        /// 
+        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
+        /// </remarks>
+        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
+        /// <returns>The value of the fence, inserted after the command buffers.</returns>
+        /// <seealso cref="waitFor" />
+        UInt64 submit(const Array<SharedPtr<ICommandBuffer>>& commandBuffers) const {
+            return this->submitCommandBuffers(commandBuffers | ranges::to<Array<SharedPtr<const ICommandBuffer>>>());
         }
 
         /// <summary>
