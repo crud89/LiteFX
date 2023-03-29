@@ -3722,7 +3722,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(const IBuffer& source, const IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
+        void transfer(IBuffer& source, IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
         
@@ -3743,7 +3743,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<const IBuffer> source, const IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
+        void transfer(SharedPtr<IBuffer> source, IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
 
@@ -3772,6 +3772,9 @@ namespace LiteFX::Rendering {
         /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
         /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
         /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
+        /// 
+        /// Note that before copying, each sub-resource of <paramref name="target" /> is implicitly transitioned into <see cref="ResourceState::CopyDestination" />. Transitioning back
+        /// into the source state, however, needs to be done manually after the transfer.
         /// </remarks>
         /// <param name="source">The source buffer to transfer data from.</param>
         /// <param name="target">The target image to transfer data to.</param>
@@ -3779,7 +3782,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(const IBuffer& source, const IImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const {
+        void transfer(IBuffer& source, IImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
@@ -3815,6 +3818,9 @@ namespace LiteFX::Rendering {
         /// 
         /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
         /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        /// 
+        /// Note that before copying, each sub-resource of <paramref name="target" /> is implicitly transitioned into <see cref="ResourceState::CopyDestination" />. Transitioning back
+        /// into the source state, however, needs to be done manually after the transfer.
         /// </remarks>
         /// <param name="source">The source buffer to transfer data from.</param>
         /// <param name="target">The target image to transfer data to.</param>
@@ -3822,20 +3828,24 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<const IBuffer> source, const IImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const {
+        void transfer(SharedPtr<IBuffer> source, IImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
         /// <summary>
         /// Performs an image-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
         /// </summary>
+        /// <remarks>
+        /// Note that before copying, each sub-resource of <paramref name="target" /> is implicitly transitioned into <see cref="ResourceState::CopyDestination" />. Likewise, each sub-resource of 
+        /// <paramref name="source" /> is transitioned into <see cref="ResourceState::CopySource" />. Transitioning back into the source states, however, needs to be done manually after the transfer.
+        /// </remarks>
         /// <param name="source">The source image to transfer data from.</param>
         /// <param name="target">The target image to transfer data to.</param>
         /// <param name="sourceSubresource">The index of the first sub-resource to copy from the source image.</param>
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(const IImage& source, const IImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const {
+        void transfer(IImage& source, IImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -3849,6 +3859,9 @@ namespace LiteFX::Rendering {
         /// 
         /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
         /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        /// 
+        /// Note that before copying, each sub-resource of <paramref name="target" /> is implicitly transitioned into <see cref="ResourceState::CopyDestination" />. Likewise, each sub-resource of 
+        /// <paramref name="source" /> is transitioned into <see cref="ResourceState::CopySource" />. Transitioning back into the source states, however, needs to be done manually after the transfer.
         /// </remarks>
         /// <param name="source">The source image to transfer data from.</param>
         /// <param name="target">The target image to transfer data to.</param>
@@ -3856,7 +3869,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<const IImage> source, const IImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const {
+        void transfer(SharedPtr<IImage> source, IImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -3885,6 +3898,9 @@ namespace LiteFX::Rendering {
         /// E.g., if 6 elements should be copied to an image with 3 mip-map levels and 3 layers, the elements 0-2 contain the mip-map levels of the first layer, while elements 3-5 
         /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
         /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
+        /// 
+        /// Note that before copying, each sub-resource of <paramref name="source" /> is implicitly transitioned into <see cref="ResourceState::CopySource" />. Transitioning back
+        /// into the source state, however, needs to be done manually after the transfer.
         /// </remarks>
         /// <param name="source">The source image to transfer data from.</param>
         /// <param name="target">The target buffer to transfer data to.</param>
@@ -3892,7 +3908,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(const IImage& source, const IBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const {
+        void transfer(IImage& source, IBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
@@ -3928,6 +3944,9 @@ namespace LiteFX::Rendering {
         /// 
         /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
         /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        /// 
+        /// Note that before copying, each sub-resource of <paramref name="source" /> is implicitly transitioned into <see cref="ResourceState::CopySource" />. Transitioning back
+        /// into the source state, however, needs to be done manually after the transfer.
         /// </remarks>
         /// <param name="source">The source image to transfer data from.</param>
         /// <param name="target">The target buffer to transfer data to.</param>
@@ -3935,7 +3954,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<const IImage> source, const IBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const {
+        void transfer(SharedPtr<IImage> source, IBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
@@ -4107,14 +4126,14 @@ namespace LiteFX::Rendering {
     private:
         virtual void cmdBarrier(const IBarrier& barrier, const bool& invert) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
-        virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const = 0;
-        virtual void cmdTransfer(const IBuffer& source, const IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
-        virtual void cmdTransfer(const IImage& source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
-        virtual void cmdTransfer(const IImage& source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
-        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const = 0;
-        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
-        virtual void cmdTransfer(SharedPtr<const IImage> source, const IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
-        virtual void cmdTransfer(SharedPtr<const IImage> source, const IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
+        virtual void cmdTransfer(IBuffer& source, IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const = 0;
+        virtual void cmdTransfer(IBuffer& source, IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
+        virtual void cmdTransfer(IImage& source, IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
+        virtual void cmdTransfer(IImage& source, IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
+        virtual void cmdTransfer(SharedPtr<IBuffer> source, IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const = 0;
+        virtual void cmdTransfer(SharedPtr<IBuffer> source, IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
+        virtual void cmdTransfer(SharedPtr<IImage> source, IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
+        virtual void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;

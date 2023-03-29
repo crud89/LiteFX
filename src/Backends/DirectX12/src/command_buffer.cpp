@@ -223,7 +223,7 @@ void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier, const bool
 		barrier.execute(*this);
 }
 
-void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -231,10 +231,10 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 	if (target.elements() < targetElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
 
-	this->handle()->CopyBufferRegion(target.handle().Get(), targetElement * target.alignedElementSize(), source.handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
+	this->handle()->CopyBufferRegion(std::as_const(target).handle().Get(), targetElement * target.alignedElementSize(), std::as_const(source).handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
 }
 
-void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -243,17 +243,17 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-	const auto& targetDesc = target.handle()->GetDesc();
+	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
 
 	for (int sr(0); sr < elements; ++sr)
 	{
 		m_impl->m_queue.device().handle()->GetCopyableFootprints(&targetDesc, sourceElement + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
-		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), firstSubresource + sr);
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), firstSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
 }
 
-void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Image& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
@@ -263,17 +263,17 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 
 	// TODO: Check if we can possibly do this more efficiently by copying multiple sub-resources at once.
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-	const auto& targetDesc = target.handle()->GetDesc();
+	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
 
 	for (int sr(0); sr < subresources; ++sr)
 	{
 		m_impl->m_queue.device().handle()->GetCopyableFootprints(&targetDesc, sourceSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
-		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), targetSubresource + sr);
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), targetSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
 }
 
-void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
@@ -282,35 +282,35 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-	const auto& targetDesc = target.handle()->GetDesc();
+	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
 
 	for (int sr(0); sr < subresources; ++sr)
 	{
 		m_impl->m_queue.device().handle()->GetCopyableFootprints(&targetDesc, firstSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
-		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(source.handle().Get(), footprint), targetLocation(target.handle().Get(), targetElement + sr);
+		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), targetElement + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Image& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Image& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Buffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
 	m_impl->m_sharedResources.push_back(source);

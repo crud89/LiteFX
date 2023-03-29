@@ -893,28 +893,28 @@ namespace LiteFX::Rendering::Backends {
 		virtual void barrier(const VulkanBarrier& barrier, const bool& invert = false) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void transfer(const IVulkanBuffer& source, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void transfer(IVulkanBuffer& source, IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(const IVulkanBuffer& source, const IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+		virtual void transfer(IVulkanBuffer& source, IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(const IVulkanImage& source, const IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+		virtual void transfer(IVulkanImage& source, IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(const IVulkanImage& source, const IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+		virtual void transfer(IVulkanImage& source, IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void transfer(SharedPtr<IVulkanBuffer> source, IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+		virtual void transfer(SharedPtr<IVulkanBuffer> source, IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<const IVulkanImage> source, const IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+		virtual void transfer(SharedPtr<IVulkanImage> source, IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<const IVulkanImage> source, const IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+		virtual void transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
 		virtual void use(const VulkanPipelineState& pipeline) const noexcept override;
