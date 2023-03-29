@@ -191,7 +191,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add("Instance Bindings", std::move(instanceBinding));
 }
 
-void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, const IBuffer& buffer) const
+void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();

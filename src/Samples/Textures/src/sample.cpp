@@ -201,7 +201,7 @@ void SampleApp::loadTexture(UniquePtr<IImage>& texture, UniquePtr<ISampler>& sam
     sampler = m_device->factory().createSampler("Sampler", FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
 }
 
-void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, const IBuffer& buffer) const
+void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();

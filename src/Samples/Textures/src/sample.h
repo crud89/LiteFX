@@ -111,7 +111,7 @@ private:
 	/// <summary>
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>
-	void updateCamera(const ICommandBuffer& commandBuffer, const IBuffer& buffer) const;
+	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const;
 
 private:
 	void onInit();

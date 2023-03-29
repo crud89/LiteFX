@@ -179,10 +179,25 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.image = std::as_const(image).handle(),
-		.subresourceRange = VkImageSubresourceRange { .aspectMask = image.aspectMask() }
+		.subresourceRange = {
+			.aspectMask = image.aspectMask(),
+			.baseMipLevel = 0,
+			.levelCount = image.levels(),
+			.baseArrayLayer = 0,
+			.layerCount = image.layers()
+		}
 	};
 
+	// Store the current layout.
 	auto layout = Vk::getImageLayout(image.state(0));
+
+	// Make sure that all sub-resources are in the proper layout.
+	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+	::vkCmdPipelineBarrier(this->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 	for (UInt32 layer(0); layer < image.layers(); ++layer)
 	{
@@ -198,7 +213,7 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 			barrier.subresourceRange.layerCount = 1;
 			barrier.subresourceRange.baseMipLevel = level - 1;
 			barrier.subresourceRange.levelCount = 1;
-			barrier.oldLayout = layout;
+			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
@@ -257,37 +272,47 @@ void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier, const bool& inve
 		barrier.execute(*this);
 }
 
-void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < targetElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
-	
+
 	VkBufferCopy copyInfo {
 		.srcOffset = sourceElement * source.alignedElementSize(),
 		.dstOffset = targetElement * target.alignedElementSize(),
 		.size      = elements      * source.alignedElementSize()
 	};
 
-	::vkCmdCopyBuffer(this->handle(), source.handle(), target.handle(), 1, &copyInfo);
+	// TODO: If source or target are device memory objects, they should also require a barrier here...
+
+	::vkCmdCopyBuffer(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), 1, &copyInfo);
 }
 
-void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < firstSubresource + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
-	
+
+	// TODO: If source is a device memory objects, it should also require a barrier here...
+
 	// Create a copy command and add it to the command buffer.
 	Array<VkBufferImageCopy> copyInfos(elements);
+
+	// Make sure, the target sub-resources are in a proper layout.
+	VulkanBarrier barrier;
 
 	std::ranges::generate(copyInfos, [&, this, i = firstSubresource]() mutable {
 		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
 		target.resolveSubresource(subresource, plane, layer, level);
+		
+		if (target.state(subresource) != ResourceState::CopyDestination)
+			barrier.transition(target, level, layer, plane, ResourceState::CopyDestination);
 
 		return VkBufferImageCopy {
 			.bufferOffset = source.alignedElementSize() * sourceElement,
@@ -304,10 +329,11 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 		};
 	});
 
-	::vkCmdCopyBufferToImage(this->handle(), source.handle(), target.handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+	this->barrier(barrier);
+	::vkCmdCopyBufferToImage(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
-void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
@@ -318,12 +344,21 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImag
 	// Create a copy command and add it to the command buffer.
 	Array<VkImageCopy> copyInfos(subresources);
 
+	// Make sure, the source and target sub-resources are in a proper layout.
+	VulkanBarrier barrier;
+
 	std::ranges::generate(copyInfos, [&, this, i = 0]() mutable {
 		UInt32 sourceRsc = sourceSubresource + i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
 		UInt32 targetRsc = sourceSubresource + i, targetLayer = 0, targetLevel = 0, targetPlane = 0;
 		source.resolveSubresource(sourceRsc, sourceLayer, sourceLevel, sourcePlane);
 		target.resolveSubresource(targetRsc, targetLayer, targetLevel, targetPlane);
 		i++;
+
+		if (target.state(sourceRsc) != ResourceState::CopySource)
+			barrier.transition(source, sourceLevel, sourceLayer, sourcePlane, ResourceState::CopySource);
+
+		if (target.state(targetRsc) != ResourceState::CopyDestination)
+			barrier.transition(target, sourceLevel, sourceLayer, sourcePlane, ResourceState::CopyDestination);
 
 		return VkImageCopy {
 			.srcSubresource = VkImageSubresourceLayers {
@@ -344,10 +379,11 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImag
 		};
 	});
 
-	::vkCmdCopyImage(this->handle(), source.handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, target.handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+	this->barrier(barrier);
+	::vkCmdCopyImage(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
-void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
@@ -358,9 +394,15 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuff
 	// Create a copy command and add it to the command buffer.
 	Array<VkBufferImageCopy> copyInfos(subresources);
 
+	// Make sure, the source and target sub-resources are in a proper layout.
+	VulkanBarrier barrier;
+
 	std::ranges::generate(copyInfos, [&, this, i = targetElement]() mutable {
 		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
 		source.resolveSubresource(subresource, plane, layer, level);
+
+		if (target.state(subresource) != ResourceState::CopySource)
+			barrier.transition(source, level, layer, plane, ResourceState::CopySource);
 
 		return VkBufferImageCopy {
 			.bufferOffset = target.alignedElementSize() * subresource,
@@ -377,28 +419,29 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuff
 		};
 	});
 
-	::vkCmdCopyImageToBuffer(this->handle(), source.handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, target.handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+	this->barrier(barrier);
+	::vkCmdCopyImageToBuffer(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void VulkanCommandBuffer::transfer(SharedPtr<IVulkanBuffer> source, IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+void VulkanCommandBuffer::transfer(SharedPtr<IVulkanBuffer> source, IVulkanImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanImage> source, const IVulkanImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+void VulkanCommandBuffer::transfer(SharedPtr<IVulkanImage> source, IVulkanImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanImage> source, const IVulkanBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+void VulkanCommandBuffer::transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
 	m_impl->m_sharedResources.push_back(source);
