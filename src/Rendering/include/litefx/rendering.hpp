@@ -952,7 +952,17 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<command_buffer_type> createCommandBuffer(const bool& beginRecording = false) const = 0;
 
         /// <inheritdoc />
+        virtual UInt64 submit(SharedPtr<command_buffer_type> commandBuffer) const {
+            return this->submit(std::static_pointer_cast<const command_buffer_type>(commandBuffer));
+        }
+
+        /// <inheritdoc />
         virtual UInt64 submit(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
+
+        /// <inheritdoc />
+        virtual UInt64 submit(const Array<SharedPtr<command_buffer_type>>& commandBuffers) const {
+            return this->submit(commandBuffers | ranges::to<Array<SharedPtr<const command_buffer_type>>>());
+        }
 
         /// <inheritdoc />
         virtual UInt64 submit(const Array<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;

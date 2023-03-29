@@ -177,11 +177,13 @@ const QueuePriority& VulkanQueue::priority() const noexcept
 void VulkanQueue::bind()
 {
 	m_impl->bind();
+	this->bound(this, { });
 }
 
 void VulkanQueue::release()
 {
 	m_impl->release();
+	this->released(this, { });
 }
 
 SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
@@ -205,6 +207,9 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, S
 		throw InvalidArgumentException("The command buffer must be initialized.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
+	// Begin event.
+	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
 
 	// End the command buffer.
 	commandBuffer->end();
@@ -244,8 +249,11 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, S
 	// Submit the command buffer to the transfer queue.
 	raiseIfFailed<RuntimeException>(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
-	// Add the command buffer to the submitted command buffers list and return the fence.
+	// Add the command buffer to the submitted command buffers list.
 	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
+
+	// Fire end event.
+	this->submitted(this, { fence });
 	return fence;
 }
 
@@ -260,6 +268,12 @@ UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& co
 		throw InvalidArgumentException("At least one command buffer is not initialized.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
+	// Begin event.
+	auto buffers = commandBuffers |
+		std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
+		ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
+	this->submitting(this, { buffers });
 
 	// End the command buffer.
 	Array<VkCommandBuffer> handles(commandBuffers.size());
@@ -304,8 +318,11 @@ UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& co
 	// Submit the command buffer to the transfer queue.
 	raiseIfFailed<RuntimeException>(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
-	// Add the command buffers to the submitted command buffers list and return the fence.
+	// Add the command buffers to the submitted command buffers list.
 	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
+
+	// Fire end event.
+	this->submitted(this, { fence });
 	return fence;
 }
 

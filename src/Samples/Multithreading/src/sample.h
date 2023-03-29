@@ -101,6 +101,7 @@ public:
 		this->initializing += std::bind(&SampleApp::onInit, this);
 		this->startup += std::bind(&SampleApp::onStartup, this);
 		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
+		this->shutdown += std::bind(&SampleApp::onShutdown, this);
 	}
 
 private:
@@ -118,6 +119,7 @@ private:
 private:
 	void onInit();
 	void onStartup();
+	void onShutdown();
 	void onResize(const void* sender, ResizeEventArgs e);
 
 public:

@@ -35,6 +35,8 @@ namespace LiteFX {
 		Other = 0xFF
 	};
 
+	constexpr std::array VALID_BACKEND_TYPES { BackendType::Rendering };
+
 	enum class LITEFX_APPMODEL_API BackendState {
 		Inactive = 0x01,
 		Active = 0x02

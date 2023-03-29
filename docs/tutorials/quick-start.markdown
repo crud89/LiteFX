@@ -62,11 +62,13 @@ public:
 		this->initializing += std::bind(&SampleApp::onInit, this);
 		this->startup += std::bind(&SampleApp::onStartup, this);
 		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
+        this->shutdown += std::bind(&SampleApp::onShutdown, this);
 	}
 
 private:
 	void onInit();
 	void onStartup();
+	void onShutdown();
 	void onResize(const void* sender, ResizeEventArgs e);
 };
 
@@ -84,6 +86,12 @@ void SimpleApp::onInit()
 
 void SimpleApp::onStartup() 
 {
+}
+
+void SimpleApp::onShutdown() 
+{
+    ::glfwDestroyWindow(m_window);
+    ::glfwTerminate();
 }
 
 void SimpleApp::onResize(const void* sender, ResizeEventArgs e)
@@ -136,9 +144,10 @@ We then specify a log target (which is completely optional) to be a console wind
 
 Let's go on and take a look at the `SimpleApp` class. It implements the `LiteFX::App` base class. In the constructor, it subscribes to the following events:
 
-- `initializing`, called during startup to setup native callbacks and prepare the app for running.
-- `startup`, called after startup to initialize backends.
+- `initializing`, called during startup to setup native callbacks and initialize backends.
+- `startup`, called after startup to execute the main application loop
 - `resized`, which is called if an resize event occurs.
+- `shutdown`, which is called before the application terminates.
 
 Since the app itself is agnostic towards the actual window manager, we have to manually invoke the resize event. We do this by storing the application instance pointer using `glfwSetWindowUserPointer` and calling the `resize` method within the *GLFW* framebuffer resize event callback.
 
@@ -147,29 +156,12 @@ Since the app itself is agnostic towards the actual window manager, we have to m
 The app model automatically calls `SampleApp::onStartup` as soon as the app is ready. This method is the main method, that should implement the game loop. If it returns, the application will close. In its most simple form, the method can be implemented like this:
 
 ```cxx
-// TODO: initialize.
-
 // Run application loop until the window is closed.
 while (!::glfwWindowShouldClose(m_window))
 {
     ::glfwPollEvents();
-	// TODO: draw frame.
 }
-
-// TODO: cleanup.
-
-// Destroy the window.
-::glfwDestroyWindow(m_window);
-::glfwTerminate();
 ```
-
-There are three to-dos here:
-
-1. Initialization, includes creating a device, setting up the render passes and pipelines and creating buffers and descriptors.
-2. Rendering, which repeatedly draws a frame to a back buffer.
-3. Cleanup, which means releasing all resources before destroying the device and quitting the app.
-
-In the following, we will take a closer look into each of the steps.
 
 #### Creating a Device
 
@@ -178,19 +170,27 @@ Before we can do any rendering, we need to create a device. A device is the cent
 The next thing we need is a surface, which is a way of telling the device where to render to. The way surfaces are created slightly differs between DirectX 12 and Vulkan. For DirectX 12 a surface is nothing more than a `HWND`. For Vulkan, however, we need to create a surface and we can use *GLFW* for it.
 
 ```cxx
-auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
-auto adapter = backend->findAdapter(std::nullopt);
+void SimpleApp::onInit()
+{
+    ::glfwSetWindowUserPointer(m_window, this);
+    ::glfwSetFramebufferSizeCallback(m_window, ::resize); 
 
-// For Vulkan:
-auto surface = backend->createSurface([this](const VkInstance& instance) {
-	VkSurfaceKHR surface;
-	raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
+    auto backend = this->findBackend<VulkanBackend>(BackendType::Rendering);
+    auto adapter = backend->findAdapter(std::nullopt);
 
-	return surface;
-});
+    // For Vulkan:
+    auto surface = backend->createSurface([this](const VkInstance& instance) {
+	    VkSurfaceKHR surface;
+	    raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
 
-// For DX12 (and Vulkan under Windows):
-auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(m_window));
+	    return surface;
+    });
+
+    // For DX12 (and Vulkan under Windows):
+    auto surface = makeUnique<DirectX12Surface>(::glfwGetWin32Window(m_window));
+
+    ...
+}
 ```
 
 With the surface and adapter, we can now proceed to creating our device. Creating a device automatically initializes the *Swap Chain*, which we will talk about in detail later. We can simply create it with a default extent, but it is more efficient to directly tell the swap chain how large the surface is from the beginning. This way, we prevent it from beeing re-created after the window first gets drawn to. In order to do this, we can request the frame buffer size from *GLFW*. Note that the frame buffer size is not always equal to the window size, depending on the monitor. High DPI monitors use a more coarse window coordinate system. You can read about it in more detail [here](https://www.glfw.org/docs/3.3/group__window.html#ga0e2637a4161afb283f5300c7f94785c9).

@@ -484,12 +484,12 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if a backend has been started.
 		/// </summary>
-		Event<const IBackend*> backendStarted;
+		mutable Event<const IBackend*> backendStarted;
 
 		/// <summary>
 		/// Invoked, if a backend has been stopped.
 		/// </summary>
-		Event<const IBackend*> backendStopped;
+		mutable Event<const IBackend*> backendStopped;
 
 		/// <summary>
 		/// Sets a callback that is called, if a backend is started.
@@ -586,12 +586,17 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if the application has been started.
 		/// </summary>
-		Event<EventArgs> startup;
+		mutable Event<EventArgs> startup;
 
 		/// <summary>
 		/// Invoked during initialization.
 		/// </summary>
-		Event<EventArgs> initializing;
+		mutable Event<EventArgs> initializing;
+
+		/// <summary>
+		/// Invoked, if the application has is shutting down.
+		/// </summary>
+		mutable Event<EventArgs> shutdown;
 
 		/// <summary>
 		/// Adds a backend to the app.
@@ -609,7 +614,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if the app window or context gets resized.
 		/// </summary>
-		Event<ResizeEventArgs> resized;
+		mutable Event<ResizeEventArgs> resized;
 
 		/// <summary>
 		/// Called, if the application window resizes.

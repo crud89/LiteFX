@@ -160,19 +160,49 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
 
 void SampleApp::onStartup()
 {
-    // Store the window handle.
-    auto window = m_window.get();
+    // Run application loop until the window is closed.
+    while (!::glfwWindowShouldClose(m_window.get()))
+    {
+        this->handleEvents();
+        this->drawFrame();
+        this->updateWindowTitle();
+    }
+}
 
-    // Get the proper frame buffer size.
-    int width, height;
-    ::glfwGetFramebufferSize(window, &width, &height);
+void SampleApp::onShutdown()
+{
+    // Destroy the window.
+    ::glfwDestroyWindow(m_window.get());
+    ::glfwTerminate();
+}
 
-    // Create viewport and scissors.
-    m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-    m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+void SampleApp::onInit()
+{
+    ::glfwSetWindowUserPointer(m_window.get(), this);
+
+    ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) {
+        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+        app->resize(width, height); 
+    });
+
+    ::glfwSetKeyCallback(m_window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+        app->keyDown(key, scancode, action, mods);
+    });
 
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this, &window]<typename TBackend>(TBackend* backend) {
+    auto startCallback = [this]<typename TBackend>(TBackend * backend) {
+        // Store the window handle.
+        auto window = m_window.get();
+
+        // Get the proper frame buffer size.
+        int width, height;
+        ::glfwGetFramebufferSize(window, &width, &height);
+
+        // Create viewport and scissors.
+        m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+        m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
+
         auto adapter = backend->findAdapter(m_adapterId);
 
         if (adapter == nullptr)
@@ -208,41 +238,6 @@ void SampleApp::onStartup()
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
 #endif // BUILD_DIRECTX_12_BACKEND
-
-    // Start the first registered rendering backend.
-    auto backends = this->getBackends(BackendType::Rendering);
-    
-    if (!backends.empty())
-    {
-        this->startBackend(typeid(*backends[0]));
-
-        // Run application loop until the window is closed.
-        while (!::glfwWindowShouldClose(window))
-        {
-            this->handleEvents();
-            this->drawFrame();
-            this->updateWindowTitle();
-        }
-    }
-
-    // Destroy the window.
-    ::glfwDestroyWindow(window);
-    ::glfwTerminate();
-}
-
-void SampleApp::onInit()
-{
-    ::glfwSetWindowUserPointer(m_window.get(), this);
-
-    ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) { 
-        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
-        app->resize(width, height); 
-    });
-
-    ::glfwSetKeyCallback(m_window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
-        app->keyDown(key, scancode, action, mods);
-    });
 }
 
 void SampleApp::onResize(const void* sender, ResizeEventArgs e)

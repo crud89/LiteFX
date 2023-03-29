@@ -140,11 +140,13 @@ const QueuePriority& DirectX12Queue::priority() const noexcept
 void DirectX12Queue::bind()
 {
 	m_impl->bind();
+	this->bound(this, { });
 }
 
 void DirectX12Queue::release()
 {
 	m_impl->release();
+	this->released(this, { });
 }
 
 SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording) const
@@ -159,6 +161,9 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
+	// Begin event.
+	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
+
 	// End the command buffer.
 	commandBuffer->end();
 	
@@ -170,8 +175,11 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 	auto fence = ++m_impl->m_fenceValue;
 	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
-	// Add the command buffer to the submitted command buffers list and return the fence.
+	// Add the command buffer to the submitted command buffers list.
 	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
+
+	// Fire end event.
+	this->submitted(this, { fence });
 	return fence;
 }
 
@@ -181,6 +189,12 @@ UInt64 DirectX12Queue::submit(const Array<SharedPtr<const DirectX12CommandBuffer
 		throw InvalidArgumentException("At least one command buffer is not initialized.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
+	// Begin event.
+	auto buffers = commandBuffers |
+		std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
+		ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
+	this->submitting(this, { buffers });
 
 	// End and submit the command buffers.
 	Array<ID3D12CommandList*> handles(commandBuffers.size());
@@ -196,8 +210,11 @@ UInt64 DirectX12Queue::submit(const Array<SharedPtr<const DirectX12CommandBuffer
 	auto fence = ++m_impl->m_fenceValue;
 	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
-	// Add the command buffers to the submitted command buffers list and return the fence.
+	// Add the command buffers to the submitted command buffers list.
 	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
+
+	// Fire end event.
+	this->submitted(this, { fence });
 	return fence;
 }
 

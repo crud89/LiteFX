@@ -414,6 +414,9 @@ void VulkanRenderPass::begin(const UInt32& buffer)
 
     // Begin the frame buffer command buffers.
     std::ranges::for_each(frameBuffer->commandBuffers(), [this](auto commandBuffer) { commandBuffer->begin(*this); });
+
+    // Publish beginning event.
+    this->beginning(this, { buffer });
 }
 
 void VulkanRenderPass::end() const
@@ -421,6 +424,9 @@ void VulkanRenderPass::end() const
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr)
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
+
+    // Publish ending event.
+    this->ending(this, { });
 
     auto frameBuffer = m_impl->m_activeFrameBuffer;
     auto commandBuffer = m_impl->m_activeCommandBuffer;
