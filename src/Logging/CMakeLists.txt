@@ -20,6 +20,7 @@ SET(LOGGING_SOURCES
     "src/logger_factory.cpp"
     "src/console.cpp"
     "src/rolling_file.cpp"
+    "src/termination.cpp"
 )
 
 # Add shared library project.
