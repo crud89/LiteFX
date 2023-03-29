@@ -209,7 +209,8 @@ public:
 		// Allow geometry and tessellation shader stages.
 		VkPhysicalDeviceFeatures deviceFeatures = {
 			.geometryShader = true,
-			.tessellationShader = true
+			.tessellationShader = true,
+			.samplerAnisotropy = true
 		};
 
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 

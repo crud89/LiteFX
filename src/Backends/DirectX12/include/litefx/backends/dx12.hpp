@@ -871,28 +871,28 @@ namespace LiteFX::Rendering::Backends {
 		virtual void barrier(const DirectX12Barrier& barrier, const bool& invert = false) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void transfer(const IDirectX12Buffer& source, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+		virtual void transfer(IDirectX12Buffer& source, IDirectX12Image& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(const IDirectX12Image& source, const IDirectX12Image& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+		virtual void transfer(IDirectX12Image& source, IDirectX12Image& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+		virtual void transfer(IDirectX12Image& source, IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		virtual void transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Buffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+		virtual void transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Image& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+		virtual void transfer(SharedPtr<IDirectX12Image> source, IDirectX12Image& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+		virtual void transfer(SharedPtr<IDirectX12Image> source, IDirectX12Buffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
 
 		/// <inheritdoc />
 		virtual void use(const DirectX12PipelineState& pipeline) const noexcept override;
