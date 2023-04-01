@@ -356,6 +356,14 @@ void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& l
 	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const DirectX12PushConstantsRange* range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / 4, reinterpret_cast<const char* const>(memory) + range->offset(), 0); });
 }
 
+void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
+{
+	if (timingEvent == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The timing event must be initialized.");
+
+	this->handle()->EndQuery(m_impl->m_queue.device().swapChain().timestampQueryHeap(), D3D12_QUERY_TYPE_TIMESTAMP, timingEvent->queryId());
+}
+
 void DirectX12CommandBuffer::releaseSharedState() const
 {
 	m_impl->m_sharedResources.clear();

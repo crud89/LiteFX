@@ -236,6 +236,7 @@ public:
 			.descriptorBindingPartiallyBound = true,
 			.descriptorBindingVariableDescriptorCount = true,
 			.runtimeDescriptorArray = true,
+			.hostQueryReset = true,
 			.timelineSemaphore = true
 		};
 
@@ -502,6 +503,11 @@ MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format)
 		return MultiSamplingLevel::x2;
 	else
 		return MultiSamplingLevel::x1;
+}
+
+double VulkanDevice::ticksPerMillisecond() const noexcept
+{
+	return 1000000.0 / static_cast<double>(this->adapter().limits().timestampPeriod);
 }
 
 void VulkanDevice::wait() const

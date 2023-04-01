@@ -25,6 +25,7 @@ SET(RENDERING_SOURCES
     "src/render_target.cpp"
     "src/state_resource.cpp"
     "src/device_state.cpp"
+    "src/timing_event.cpp"
 )
 
 # Add shared library project.

@@ -940,6 +940,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
 
+		/// <inheritdoc />
+		virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+
 	private:
 		virtual void releaseSharedState() const override;
 	};
@@ -1310,8 +1313,26 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns>A reference of the current swap semaphore, a command queue can wait on for presenting.</returns>
 		virtual const VkSemaphore& semaphore() const noexcept;
 
+		/// <summary>
+		/// Returns the query pool for the current frame.
+		/// </summary>
+		/// <returns>A reference of the query pool for the current frame.</returns>
+		virtual const VkQueryPool& timestampQueryPool() const noexcept;
+
 		// SwapChain interface.
 	public:
+		/// <inheritdoc />
+		virtual Array<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
+
+		/// <inheritdoc />
+		virtual SharedPtr<TimingEvent> timingEvent(const UInt32& queryId) const override;
+
+		/// <inheritdoc />
+		virtual UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+
+		/// <inheritdoc />
+		virtual UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
+
 		/// <inheritdoc />
 		virtual const Format& surfaceFormat() const noexcept override;
 
@@ -1330,6 +1351,9 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		/// <inheritdoc />
 		virtual Array<Format> getSurfaceFormats() const noexcept override;
+
+		/// <inheritdoc />
+		virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
 
 		/// <inheritdoc />
 		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) override;
@@ -1652,6 +1676,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
+
+		/// <inheritdoc />
+		virtual double ticksPerMillisecond() const noexcept override;
 
 		/// <inheritdoc />
 		virtual void wait() const override;

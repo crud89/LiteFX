@@ -2464,6 +2464,71 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// An event that is used to measure timestamps in a command queue.
+    /// </summary>
+    /// <remarks>
+    /// Timing events are used to collect GPU time stamps asynchronously. A timing event can be inserted to a <see cref="ICommandBuffer" /> by 
+    /// calling <see cref="ICommandBuffer::writeTimingEvent" />. This will cause the GPU to write the current time stamp when the command gets 
+    /// executed. Since command order is not preserved within command buffers, this is not guaranteed to be accurate an accurate point of time
+    /// for when a certain command in order has been executed. However, since a time stamp is always written at the bottom of the pipe, the 
+    /// difference between two timestamps resembles the actual time the GPU was occupied with the commands between them.
+    /// 
+    /// Timing events are asynchronous. They are set for a certain back buffer of a <see cref="ISwapChain" />. Reading the time stamp requires
+    /// the back buffer to be ready (i.e., the frame in flight needs to have executed). The earliest point where this is guaranteed is, if the
+    /// swap chain swaps to the back buffer again. This means that the time stamps issued in one frame can only be read the next time the 
+    /// frame's back buffer is used again.
+    /// 
+    /// Note that timing events are only supported on graphics and compute <see cref="ICommandQueue" />s.
+    /// </remarks>
+    /// <seeaslo cref="ISwapChain" />
+    class LITEFX_RENDERING_API TimingEvent : public std::enable_shared_from_this<TimingEvent> {
+        LITEFX_IMPLEMENTATION(TimingEventImpl);
+        friend class ISwapChain;
+
+    public:
+        /// <summary>
+        /// Returns a pointer with shared ownership to the current instance.
+        /// </summary>
+        /// <returns>A pointer with shared ownership to the current instance.</returns>
+        std::shared_ptr<TimingEvent> getptr() {
+            return shared_from_this();
+        }
+
+    private:
+        explicit TimingEvent(const ISwapChain& swapChain, StringView name = "") noexcept;
+
+    public:
+        TimingEvent(TimingEvent&&) = delete;
+        TimingEvent(const TimingEvent&) = delete;
+        virtual ~TimingEvent() noexcept;
+
+    public:
+        /// <summary>
+        /// Gets the name of the timing event.
+        /// </summary>
+        /// <returns>The name of the timing event.</returns>
+        String name() const noexcept;
+
+        /// <summary>
+        /// Reads the current timestamp (as a tick count) of the event.
+        /// </summary>
+        /// <remarks>
+        /// In order to convert the number of ticks to (milli-)seconds, this value needs to be divided by <see cref="IGraphicsDevice::ticksPerMillisecond" />. To improve precision,
+        /// calculate the difference between two time stamps in ticks first and only then convert them to seconds.
+        /// </remarks>
+        /// <returns>The current time stamp of the event as a tick count.</returns>
+        /// <seealso cref="ISwapChain::readTimingEvent" />
+        UInt64 readTimestamp() const noexcept;
+
+        /// <summary>
+        /// Returns the query ID for the timing event.
+        /// </summary>
+        /// <returns>The query ID for the timing event.</returns>
+        /// <seealso cref="ISwapChain::resolveQueryId" />
+        UInt32 queryId() const;
+    };
+
+    /// <summary>
     /// Stores meta data about a buffer attribute, i.e. a member or field of a descriptor or buffer.
     /// </summary>
     class LITEFX_RENDERING_API BufferAttribute {
@@ -2676,6 +2741,24 @@ namespace LiteFX::Rendering {
         /// <param name="size">The size of each data block within <paramref name="data" />.</param>
         /// <param name="firsElement">The first element of the array to map.</param>
         virtual void map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement = 0) = 0;
+
+        /// <summary>
+        /// Maps the memory at <paramref name="data" /> to the internal memory of this object.
+        /// </summary>
+        /// <param name="data">The address that marks the beginning of the data to map.</param>
+        /// <param name="size">The number of bytes to map.</param>
+        /// <param name="element">The array element to map the data to.</param>
+        /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
+        virtual void map(void* data, const size_t& size, const UInt32& element = 0, bool write = true) = 0;
+
+        /// <summary>
+        /// Maps the memory blocks within <paramref name="data" /> to the internal memory of an array.
+        /// </summary>
+        /// <param name="data">The data blocks to map.</param>
+        /// <param name="size">The size of each data block within <paramref name="data" />.</param>
+        /// <param name="firsElement">The first element of the array to map.</param>
+        /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
+        virtual void map(Span<void*> data, const size_t& elementSize, const UInt32& firstElement = 0, bool write = true) = 0;
     };
 
     /// <summary>
@@ -4131,6 +4214,12 @@ namespace LiteFX::Rendering {
         /// <param name="stencilRef">The stencil reference for the subsequent draw calls.</param>
         virtual void setStencilRef(const UInt32& stencilRef) const noexcept = 0;
 
+        /// <summary>
+        /// Writes the current GPU time stamp value for the timing event.
+        /// </summary>
+        /// <param name="timingEvent">The timing event for which the time stamp is written.</param>
+        virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const = 0;
+
     private:
         virtual void cmdBarrier(const IBarrier& barrier, const bool& invert) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
@@ -4526,6 +4615,55 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Creates a new instance of a <see cref="TimingEvent" />.
+        /// </summary>
+        /// <remarks>
+        /// Note that registering a new timing event does invalidate previously registered events, i.e. they do not return meaningful time stamps for
+        /// the next frame. Timing events should only be registered during application startup, before the first frame is rendered.
+        /// </remarks>
+        /// <param name="name">The name of the timing event.</param>
+        /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
+        [[nodiscard]] std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") noexcept {
+            auto timingEvent = SharedPtr<TimingEvent>(new TimingEvent(*this, name));
+            this->addTimingEvent(timingEvent);
+            return timingEvent;
+        }
+
+        /// <summary>
+        /// Returns all registered timing events.
+        /// </summary>
+        /// <returns>An array, containing all registered timing events.</returns>
+        virtual Array<SharedPtr<TimingEvent>> timingEvents() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the timing event registered for <paramref name="queryId" />.
+        /// </summary>
+        /// <param name="queryId">The query ID of the timing event.</param>
+        /// <returns>The timing event registered for <paramref name="queryId" />.</returns>
+        virtual SharedPtr<TimingEvent> timingEvent(const UInt32& queryId) const = 0;
+
+        /// <summary>
+        /// Reads the current time stamp value (in ticks) of a timing event.
+        /// </summary>
+        /// <remarks>
+        /// In order to convert the number of ticks to (milli-)seconds, this value needs to be divided by <see cref="IGraphicsDevice::ticksPerMillisecond" />. To improve precision,
+        /// calculate the difference between two time stamps in ticks first and only then convert them to seconds.
+        /// </remarks>
+        /// <param name="timingEvent">The timing event to read the current value for.</param>
+        /// <returns>The current time stamp value of the timing event in ticks.</returns>
+        /// <seealso cref="TimingEvent::readTimestamp" />
+        virtual UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const = 0;
+
+        /// <summary>
+        /// Returns the query ID for the timing event.
+        /// </summary>
+        /// <param name="timingEvent">The timing event to return the query ID for.</param>
+        /// <returns>The query ID for the <paramref name="timingEvent" />.</returns>
+        /// <seealso cref="TimingEvent::queryId" />
+        virtual UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const = 0;
+
+    public:
+        /// <summary>
         /// Returns the swap chain image format.
         /// </summary>
         /// <returns>The swap chain image format.</returns>
@@ -4602,6 +4740,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Array<const IImage*> getImages() const noexcept = 0;
+        virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) = 0;
     };
 
     /// <summary>
@@ -5333,6 +5472,13 @@ namespace LiteFX::Rendering {
         /// <param name="format">The target (i.e. back-buffer) format.</param>
         /// <returns>The maximum multi-sampling level.</returns>
         virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept = 0;
+
+        /// <summary>
+        /// Returns the number of GPU ticks per milliseconds.
+        /// </summary>
+        /// <returns>The number of GPU ticks per milliseconds.</returns>
+        /// <seealso cref="TimingEvent" />
+        virtual double ticksPerMillisecond() const noexcept = 0;
 
     public:
         /// <summary>

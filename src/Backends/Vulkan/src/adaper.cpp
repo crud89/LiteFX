@@ -95,7 +95,7 @@ GraphicsAdapterType VulkanGraphicsAdapter::type() const noexcept
     case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
     case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
     case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-        return GraphicsAdapterType::CPU;
+        return GraphicsAdapterType::GPU;
     default:
         return GraphicsAdapterType::Other;
     }
