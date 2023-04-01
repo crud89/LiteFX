@@ -918,6 +918,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
 
+		/// <inheritdoc />
+		virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+
+
 	private:
 		virtual void releaseSharedState() const override;
 	};
@@ -1282,6 +1286,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class LITEFX_DIRECTX12_API DirectX12SwapChain : public SwapChain<IDirectX12Image, DirectX12FrameBuffer>, public ComResource<IDXGISwapChain4> {
 		LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
+		friend class DirectX12RenderPass;
 
 	public:
 		using base_type = SwapChain<IDirectX12Image, DirectX12FrameBuffer>;
@@ -1308,8 +1313,26 @@ namespace LiteFX::Rendering::Backends {
 		/// <returns><c>true</c>, if the adapter supports variable refresh rates (i.e. tearing is allowed).</returns>
 		virtual const bool& supportsVariableRefreshRate() const noexcept;
 
+		/// <summary>
+		/// Returns the query heap for the current frame.
+		/// </summary>
+		/// <returns>A pointer to the query heap for the current frame.</returns>
+		virtual ID3D12QueryHeap* timestampQueryHeap() const noexcept;
+
 		// SwapChain interface.
 	public:
+		/// <inheritdoc />
+		virtual Array<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
+
+		/// <inheritdoc />
+		virtual SharedPtr<TimingEvent> timingEvent(const UInt32& queryId) const override;
+
+		/// <inheritdoc />
+		virtual UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+
+		/// <inheritdoc />
+		virtual UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
+
 		/// <inheritdoc />
 		virtual const Format& surfaceFormat() const noexcept override;
 
@@ -1330,10 +1353,16 @@ namespace LiteFX::Rendering::Backends {
 		virtual Array<Format> getSurfaceFormats() const noexcept override;
 
 		/// <inheritdoc />
+		virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
+
+		/// <inheritdoc />
 		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) override;
 
 		/// <inheritdoc />
 		[[nodiscard]] virtual UInt32 swapBackBuffer() const override;
+
+	private:
+		void resolveQueryHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
 	};
 
 	/// <summary>
@@ -1644,6 +1673,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		/// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />
 		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
+
+		/// <inheritdoc />
+		virtual double ticksPerMillisecond() const noexcept override;
 
 	public:
 		/// <inheritdoc />

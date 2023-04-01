@@ -18,19 +18,34 @@ private:
 	Format m_format { Format::None };
 	UInt32 m_buffers { };
 	Array<VkSemaphore> m_swapSemaphores { };
-	std::atomic_uint32_t m_currentImage { };
+	UInt32 m_currentImage { };
 	Array<UniquePtr<IVulkanImage>> m_presentImages { };
 	const VulkanDevice& m_device;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
 
+	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<UInt64> m_timestamps;
+	Array<VkQueryPool> m_timingQueryPools;
+	VkQueryPool m_currentQueryPool;
+	bool m_supportsTiming = false;
+
 public:
 	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
 		base(parent), m_device(device)
-	{ 
+	{
+		m_supportsTiming = m_device.adapter().limits().timestampComputeAndGraphics;
+
+		if (!m_supportsTiming)
+			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
 	}
 	
 	~VulkanSwapChainImpl()
 	{
+		// Release the existing query pools (needs to be done outside of cleanup in order to prevent unnecessary re-creation during resize).
+		if (!m_timingQueryPools.empty())
+			std::ranges::for_each(m_timingQueryPools, [this](auto& pool) { ::vkDestroyQueryPool(m_device.handle(), pool, nullptr); });
+
+		// Clean up the rest.
 		this->cleanup();
 	}
 
@@ -122,6 +137,41 @@ public:
 		m_buffers = images;
 		m_currentImage = 0;
 		m_handle = swapChain;
+
+		// Initialize the query pools.
+		if (m_timingQueryPools.size() != images)
+			this->resetQueryPools(m_timingEvents);
+	}
+
+	void resetQueryPools(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	{
+		// No events - no pools.
+		if (timingEvents.empty())
+			return;
+
+		// Release the existing query pools.
+		if (!m_timingQueryPools.empty())
+			std::ranges::for_each(m_timingQueryPools, [this](auto& pool) { ::vkDestroyQueryPool(m_device.handle(), pool, nullptr); });
+
+		// Resize the query pools array and allocate a pool for each back buffer.
+		m_timingQueryPools.resize(m_buffers);
+		std::ranges::generate(m_timingQueryPools, [this, &timingEvents]() {
+			VkQueryPoolCreateInfo poolInfo {
+				.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+				.queryType = VkQueryType::VK_QUERY_TYPE_TIMESTAMP,
+				.queryCount = static_cast<UInt32>(timingEvents.size())
+			};
+
+			VkQueryPool pool;
+			raiseIfFailed<RuntimeException>(::vkCreateQueryPool(m_device.handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
+			::vkResetQueryPool(m_device.handle(), pool, 0, timingEvents.size());
+
+			return pool;
+		});
+
+		// Store the event and resize the time stamp collection.
+		m_timingEvents = timingEvents;
+		m_timestamps.resize(timingEvents.size());
 	}
 
 	void reset(const Format& format, const Size2d& renderArea, const UInt32& buffers)
@@ -149,9 +199,25 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
+		// NOTE: m_currentImage may overflow, but this is okay. If we use nextImage to index semaphores, however, this may result in errors, since the image order is not necessarily preserved.
 		UInt32 nextImage;
 		m_currentImage++;
 		raiseIfFailed<RuntimeException>(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, this->currentSemaphore(), VK_NULL_HANDLE, &nextImage), "Unable to swap front buffer.");
+
+		// Query the timing events.
+		// TODO: In rare situations, and only when using this swap chain implementation, the validation layers will complain about query pools not being reseted, when writing time stamps. I could
+		//       not find out why and when this happens, but I maybe waiting explicitly on the last frame's fence (for the respective image) will fix the issue.
+		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
+		{
+			m_currentQueryPool = m_timingQueryPools[nextImage];
+			auto result = ::vkGetQueryPoolResults(m_device.handle(), m_currentQueryPool, 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
+		
+			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
+				raiseIfFailed<RuntimeException>(result, "Unable to query timing events.");
+
+			// Reset the query pool.
+			::vkResetQueryPool(m_device.handle(), m_currentQueryPool, 0, m_timestamps.size());
+		}
 
 		return nextImage;
 	}
@@ -180,6 +246,11 @@ public:
 	const VkSemaphore& currentSemaphore()
 	{
 		return m_swapSemaphores[m_currentImage % m_buffers];
+	}
+
+	const VkQueryPool& currentTimestampQueryPool()
+	{
+		return m_currentQueryPool;
 	}
 
 public:
@@ -267,14 +338,27 @@ private:
 	ComPtr<ID3D12CommandQueue> m_presentQueue;
 	bool m_supportsTearing = false;
 
+	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<UInt64> m_timestamps;
+	Array<VkQueryPool> m_timingQueryPools;
+	bool m_supportsTiming = false;
+
 public:
 	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
 		base(parent), m_device(device)
 	{
+		m_supportsTiming = m_device.adapter().limits().timestampComputeAndGraphics;
+
+		if (!m_supportsTiming)
+			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
 	}
 
 	~VulkanSwapChainImpl()
 	{
+		// Release the existing query pools (needs to be done outside of cleanup in order to prevent unnecessary re-creation during resize).
+		if (!m_timingQueryPools.empty())
+			std::ranges::for_each(m_timingQueryPools, [this](auto& pool) { ::vkDestroyQueryPool(m_device.handle(), pool, nullptr); });
+
 		this->cleanup();
 	}
 
@@ -444,6 +528,10 @@ public:
 
 		// Initialize swap chain images.
 		this->createImages(selectedFormat, extent, images);
+
+		// Initialize the query pools.
+		if (m_timingQueryPools.size() != images)
+			this->resetQueryPools(m_timingEvents);
 	}
 
 	void createImages(const Format& format, const Size2d& renderArea, const UInt32& buffers)
@@ -482,7 +570,7 @@ public:
 			// Create the image.
 			VkImage backBuffer;
 			raiseIfFailed<RuntimeException>(::vkCreateImage(m_device.handle(), &imageInfo, nullptr, &backBuffer), "Unable to create swap-chain image.");
-			
+
 			// Get the memory requirements.
 			VkMemoryRequirements memoryRequirements;
 			VkPhysicalDeviceMemoryProperties memoryProperties;
@@ -556,6 +644,37 @@ public:
 		m_currentImage = 0;
 	}
 
+	void resetQueryPools(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	{
+		// No events - no pools.
+		if (timingEvents.empty())
+			return;
+
+		// Release the existing query pools.
+		if (!m_timingQueryPools.empty())
+			std::ranges::for_each(m_timingQueryPools, [this](auto& pool) { ::vkDestroyQueryPool(m_device.handle(), pool, nullptr); });
+
+		// Resize the query pools array and allocate a pool for each back buffer.
+		m_timingQueryPools.resize(m_buffers);
+		std::ranges::generate(m_timingQueryPools, [this, &timingEvents]() {
+			VkQueryPoolCreateInfo poolInfo {
+				.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+				.queryType = VkQueryType::VK_QUERY_TYPE_TIMESTAMP,
+				.queryCount = static_cast<UInt32>(timingEvents.size())
+			};
+
+			VkQueryPool pool;
+			raiseIfFailed<RuntimeException>(::vkCreateQueryPool(m_device.handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
+			::vkResetQueryPool(m_device.handle(), pool, 0, timingEvents.size());
+
+			return pool;
+		});
+
+		// Store the event and resize the time stamp collection.
+		m_timingEvents = timingEvents;
+		m_timestamps.resize(timingEvents.size());
+	}
+
 	void cleanup()
 	{
 		// Release the image memory of the previously allocated images.
@@ -594,6 +713,18 @@ public:
 
 		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
 
+		// Query the timing events.
+		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
+		{
+			auto result = ::vkGetQueryPoolResults(m_device.handle(), m_timingQueryPools[m_currentImage], 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
+
+			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
+				raiseIfFailed<RuntimeException>(result, "Unable to query timing events.");
+
+			// Reset the query pool.
+			::vkResetQueryPool(m_device.handle(), m_timingQueryPools[m_currentImage], 0, m_timestamps.size());
+		}
+
 		// Return the new back buffer index.
 		return m_currentImage;
 	}
@@ -621,6 +752,11 @@ public:
 	const VkSemaphore& currentSemaphore()
 	{
 		return m_swapSemaphores[m_currentImage];
+	}
+
+	const VkQueryPool& currentTimestampQueryPool()
+	{
+		return m_timingQueryPools[m_currentImage];
 	}
 
 public:
@@ -701,6 +837,52 @@ const VkSemaphore& VulkanSwapChain::semaphore() const noexcept
 	return m_impl->currentSemaphore();
 }
 
+const VkQueryPool& VulkanSwapChain::timestampQueryPool() const noexcept
+{
+	return m_impl->currentTimestampQueryPool();
+}
+
+Array<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const noexcept
+{
+	return m_impl->m_timingEvents;
+}
+
+SharedPtr<TimingEvent> VulkanSwapChain::timingEvent(const UInt32& queryId) const
+{
+	if (queryId >= m_impl->m_timingEvents.size())
+		throw ArgumentOutOfRangeException("No timing event has been registered for query ID {0}.", queryId);
+
+	return m_impl->m_timingEvents[queryId];
+}
+
+UInt64 VulkanSwapChain::readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
+{
+	if (!m_impl->m_supportsTiming) [[unlikely]]
+		return 0;
+
+	if (timingEvent == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The timing event must be initialized.");
+
+	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
+		return m_impl->m_timestamps[std::distance(m_impl->m_timingEvents.begin(), match)];
+
+	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
+}
+
+UInt32 VulkanSwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const
+{
+	if (!m_impl->m_supportsTiming) [[unlikely]]
+		return 0;
+
+	if (timingEvent == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The timing event must be initialized.");
+
+	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
+		return static_cast<UInt32>(std::distance(m_impl->m_timingEvents.begin(), match));
+
+	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
+}
+
 const Format& VulkanSwapChain::surfaceFormat() const noexcept
 {
 	return m_impl->m_format;
@@ -729,6 +911,21 @@ void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const
 Array<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
 {
 	return m_impl->getSurfaceFormats(m_impl->m_device.adapter().handle(), m_impl->m_device.surface().handle());
+}
+
+void VulkanSwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
+{
+	if (timingEvent == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The timing event must be initialized.");
+
+	if (!m_impl->m_supportsTiming)
+		return;
+
+	LITEFX_DEBUG(VULKAN_LOG, "Registering timing event: \"{0}\".", timingEvent->name());
+	
+	auto events = m_impl->m_timingEvents;
+	events.push_back(timingEvent);
+	m_impl->resetQueryPools(events);
 }
 
 void VulkanSwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)

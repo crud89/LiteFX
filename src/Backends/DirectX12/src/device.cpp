@@ -540,6 +540,13 @@ MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& form
 	return MultiSamplingLevel::x1;
 }
 
+double DirectX12Device::ticksPerMillisecond() const noexcept
+{
+	UInt64 frequency = 1000000u;
+	std::as_const(*m_impl->m_graphicsQueue).handle()->GetTimestampFrequency(&frequency);
+	return static_cast<double>(frequency) / 1000.0;
+}
+
 void DirectX12Device::wait() const
 {
 	// NOTE: Currently we are only waiting for the graphics queue here - all other queues may continue their work.

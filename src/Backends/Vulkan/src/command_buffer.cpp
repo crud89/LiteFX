@@ -488,6 +488,14 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout,
 	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.pipelineLayout().handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
 }
 
+void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
+{
+	if (timingEvent == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The timing event must be initialized.");
+
+	::vkCmdWriteTimestamp(this->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_impl->m_queue.device().swapChain().timestampQueryPool(), timingEvent->queryId());
+}
+
 void VulkanCommandBuffer::releaseSharedState() const
 {
 	m_impl->m_sharedResources.clear();
