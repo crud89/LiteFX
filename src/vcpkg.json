@@ -21,6 +21,7 @@
     "spirv-reflect",
     "vulkan-memory-allocator",
     "d3d12-memory-allocator",
-    "winpixeventruntime"
+    "winpixeventruntime",
+    "directx-agility-sdk"
   ]
 }

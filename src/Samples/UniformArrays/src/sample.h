@@ -1,16 +1,7 @@
 #pragma once
 
+#define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
 #include <litefx/litefx.h>
-
-#ifdef BUILD_VULKAN_BACKEND
-#include <litefx/backends/vulkan.hpp>
-#include <litefx/backends/vulkan_builders.hpp>
-#endif // BUILD_VULKAN_BACKEND
-
-#ifdef BUILD_DIRECTX_12_BACKEND
-#include <litefx/backends/dx12.hpp>
-#include <litefx/backends/dx12_builders.hpp>
-#endif // BUILD_DIRECTX_12_BACKEND
 
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32

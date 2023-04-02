@@ -75,7 +75,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 
 # Setup target include directories.
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} 
-    PRIVATE 
+    PRIVATE
         "src/"
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -91,10 +91,11 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 # Link against D3D12 to enable flip-model swap chains.
 IF(BUILD_DIRECTX_12_BACKEND)
     FIND_PACKAGE(directx-headers CONFIG REQUIRED)
+    FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
 
     TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-        PUBLIC Microsoft::DirectX-Headers Microsoft::DirectX-Guids d3d12 dxcore dxgi d3dcompiler
-        PRIVATE LiteFX.Backends.DirectX12
+        PUBLIC Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi d3dcompiler
+        PRIVATE LiteFX.Backends.DirectX12 Microsoft::DirectXAgilitySDK
     )
 ENDIF(BUILD_DIRECTX_12_BACKEND)
 

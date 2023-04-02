@@ -18,6 +18,10 @@
 #  pragma message ("DirectX12: The DirectX backend requires Windows to be built on.")
 #endif
 
+#ifdef LITEFX_DEFINE_GLOBAL_EXPORTS
+#include <d3d12agility.hpp>
+#endif // LITEFX_DEFINE_GLOBAL_EXPORTS
+
 #include <directx/d3d12.h>
 #include <directx/dxcore.h>
 #include <directx/d3dx12.h>

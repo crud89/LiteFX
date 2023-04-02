@@ -30,8 +30,8 @@ Re-configure your project and edit the *main.h* and *main.cpp* files and copy th
 ```cxx
 #pragma once
 
+#define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
 #include <litefx/litefx.h>
-#include <litefx/backends/vulkan.hpp>   // Alternatively you can include dx12.hpp here.
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <iostream>
@@ -40,6 +40,13 @@ Re-configure your project and edit the *main.h* and *main.cpp* files and copy th
 And to the *main.cpp* file:
 
 ```cxx
+// NOTE: It is important to include each backend exactly once with this define. This can be done by defining `LITEFX_AUTO_IMPORT_BACKEND_HEADERS` before including
+//       the `litefx.h` header. Ideally you do this at the start of the file that contains the applications entry point/main function.
+#define LITEFX_DEFINE_GLOBAL_EXPORTS
+#define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
+#include <litefx/litefx.h>
+
+// Include main header.
 #include "main.h"
 
 using namespace LiteFX;
