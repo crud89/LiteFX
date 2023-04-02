@@ -23,7 +23,7 @@ public:
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList4> initialize(const bool& begin)
+	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin)
 	{
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
@@ -39,7 +39,7 @@ public:
 		raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
 
 		// Create the actual command list.
-		ComPtr<ID3D12GraphicsCommandList4> commandList;
+		ComPtr<ID3D12GraphicsCommandList7> commandList;
 
 		if (m_recording = begin)
 			raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
@@ -68,7 +68,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin) :
-	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList4>(nullptr)
+	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList7>(nullptr)
 {
 	this->handle() = m_impl->initialize(begin);
 
