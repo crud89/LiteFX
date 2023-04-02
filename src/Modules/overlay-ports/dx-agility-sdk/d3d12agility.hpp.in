@@ -3,6 +3,6 @@
 #define D3D12_AGILITY_SDK_VERSION @D3D12SDK_VERSION@
 
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_AGILITY_SDK_VERSION; }
-extern "C" { __declspec(dllexport) extern const char8_t* D3D12SDKPath = u8".\\"; }
+extern "C" { __declspec(dllexport) extern const char8_t* D3D12SDKPath = u8".\\d3d12\\"; }
 
 #undef D3D12_AGILITY_SDK_VERSION
