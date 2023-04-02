@@ -170,7 +170,11 @@ public:
 	{
 		m_currentImage = m_parent->handle()->GetCurrentBackBufferIndex();
 		m_device.graphicsQueue().waitFor(m_presentFences[m_currentImage]);
-		m_timingQueryReadbackBuffers[m_currentImage]->map(m_timestamps.data(), sizeof(UInt64) * m_timestamps.size(), 0, false);
+
+		// Read back the timestamps.
+		if (!m_timestamps.empty())
+			m_timingQueryReadbackBuffers[m_currentImage]->map(m_timestamps.data(), sizeof(UInt64) * m_timestamps.size(), 0, false);
+
 		return m_currentImage;
 	}
 
