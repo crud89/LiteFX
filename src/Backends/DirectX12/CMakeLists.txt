@@ -9,6 +9,7 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 # Resolve package dependencies.
 FIND_PACKAGE(directx-headers CONFIG REQUIRED)
+FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
 FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
 FIND_PACKAGE(winpixeventruntime CONFIG REQUIRED)
 
@@ -98,8 +99,8 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids d3d12 dxcore dxgi dxcompiler
-    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcompiler
+    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime Microsoft::DirectXAgilitySDK
 )
 
 # Add shader modules.

@@ -1,3 +1,7 @@
+#define LITEFX_DEFINE_GLOBAL_EXPORTS
+#include <litefx/backends/dx12.hpp>
+#include <litefx/backends/vulkan.hpp>
+
 #include "sample.h"
 
 // CLI11 parses optional values as double by default, which yields an implicit-cast warning.

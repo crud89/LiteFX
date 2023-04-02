@@ -1,0 +1,39 @@
+get_filename_component(_dxagilitysdk_root "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_dxagilitysdk_root "${_dxagilitysdk_root}" PATH)
+get_filename_component(_dxagilitysdk_root "${_dxagilitysdk_root}" PATH)
+
+set(_dxagilitysdk_root_lib "${_dxagilitysdk_root}/lib/d3d12.lib")
+
+if (EXISTS "${_dxagilitysdk_root_lib}")
+  add_library(Microsoft::DirectXAgilitySDK SHARED IMPORTED)
+  set_target_properties(Microsoft::DirectXAgilitySDK PROPERTIES
+      IMPORTED_LOCATION                    "${_dxagilitysdk_root}/bin/D3D12Core.dll"
+      IMPORTED_IMPLIB                      "${_dxagilitysdk_root_lib}"
+      INTERFACE_INCLUDE_DIRECTORIES        "${_dxagilitysdk_root}/include"
+      IMPORTED_LINK_INTERFACE_LANGUAGES    "C")
+  
+  # ... because for some reason the build system refuses to copy the DLLs over (probably since they are already available in 
+  # a system directory and it does not take into account, that they are different).
+  if (NOT TARGET dxagilitysdkbinaries)
+    add_custom_target(dxagilitysdkbinaries)
+    add_custom_command(TARGET dxagilitysdkbinaries POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_dxagilitysdk_root}/bin/D3D12Core.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        COMMENT "Copying 'D3D12Core.dll' to runtime directory..."
+    )
+    add_custom_command(TARGET dxagilitysdkbinaries POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_dxagilitysdk_root}/bin/d3d12SDKLayers.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        COMMENT "Copying 'd3d12SDKLayers.dll' to runtime directory..."
+    )
+
+    install(FILES "${_dxagilitysdk_root}/bin/D3D12Core.dll" "${_dxagilitysdk_root}/bin/d3d12SDKLayers.dll" DESTINATION ${CMAKE_INSTALL_BINARY_DIR})
+  endif()
+
+  add_dependencies(Microsoft::DirectXAgilitySDK dxagilitysdkbinaries)
+
+  set(dxagilitysdk_FOUND TRUE)
+else()
+  set(dxagilitysdk_FOUND FALSE)
+endif()
+
+unset(_dxagilitysdk_root_lib)
+unset(_dxagilitysdk_root)
