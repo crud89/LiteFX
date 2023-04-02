@@ -67,6 +67,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement = 0) override;
 
+		/// <inheritdoc />
+		virtual void map(void* data, const size_t& size, const UInt32& element = 0, bool write = true) override;
+
+		/// <inheritdoc />
+		virtual void map(Span<void*> data, const size_t& elementSize, const UInt32& firstElement = 0, bool write = true) override;
+
 		// DirectX 12 buffer.
 	protected:
 		virtual AllocatorPtr allocator() const noexcept;

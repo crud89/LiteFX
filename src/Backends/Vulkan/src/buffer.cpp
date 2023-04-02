@@ -121,6 +121,34 @@ void VulkanBuffer::map(Span<const void* const> data, const size_t& elementSize, 
 	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
 }
 
+void VulkanBuffer::map(void* data, const size_t& size, const UInt32& element, bool write)
+{
+	if (element >= m_impl->m_elements)
+		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+
+	size_t alignedSize = size;
+	size_t alignment = this->elementAlignment();
+
+	if (alignment > 0)
+		alignedSize = (size + alignment - 1) & ~(alignment - 1);
+
+	char* buffer;		// A pointer to the whole (aligned) buffer memory.
+	raiseIfFailed<RuntimeException>(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	auto result = write ?
+		::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size) :
+		::memcpy_s(data, size, reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize);
+
+	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
+
+	if (result != 0)
+		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
+}
+
+void VulkanBuffer::map(Span<void*> data, const size_t& elementSize, const UInt32& firstElement, bool write)
+{
+	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void* mem) mutable { this->map(mem, elementSize, i++, write); });
+}
+
 UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const ResourceState& initialState, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	return VulkanBuffer::allocate("", type, elements, elementSize, alignment, writable, initialState, allocator, createInfo, allocationInfo, allocationResult);

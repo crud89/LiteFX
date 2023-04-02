@@ -370,12 +370,18 @@ void DirectX12RenderPass::end() const
         endCommandBuffer->barrier(presentBarrier);
     }
 
+    // If there is a present target, allow the swap chain to resolve queries for the current heap.
+    if (m_impl->m_presentTarget != nullptr)
+        swapChain.resolveQueryHeaps(*endCommandBuffer);
+
     // End the command buffer recording and submit all command buffers.
     // NOTE: In order to suspend/resume render passes, we need to pass them to the queue in one `ExecuteCommandLists` (i.e. submit) call. The order we pass them to the call is 
     //       important, since the first command list also gets executed first.
     auto commandBuffers = frameBuffer->commandBuffers();
     commandBuffers.insert(commandBuffers.begin(), m_impl->m_beginCommandBuffers[buffer]);
     commandBuffers.push_back(endCommandBuffer);
+
+    // Submit and store the fence.
     m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
 
     if (!m_impl->m_name.empty())

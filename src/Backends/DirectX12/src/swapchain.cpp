@@ -21,6 +21,12 @@ private:
 	bool m_supportsVariableRefreshRates{ false };
 	const DirectX12Device& m_device;
 
+	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<UInt64> m_timestamps;
+	Array<ComPtr<ID3D12QueryHeap>> m_timingQueryHeaps;
+	Array<UniquePtr<IDirectX12Buffer>> m_timingQueryReadbackBuffers;
+	ID3D12QueryHeap* m_currentQueryHeap;
+
 public:
 	DirectX12SwapChainImpl(DirectX12SwapChain* parent, const DirectX12Device& device) :
 		base(parent), m_device(device)
@@ -121,12 +127,50 @@ public:
 		m_renderArea = size;
 		m_buffers = buffers;
 		m_currentImage = 0;
+
+		// Initialize the query pools.
+		if (m_timingQueryHeaps.size() != buffers)
+			this->resetQueryHeaps(m_timingEvents);
+	}
+
+	void resetQueryHeaps(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	{
+		// No events - no pools.
+		if (timingEvents.empty())
+			return;
+
+		// Release the existing query heaps and buffers.
+		m_timingQueryHeaps.clear();
+		m_timingQueryReadbackBuffers.clear();
+
+		// Resize the query heaps array and allocate a heap for each back buffer.
+		m_timingQueryHeaps.resize(m_buffers);
+		std::ranges::generate(m_timingQueryHeaps, [this, &timingEvents]() {
+			D3D12_QUERY_HEAP_DESC heapInfo {
+				.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP,
+				.Count = static_cast<UInt32>(timingEvents.size()),
+				.NodeMask = 0x01
+			};
+
+			ComPtr<ID3D12QueryHeap> heap;
+			raiseIfFailed<RuntimeException>(m_device.handle()->CreateQueryHeap(&heapInfo, IID_PPV_ARGS(&heap)), "Unable to create timestamp query heap.");
+			return heap;
+		});
+
+		// Create a readback buffer for each heap.
+		m_timingQueryReadbackBuffers.resize(m_buffers);
+		std::ranges::generate(m_timingQueryReadbackBuffers, [this, &timingEvents]() { return m_device.factory().createBuffer(BufferType::Other, BufferUsage::Readback, sizeof(UInt64) * timingEvents.size()); });
+
+		// Store the event and resize the time stamp collection.
+		m_timingEvents = timingEvents;
+		m_timestamps.resize(timingEvents.size());
 	}
 
 	UInt32 swapBackBuffer()
 	{
 		m_currentImage = m_parent->handle()->GetCurrentBackBufferIndex();
 		m_device.graphicsQueue().waitFor(m_presentFences[m_currentImage]);
+		m_timingQueryReadbackBuffers[m_currentImage]->map(m_timestamps.data(), sizeof(UInt64) * m_timestamps.size(), 0, false);
 		return m_currentImage;
 	}
 
@@ -156,6 +200,46 @@ DirectX12SwapChain::~DirectX12SwapChain() noexcept = default;
 const bool& DirectX12SwapChain::supportsVariableRefreshRate() const noexcept
 {
 	return m_impl->m_supportsVariableRefreshRates;
+}
+
+ID3D12QueryHeap* DirectX12SwapChain::timestampQueryHeap() const noexcept
+{
+	return m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get();
+}
+
+Array<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const noexcept
+{
+	return m_impl->m_timingEvents;
+}
+
+SharedPtr<TimingEvent> DirectX12SwapChain::timingEvent(const UInt32& queryId) const
+{
+	if (queryId >= m_impl->m_timingEvents.size())
+		throw ArgumentOutOfRangeException("No timing event has been registered for query ID {0}.", queryId);
+
+	return m_impl->m_timingEvents[queryId];
+}
+
+UInt64 DirectX12SwapChain::readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
+{
+	if (timingEvent == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The timing event must be initialized.");
+
+	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
+		return m_impl->m_timestamps[std::distance(m_impl->m_timingEvents.begin(), match)];
+
+	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
+}
+
+UInt32 DirectX12SwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const
+{
+	if (timingEvent == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The timing event must be initialized.");
+
+	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
+		return static_cast<UInt32>(std::distance(m_impl->m_timingEvents.begin(), match));
+
+	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
 }
 
 const Format& DirectX12SwapChain::surfaceFormat() const noexcept
@@ -200,6 +284,18 @@ Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 	};
 }
 
+void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
+{
+	if (timingEvent == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("The timing event must be initialized.");
+
+	LITEFX_DEBUG(DIRECTX12_LOG, "Registering timing event: \"{0}\".", timingEvent->name());
+
+	auto events = m_impl->m_timingEvents;
+	events.push_back(timingEvent);
+	m_impl->resetQueryHeaps(events);
+}
+
 void DirectX12SwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
 {
 	m_impl->reset(surfaceFormat, renderArea, buffers);
@@ -208,4 +304,15 @@ void DirectX12SwapChain::reset(const Format& surfaceFormat, const Size2d& render
 UInt32 DirectX12SwapChain::swapBackBuffer() const
 {
 	return m_impl->swapBackBuffer();
+}
+
+void DirectX12SwapChain::resolveQueryHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept
+{
+	if (m_impl->m_timingEvents.empty())
+		return;
+
+	commandBuffer.handle()->ResolveQueryData(
+		m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get(), 
+		D3D12_QUERY_TYPE_TIMESTAMP, 0, m_impl->m_timestamps.size(), 
+		std::as_const(*m_impl->m_timingQueryReadbackBuffers[m_impl->m_currentImage]).handle().Get(), 0);
 }
