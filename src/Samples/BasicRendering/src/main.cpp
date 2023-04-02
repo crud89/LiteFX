@@ -1,6 +1,6 @@
 #define LITEFX_DEFINE_GLOBAL_EXPORTS
-#include <litefx/backends/dx12.hpp>
-#include <litefx/backends/vulkan.hpp>
+#define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
+#include <litefx/litefx.h>
 
 #include "sample.h"
 

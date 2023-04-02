@@ -1,3 +1,7 @@
+#define LITEFX_DEFINE_GLOBAL_EXPORTS
+#define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
+#include <litefx/litefx.h>
+
 #include "sample.h"
 
 // CLI11 parses optional values as double by default, which yields an implicit-cast warning.
