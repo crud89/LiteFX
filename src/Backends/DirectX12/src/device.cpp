@@ -90,6 +90,17 @@ private:
 	}
 #endif
 
+private:
+	bool checkRequiredExtensions(ID3D12Device5* device)
+	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options {};
+		raiseIfFailed<RuntimeException>(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options, sizeof(options)), "Unable to query device extensions.");
+		
+		bool result = options.EnhancedBarriersSupported; // && ...
+
+		return result;
+	}
+
 public:
 	[[nodiscard]]
 	ComPtr<ID3D12Device5> initialize()
@@ -98,6 +109,9 @@ public:
 		HRESULT hr;
 
 		raiseIfFailed<RuntimeException>(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
+
+		if (!this->checkRequiredExtensions(device.Get()))
+			throw RuntimeException("Not all required extensions are supported by this device. A driver update may resolve this problem.");
 
 #ifndef NDEBUG
 		// Try to query an info queue to forward log messages.
