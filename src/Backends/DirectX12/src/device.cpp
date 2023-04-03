@@ -91,7 +91,7 @@ private:
 #endif
 
 private:
-	bool checkRequiredExtensions(ID3D12Device5* device)
+	bool checkRequiredExtensions(ID3D12Device10* device)
 	{
 		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options {};
 		raiseIfFailed<RuntimeException>(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options, sizeof(options)), "Unable to query device extensions.");
@@ -103,9 +103,9 @@ private:
 
 public:
 	[[nodiscard]]
-	ComPtr<ID3D12Device5> initialize()
+	ComPtr<ID3D12Device10> initialize()
 	{
-		ComPtr<ID3D12Device5> device;
+		ComPtr<ID3D12Device10> device;
 		HRESULT hr;
 
 		raiseIfFailed<RuntimeException>(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
@@ -247,7 +247,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 }
 
 DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
-	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
+	ComResource<ID3D12Device10>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.deviceId());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
