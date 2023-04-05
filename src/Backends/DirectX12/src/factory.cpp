@@ -205,7 +205,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Stri
 	else
 	{
 		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::RenderTarget, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::Common, resourceDesc, allocationDesc);
 	}
 }
 

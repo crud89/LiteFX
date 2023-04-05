@@ -305,7 +305,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	if (::hasDepth(format)) [[unlikely]]
 		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
 	else
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::Common, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
