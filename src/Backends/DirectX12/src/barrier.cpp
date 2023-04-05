@@ -124,5 +124,6 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 	if (!imageBarriers.empty())
 		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(imageBarriers.size(), imageBarriers.data()));
 
-	commandBuffer.handle()->Barrier(barrierGroups.size(), barrierGroups.data());
+	if (!globalBarriers.empty() || !bufferBarriers.empty() || !imageBarriers.empty())
+		commandBuffer.handle()->Barrier(barrierGroups.size(), barrierGroups.data());
 }

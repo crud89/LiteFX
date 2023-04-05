@@ -138,6 +138,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
 	}) | ranges::to<Array<VkImageMemoryBarrier>>();
 
     // Execute the barriers.
-    ::vkCmdPipelineBarrier(commandBuffer.handle(), Vk::getPipelineStage(m_impl->m_syncBefore), Vk::getPipelineStage(m_impl->m_syncAfter), 0,
-        globalBarriers.size(), globalBarriers.data(), bufferBarriers.size(), bufferBarriers.data(), imageBarriers.size(), imageBarriers.data());
+    if (!globalBarriers.empty() || !bufferBarriers.empty() || !imageBarriers.empty())
+        ::vkCmdPipelineBarrier(commandBuffer.handle(), Vk::getPipelineStage(m_impl->m_syncBefore), Vk::getPipelineStage(m_impl->m_syncAfter), 0,
+            globalBarriers.size(), globalBarriers.data(), bufferBarriers.size(), bufferBarriers.data(), imageBarriers.size(), imageBarriers.data());
 }
