@@ -606,24 +606,113 @@ D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendO
 	}
 }
 
-D3D12_RESOURCE_STATES LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getResourceState(const ResourceState& resourceState)
+D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPipelineStage(const PipelineStage& pipelineStage)
 {
-	switch (resourceState) {
-	case ResourceState::Common: return D3D12_RESOURCE_STATE_COMMON;
-	case ResourceState::UniformBuffer:
-	case ResourceState::VertexBuffer: return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-	case ResourceState::IndexBuffer: return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-	case ResourceState::ReadOnly: return D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
-	case ResourceState::GenericRead: return D3D12_RESOURCE_STATE_GENERIC_READ;
-	case ResourceState::ReadWrite: return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-	case ResourceState::CopySource: return D3D12_RESOURCE_STATE_COPY_SOURCE;
-	case ResourceState::CopyDestination: return D3D12_RESOURCE_STATE_COPY_DEST;
-	case ResourceState::RenderTarget: return D3D12_RESOURCE_STATE_RENDER_TARGET;
-	case ResourceState::DepthRead: return D3D12_RESOURCE_STATE_DEPTH_READ;
-	case ResourceState::DepthWrite: return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-	case ResourceState::Present: return D3D12_RESOURCE_STATE_PRESENT;
-	case ResourceState::ResolveSource: return D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
-	case ResourceState::ResolveDestination: return D3D12_RESOURCE_STATE_RESOLVE_DEST;
-	default: throw InvalidArgumentException("Unsupported resource state.");
+	if (pipelineStage == PipelineStage::None)
+		return D3D12_BARRIER_SYNC_NONE;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::All))
+		return D3D12_BARRIER_SYNC_ALL;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Draw))
+		return D3D12_BARRIER_SYNC_DRAW;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Compute))
+		return D3D12_BARRIER_SYNC_COMPUTE_SHADING;
+
+	D3D12_BARRIER_SYNC sync { };
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
+		sync |= D3D12_BARRIER_SYNC_INPUT_ASSEMBLER;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex) || 
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl) ||
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationEvaluation) ||
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Geometry))
+		sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Fragment))
+		sync |= D3D12_BARRIER_SYNC_PIXEL_SHADING;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::DepthStencil))
+		sync |= D3D12_BARRIER_SYNC_DEPTH_STENCIL;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Indirect))
+		sync |= D3D12_BARRIER_SYNC_EXECUTE_INDIRECT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::RenderTarget))
+		sync |= D3D12_BARRIER_SYNC_RENDER_TARGET;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Transfer))
+		sync |= D3D12_BARRIER_SYNC_COPY;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
+		sync |= D3D12_BARRIER_SYNC_RESOLVE;
+
+	return sync;
+}
+
+D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getResourceAccess(const ResourceAccess& resourceAccess)
+{
+	if (resourceAccess == ResourceAccess::None)
+		return D3D12_BARRIER_ACCESS_NO_ACCESS;
+
+	D3D12_BARRIER_ACCESS access = { };
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::VertexBuffer))
+		access |= D3D12_BARRIER_ACCESS_VERTEX_BUFFER;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::IndexBuffer))
+		access |= D3D12_BARRIER_ACCESS_INDEX_BUFFER;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::UniformBuffer))
+		access |= D3D12_BARRIER_ACCESS_CONSTANT_BUFFER;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::RenderTarget))
+		access |= D3D12_BARRIER_ACCESS_RENDER_TARGET;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilRead))
+		access |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilWrite))
+		access |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ShaderRead))
+		access |= D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ShaderReadWrite))
+		access |= D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Indirect))
+		access |= D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::TransferRead))
+		access |= D3D12_BARRIER_ACCESS_COPY_SOURCE;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::TransferWrite))
+		access |= D3D12_BARRIER_ACCESS_COPY_DEST;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveRead))
+		access |= D3D12_BARRIER_ACCESS_RESOLVE_SOURCE;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
+		access |= D3D12_BARRIER_ACCESS_RESOLVE_DEST;
+
+	return access;
+}
+
+D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getImageLayout(const ImageLayout& imageLayout)
+{
+	switch (imageLayout) {
+	case ImageLayout::Common: return D3D12_BARRIER_LAYOUT_COMMON;
+	case ImageLayout::ShaderResource: return D3D12_BARRIER_LAYOUT_SHADER_RESOURCE;
+	case ImageLayout::ReadWrite: return D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS;
+	case ImageLayout::CopySource: return D3D12_BARRIER_LAYOUT_COPY_SOURCE;
+	case ImageLayout::CopyDestination: return D3D12_BARRIER_LAYOUT_COPY_DEST;
+	case ImageLayout::RenderTarget: return D3D12_BARRIER_LAYOUT_RENDER_TARGET;
+	case ImageLayout::DepthRead: return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ;
+	case ImageLayout::DepthWrite: return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE;
+	case ImageLayout::Present: return D3D12_BARRIER_LAYOUT_PRESENT;
+	case ImageLayout::ResolveSource: return D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE;
+	case ImageLayout::ResolveDestination: return D3D12_BARRIER_LAYOUT_RESOLVE_DEST;
+	case ImageLayout::Undefined: return D3D12_BARRIER_LAYOUT_UNDEFINED;
+	default: throw InvalidArgumentException("Unsupported image layout.");
 	}
 }

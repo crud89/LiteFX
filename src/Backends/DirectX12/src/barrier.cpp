@@ -2,8 +2,9 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-using BufferElement = std::tuple<IDirectX12Buffer&, UInt32, ResourceState, ResourceState>;
-using ImageElement = std::tuple<IDirectX12Image&, UInt32, ResourceState, ResourceState>;
+using GlobalBarrier = Tuple<ResourceAccess, ResourceAccess>;
+using BufferBarrier = Tuple<ResourceAccess, ResourceAccess, IDirectX12Buffer&, UInt32>;
+using ImageBarrier  = Tuple<ResourceAccess, ResourceAccess, IDirectX12Image&, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -14,13 +15,14 @@ public:
 	friend class DirectX12Barrier;
 
 private:
-	Array<BufferElement> m_buffers;
-	Array<ImageElement> m_images;
-	Array<D3D12_RESOURCE_BARRIER> m_uavBarriers;
+	PipelineStage m_syncBefore, m_syncAfter;
+	Array<GlobalBarrier> m_globalBarriers;
+	Array<BufferBarrier> m_bufferBarriers;
+	Array<ImageBarrier> m_imageBarriers;
 
 public:
-	DirectX12BarrierImpl(DirectX12Barrier* parent) :
-		base(parent)
+	DirectX12BarrierImpl(DirectX12Barrier* parent, const PipelineStage& syncBefore, const PipelineStage& syncAfter) :
+		base(parent), m_syncBefore(syncBefore), m_syncAfter(syncAfter)
 	{
 	}
 };
@@ -29,149 +31,98 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Barrier::DirectX12Barrier() noexcept :
-	m_impl(makePimpl<DirectX12BarrierImpl>(this))
+DirectX12Barrier::DirectX12Barrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept :
+	m_impl(makePimpl<DirectX12BarrierImpl>(this, syncBefore, syncAfter))
 {
 }
 
 DirectX12Barrier::~DirectX12Barrier() noexcept = default;
 
-void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const ResourceState& targetState)
+const PipelineStage& DirectX12Barrier::syncBefore() const noexcept
 {
-	this->transition(buffer, buffer.state(0), targetState);
+	return m_impl->m_syncBefore;
 }
 
-void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const UInt32& element, const ResourceState& targetState)
+const PipelineStage& DirectX12Barrier::syncAfter() const noexcept
 {
-	this->transition(buffer, buffer.state(element), element, targetState);
+	return m_impl->m_syncAfter;
 }
 
-void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const ResourceState& sourceState, const ResourceState& targetState)
+void DirectX12Barrier::wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept
 {
-	m_impl->m_buffers.push_back(BufferElement(buffer, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, sourceState, targetState));
+	m_impl->m_globalBarriers.push_back({ accessBefore, accessAfter });
 }
 
-void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState)
+void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
 {
-	m_impl->m_buffers.push_back(BufferElement(buffer, element, sourceState, targetState));
+	m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES });
 }
 
-void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& targetState)
+void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
 {
-	this->transition(image, image.state(0), targetState);
+	m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, element });
 }
 
-void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState)
+void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
 {
-	this->transition(image, image.state(image.subresourceId(level, layer, plane)), level, layer, plane, targetState);
+	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, layout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& sourceState, const ResourceState& targetState)
+void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
 {
-	m_impl->m_images.push_back(ImageElement(image, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, sourceState, targetState));
+	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, layout, level, levels, layer, layers, plane });
 }
 
-void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState)
+void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) const
 {
-	m_impl->m_images.push_back(ImageElement(image, image.subresourceId(level, layer, plane), sourceState, targetState));
-}
+	auto syncBefore = DX12::getPipelineStage(m_impl->m_syncBefore);
+	auto syncAfter  = DX12::getPipelineStage(m_impl->m_syncAfter);
 
-void DirectX12Barrier::waitFor(const IDirectX12Buffer& buffer)
-{
-	// We cannot wait for read-only resources.
-	if (buffer.writable())
-		m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(buffer.handle().Get()));
-}
+	// Global barriers.
+	auto globalBarriers = m_impl->m_globalBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) { 
+		return CD3DX12_GLOBAL_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)));
+	}) | ranges::to<Array<D3D12_GLOBAL_BARRIER>>();
 
-void DirectX12Barrier::waitFor(const IDirectX12Image& image)
-{
-	// We cannot wait for read-only resources.
-	if (image.writable())
-		m_impl->m_uavBarriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(image.handle().Get()));
-}
+	// Buffer barriers.
+	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) {
+		return CD3DX12_BUFFER_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)), std::as_const(std::get<2>(barrier)).handle().Get());
+	}) | ranges::to<Array<D3D12_BUFFER_BARRIER>>();
 
-void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const noexcept
-{
-	Array<D3D12_RESOURCE_BARRIER> barriers(m_impl->m_buffers.size() + m_impl->m_images.size());
+	// Image barriers.
+	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) {
+		auto& image = std::get<2>(barrier);
+		auto layout = image.layout(image.subresourceId(std::get<4>(barrier), std::get<6>(barrier), std::get<8>(barrier)));
+		auto currentLayout = DX12::getImageLayout(layout);
+		auto targetLayout = DX12::getImageLayout(std::get<3>(barrier));
 
-	std::ranges::generate(barriers, [this, &flags, &commandBuffer, i = 0]() mutable {
-		auto element = i++;
-
-		if (element < m_impl->m_buffers.size())
+		for (auto layer = std::get<6>(barrier); layer < std::get<7>(barrier); layer++)
 		{
-			auto& bufferElement = m_impl->m_buffers[element];
-			auto& buffer = std::get<0>(bufferElement);
-			auto& subresource = std::get<1>(bufferElement);
-			auto& targetState = std::get<3>(bufferElement);
+			for (auto level = std::get<4>(barrier); level < std::get<5>(barrier); level++)
+			{
+				auto subresource = image.subresourceId(level, layer, std::get<8>(barrier));
 
-			if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
-				for (int r(0); r < buffer.elements(); ++r)
-					buffer.state(r) = targetState;
-			else
-				buffer.state(subresource) = targetState;
-
-			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(buffer).handle().Get(), DX12::getResourceState(std::get<2>(bufferElement)), DX12::getResourceState(targetState), flags);
+				if (image.layout(subresource) != layout) [[unlikely]]
+					throw RuntimeException("All sub-resources in a sub-resource range need to have the same initial layout.");
+				else
+					image.layout(subresource) = std::get<3>(barrier);
+			}
 		}
-		else
-		{
-			auto& imageElement = m_impl->m_images[element - m_impl->m_buffers.size()];
-			auto& image = std::get<0>(imageElement);
-			auto& subresource = std::get<1>(imageElement);
-			auto& targetState = std::get<3>(imageElement);
 
-			if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
-				for (int r(0); r < image.elements(); ++r)
-					image.state(r) = targetState;
-			else
-				image.state(subresource) = targetState;
+		return CD3DX12_TEXTURE_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)), currentLayout, targetLayout, std::as_const(image).handle().Get(), 
+			CD3DX12_BARRIER_SUBRESOURCE_RANGE(std::get<4>(barrier), std::get<5>(barrier), std::get<6>(barrier), std::get<7>(barrier), std::get<8>(barrier)));
+	}) | ranges::to<Array<D3D12_TEXTURE_BARRIER>>();
 
-			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(image).handle().Get(), DX12::getResourceState(std::get<2>(imageElement)), DX12::getResourceState(targetState), flags);
-		}
-	});
+	// Put all into a buffer group.
+	Array<D3D12_BARRIER_GROUP> barrierGroups;
 
-	barriers.insert(barriers.end(), m_impl->m_uavBarriers.begin(), m_impl->m_uavBarriers.end());
-	commandBuffer.handle()->ResourceBarrier(barriers.size(), barriers.data());
-}
+	if (!globalBarriers.empty())
+		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(globalBarriers.size(), globalBarriers.data()));
 
-void DirectX12Barrier::executeInverse(const DirectX12CommandBuffer& commandBuffer, const D3D12_RESOURCE_BARRIER_FLAGS& flags) const noexcept
-{
-	Array<D3D12_RESOURCE_BARRIER> barriers(m_impl->m_buffers.size() + m_impl->m_images.size());
+	if (!bufferBarriers.empty())
+		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(bufferBarriers.size(), bufferBarriers.data()));
 
-	std::ranges::generate(barriers, [this, &flags, &commandBuffer, i = 0]() mutable {
-		auto element = i++;
+	if (!imageBarriers.empty())
+		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(imageBarriers.size(), imageBarriers.data()));
 
-		if (element < m_impl->m_buffers.size())
-		{
-			auto& bufferElement = m_impl->m_buffers[element];
-			auto& buffer = std::get<0>(bufferElement);
-			auto& subresource = std::get<1>(bufferElement);
-			auto& targetState = std::get<2>(bufferElement);
-
-			if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
-				for (int r(0); r < buffer.elements(); ++r)
-					buffer.state(r) = targetState;
-			else
-				buffer.state(subresource) = targetState;
-
-			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(buffer).handle().Get(), DX12::getResourceState(std::get<3>(bufferElement)), DX12::getResourceState(targetState), flags);
-		}
-		else
-		{
-			auto& imageElement = m_impl->m_images[element - m_impl->m_buffers.size()];
-			auto& image = std::get<0>(imageElement);
-			auto& subresource = std::get<1>(imageElement);
-			auto& targetState = std::get<2>(imageElement);
-
-			if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
-				for (int r(0); r < image.elements(); ++r)
-					image.state(r) = targetState;
-			else
-				image.state(subresource) = targetState;
-
-			return CD3DX12_RESOURCE_BARRIER::Transition(std::as_const(image).handle().Get(), DX12::getResourceState(std::get<3>(imageElement)), DX12::getResourceState(targetState), flags);
-		}
-	});
-
-	barriers.insert(barriers.end(), m_impl->m_uavBarriers.begin(), m_impl->m_uavBarriers.end());
-	commandBuffer.handle()->ResourceBarrier(barriers.size(), barriers.data());
+	commandBuffer.handle()->Barrier(barrierGroups.size(), barrierGroups.data());
 }

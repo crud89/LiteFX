@@ -8,18 +8,15 @@ namespace LiteFX::Rendering {
     using namespace LiteFX::Math;
 
     /// <summary>
-    /// A barrier that transitions a set of resources backed by <see cref="IDeviceMemory" /> into different <see cref="ResourceState" />.
+    /// A barrier used for GPU resource synchronization.
     /// </summary>
-    /// <remarks>
-    /// It is recommended to insert multiple transitions into one single barrier. This can be done by calling <see cref="transition" /> multiple times. 
-    /// </remarks>
+    /// <seealso cref="IBarrier" />
     template <typename TBuffer, typename TImage> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TImage, IImage>
     class Barrier : public IBarrier {
     public:
         using IBarrier::transition;
-        using IBarrier::waitFor;
 
         using buffer_type = TBuffer;
         using image_type = TImage;
@@ -29,74 +26,32 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual void transition(buffer_type& buffer, const ResourceState& targetState) = 0;
+        virtual void transition(buffer_type& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
 
         /// <inheritdoc />
-        virtual void transition(buffer_type& buffer, const UInt32& element, const ResourceState& targetState) = 0;
+        virtual void transition(buffer_type& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
 
         /// <inheritdoc />
-        virtual void transition(buffer_type& buffer, const ResourceState& sourceState, const ResourceState& targetState) = 0;
+        virtual void transition(image_type& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
 
         /// <inheritdoc />
-        virtual void transition(buffer_type& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) = 0;
-
-        /// <inheritdoc />
-        virtual void transition(image_type& image, const ResourceState& targetState) = 0;
-
-        /// <inheritdoc />
-        virtual void transition(image_type& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
-
-        /// <inheritdoc />
-        virtual void transition(image_type& image, const ResourceState& sourceState, const ResourceState& targetState) = 0;
-
-        /// <inheritdoc />
-        virtual void transition(image_type& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
-
-        /// <inheritdoc />
-        virtual void waitFor(const buffer_type& buffer) = 0;
-
-        /// <inheritdoc />
-        virtual void waitFor(const image_type& image) = 0;
+        virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
 
     private:
-        virtual void doTransition(IBuffer& buffer, const ResourceState& targetState) override { 
-            this->transition(dynamic_cast<buffer_type&>(buffer), targetState);
+        virtual void doTransition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override {
+            this->transition(dynamic_cast<buffer_type&>(buffer), accessBefore, accessAfter);
         }
 
-        virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<buffer_type&>(buffer), element, targetState);
+        virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override {
+            this->transition(dynamic_cast<buffer_type&>(buffer), element, accessBefore, accessAfter);
         }
 
-        virtual void doTransition(IBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<buffer_type&>(buffer), sourceState, targetState);
+        virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override {
+            this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, layout);
         }
 
-        virtual void doTransition(IBuffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<buffer_type&>(buffer), sourceState, element, targetState);
-        }
-
-        virtual void doTransition(IImage& image, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<image_type&>(image), targetState);
-        }
-
-        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<image_type&>(image), level, layer, plane, targetState);
-        }
-
-        virtual void doTransition(IImage& image, const ResourceState& sourceState, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<image_type&>(image), sourceState, targetState);
-        }
-
-        virtual void doTransition(IImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) override {
-            this->transition(dynamic_cast<image_type&>(image), sourceState, level, layer, plane, targetState);
-        }
-
-        virtual void doWaitFor(const IBuffer& buffer) override {
-            this->waitFor(dynamic_cast<const buffer_type&>(buffer));
-        }
-
-        virtual void doWaitFor(const IImage& image) override {
-            this->waitFor(dynamic_cast<const image_type&>(image));
+        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override {
+            this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
     };
 
@@ -542,7 +497,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual void barrier(const barrier_type& barrier, const bool& invert = false) const noexcept = 0;
+        virtual void barrier(const barrier_type& barrier) const noexcept = 0;
 
         /// <inheritdoc />
         virtual void generateMipMaps(image_type& image) noexcept = 0;
@@ -606,8 +561,8 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual void cmdBarrier(const IBarrier& barrier, const bool& invert) const noexcept override { 
-            this->barrier(dynamic_cast<const barrier_type&>(barrier), invert);
+        virtual void cmdBarrier(const IBarrier& barrier) const noexcept override { 
+            this->barrier(dynamic_cast<const barrier_type&>(barrier));
         }
 
         virtual void cmdGenerateMipMaps(IImage& image) noexcept override { 
@@ -988,12 +943,6 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a factory that creates objects for a <see cref="GraphicsDevice" />.
     /// </summary>
-    /// <remarks>
-    /// Initial resource states depend on the provided <see cref="BufferUsage" />. *Staging* and *Dynamic* resources are always initialized in <see cref="ResourceState::GenericRead" /> 
-    /// state, while *Resource* and *Readback* resources are initialized in <see cref="ResourceState::CopyDestination" /> state. Images (and attachments) can only be used as *Resource*,
-    /// so they are always created as copy destination. Images require a transfer from a buffer, followed by an explicit <see cref="Barrier" /> into the state required by the shader.
-    /// Attachments are implicitly transitioned at the beginning and end of a render pass, so you typically do not need to create an explicit barrier for them.
-    /// </remarks>
     /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
     /// <typeparam name="TVertexBuffer">The type of the vertex buffer. Must implement <see cref="VertexBuffer" />.</typeparam>
     /// <typeparam name="TIndexBuffer">The type of the index buffer. Must implement <see cref="IndexBuffer" />.</typeparam>
@@ -1221,11 +1170,11 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type& computeQueue() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<barrier_type> makeBarrier() const noexcept = 0;
+        virtual UniquePtr<barrier_type> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept = 0;
 
     private:
-        virtual UniquePtr<IBarrier> getNewBarrier() const noexcept override {
-            return this->makeBarrier();
+        virtual UniquePtr<IBarrier> getNewBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept override {
+            return this->makeBarrier(syncBefore, syncAfter);
         }
 
 #if defined(BUILD_DEFINE_BUILDERS)

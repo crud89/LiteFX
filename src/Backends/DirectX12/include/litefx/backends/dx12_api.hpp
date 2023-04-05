@@ -198,7 +198,17 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        D3D12_RESOURCE_STATES LITEFX_DIRECTX12_API getResourceState(const ResourceState& resourceState);
+        D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API getPipelineStage(const PipelineStage& pipelineStage);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API getResourceAccess(const ResourceAccess& resourceAccess);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API getImageLayout(const ImageLayout& imageLayout);
     }
 
     /// <summary>

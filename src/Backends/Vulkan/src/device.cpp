@@ -472,9 +472,9 @@ const VulkanQueue& VulkanDevice::computeQueue() const noexcept
 	return *m_impl->m_computeQueue;
 }
 
-UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier() const noexcept
+UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept
 {
-	return makeUnique<VulkanBarrier>();
+	return makeUnique<VulkanBarrier>(syncBefore, syncAfter);
 }
 
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept

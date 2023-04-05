@@ -619,7 +619,7 @@ public:
 			m_imageResources[image].handle = resourceHandle;
 			m_imageResources[image].image = std::move(resource);
 
-			return makeUnique<VulkanImage>(m_device, backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Present);
+			return makeUnique<VulkanImage>(m_device, backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present);
 		});
 
 		// Destroy the image swap semaphores.

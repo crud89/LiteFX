@@ -181,10 +181,10 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	this->bind(*samplerBindings, pipeline);
 
 	// Transition the texture into a read/write state.
-	DirectX12Barrier barrier, waitBarrier;
-	barrier.transition(image, ResourceState::ReadWrite);
-	waitBarrier.waitFor(image);
-	this->barrier(barrier);
+	DirectX12Barrier startBarrier(PipelineStage::All, PipelineStage::Compute);
+	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ReadWrite);
+	//waitBarrier.waitFor(image);
+	this->barrier(startBarrier);
 	auto size = image.extent();
 	int resource = 0;
 
@@ -206,21 +206,22 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 			this->dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
 
 			// Wait for all writes.
-			this->barrier(waitBarrier);
+			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
+			subBarrier.transition(image, i, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ReadWrite);
+			this->barrier(subBarrier);
 			resource++;
 		}
 	}
 
 	// Transition back into a shader resource.
-	this->barrier(barrier, true);
+	DirectX12Barrier endBarrier(PipelineStage::Compute, PipelineStage::All);
+	endBarrier.transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+	this->barrier(endBarrier);
 }
 
-void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier, const bool& invert) const noexcept
+void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noexcept
 {
-	if (invert)
-		barrier.executeInverse(*this);
-	else
-		barrier.execute(*this);
+	barrier.execute(*this);
 }
 
 void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
@@ -261,7 +262,6 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& 
 	if (target.elements() < targetSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
-	// TODO: Check if we can possibly do this more efficiently by copying multiple sub-resources at once.
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
 
