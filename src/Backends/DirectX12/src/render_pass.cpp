@@ -81,10 +81,10 @@ public:
                 D3D12_RENDER_PASS_BEGINNING_ACCESS beginAccess = renderTarget.clearBuffer() ?
                     D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
                     D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD, { } };
-
+                
                 D3D12_RENDER_PASS_ENDING_ACCESS endAccess = renderTarget.isVolatile() ?
-                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
-                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
+                        D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
+                        D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
 
                 D3D12_RENDER_PASS_RENDER_TARGET_DESC renderTargetDesc{ renderTargetView, beginAccess, endAccess };
                 renderTargetView = renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
@@ -107,7 +107,6 @@ public:
                 D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
                 D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS, { } };
 
-            // TODO: If the render target requires resolve, we can define resolution here instead of doing this manually during `end`.
             if (depthBeginAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS)
                 depthEndAccess = D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS, { } };
             else
@@ -350,29 +349,30 @@ void DirectX12RenderPass::end() const
 
     // Transition the present and depth/stencil views.
     // NOTE: Ending the render pass implicitly barriers with legacy resource state?!
-    DirectX12Barrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::Fragment), resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve);
+    DirectX12Barrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::Fragment), resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::DepthStencil);
     std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
         switch (renderTarget.type())
         {
         default:
         case RenderTargetType::Color:           return renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
-        case RenderTargetType::DepthStencil:    return renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::DepthStencilWrite, ResourceAccess::DepthStencilRead, ImageLayout::DepthRead);
+        case RenderTargetType::DepthStencil:    return depthStencilBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::DepthStencilWrite, ResourceAccess::DepthStencilRead, ImageLayout::DepthRead);
         case RenderTargetType::Present:
             if (requiresResolve)
                 return resolveBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::ResolveSource);
             else
-                return renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget,  ResourceAccess::ShaderRead, ImageLayout::Present);
+                return renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::Common, ImageLayout::Present);
         }
     });
 
     endCommandBuffer->barrier(renderTargetBarrier);
+    endCommandBuffer->barrier(depthStencilBarrier);
 
     // Add another barrier for the back buffer image, if required.
     const IDirectX12Image* backBufferImage = m_impl->m_device.swapChain().images()[m_impl->m_backBuffer];
 
     if (requiresResolve)
     {
-        resolveBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceAccess::ShaderRead, ResourceAccess::ResolveWrite, ImageLayout::ResolveDestination);
+        resolveBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceAccess::Common, ResourceAccess::ResolveWrite, ImageLayout::ResolveDestination);
         endCommandBuffer->barrier(resolveBarrier);
     }
 
@@ -383,8 +383,9 @@ void DirectX12RenderPass::end() const
         std::as_const(*endCommandBuffer).handle()->ResolveSubresource(backBufferImage->handle().Get(), 0, multiSampledImage->handle().Get(), 0, DX12::getFormat(m_impl->m_presentTarget->format()));
 
         // Transition the present target back to the present state.
-        DirectX12Barrier presentBarrier(PipelineStage::Resolve, PipelineStage::None);
-        presentBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceAccess::ResolveWrite, ResourceAccess::ShaderRead, ImageLayout::Present);
+        DirectX12Barrier presentBarrier(PipelineStage::Resolve, PipelineStage::Resolve);
+        presentBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::Present);
+        presentBarrier.transition(const_cast<IDirectX12Image&>(*multiSampledImage), ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::Common);
         endCommandBuffer->barrier(presentBarrier);
     }
 
