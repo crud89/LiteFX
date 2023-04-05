@@ -1664,7 +1664,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const DirectX12Queue& computeQueue() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<DirectX12Barrier> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept override;
+		[[nodiscard]] virtual UniquePtr<DirectX12Barrier> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept override;
 
 		/// <inheritdoc />
 		/// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />

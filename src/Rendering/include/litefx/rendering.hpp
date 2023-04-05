@@ -1184,7 +1184,7 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type& computeQueue() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<barrier_type> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept = 0;
+        [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept = 0;
 
     private:
         virtual UniquePtr<IBarrier> getNewBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept override {

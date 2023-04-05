@@ -1658,7 +1658,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanQueue& computeQueue() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanBarrier> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept override;
+		[[nodiscard]] virtual UniquePtr<VulkanBarrier> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept override;
 
 		/// <inheritdoc />
 		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
