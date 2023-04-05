@@ -4,7 +4,7 @@ using namespace LiteFX::Rendering::Backends;
 
 using GlobalBarrier = Tuple<ResourceAccess, ResourceAccess>;
 using BufferBarrier = Tuple<ResourceAccess, ResourceAccess, IVulkanBuffer&, UInt32>;
-using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, IVulkanImage&, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
+using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, IVulkanImage&, Optional<ImageLayout>, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -65,12 +65,22 @@ void VulkanBarrier::transition(IVulkanBuffer& buffer, const UInt32& element, con
 
 void VulkanBarrier::transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
 {
-    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, layout, 0, image.levels(), 0, image.layers(), 0 });
+    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0 });
+}
+
+void VulkanBarrier::transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
+{
+    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
 void VulkanBarrier::transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
 {
-    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, layout, level, levels, layer, layers, plane });
+    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane });
+}
+
+void VulkanBarrier::transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
+{
+    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
 }
 
 void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noexcept
@@ -101,20 +111,20 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
 	// Image barriers.
 	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([this](auto& barrier) {
 		auto& image = std::get<2>(barrier);
-		auto layout = image.layout(image.subresourceId(std::get<4>(barrier), std::get<6>(barrier), std::get<8>(barrier)));
-		auto currentLayout = Vk::getImageLayout(layout);
-		auto targetLayout = Vk::getImageLayout(std::get<3>(barrier));
+		auto layout = image.layout(image.subresourceId(std::get<5>(barrier), std::get<6>(barrier), std::get<8>(barrier)));
+		auto currentLayout = Vk::getImageLayout(std::get<3>(barrier).value_or(layout));
+		auto targetLayout = Vk::getImageLayout(std::get<4>(barrier));
 
-		for (auto layer = std::get<6>(barrier); layer < std::get<7>(barrier); layer++)
+		for (auto layer = std::get<7>(barrier); layer < std::get<8>(barrier); layer++)
 		{
-			for (auto level = std::get<4>(barrier); level < std::get<5>(barrier); level++)
+			for (auto level = std::get<5>(barrier); level < std::get<6>(barrier); level++)
 			{
-				auto subresource = image.subresourceId(level, layer, std::get<8>(barrier));
+				auto subresource = image.subresourceId(level, layer, std::get<9>(barrier));
 
 				if (image.layout(subresource) != layout) [[unlikely]]
 					throw RuntimeException("All sub-resources in a sub-resource range need to have the same initial layout.");
 				else
-					image.layout(subresource) = std::get<3>(barrier);
+					image.layout(subresource) = std::get<4>(barrier);
 			}
 		}
         
@@ -128,11 +138,11 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = std::as_const(image).handle(),
             .subresourceRange = VkImageSubresourceRange {
-                .aspectMask = image.aspectMask(std::get<8>(barrier)),
-                .baseMipLevel = std::get<4>(barrier),
-                .levelCount = std::get<5>(barrier),
-                .baseArrayLayer = std::get<6>(barrier),
-                .layerCount = std::get<7>(barrier)
+                .aspectMask = image.aspectMask(std::get<9>(barrier)),
+                .baseMipLevel = std::get<5>(barrier),
+                .levelCount = std::get<6>(barrier),
+                .baseArrayLayer = std::get<7>(barrier),
+                .layerCount = std::get<8>(barrier)
             }
         };
 	}) | ranges::to<Array<VkImageMemoryBarrier>>();

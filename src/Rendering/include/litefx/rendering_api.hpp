@@ -1297,7 +1297,17 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
         /// </remarks>
-        ResolveWrite = 0x00001000
+        ResolveWrite = 0x00001000,
+        
+        /// <summary>
+        /// Indicates that a resource can be accessed in any way, compatible to the layout.
+        /// </summary>
+        /// <remarks>
+        /// Note that you have to ensure that you do not access the resource in an incompatible way manually.
+        /// 
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        Common = 0x00002000
     };
 
     /// <summary>
@@ -3189,11 +3199,54 @@ namespace LiteFX::Rendering {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
+        /// <summary>
+        /// Inserts an image barrier that blocks access to all sub-resources of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
+        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions all sub-resources into
+        /// <paramref name="layout" />.
+        /// </summary>
+        /// <remarks>
+        /// This overload let's you explicitly specify the <paramref name="fromLayout" />. This is required, if you use any external transition mechanism that causes the engine
+        /// to lose track of the image layout. If you are not running into issues with the other overloads, you probably do not want to call this method.
+        /// </remarks>
+        /// <param name="image">The image resource to transition.</param>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// <param name="fromLayout">The image layout to transition from.</param>
+        /// <param name="toLayout">The image layout to transition into.</param>
+        void transition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) {
+            this->doTransition(image, accessBefore, accessAfter, fromLayout, toLayout);
+        }
+
+        /// <summary>
+        /// Inserts an image barrier that blocks access to a sub-resource range of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
+        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions the sub-resource into
+        /// <paramref name="layout" />.
+        /// </summary>
+        /// <remarks>
+        /// This overload let's you explicitly specify the <paramref name="fromLayout" />. This is required, if you use any external transition mechanism that causes the engine
+        /// to lose track of the image layout. If you are not running into issues with the other overloads, you probably do not want to call this method.
+        /// </remarks>
+        /// <param name="image">The image resource to transition.</param>
+        /// <param name="level">The base mip-map level of the sub-resource range.</param>
+        /// <param name="levels">The number of mip-map levels of the sub-resource range.</param>
+        /// <param name="layer">The base array layer of the sub-resource range.</param>
+        /// <param name="layers">The number of array layer of the sub-resource range.</param>
+        /// <param name="plane">The plane of the sub-resource.</param>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// <param name="fromLayout">The image layout to transition from.</param>
+        /// <param name="toLayout">The image layout to transition into.</param>
+        void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) {
+            this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
+        }
+
     private:
         virtual void doTransition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
         virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
         virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
+        virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
         virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
+        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
     };
 
     /// <summary>

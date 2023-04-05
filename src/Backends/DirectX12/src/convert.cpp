@@ -656,6 +656,9 @@ D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::get
 
 	D3D12_BARRIER_ACCESS access = { };
 
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Common))
+		access |= D3D12_BARRIER_ACCESS_COMMON;
+
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::VertexBuffer))
 		access |= D3D12_BARRIER_ACCESS_VERTEX_BUFFER;
 

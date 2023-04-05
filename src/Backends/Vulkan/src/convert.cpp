@@ -1009,6 +1009,9 @@ VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAcce
 
 	VkAccessFlags access = { };
 
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Common))
+		access |= (VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT);
+
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::VertexBuffer))
 		access |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 
