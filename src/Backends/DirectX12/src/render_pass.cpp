@@ -349,7 +349,8 @@ void DirectX12RenderPass::end() const
 
     // Transition the present and depth/stencil views.
     // NOTE: Ending the render pass implicitly barriers with legacy resource state?!
-    DirectX12Barrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::Fragment), resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::DepthStencil);
+    DirectX12Barrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::Fragment), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::DepthStencil),
+        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), presentBarrier(PipelineStage::RenderTarget, PipelineStage::None);
     std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
         switch (renderTarget.type())
         {
@@ -360,12 +361,13 @@ void DirectX12RenderPass::end() const
             if (requiresResolve)
                 return resolveBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::ResolveSource);
             else
-                return renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::Common, ImageLayout::Present);
+                return presentBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::Present);
         }
     });
 
     endCommandBuffer->barrier(renderTargetBarrier);
     endCommandBuffer->barrier(depthStencilBarrier);
+    endCommandBuffer->barrier(presentBarrier);
 
     // Add another barrier for the back buffer image, if required.
     const IDirectX12Image* backBufferImage = m_impl->m_device.swapChain().images()[m_impl->m_backBuffer];
