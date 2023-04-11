@@ -362,7 +362,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampl
         .AddressW = m_impl->getBorderMode(sampler.getBorderModeW()),
         .MipLODBias = sampler.getMipMapBias(),
         .MaxAnisotropy = static_cast<UInt32>(sampler.getAnisotropy()),
-        .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
+        .ComparisonFunc = D3D12_COMPARISON_FUNC_NONE,
         .BorderColor = { 0.f, 0.f, 0.f, 0.f },
         .MinLOD = sampler.getMinLOD(),
         .MaxLOD = sampler.getMaxLOD()
