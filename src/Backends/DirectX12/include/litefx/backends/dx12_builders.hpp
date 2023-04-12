@@ -10,6 +10,56 @@ namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
 	/// <summary>
+	/// Builds a DirectX 12  <see cref="Barrier" />.
+	/// </summary>
+	/// <seealso cref="DirectX12Barrier" />
+	class LITEFX_DIRECTX12_API DirectX12BarrierBuilder : public BarrierBuilder<DirectX12BarrierBuilder, DirectX12Barrier> {
+		LITEFX_IMPLEMENTATION(DirectX12BarrierBuilderImpl);
+		
+		class DirectX12SecondStageBarrierBuilder;
+		friend class DirectX12SecondStageBarrierBuilder;
+		class DirectX12GlobalBarrierBuilder;
+		friend class DirectX12GlobalBarrierBuilder;
+		class DirectX12BufferBarrierBuilder;
+		friend class DirectX12BufferBarrierBuilder;
+		class DirectX12ImageBarrierBuilder;
+		friend class DirectX12ImageBarrierBuilder;
+		class DirectX12ImageLayoutBarrierBuilder;
+		friend class DirectX12ImageLayoutBarrierBuilder;
+
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 barrier builder.
+		/// </summary>
+		explicit DirectX12BarrierBuilder();
+		DirectX12BarrierBuilder(const DirectX12BarrierBuilder&) = delete;
+		DirectX12BarrierBuilder(DirectX12BarrierBuilder&&) = delete;
+		virtual ~DirectX12BarrierBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		virtual void build() override;
+
+		// BarrierBuilder interface.
+	public:
+		/// <inheritdoc />
+		virtual SecondStageBuilder& waitFor(const PipelineStage& stage) override;
+
+		/// <inheritdoc />
+		virtual GlobalBarrierBuilder& blockAccessTo(const ResourceAccess& access) override;
+
+		/// <inheritdoc />
+		virtual BufferBarrierBuilder& blockAccessTo(IBuffer& buffer, const ResourceAccess& access) override;
+
+		/// <inheritdoc />
+		virtual BufferBarrierBuilder& blockAccessTo(IBuffer& buffer, const UInt32 subresource, const ResourceAccess& access) override;
+
+		/// <inheritdoc />
+		virtual ImageBarrierBuilder& blockAccessTo(IImage& image, const ResourceAccess& access) override;
+	};
+
+	/// <summary>
 	/// Builds a DirectX 12 <see cref="ShaderProgram" />.
 	/// </summary>
 	/// <seealso cref="DirectX12ShaderProgram" />

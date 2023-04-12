@@ -213,8 +213,14 @@ public:
 			.samplerAnisotropy = true
 		};
 
-		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
+		VkPhysicalDeviceVulkan13Features deviceFeatures13 = {
+			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+			.synchronization2 = true
+		};
+
+		VkPhysicalDeviceVulkan12Features deviceFeatures12 = {
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+			.pNext = &deviceFeatures13,
 			.descriptorIndexing = true,
 			.shaderInputAttachmentArrayDynamicIndexing = true,
 			.shaderUniformTexelBufferArrayDynamicIndexing = true,
@@ -424,6 +430,11 @@ VulkanRasterizerBuilder VulkanDevice::buildRasterizer() const
 VulkanShaderProgramBuilder VulkanDevice::buildShaderProgram() const
 {
 	return VulkanShaderProgramBuilder(*this);
+}
+
+VulkanBarrierBuilder VulkanDevice::buildBarrier() const
+{
+	return VulkanBarrierBuilder();
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)
 

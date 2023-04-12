@@ -88,6 +88,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12RenderPipelineBuilder;
     class DirectX12ComputePipelineBuilder;
     class DirectX12RenderPassBuilder;
+    class DirectX12BarrierBuilder;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
     /// <summary>

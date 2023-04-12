@@ -364,7 +364,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	auto image = VulkanImage::allocate(name, m_impl->m_device, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ImageLayout::Common, m_impl->m_allocator, imageInfo, allocInfo);
+	auto image = VulkanImage::allocate(name, m_impl->m_device, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ImageLayout::Undefined, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())

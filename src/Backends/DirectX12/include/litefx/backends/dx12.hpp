@@ -159,6 +159,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="Barrier" />
 	class LITEFX_DIRECTX12_API DirectX12Barrier : public Barrier<IDirectX12Buffer, IDirectX12Image> {
 		LITEFX_IMPLEMENTATION(DirectX12BarrierImpl);
+		LITEFX_BUILDER(DirectX12BarrierBuilder);
 
 	public:
 		using base_type = Barrier<IDirectX12Buffer, IDirectX12Image>;
@@ -174,6 +175,11 @@ namespace LiteFX::Rendering::Backends {
 		DirectX12Barrier(const DirectX12Barrier&) = delete;
 		DirectX12Barrier(DirectX12Barrier&&) = delete;
 		virtual ~DirectX12Barrier() noexcept;
+
+	private:
+		explicit DirectX12Barrier() noexcept;
+		PipelineStage& syncBefore() noexcept;
+		PipelineStage& syncAfter() noexcept;
 
 		// Barrier interface.
 	public:
@@ -1705,6 +1711,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		[[nodiscard]] virtual DirectX12ShaderProgramBuilder buildShaderProgram() const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual DirectX12BarrierBuilder buildBarrier() const override;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 	};
 	

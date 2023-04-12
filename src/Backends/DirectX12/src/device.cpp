@@ -481,6 +481,11 @@ DirectX12ShaderProgramBuilder DirectX12Device::buildShaderProgram() const
 {
 	return DirectX12ShaderProgramBuilder(*this);
 }
+
+DirectX12BarrierBuilder DirectX12Device::buildBarrier() const
+{
+	return DirectX12BarrierBuilder();
+}
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept

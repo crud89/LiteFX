@@ -181,15 +181,15 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	this->bind(*samplerBindings, pipeline);
 
 	// Transition the texture into a read/write state.
-	DirectX12Barrier startBarrier(PipelineStage::All, PipelineStage::Compute);
+	DirectX12Barrier startBarrier(PipelineStage::None, PipelineStage::Compute);
 	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ReadWrite);
-	//waitBarrier.waitFor(image);
 	this->barrier(startBarrier);
-	auto size = image.extent();
 	int resource = 0;
 
 	for (int l(0); l < image.layers(); ++l)
 	{
+		auto size = image.extent();
+
 		for (UInt32 i(1); i < image.levels(); ++i, size /= 2)
 		{
 			// Update the invocation parameters.
@@ -207,16 +207,16 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 
 			// Wait for all writes.
 			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
-			subBarrier.transition(image, i, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ReadWrite);
+			subBarrier.transition(image, i, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
 			this->barrier(subBarrier);
 			resource++;
 		}
-	}
 
-	// Transition back into a shader resource.
-	DirectX12Barrier endBarrier(PipelineStage::Compute, PipelineStage::All);
-	endBarrier.transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
-	this->barrier(endBarrier);
+		// Original sub-resource also needs to be transitioned.
+		DirectX12Barrier endBarrier(PipelineStage::Compute, PipelineStage::All);
+		endBarrier.transition(image, 0, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+		this->barrier(endBarrier);
+	}
 }
 
 void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noexcept

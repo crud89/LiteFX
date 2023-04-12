@@ -1200,6 +1200,7 @@ namespace LiteFX::Rendering {
         using input_assembler_builder_type = input_assembler_type::builder_type;
         using rasterizer_builder_type = rasterizer_type::builder_type;
         using shader_program_builder_type = shader_program_type::builder_type;
+        using barrier_builder_Type = barrier_type::builder_type;
 
         /// <summary>
         /// Returns a builder for a <see cref="RenderPass" />.
@@ -1263,6 +1264,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>An instance of a builder that is used to create a new shader program.</returns>
         [[nodiscard]] virtual shader_program_builder_type buildShaderProgram() const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="Barrier" />.
+        /// </summary>
+        /// <returns>An instance of a builder that is used to create a new barrier.</returns>
+        [[nodiscard]] virtual barrier_builder_Type buildBarrier() const = 0;
 #endif // defined(BUILD_DEFINE_BUILDERS)
     };
 

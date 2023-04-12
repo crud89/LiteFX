@@ -175,6 +175,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="Barrier" />
 	class LITEFX_VULKAN_API VulkanBarrier : public Barrier<IVulkanBuffer, IVulkanImage> {
 		LITEFX_IMPLEMENTATION(VulkanBarrierImpl);
+		LITEFX_BUILDER(VulkanBarrierBuilder);
 
 	public:
 		using base_type = Barrier<IVulkanBuffer, IVulkanImage>;
@@ -190,6 +191,11 @@ namespace LiteFX::Rendering::Backends {
 		VulkanBarrier(const VulkanBarrier&) = delete;
 		VulkanBarrier(VulkanBarrier&&) = delete;
 		virtual ~VulkanBarrier() noexcept;
+
+	private:
+		explicit VulkanBarrier() noexcept;
+		PipelineStage& syncBefore() noexcept;
+		PipelineStage& syncAfter() noexcept;
 
 		// Barrier interface.
 	public:
@@ -1697,6 +1703,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		[[nodiscard]] virtual VulkanShaderProgramBuilder buildShaderProgram() const override;
+
+		/// <inheritdoc />
+		[[nodiscard]] virtual VulkanBarrierBuilder buildBarrier() const override;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 	};
 

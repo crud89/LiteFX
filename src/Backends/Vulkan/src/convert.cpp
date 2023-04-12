@@ -993,10 +993,8 @@ VkPipelineStageFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipel
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::RenderTarget))
 		sync |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Transfer))
-		sync |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Transfer) ||
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
 		sync |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 
 	return sync;
