@@ -99,9 +99,6 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	bufferInfo.usage = usageFlags;
 
-	// Get the initial resource state.
-	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::GenericRead : ResourceState::CopyDestination;
-
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
@@ -121,7 +118,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -134,7 +131,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 
 #ifndef NDEBUG
@@ -176,9 +173,6 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	// Get the initial resource state.
-	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::GenericRead : ResourceState::CopyDestination;
-
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	UniquePtr<IVulkanVertexBuffer> buffer;
 
@@ -187,7 +181,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		buffer = VulkanVertexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanVertexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -200,7 +194,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		buffer = VulkanVertexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanVertexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 
 #ifndef NDEBUG
@@ -242,9 +236,6 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	// Get the initial resource state.
-	ResourceState initialState = usage == BufferUsage::Dynamic || usage == BufferUsage::Staging ? ResourceState::GenericRead : ResourceState::CopyDestination;
-
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	UniquePtr<IVulkanIndexBuffer> buffer;
 
@@ -253,7 +244,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferInfo.queueFamilyIndexCount = 0;
 
-		buffer = VulkanIndexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanIndexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 	else
 	{
@@ -266,7 +257,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
 		bufferInfo.pQueueFamilyIndices = queues.data();
 
-		buffer = VulkanIndexBuffer::allocate(name, layout, elements, initialState, m_impl->m_allocator, bufferInfo, allocInfo);
+		buffer = VulkanIndexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 	}
 
 #ifndef NDEBUG
@@ -312,9 +303,9 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	UniquePtr<IVulkanImage> image;
 
 	if (::hasDepth(format)) [[unlikely]]
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
 	else
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ResourceState::RenderTarget, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::Common, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -373,7 +364,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	auto image = VulkanImage::allocate(name, m_impl->m_device, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ResourceState::Common, m_impl->m_allocator, imageInfo, allocInfo);
+	auto image = VulkanImage::allocate(name, m_impl->m_device, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ImageLayout::Undefined, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())

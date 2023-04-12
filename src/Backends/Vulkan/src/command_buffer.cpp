@@ -170,34 +170,9 @@ void VulkanCommandBuffer::setStencilRef(const UInt32& stencilRef) const noexcept
 
 void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 {
-	// Use a native barrier for improved performance (we update it for each level).
-	VkImageMemoryBarrier barrier {
-		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		.pNext = nullptr,
-		.srcAccessMask = 0,
-		.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = std::as_const(image).handle(),
-		.subresourceRange = {
-			.aspectMask = image.aspectMask(),
-			.baseMipLevel = 0,
-			.levelCount = image.levels(),
-			.baseArrayLayer = 0,
-			.layerCount = image.layers()
-		}
-	};
-
-	// Store the current layout.
-	auto layout = Vk::getImageLayout(image.state(0));
-
-	// Make sure that all sub-resources are in the proper layout.
-	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-	::vkCmdPipelineBarrier(this->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+	VulkanBarrier startBarrier(PipelineStage::None, PipelineStage::Transfer);
+	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+	this->barrier(startBarrier);
 
 	for (UInt32 layer(0); layer < image.layers(); ++layer)
 	{
@@ -207,21 +182,12 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 
 		for (UInt32 level(1); level < image.levels(); ++level)
 		{
-			// Transition the previous level to transfer source.
-			barrier.subresourceRange.aspectMask = image.aspectMask();
-			barrier.subresourceRange.baseArrayLayer = layer;
-			barrier.subresourceRange.layerCount = 1;
-			barrier.subresourceRange.baseMipLevel = level - 1;
-			barrier.subresourceRange.levelCount = 1;
-			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-
-			::vkCmdPipelineBarrier(this->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			VulkanBarrier subBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
+			subBarrier.transition(image, level - 1, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
+			this->barrier(subBarrier);
 
 			// Blit the image of the previous level into the current level.
-			VkImageBlit blit{
+			VkImageBlit blit {
 				.srcSubresource = VkImageSubresourceLayers {
 					.aspectMask = image.aspectMask(),
 					.mipLevel = level - 1,
@@ -248,28 +214,21 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 			mipHeight = std::max(mipHeight / 2, 1);
 			mipDepth = std::max(mipDepth / 2, 1);
 		}
+
+		VulkanBarrier subBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
+		subBarrier.transition(image, image.levels() - 1, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
+		subBarrier.transition(image, 0, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
+		this->barrier(subBarrier);
 	}
 
-	// Finally, transition all the levels back to the original layout.
-	barrier.subresourceRange.aspectMask = image.aspectMask();
-	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = image.layers();
-	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = image.levels() - 1;
-	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	barrier.newLayout = layout;
-	barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	::vkCmdPipelineBarrier(this->handle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+	VulkanBarrier endBarrier(PipelineStage::Transfer, PipelineStage::All);
+	endBarrier.transition(image, ResourceAccess::TransferRead | ResourceAccess::TransferWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+	this->barrier(endBarrier);
 }
 
-void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier, const bool& invert) const noexcept
+void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier) const noexcept
 {
-	if (invert)
-		barrier.executeInverse(*this);
-	else
-		barrier.execute(*this);
+	barrier.execute(*this);
 }
 
 void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
@@ -286,8 +245,6 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target,
 		.size      = elements      * source.alignedElementSize()
 	};
 
-	// TODO: If source or target are device memory objects, they should also require a barrier here...
-
 	::vkCmdCopyBuffer(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), 1, &copyInfo);
 }
 
@@ -299,20 +256,16 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, 
 	if (target.elements() < firstSubresource + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
 
-	// TODO: If source is a device memory objects, it should also require a barrier here...
-
 	// Create a copy command and add it to the command buffer.
+	VulkanBarrier barrier(PipelineStage::None, PipelineStage::Transfer);
+
 	Array<VkBufferImageCopy> copyInfos(elements);
-
-	// Make sure, the target sub-resources are in a proper layout.
-	VulkanBarrier barrier;
-
 	std::ranges::generate(copyInfos, [&, this, i = firstSubresource]() mutable {
 		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
 		target.resolveSubresource(subresource, plane, layer, level);
-		
-		if (target.state(subresource) != ResourceState::CopyDestination)
-			barrier.transition(target, level, layer, plane, ResourceState::CopyDestination);
+
+		if (static_cast<const IImage&>(target).layout(subresource) != ImageLayout::CopyDestination)
+			barrier.transition(target, level, 1, layer, 1, plane, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::CopyDestination);
 
 		return VkBufferImageCopy {
 			.bufferOffset = source.alignedElementSize() * sourceElement,
@@ -342,23 +295,21 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, c
 		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
 	// Create a copy command and add it to the command buffer.
+	VulkanBarrier barrier(PipelineStage::None, PipelineStage::Transfer);
+
 	Array<VkImageCopy> copyInfos(subresources);
-
-	// Make sure, the source and target sub-resources are in a proper layout.
-	VulkanBarrier barrier;
-
 	std::ranges::generate(copyInfos, [&, this, i = 0]() mutable {
 		UInt32 sourceRsc = sourceSubresource + i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
-		UInt32 targetRsc = sourceSubresource + i, targetLayer = 0, targetLevel = 0, targetPlane = 0;
+		UInt32 targetRsc = targetSubresource + i, targetLayer = 0, targetLevel = 0, targetPlane = 0;
 		source.resolveSubresource(sourceRsc, sourceLayer, sourceLevel, sourcePlane);
 		target.resolveSubresource(targetRsc, targetLayer, targetLevel, targetPlane);
 		i++;
 
-		if (target.state(sourceRsc) != ResourceState::CopySource)
-			barrier.transition(source, sourceLevel, sourceLayer, sourcePlane, ResourceState::CopySource);
+		//if (static_cast<const IImage&>(source).layout(sourceSubresource) != ImageLayout::CopySource)
+		//	barrier.transition(source, sourceLayer, 1, sourceLevel, 1, sourcePlane, ResourceAccess::None, ResourceAccess::TransferRead, ImageLayout::CopySource);
 
-		if (target.state(targetRsc) != ResourceState::CopyDestination)
-			barrier.transition(target, sourceLevel, sourceLayer, sourcePlane, ResourceState::CopyDestination);
+		if (static_cast<const IImage&>(target).layout(targetSubresource) != ImageLayout::CopyDestination)
+			barrier.transition(target, targetLayer, 1, targetLevel, 1, targetPlane, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::CopyDestination);
 
 		return VkImageCopy {
 			.srcSubresource = VkImageSubresourceLayers {
@@ -393,16 +344,9 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanBuffer& target, 
 	
 	// Create a copy command and add it to the command buffer.
 	Array<VkBufferImageCopy> copyInfos(subresources);
-
-	// Make sure, the source and target sub-resources are in a proper layout.
-	VulkanBarrier barrier;
-
 	std::ranges::generate(copyInfos, [&, this, i = targetElement]() mutable {
 		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
 		source.resolveSubresource(subresource, plane, layer, level);
-
-		if (target.state(subresource) != ResourceState::CopySource)
-			barrier.transition(source, level, layer, plane, ResourceState::CopySource);
 
 		return VkBufferImageCopy {
 			.bufferOffset = target.alignedElementSize() * subresource,
@@ -419,7 +363,6 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanBuffer& target, 
 		};
 	});
 
-	this->barrier(barrier);
 	::vkCmdCopyImageToBuffer(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 

@@ -23,7 +23,7 @@ public:
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList4> initialize(const bool& begin)
+	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin)
 	{
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
@@ -39,7 +39,7 @@ public:
 		raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
 
 		// Create the actual command list.
-		ComPtr<ID3D12GraphicsCommandList4> commandList;
+		ComPtr<ID3D12GraphicsCommandList7> commandList;
 
 		if (m_recording = begin)
 			raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
@@ -68,7 +68,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin) :
-	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList4>(nullptr)
+	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList7>(nullptr)
 {
 	this->handle() = m_impl->initialize(begin);
 
@@ -181,15 +181,15 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	this->bind(*samplerBindings, pipeline);
 
 	// Transition the texture into a read/write state.
-	DirectX12Barrier barrier, waitBarrier;
-	barrier.transition(image, ResourceState::ReadWrite);
-	waitBarrier.waitFor(image);
-	this->barrier(barrier);
-	auto size = image.extent();
+	DirectX12Barrier startBarrier(PipelineStage::None, PipelineStage::Compute);
+	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ReadWrite);
+	this->barrier(startBarrier);
 	int resource = 0;
 
 	for (int l(0); l < image.layers(); ++l)
 	{
+		auto size = image.extent();
+
 		for (UInt32 i(1); i < image.levels(); ++i, size /= 2)
 		{
 			// Update the invocation parameters.
@@ -206,21 +206,22 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 			this->dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
 
 			// Wait for all writes.
-			this->barrier(waitBarrier);
+			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
+			subBarrier.transition(image, i, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+			this->barrier(subBarrier);
 			resource++;
 		}
-	}
 
-	// Transition back into a shader resource.
-	this->barrier(barrier, true);
+		// Original sub-resource also needs to be transitioned.
+		DirectX12Barrier endBarrier(PipelineStage::Compute, PipelineStage::All);
+		endBarrier.transition(image, 0, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+		this->barrier(endBarrier);
+	}
 }
 
-void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier, const bool& invert) const noexcept
+void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noexcept
 {
-	if (invert)
-		barrier.executeInverse(*this);
-	else
-		barrier.execute(*this);
+	barrier.execute(*this);
 }
 
 void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
@@ -261,7 +262,6 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& 
 	if (target.elements() < targetSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
-	// TODO: Check if we can possibly do this more efficiently by copying multiple sub-resources at once.
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
 

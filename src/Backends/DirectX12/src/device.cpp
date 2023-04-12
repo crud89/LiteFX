@@ -90,14 +90,28 @@ private:
 	}
 #endif
 
+private:
+	bool checkRequiredExtensions(ID3D12Device10* device)
+	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options {};
+		raiseIfFailed<RuntimeException>(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options, sizeof(options)), "Unable to query device extensions.");
+		
+		bool result = options.EnhancedBarriersSupported; // && ...
+
+		return result;
+	}
+
 public:
 	[[nodiscard]]
-	ComPtr<ID3D12Device5> initialize()
+	ComPtr<ID3D12Device10> initialize()
 	{
-		ComPtr<ID3D12Device5> device;
+		ComPtr<ID3D12Device10> device;
 		HRESULT hr;
 
 		raiseIfFailed<RuntimeException>(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
+
+		if (!this->checkRequiredExtensions(device.Get()))
+			throw RuntimeException("Not all required extensions are supported by this device. A driver update may resolve this problem.");
 
 #ifndef NDEBUG
 		// Try to query an info queue to forward log messages.
@@ -113,7 +127,11 @@ public:
 			//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, TRUE);
 			
 			// Suppress individual messages by their ID
-			D3D12_MESSAGE_ID suppressIds[] = { D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE };
+			D3D12_MESSAGE_ID suppressIds[] = { 
+				D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
+				D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
+				D3D12_MESSAGE_ID_BARRIER_INTEROP_INVALID_STATE                // Temporary workaround, as this appears to be a false-positive here... Reported to MSFT and they've got an internal bug (44057285) tracked for this. See: https://github.com/crud89/d3d12-renderpass-barrier-mwe.
+			};
 			D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
 
 			D3D12_INFO_QUEUE_FILTER infoQueueFilter = {};
@@ -233,7 +251,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 }
 
 DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
-	ComResource<ID3D12Device5>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
+	ComResource<ID3D12Device10>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.deviceId());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
@@ -463,6 +481,11 @@ DirectX12ShaderProgramBuilder DirectX12Device::buildShaderProgram() const
 {
 	return DirectX12ShaderProgramBuilder(*this);
 }
+
+DirectX12BarrierBuilder DirectX12Device::buildBarrier() const
+{
+	return DirectX12BarrierBuilder();
+}
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept
@@ -515,9 +538,9 @@ const DirectX12Queue& DirectX12Device::computeQueue() const noexcept
 	return *m_impl->m_computeQueue;
 }
 
-UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier() const noexcept
+UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept
 {
-	return makeUnique<DirectX12Barrier>();
+	return makeUnique<DirectX12Barrier>(syncBefore, syncAfter);
 }
 
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& format) const noexcept

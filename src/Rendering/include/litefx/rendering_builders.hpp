@@ -7,6 +7,107 @@
 namespace LiteFX::Rendering {
 
     /// <summary>
+    /// Base class for a builder that builds a <see cref="Barrier" />.
+    /// </summary>
+    /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
+    /// <typeparam name="TBarrier">The type of the barrier. Must implement <see cref="Barrier" />.</typeparam>
+    /// <seealso cref="Barrier" />
+    /// <seealso cref="IBarrier" />
+    template <typename TDerived, typename TBarrier> requires
+        rtti::implements<TBarrier, Barrier<typename TBarrier::buffer_type, typename TBarrier::image_type>>
+    class BarrierBuilder : public Builder<TDerived, TBarrier> {
+    public:
+        struct SecondStageBuilder {
+            /// <summary>
+            /// Specifies the pipeline stage that are allowed to continue after the barrier has executed.
+            /// </summary>
+            /// <param name="stage">The pipeline stage that are allowed to continue after the barrier has executed.</param>
+            virtual TDerived& toContinueWith(const PipelineStage& stage) = 0;
+        };
+
+        struct GlobalBarrierBuilder {
+            /// <summary>
+            /// Specifies the resource accesses that are waited for in a global barrier before it can be executed.
+            /// </summary>
+            /// <param name="access">The resource accesses that are waited for until the barrier can be executed.</param>
+            virtual TDerived& untilFinishedWith(const ResourceAccess& access) = 0;
+        };
+
+        struct BufferBarrierBuilder {
+            /// <summary>
+            /// Specifies the resource accesses that are waited for in a buffer before the barrier can be executed.
+            /// </summary>
+            /// <param name="access">The resource accesses that are waited for in a buffer before the barrier can be executed.</param>
+            virtual TDerived& untilFinishedWith(const ResourceAccess& access) = 0;
+        };
+
+        struct ImageLayoutBarrierBuilder {
+            /// <summary>
+            /// Specifies the resource accesses that are waited for in an image before the barrier can be executed.
+            /// </summary>
+            /// <param name="access">The resource accesses that are waited for in an image before the barrier can be executed.</param>
+            virtual TDerived& whenFinishedWith(const ResourceAccess& access) = 0;
+        };
+
+        struct ImageBarrierBuilder {
+            /// <summary>
+            /// Specifies the layout to transition an image to when executing the barrier.
+            /// </summary>
+            /// <param name="layout">The layout to transition an image to when executing the barrier.</param>
+            virtual ImageLayoutBarrierBuilder& transitionLayout(const ImageLayout& layout) = 0;
+
+            /// <summary>
+            /// Specifies the sub-resource to block and transition when executing the barrier.
+            /// </summary>
+            /// <param name="level">The base level of the sub-resource.</param>
+            /// <param name="levels">The number of levels to block and transition.</param>
+            /// <param name="layer">The base layer of the sub-resource.</param>
+            /// <param name="layers">The number of layers to block and transition.</param>
+            /// <param name="plane">The plane index of the sub-resource to block and transition.</param>
+            virtual ImageBarrierBuilder& subresource(const UInt32& level, const UInt32& levels, const UInt32& layer = 0, const UInt32& layers = 1, const UInt32& plane = 0) = 0;
+        };
+
+    public:
+        using Builder<TDerived, TBarrier>::Builder;
+        using barrier_type = TBarrier;
+
+    public:
+        /// <summary>
+        /// Specifies the pipeline stages to wait for before executing the barrier.
+        /// </summary>
+        /// <param name="stage">The pipeline stages to wait for before executing the barrier.</param>
+        virtual SecondStageBuilder& waitFor(const PipelineStage& stage) = 0;
+
+        /// <summary>
+        /// Specifies the resource accesses that are blocked in a global barrier until the barrier has executed.
+        /// </summary>
+        /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
+        virtual GlobalBarrierBuilder& blockAccessTo(const ResourceAccess& access) = 0;
+
+        /// <summary>
+        /// Specifies the resource accesses that are blocked for <paramref name="buffer" /> until the barrier has executed.
+        /// </summary>
+        /// <param name="buffer">The buffer to wait for.</param>
+        /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
+        virtual BufferBarrierBuilder& blockAccessTo(IBuffer& buffer, const ResourceAccess& access) = 0;
+
+        /// <summary>
+        /// Specifies the resource accesses that are blocked for <paramref name="buffer" /> until the barrier has executed.
+        /// </summary>
+        /// <param name="buffer">The buffer to wait for.</param>
+        /// <param name="subresource">The sub-resource to block.</param>
+        /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
+        virtual BufferBarrierBuilder& blockAccessTo(IBuffer& buffer, const UInt32 subresource, const ResourceAccess& access) = 0;
+
+        /// <summary>
+        /// Specifies the resource accesses that are blocked for <paramref name="image" /> until the barrier has executed.
+        /// </summary>
+        /// <param name="image">The buffer to wait for.</param>
+        /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
+        virtual ImageBarrierBuilder& blockAccessTo(IImage& image, const ResourceAccess& access) = 0;
+    };
+
+    /// <summary>
     /// Base class for a builder that builds a <see cref="ShaderProgram" />.
     /// </summary>
     /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>

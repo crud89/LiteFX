@@ -43,7 +43,7 @@ const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
-rtti::implements<TRenderBackend, IRenderBackend>
+    rtti::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
@@ -94,74 +94,12 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     device->state().add(std::move(renderPipeline));
 }
 
-void SampleApp::initBuffers(IRenderBackend* backend)
+template<typename TDevice> requires
+    rtti::implements<TDevice, IGraphicsDevice>
+UInt64 loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
 {
-    // Get a command buffer
-    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    using TBarrier = typename TDevice::barrier_type;
 
-    // Create the staging buffer.
-    // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
-    //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
-    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
-
-    // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
-
-    // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout().elementSize(), 0);
-
-    // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
-    
-    // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
-    // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& staticBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", staticBindingLayout, 0, BufferUsage::Resource);
-
-    // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    this->updateCamera(*commandBuffer, *cameraBuffer);
-
-    // Load the texture.
-    UniquePtr<IImage> texture;
-    UniquePtr<ISampler> sampler;
-    this->loadTexture(texture, sampler);
-
-    // Allocate the descriptor sets.
-    auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *texture } });
-    auto samplerBindings = geometryPipeline.layout()->descriptorSet(DescriptorSets::Samplers).allocate({ { 0, *sampler } });
-
-    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
-    // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
-    auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
-    });
-
-    // End and submit the command buffer.
-    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
-
-    // Add everything to the state.
-    m_device->state().add(std::move(vertexBuffer));
-    m_device->state().add(std::move(indexBuffer));
-    m_device->state().add(std::move(cameraBuffer));
-    m_device->state().add(std::move(transformBuffer));
-    m_device->state().add(std::move(texture));
-    m_device->state().add(std::move(sampler));
-    m_device->state().add("Static Bindings", std::move(staticBindings));
-    m_device->state().add("Sampler Bindings", std::move(samplerBindings));
-    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
-}
-
-void SampleApp::loadTexture(UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
-{
     // Load the image.
     using ImageDataPtr = UniquePtr<stbi_uc, decltype(&::stbi_image_free)>;
 
@@ -174,31 +112,105 @@ void SampleApp::loadTexture(UniquePtr<IImage>& texture, UniquePtr<ISampler>& sam
     // Create the texture from the constant buffer descriptor set, since we only load the texture once and use it for all frames.
     // NOTE: For Vulkan, the texture does not need to be writable, however DX12 does not support mip-map generation out of the box. This functionality is emulated
     //       in the backend using a compute shader, that needs to write back to the texture.
-    texture = m_device->factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, true);
+    texture = device.factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, true);
 
     // Create a staging buffer for the first mip-map of the texture.
-    auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, BufferUsage::Staging, texture->size(0));
+    auto stagedTexture = device.factory().createBuffer(BufferType::Other, BufferUsage::Staging, texture->size(0));
     stagedTexture->map(imageData.get(), texture->size(0), 0);
 
     // Transfer the texture using the compute queue (since we want to be able to generate mip maps, which is done on the compute queue).
-    auto commandBuffer = m_device->graphicsQueue().createCommandBuffer(true);
+    auto commandBuffer = device.graphicsQueue().createCommandBuffer(true);
     commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
 
     // Generate the rest of the mip maps.
     commandBuffer->generateMipMaps(*texture);
 
-    // Transition the texture into a shader-visible resource.
-    auto barrier = m_device->makeBarrier();
-    barrier->waitFor(*texture);
-    barrier->transition(*texture, ResourceState::ReadOnly);
+    // Create a barrier to ensure the texture is readable.
+    UniquePtr<TBarrier> barrier = device.buildBarrier()
+        .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Fragment)
+        .blockAccessTo(*texture, ResourceAccess::ShaderRead).transitionLayout(ImageLayout::ShaderResource).whenFinishedWith(ResourceAccess::None);
+
     commandBuffer->barrier(*barrier);
 
     // Submit the command buffer and wait for it to execute. Note that it is possible to do the waiting later when we actually use the texture during rendering. This
     // would not block earlier draw calls, if the texture would be streamed in at run-time.
-    m_transferFence = m_device->graphicsQueue().submit(commandBuffer);
+    auto transferFence = device.graphicsQueue().submit(commandBuffer);
 
     // Create a sampler state for the texture.
-    sampler = m_device->factory().createSampler("Sampler", FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
+    sampler = device.factory().createSampler("Sampler", FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
+
+    return transferFence;
+}
+
+template<typename TDevice> requires
+    rtti::implements<TDevice, IGraphicsDevice>
+UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> inputAssembler)
+{
+    // Get a command buffer
+    auto commandBuffer = device.bufferQueue().createCommandBuffer(true);
+
+    // Create the staging buffer.
+    // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
+    //       whole buffer.
+    auto stagedVertices = device.factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
+
+    // Create the actual vertex buffer and transfer the staging buffer into it.
+    auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
+
+    // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
+    auto stagedIndices = device.factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+    stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout().elementSize(), 0);
+
+    // Create the actual index buffer and transfer the staging buffer into it.
+    auto indexBuffer = device.factory().createIndexBuffer("Index Buffer", inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
+    
+    // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
+    // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
+    auto& geometryPipeline = device.state().pipeline("Geometry");
+    auto& staticBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
+    auto cameraBuffer = device.factory().createBuffer("Camera", staticBindingLayout, 0, BufferUsage::Resource);
+
+    // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
+    app.updateCamera(*commandBuffer, *cameraBuffer);
+
+    // Load the texture.
+    UniquePtr<IImage> texture;
+    UniquePtr<ISampler> sampler;
+    ::loadTexture(device, texture, sampler);
+
+    // Allocate the descriptor sets.
+    auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *texture } });
+    auto samplerBindings = geometryPipeline.layout()->descriptorSet(DescriptorSets::Samplers).allocate({ { 0, *sampler } });
+
+    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
+    // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
+    auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
+    auto transformBuffer = device.factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+    });
+
+    // End and submit the command buffer.
+    auto transferFence = device.bufferQueue().submit(commandBuffer);
+
+    // Add everything to the state.
+    device.state().add(std::move(vertexBuffer));
+    device.state().add(std::move(indexBuffer));
+    device.state().add(std::move(cameraBuffer));
+    device.state().add(std::move(transformBuffer));
+    device.state().add(std::move(texture));
+    device.state().add(std::move(sampler));
+    device.state().add("Static Bindings", std::move(staticBindings));
+    device.state().add("Sampler Bindings", std::move(samplerBindings));
+    std::ranges::for_each(transformBindings, [&, i = 0](auto& binding) mutable { device.state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
+
+    // Return the fence.
+    return transferFence;
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -268,11 +280,12 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
+        auto device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
+        m_device = device;
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
-        this->initBuffers(backend);
+        m_transferFence = ::initBuffers(*this, *device, m_inputAssembler);
 
         return true;
     };

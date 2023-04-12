@@ -87,18 +87,7 @@ public:
 		this->shutdown += std::bind(&SampleApp::onShutdown, this);
 	}
 
-private:
-	/// <summary>
-	/// Initializes the buffers.
-	/// </summary>
-	/// <param name="backend">The render backend to use.</param>
-	void initBuffers(IRenderBackend* backend);
-
-	/// <summary>
-	/// Loads the texture.
-	/// </summary>
-	void loadTexture(UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler);
-
+public:
 	/// <summary>
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>

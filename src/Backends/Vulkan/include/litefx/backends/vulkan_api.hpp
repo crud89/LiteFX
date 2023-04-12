@@ -75,6 +75,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanRenderPipelineBuilder;
     class VulkanComputePipelineBuilder;
     class VulkanRenderPassBuilder;
+    class VulkanBarrierBuilder;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
     /// <summary>
@@ -185,12 +186,17 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        VkImageLayout LITEFX_VULKAN_API getImageLayout(const ResourceState& resourceState);
+        VkPipelineStageFlags LITEFX_VULKAN_API getPipelineStage(const PipelineStage& pipelineStage);
 
         /// <summary>
         /// 
         /// </summary>
-        VkAccessFlags LITEFX_VULKAN_API getAccessFlags(const ResourceState& resourceState);
+        VkAccessFlags LITEFX_VULKAN_API getResourceAccess(const ResourceAccess& resourceAccess);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        VkImageLayout LITEFX_VULKAN_API getImageLayout(const ImageLayout& imageLayout);
     }
 
     /// <summary>
@@ -203,7 +209,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes a graphics adapter instance with a physical device.
         /// </summary>
-        /// <param name="adapter">The phyiscal device to initialize the instance with.</param>
+        /// <param name="adapter">The physical device to initialize the instance with.</param>
         explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
         VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
         VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;

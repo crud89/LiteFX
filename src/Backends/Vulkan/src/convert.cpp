@@ -953,42 +953,120 @@ VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendOperation(c
 	}
 }
 
-VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(const ResourceState& resourceState)
+VkPipelineStageFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipelineStage(const PipelineStage& pipelineStage)
 {
-	switch (resourceState) {
-	case ResourceState::Common: return VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED;
-	case ResourceState::ReadOnly: return VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	case ResourceState::ReadWrite: return VkImageLayout::VK_IMAGE_LAYOUT_GENERAL;
-	case ResourceState::CopySource: return VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	case ResourceState::CopyDestination: return VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	case ResourceState::RenderTarget: return VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	case ResourceState::DepthRead: return VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-	case ResourceState::DepthWrite: return VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	case ResourceState::Present:
-	case ResourceState::ResolveDestination: return VkImageLayout::VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	case ResourceState::ResolveSource: return VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	default: throw InvalidArgumentException("Unsupported resource state.");
-	}
+	if (pipelineStage == PipelineStage::None)
+		return VK_PIPELINE_STAGE_NONE;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::All))
+		return VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Draw))
+		return VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Compute))
+		return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+	VkPipelineStageFlags sync{ };
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
+		sync |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex))
+		sync |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl))
+		sync |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationEvaluation))
+		sync |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Geometry))
+		sync |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Fragment))
+		sync |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::DepthStencil))
+		sync |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Indirect))
+		sync |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::RenderTarget))
+		sync |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Transfer) ||
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
+		sync |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+	return sync;
 }
 
-VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getAccessFlags(const ResourceState& resourceState)
+VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAccess(const ResourceAccess& resourceAccess)
 {
-	switch (resourceState) {
-	case ResourceState::Common: return 0; //return VkAccessFlagBits::VK_ACCESS_NONE_KHR;
-	case ResourceState::UniformBuffer: return VkAccessFlagBits::VK_ACCESS_UNIFORM_READ_BIT;
-	case ResourceState::VertexBuffer: return VkAccessFlagBits::VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-	case ResourceState::IndexBuffer: return VkAccessFlagBits::VK_ACCESS_INDEX_READ_BIT;
-	case ResourceState::GenericRead: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT | VkAccessFlagBits::VK_ACCESS_INDEX_READ_BIT | VkAccessFlagBits::VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VkAccessFlagBits::VK_ACCESS_UNIFORM_READ_BIT | VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT | VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
-	case ResourceState::ReadOnly: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT;
-	case ResourceState::ReadWrite: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT | VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT;
-	case ResourceState::CopySource: return VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT;
-	case ResourceState::CopyDestination: return VkAccessFlagBits::VK_ACCESS_TRANSFER_WRITE_BIT;
-	case ResourceState::RenderTarget: return VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	case ResourceState::DepthRead: return VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-	case ResourceState::DepthWrite: return VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	case ResourceState::Present:
-	case ResourceState::ResolveSource: return VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
-	case ResourceState::ResolveDestination: return VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT | VkAccessFlagBits::VK_ACCESS_MEMORY_WRITE_BIT;
-	default: throw InvalidArgumentException("Unsupported resource state.");
+	if (resourceAccess == ResourceAccess::None)
+		return VK_ACCESS_NONE;
+
+	VkAccessFlags access = { };
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Common))
+		access |= (VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT);
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::VertexBuffer))
+		access |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::IndexBuffer))
+		access |= VK_ACCESS_INDEX_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::UniformBuffer))
+		access |= VK_ACCESS_UNIFORM_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::RenderTarget))
+		access |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilRead))
+		access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilWrite))
+		access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ShaderRead))
+		access |= VK_ACCESS_SHADER_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ShaderReadWrite))
+		access |= (VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT);
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Indirect))
+		access |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::TransferRead))
+		access |= VK_ACCESS_TRANSFER_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::TransferWrite))
+		access |= VK_ACCESS_TRANSFER_WRITE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveRead))
+		access |= VK_ACCESS_MEMORY_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
+		access |= VK_ACCESS_MEMORY_WRITE_BIT;
+
+	return access;
+}
+
+VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(const ImageLayout& imageLayout)
+{
+	switch (imageLayout) {
+	case ImageLayout::Common: return VK_IMAGE_LAYOUT_GENERAL;
+	case ImageLayout::ShaderResource: return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	case ImageLayout::ReadWrite: return VK_IMAGE_LAYOUT_GENERAL;
+	case ImageLayout::CopySource: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	case ImageLayout::CopyDestination: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	case ImageLayout::RenderTarget: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	case ImageLayout::DepthRead: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	case ImageLayout::DepthWrite: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	case ImageLayout::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	case ImageLayout::ResolveSource: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	case ImageLayout::ResolveDestination: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	case ImageLayout::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
+	default: throw InvalidArgumentException("Unsupported image layout.");
 	}
 }

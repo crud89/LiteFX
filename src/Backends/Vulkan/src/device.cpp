@@ -213,8 +213,14 @@ public:
 			.samplerAnisotropy = true
 		};
 
-		VkPhysicalDeviceVulkan12Features deviceFeatures12 = { 
+		VkPhysicalDeviceVulkan13Features deviceFeatures13 = {
+			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+			.synchronization2 = true
+		};
+
+		VkPhysicalDeviceVulkan12Features deviceFeatures12 = {
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+			.pNext = &deviceFeatures13,
 			.descriptorIndexing = true,
 			.shaderInputAttachmentArrayDynamicIndexing = true,
 			.shaderUniformTexelBufferArrayDynamicIndexing = true,
@@ -425,6 +431,11 @@ VulkanShaderProgramBuilder VulkanDevice::buildShaderProgram() const
 {
 	return VulkanShaderProgramBuilder(*this);
 }
+
+VulkanBarrierBuilder VulkanDevice::buildBarrier() const
+{
+	return VulkanBarrierBuilder();
+}
 #endif // defined(BUILD_DEFINE_BUILDERS)
 
 DeviceState& VulkanDevice::state() const noexcept
@@ -472,9 +483,9 @@ const VulkanQueue& VulkanDevice::computeQueue() const noexcept
 	return *m_impl->m_computeQueue;
 }
 
-UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier() const noexcept
+UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept
 {
-	return makeUnique<VulkanBarrier>();
+	return makeUnique<VulkanBarrier>(syncBefore, syncAfter);
 }
 
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept

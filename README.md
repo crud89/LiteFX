@@ -98,8 +98,8 @@ There are multiple ways of creating a build from scratch. In general, all *CMake
 Building from command line is the most straightforward way and is typically sufficient, if you only want to consume a fresh build.
 
 ```sh
-cmake src/ --preset windows-x64
-cmake --build out/build/windows-x64/ --target install --config Release
+cmake src/ --preset windows-x64-release
+cmake --build out/build/windows-x64-release/ --target install
 ```
 
 ##### Using Visual Studio
@@ -121,7 +121,7 @@ You can customize the engine build, according to your specific needs. The most s
   "configurePresets": [
     {
       "name": "win-x64-custom-preset",
-      "inherits": "windows-x64",
+      "inherits": "windows-x64-release",
       "cacheVariables": {
       }
     }
@@ -154,7 +154,7 @@ For example, if you only want to build the Vulkan backend and samples and don't 
   "configurePresets": [
     {
       "name": "win-x64-vulkan-only",
-      "inherits": "windows-x64",
+      "inherits": "windows-x64-release",
       "cacheVariables": {
         "BUILD_DX12_BACKEND": "OFF",
         "BUILD_WITH_DIRECTX_MATH": "OFF"
@@ -186,10 +186,12 @@ All dependencies are automatically installed using *vcpkg*, when performing a ma
 
 Depending on which rendering backends are build, the following dependencies are required:
 
-- [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend
+- [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend.
 - [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/): Required by the Vulkan backend. Handles memory allocations.
 - [SPIR-V Reflect](https://github.com/KhronosGroup/SPIRV-Reflect): Required by the Vulkan backend. Used to implement shader reflection.
 - [DirectX Headers](https://github.com/microsoft/DirectX-Headers): Required by the DirectX 12 backend.
+- [DirectX Agility SDK](https://devblogs.microsoft.com/directx/directx12agility/): Required by the DirectX 12 backend.
+- [WinPixEventRuntime](https://devblogs.microsoft.com/pix/winpixeventruntime/): Required by the DirectX 12 backend.
 - [D3D12 Memory Allocator](https://gpuopen.com/d3d12-memory-allocator/): Required by the DirectX 12 backend. Handles memory allocations.
 
 The math module can optionally be built with converters for the following math and linear algebra libraries:

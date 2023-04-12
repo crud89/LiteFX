@@ -16,7 +16,7 @@ if (EXISTS "${_dxagilitysdk_root_lib}")
   # a system directory and it does not take into account, that they are different).
   if (NOT TARGET dxagilitysdkbinaries)
     add_custom_target(dxagilitysdkbinaries
-        COMMENT "Copy DirectX Agility SDK binaries to '${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/d3d12/'..."
+        COMMENT "Copy DirectX Agility SDK binaries..."
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/d3d12/"
     )
     add_custom_command(TARGET dxagilitysdkbinaries POST_BUILD

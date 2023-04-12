@@ -1041,345 +1041,380 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Specifies the state of a resource.
+    /// Defines pipeline stages as points where synchronization may occur.
     /// </summary>
-    /// <seealso cref="IDeviceMemory" />
-    enum class LITEFX_RENDERING_API ResourceState {
+    /// <seealso cref="IBarrier" />
+    /// <seealso cref="ResourceAccess" />
+    /// <seealso cref="ImageLayout" />
+    enum class LITEFX_RENDERING_API PipelineStage {
         /// <summary>
-        /// The state of the resource is undefined or does not matter.
+        /// Represents no-blocking behavior.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
+        /// Translates to `VK_PIPELINE_STAGE_NONE` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_NONE` in DirectX 12 ❎.
         /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_COMMON`</term>
-        ///         <term>`VK_ACCESS_NONE_KHR`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_UNDEFINED`</term>
-        ///     </item>
-        /// </list>
+        /// This stage flag is special, as it cannot be combined with other stage flags.
         /// </remarks>
-        Common = 0x00000001,
+        None = 0x00000000,
 
         /// <summary>
-        /// The resource is used as a read-only vertex buffer.
+        /// Waits for all previous commands to be finished, or blocks all following commands until the barrier is executed.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
+        /// Translates to `VK_PIPELINE_STAGE_ALL_COMMANDS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_ALL` in DirectX 12 ❎.
         /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER`</term>
-        ///         <term>`VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT`</term>
-        ///         <term>–</term>
-        ///     </item>
-        /// </list>
+        /// This stage flag is special, as it cannot be combined with other stage flags.
         /// </remarks>
-        VertexBuffer = 0x00000002,
+        All = 0x00000001,
 
         /// <summary>
-        /// The resource is used as a read-only index buffer.
+        /// Waits for previous commands to finish all graphics stages, or blocks following commands until the graphics stages has finished.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
+        /// Translates to `VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DRAW` in DirectX 12 ❎.
         /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_INDEX_BUFFER`</term>
-        ///         <term>`VK_ACCESS_INDEX_READ_BIT`</term>
-        ///         <term>–</term>
-        ///     </item>
-        /// </list>
+        /// This stage flag is special, as it cannot be combined with other stage flags.
         /// </remarks>
-        IndexBuffer = 0x0000003,
+        Draw = 0x00000002,
 
         /// <summary>
-        /// The resource is used as a read-only uniform or constant buffer.
+        /// Waits for previous commands to finish the input assembly stage, or blocks following commands until the input assembly stage has finished.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
+        /// Translates to `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_INDEX_INPUT` in DirectX 12 ❎.
+        /// </remarks>
+        InputAssembly = 0x00000004,
+
+        /// <summary>
+        /// Waits for previous commands to finish the vertex shader stage, or blocks following commands until the vertex shader stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_VERTEX_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        /// </remarks>
+        Vertex = 0x00000006,
+
+        /// <summary>
+        /// Waits for previous commands to finish the tessellation control/hull shader stage, or blocks following commands until the tessellation control/hull shader stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        /// </remarks>
+        TessellationControl = 0x00000008,
+
+        /// <summary>
+        /// Waits for previous commands to finish the tessellation evaluation/domain shader stage, or blocks following commands until the tessellation evaluation/domain shader stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        /// </remarks>
+        TessellationEvaluation = 0x00000010,
+
+        /// <summary>
+        /// Waits for previous commands to finish the geometry shader stage, or blocks following commands until the geometry shader stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_VERTEX_SHADING` in DirectX 12 ❎.
+        /// </remarks>
+        Geometry = 0x00000020,
+
+        /// <summary>
+        /// Waits for previous commands to finish the fragment/pixel shader stage, or blocks following commands until the fragment/pixel shader stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_PIXEL_SHADING` in DirectX 12 ❎.
+        /// </remarks>
+        Fragment = 0x00000040,
+
+        /// <summary>
+        /// Waits for previous commands to finish the depth/stencil stage, or blocks following commands until the depth/stencil stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_DEPTH_STENCIL` in DirectX 12 ❎.
+        /// </remarks>
+        DepthStencil = 0x00000080,
+
+        /// <summary>
+        /// Waits for previous commands to finish the draw indirect stage, or blocks following commands until the draw indirect stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_EXECUTE_INDIRECT` in DirectX 12 ❎.
+        /// </remarks>
+        Indirect = 0x00000100,
+
+        /// <summary>
+        /// Waits for previous commands to finish the output merger stage, or blocks following commands until the output merger stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RENDER_TARGET` in DirectX 12 ❎.
+        /// </remarks>
+        RenderTarget = 0x00000200,
+
+        /// <summary>
+        /// Waits for previous commands to finish the compute shader stage, or blocks following commands until the compute shader stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COMPUTE_SHADING` in DirectX 12 ❎.
         /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER`</term>
-        ///         <term>`VK_ACCESS_UNIFORM_READ_BIT`</term>
-        ///         <term>–</term>
-        ///     </item>
-        /// </list>
+        /// This stage flag is special, as it cannot be combined with other stage flags.
+        /// </remarks>
+        Compute = 0x00000400,
+
+        /// <summary>
+        /// Waits for previous commands to finish the transfer stage, or blocks following commands until the transfer stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_TRANSFER_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY` in DirectX 12 ❎.
+        /// </remarks>
+        Transfer = 0x00000800,
+
+        /// <summary>
+        /// Waits for previous commands to finish the multi-sampling resolution stage, or blocks following commands until the multi-sampling resolution stage has finished.
+        /// </summary>
+        /// <remarks>
+        /// Translates to `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RESOLVE` in DirectX 12 ❎.
+        /// </remarks>
+        Resolve = 0x00001000
+    };
+
+    /// <summary>
+    /// Defines how a <see cref="IBuffer" /> or <see cref="IImage" /> resource is accessed.
+    /// </summary>
+    /// <seealso cref="IBarrier" />
+    /// <seealso cref="IImage" />
+    /// <seealso cref="IBuffer" />
+    /// <seealso cref="PipelineStage" />
+    /// <seealso cref="ImageLayout" />
+    enum class LITEFX_RENDERING_API ResourceAccess {
+        /// <summary>
+        /// Indicates that a resource is not accessed.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_NO_ACCESS` in the DirectX 12 ❎ backend and `VK_ACCESS_NONE` in the Vulkan 🌋 backend.
+        /// 
+        /// This access flag is special, as it cannot be combined with other access flags.
+        /// </remarks>
+        None = 0x7FFFFFFF,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as a vertex buffer.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_VERTEX_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        VertexBuffer = 0x00000001,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as an index buffer.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_INDEX_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_INDEX_READ_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        IndexBuffer = 0x00000002,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as an uniform/constant buffer.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_CONSTANT_BUFFER` in the DirectX 12 ❎ backend and `VK_ACCESS_UNIFORM_READ_BIT` in the Vulkan 🌋 backend.
         /// </remarks>
         UniformBuffer = 0x00000004,
 
         /// <summary>
-        /// The resource is used as a read-only storage or texel buffer.
+        /// Indicates that a resource is accessed as a render target.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE`</term>
-        ///         <term>`VK_ACCESS_SHADER_READ_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`</term>
-        ///     </item>
-        /// </list>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋 backend.
         /// </remarks>
-        ReadOnly = 0x00000005,
+        RenderTarget = 0x00000008,
 
         /// <summary>
-        /// The resource is used as a read-only buffer that can be bound to all read-only descriptor types.
+        /// Indicates that a resource is accessed as to read depth/stencil values.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_GENERIC_READ`</term>
-        ///         <term>`VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`</term>
-        ///     </item>
-        /// </list>
-        /// 
-        /// Note that this resource type is required for resources that are created with <see cref="BufferUsage::Dynamic" />.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ` in the DirectX 12 ❎ backend and `VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT` in the Vulkan 🌋 backend.
         /// </remarks>
-        GenericRead = 0x00000006,
+        DepthStencilRead = 0x00000010,
 
         /// <summary>
-        /// The resource is used as a read-write storage or texel buffer.
+        /// Indicates that a resource is accessed as to write depth/stencil values.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_UNORDERED_ACCESS`</term>
-        ///         <term>`VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_GENERAL`</term>
-        ///     </item>
-        /// </list>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE` in the DirectX 12 ❎ backend and `VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT` in the Vulkan 🌋 backend.
         /// </remarks>
-        ReadWrite = 0x00000007,
+        DepthStencilWrite = 0x00000020,
 
         /// <summary>
-        /// The resource is used as a copy source.
+        /// Indicates that a resource is accessed as a read-only shader resource.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_SHADER_RESOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_SHADER_READ_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        ShaderRead = 0x00000040,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as a read-write shader resource.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_UNORDERED_ACCESS` in the DirectX 12 ❎ backend and `VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        ShaderReadWrite = 0x00000080,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as to read indirect draw commands.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT` in the DirectX 12 ❎ backend and `VK_ACCESS_INDIRECT_COMMAND_READ_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        Indirect = 0x00000100,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as to read during a transfer operation.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COPY_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_TRANSFER_READ_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        TransferRead = 0x00000200,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as to write during a transfer operation.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COPY_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_TRANSFER_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        TransferWrite = 0x00000400,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as to read during a resolve operation.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        ResolveRead = 0x00000800,
+
+        /// <summary>
+        /// Indicates that a resource is accessed as to write during a resolve operation.
+        /// </summary>
+        /// <remarks>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        ResolveWrite = 0x00001000,
+        
+        /// <summary>
+        /// Indicates that a resource can be accessed in any way, compatible to the layout.
+        /// </summary>
+        /// <remarks>
+        /// Note that you have to ensure that you do not access the resource in an incompatible way manually.
         /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_COPY_SOURCE`</term>
-        ///         <term>`VK_ACCESS_TRANSFER_READ_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`</term>
-        ///     </item>
-        /// </list>
+        /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
+        /// </remarks>
+        Common = 0x00002000
+    };
+
+    /// <summary>
+    /// Specifies the layout of an <see cref="IImage" /> resource.
+    /// </summary>
+    /// <seealso cref="IImage" />
+    /// <seealso cref="IBarrier" />
+    /// <seealso cref="ResourceAccess" />
+    /// <seealso cref="PipelineStage" />
+    enum class LITEFX_RENDERING_API ImageLayout {
+        /// <summary>
+        /// A common image layout that allows for all types of access (shader resource, transfer destination, transfer source).
+        /// </summary>
+        /// <remarks>
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_COMMON` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
+        /// </remarks>
+        Common = 0x00000001,
+
+        /// <summary>
+        /// Indicates that the image is used as a read-only storage or texel buffer.
+        /// </summary>
+        /// <remarks>
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_SHADER_RESOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` in the Vulkan 🌋 backend.
+        /// </remarks>
+        ShaderResource = 0x00000002,
+
+        /// <summary>
+        /// Indicates that the image is used as a read-write storage or texel buffer.
+        /// </summary>
+        /// <remarks>
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_GENERAL` in the Vulkan 🌋 backend.
+        /// </remarks>
+        ReadWrite = 0x00000003,
+
+        /// <summary>
+        /// Allows the image to be used as a source for transfer operations.
+        /// </summary>
+        /// <remarks>
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_COPY_SOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` in the Vulkan 🌋 backend.
         /// </remarks>
         CopySource = 0x00000010,
 
         /// <summary>
-        /// The resource is used as a copy destination.
+        /// Allows the image to be used as a destination for transfer operations.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_COPY_DEST`</term>
-        ///         <term>`VK_ACCESS_TRANSFER_WRITE_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`</term>
-        ///     </item>
-        /// </list>
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_COPY_DEST` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` in the Vulkan 🌋 backend.
         /// </remarks>
         CopyDestination = 0x00000011,
 
         /// <summary>
-        /// The resource is used as a render target.
+        /// Indicates that the image is used as a render target.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_RENDER_TARGET`</term>
-        ///         <term>`VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`</term>
-        ///     </item>
-        /// </list>
-        /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RENDER_TARGET` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
         /// </remarks>
         RenderTarget = 0x00000020,
 
         /// <summary>
-        /// The resource is used as a read-only depth/stencil target.
+        /// Indicates that image is used as a read-only depth/stencil target.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_DEPTH_READ`</term>
-        ///         <term>`VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL`</term>
-        ///     </item>
-        /// </list>
-        /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL` in the Vulkan 🌋 backend.
         /// </remarks>
         DepthRead = 0x00000021,
 
         /// <summary>
-        /// The resource is used as a write-only depth/stencil target.
+        /// Indicates that the image is used as a write-only depth/stencil target.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_DEPTH_WRITE`</term>
-        ///         <term>`VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL`</term>
-        ///     </item>
-        /// </list>
-        /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
         /// </remarks>
         DepthWrite = 0x00000022,
 
         /// <summary>
-        /// The resource is presented on a swap chain.
+        /// Indicates that the image is presented on a swap chain.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_PRESENT`</term>
-        ///         <term>`VK_ACCESS_MEMORY_READ_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`</term>
-        ///     </item>
-        /// </list>
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_PRESENT` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` in the Vulkan 🌋 backend.
         /// 
         /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
         /// </remarks>
         Present = 0x00000023,
 
         /// <summary>
-        /// The resource is a multi-sampled image that will be resolved into a present target.
+        /// Indicates that the image is resolved from a multi-sampled image.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_RESOLVE_SOURCE`</term>
-        ///         <term>`VK_ACCESS_MEMORY_READ_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`</term>
-        ///     </item>
-        /// </list>
-        /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
         /// </remarks>
         ResolveSource = 0x00000024,
 
         /// <summary>
-        /// The resource is resolved from a multi-sampled image.
+        /// Indicates that the image is a render-target that a multi-sampled image is resolved into.
         /// </summary>
         /// <remarks>
-        /// The following table contains the API-specific flags for each supported back-end.
-        /// 
-        /// <list type="table">
-        ///     <listheader>
-        ///         <term>DirectX 12 ❎</term>
-        ///         <term>Vulkan 🌋 (`VkAccessFlags`)</term>
-        ///         <term>Vulkan 🌋 (`VkImageLayout`) </term>
-        ///     </listheader>
-        ///     <item>
-        ///         <term>`D3D12_RESOURCE_STATE_RESOLVE_DEST`</term>
-        ///         <term>`VK_ACCESS_MEMORY_WRITE_BIT`</term>
-        ///         <term>`VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`</term>
-        ///     </item>
-        /// </list>
-        /// 
-        /// Typically you do not want to manually transition a resource into this state. Render target transitions are automatically managed by <see cref="RenderPass" />es.
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_RESOLVE_DEST` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` in the Vulkan 🌋 backend.
         /// </remarks>
         ResolveDestination = 0x00000025,
 
         /// <summary>
-        /// The state of the resource is not known by the engine.
+        /// The layout of the image is not known by the engine.
         /// </summary>
         /// <remarks>
-        /// A resource with an unknown state is not invalid. However, it is not valid to transition a resource out of or into this state. If a resource ends up
-        /// in this state, the state of the <see cref="IDeviceMemory" /> should be manually set.
+        /// Indicates that an image's layout is not known, which typically happens after creating image resources. It is not valid to transition any resource into this state.
+        /// 
+        /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNDEFINED` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_UNDEFINED` in the Vulkan 🌋 backend.
         /// </remarks>
         Undefined = 0x7FFFFFFF
     };
@@ -1390,6 +1425,8 @@ namespace LiteFX::Rendering {
 
     LITEFX_DEFINE_FLAGS(QueueType);
     LITEFX_DEFINE_FLAGS(ShaderStage);
+    LITEFX_DEFINE_FLAGS(PipelineStage);
+    LITEFX_DEFINE_FLAGS(ResourceAccess);
     LITEFX_DEFINE_FLAGS(BufferFormat);
     LITEFX_DEFINE_FLAGS(WriteMask);
 
@@ -2833,30 +2870,6 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
         virtual const bool& writable() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the current state of the resource.
-        /// </summary>
-        /// <param name="subresource">The index of the sub-resource for which the state is requested.</param>
-        /// <returns>The current state of the resource.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the specified sub-resource is not an element of the resource.</exception>
-        virtual const ResourceState& state(const UInt32& subresource = 0) const = 0;
-
-        /// <summary>
-        /// Returns a reference of the current state of the resource.
-        /// </summary>
-        /// <remarks>
-        /// This overload can be used to change the internal resource state. It exists, to support external resource transitions in certain scenarios, where 
-        /// automatic resource state tracking is not supported. For example, there might be implicit state transitions in some scenarios. Usually those scenarios
-        /// do not require you to transition the resource into another state, however if you have to, the internal state of the resource does not match the 
-        /// actual state. In order for the barrier to be well-formed, you have to set the proper state first.
-        /// 
-        /// In most cases, however, use a <see cref="Barrier" /> to transition between resource states.
-        /// </remarks>
-        /// <param name="subresource">The index of the sub-resource for which the state is requested.</param>
-        /// <returns>A reference of the current state of the resource.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the specified sub-resource is not an element of the resource.</exception>
-        virtual ResourceState& state(const UInt32& subresource = 0) = 0;
     };
 
     /// <summary>
@@ -2948,12 +2961,43 @@ namespace LiteFX::Rendering {
         /// <returns>The number of samples of the texture.</returns>
         virtual const MultiSamplingLevel& samples() const noexcept = 0;
 
+        /// <summary>
+        /// Returns the current image layout.
+        /// </summary>
+        /// <param name="subresource">The sub-resource ID for which to return the layout.</param>
+        /// <returns>The current image layout.</returns>
+        /// <seealso cref="subresourceId" />
+        virtual const ImageLayout& layout(const UInt32& subresource = 0) const = 0;
+
         // TODO: getSampler() for combined samplers?
 
     public:
-        inline virtual UInt32 subresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane) const noexcept
-        {
+        /// <summary>
+        /// Returns the sub-resource ID for a combination of mip-map <paramref name="level" />, array <paramref name="layer" /> and <paramref name="plane" />.
+        /// </summary>
+        /// <param name="level">The mip map level of the sub-resource.</param>
+        /// <param name="layer">The array layer of the sub-resource.</param>
+        /// <param name="plane">The plane of the sub-resource.</param>
+        /// <returns>The sub-resource ID for the sub-resource.</returns>
+        /// <seealso cref="resolveSubresource" />
+        inline virtual UInt32 subresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane) const noexcept {
             return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
+        }
+
+        /// <summary>
+        /// Returns the <paramref name="plane" />, <paramref name="layer" /> and <paramref name="level" /> for the provided <paramref name="subresource" />.
+        /// </summary>
+        /// <param name="subresource">The sub-resource ID.</param>
+        /// <param name="plane">The plane index of the sub-resource.</param>
+        /// <param name="layer">The array layer of the sub-resource.</param>
+        /// <param name="level">The mip-map level of the sub-resource.</param>
+        /// <seealso cref="subresourceId" />
+        inline virtual void resolveSubresource(const UInt32& subresource, UInt32& plane, UInt32& layer, UInt32& level) const noexcept {
+            const auto levels = this->levels();
+            const UInt32 resourcesPerPlane = levels * this->layers();
+            plane = subresource / resourcesPerPlane;
+            layer = (subresource % resourcesPerPlane) / levels;
+            level = subresource % levels;
         }
     };
 
@@ -3030,131 +3074,179 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// The interface for a memory barrier.
+    /// The interface for a barrier.
     /// </summary>
+    /// <remarks>
+    /// Barriers are used to synchronize the GPU with itself in a command buffer. They are basically used to control the GPU command flow and ensure that resources are in 
+    /// he right state before using them. Generally speaking, there are two related types of barriers:
+    /// 
+    /// - **Execution barriers** are enforcing command order by telling the GPU to wait for certain pipeline stages or which stages to block until an operation has finished.
+    /// - **Memory barriers** are used to transition resources between states and are a subset of execution barriers. Each memory barrier is always also an execution barrier,
+    ///   but the opposite is not true.
+    /// 
+    /// An execution barrier is simply a barrier without any *resource transitions* happening. The only properties that are set for an execution barrier are two pipeline 
+    /// stages defined by <see cref="IBarrier::syncBefore" /> and <see cref="IBarrier::syncAfter" />. The first value defines the pipeline stages, all *previous* commands in 
+    /// a command buffer need to finish before execution is allowed to continue. Similarly, the second value defines the stage, all *subsequent* commands need to wait for, 
+    /// before they are allowed to continue execution. For example, setting `syncBefore` to `Compute` and `syncAfter` to `Vertex` logically translates to: *All subsequent 
+    /// commands that want to pass the vertex stage need to wait there before all previous commands passed the compute stage*. To synchronize reads in previous commands with
+    /// writes in subsequent commands, this is sufficient. However, in order to do the opposite, this is not enough. Instead resource memory needs to be *transitioned* by
+    /// specifying the desired <see cref="ResourceAccess" />, alongside the <see cref="ImageLayout" /> for images (note that buffers always share a *common* layout that can
+    /// not be changed). This is done using memory barriers. There are two types of memory barriers used for state transitions:
+    /// 
+    /// - **Global barriers** apply to all resource memory.
+    /// - **Image and buffer barriers** apply to individual images or buffers or a sub-resource of those.
+    /// 
+    /// Any `IBarrier` can contain an arbitrary mix of one or more global and/or image/buffer barriers. A global barrier is inserted by calling <see cref="IBarrier::wait" />.
+    /// This method accepts two parameters: a `before` and an `after` access mode. Those parameters specify the <see cref="ResourceAccess" /> for the previous and subsequent 
+    /// commands. This makes it possible to describe scenarios like *wait for certain writes to finish before continuing with certain reads*. Note that a resource can be
+    /// accessed in different ways at the same time (for example as copy source and shader resource) and specifying an access state will only wait for the specified subset. 
+    /// As a rule of thumb, you should always specify as little access as possible in order to leave most room for optimization.
+    /// 
+    /// Image and buffer barriers additionally describe which (sub-)resources to apply the barrier to. For buffers this only applies to individual elements in a buffer array.
+    /// However, due to [driver restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), buffers are always transitioned as a
+    /// whole. This is different from image resources, which have addressable sub-resources (mip levels, planes and array elements). For images, it is possible to transition 
+    /// individual sub-resources into different <see cref="ImageLayout" />s to indicate when and how a texture is used. An image in a certain layout poses restrictions on how
+    /// it can be accessed. For example, a `ReadWrite` image written by a compute shader must be transitioned into a proper layout to be read by a graphics shader. To 
+    /// facilitate such a transition, a barrier is required. Image barriers can be inserted by calling one of the overloads of <see cref="IBarrier::transition" /> that accepts
+    /// an <see cref="IImage" /> parameter.
+    /// </remarks>
+    /// <seealso cref="PipelineStage" />
+    /// <seealso cref="IBuffer" />
+    /// <seealso cref="ResourceAccess" />
+    /// <seealso cref="IImage" />
+    /// <seealso cref="ImageLayout" />
+    /// <seealso cref="ICommandBuffer" />
     class LITEFX_RENDERING_API IBarrier {
     public:
         virtual ~IBarrier() noexcept = default;
 
     public:
         /// <summary>
-        /// Inserts a transition for all sub-resources of <paramref name="buffer"/> into <paramref name="targetState" />.
+        /// Returns the stage that all previous commands need to reach before continuing execution.
         /// </summary>
-        /// <param name="buffer">The resource to transition.</param>
-        /// <param name="targetState">The target state to transition the resource to.</param>
-        void transition(IBuffer& buffer, const ResourceState& targetState) {
-            this->doTransition(buffer, targetState);
+        /// <returns>The stage that all previous commands need to reach before continuing execution.</returns>
+        virtual const PipelineStage& syncBefore() const noexcept = 0;
+        
+        /// <summary>
+        /// Returns the stage all subsequent commands need to wait for before continuing execution.
+        /// </summary>
+        /// <returns>The stage all subsequent commands need to wait for before continuing execution.</returns>
+        virtual const PipelineStage& syncAfter() const noexcept = 0;
+
+        /// <summary>
+        /// Inserts a global barrier that waits for previous commands to finish accesses described by <paramref name="accessBefore" /> before subsequent commands can continue
+        /// with accesses described by <paramref name="accessAfter" />.
+        /// </summary>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        virtual void wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept = 0;
+
+        /// <summary>
+        /// Inserts a buffer barrier that blocks access to <paramref name="buffer"/> of types contained in <paramref name="accessAfter" /> for subsequent commands until 
+        /// previous commands have finished accesses contained in <paramref name="accessBefore" />.
+        /// </summary>
+        /// <param name="buffer">The buffer resource to transition.</param>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        void transition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) {
+            this->doTransition(buffer, accessBefore, accessAfter);
         };
 
         /// <summary>
-        /// Inserts a transition for the sub-resource <paramref name="element" /> of <paramref name="buffer" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="buffer">The resource to transition.</param>
-        /// <param name="element">The element of the resource to transition.</param>
-        /// <param name="targetState">The target state to transition the sub-resource to.</param>
-        void transition(IBuffer& buffer, const UInt32& element, const ResourceState& targetState) {
-            this->doTransition(buffer, element, targetState);
-        }
-
-        /// <summary>
-        /// Inserts a transition for all sub-resources of <paramref name="buffer"/> from <paramref name="sourceState" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="buffer">The resource to transition.</param>
-        /// <param name="sourceState">The source state to transition the resource from.</param>
-        /// <param name="targetState">The target state to transition the resource to.</param>
-        void transition(IBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) {
-            this->doTransition(buffer, sourceState, targetState);
-        }
-
-        /// <summary>
-        /// Inserts a transition for the sub-resource <paramref name="element" /> of <paramref name="buffer" /> from <paramref name="sourceState" /> into 
-        /// <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="buffer">The resource to transition.</param>
-        /// <param name="sourceState">The source state to transition the sub-resource from.</param>
-        /// <param name="element">The element of the resource to transition.</param>
-        /// <param name="targetState">The target state to transition the sub-resource to.</param>
-        void transition(IBuffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) {
-            this->doTransition(buffer, sourceState, element, targetState);
-        }
-
-        /// <summary>
-        /// Inserts a transition for all sub-resources of <paramref name="image"/> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="image">The resource to transition.</param>
-        /// <param name="targetState">The target state to transition the resource to.</param>
-        void transition(IImage& image, const ResourceState& targetState) {
-            this->doTransition(image, targetState);
-        }
-
-        /// <summary>
-        /// Inserts a transition for a sub-resource of <paramref name="image" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="image">The resource to transition.</param>
-        /// <param name="level">The mip-map level of the sub-resource.</param>
-        /// <param name="layer">The array layer of the sub-resource.</param>
-        /// <param name="plane">The plane of the sub-resource.</param>
-        /// <param name="targetState">The target state to transition the sub-resource to.</param>
-        void transition(IImage& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) {
-            this->doTransition(image, level, layer, plane, targetState);
-        }
-
-        /// <summary>
-        /// Inserts a transition for all sub-resources of <paramref name="image"/> from <paramref name="sourceState" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="image">The resource to transition.</param>
-        /// <param name="sourceState">The source state to transition the resource from.</param>
-        /// <param name="targetState">The target state to transition the resource to.</param>
-        void transition(IImage& image, const ResourceState& sourceState, const ResourceState& targetState) {
-            this->doTransition(image, sourceState, targetState);
-        }
-
-        /// <summary>
-        /// Inserts a transition for a sub-resource of <paramref name="image" /> from <paramref name="sourceState" /> into <paramref name="targetState" />.
-        /// </summary>
-        /// <param name="image">The resource to transition.</param>
-        /// <param name="sourceState">The source state to transition the sub-resource from.</param>
-        /// <param name="level">The mip-map level of the sub-resource.</param>
-        /// <param name="layer">The array layer of the sub-resource.</param>
-        /// <param name="plane">The plane of the sub-resource.</param>
-        /// <param name="targetState">The target state to transition the sub-resource to.</param>
-        void transition(IImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) {
-            this->doTransition(image, sourceState, level, layer, plane, targetState);
-        }
-
-        /// <summary>
-        /// Inserts a barrier that waits for all read/write accesses to <paramref name="buffer" /> to be finished before continuing.
+        /// Inserts a buffer barrier that blocks access to a <paramref name="buffer"/>s <paramref name="element" /> of types contained in <paramref name="accessAfter" /> for 
+        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" />.
         /// </summary>
         /// <remarks>
-        /// This translates to a UAV barrier in DirectX 12 and an execution + memory barrier with no layout transition in Vulkan.
+        /// Due to [driver restrictions](https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#buffer-barriers), this is overload is currently redundant, 
+        /// but might be available in the future. Currently, calling this method ignores the <paramref name="element" /> parameter and transitions the whole buffer.
         /// </remarks>
-        /// <typeparam name="buffer">The buffer to wait for.</typeparam>
-        void waitFor(const IBuffer& buffer) {
-            this->doWaitFor(buffer);
+        /// <param name="buffer">The buffer resource to transition.</param>
+        /// <param name="element">The element of the resource to transition.</param>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        void transition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) {
+            this->doTransition(buffer, element, accessBefore, accessAfter);
         }
 
         /// <summary>
-        /// Inserts a barrier that waits for all read/write accesses to <paramref name="image" /> to be finished before continuing.
+        /// Inserts an image barrier that blocks access to all sub-resources of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
+        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions all sub-resources into
+        /// <paramref name="layout" />.
+        /// </summary>
+        /// <param name="image">The image resource to transition.</param>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// <param name="layout">The image layout to transition into.</param>
+        void transition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) {
+            this->doTransition(image, accessBefore, accessAfter, layout);
+        }
+
+        /// <summary>
+        /// Inserts an image barrier that blocks access to a sub-resource range of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
+        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions the sub-resource into
+        /// <paramref name="layout" />.
+        /// </summary>
+        /// <param name="image">The image resource to transition.</param>
+        /// <param name="level">The base mip-map level of the sub-resource range.</param>
+        /// <param name="levels">The number of mip-map levels of the sub-resource range.</param>
+        /// <param name="layer">The base array layer of the sub-resource range.</param>
+        /// <param name="layers">The number of array layer of the sub-resource range.</param>
+        /// <param name="plane">The plane of the sub-resource.</param>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// <param name="layout">The image layout to transition into.</param>
+        void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) {
+            this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
+        }
+
+        /// <summary>
+        /// Inserts an image barrier that blocks access to all sub-resources of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
+        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions all sub-resources into
+        /// <paramref name="layout" />.
         /// </summary>
         /// <remarks>
-        /// This translates to a UAV barrier in DirectX 12 and an execution + memory barrier with no layout transition in Vulkan.
+        /// This overload let's you explicitly specify the <paramref name="fromLayout" />. This is required, if you use any external transition mechanism that causes the engine
+        /// to lose track of the image layout. If you are not running into issues with the other overloads, you probably do not want to call this method.
         /// </remarks>
-        /// <typeparam name="image">The image to wait for.</typeparam>
-        void waitFor(const IImage& image) {
-            this->doWaitFor(image);
+        /// <param name="image">The image resource to transition.</param>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// <param name="fromLayout">The image layout to transition from.</param>
+        /// <param name="toLayout">The image layout to transition into.</param>
+        void transition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) {
+            this->doTransition(image, accessBefore, accessAfter, fromLayout, toLayout);
+        }
+
+        /// <summary>
+        /// Inserts an image barrier that blocks access to a sub-resource range of <paramref name="image"/> of the types contained in <paramref name="accessAfter" /> for 
+        /// subsequent commands until previous commands have finished accesses contained in <paramref name="accessBefore" /> and transitions the sub-resource into
+        /// <paramref name="layout" />.
+        /// </summary>
+        /// <remarks>
+        /// This overload let's you explicitly specify the <paramref name="fromLayout" />. This is required, if you use any external transition mechanism that causes the engine
+        /// to lose track of the image layout. If you are not running into issues with the other overloads, you probably do not want to call this method.
+        /// </remarks>
+        /// <param name="image">The image resource to transition.</param>
+        /// <param name="level">The base mip-map level of the sub-resource range.</param>
+        /// <param name="levels">The number of mip-map levels of the sub-resource range.</param>
+        /// <param name="layer">The base array layer of the sub-resource range.</param>
+        /// <param name="layers">The number of array layer of the sub-resource range.</param>
+        /// <param name="plane">The plane of the sub-resource.</param>
+        /// <param name="accessBefore">The access types previous commands have to finish.</param>
+        /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
+        /// <param name="fromLayout">The image layout to transition from.</param>
+        /// <param name="toLayout">The image layout to transition into.</param>
+        void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) {
+            this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
 
     private:
-        virtual void doTransition(IBuffer& buffer, const ResourceState& targetState) = 0;
-        virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceState& targetState) = 0;
-        virtual void doTransition(IBuffer& buffer, const ResourceState& sourceState, const ResourceState& targetState) = 0;
-        virtual void doTransition(IBuffer& buffer, const ResourceState& sourceState, const UInt32& element, const ResourceState& targetState) = 0;
-        virtual void doTransition(IImage& image, const ResourceState& targetState) = 0;
-        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
-        virtual void doTransition(IImage& image, const ResourceState& sourceState, const ResourceState& targetState) = 0;
-        virtual void doTransition(IImage& image, const ResourceState& sourceState, const UInt32& level, const UInt32& layer, const UInt32& plane, const ResourceState& targetState) = 0;
-        virtual void doWaitFor(const IBuffer& buffer) = 0;
-        virtual void doWaitFor(const IImage& image) = 0;
+        virtual void doTransition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
+        virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
+        virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
+        virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
+        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
+        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
     };
 
     /// <summary>
@@ -3782,9 +3874,8 @@ namespace LiteFX::Rendering {
         /// order. You might have to manually synchronize barrier execution.
         /// </remarks>
         /// <param name="barrier">The barrier containing the transitions to perform.</param>
-        /// <param name="invert">If set to <c>true</c>, the barrier will perform a transition back to the original resource states.</param>
-        void barrier(const IBarrier& barrier, const bool& invert = false) const noexcept {
-            this->cmdBarrier(barrier, invert);
+        void barrier(const IBarrier& barrier) const noexcept {
+            this->cmdBarrier(barrier);
         }
 
         /// <summary>
@@ -3807,12 +3898,17 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
         /// </summary>
+        /// <remarks>
+        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
+        /// use a <see cref="IBarrier" /> before starting the transfer.
+        /// </remarks>
         /// <param name="source">The source buffer to transfer data from.</param>
         /// <param name="target">The target buffer to transfer data to.</param>
         /// <param name="sourceElement">The index of the first element in the source buffer to copy.</param>
         /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
+        /// <seealso cref="IBarrier" />
         void transfer(IBuffer& source, IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
@@ -3827,6 +3923,9 @@ namespace LiteFX::Rendering {
         /// 
         /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
         /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
+        /// 
+        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
+        /// use a <see cref="IBarrier" /> before starting the transfer.
         /// </remarks>
         /// <param name="source">The source buffer to transfer data from.</param>
         /// <param name="target">The target buffer to transfer data to.</param>
@@ -3864,8 +3963,8 @@ namespace LiteFX::Rendering {
         /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
         /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
         /// 
-        /// Note that before copying, each sub-resource of <paramref name="target" /> is implicitly transitioned into <see cref="ResourceState::CopyDestination" />. Transitioning back
-        /// into the source state, however, needs to be done manually after the transfer.
+        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
+        /// use a <see cref="IBarrier" /> before starting the transfer.
         /// </remarks>
         /// <param name="source">The source buffer to transfer data from.</param>
         /// <param name="target">The target image to transfer data to.</param>
@@ -3910,8 +4009,8 @@ namespace LiteFX::Rendering {
         /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
         /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
         /// 
-        /// Note that before copying, each sub-resource of <paramref name="target" /> is implicitly transitioned into <see cref="ResourceState::CopyDestination" />. Transitioning back
-        /// into the source state, however, needs to be done manually after the transfer.
+        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
+        /// use a <see cref="IBarrier" /> before starting the transfer.
         /// </remarks>
         /// <param name="source">The source buffer to transfer data from.</param>
         /// <param name="target">The target image to transfer data to.</param>
@@ -3927,8 +4026,8 @@ namespace LiteFX::Rendering {
         /// Performs an image-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
         /// </summary>
         /// <remarks>
-        /// Note that before copying, each sub-resource of <paramref name="target" /> is implicitly transitioned into <see cref="ResourceState::CopyDestination" />. Likewise, each sub-resource of 
-        /// <paramref name="source" /> is transitioned into <see cref="ResourceState::CopySource" />. Transitioning back into the source states, however, needs to be done manually after the transfer.
+        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
+        /// use a <see cref="IBarrier" /> before starting the transfer.
         /// </remarks>
         /// <param name="source">The source image to transfer data from.</param>
         /// <param name="target">The target image to transfer data to.</param>
@@ -3951,8 +4050,8 @@ namespace LiteFX::Rendering {
         /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
         /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
         /// 
-        /// Note that before copying, each sub-resource of <paramref name="target" /> is implicitly transitioned into <see cref="ResourceState::CopyDestination" />. Likewise, each sub-resource of 
-        /// <paramref name="source" /> is transitioned into <see cref="ResourceState::CopySource" />. Transitioning back into the source states, however, needs to be done manually after the transfer.
+        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
+        /// use a <see cref="IBarrier" /> before starting the transfer.
         /// </remarks>
         /// <param name="source">The source image to transfer data from.</param>
         /// <param name="target">The target image to transfer data to.</param>
@@ -3990,8 +4089,8 @@ namespace LiteFX::Rendering {
         /// contain the three mip-map levels of the second layer. The third layer would not receive any data in this example. If the image format has multiple planes, this procedure 
         /// would be repeated for each plane, however one buffer element only maps to one sub-resource.
         /// 
-        /// Note that before copying, each sub-resource of <paramref name="source" /> is implicitly transitioned into <see cref="ResourceState::CopySource" />. Transitioning back
-        /// into the source state, however, needs to be done manually after the transfer.
+        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
+        /// use a <see cref="IBarrier" /> before starting the transfer.
         /// </remarks>
         /// <param name="source">The source image to transfer data from.</param>
         /// <param name="target">The target buffer to transfer data to.</param>
@@ -4036,8 +4135,8 @@ namespace LiteFX::Rendering {
         /// Sharing ownership is helpful in situations where you only have a temporary buffer that you do not want to manually keep track of. For example, it makes sense to create a temporary staging
         /// buffer and delete it, if the remote resource has been initialized. In such a case, the command buffer can take ownership over the resource to release it after it has been executed.
         /// 
-        /// Note that before copying, each sub-resource of <paramref name="source" /> is implicitly transitioned into <see cref="ResourceState::CopySource" />. Transitioning back
-        /// into the source state, however, needs to be done manually after the transfer.
+        /// Note that you have to manually ensure that <paramref name="source" /> and <paramref name="target" /> are in the proper state for transfer operations. You might have to
+        /// use a <see cref="IBarrier" /> before starting the transfer.
         /// </remarks>
         /// <param name="source">The source image to transfer data from.</param>
         /// <param name="target">The target buffer to transfer data to.</param>
@@ -4221,7 +4320,7 @@ namespace LiteFX::Rendering {
         virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const = 0;
 
     private:
-        virtual void cmdBarrier(const IBarrier& barrier, const bool& invert) const noexcept = 0;
+        virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
         virtual void cmdTransfer(IBuffer& source, IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const = 0;
         virtual void cmdTransfer(IBuffer& source, IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
@@ -5457,9 +5556,11 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a memory barrier instance.
         /// </summary>
+		/// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
+		/// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the memory barrier.</returns>
-        UniquePtr<IBarrier> makeBarrier() const noexcept {
-            return this->getNewBarrier();
+        UniquePtr<IBarrier> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept {
+            return this->getNewBarrier(syncBefore, syncAfter);
         }
 
         /// <summary>
@@ -5491,7 +5592,7 @@ namespace LiteFX::Rendering {
         virtual void wait() const = 0;
 
     private:
-        virtual UniquePtr<IBarrier> getNewBarrier() const noexcept = 0;
+        virtual UniquePtr<IBarrier> getNewBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept = 0;
     };
 
     /// <summary>
