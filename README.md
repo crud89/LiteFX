@@ -1,6 +1,6 @@
 # LiteFX
 
-An extensible, descriptive, modern computer graphics and rendering engine, written in C++20.
+An extensible, descriptive, modern computer graphics and rendering engine, written in C++23.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU">
@@ -42,7 +42,7 @@ UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPa
         .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER));
 ```
 
-LiteFX is written in modern C++20, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
+LiteFX is written in modern C++23, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
 
 † Shaders can be built using *glslc* or *DXC*. *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
 
