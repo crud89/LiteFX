@@ -107,7 +107,7 @@ void DirectX12Backend::deactivate()
 
 Array<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const DirectX12GraphicsAdapter*>>();
+    return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); }) | std::ranges::to<Array<const DirectX12GraphicsAdapter*>>();
 }
 
 const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const

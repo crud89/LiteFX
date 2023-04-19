@@ -258,7 +258,7 @@ Array<const VulkanShaderModule*> VulkanShaderProgram::modules() const noexcept
 {
     return m_impl->m_modules |
         std::views::transform([](const UniquePtr<VulkanShaderModule>& shader) { return shader.get(); }) |
-        ranges::to<Array<const VulkanShaderModule*>>();
+        std::ranges::to<Array<const VulkanShaderModule*>>();
 }
 
 SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() const

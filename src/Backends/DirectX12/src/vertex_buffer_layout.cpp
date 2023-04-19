@@ -55,7 +55,7 @@ Array<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const no
 {
     return m_impl->m_attributes |
         std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); }) |
-        ranges::to<Array<const BufferAttribute*>>();
+        std::ranges::to<Array<const BufferAttribute*>>();
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)

@@ -129,7 +129,7 @@ public:
 
 		m_presentImages = imageChain |
 			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(m_device, image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Undefined); }) |
-			ranges::to<Array<UniquePtr<IVulkanImage>>>();
+			std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
 
 		// Store state variables.
 		m_renderArea = actualRenderArea;
@@ -262,7 +262,7 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | ranges::to<Array<Format>>();
+		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | std::ranges::to<Array<Format>>();
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
@@ -768,7 +768,7 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | ranges::to<Array<Format>>();
+		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | std::ranges::to<Array<Format>>();
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
@@ -900,7 +900,7 @@ const Size2d& VulkanSwapChain::renderArea() const noexcept
 
 Array<const IVulkanImage*> VulkanSwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IVulkanImage>& image) { return image.get(); }) | ranges::to<Array<const IVulkanImage*>>();
+	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IVulkanImage>& image) { return image.get(); }) | std::ranges::to<Array<const IVulkanImage*>>();
 }
 
 void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const

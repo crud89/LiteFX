@@ -171,7 +171,7 @@ Array<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descriptor
 {
     return m_impl->m_layouts |
         std::views::transform([](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout.get(); }) |
-        ranges::to<Array<const DirectX12DescriptorLayout*>>();
+        std::ranges::to<Array<const DirectX12DescriptorLayout*>>();
 }
 
 const DirectX12DescriptorLayout& DirectX12DescriptorSetLayout::descriptor(const UInt32& binding) const

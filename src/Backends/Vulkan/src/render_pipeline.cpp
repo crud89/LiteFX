@@ -102,7 +102,7 @@ public:
 
 					return descriptor;
 				}) |
-				ranges::to<Array<VkVertexInputAttributeDescription>>();
+				std::ranges::to<Array<VkVertexInputAttributeDescription>>();
 
 			vertexInputAttributes.insert(std::end(vertexInputAttributes), std::begin(currentAttributes), std::end(currentAttributes));
 			vertexInputBindings.push_back(binding);
@@ -194,7 +194,7 @@ public:
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
-			ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
+			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};

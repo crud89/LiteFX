@@ -66,7 +66,7 @@ Array<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts
 {
     return m_impl->m_vertexBufferLayouts |
         std::views::transform([](const auto& pair) { return pair.second.get(); }) |
-        ranges::to<Array<const VulkanVertexBufferLayout*>>();
+        std::ranges::to<Array<const VulkanVertexBufferLayout*>>();
 }
 
 const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(const UInt32& binding) const

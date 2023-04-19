@@ -174,7 +174,7 @@ SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(const UInt
 
 Array<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
 {
-    return m_impl->m_commandBuffers | ranges::to<Array<SharedPtr<const VulkanCommandBuffer>>>();
+    return m_impl->m_commandBuffers | std::ranges::to<Array<SharedPtr<const VulkanCommandBuffer>>>();
 }
 
 Array<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept

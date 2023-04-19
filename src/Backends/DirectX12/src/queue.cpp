@@ -193,7 +193,7 @@ UInt64 DirectX12Queue::submit(const Array<SharedPtr<const DirectX12CommandBuffer
 	// Begin event.
 	auto buffers = commandBuffers |
 		std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
-		ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
+		std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
 	this->submitting(this, { buffers });
 
 	// End and submit the command buffers.

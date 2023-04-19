@@ -90,7 +90,7 @@ public:
                 renderTargetView = renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
 
                 return renderTargetDesc;
-            }) | ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
+            }) | std::ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
 
         if (m_depthStencilTarget == nullptr)
             std::get<1>(m_contexts[backBuffer]) = std::nullopt;
@@ -233,14 +233,14 @@ Array<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noe
 {
     return m_impl->m_frameBuffers |
         std::views::transform([](const UniquePtr<DirectX12FrameBuffer>& frameBuffer) { return frameBuffer.get(); }) |
-        ranges::to<Array<const DirectX12FrameBuffer*>>();
+        std::ranges::to<Array<const DirectX12FrameBuffer*>>();
 }
 
 Array<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
 {
     return m_impl->m_pipelines |
-        std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | ranges::to<Array<const DirectX12RenderPipeline*>>() |
-        ranges::to<Array<const DirectX12RenderPipeline*>>();
+        std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | std::ranges::to<Array<const DirectX12RenderPipeline*>>() |
+        std::ranges::to<Array<const DirectX12RenderPipeline*>>();
 }
 
 const RenderTarget& DirectX12RenderPass::renderTarget(const UInt32& location) const

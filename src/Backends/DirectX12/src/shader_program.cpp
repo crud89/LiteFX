@@ -387,7 +387,7 @@ Array<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noex
 {
     return m_impl->m_modules |
         std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); }) |
-        ranges::to<Array<const DirectX12ShaderModule*>>();
+        std::ranges::to<Array<const DirectX12ShaderModule*>>();
 }
 
 SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout() const

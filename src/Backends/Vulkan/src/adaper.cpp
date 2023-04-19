@@ -163,7 +163,7 @@ Array<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const noexce
 
     return availableExtensions |
         std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) |
-        ranges::to<Array<String>>();
+        std::ranges::to<Array<String>>();
 }
 
 bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const noexcept
@@ -194,5 +194,5 @@ Array<String> VulkanGraphicsAdapter::deviceValidationLayers() const noexcept
 
     return availableLayers |
         std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) |
-        ranges::to<Array<String>>();
+        std::ranges::to<Array<String>>();
 }

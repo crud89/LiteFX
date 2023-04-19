@@ -82,14 +82,14 @@ Array<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges()
 {
     return m_impl->m_rangePointers |
         std::views::transform([](const UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); }) |
-        ranges::to<Array<const DirectX12PushConstantsRange*>>();
+        std::ranges::to<Array<const DirectX12PushConstantsRange*>>();
 }
 
 Array<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() noexcept
 {
     return m_impl->m_rangePointers |
         std::views::transform([](UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); }) |
-        ranges::to<Array<DirectX12PushConstantsRange*>>();
+        std::ranges::to<Array<DirectX12PushConstantsRange*>>();
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)

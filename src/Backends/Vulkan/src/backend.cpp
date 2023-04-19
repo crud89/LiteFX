@@ -94,13 +94,13 @@ public:
         if (!VulkanBackend::validateInstanceExtensions(m_extensions))
             throw InvalidArgumentException("Some required Vulkan extensions are not supported by the system.");
 
-        auto requiredExtensions = m_extensions | std::views::transform([this](const auto& extension) { return extension.c_str(); }) | ranges::to<Array<const char*>>();
+        auto requiredExtensions = m_extensions | std::views::transform([this](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateInstanceLayers(m_layers))
             throw InvalidArgumentException("Some required Vulkan layers are not supported by the system.");
 
-        auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | ranges::to<Array<const char*>>();
+        auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | std::ranges::to<Array<const char*>>();
 
         // Get the app instance.
         auto appName = String(m_app.name());
@@ -176,7 +176,7 @@ public:
 
         m_adapters = handles | 
             std::views::transform([this](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
-            ranges::to<Array<UniquePtr<VulkanGraphicsAdapter>>>();
+            std::ranges::to<Array<UniquePtr<VulkanGraphicsAdapter>>>();
     }
 };
 
@@ -227,7 +227,7 @@ void VulkanBackend::deactivate()
 
 Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const VulkanGraphicsAdapter*>>();
+    return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) | std::ranges::to<Array<const VulkanGraphicsAdapter*>>();
 }
 
 const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const
@@ -344,7 +344,7 @@ Array<String> VulkanBackend::getAvailableInstanceExtensions() noexcept
 
     return availableExtensions | 
         std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) |
-        ranges::to<Array<String>>();
+        std::ranges::to<Array<String>>();
 }
 
 bool VulkanBackend::validateInstanceLayers(Span<const String> layers) noexcept
@@ -375,5 +375,5 @@ Array<String> VulkanBackend::getInstanceValidationLayers() noexcept
 
     return availableLayers | 
         std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) |
-        ranges::to<Array<String>>();
+        std::ranges::to<Array<String>>();
 }

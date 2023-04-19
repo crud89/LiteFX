@@ -136,7 +136,7 @@ public:
                 }
 
                 return descriptorRange;
-            }) | ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
+            }) | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
 
             // Define the static samplers.
             std::ranges::for_each(layouts, [&](const DirectX12DescriptorLayout* range) {
@@ -236,7 +236,7 @@ Array<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSe
 {
     return m_impl->m_descriptorSetLayouts |
         std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); }) |
-        ranges::to<Array<const DirectX12DescriptorSetLayout*>>();
+        std::ranges::to<Array<const DirectX12DescriptorSetLayout*>>();
 }
 
 const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() const noexcept

@@ -65,7 +65,7 @@ Array<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferL
 {
     return m_impl->m_vertexBufferLayouts |
         std::views::transform([](const auto& pair) { return pair.second.get(); }) |
-        ranges::to<Array<const DirectX12VertexBufferLayout*>>();
+        std::ranges::to<Array<const DirectX12VertexBufferLayout*>>();
 }
 
 const DirectX12VertexBufferLayout& DirectX12InputAssembler::vertexBufferLayout(const UInt32 & binding) const

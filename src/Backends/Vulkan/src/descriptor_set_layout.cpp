@@ -170,7 +170,7 @@ public:
         // Filter pool sizes, since descriptorCount must be greater than 0, according to the specs.
         auto poolSizes = m_poolSizes |
             std::views::filter([](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0; }) |
-            ranges::to<Array<VkDescriptorPoolSize>>();
+            std::ranges::to<Array<VkDescriptorPoolSize>>();
 
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -258,7 +258,7 @@ Array<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::descriptors() co
 {
     return m_impl->m_descriptorLayouts |
         std::views::transform([](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout.get(); }) |
-        ranges::to<Array<const VulkanDescriptorLayout*>>();
+        std::ranges::to<Array<const VulkanDescriptorLayout*>>();
 }
 
 const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(const UInt32& binding) const

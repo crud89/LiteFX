@@ -185,7 +185,7 @@ private:
 
 		return Join(formats |
 			std::views::transform([](const Format& format) { return fmt::to_string(format); }) |
-			ranges::to<Array<String>>(), ", ");
+			std::ranges::to<Array<String>>(), ", ");
 	}
 };
 
@@ -263,7 +263,7 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 
 Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); }) | ranges::to<Array<const IDirectX12Image*>>();
+	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); }) | std::ranges::to<Array<const IDirectX12Image*>>();
 }
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const

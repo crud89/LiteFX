@@ -5062,7 +5062,7 @@ namespace LiteFX::Rendering {
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
         UInt64 submit(const Array<SharedPtr<ICommandBuffer>>& commandBuffers) const {
-            return this->submitCommandBuffers(commandBuffers | ranges::to<Array<SharedPtr<const ICommandBuffer>>>());
+            return this->submitCommandBuffers(commandBuffers | std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>());
         }
 
         /// <summary>

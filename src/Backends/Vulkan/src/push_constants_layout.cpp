@@ -97,7 +97,7 @@ Array<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const
 {
     return m_impl->m_rangePointers |
         std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); }) |
-        ranges::to<Array<const VulkanPushConstantsRange*>>();
+        std::ranges::to<Array<const VulkanPushConstantsRange*>>();
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)

@@ -41,13 +41,13 @@ public:
         // Query for the descriptor set layout handles.
         auto descriptorSetLayouts = m_descriptorSetLayouts |
             std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |
-            ranges::to<Array<VkDescriptorSetLayout>>();
+            std::ranges::to<Array<VkDescriptorSetLayout>>();
 
         // Query for push constant ranges.
         Array<const VulkanPushConstantsRange*> ranges = m_pushConstantsLayout == nullptr ? Array<const VulkanPushConstantsRange*>{} : m_pushConstantsLayout->ranges();
         auto rangeHandles = ranges |
             std::views::transform([](const VulkanPushConstantsRange* range) { return VkPushConstantRange{ .stageFlags = static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() }; }) |
-            ranges::to<Array<VkPushConstantRange>>();
+            std::ranges::to<Array<VkPushConstantRange>>();
 
         // Create the pipeline layout.
         LITEFX_TRACE(VULKAN_LOG, "Creating pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size(), rangeHandles.size());
@@ -102,7 +102,7 @@ Array<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() c
 {
     return m_impl->m_descriptorSetLayouts |
         std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); }) |
-        ranges::to<Array<const VulkanDescriptorSetLayout*>>();
+        std::ranges::to<Array<const VulkanDescriptorSetLayout*>>();
 }
 
 const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noexcept

@@ -930,7 +930,7 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual UInt64 submit(const Array<SharedPtr<command_buffer_type>>& commandBuffers) const {
-            return this->submit(commandBuffers | ranges::to<Array<SharedPtr<const command_buffer_type>>>());
+            return this->submit(commandBuffers | std::ranges::to<Array<SharedPtr<const command_buffer_type>>>());
         }
 
         /// <inheritdoc />
@@ -948,7 +948,7 @@ namespace LiteFX::Rendering {
         virtual UInt64 submitCommandBuffers(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
             Array<SharedPtr<const command_buffer_type>> buffers = commandBuffers |
                 std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) |
-                ranges::to<Array<SharedPtr<const command_buffer_type>>>();
+                std::ranges::to<Array<SharedPtr<const command_buffer_type>>>();
 
             return this->submit(buffers);
         }

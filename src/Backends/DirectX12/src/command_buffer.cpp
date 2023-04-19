@@ -100,7 +100,7 @@ void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) cons
 {
 	auto vps = viewports |
 		std::views::transform([](const auto& viewport) { return CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth()); }) |
-		ranges::to<Array<D3D12_VIEWPORT>>();
+		std::ranges::to<Array<D3D12_VIEWPORT>>();
 
 	this->handle()->RSSetViewports(vps.size(), vps.data());
 }
@@ -115,7 +115,7 @@ void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const n
 {
 	auto scs = scissors |
 		std::views::transform([](const auto& scissor) { return CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height()); }) |
-		ranges::to<Array<D3D12_RECT>>();
+		std::ranges::to<Array<D3D12_RECT>>();
 
 	this->handle()->RSSetScissorRects(scs.size(), scs.data());
 }
@@ -160,7 +160,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 
 	auto parametersBlock = parametersData |
 		std::views::transform([](const Parameters& parameters) { return reinterpret_cast<const void*>(&parameters); }) |
-		ranges::to<Array<const void*>>();
+		std::ranges::to<Array<const void*>>();
 
 	// Set the active pipeline state.
 	auto& pipeline = m_impl->m_queue.device().blitPipeline();
