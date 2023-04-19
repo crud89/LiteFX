@@ -24,7 +24,7 @@ public:
         if (size % 4 != 0)
             throw InvalidArgumentException("The push constants range size must be a multiple of 4 bytes.");
 
-        if (!(static_cast<UInt32>(shaderStage) && !(static_cast<UInt32>(shaderStage) & (static_cast<UInt32>(shaderStage) - 1))))
+        if (!(std::to_underlying(shaderStage) && !(std::to_underlying(shaderStage) & (std::to_underlying(shaderStage) - 1))))
             throw InvalidArgumentException("A push constant range is only allowed to be associated with one shader stage.");
     }
 };

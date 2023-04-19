@@ -62,7 +62,7 @@ public:
                 adapterInterface->GetDesc1(&adapterDecriptor);
                 
                 // Ignore software rasterizer adapters.
-                if (LITEFX_FLAG_IS_SET(adapterDecriptor.Flags, DXGI_ADAPTER_FLAG_SOFTWARE))
+                if (adapterDecriptor.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
                     continue;
 
                 raiseIfFailed<RuntimeException>(adapterInterface.As(&adapterInstance), "The hardware adapter is not a valid IDXGIAdapter4 instance.");

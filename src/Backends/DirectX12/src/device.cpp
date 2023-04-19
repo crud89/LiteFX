@@ -550,7 +550,7 @@ MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& form
 
 	for (int level(0); level < allLevels.size(); ++level)
 	{
-		levels.SampleCount = static_cast<UInt32>(allLevels[level]);
+		levels.SampleCount = std::to_underlying(allLevels[level]);
 		
 		if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &levels, sizeof(levels))))
 			continue;

@@ -69,7 +69,7 @@ public:
             auto samples = m_renderPass.multiSamplingLevel();
 
             if (m_renderPass.device().maximumMultiSamplingLevel(renderTarget.format()) < samples)
-                throw InvalidArgumentException("Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), static_cast<UInt32>(samples));
+                throw InvalidArgumentException("Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), std::to_underlying(samples));
 
             const IDirectX12Image* renderTargetView;
 

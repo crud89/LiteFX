@@ -67,7 +67,7 @@ const UInt32& DirectX12PushConstantsLayout::size() const noexcept
 
 const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(const ShaderStage& stage) const
 {
-    auto bits = static_cast<UInt32>(stage);
+    auto bits = std::to_underlying(stage);
 
     if (!(bits && !(bits & (bits - 1))))
         throw ArgumentOutOfRangeException("The stage mask must only contain one shader stage.");

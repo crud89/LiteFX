@@ -129,7 +129,7 @@ UInt64 VulkanGraphicsAdapter::dedicatedMemory() const noexcept
     size_t heapSize = 0;
 
     for (const auto& heap : heaps)
-        if (LITEFX_FLAG_IS_SET(heap.flags, VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT))
+        if (heap.flags & VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
             heapSize += heap.size;
 
     return heapSize;

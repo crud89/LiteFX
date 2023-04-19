@@ -310,7 +310,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="getBufferFormatChannels" />
     /// <seealso cref="getBufferFormatChannelSize" />
     /// <seealso cref="getBufferFormatType" />
-    enum class LITEFX_RENDERING_API BufferFormat {
+    enum class LITEFX_RENDERING_API BufferFormat : UInt32 {
         None = 0x00000000,
         X16F = 0x10000101,
         X16I = 0x10000201,
@@ -342,7 +342,7 @@ namespace LiteFX::Rendering {
     /// Describes the semantic of a buffer attribute.
     /// </summary>
     /// <seealso cref="BufferAttribute" />
-    enum class LITEFX_RENDERING_API AttributeSemantic {
+    enum class LITEFX_RENDERING_API AttributeSemantic : UInt32 {
         /// <summary>
         /// The attribute contains a bi-normal vector.
         /// </summary>
@@ -628,7 +628,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the valid shader stages of a graphics pipeline.
     /// </summary>
-    enum class LITEFX_RENDERING_API ShaderStage {
+    enum class LITEFX_RENDERING_API ShaderStage : UInt32 {
         /// <summary>
         /// Represents the vertex shader stage.
         /// </summary>
@@ -784,7 +784,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the number of samples with which a <see cref="IImage" /> is sampled.
     /// </summary>
-    enum class LITEFX_RENDERING_API MultiSamplingLevel {
+    enum class LITEFX_RENDERING_API MultiSamplingLevel : UInt32 {
         /// <summary>
         /// The default number of samples. Multi-sampling will be de-activated, if this sampling level is used.
         /// </summary>
