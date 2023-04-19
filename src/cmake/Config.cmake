@@ -6,6 +6,7 @@
 
 # C++ standard version.
 SET(CMAKE_CXX_STANDARD 23)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define C++ compile flags.
 IF(MSVC)
