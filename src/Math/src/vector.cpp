@@ -14,26 +14,17 @@ Vector1f::Vector1f(Vector1f&& _v) noexcept : Vector<Float, 1>(_v) { }
 Vector1f::Vector1f(Vector<Float, 1>&& _v) noexcept : Vector<Float, 1>(_v) { }
 
 Vector1f& Vector1f::operator=(const Vector<Float, 1>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector1f& Vector1f::operator=(Vector<Float, 1>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector1f& Vector1f::operator=(const Array<Float>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector1f& Vector1f::operator=(const Enumerable<Float>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -53,10 +44,8 @@ Float& Vector1f::operator[](const unsigned int& i) noexcept {
     return Vector<Float, 1>::operator[](i);
 }
 
-Vector1f::operator Array<Float>() noexcept {
-    Array<Float> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector1f::operator Enumerable<Float>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -75,15 +64,15 @@ Vector1f::operator glm::f32vec1() const noexcept {
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
 Vector1f::Vector1f(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMStoreFloat(m_elements, v);
+    DirectX::XMStoreFloat(m_elements.data(), v);
 }
 
 Vector1f::Vector1f(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMStoreFloat(m_elements, std::move(v));
+    DirectX::XMStoreFloat(m_elements.data(), std::move(v));
 }
 
 Vector1f::operator DirectX::XMVECTOR() const noexcept {
-    return DirectX::XMLoadFloat(m_elements);
+    return DirectX::XMLoadFloat(m_elements.data());
 }
 #endif
 
@@ -99,10 +88,7 @@ Vector1u::Vector1u(Vector1u&& _v) noexcept : Vector<UInt32, 1>(_v) { }
 Vector1u::Vector1u(Vector<UInt32, 1>&& _v) noexcept : Vector<UInt32, 1>(_v) { }
 
 Vector1u& Vector1u::operator=(const Vector<UInt32, 1>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -114,11 +100,8 @@ Vector1u& Vector1u::operator=(Vector<UInt32, 1>&& _other) noexcept {
     return *this;
 }
 
-Vector1u& Vector1u::operator=(const Array<UInt32>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector1u& Vector1u::operator=(const Enumerable<UInt32>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -138,10 +121,8 @@ UInt32& Vector1u::operator[](const unsigned int& i) noexcept {
     return Vector<UInt32, 1>::operator[](i);
 }
 
-Vector1u::operator Array<UInt32>() noexcept {
-    Array<UInt32> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector1u::operator Enumerable<UInt32>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -160,15 +141,15 @@ Vector1u::operator glm::u32vec1() const noexcept {
 
 #if defined(BUILD_WITH_DIRECTX_MATH)
 Vector1u::Vector1u(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMStoreInt(m_elements, v);
+    DirectX::XMStoreInt(m_elements.data(), v);
 }
 
 Vector1u::Vector1u(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMStoreInt(m_elements, std::move(v));
+    DirectX::XMStoreInt(m_elements.data(), std::move(v));
 }
 
 Vector1u::operator DirectX::XMVECTOR() const noexcept {
-    return DirectX::XMLoadInt(m_elements);
+    return DirectX::XMLoadInt(m_elements.data());
 }
 #endif
 
@@ -189,26 +170,17 @@ Vector2f::Vector2f(Vector2f&& _v) noexcept : Vector<Float, 2>(_v) { }
 Vector2f::Vector2f(Vector<Float, 2>&& _v) noexcept : Vector<Float, 2>(_v) { }
 
 Vector2f& Vector2f::operator=(const Vector<Float, 2>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector2f& Vector2f::operator=(Vector<Float, 2>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector2f& Vector2f::operator=(const Array<Float>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector2f& Vector2f::operator=(const Enumerable<Float>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -228,10 +200,8 @@ Float& Vector2f::operator[](const unsigned int& i) noexcept {
     return Vector<Float, 2>::operator[](i);
 }
 
-Vector2f::operator Array<Float>() noexcept {
-    Array<Float> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector2f::operator Enumerable<Float>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -281,7 +251,7 @@ Vector2f::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector2f::operator DirectX::XMFLOAT2() const noexcept {
-    return DirectX::XMFLOAT2(m_elements);
+    return DirectX::XMFLOAT2(m_elements.data());
 }
 #endif
 
@@ -302,26 +272,17 @@ Vector2u::Vector2u(Vector2u&& _v) noexcept : Vector<UInt32, 2>(_v) { }
 Vector2u::Vector2u(Vector<UInt32, 2>&& _v) noexcept : Vector<UInt32, 2>(_v) { }
 
 Vector2u& Vector2u::operator=(const Vector<UInt32, 2>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector2u& Vector2u::operator=(Vector<UInt32, 2>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector2u& Vector2u::operator=(const Array<UInt32>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector2u& Vector2u::operator=(const Enumerable<UInt32>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -341,10 +302,8 @@ UInt32& Vector2u::operator[](const unsigned int& i) noexcept {
     return Vector<UInt32, 2>::operator[](i);
 }
 
-Vector2u::operator Array<UInt32>() noexcept {
-    Array<UInt32> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector2u::operator Enumerable<UInt32>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -394,7 +353,7 @@ Vector2u::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector2u::operator DirectX::XMUINT2() const noexcept {
-    return DirectX::XMUINT2(m_elements);
+    return DirectX::XMUINT2(m_elements.data());
 }
 #endif
 
@@ -415,26 +374,17 @@ Vector2i::Vector2i(Vector2i&& _v) noexcept : Vector<Int32, 2>(_v) { }
 Vector2i::Vector2i(Vector<Int32, 2>&& _v) noexcept : Vector<Int32, 2>(_v) { }
 
 Vector2i& Vector2i::operator=(const Vector<Int32, 2>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector2i& Vector2i::operator=(Vector<Int32, 2>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector2i& Vector2i::operator=(const Array<Int32>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector2i& Vector2i::operator=(const Enumerable<Int32>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -454,10 +404,8 @@ Int32& Vector2i::operator[](const unsigned int& i) noexcept {
     return Vector<Int32, 2>::operator[](i);
 }
 
-Vector2i::operator Array<Int32>() noexcept {
-    Array<Int32> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector2i::operator Enumerable<Int32>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -507,7 +455,7 @@ Vector2i::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector2i::operator DirectX::XMINT2() const noexcept {
-    return DirectX::XMINT2(m_elements);
+    return DirectX::XMINT2(m_elements.data());
 }
 #endif
 
@@ -529,26 +477,17 @@ Vector3f::Vector3f(Vector3f&& _v) noexcept : Vector<Float, 3>(_v) { }
 Vector3f::Vector3f(Vector<Float, 3>&& _v) noexcept : Vector<Float, 3>(_v) { }
 
 Vector3f& Vector3f::operator=(const Vector<Float, 3>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector3f& Vector3f::operator=(Vector<Float, 3>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector3f& Vector3f::operator=(const Array<Float>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector3f& Vector3f::operator=(const Enumerable<Float>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -568,10 +507,8 @@ Float& Vector3f::operator[](const unsigned int& i) noexcept {
     return Vector<Float, 3>::operator[](i);
 }
 
-Vector3f::operator Array<Float>() noexcept {
-    Array<Float> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector3f::operator Enumerable<Float>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -625,7 +562,7 @@ Vector3f::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector3f::operator DirectX::XMFLOAT3() const noexcept {
-    return DirectX::XMFLOAT3(m_elements);
+    return DirectX::XMFLOAT3(m_elements.data());
 }
 #endif
 
@@ -647,26 +584,17 @@ Vector3u::Vector3u(Vector3u&& _v) noexcept : Vector<UInt32, 3>(_v) { }
 Vector3u::Vector3u(Vector<UInt32, 3>&& _v) noexcept : Vector<UInt32, 3>(_v) { }
 
 Vector3u& Vector3u::operator=(const Vector<UInt32, 3>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector3u& Vector3u::operator=(Vector<UInt32, 3>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector3u& Vector3u::operator=(const Array<UInt32>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector3u& Vector3u::operator=(const Enumerable<UInt32>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -686,10 +614,8 @@ UInt32& Vector3u::operator[](const unsigned int& i) noexcept {
     return Vector<UInt32, 3>::operator[](i);
 }
 
-Vector3u::operator Array<UInt32>() noexcept {
-    Array<UInt32> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector3u::operator Enumerable<UInt32>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -743,7 +669,7 @@ Vector3u::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector3u::operator DirectX::XMUINT3() const noexcept {
-    return DirectX::XMUINT3(m_elements);
+    return DirectX::XMUINT3(m_elements.data());
 }
 #endif
 
@@ -765,26 +691,17 @@ Vector3i::Vector3i(Vector3i&& _v) noexcept : Vector<Int32, 3>(_v) { }
 Vector3i::Vector3i(Vector<Int32, 3>&& _v) noexcept : Vector<Int32, 3>(_v) { }
 
 Vector3i& Vector3i::operator=(const Vector<Int32, 3>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector3i& Vector3i::operator=(Vector<Int32, 3>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector3i& Vector3i::operator=(const Array<Int32>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector3i& Vector3i::operator=(const Enumerable<Int32>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -804,10 +721,8 @@ Int32& Vector3i::operator[](const unsigned int& i) noexcept {
     return Vector<Int32, 3>::operator[](i);
 }
 
-Vector3i::operator Array<Int32>() noexcept {
-    Array<Int32> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector3i::operator Enumerable<Int32>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -861,7 +776,7 @@ Vector3i::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector3i::operator DirectX::XMINT3() const noexcept {
-    return DirectX::XMINT3(m_elements);
+    return DirectX::XMINT3(m_elements.data());
 }
 #endif
 
@@ -884,26 +799,17 @@ Vector4f::Vector4f(Vector4f&& _v) noexcept : Vector<Float, 4>(_v) { }
 Vector4f::Vector4f(Vector<Float, 4>&& _v) noexcept : Vector<Float, 4>(_v) { }
 
 Vector4f& Vector4f::operator=(const Vector<Float, 4>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector4f& Vector4f::operator=(Vector<Float, 4>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector4f& Vector4f::operator=(const Array<Float>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector4f& Vector4f::operator=(const Enumerable<Float>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -923,10 +829,8 @@ Float& Vector4f::operator[](const unsigned int& i) noexcept {
     return Vector<Float, 4>::operator[](i);
 }
 
-Vector4f::operator Array<Float>() noexcept {
-    Array<Float> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector4f::operator Enumerable<Float>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -984,7 +888,7 @@ Vector4f::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector4f::operator DirectX::XMFLOAT4() const noexcept {
-    return DirectX::XMFLOAT4(m_elements);
+    return DirectX::XMFLOAT4(m_elements.data());
 }
 #endif
 
@@ -1007,26 +911,17 @@ Vector4u::Vector4u(Vector4u&& _v) noexcept : Vector<UInt32, 4>(_v) { }
 Vector4u::Vector4u(Vector<UInt32, 4>&& _v) noexcept : Vector<UInt32, 4>(_v) { }
 
 Vector4u& Vector4u::operator=(const Vector<UInt32, 4>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector4u& Vector4u::operator=(Vector<UInt32, 4>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector4u& Vector4u::operator=(const Array<UInt32>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector4u& Vector4u::operator=(const Enumerable<UInt32>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -1046,10 +941,8 @@ UInt32& Vector4u::operator[](const unsigned int& i) noexcept {
     return Vector<UInt32, 4>::operator[](i);
 }
 
-Vector4u::operator Array<UInt32>() noexcept {
-    Array<UInt32> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector4u::operator Enumerable<UInt32>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -1107,7 +1000,7 @@ Vector4u::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector4u::operator DirectX::XMUINT4() const noexcept {
-    return DirectX::XMUINT4(m_elements);
+    return DirectX::XMUINT4(m_elements.data());
 }
 #endif
 
@@ -1130,26 +1023,17 @@ Vector4i::Vector4i(Vector4i&& _v) noexcept : Vector<Int32, 4>(_v) { }
 Vector4i::Vector4i(Vector<Int32, 4>&& _v) noexcept : Vector<Int32, 4>(_v) { }
 
 Vector4i& Vector4i::operator=(const Vector<Int32, 4>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
 Vector4i& Vector4i::operator=(Vector<Int32, 4>&& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return std::move(_other[i++]);
-    });
-
+    std::ranges::move(_other, std::begin(m_elements));
     return *this;
 }
 
-Vector4i& Vector4i::operator=(const Array<Int32>& _other) noexcept {
-    std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable {
-        return _other[i++];
-    });
-
+Vector4i& Vector4i::operator=(const Enumerable<Int32>& _other) noexcept {
+    std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
 
@@ -1169,10 +1053,8 @@ Int32& Vector4i::operator[](const unsigned int& i) noexcept {
     return Vector<Int32, 4>::operator[](i);
 }
 
-Vector4i::operator Array<Int32>() noexcept {
-    Array<Int32> v(vec_size);
-    std::generate(std::begin(v), std::end(v), [this, i = 0]() mutable { return m_elements[i++]; });
-    return v;
+Vector4i::operator Enumerable<Int32>() noexcept {
+    return m_elements;
 }
 
 #if defined(BUILD_WITH_GLM)
@@ -1230,6 +1112,6 @@ Vector4i::operator DirectX::XMVECTOR() const noexcept {
 }
 
 Vector4i::operator DirectX::XMINT4() const noexcept {
-    return DirectX::XMINT4(m_elements);
+    return DirectX::XMINT4(m_elements.data());
 }
 #endif
