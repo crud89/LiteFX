@@ -180,6 +180,69 @@ namespace LiteFX {
 		return SharedPtr<T>(ptr.release());
 	}
 
+	/// <summary>
+	/// Provides foward-iteratable access to a range of elements of type <typeparamref name="T" /> from arbitrary range inputs and
+	/// </summary>
+	/// <typeparam name="T">The type of the elements of the range.</typeparam>
+	template <typename T>
+	class Enumerable {
+	public:
+		using value_type = T;
+		using array_type = Array<T>;
+		using iterator = array_type::iterator;
+		using const_iterator = array_type::const_iterator;
+
+	private:
+		Array<T> m_elements;
+
+	public:
+		/// <summary>
+		/// Initializes a new enumerable range from an arbitrary input range.
+		/// </summary>
+		/// <param name="input">The input range containing the elements of the range.</param>
+		constexpr Enumerable(std::ranges::input_range auto&& input) noexcept requires
+			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T> 
+		{
+			if constexpr (std::ranges::sized_range<decltype(input)>)
+				m_elements.reserve(std::ranges::size(input));
+
+			for (auto&& i : input)
+				m_elements.push_back(std::move(i));
+		}
+
+		/// <summary>
+		/// Initializes a new enumerable range from an initializer list.
+		/// </summary>
+		/// <param name="input">The initializer list containing the elements of the range.</param>
+		constexpr explicit Enumerable(std::initializer_list<T> input) noexcept :
+			m_elements{ input } { }
+
+	public:
+		/// <summary>
+		/// Returns an iterator providing access to the front of the range.
+		/// </summary>
+		/// <returns>The iterator providing access to the front of the range.</returns>
+		constexpr auto begin() const noexcept { return m_elements.begin(); }
+
+		/// <summary>
+		/// Returns an iterator that points to the end of the range.
+		/// </summary>
+		/// <returns>The iterator points to the end of the range.</returns>
+		constexpr auto end() const noexcept { return m_elements.end(); }
+
+		/// <summary>
+		/// Returns `true`, if the range does not contain any elements and `false` otherwise.
+		/// </summary>
+		/// <returns>`true`, if the range does not contain any elements and `false` otherwise.</returns>
+		constexpr bool empty() const noexcept { return m_elements.empty(); }
+
+		/// <summary>
+		/// Returns the first element of the range.
+		/// </summary>
+		/// <returns>The first element of the range.</returns>
+		constexpr auto& front() const { return m_elements.front(); }
+	};
+
 #if (defined(BUILD_LITEFX_PIMPL) && BUILD_LITEFX_PIMPL) || (!defined(BUILD_LITEFX_PIMPL)) && !defined(LITEFX_IMPLEMENTATION)
 	/// <summary>
 	/// A smart pointer that manages an implementation instance for a public interface class.
