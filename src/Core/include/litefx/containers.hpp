@@ -234,7 +234,13 @@ namespace LiteFX {
 		/// Returns `true`, if the range does not contain any elements and `false` otherwise.
 		/// </summary>
 		/// <returns>`true`, if the range does not contain any elements and `false` otherwise.</returns>
-		constexpr bool empty() const noexcept { return m_elements.empty(); }
+		constexpr auto empty() const noexcept { return m_elements.empty(); }
+
+		/// <summary>
+		/// Returns the number of elements in the range.
+		/// </summary>
+		/// <returns>The number of elements in the range.</returns>
+		constexpr auto size() const noexcept { return m_elements.size(); }
 
 		/// <summary>
 		/// Returns the first element of the range.
