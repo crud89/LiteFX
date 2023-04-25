@@ -208,55 +208,54 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const descriptor_layout_type*> descriptors() const noexcept = 0;
+        virtual Enumerable<const descriptor_layout_type*> descriptors() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const descriptor_layout_type& descriptor(const UInt32& binding) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const Array<DescriptorBinding>& bindings = { }) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(const UInt32& descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
 
         /// <inheritdoc />
         virtual void free(const descriptor_set_type& descriptorSet) const noexcept = 0;
 
     private:
-        virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept override {
-            auto descriptors = this->descriptors();
-            return Array<const IDescriptorLayout*>(descriptors.begin(), descriptors.end());
+        virtual Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept override {
+            return this->descriptors();
         }
 
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const override {
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override {
             return this->allocate(descriptors, bindings);
         }
 
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const override {
+        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override {
             auto sets = this->allocateMultiple(descriptorSets, descriptors, bindings);
             Array<UniquePtr<IDescriptorSet>> results;
             results.reserve(sets.size());
-            std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
+            //std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
             return results;
         }
 
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const override {
+        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const override {
             auto sets = this->allocateMultiple(descriptorSets, descriptors, bindingFactory);
             Array<UniquePtr<IDescriptorSet>> results;
             results.reserve(sets.size());
-            std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
+            //std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
             return results;
         }
 
@@ -1310,7 +1309,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const adapter_type*> listAdapters() const = 0;
+        virtual Enumerable<const adapter_type*> listAdapters() const = 0;
 
         /// <inheritdoc />
         virtual const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
@@ -1355,9 +1354,8 @@ namespace LiteFX::Rendering {
 
         // IRenderBackend interface
     private:
-        virtual Array<const IGraphicsAdapter*> getAdapters() const override {
-            auto adapters = this->listAdapters();
-            return Array<const IGraphicsAdapter*>(adapters.begin(), adapters.end());
+        virtual Enumerable<const IGraphicsAdapter*> getAdapters() const override {
+            return this->listAdapters();
         }
     };
 }

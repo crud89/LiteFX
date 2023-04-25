@@ -225,9 +225,9 @@ void VulkanBackend::deactivate()
     this->state() = BackendState::Inactive;
 }
 
-Array<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
+Enumerable<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); }) | std::ranges::to<Array<const VulkanGraphicsAdapter*>>();
+    return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); });
 }
 
 const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const

@@ -191,6 +191,7 @@ namespace LiteFX {
 		using array_type = Array<T>;
 		using iterator = array_type::iterator;
 		using const_iterator = array_type::const_iterator;
+		using size_type = array_type::size_type;
 
 	private:
 		Array<T> m_elements;
@@ -201,13 +202,12 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="input">The input range containing the elements of the range.</param>
 		constexpr Enumerable(std::ranges::input_range auto&& input) noexcept requires
-			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T> 
+			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T>
 		{
 			if constexpr (std::ranges::sized_range<decltype(input)>)
 				m_elements.reserve(std::ranges::size(input));
 
-			for (auto&& i : input)
-				m_elements.push_back(std::move(i));
+			std::ranges::move(input, std::back_inserter(m_elements));
 		}
 
 		/// <summary>
@@ -216,6 +216,16 @@ namespace LiteFX {
 		/// <param name="input">The initializer list containing the elements of the range.</param>
 		constexpr explicit Enumerable(std::initializer_list<T> input) noexcept :
 			m_elements{ input } { }
+
+		/// <summary>
+		/// Initializes a new empty enumerable range.
+		/// </summary>
+		constexpr Enumerable() noexcept = default;
+
+	public:
+		Enumerable(const Enumerable&) = default;
+		Enumerable(Enumerable&&) = default;
+		virtual ~Enumerable() noexcept = default;
 
 	public:
 		/// <summary>

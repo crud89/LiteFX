@@ -51,11 +51,9 @@ const BufferType& DirectX12VertexBufferLayout::type() const noexcept
     return m_impl->m_bufferType;
 }
 
-Array<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const noexcept
+Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const noexcept
 {
-    return m_impl->m_attributes |
-        std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); }) |
-        std::ranges::to<Array<const BufferAttribute*>>();
+    return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
