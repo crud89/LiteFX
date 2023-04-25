@@ -46,9 +46,15 @@ ENDIF(CMAKE_INSTALL_INCLUDEDIR STREQUAL "")
 SET(CMAKE_INSTALL_EXPORT_DIR  "cmake")
 
 # Export all symbols automatically on Windows.
-IF (WIN32)
+IF(WIN32)
     SET (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-ENDIF()
+ENDIF(WIN32)
+
+# Allow hot reload in MSVC.
+IF(POLICY CMP0141)
+  CMAKE_POLICY(SET CMP0141 NEW)
+  SET(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+ENDIF(POLICY CMP0141)
 
 # Make sure the target export configuration proxy and helper scripts get installed.
 INCLUDE(CMakePackageConfigHelpers)
