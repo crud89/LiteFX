@@ -244,19 +244,11 @@ namespace LiteFX::Rendering {
         }
 
         virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override {
-            auto sets = this->allocateMultiple(descriptorSets, descriptors, bindings);
-            Array<UniquePtr<IDescriptorSet>> results;
-            results.reserve(sets.size());
-            //std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
-            return results;
+            return this->allocateMultiple(descriptorSets, descriptors, bindings) | std::views::as_rvalue;
         }
 
         virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const override {
-            auto sets = this->allocateMultiple(descriptorSets, descriptors, bindingFactory);
-            Array<UniquePtr<IDescriptorSet>> results;
-            results.reserve(sets.size());
-            //std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
-            return results;
+            return this->allocateMultiple(descriptorSets, descriptors, bindingFactory) | std::views::as_rvalue;
         }
 
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {

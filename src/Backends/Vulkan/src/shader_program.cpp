@@ -214,13 +214,14 @@ public:
             auto& descriptorSet = it->second;
 
             // Create the descriptor layouts.
-            Array<UniquePtr<VulkanDescriptorLayout>> descriptors(descriptorSet.descriptors.size());
-            std::ranges::generate(descriptors, [&descriptorSet, j = 0]() mutable {
-                auto& descriptor = descriptorSet.descriptors[j++];
-                return makeUnique<VulkanDescriptorLayout>(descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements);
-            });
+            auto descriptorLayouts = [&descriptorSet]() -> std::experimental::generator<UniquePtr<VulkanDescriptorLayout>> {
+                for (int i(0); ; ++i) {
+                    auto& descriptor = descriptorSet.descriptors[i];
+                    co_yield makeUnique<VulkanDescriptorLayout>(descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements);
+                }
+            }() | std::views::take(descriptorSet.descriptors.size()) | std::views::as_rvalue;
 
-            return makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptors), descriptorSet.space, descriptorSet.stage);
+            return makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
         });
 
         // Create the push constants layout.
