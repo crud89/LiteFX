@@ -328,6 +328,22 @@ namespace LiteFX {
 		/// Returns the iterator that points to the beginning of the `Enumerable`.
 		/// </summary>
 		/// <returns>The iterator that points to the beginning of the `Enumerable`.</returns>
+		constexpr const_iterator begin() const noexcept {
+			return m_elements.begin();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the beginning of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the beginning of the `Enumerable`.</returns>
+		constexpr const_iterator cbegin() noexcept {
+			return m_elements.cbegin();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the beginning of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the beginning of the `Enumerable`.</returns>
 		constexpr const_iterator cbegin() const noexcept {
 			return m_elements.cbegin();
 		}
@@ -338,6 +354,22 @@ namespace LiteFX {
 		/// <returns>The iterator that points to the ending of the `Enumerable`.</returns>
 		constexpr iterator end() noexcept {
 			return m_elements.end();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the ending of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the ending of the `Enumerable`.</returns>
+		constexpr const_iterator end() const noexcept {
+			return m_elements.end();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the ending of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the ending of the `Enumerable`.</returns>
+		constexpr const_iterator cend() noexcept {
+			return m_elements.cend();
 		}
 
 		/// <summary>
