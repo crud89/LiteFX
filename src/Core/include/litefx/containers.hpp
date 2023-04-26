@@ -19,6 +19,7 @@
 #include <variant>
 #include <ranges>
 #include <mutex>
+#include <experimental/generator>
 
 #include "traits.hpp"
 #include "string.hpp"

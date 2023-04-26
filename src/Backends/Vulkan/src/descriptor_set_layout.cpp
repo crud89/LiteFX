@@ -1,7 +1,6 @@
 #include <litefx/backends/vulkan.hpp>
 #include <litefx/backends/vulkan_builders.hpp>
 #include "image.h"
-#include <experimental/generator>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -361,11 +360,12 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
 
 Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
 {
-    auto generator = [this, descriptors, &bindings]() mutable -> std::experimental::generator<UniquePtr<VulkanDescriptorSet>> {
+    auto generator = [this, descriptors, &bindings]() -> std::experimental::generator<UniquePtr<VulkanDescriptorSet>> {
         for (auto& binding : bindings)
             co_yield this->allocate(descriptors, binding);
         
-        co_yield this->allocate(descriptors);
+        for (;;)
+            co_yield this->allocate(descriptors);
     }();
 
     return generator | std::views::take(count);
@@ -373,8 +373,9 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
 
 Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const
 {
-    auto generator = [this, descriptors, &bindingFactory, i = 0]() mutable -> std::experimental::generator<UniquePtr<VulkanDescriptorSet>> {
-        co_yield this->allocate(descriptors, bindingFactory(i++));
+    auto generator = [this, descriptors, &bindingFactory]() -> std::experimental::generator<UniquePtr<VulkanDescriptorSet>> {
+        for (int i(0); ; ++i)
+            co_yield this->allocate(descriptors, bindingFactory(i));
     }();
 
     return generator | std::views::take(count);
