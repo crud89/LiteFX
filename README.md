@@ -72,12 +72,13 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
+- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features.
 - [CMake](https://cmake.org/download/) (version 3.20 or higher). †
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using older Visual Studio versions, consider installing CMake manually.
+† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using other compilers, CMake needs to be installed manually.
 
 ‡ Note that the LunarG Vulkan SDK (1.3.204.1 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
@@ -140,6 +141,7 @@ Within the cache variables, you can override the build options, LiteFX exports. 
 - `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
 - `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
 - `BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
+- `BUILD_TESTS` (default: `OFF`): builds tests for the project.
 
 For example, if you only want to build the Vulkan backend and samples and don't want to use DirectX Math, a preset would look like this:
 
