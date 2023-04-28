@@ -87,7 +87,7 @@ In order for the project to be built, there are a few prerequisites that need to
 Create a new directory from where you want to build the sources. Then open your shell and clone the repository:
 
 ```sh
-git clone https://github.com/crud89/LiteFX.git . --recurse-submodules
+git clone --recursive https://github.com/crud89/LiteFX.git .
 ```
 
 #### Performing a Build
