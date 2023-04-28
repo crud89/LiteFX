@@ -19,8 +19,8 @@
 #include <variant>
 #include <ranges>
 #include <mutex>
-#include <experimental/generator>
 
+#include "generator.hpp"	// NOTE: Should be replaced by #include <generator> once it is available.
 #include "traits.hpp"
 #include "string.hpp"
 #include "exceptions.hpp"

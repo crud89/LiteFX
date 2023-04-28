@@ -3,13 +3,13 @@
 int main(int argc, char* argv[])
 {
 	Array<SharedPtr<Foo>> foos;
-	Array<SharedPtr<Bar>> bars;
-	foos.push_back(std::make_shared<Foo>(0));
-	foos.push_back(std::make_shared<Foo>(1));
-	foos.push_back(std::make_shared<Foo>(2));
-	bars.push_back(std::make_shared<Bar>(3));
-	bars.push_back(std::make_shared<Bar>(4));
-	bars.push_back(std::make_shared<Bar>(5));
+	foos.push_back(makeShared<Foo>(0));
+	foos.push_back(makeShared<Foo>(1));
+	foos.push_back(makeShared<Foo>(2));
+	auto bars = []() -> std::generator<SharedPtr<Bar>> {
+		for (int i(3); ; ++i)
+			co_yield makeShared<Bar>(i);
+	}() | std::views::take(3) | std::ranges::to<Array<SharedPtr<Bar>>>();
 
 	// NOTE: views::merge unfortunately is only considered for C++26, so we cannot have a single Enumerable<UniquePtr<Base>> for both source containers.
 	Enumerable<SharedPtr<Base>> fooBases = foos | std::views::drop(1);

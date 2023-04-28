@@ -3,38 +3,37 @@
 int main(int argc, char* argv[])
 {
 	Array<UniquePtr<Foo>> foos;
-	Array<UniquePtr<Bar>> bars;
-	foos.push_back(std::make_unique<Foo>(0));
-	foos.push_back(std::make_unique<Foo>(1));
-	foos.push_back(std::make_unique<Foo>(2));
-	bars.push_back(std::make_unique<Bar>(3));
-	bars.push_back(std::make_unique<Bar>(4));
-	bars.push_back(std::make_unique<Bar>(5));
-
+	foos.push_back(makeUnique<Foo>(0));
+	foos.push_back(makeUnique<Foo>(1));
+	foos.push_back(makeUnique<Foo>(2));
+	auto bars = []() -> std::generator<UniquePtr<Bar>> {
+		for (int i(3); ; ++i)
+			co_yield makeUnique<Bar>(i);
+	}() | std::views::take(3) | std::views::as_rvalue | std::ranges::to<Array<UniquePtr<Base>>>();
+	
 	// NOTE: views::merge unfortunately is only considered for C++26, so we cannot have a single Enumerable<UniquePtr<Base>> for both source containers.
-	Enumerable<UniquePtr<Base>> fooBases = foos | std::views::as_rvalue;
-	Enumerable<UniquePtr<Base>> barBases = bars | std::views::as_rvalue;
+	Enumerable<UniquePtr<Base>> fooBases = foos | std::views::as_rvalue | std::views::drop(1);
+	Enumerable<UniquePtr<Base>> barBases = bars | std::views::reverse | std::views::as_rvalue | std::views::drop(1);
 
-	int i = 0;
+	if (foos[0] == nullptr || foos[1] != nullptr || foos[2] != nullptr)
+		return -1;
+
+	if (bars[0] != nullptr || bars[1] != nullptr || bars[2] == nullptr)
+		return -2;
+
+	int i = 1;
 	for (auto& base : fooBases)
 		if (base->index() != i++)
-			return -1;
-
-	for (auto& base : barBases)
-		if (base->index() != i++)
-			return -2;
-
-	for (auto& foo : foos)
-		if (foo != nullptr)
 			return -3;
 
-	for (auto& bar : bars)
-		if (bar != nullptr)
+	i = 4;
+	for (auto& base : barBases)
+		if (base->index() != i--)
 			return -4;
 
 	Enumerable<UniquePtr<Base>> moreBases = fooBases | std::views::drop(1) | std::views::as_rvalue;
 	
-	i = 1;
+	i = 2;
 	for (auto& base : moreBases)
 		if (base->index() != i++)
 			return -5;
