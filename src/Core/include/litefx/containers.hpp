@@ -238,9 +238,22 @@ namespace LiteFX {
 		/// Creates a new `Enumerable` from an initializer list.
 		/// </summary>
 		/// <param name="input">The initializer list that contains the elements, the `Enumerable` is initialized with.</param>
-		constexpr explicit Enumerable(std::initializer_list<T> input) noexcept :
-			m_elements{ input }, m_size(input.size())
+		constexpr Enumerable(std::initializer_list<T> input) :
+			m_elements{ input }, m_size{ input.size() }
 		{
+		}
+
+		/// <summary>
+		/// Creates a new `Enumerable` from a set of arguments.
+		/// </summary>
+		/// <typeparam name="...TArgs">The types of the arguments.</typeparam>
+		/// <param name="...args">The arguments.</param>
+		template <typename... TArgs> requires rtti::are_same<T, TArgs...>
+		constexpr explicit inline Enumerable(TArgs&&... args) noexcept
+		{
+			auto input = std::to_array({ std::forward<TArgs>(args)... });
+			m_size = input.size();
+			m_elements = { std::make_move_iterator(std::begin(input)), std::make_move_iterator(std::end(input)) };
 		}
 
 		/// <summary>
