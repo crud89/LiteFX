@@ -24,9 +24,10 @@ private:
     mutable std::mutex m_mutex;
 
 public:
-    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device, Array<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
-        base(parent), m_device(device), m_layouts(std::move(descriptorLayouts)), m_space(space), m_stages(stages)
+    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
+        base(parent), m_device(device), m_space(space), m_stages(stages)
     {
+        m_layouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device) :
@@ -262,7 +263,7 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
 
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
 {
-    return [this, descriptors, &bindings]() mutable -> std::experimental::generator<UniquePtr<DirectX12DescriptorSet>> {
+    return [this, descriptors, &bindings]() mutable -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
         for (auto& binding : bindings)
             co_yield this->allocate(descriptors, binding);
 
@@ -273,7 +274,7 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
 
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const
 {
-    return [this, descriptors, &bindingFactory]() -> std::experimental::generator<UniquePtr<DirectX12DescriptorSet>> {
+    return [this, descriptors, &bindingFactory]() -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
         for (int i(0); ; ++i)
             co_yield this->allocate(descriptors, bindingFactory(i));
     }() | std::views::take(count) | std::views::as_rvalue;

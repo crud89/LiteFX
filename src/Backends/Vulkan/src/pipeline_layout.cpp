@@ -18,9 +18,10 @@ private:
     const VulkanDevice& m_device;
 
 public:
-    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-        base(parent), m_device(device), m_descriptorSetLayouts(std::move(descriptorLayouts)), m_pushConstantsLayout(std::move(pushConstantsLayout))
+    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+        base(parent), m_device(device), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
+        m_descriptorSetLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device) :
@@ -69,7 +70,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
     m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout))), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();

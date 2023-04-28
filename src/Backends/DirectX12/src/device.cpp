@@ -204,14 +204,18 @@ public:
 
 			// Allocate descriptor set layouts.
 			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
-			Array<UniquePtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts;
-			Array<UniquePtr<DirectX12DescriptorLayout>> bufferLayouts, samplerLayouts;
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16));
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0));
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0));
-			samplerLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0));
-			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute));
-			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute));
+			auto bufferLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16), 
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0),
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0)
+			);
+			auto samplerLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0) 
+			);
+			auto descriptorSetLayouts = Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>(
+				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute),
+				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute)
+			);
 			
 			// Create a pipeline layout.
 			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(*m_parent, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));

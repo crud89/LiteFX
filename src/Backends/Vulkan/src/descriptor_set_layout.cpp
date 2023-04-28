@@ -48,9 +48,7 @@ public:
     VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
         base(parent), m_device(device), m_space(space), m_stages(stages), m_poolSize(poolSize)
     {
-        m_descriptorLayouts.reserve(descriptorLayouts.size());
-        //(std::move(descriptorLayouts))
-        throw;
+        m_descriptorLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device) :
@@ -360,7 +358,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
 
 Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
 {
-    return [this, descriptors, &bindings]() -> std::experimental::generator<UniquePtr<VulkanDescriptorSet>> {
+    return [this, descriptors, &bindings]() -> std::generator<UniquePtr<VulkanDescriptorSet>> {
         for (auto& binding : bindings)
             co_yield this->allocate(descriptors, binding);
         
@@ -371,7 +369,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
 
 Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const
 {
-    return [this, descriptors, &bindingFactory]() -> std::experimental::generator<UniquePtr<VulkanDescriptorSet>> {
+    return [this, descriptors, &bindingFactory]() -> std::generator<UniquePtr<VulkanDescriptorSet>> {
         for (int i(0); ; ++i)
             co_yield this->allocate(descriptors, bindingFactory(i));
     }() | std::views::take(count) | std::views::as_rvalue;

@@ -646,7 +646,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="ranges">The ranges contained by the layout.</param>
 		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
-		explicit DirectX12PushConstantsLayout(Array<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size);
+		explicit DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size);
 		DirectX12PushConstantsLayout(const DirectX12PushConstantsLayout&) = delete;
 		DirectX12PushConstantsLayout(DirectX12PushConstantsLayout&&) = delete;
 		virtual ~DirectX12PushConstantsLayout() noexcept;
@@ -692,8 +692,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
 		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-		explicit DirectX12PipelineLayout(const DirectX12Device& device, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
-
+		explicit DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
 		DirectX12PipelineLayout(DirectX12PipelineLayout&&) noexcept = delete;
 		DirectX12PipelineLayout(const DirectX12PipelineLayout&) noexcept = delete;
 		virtual ~DirectX12PipelineLayout() noexcept;

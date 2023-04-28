@@ -622,7 +622,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="ranges">The ranges contained by the layout.</param>
 		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
-		explicit VulkanPushConstantsLayout(Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size);
+		explicit VulkanPushConstantsLayout(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size);
 		VulkanPushConstantsLayout(const VulkanPushConstantsLayout&) = delete;
 		VulkanPushConstantsLayout(VulkanPushConstantsLayout&&) = delete;
 		virtual ~VulkanPushConstantsLayout() noexcept;
@@ -674,7 +674,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="device">The parent device, the layout is created from.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
 		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-		explicit VulkanPipelineLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
+		explicit VulkanPipelineLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
 		VulkanPipelineLayout(VulkanPipelineLayout&&) noexcept = delete;
 		VulkanPipelineLayout(const VulkanPipelineLayout&) noexcept = delete;
 		virtual ~VulkanPipelineLayout() noexcept;

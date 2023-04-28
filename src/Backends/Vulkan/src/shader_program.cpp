@@ -206,30 +206,26 @@ public:
         });
 
         // Create the descriptor set layouts.
-        Array<UniquePtr<VulkanDescriptorSetLayout>> descriptorSets(descriptorSetLayouts.size());
-        std::ranges::generate(descriptorSets, [this, &descriptorSetLayouts, i = 0]() mutable {
-            // Get the descriptor set layout.
-            auto it = descriptorSetLayouts.begin();
-            std::advance(it, i++);
-            auto& descriptorSet = it->second;
+        auto descriptorSets = [this, &descriptorSetLayouts]() -> std::generator<UniquePtr<VulkanDescriptorSetLayout>> {
+            for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
+            {
+                auto& descriptorSet = it->second;
 
-            // Create the descriptor layouts.
-            auto descriptorLayouts = [&descriptorSet]() -> std::experimental::generator<UniquePtr<VulkanDescriptorLayout>> {
-                for (int i(0); ; ++i) {
-                    auto& descriptor = descriptorSet.descriptors[i];
-                    co_yield makeUnique<VulkanDescriptorLayout>(descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements);
-                }
-            }() | std::views::take(descriptorSet.descriptors.size()) | std::views::as_rvalue;
+                // Create the descriptor layouts.
+                auto descriptorLayouts = [&descriptorSet]() -> std::generator<UniquePtr<VulkanDescriptorLayout>> {
+                    for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
+                        co_yield makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
+                }() | std::views::as_rvalue;
 
-            return makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
-        });
+                co_yield makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
+            }
+        }() | std::views::as_rvalue;
 
         // Create the push constants layout.
-        Array<UniquePtr<VulkanPushConstantsRange>> pushConstants(pushConstantRanges.size());
-        std::ranges::generate(pushConstants, [&pushConstantRanges, i = 0]() mutable {
-            auto& range = pushConstantRanges[i++];
-            return makeUnique<VulkanPushConstantsRange>(range.stage, range.offset, range.size, 0, 0);   // No space or binding for Vulkan push constants.
-        });
+        auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<VulkanPushConstantsRange>> {
+            for (auto it = pushConstantRanges.begin(); it != pushConstantRanges.end(); ++it)
+                co_yield makeUnique<VulkanPushConstantsRange>(it->stage, it->offset, it->size, 0, 0);   // No space or binding for Vulkan push constants.
+        }() | std::views::as_rvalue;
 
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants), overallSize);

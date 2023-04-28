@@ -184,25 +184,25 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	DirectX12Barrier startBarrier(PipelineStage::None, PipelineStage::Compute);
 	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ReadWrite);
 	this->barrier(startBarrier);
-	int resource = 0;
+	auto resource = resourceBindings.begin();
 
-	for (int l(0); l < image.layers(); ++l)
+	for (int l(0); l < image.layers(); ++l, ++resource)
 	{
 		auto size = image.extent();
 
 		for (UInt32 i(1); i < image.levels(); ++i, size /= 2)
 		{
 			// Update the invocation parameters.
-			resourceBindings[resource]->update(parametersLayout.binding(), *parameters, i, 1);
+			(*resource)->update(parametersLayout.binding(), *parameters, i, 1);
 
 			// Bind the previous mip map level to the SRV at binding point 1.
-			resourceBindings[resource]->update(1, image, 0, i - 1, 1, l, 1);
+			(*resource)->update(1, image, 0, i - 1, 1, l, 1);
 
 			// Bind the current level to the UAV at binding point 2.
-			resourceBindings[resource]->update(2, image, 0, i, 1, l, 1);
+			(*resource)->update(2, image, 0, i, 1, l, 1);
 
 			// Dispatch the pipeline.
-			this->bind(*resourceBindings[resource], pipeline);
+			this->bind(*(*resource), pipeline);
 			this->dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
 
 			// Wait for all writes.
