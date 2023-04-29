@@ -1188,10 +1188,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual const DirectX12FrameBuffer& activeFrameBuffer() const override;
 
 		/// <inheritdoc />
-		virtual Array<const DirectX12FrameBuffer*> frameBuffers() const noexcept override;
+		virtual Enumerable<const DirectX12FrameBuffer*> frameBuffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Array<const DirectX12RenderPipeline*> pipelines() const noexcept override;
+		virtual Enumerable<const DirectX12RenderPipeline*> pipelines() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const RenderTarget& renderTarget(const UInt32& location) const override;
@@ -1322,7 +1322,7 @@ namespace LiteFX::Rendering::Backends {
 		// SwapChain interface.
 	public:
 		/// <inheritdoc />
-		virtual Array<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
+		virtual Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
 
 		/// <inheritdoc />
 		virtual SharedPtr<TimingEvent> timingEvent(const UInt32& queryId) const override;
@@ -1343,14 +1343,17 @@ namespace LiteFX::Rendering::Backends {
 		virtual const Size2d& renderArea() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Array<const IDirectX12Image*> images() const noexcept override;
+		virtual const IDirectX12Image* image(const UInt32& backBuffer) const override;
+
+		/// <inheritdoc />
+		virtual Enumerable<const IDirectX12Image*> images() const noexcept override;
 
 		/// <inheritdoc />
 		virtual void present(const DirectX12FrameBuffer& frameBuffer) const override;
 
 	public:
 		/// <inheritdoc />
-		virtual Array<Format> getSurfaceFormats() const noexcept override;
+		virtual Enumerable<Format> getSurfaceFormats() const noexcept override;
 
 		/// <inheritdoc />
 		virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;

@@ -229,18 +229,14 @@ const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
     return *m_impl->m_activeFrameBuffer;
 }
 
-Array<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noexcept
+Enumerable<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noexcept
 {
-    return m_impl->m_frameBuffers |
-        std::views::transform([](const UniquePtr<DirectX12FrameBuffer>& frameBuffer) { return frameBuffer.get(); }) |
-        std::ranges::to<Array<const DirectX12FrameBuffer*>>();
+    return m_impl->m_frameBuffers | std::views::transform([](const UniquePtr<DirectX12FrameBuffer>& frameBuffer) { return frameBuffer.get(); });
 }
 
-Array<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
+Enumerable<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
 {
-    return m_impl->m_pipelines |
-        std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | std::ranges::to<Array<const DirectX12RenderPipeline*>>() |
-        std::ranges::to<Array<const DirectX12RenderPipeline*>>();
+    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | std::ranges::to<Array<const DirectX12RenderPipeline*>>();
 }
 
 const RenderTarget& DirectX12RenderPass::renderTarget(const UInt32& location) const
@@ -370,7 +366,7 @@ void DirectX12RenderPass::end() const
     endCommandBuffer->barrier(presentBarrier);
 
     // Add another barrier for the back buffer image, if required.
-    const IDirectX12Image* backBufferImage = m_impl->m_device.swapChain().images()[m_impl->m_backBuffer];
+    const IDirectX12Image* backBufferImage = m_impl->m_device.swapChain().image(m_impl->m_backBuffer);
 
     if (requiresResolve)
     {

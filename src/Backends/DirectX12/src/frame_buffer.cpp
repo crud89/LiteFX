@@ -77,8 +77,7 @@ public:
             {
                 // If the render target is a present target and should not be multi-sampled, acquire an image view directly from the swap chain.
                 // NOTE: Multi-sampling back-buffers directly is not supported (see https://docs.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#remarks).
-                auto swapChainImages = m_renderPass.device().swapChain().images();
-                renderTargetView = swapChainImages[m_bufferIndex];
+                renderTargetView = m_renderPass.device().swapChain().image(m_bufferIndex);
             }
             else
             {

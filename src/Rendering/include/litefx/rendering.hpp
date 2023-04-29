@@ -822,10 +822,10 @@ namespace LiteFX::Rendering {
         virtual const frame_buffer_type& activeFrameBuffer() const = 0;
 
         /// <inheritdoc />
-        virtual Array<const frame_buffer_type*> frameBuffers() const noexcept = 0;
+        virtual Enumerable<const frame_buffer_type*> frameBuffers() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual Array<const render_pipeline_type*> pipelines() const noexcept = 0;
+        virtual Enumerable<const render_pipeline_type*> pipelines() const noexcept = 0;
 
         /// <inheritdoc />
         virtual Span<const input_attachment_mapping_type> inputAttachments() const noexcept = 0;
@@ -834,14 +834,12 @@ namespace LiteFX::Rendering {
         virtual void updateAttachments(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
-        virtual Array<const IFrameBuffer*> getFrameBuffers() const noexcept override {
-            auto frameBuffers = this->frameBuffers();
-            return Array<const IFrameBuffer*>(frameBuffers.begin(), frameBuffers.end());
+        virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept override {
+            return this->frameBuffers();
         }
 
-        virtual Array<const IRenderPipeline*> getPipelines() const noexcept override {
-            auto pipelines = this->pipelines();
-            return Array<const IRenderPipeline*>(pipelines.begin(), pipelines.end());
+        virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
+            return this->pipelines();
         }
 
         virtual void setAttachments(const IDescriptorSet& descriptorSet) const override {
@@ -866,7 +864,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const image_interface_type*> images() const noexcept = 0;
+        virtual Enumerable<const image_interface_type*> images() const noexcept = 0;
 
         /// <summary>
         /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
@@ -880,9 +878,8 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Array<const IImage*> getImages() const noexcept override {
-            auto images = this->images();
-            return Array<const IImage*>(images.begin(), images.end());
+        virtual Enumerable<const IImage*> getImages() const noexcept override {
+            return this->images();
         }
     };
 

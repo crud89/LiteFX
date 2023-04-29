@@ -760,7 +760,7 @@ public:
 	}
 
 public:
-	Array<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const noexcept
+	Enumerable<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const noexcept
 	{
 		uint32_t formats;
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
@@ -768,7 +768,7 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | std::ranges::to<Array<Format>>();
+		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); });
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
@@ -842,7 +842,7 @@ const VkQueryPool& VulkanSwapChain::timestampQueryPool() const noexcept
 	return m_impl->currentTimestampQueryPool();
 }
 
-Array<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const noexcept
+Enumerable<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const noexcept
 {
 	return m_impl->m_timingEvents;
 }
@@ -898,9 +898,17 @@ const Size2d& VulkanSwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-Array<const IVulkanImage*> VulkanSwapChain::images() const noexcept
+const IVulkanImage* VulkanSwapChain::image(const UInt32& backBuffer) const
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IVulkanImage>& image) { return image.get(); }) | std::ranges::to<Array<const IVulkanImage*>>();
+	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The back buffer must be a valid index.");
+
+	return m_impl->m_presentImages[backBuffer].get();
+}
+
+Enumerable<const IVulkanImage*> VulkanSwapChain::images() const noexcept
+{
+	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IVulkanImage>& image) { return image.get(); });
 }
 
 void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const
@@ -908,7 +916,7 @@ void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const
 	m_impl->present(frameBuffer);
 }
 
-Array<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
+Enumerable<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
 {
 	return m_impl->getSurfaceFormats(m_impl->m_device.adapter().handle(), m_impl->m_device.surface().handle());
 }

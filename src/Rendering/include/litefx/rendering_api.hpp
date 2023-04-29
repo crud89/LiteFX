@@ -4548,7 +4548,7 @@ namespace LiteFX::Rendering {
         /// Returns a list of all frame buffers.
         /// </summary>
         /// <returns>A list of all frame buffers. </returns>
-        Array<const IFrameBuffer*> frameBuffers() const noexcept {
+        Enumerable<const IFrameBuffer*> frameBuffers() const noexcept {
             return this->getFrameBuffers();
         }
 
@@ -4557,7 +4557,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>An array of all render pipelines, owned by the render pass.</returns>
         /// <seealso cref="IRenderPipeline" />
-        Array<const IRenderPipeline*> pipelines() const noexcept {
+        Enumerable<const IRenderPipeline*> pipelines() const noexcept {
             return this->getPipelines();
         }
 
@@ -4653,8 +4653,8 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Array<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
-        virtual Array<const IRenderPipeline*> getPipelines() const noexcept = 0;
+        virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
+        virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
         virtual void setAttachments(const IDescriptorSet& descriptorSet) const = 0;
     };
 
@@ -4732,7 +4732,7 @@ namespace LiteFX::Rendering {
         /// Returns all registered timing events.
         /// </summary>
         /// <returns>An array, containing all registered timing events.</returns>
-        virtual Array<SharedPtr<TimingEvent>> timingEvents() const noexcept = 0;
+        virtual Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept = 0;
 
         /// <summary>
         /// Returns the timing event registered for <paramref name="queryId" />.
@@ -4781,10 +4781,17 @@ namespace LiteFX::Rendering {
         virtual const Size2d& renderArea() const noexcept = 0;
 
         /// <summary>
+        /// Returns the swap chain present image for <paramref name="backBuffer" />.
+        /// </summary>
+        /// <param name="backBuffer">The index of the back buffer for which to return the swap chain present image.</param>
+        /// <returns>A pointer to the back buffers swap chain present image.</returns>
+        virtual const IImage* image(const UInt32& backBuffer) const = 0;
+
+        /// <summary>
         /// Returns an array of the swap chain present images.
         /// </summary>
         /// <returns>Returns an array of the swap chain present images.</returns>
-        Array<const IImage*> images() const noexcept {
+        Enumerable<const IImage*> images() const noexcept {
             return this->getImages();
         };
 
@@ -4813,7 +4820,7 @@ namespace LiteFX::Rendering {
         /// <returns>An array of supported formats, that can be drawn to the surface.</returns>
         /// <see cref="surface" />
         /// <seealso cref="ISurface" />
-        virtual Array<Format> getSurfaceFormats() const noexcept = 0;
+        virtual Enumerable<Format> getSurfaceFormats() const noexcept = 0;
 
         /// <summary>
         /// Causes the swap chain to be re-created. All frame and command buffers will be invalidated and rebuilt.
@@ -4838,7 +4845,7 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
 
     private:
-        virtual Array<const IImage*> getImages() const noexcept = 0;
+        virtual Enumerable<const IImage*> getImages() const noexcept = 0;
         virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) = 0;
     };
 
