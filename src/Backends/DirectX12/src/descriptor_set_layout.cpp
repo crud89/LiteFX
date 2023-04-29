@@ -263,21 +263,21 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
 
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
 {
-    return [this, descriptors, &bindings]() mutable -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
+    return [this, descriptors, &bindings, &count]() mutable -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
         for (auto& binding : bindings)
             co_yield this->allocate(descriptors, binding);
 
-        for (;;)
+        for (int i = static_cast<int>(bindings.size()); i < count; ++i)
             co_yield this->allocate(descriptors);
-    }() | std::views::take(count) | std::views::as_rvalue;
+    }() | std::views::as_rvalue;
 }
 
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const
 {
-    return [this, descriptors, &bindingFactory]() -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
-        for (int i(0); ; ++i)
+    return [this, descriptors, &bindingFactory, &count]() -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
+        for (int i = 0; i < count; ++i)
             co_yield this->allocate(descriptors, bindingFactory(i));
-    }() | std::views::take(count) | std::views::as_rvalue;
+    }() | std::views::as_rvalue;
 }
 
 void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptorSet) const noexcept
