@@ -750,7 +750,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Array<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const noexcept override;
+		virtual Enumerable<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const DirectX12VertexBufferLayout& vertexBufferLayout(const UInt32& binding) const override;
@@ -1105,13 +1105,13 @@ namespace LiteFX::Rendering::Backends {
 		virtual size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Array<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
+		virtual Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
 		virtual SharedPtr<const DirectX12CommandBuffer> commandBuffer(const UInt32& index) const override;
 
 		/// <inheritdoc />
-		virtual Array<const IDirectX12Image*> images() const noexcept override;
+		virtual Enumerable<const IDirectX12Image*> images() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const IDirectX12Image& image(const UInt32& location) const override;

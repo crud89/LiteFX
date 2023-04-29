@@ -183,12 +183,12 @@ SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(cons
     return m_impl->m_commandBuffers[index];
 }
 
-Array<SharedPtr<const DirectX12CommandBuffer>> DirectX12FrameBuffer::commandBuffers() const noexcept
+Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12FrameBuffer::commandBuffers() const noexcept
 {
-    return m_impl->m_commandBuffers | std::ranges::to<Array<SharedPtr<const DirectX12CommandBuffer>>>();
+    return m_impl->m_commandBuffers;
 }
 
-Array<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
+Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }

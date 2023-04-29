@@ -61,11 +61,9 @@ DirectX12InputAssembler::DirectX12InputAssembler() noexcept :
 
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
-Array<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const noexcept
+Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const noexcept
 {
-    return m_impl->m_vertexBufferLayouts |
-        std::views::transform([](const auto& pair) { return pair.second.get(); }) |
-        std::ranges::to<Array<const DirectX12VertexBufferLayout*>>();
+    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
 
 const DirectX12VertexBufferLayout& DirectX12InputAssembler::vertexBufferLayout(const UInt32 & binding) const

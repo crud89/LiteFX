@@ -172,12 +172,12 @@ SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(const UInt
 	return m_impl->m_commandBuffers[index];
 }
 
-Array<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
+Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
 {
-    return m_impl->m_commandBuffers | std::ranges::to<Array<SharedPtr<const VulkanCommandBuffer>>>();
+    return m_impl->m_commandBuffers;
 }
 
-Array<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
+Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }

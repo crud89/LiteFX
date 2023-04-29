@@ -398,7 +398,7 @@ void DirectX12RenderPass::end() const
     // End the command buffer recording and submit all command buffers.
     // NOTE: In order to suspend/resume render passes, we need to pass them to the queue in one `ExecuteCommandLists` (i.e. submit) call. The order we pass them to the call is 
     //       important, since the first command list also gets executed first.
-    auto commandBuffers = frameBuffer->commandBuffers();
+    auto commandBuffers = frameBuffer->commandBuffers() | std::ranges::to<std::vector>();
     commandBuffers.insert(commandBuffers.begin(), m_impl->m_beginCommandBuffers[buffer]);
     commandBuffers.push_back(endCommandBuffer);
 

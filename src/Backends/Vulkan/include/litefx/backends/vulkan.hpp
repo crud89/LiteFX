@@ -733,7 +733,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Array<const VulkanVertexBufferLayout*> vertexBufferLayouts() const noexcept override;
+		virtual Enumerable<const VulkanVertexBufferLayout*> vertexBufferLayouts() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const VulkanVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const override;
@@ -1101,10 +1101,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual SharedPtr<const VulkanCommandBuffer> commandBuffer(const UInt32& index) const override;
 
 		/// <inheritdoc />
-		virtual Array<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
+		virtual Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Array<const IVulkanImage*> images() const noexcept override;
+		virtual Enumerable<const IVulkanImage*> images() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const IVulkanImage& image(const UInt32& location) const override;

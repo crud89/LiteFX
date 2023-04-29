@@ -3778,7 +3778,7 @@ namespace LiteFX::Rendering {
         /// Returns all vertex buffer layouts of the input assembly.
         /// </summary>
         /// <returns>All vertex buffer layouts of the input assembly.</returns>
-        Array<const IVertexBufferLayout*> vertexBufferLayouts() const noexcept {
+        Enumerable<const IVertexBufferLayout*> vertexBufferLayouts() const noexcept {
             return this->getVertexBufferLayouts();
         }
 
@@ -3802,7 +3802,7 @@ namespace LiteFX::Rendering {
         virtual const PrimitiveTopology& topology() const noexcept = 0;
 
     private:
-        virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept = 0;
+        virtual Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept = 0;
     };
 
     /// <summary>
@@ -4447,7 +4447,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All command buffers, the frame buffer stores.</returns>
         /// <seealso cref="commandBuffer" />
-        Array<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
+        Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
             return this->getCommandBuffers();
         }
 
@@ -4466,7 +4466,7 @@ namespace LiteFX::Rendering {
         /// Returns the images that store the output attachments for the render targets of the <see cref="RenderPass" />.
         /// </summary>
         /// <returns>The images that store the output attachments for the render targets of the <see cref="RenderPass" />.</returns>
-        Array<const IImage*> images() const noexcept {
+        Enumerable<const IImage*> images() const noexcept {
             return this->getImages();
         }
 
@@ -4491,8 +4491,8 @@ namespace LiteFX::Rendering {
 
     private:
         virtual SharedPtr<const ICommandBuffer> getCommandBuffer(const UInt32& index) const noexcept = 0;
-        virtual Array<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
-        virtual Array<const IImage*> getImages() const noexcept = 0;
+        virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
+        virtual Enumerable<const IImage*> getImages() const noexcept = 0;
     };
 
     /// <summary>

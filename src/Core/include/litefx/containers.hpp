@@ -213,7 +213,7 @@ namespace LiteFX {
 
 	private:
 		array_type m_elements;
-		size_type m_size;
+		size_type m_size = 0;
 
 	public:
 		/// <summary>

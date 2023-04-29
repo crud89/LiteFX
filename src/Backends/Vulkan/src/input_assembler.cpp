@@ -62,11 +62,9 @@ VulkanInputAssembler::VulkanInputAssembler() noexcept :
 
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
-Array<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const noexcept
+Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const noexcept
 {
-    return m_impl->m_vertexBufferLayouts |
-        std::views::transform([](const auto& pair) { return pair.second.get(); }) |
-        std::ranges::to<Array<const VulkanVertexBufferLayout*>>();
+    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
 
 const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(const UInt32& binding) const

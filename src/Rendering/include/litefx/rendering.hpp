@@ -408,7 +408,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
+        virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const vertex_buffer_layout_type& vertexBufferLayout(const UInt32& binding) const = 0;
@@ -417,9 +417,8 @@ namespace LiteFX::Rendering {
         virtual const index_buffer_layout_type& indexBufferLayout() const = 0;
 
     private:
-        virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
-            auto layouts = this->vertexBufferLayouts();
-            return Array<const IVertexBufferLayout*>(layouts.begin(), layouts.end());
+        virtual Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
+            return this->vertexBufferLayouts();
         }
     };
 
@@ -701,13 +700,13 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
+        virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
 
         /// <inheritdoc />
         virtual SharedPtr<const command_buffer_type> commandBuffer(const UInt32& index) const = 0;
 
         /// <inheritdoc />
-        virtual Array<const image_type*> images() const noexcept = 0;
+        virtual Enumerable<const image_type*> images() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const image_type& image(const UInt32& location) const = 0;
@@ -717,14 +716,12 @@ namespace LiteFX::Rendering {
             return this->commandBuffer(index);
         }
 
-        virtual Array<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
-            auto commandBuffers = this->commandBuffers();
-            return Array<SharedPtr<const ICommandBuffer>>(commandBuffers.begin(), commandBuffers.end());
+        virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
+            return this->commandBuffers();
         }
 
-        virtual Array<const IImage*> getImages() const noexcept override {
-            auto images = this->images();
-            return Array<const IImage*>(images.begin(), images.end());
+        virtual Enumerable<const IImage*> getImages() const noexcept override {
+            return this->images();
         }
     };
 
