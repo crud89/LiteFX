@@ -322,7 +322,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Array<const VulkanShaderModule*> modules() const noexcept override;
+		virtual Enumerable<const VulkanShaderModule*> modules() const noexcept override;
 
 		/// <inheritdoc />
 		virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout() const;
@@ -656,7 +656,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanPushConstantsRange& range(const ShaderStage& stage) const override;
 
 		/// <inheritdoc />
-		virtual Array<const VulkanPushConstantsRange*> ranges() const noexcept override;
+		virtual Enumerable<const VulkanPushConstantsRange*> ranges() const noexcept override;
 	};
 
 	/// <summary>
@@ -699,7 +699,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanDescriptorSetLayout& descriptorSet(const UInt32& space) const override;
 
 		/// <inheritdoc />
-		virtual Array<const VulkanDescriptorSetLayout*> descriptorSets() const noexcept override;
+		virtual Enumerable<const VulkanDescriptorSetLayout*> descriptorSets() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const VulkanPushConstantsLayout* pushConstants() const noexcept override;

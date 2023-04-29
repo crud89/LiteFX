@@ -291,7 +291,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Array<const DirectX12ShaderModule*> modules() const noexcept override;
+		virtual Enumerable<const DirectX12ShaderModule*> modules() const noexcept override;
 
 		/// <inheritdoc />
 		virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout() const;
@@ -666,14 +666,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual const DirectX12PushConstantsRange& range(const ShaderStage& stage) const override;
 
 		/// <inheritdoc />
-		virtual Array<const DirectX12PushConstantsRange*> ranges() const noexcept override;
+		virtual Enumerable<const DirectX12PushConstantsRange*> ranges() const noexcept override;
 
 	protected:
 		/// <summary>
 		/// Returns an array of pointers to the push constant ranges of the layout.
 		/// </summary>
 		/// <returns>An array of pointers to the push constant ranges of the layout.</returns>
-		virtual Array<DirectX12PushConstantsRange*> ranges() noexcept;
+		virtual Enumerable<DirectX12PushConstantsRange*> ranges() noexcept;
 	};
 
 	/// <summary>
@@ -689,7 +689,6 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new DirectX 12 render pipeline layout.
 		/// </summary>
 		/// <param name="device">The parent device, the layout is created from.</param>
-		/// <param name="shaderProgram">The shader program used by the pipeline.</param>
 		/// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
 		/// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
 		explicit DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
@@ -717,7 +716,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const DirectX12DescriptorSetLayout& descriptorSet(const UInt32& space) const override;
 
 		/// <inheritdoc />
-		virtual Array<const DirectX12DescriptorSetLayout*> descriptorSets() const noexcept override;
+		virtual Enumerable<const DirectX12DescriptorSetLayout*> descriptorSets() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const DirectX12PushConstantsLayout* pushConstants() const noexcept override;

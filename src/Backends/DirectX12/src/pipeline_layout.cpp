@@ -233,11 +233,9 @@ const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(const
     throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
 }
 
-Array<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSets() const noexcept
+Enumerable<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSets() const noexcept
 {
-    return m_impl->m_descriptorSetLayouts |
-        std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); }) |
-        std::ranges::to<Array<const DirectX12DescriptorSetLayout*>>();
+    return m_impl->m_descriptorSetLayouts | std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); });
 }
 
 const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() const noexcept

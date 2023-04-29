@@ -93,11 +93,9 @@ const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(const ShaderSta
     return *m_impl->m_ranges[stage];
 }
 
-Array<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const noexcept
+Enumerable<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const noexcept
 {
-    return m_impl->m_rangePointers |
-        std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); }) |
-        std::ranges::to<Array<const VulkanPushConstantsRange*>>();
+    return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); });
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)

@@ -290,12 +290,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const push_constants_range_type*> ranges() const noexcept = 0;
+        virtual Enumerable<const push_constants_range_type*> ranges() const noexcept = 0;
 
     private:
-        virtual Array<const IPushConstantsRange*> getRanges() const noexcept override {
-            auto ranges = this->ranges();
-            return Array<const IPushConstantsRange*>(ranges.begin(), ranges.end());
+        virtual Enumerable<const IPushConstantsRange*> getRanges() const noexcept override {
+            return this->ranges();
         }
     };
 
@@ -315,12 +314,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const shader_module_type*> modules() const noexcept = 0;
+        virtual Enumerable<const shader_module_type*> modules() const noexcept = 0;
 
     private:
-        virtual Array<const IShaderModule*> getModules() const noexcept {
-            auto modules = this->modules();
-            return Array<const IShaderModule*>(modules.begin(), modules.end());
+        virtual Enumerable<const IShaderModule*> getModules() const noexcept {
+            return this->modules();
         }
     };
     
@@ -345,15 +343,14 @@ namespace LiteFX::Rendering {
         virtual const descriptor_set_layout_type& descriptorSet(const UInt32& space) const = 0;
 
         /// <inheritdoc />
-        virtual Array<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
+        virtual Enumerable<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const push_constants_layout_type* pushConstants() const noexcept = 0;
 
     private:
-        virtual Array<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
-            auto layouts = this->descriptorSets();
-            return Array<const IDescriptorSetLayout*>(layouts.begin(), layouts.end());
+        virtual Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
+            return this->descriptorSets();
         }
     };
 

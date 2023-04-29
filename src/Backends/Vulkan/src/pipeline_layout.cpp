@@ -45,7 +45,7 @@ public:
             std::ranges::to<Array<VkDescriptorSetLayout>>();
 
         // Query for push constant ranges.
-        Array<const VulkanPushConstantsRange*> ranges = m_pushConstantsLayout == nullptr ? Array<const VulkanPushConstantsRange*>{} : m_pushConstantsLayout->ranges();
+        auto ranges = m_pushConstantsLayout == nullptr ? Enumerable<const VulkanPushConstantsRange*>{} : m_pushConstantsLayout->ranges();
         auto rangeHandles = ranges |
             std::views::transform([](const VulkanPushConstantsRange* range) { return VkPushConstantRange{ .stageFlags = static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() }; }) |
             std::ranges::to<Array<VkPushConstantRange>>();
@@ -99,11 +99,9 @@ const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(const UInt3
     throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
 }
 
-Array<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept
+Enumerable<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept
 {
-    return m_impl->m_descriptorSetLayouts |
-        std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); }) |
-        std::ranges::to<Array<const VulkanDescriptorSetLayout*>>();
+    return m_impl->m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); });
 }
 
 const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noexcept

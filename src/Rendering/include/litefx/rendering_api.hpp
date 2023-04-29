@@ -3645,12 +3645,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All push constant ranges.</returns>
         /// <seealso cref="range" />
-        Array<const IPushConstantsRange*> ranges() const noexcept {
+        Enumerable<const IPushConstantsRange*> ranges() const noexcept {
             return this->getRanges();
         }
 
     private:
-        virtual Array<const IPushConstantsRange*> getRanges() const noexcept = 0;
+        virtual Enumerable<const IPushConstantsRange*> getRanges() const noexcept = 0;
     };
 
     /// <summary>
@@ -3666,7 +3666,7 @@ namespace LiteFX::Rendering {
         /// Returns the modules, the shader program is build from.
         /// </summary>
         /// <returns>The modules, the shader program is build from.</returns>
-        Array<const IShaderModule*> modules() const noexcept {
+        Enumerable<const IShaderModule*> modules() const noexcept {
             return this->getModules();
         }
 
@@ -3699,7 +3699,7 @@ namespace LiteFX::Rendering {
         };
 
     private:
-        virtual Array<const IShaderModule*> getModules() const noexcept = 0;
+        virtual Enumerable<const IShaderModule*> getModules() const noexcept = 0;
         virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const = 0;
     };
 
@@ -3722,7 +3722,7 @@ namespace LiteFX::Rendering {
         /// Returns all descriptor set layouts, the pipeline has been initialized with.
         /// </summary>
         /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
-        Array<const IDescriptorSetLayout*> descriptorSets() const noexcept {
+        Enumerable<const IDescriptorSetLayout*> descriptorSets() const noexcept {
             return this->getDescriptorSets();
         }
 
@@ -3733,7 +3733,7 @@ namespace LiteFX::Rendering {
         virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
 
     private:
-        virtual Array<const IDescriptorSetLayout*> getDescriptorSets() const noexcept = 0;
+        virtual Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept = 0;
     };
 
     /// <summary>
