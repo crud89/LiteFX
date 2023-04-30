@@ -200,18 +200,22 @@ public:
 			Array<UniquePtr<DirectX12ShaderModule>> modules;
 			auto blitShader = LiteFX::Backends::DirectX12::Shaders::blit_dxi::open();
 			modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, blitShader, LiteFX::Backends::DirectX12::Shaders::blit_dxi::name(), "main")));
-			auto shaderProgram = makeShared<DirectX12ShaderProgram>(*m_parent, std::move(modules));
+			auto shaderProgram = makeShared<DirectX12ShaderProgram>(*m_parent, std::move(modules | std::views::as_rvalue));
 
 			// Allocate descriptor set layouts.
 			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
-			Array<UniquePtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts;
-			Array<UniquePtr<DirectX12DescriptorLayout>> bufferLayouts, samplerLayouts;
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16));
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0));
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0));
-			samplerLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0));
-			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute));
-			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute));
+			auto bufferLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16), 
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0),
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0)
+			);
+			auto samplerLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0) 
+			);
+			auto descriptorSetLayouts = Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>(
+				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute),
+				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute)
+			);
 			
 			// Create a pipeline layout.
 			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(*m_parent, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
@@ -550,7 +554,7 @@ MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& form
 
 	for (int level(0); level < allLevels.size(); ++level)
 	{
-		levels.SampleCount = static_cast<UInt32>(allLevels[level]);
+		levels.SampleCount = std::to_underlying(allLevels[level]);
 		
 		if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &levels, sizeof(levels))))
 			continue;

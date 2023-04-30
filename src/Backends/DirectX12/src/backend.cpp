@@ -62,7 +62,7 @@ public:
                 adapterInterface->GetDesc1(&adapterDecriptor);
                 
                 // Ignore software rasterizer adapters.
-                if (LITEFX_FLAG_IS_SET(adapterDecriptor.Flags, DXGI_ADAPTER_FLAG_SOFTWARE))
+                if (adapterDecriptor.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
                     continue;
 
                 raiseIfFailed<RuntimeException>(adapterInterface.As(&adapterInstance), "The hardware adapter is not a valid IDXGIAdapter4 instance.");
@@ -105,9 +105,9 @@ void DirectX12Backend::deactivate()
     this->state() = BackendState::Inactive;
 }
 
-Array<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
+Enumerable<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); }) | ranges::to<Array<const DirectX12GraphicsAdapter*>>();
+    return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); });
 }
 
 const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const

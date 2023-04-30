@@ -514,7 +514,7 @@ LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSemanticName(
 	case LiteFX::Rendering::AttributeSemantic::TextureCoordinate: 
 		return "TEXCOORD";
 	default:
-		throw InvalidArgumentException("Unsupported semantic {0}.", static_cast<UInt32>(semantic));
+		throw InvalidArgumentException("Unsupported semantic {0}.", std::to_underlying(semantic));
 	}
 }
 

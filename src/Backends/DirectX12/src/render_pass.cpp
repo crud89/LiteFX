@@ -90,7 +90,7 @@ public:
                 renderTargetView = renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
 
                 return renderTargetDesc;
-            }) | ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
+            }) | std::ranges::to<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>>();
 
         if (m_depthStencilTarget == nullptr)
             std::get<1>(m_contexts[backBuffer]) = std::nullopt;
@@ -229,18 +229,14 @@ const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
     return *m_impl->m_activeFrameBuffer;
 }
 
-Array<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noexcept
+Enumerable<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noexcept
 {
-    return m_impl->m_frameBuffers |
-        std::views::transform([](const UniquePtr<DirectX12FrameBuffer>& frameBuffer) { return frameBuffer.get(); }) |
-        ranges::to<Array<const DirectX12FrameBuffer*>>();
+    return m_impl->m_frameBuffers | std::views::transform([](const UniquePtr<DirectX12FrameBuffer>& frameBuffer) { return frameBuffer.get(); });
 }
 
-Array<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
+Enumerable<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
 {
-    return m_impl->m_pipelines |
-        std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | ranges::to<Array<const DirectX12RenderPipeline*>>() |
-        ranges::to<Array<const DirectX12RenderPipeline*>>();
+    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | std::ranges::to<Array<const DirectX12RenderPipeline*>>();
 }
 
 const RenderTarget& DirectX12RenderPass::renderTarget(const UInt32& location) const
@@ -370,7 +366,7 @@ void DirectX12RenderPass::end() const
     endCommandBuffer->barrier(presentBarrier);
 
     // Add another barrier for the back buffer image, if required.
-    const IDirectX12Image* backBufferImage = m_impl->m_device.swapChain().images()[m_impl->m_backBuffer];
+    const IDirectX12Image* backBufferImage = m_impl->m_device.swapChain().image(m_impl->m_backBuffer);
 
     if (requiresResolve)
     {
@@ -398,12 +394,12 @@ void DirectX12RenderPass::end() const
     // End the command buffer recording and submit all command buffers.
     // NOTE: In order to suspend/resume render passes, we need to pass them to the queue in one `ExecuteCommandLists` (i.e. submit) call. The order we pass them to the call is 
     //       important, since the first command list also gets executed first.
-    auto commandBuffers = frameBuffer->commandBuffers();
+    auto commandBuffers = frameBuffer->commandBuffers() | std::ranges::to<std::vector>();
     commandBuffers.insert(commandBuffers.begin(), m_impl->m_beginCommandBuffers[buffer]);
     commandBuffers.push_back(endCommandBuffer);
 
     // Submit and store the fence.
-    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
+    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
 
     if (!m_impl->m_name.empty())
         m_impl->m_device.graphicsQueue().EndDebugRegion();

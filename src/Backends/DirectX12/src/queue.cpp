@@ -183,7 +183,7 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 	return fence;
 }
 
-UInt64 DirectX12Queue::submit(const Array<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const
+UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("At least one command buffer is not initialized.");
@@ -193,16 +193,16 @@ UInt64 DirectX12Queue::submit(const Array<SharedPtr<const DirectX12CommandBuffer
 	// Begin event.
 	auto buffers = commandBuffers |
 		std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
-		ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
+		std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
 	this->submitting(this, { buffers });
 
 	// End and submit the command buffers.
-	Array<ID3D12CommandList*> handles(commandBuffers.size());
-	std::ranges::generate(handles, [&commandBuffers, i = 0]() mutable {
-		const auto commandBuffer = commandBuffers[i++];
-		commandBuffer->end();
-		return commandBuffer->handle().Get();
-	});
+	auto handles = [&commandBuffers]() -> std::generator<ID3D12CommandList*> {
+		for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer) {
+			(*buffer)->end();
+			co_yield (*buffer)->handle().Get();
+		}
+	}() | std::ranges::to<Array<ID3D12CommandList*>>();
 
 	this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
 

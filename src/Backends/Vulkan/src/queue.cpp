@@ -257,12 +257,12 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, S
 	return fence;
 }
 
-UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const
+UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const
 {
 	return this->submit(commandBuffers, {}, {}, {});
 }
 
-UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
+UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("At least one command buffer is not initialized.");
@@ -270,18 +270,16 @@ UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& co
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// Begin event.
-	auto buffers = commandBuffers |
-		std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
-		ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
+	auto buffers = commandBuffers | std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); });
 	this->submitting(this, { buffers });
 
 	// End the command buffer.
-	Array<VkCommandBuffer> handles(commandBuffers.size());
-	std::ranges::generate(handles, [&commandBuffers, i = 0]() mutable {
-		const auto& commandBuffer = commandBuffers[i++];
-		commandBuffer->end();
-		return commandBuffer->handle();
-	});
+	auto handles = [&commandBuffers]() -> std::generator<VkCommandBuffer> {
+		for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer) {
+			(*buffer)->end();
+			co_yield (*buffer)->handle();
+		}
+	}() | std::ranges::to<Array<VkCommandBuffer>>();
 
 	// Create an array of all signal semaphores.
 	Array<VkSemaphore> semaphoresToSignal(signalSemaphores.size());

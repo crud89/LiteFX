@@ -374,11 +374,12 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	return image;
 }
 
-Array<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
-	Array<UniquePtr<IVulkanImage>> textures(elements);
-	std::ranges::generate(textures, [&, this]() { return this->createTexture(format, size, dimension, levels, layers, samples, allowWrite); });
-	return textures;
+	return [&, this]() -> std::generator<UniquePtr<IVulkanImage>> {
+		for (UInt32 i = 0; i < elements; ++i)
+			co_yield this->createTexture(format, size, dimension, levels, layers, samples, allowWrite);
+	}() | std::views::as_rvalue;
 }
 
 UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
@@ -398,9 +399,10 @@ UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& nam
 	return sampler;
 }
 
-Array<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
-	Array<UniquePtr<IVulkanSampler>> samplers(elements);
-	std::ranges::generate(samplers, [&, this]() { return this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy); });
-	return samplers;
+	return [&, this]() -> std::generator<UniquePtr<IVulkanSampler>> {
+		for (UInt32 i = 0; i < elements; ++i)
+			co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+	}() | std::views::as_rvalue;
 }

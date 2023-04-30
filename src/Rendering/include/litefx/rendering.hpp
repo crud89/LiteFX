@@ -208,56 +208,47 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const descriptor_layout_type*> descriptors() const noexcept = 0;
+        virtual Enumerable<const descriptor_layout_type*> descriptors() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const descriptor_layout_type& descriptor(const UInt32& binding) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const Array<DescriptorBinding>& bindings = { }) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(const UInt32& descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
 
         /// <inheritdoc />
         virtual void free(const descriptor_set_type& descriptorSet) const noexcept = 0;
 
     private:
-        virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept override {
-            auto descriptors = this->descriptors();
-            return Array<const IDescriptorLayout*>(descriptors.begin(), descriptors.end());
+        virtual Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept override {
+            return this->descriptors();
         }
 
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors, const Array<DescriptorBinding>& bindings = { }) const override {
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override {
             return this->allocate(descriptors, bindings);
         }
 
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings = { }) const override {
-            auto sets = this->allocateMultiple(descriptorSets, descriptors, bindings);
-            Array<UniquePtr<IDescriptorSet>> results;
-            results.reserve(sets.size());
-            std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
-            return results;
+        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override {
+            return this->allocateMultiple(descriptorSets, descriptors, bindings) | std::views::as_rvalue;
         }
 
-        virtual Array<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const override {
-            auto sets = this->allocateMultiple(descriptorSets, descriptors, bindingFactory);
-            Array<UniquePtr<IDescriptorSet>> results;
-            results.reserve(sets.size());
-            std::move(sets.begin(), sets.end(), std::inserter(results, results.end()));
-            return results;
+        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const override {
+            return this->allocateMultiple(descriptorSets, descriptors, bindingFactory) | std::views::as_rvalue;
         }
 
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
@@ -299,12 +290,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const push_constants_range_type*> ranges() const noexcept = 0;
+        virtual Enumerable<const push_constants_range_type*> ranges() const noexcept = 0;
 
     private:
-        virtual Array<const IPushConstantsRange*> getRanges() const noexcept override {
-            auto ranges = this->ranges();
-            return Array<const IPushConstantsRange*>(ranges.begin(), ranges.end());
+        virtual Enumerable<const IPushConstantsRange*> getRanges() const noexcept override {
+            return this->ranges();
         }
     };
 
@@ -324,12 +314,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const shader_module_type*> modules() const noexcept = 0;
+        virtual Enumerable<const shader_module_type*> modules() const noexcept = 0;
 
     private:
-        virtual Array<const IShaderModule*> getModules() const noexcept {
-            auto modules = this->modules();
-            return Array<const IShaderModule*>(modules.begin(), modules.end());
+        virtual Enumerable<const IShaderModule*> getModules() const noexcept {
+            return this->modules();
         }
     };
     
@@ -354,15 +343,14 @@ namespace LiteFX::Rendering {
         virtual const descriptor_set_layout_type& descriptorSet(const UInt32& space) const = 0;
 
         /// <inheritdoc />
-        virtual Array<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
+        virtual Enumerable<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const push_constants_layout_type* pushConstants() const noexcept = 0;
 
     private:
-        virtual Array<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
-            auto layouts = this->descriptorSets();
-            return Array<const IDescriptorSetLayout*>(layouts.begin(), layouts.end());
+        virtual Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
+            return this->descriptorSets();
         }
     };
 
@@ -420,7 +408,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
+        virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const vertex_buffer_layout_type& vertexBufferLayout(const UInt32& binding) const = 0;
@@ -429,9 +417,8 @@ namespace LiteFX::Rendering {
         virtual const index_buffer_layout_type& indexBufferLayout() const = 0;
 
     private:
-        virtual Array<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
-            auto layouts = this->vertexBufferLayouts();
-            return Array<const IVertexBufferLayout*>(layouts.begin(), layouts.end());
+        virtual Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
+            return this->vertexBufferLayouts();
         }
     };
 
@@ -713,13 +700,13 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
+        virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
 
         /// <inheritdoc />
         virtual SharedPtr<const command_buffer_type> commandBuffer(const UInt32& index) const = 0;
 
         /// <inheritdoc />
-        virtual Array<const image_type*> images() const noexcept = 0;
+        virtual Enumerable<const image_type*> images() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const image_type& image(const UInt32& location) const = 0;
@@ -729,14 +716,12 @@ namespace LiteFX::Rendering {
             return this->commandBuffer(index);
         }
 
-        virtual Array<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
-            auto commandBuffers = this->commandBuffers();
-            return Array<SharedPtr<const ICommandBuffer>>(commandBuffers.begin(), commandBuffers.end());
+        virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
+            return this->commandBuffers();
         }
 
-        virtual Array<const IImage*> getImages() const noexcept override {
-            auto images = this->images();
-            return Array<const IImage*>(images.begin(), images.end());
+        virtual Enumerable<const IImage*> getImages() const noexcept override {
+            return this->images();
         }
     };
 
@@ -837,10 +822,10 @@ namespace LiteFX::Rendering {
         virtual const frame_buffer_type& activeFrameBuffer() const = 0;
 
         /// <inheritdoc />
-        virtual Array<const frame_buffer_type*> frameBuffers() const noexcept = 0;
+        virtual Enumerable<const frame_buffer_type*> frameBuffers() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual Array<const render_pipeline_type*> pipelines() const noexcept = 0;
+        virtual Enumerable<const render_pipeline_type*> pipelines() const noexcept = 0;
 
         /// <inheritdoc />
         virtual Span<const input_attachment_mapping_type> inputAttachments() const noexcept = 0;
@@ -849,14 +834,12 @@ namespace LiteFX::Rendering {
         virtual void updateAttachments(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
-        virtual Array<const IFrameBuffer*> getFrameBuffers() const noexcept override {
-            auto frameBuffers = this->frameBuffers();
-            return Array<const IFrameBuffer*>(frameBuffers.begin(), frameBuffers.end());
+        virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept override {
+            return this->frameBuffers();
         }
 
-        virtual Array<const IRenderPipeline*> getPipelines() const noexcept override {
-            auto pipelines = this->pipelines();
-            return Array<const IRenderPipeline*>(pipelines.begin(), pipelines.end());
+        virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
+            return this->pipelines();
         }
 
         virtual void setAttachments(const IDescriptorSet& descriptorSet) const override {
@@ -881,7 +864,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const image_interface_type*> images() const noexcept = 0;
+        virtual Enumerable<const image_interface_type*> images() const noexcept = 0;
 
         /// <summary>
         /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
@@ -895,9 +878,8 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Array<const IImage*> getImages() const noexcept override {
-            auto images = this->images();
-            return Array<const IImage*>(images.begin(), images.end());
+        virtual Enumerable<const IImage*> getImages() const noexcept override {
+            return this->images();
         }
     };
 
@@ -929,12 +911,12 @@ namespace LiteFX::Rendering {
         virtual UInt64 submit(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual UInt64 submit(const Array<SharedPtr<command_buffer_type>>& commandBuffers) const {
-            return this->submit(commandBuffers | ranges::to<Array<SharedPtr<const command_buffer_type>>>());
+        virtual UInt64 submit(const Enumerable<SharedPtr<command_buffer_type>>& commandBuffers) const {
+            return this->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
         }
 
         /// <inheritdoc />
-        virtual UInt64 submit(const Array<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
+        virtual UInt64 submit(const Enumerable<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
 
     private:
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const override {
@@ -945,12 +927,8 @@ namespace LiteFX::Rendering {
             return this->submit(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
 
-        virtual UInt64 submitCommandBuffers(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
-            Array<SharedPtr<const command_buffer_type>> buffers = commandBuffers |
-                std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) |
-                ranges::to<Array<SharedPtr<const command_buffer_type>>>();
-
-            return this->submit(buffers);
+        virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
+            return this->submit(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
         }
     };
 
@@ -1025,7 +1003,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<TImage> createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<TImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+        virtual Enumerable<UniquePtr<TImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<TSampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
@@ -1034,7 +1012,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<TSampler> createSampler(const String& name, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 
         /// <inheritdoc />
-        virtual Array<UniquePtr<TSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+        virtual Enumerable<UniquePtr<TSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 
     private:
         virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const override { 
@@ -1077,12 +1055,8 @@ namespace LiteFX::Rendering {
             return this->createTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
         }
 
-        virtual Array<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const override { 
-            auto textures = this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite);
-            Array<UniquePtr<IImage>> results;
-            results.reserve(textures.size());
-            std::move(std::begin(textures), std::end(textures), std::inserter(results, std::end(results)));
-            return results;
+        virtual Enumerable<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const override {
+            return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite) | std::views::as_rvalue;
         }
         
         virtual UniquePtr<ISampler> getSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override { 
@@ -1093,12 +1067,8 @@ namespace LiteFX::Rendering {
             return this->createSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
         
-        virtual Array<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
-            auto samplers = this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
-            Array<UniquePtr<ISampler>> results;
-            results.reserve(samplers.size());
-            std::move(std::begin(samplers), std::end(samplers), std::inserter(results, std::end(results)));
-            return results;
+        virtual Enumerable<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
+            return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
         }
     };
 
@@ -1310,7 +1280,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Array<const adapter_type*> listAdapters() const = 0;
+        virtual Enumerable<const adapter_type*> listAdapters() const = 0;
 
         /// <inheritdoc />
         virtual const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
@@ -1355,9 +1325,8 @@ namespace LiteFX::Rendering {
 
         // IRenderBackend interface
     private:
-        virtual Array<const IGraphicsAdapter*> getAdapters() const override {
-            auto adapters = this->listAdapters();
-            return Array<const IGraphicsAdapter*>(adapters.begin(), adapters.end());
+        virtual Enumerable<const IGraphicsAdapter*> getAdapters() const override {
+            return this->listAdapters();
         }
     };
 }

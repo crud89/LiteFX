@@ -42,7 +42,7 @@ public:
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
-			ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
+			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
 		VkComputePipelineCreateInfo pipelineInfo = {};

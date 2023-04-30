@@ -78,8 +78,7 @@ public:
             if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
             {
                 // If the render target is a present target, acquire an image view from the swap chain.
-                auto swapChainImages = m_renderPass.device().swapChain().images();
-                auto image = swapChainImages[m_bufferIndex];
+                auto image = m_renderPass.device().swapChain().image(m_bufferIndex);
                 m_renderTargetViews.push_back(image);
                 attachmentViews.push_back(image->imageView());
             }
@@ -96,8 +95,7 @@ public:
         // If we have a present target and multi sampling is enabled, make sure to add a view for the resolve attachment.
         if (samples > MultiSamplingLevel::x1 && std::ranges::any_of(m_renderPass.renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }))
         {
-            auto swapChainImages = m_renderPass.device().swapChain().images();
-            auto image = swapChainImages[m_bufferIndex];
+            auto image = m_renderPass.device().swapChain().image(m_bufferIndex);
             m_renderTargetViews.push_back(image);
             attachmentViews.push_back(image->imageView());
         }
@@ -172,12 +170,12 @@ SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(const UInt
 	return m_impl->m_commandBuffers[index];
 }
 
-Array<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
+Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
 {
-    return m_impl->m_commandBuffers | ranges::to<Array<SharedPtr<const VulkanCommandBuffer>>>();
+    return m_impl->m_commandBuffers;
 }
 
-Array<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
+Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }
