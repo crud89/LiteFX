@@ -1452,7 +1452,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
 		/// <returns>The value of the fence, inserted after the command buffers.</returns>
 		/// <seealso cref="waitFor" />
-		virtual UInt64 submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
+		virtual UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
 
 		/// <summary>
 		/// Creates a command buffer that can be used to allocate commands on the queue.
@@ -1499,7 +1499,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
+		virtual UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
 
 		/// <inheritdoc />
 		virtual void waitFor(const UInt64& fence) const noexcept override;

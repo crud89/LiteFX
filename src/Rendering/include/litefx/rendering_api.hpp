@@ -4859,10 +4859,10 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct QueueSubmittingEventArgs : public EventArgs {
         private:
-            const Array<SharedPtr<const ICommandBuffer>> m_commandBuffers;
+            const Enumerable<SharedPtr<const ICommandBuffer>> m_commandBuffers;
 
         public:
-            QueueSubmittingEventArgs(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) :
+            QueueSubmittingEventArgs(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) :
                 EventArgs(), m_commandBuffers(commandBuffers) { }
             QueueSubmittingEventArgs(const QueueSubmittingEventArgs&) = default;
             QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) = default;
@@ -4877,7 +4877,7 @@ namespace LiteFX::Rendering {
             /// Gets the command buffers that are about to be submitted to the queue.
             /// </summary>
             /// <returns>An array containing the command buffers that are about to be submitted to the queue.</returns>
-            const Array<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
+            const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
                 return m_commandBuffers;
             }
         };
@@ -5052,7 +5052,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
+        UInt64 submit(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
             return this->submitCommandBuffers(commandBuffers);
         }
 
@@ -5068,8 +5068,8 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(const Array<SharedPtr<ICommandBuffer>>& commandBuffers) const {
-            return this->submitCommandBuffers(commandBuffers | std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>());
+        UInt64 submit(const Enumerable<SharedPtr<ICommandBuffer>>& commandBuffers) const {
+            return this->submitCommandBuffers(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
         }
 
         /// <summary>
@@ -5099,7 +5099,7 @@ namespace LiteFX::Rendering {
     private:
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const = 0;
         virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
-        virtual UInt64 submitCommandBuffers(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
+        virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
         
     protected:
         void releaseSharedState(const ICommandBuffer& commandBuffer) const {

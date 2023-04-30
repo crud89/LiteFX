@@ -399,7 +399,7 @@ void DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer);
 
     // Submit and store the fence.
-    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers);
+    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
 
     if (!m_impl->m_name.empty())
         m_impl->m_device.graphicsQueue().EndDebugRegion();

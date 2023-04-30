@@ -1436,7 +1436,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const Array<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
+		virtual UInt64 submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
 
 		/// <inheritdoc />
 		virtual void waitFor(const UInt64& fence) const noexcept override;

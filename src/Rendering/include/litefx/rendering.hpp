@@ -911,12 +911,12 @@ namespace LiteFX::Rendering {
         virtual UInt64 submit(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual UInt64 submit(const Array<SharedPtr<command_buffer_type>>& commandBuffers) const {
-            return this->submit(commandBuffers | std::ranges::to<Array<SharedPtr<const command_buffer_type>>>());
+        virtual UInt64 submit(const Enumerable<SharedPtr<command_buffer_type>>& commandBuffers) const {
+            return this->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
         }
 
         /// <inheritdoc />
-        virtual UInt64 submit(const Array<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
+        virtual UInt64 submit(const Enumerable<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
 
     private:
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const override {
@@ -927,12 +927,8 @@ namespace LiteFX::Rendering {
             return this->submit(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
 
-        virtual UInt64 submitCommandBuffers(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
-            Array<SharedPtr<const command_buffer_type>> buffers = commandBuffers |
-                std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) |
-                std::ranges::to<Array<SharedPtr<const command_buffer_type>>>();
-
-            return this->submit(buffers);
+        virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
+            return this->submit(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
         }
     };
 
