@@ -75,9 +75,10 @@ private:
     };
 
 public:
-    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device, Array<UniquePtr<DirectX12ShaderModule>>&& modules) :
-        base(parent), m_modules(std::move(modules)), m_device(device)
+    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
+        base(parent), m_device(device)
     {
+        m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device) :
@@ -367,7 +368,7 @@ void DirectX12ShaderProgram::suppressMissingRootSignatureWarning(bool disableWar
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, Array<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept :
+DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept :
     m_impl(makePimpl<DirectX12ShaderProgramImpl>(this, device, std::move(modules)))
 {
 }

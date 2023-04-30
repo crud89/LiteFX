@@ -22,7 +22,7 @@ public:
     }
 
 public:
-    void initialize(Array<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology)
+    void initialize(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
 
@@ -48,7 +48,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssembler::DirectX12InputAssembler(Array<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
+DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
     m_impl(makePimpl<DirectX12InputAssemblerImpl>(this))
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
@@ -119,7 +119,7 @@ DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = def
 
 void DirectX12InputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
+    this->instance()->m_impl->initialize(m_impl->m_vertexBufferLayouts | std::views::as_rvalue, std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
 }
 
 void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12VertexBufferLayout>&& layout)

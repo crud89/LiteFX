@@ -277,7 +277,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="device">The parent device of the shader program.</param>
 		/// <param name="modules">The shader modules used by the shader program.</param>
-		explicit DirectX12ShaderProgram(const DirectX12Device& device, Array<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept;
+		explicit DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept;
 		DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
 		DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
 		virtual ~DirectX12ShaderProgram() noexcept;
@@ -737,7 +737,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit DirectX12InputAssembler(Array<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology = PrimitiveTopology::TriangleList);
+		explicit DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology = PrimitiveTopology::TriangleList);
 		DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
 		DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
 		virtual ~DirectX12InputAssembler() noexcept;

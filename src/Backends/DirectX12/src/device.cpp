@@ -200,7 +200,7 @@ public:
 			Array<UniquePtr<DirectX12ShaderModule>> modules;
 			auto blitShader = LiteFX::Backends::DirectX12::Shaders::blit_dxi::open();
 			modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, blitShader, LiteFX::Backends::DirectX12::Shaders::blit_dxi::name(), "main")));
-			auto shaderProgram = makeShared<DirectX12ShaderProgram>(*m_parent, std::move(modules));
+			auto shaderProgram = makeShared<DirectX12ShaderProgram>(*m_parent, std::move(modules | std::views::as_rvalue));
 
 			// Allocate descriptor set layouts.
 			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
