@@ -153,7 +153,7 @@ bool VulkanGraphicsAdapter::validateDeviceExtensions(Span<const String> extensio
     });
 }
 
-Array<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const noexcept
+Enumerable<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const noexcept
 {
     UInt32 extensions = 0;
     ::vkEnumerateDeviceExtensionProperties(this->handle(), nullptr, &extensions, nullptr);
@@ -161,9 +161,7 @@ Array<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const noexce
     Array<VkExtensionProperties> availableExtensions(extensions);
     ::vkEnumerateDeviceExtensionProperties(this->handle(), nullptr, &extensions, availableExtensions.data());
 
-    return availableExtensions |
-        std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) |
-        std::ranges::to<Array<String>>();
+    return availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); });
 }
 
 bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const noexcept
@@ -184,7 +182,7 @@ bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) cons
     });
 }
 
-Array<String> VulkanGraphicsAdapter::deviceValidationLayers() const noexcept
+Enumerable<String> VulkanGraphicsAdapter::deviceValidationLayers() const noexcept
 {
     UInt32 layers = 0;
     ::vkEnumerateDeviceLayerProperties(this->handle(), &layers, nullptr);
@@ -192,7 +190,5 @@ Array<String> VulkanGraphicsAdapter::deviceValidationLayers() const noexcept
     Array<VkLayerProperties> availableLayers(layers);
     ::vkEnumerateDeviceLayerProperties(this->handle(), &layers, availableLayers.data());
 
-    return availableLayers |
-        std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) |
-        std::ranges::to<Array<String>>();
+    return availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); });
 }

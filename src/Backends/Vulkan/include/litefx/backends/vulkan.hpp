@@ -308,7 +308,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="device">The parent device of the shader program.</param>
 		/// <param name="modules">The shader modules used by the shader program.</param>
-		explicit VulkanShaderProgram(const VulkanDevice& device, Array<UniquePtr<VulkanShaderModule>>&& modules);
+		explicit VulkanShaderProgram(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules);
 		VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
 		VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
 		virtual ~VulkanShaderProgram() noexcept;
@@ -720,7 +720,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit VulkanInputAssembler(Array<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology = PrimitiveTopology::TriangleList);
+		explicit VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology = PrimitiveTopology::TriangleList);
 		VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
 		VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
 		virtual ~VulkanInputAssembler() noexcept;
@@ -1773,7 +1773,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <returns>A list of available extensions.</returns>
 		/// <seealso cref="validateInstanceExtensions" />
-		static Array<String> getAvailableInstanceExtensions() noexcept;
+		static Enumerable<String> getAvailableInstanceExtensions() noexcept;
 
 		/// <summary>
 		/// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
@@ -1787,7 +1787,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <returns>A list of available validation layers.</returns>
 		/// <seealso cref="validateInstanceLayers" />
-		static Array<String> getInstanceValidationLayers() noexcept;
+		static Enumerable<String> getInstanceValidationLayers() noexcept;
 
 		// IBackend interface.
 	public:

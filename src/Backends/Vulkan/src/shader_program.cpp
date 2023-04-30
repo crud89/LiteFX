@@ -52,9 +52,10 @@ private:
     };
 
 public:
-    VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice& device, Array<UniquePtr<VulkanShaderModule>>&& modules) :
-        base(parent), m_device(device), m_modules(std::move(modules))
+    VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
+        base(parent), m_device(device)
     {
+        m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice& device) :
@@ -239,7 +240,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device, Array<UniquePtr<VulkanShaderModule>>&& modules) :
+VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
     m_impl(makePimpl<VulkanShaderProgramImpl>(this, device, std::move(modules)))
 {
 }

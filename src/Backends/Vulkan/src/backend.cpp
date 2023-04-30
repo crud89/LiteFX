@@ -334,7 +334,7 @@ bool VulkanBackend::validateInstanceExtensions(Span<const String> extensions) no
     });
 }
 
-Array<String> VulkanBackend::getAvailableInstanceExtensions() noexcept
+Enumerable<String> VulkanBackend::getAvailableInstanceExtensions() noexcept
 {
     UInt32 extensions = 0;
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, nullptr);
@@ -342,9 +342,7 @@ Array<String> VulkanBackend::getAvailableInstanceExtensions() noexcept
     Array<VkExtensionProperties> availableExtensions(extensions);
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, availableExtensions.data());
 
-    return availableExtensions | 
-        std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) |
-        std::ranges::to<Array<String>>();
+    return availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); });
 }
 
 bool VulkanBackend::validateInstanceLayers(Span<const String> layers) noexcept
@@ -365,7 +363,7 @@ bool VulkanBackend::validateInstanceLayers(Span<const String> layers) noexcept
     });
 }
 
-Array<String> VulkanBackend::getInstanceValidationLayers() noexcept
+Enumerable<String> VulkanBackend::getInstanceValidationLayers() noexcept
 {
     UInt32 layers = 0;
     ::vkEnumerateInstanceLayerProperties(&layers, nullptr);
@@ -373,7 +371,5 @@ Array<String> VulkanBackend::getInstanceValidationLayers() noexcept
     Array<VkLayerProperties> availableLayers(layers);
     ::vkEnumerateInstanceLayerProperties(&layers, availableLayers.data());
 
-    return availableLayers | 
-        std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) |
-        std::ranges::to<Array<String>>();
+    return availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); });
 }
