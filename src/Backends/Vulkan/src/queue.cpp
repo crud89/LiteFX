@@ -186,12 +186,7 @@ void VulkanQueue::release()
 	this->released(this, { });
 }
 
-SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
-{
-	return this->createCommandBuffer(false, beginRecording);
-}
-
-SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& secondary, const bool& beginRecording) const
+SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording, const bool& secondary) const
 {
 	return makeShared<VulkanCommandBuffer>(*this, beginRecording, !secondary);
 }
@@ -205,6 +200,9 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, S
 {
 	if (commandBuffer == nullptr)
 		throw InvalidArgumentException("The command buffer must be initialized.");
+
+	if (commandBuffer->isSecondary())
+		throw InvalidArgumentException("The command buffer must be a primary command buffer.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -266,6 +264,9 @@ UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& co
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("At least one command buffer is not initialized.");
+
+	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); }))
+		throw InvalidArgumentException("At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 

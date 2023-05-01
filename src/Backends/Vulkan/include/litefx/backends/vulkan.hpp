@@ -817,11 +817,11 @@ namespace LiteFX::Rendering::Backends {
 	/// Records commands for a <see cref="VulkanCommandQueue" />
 	/// </summary>
 	/// <seealso cref="VulkanQueue" />
-	class LITEFX_VULKAN_API VulkanCommandBuffer : public CommandBuffer<IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
+	class LITEFX_VULKAN_API VulkanCommandBuffer : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
-		using base_type = CommandBuffer<IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>;
+		using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>;
 		using base_type::dispatch;
 		using base_type::draw;
 		using base_type::drawIndexed;
@@ -859,6 +859,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void end() const override;
+
+		/// <inheritdoc />
+		virtual const bool& isSecondary() const noexcept override;
 
 		/// <inheritdoc />
 		virtual void setViewports(Span<const IViewport*> viewports) const noexcept override;
@@ -934,6 +937,12 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+
+		/// <inheritdoc />
+		virtual void execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
+
+		/// <inheritdoc />
+		virtual void execute(Span<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
 
 	private:
 		virtual void releaseSharedState() const override;
@@ -1451,14 +1460,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <seealso cref="waitFor" />
 		virtual UInt64 submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
 
-		/// <summary>
-		/// Creates a command buffer that can be used to allocate commands on the queue.
-		/// </summary>
-		/// <param name="secondary">If set to <c>true</c>, the queue will create a secondary command buffer instance.</param>
-		/// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
-		/// <returns>The instance of the command buffer.</returns>
-		virtual SharedPtr<VulkanCommandBuffer> createCommandBuffer(const bool& secondary, const bool& beginRecording) const;
-
 		// CommandQueue interface.
 	public:
 		/// <inheritdoc />
@@ -1490,7 +1491,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void release() override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
+		virtual SharedPtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false, const bool& secondary = false) const override;
 
 		/// <inheritdoc />
 		virtual UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;

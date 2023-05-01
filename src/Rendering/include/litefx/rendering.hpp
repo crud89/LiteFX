@@ -473,14 +473,16 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Represents a command buffer, that buffers commands that should be submitted to a <see cref="CommandQueue" />.
     /// </summary>
+    /// <typeparam name="TCommandBuffer">The type of the command buffer itself. Must inherit from <see cref="CommandBuffer" />.</typeparam>
     /// <typeparam name="TBuffer">The generic buffer type. Must implement <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TVertexBuffer">The vertex buffer type. Must implement <see cref="VertexBuffer"/>.</typeparam>
     /// <typeparam name="TIndexBuffer">The index buffer type. Must implement <see cref="IndexBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="Barrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
-    template <typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
+    template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
         rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
+        //std::derived_from<TCommandBuffer, ICommandBuffer> &&
         std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>>
     class CommandBuffer : public ICommandBuffer {
     public:
@@ -495,6 +497,7 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::pushConstants;
 
     public:
+        using command_buffer_type = TCommandBuffer;
         using buffer_type = TBuffer;
         using vertex_buffer_type = TVertexBuffer;
         using index_buffer_type = TIndexBuffer;
@@ -574,6 +577,12 @@ namespace LiteFX::Rendering {
             this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
         }
 
+        /// <inheritdoc />
+        virtual void execute(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
+
+        /// <inheritdoc />
+        virtual void execute(Span<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
+
     private:
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept override { 
             this->barrier(dynamic_cast<const barrier_type&>(barrier));
@@ -646,6 +655,19 @@ namespace LiteFX::Rendering {
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const override { 
             this->drawIndexed(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), dynamic_cast<const index_buffer_type&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
         }
+
+        virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const override {
+            this->execute(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
+        }
+        
+        virtual void cmdExecute(Span<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
+            Array<SharedPtr<const command_buffer_type>> buffers = commandBuffers |
+                std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) |
+                ranges::to<Array<SharedPtr<const command_buffer_type>>>();
+
+            return this->execute(buffers);
+        }
+
     };
 
     /// <summary>
@@ -702,7 +724,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
     template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
     class FrameBuffer : public IFrameBuffer {
     public:
         using command_buffer_type = TCommandBuffer;
@@ -906,7 +928,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="CommandBuffer"/>.</typeparam>
     template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
     class CommandQueue : public ICommandQueue {
     public:
         using ICommandQueue::submit;
@@ -918,7 +940,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual SharedPtr<command_buffer_type> createCommandBuffer(const bool& beginRecording = false) const = 0;
+        virtual SharedPtr<command_buffer_type> createCommandBuffer(const bool& beginRecording = false, const bool& secondary = false) const = 0;
 
         /// <inheritdoc />
         virtual UInt64 submit(SharedPtr<command_buffer_type> commandBuffer) const {
@@ -937,8 +959,8 @@ namespace LiteFX::Rendering {
         virtual UInt64 submit(const Array<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
 
     private:
-        virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const override {
-            return this->createCommandBuffer(beginRecording);
+        virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording, const bool& secondary) const override {
+            return this->createCommandBuffer(beginRecording, secondary);
         }
 
         virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const override {

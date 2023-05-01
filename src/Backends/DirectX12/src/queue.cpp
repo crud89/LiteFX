@@ -149,9 +149,9 @@ void DirectX12Queue::release()
 	this->released(this, { });
 }
 
-SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording) const
+SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording, const bool& secondary) const
 {
-	return makeShared<DirectX12CommandBuffer>(*this, beginRecording);
+	return makeShared<DirectX12CommandBuffer>(*this, beginRecording, secondary);
 }
 
 UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
