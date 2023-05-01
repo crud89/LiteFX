@@ -138,7 +138,7 @@ void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const n
 {
 	auto vps = viewports |
 		std::views::transform([](const auto& viewport) { return VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() }; }) |
-		ranges::to<Array<VkViewport>>();
+		std::ranges::to<Array<VkViewport>>();
 
 	::vkCmdSetViewportWithCount(this->handle(), static_cast<UInt32>(vps.size()), vps.data());
 }
@@ -153,7 +153,7 @@ void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noex
 {
 	auto scs = scissors |
 		std::views::transform([](const auto& scissor) { return VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} }; }) |
-		ranges::to<Array<VkRect2D>>();
+		std::ranges::to<Array<VkRect2D>>();
 
 	::vkCmdSetScissorWithCount(this->handle(), static_cast<UInt32>(scs.size()), scs.data());
 }

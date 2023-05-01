@@ -400,7 +400,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The backend type of the requested backends.</param>
 		/// <returns>All registered instances of <paramref name="type" />.</returns>
-		virtual Array<const IBackend*> getBackends(const BackendType type) const noexcept;
+		virtual Enumerable<const IBackend*> getBackends(const BackendType type) const noexcept;
 
 	protected:
 		/// <summary>

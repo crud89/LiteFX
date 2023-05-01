@@ -80,7 +80,7 @@ public:
 		auto vertexLayouts = m_inputAssembler->vertexBufferLayouts();
 
 		std::ranges::for_each(vertexLayouts, [&, l = 0](const IVertexBufferLayout* layout) mutable {
-			auto bufferAttributes = layout->attributes();
+			auto bufferAttributes = layout->attributes() | std::ranges::to<std::vector>();
 			auto bindingPoint = layout->binding();
 
 			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->elementSize(), bindingPoint);
@@ -101,8 +101,7 @@ public:
 					descriptor.format = Vk::getFormat(attribute->format());
 
 					return descriptor;
-				}) |
-				ranges::to<Array<VkVertexInputAttributeDescription>>();
+				}) | std::ranges::to<Array<VkVertexInputAttributeDescription>>();
 
 			vertexInputAttributes.insert(std::end(vertexInputAttributes), std::begin(currentAttributes), std::end(currentAttributes));
 			vertexInputBindings.push_back(binding);
@@ -194,7 +193,7 @@ public:
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
-			ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
+			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};

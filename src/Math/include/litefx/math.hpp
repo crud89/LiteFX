@@ -90,12 +90,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector1f& operator=(const Vector<Float, 1>& _other) noexcept;
 		inline Vector1f& operator=(Vector<Float, 1>&& _other) noexcept;
-		inline Vector1f& operator=(const Array<Float>& _other) noexcept;
+		inline Vector1f& operator=(const Enumerable<Float>& _other) noexcept;
 		inline Vector1f& operator=(const Vector1f& _other) noexcept;
 		inline Vector1f& operator=(Vector1f&& _other) noexcept;
 		inline const Float& operator[](const unsigned int& i) const noexcept;
 		inline Float& operator[](const unsigned int& i) noexcept;
-		inline operator Array<Float>() noexcept;
+		inline operator Enumerable<Float>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -126,12 +126,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector1u& operator=(const Vector<UInt32, 1>& _other) noexcept;
 		inline Vector1u& operator=(Vector<UInt32, 1>&& _other) noexcept;
-		inline Vector1u& operator=(const Array<UInt32>& _other) noexcept;
+		inline Vector1u& operator=(const Enumerable<UInt32>& _other) noexcept;
 		inline Vector1u& operator=(const Vector1u& _other) noexcept;
 		inline Vector1u& operator=(Vector1u&& _other) noexcept;
 		inline const UInt32& operator[](const unsigned int& i) const noexcept;
 		inline UInt32& operator[](const unsigned int& i) noexcept;
-		inline operator Array<UInt32>() noexcept;
+		inline operator Enumerable<UInt32>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -162,12 +162,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector2f& operator=(const Vector<Float, 2>& _other) noexcept;
 		inline Vector2f& operator=(Vector<Float, 2>&& _other) noexcept;
-		inline Vector2f& operator=(const Array<Float>& _other) noexcept;
+		inline Vector2f& operator=(const Enumerable<Float>& _other) noexcept;
 		inline Vector2f& operator=(const Vector2f& _other) noexcept;
 		inline Vector2f& operator=(Vector2f&& _other) noexcept;
 		inline const Float& operator[](const unsigned int& i) const noexcept;
 		inline Float& operator[](const unsigned int& i) noexcept;
-		inline operator Array<Float>() noexcept;
+		inline operator Enumerable<Float>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -201,12 +201,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector2u& operator=(const Vector<UInt32, 2>& _other) noexcept;
 		inline Vector2u& operator=(Vector<UInt32, 2>&& _other) noexcept;
-		inline Vector2u& operator=(const Array<UInt32>& _other) noexcept;
+		inline Vector2u& operator=(const Enumerable<UInt32>& _other) noexcept;
 		inline Vector2u& operator=(const Vector2u& _other) noexcept;
 		inline Vector2u& operator=(Vector2u&& _other) noexcept;
 		inline const UInt32& operator[](const unsigned int& i) const noexcept;
 		inline UInt32& operator[](const unsigned int& i) noexcept;
-		inline operator Array<UInt32>() noexcept;
+		inline operator Enumerable<UInt32>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -240,12 +240,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector2i& operator=(const Vector<Int32, 2>& _other) noexcept;
 		inline Vector2i& operator=(Vector<Int32, 2>&& _other) noexcept;
-		inline Vector2i& operator=(const Array<Int32>& _other) noexcept;
+		inline Vector2i& operator=(const Enumerable<Int32>& _other) noexcept;
 		inline Vector2i& operator=(const Vector2i& _other) noexcept;
 		inline Vector2i& operator=(Vector2i&& _other) noexcept;
 		inline const Int32& operator[](const unsigned int& i) const noexcept;
 		inline Int32& operator[](const unsigned int& i) noexcept;
-		inline operator Array<Int32>() noexcept;
+		inline operator Enumerable<Int32>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -279,12 +279,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector3f& operator=(const Vector<Float, 3>& _other) noexcept;
 		inline Vector3f& operator=(Vector<Float, 3>&& _other) noexcept;
-		inline Vector3f& operator=(const Array<Float>& _other) noexcept;
+		inline Vector3f& operator=(const Enumerable<Float>& _other) noexcept;
 		inline Vector3f& operator=(const Vector3f& _other) noexcept;
 		inline Vector3f& operator=(Vector3f&& _other) noexcept;
 		inline const Float& operator[](const unsigned int& i) const noexcept;
 		inline Float& operator[](const unsigned int& i) noexcept;
-		inline operator Array<Float>() noexcept;
+		inline operator Enumerable<Float>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -318,12 +318,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector3u& operator=(const Vector<UInt32, 3>& _other) noexcept;
 		inline Vector3u& operator=(Vector<UInt32, 3>&& _other) noexcept;
-		inline Vector3u& operator=(const Array<UInt32>& _other) noexcept;
+		inline Vector3u& operator=(const Enumerable<UInt32>& _other) noexcept;
 		inline Vector3u& operator=(const Vector3u& _other) noexcept;
 		inline Vector3u& operator=(Vector3u&& _other) noexcept;
 		inline const UInt32& operator[](const unsigned int& i) const noexcept;
 		inline UInt32& operator[](const unsigned int& i) noexcept;
-		inline operator Array<UInt32>() noexcept;
+		inline operator Enumerable<UInt32>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -357,12 +357,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector3i& operator=(const Vector<Int32, 3>& _other) noexcept;
 		inline Vector3i& operator=(Vector<Int32, 3>&& _other) noexcept;
-		inline Vector3i& operator=(const Array<Int32>& _other) noexcept;
+		inline Vector3i& operator=(const Enumerable<Int32>& _other) noexcept;
 		inline Vector3i& operator=(const Vector3i& _other) noexcept;
 		inline Vector3i& operator=(Vector3i&& _other) noexcept;
 		inline const Int32& operator[](const unsigned int& i) const noexcept;
 		inline Int32& operator[](const unsigned int& i) noexcept;
-		inline operator Array<Int32>() noexcept;
+		inline operator Enumerable<Int32>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -396,12 +396,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector4f& operator=(const Vector<Float, 4>& _other) noexcept;
 		inline Vector4f& operator=(Vector<Float, 4>&& _other) noexcept;
-		inline Vector4f& operator=(const Array<Float>& _other) noexcept;
+		inline Vector4f& operator=(const Enumerable<Float>& _other) noexcept;
 		inline Vector4f& operator=(const Vector4f& _other) noexcept;
 		inline Vector4f& operator=(Vector4f&& _other) noexcept;
 		inline const Float& operator[](const unsigned int& i) const noexcept;
 		inline Float& operator[](const unsigned int& i) noexcept;
-		inline operator Array<Float>() noexcept;
+		inline operator Enumerable<Float>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -435,12 +435,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector4u& operator=(const Vector<UInt32, 4>& _other) noexcept;
 		inline Vector4u& operator=(Vector<UInt32, 4>&& _other) noexcept;
-		inline Vector4u& operator=(const Array<UInt32>& _other) noexcept;
+		inline Vector4u& operator=(const Enumerable<UInt32>& _other) noexcept;
 		inline Vector4u& operator=(const Vector4u& _other) noexcept;
 		inline Vector4u& operator=(Vector4u&& _other) noexcept;
 		inline const UInt32& operator[](const unsigned int& i) const noexcept;
 		inline UInt32& operator[](const unsigned int& i) noexcept;
-		inline operator Array<UInt32>() noexcept;
+		inline operator Enumerable<UInt32>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:
@@ -474,12 +474,12 @@ namespace LiteFX::Math {
 	public:
 		inline Vector4i& operator=(const Vector<Int32, 4>& _other) noexcept;
 		inline Vector4i& operator=(Vector<Int32, 4>&& _other) noexcept;
-		inline Vector4i& operator=(const Array<Int32>& _other) noexcept;
+		inline Vector4i& operator=(const Enumerable<Int32>& _other) noexcept;
 		inline Vector4i& operator=(const Vector4i& _other) noexcept;
 		inline Vector4i& operator=(Vector4i&& _other) noexcept;
 		inline const Int32& operator[](const unsigned int& i) const noexcept;
 		inline Int32& operator[](const unsigned int& i) noexcept;
-		inline operator Array<Int32>() noexcept;
+		inline operator Enumerable<Int32>() noexcept;
 
 #if defined(BUILD_WITH_GLM)
 	public:

@@ -1,6 +1,6 @@
 # LiteFX
 
-An extensible, descriptive, modern computer graphics and rendering engine, written in C++20.
+An extensible, descriptive, modern computer graphics and rendering engine, written in C++23.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU">
@@ -42,7 +42,7 @@ UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPa
         .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER));
 ```
 
-LiteFX is written in modern C++20, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
+LiteFX is written in modern C++23, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
 
 † Shaders can be built using *glslc* or *DXC*. *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
 
@@ -72,12 +72,13 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
+- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features.
 - [CMake](https://cmake.org/download/) (version 3.20 or higher). †
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using older Visual Studio versions, consider installing CMake manually.
+† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using other compilers, CMake needs to be installed manually.
 
 ‡ Note that the LunarG Vulkan SDK (1.3.204.1 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
@@ -86,7 +87,7 @@ In order for the project to be built, there are a few prerequisites that need to
 Create a new directory from where you want to build the sources. Then open your shell and clone the repository:
 
 ```sh
-git clone https://github.com/crud89/LiteFX.git . --recurse-submodules
+git clone --recursive https://github.com/crud89/LiteFX.git .
 ```
 
 #### Performing a Build
@@ -140,6 +141,7 @@ Within the cache variables, you can override the build options, LiteFX exports. 
 - `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
 - `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
 - `BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
+- `BUILD_TESTS` (default: `OFF`): builds tests for the project.
 
 For example, if you only want to build the Vulkan backend and samples and don't want to use DirectX Math, a preset would look like this:
 

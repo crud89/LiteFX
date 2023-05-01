@@ -93,4 +93,10 @@ namespace LiteFX::rtti {
     /// </summary>
     template <typename TDerived, typename TBase>
     concept implements = !std::is_abstract_v<TDerived> && std::derived_from<TDerived, TBase>;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    template <typename T, typename... Ts>
+    concept are_same = std::conjunction_v<std::is_same<T, Ts>...>;
 }

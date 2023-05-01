@@ -108,7 +108,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
             .srcAccessMask = Vk::getResourceAccess(std::get<0>(barrier)),
             .dstAccessMask = Vk::getResourceAccess(std::get<1>(barrier))
         };
-	}) | ranges::to<Array<VkMemoryBarrier>>();
+	}) | std::ranges::to<Array<VkMemoryBarrier>>();
 
 	// Buffer barriers.
 	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([this](auto& barrier) {
@@ -122,7 +122,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
             .offset = 0,
             .size = std::get<2>(barrier).size()
         };
-	}) | ranges::to<Array<VkBufferMemoryBarrier>>();
+	}) | std::ranges::to<Array<VkBufferMemoryBarrier>>();
 
 	// Image barriers.
 	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([this](auto& barrier) {
@@ -161,7 +161,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
                 .layerCount = std::get<8>(barrier)
             }
         };
-	}) | ranges::to<Array<VkImageMemoryBarrier>>();
+	}) | std::ranges::to<Array<VkImageMemoryBarrier>>();
 
     // Execute the barriers.
     if (!globalBarriers.empty() || !bufferBarriers.empty() || !imageBarriers.empty())
