@@ -1,4 +1,4 @@
-#pragma once
+module;
 
 #include <string>
 #include <string_view>
@@ -16,8 +16,10 @@
 #include <codecvt>
 #endif
 
-namespace LiteFX {
-    
+export module LiteFX.Core:String;
+
+export namespace LiteFX {
+
     using namespace std::string_literals;
     using namespace std::string_view_literals;
 
@@ -26,13 +28,13 @@ namespace LiteFX {
     using StringView = std::string_view;
     using WStringView = std::wstring_view;
 
-    constexpr inline auto Join(std::ranges::input_range auto&& elements, StringView delimiter = ""sv) noexcept requires
+    constexpr inline auto join(std::ranges::input_range auto&& elements, StringView delimiter = ""sv) noexcept requires
         std::convertible_to<std::ranges::range_value_t<decltype(elements)>, String>
     {
         return std::ranges::fold_left(elements | std::views::join_with(delimiter), String{}, std::plus<>{});
     }
 
-    constexpr inline auto WJoin(std::ranges::input_range auto&& elements, WStringView delimiter = L""sv) noexcept requires
+    constexpr inline auto wjoin(std::ranges::input_range auto&& elements, WStringView delimiter = L""sv) noexcept requires
         std::convertible_to<std::ranges::range_value_t<decltype(elements)>, String>
     {
         return std::ranges::fold_left(elements | std::views::join_with(delimiter), WString{}, std::plus<>{});
@@ -43,7 +45,7 @@ namespace LiteFX {
     /// </summary>
     /// <param name="utf8"></param>
     /// <returns></returns>
-    inline WString Widen(StringView utf8)
+    inline WString widen(StringView utf8)
     {
 #if defined LITEFX_CODECVT_USE_WIN32
         if (utf8.empty())
@@ -69,7 +71,7 @@ namespace LiteFX {
     /// </summary>
     /// <param name="utf16"></param>
     /// <returns></returns>
-    inline String Narrow(WStringView utf16)
+    inline String narrow(WStringView utf16)
     {
 #if defined LITEFX_CODECVT_USE_WIN32
         if (utf16.empty())
@@ -89,6 +91,7 @@ namespace LiteFX {
         return conv.to_bytes(utf16);
 #endif
     }
+
 }
 
 #undef LITEFX_CODECVT_USE_WIN32

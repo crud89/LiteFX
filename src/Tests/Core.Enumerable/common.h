@@ -1,6 +1,10 @@
 #pragma once
 
+#include <ranges>
+#include <coroutine>
 #include <litefx/core.h>
+
+import LiteFX.Core;
 
 using namespace LiteFX;
 

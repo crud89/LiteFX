@@ -25,8 +25,6 @@ FIND_PROGRAM(BUILD_DXC_COMPILER dxc HINTS ENV VULKAN_SDK PATH_SUFFIXES bin DOC "
 
 SET(BUILD_HLSL_SHADER_MODEL "6_3" CACHE STRING "Shader model version used to compile HLSL shaders.")
 
-OPTION(BUILD_PRECOMPILED_HEADERS "Use pre-compiled headers during build." OFF)
-
 SET(BUILD_ENGINE_IDENTIFIER "LiteFX" CACHE STRING "Defines the engine identifier string.")
 
 IF(NOT MSVC OR (MSVC AND MSVC_VERSION LESS 1910))
