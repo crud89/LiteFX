@@ -942,7 +942,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual void execute(Span<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
+		virtual void execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
 
 	private:
 		virtual void releaseSharedState() const override;

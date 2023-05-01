@@ -929,7 +929,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual void execute(Span<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
+		virtual void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
 	private:
 		virtual void releaseSharedState() const override;

@@ -4334,10 +4334,10 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// 
+        /// Executes a series of secondary command buffers/bundles.
         /// </summary>
-        /// <param name="commandBuffers"></param>
-        void execute(Span<SharedPtr<const ICommandBuffer>> commandBuffers) const {
+        /// <param name="commandBuffers">The command buffers to execute.</param>
+        void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
             this->cmdExecute(commandBuffers);
         }
 
@@ -4361,7 +4361,7 @@ namespace LiteFX::Rendering {
         virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const = 0;
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const = 0;
         virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
-        virtual void cmdExecute(Span<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
+        virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
 
         /// <summary>
         /// Called by the parent command queue to signal that the command buffer should release it's shared state.

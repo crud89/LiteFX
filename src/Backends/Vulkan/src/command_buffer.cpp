@@ -450,7 +450,7 @@ void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBu
 	throw;
 }
 
-void VulkanCommandBuffer::execute(Span<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
+void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
 	throw;
 }

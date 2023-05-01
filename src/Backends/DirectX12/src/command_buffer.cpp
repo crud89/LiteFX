@@ -382,7 +382,7 @@ void DirectX12CommandBuffer::execute(SharedPtr<const DirectX12CommandBuffer> com
 	throw;
 }
 
-void DirectX12CommandBuffer::execute(Span<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
+void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
 	throw;
 }

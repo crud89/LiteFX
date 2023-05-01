@@ -568,7 +568,7 @@ namespace LiteFX::Rendering {
         virtual void execute(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual void execute(Span<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
+        virtual void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
     private:
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept override { 
@@ -647,12 +647,8 @@ namespace LiteFX::Rendering {
             this->execute(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
         
-        virtual void cmdExecute(Span<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
-            Array<SharedPtr<const command_buffer_type>> buffers = commandBuffers |
-                std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) |
-                ranges::to<Array<SharedPtr<const command_buffer_type>>>();
-
-            return this->execute(buffers);
+        virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
+            return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
 
     };
