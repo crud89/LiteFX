@@ -116,7 +116,7 @@ You can customize the engine build, according to your specific needs. The most s
   "version": 2,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 20,
+    "minor": 25,
     "patch": 0
   },
   "configurePresets": [
@@ -150,7 +150,7 @@ For example, if you only want to build the Vulkan backend and samples and don't 
   "version": 2,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 20,
+    "minor": 25,
     "patch": 0
   },
   "configurePresets": [
