@@ -12,7 +12,7 @@ public:
 
 private:
 	const VulkanQueue& m_queue;
-	bool m_recording{ false };
+	bool m_recording{ false }, m_secondary{ false };
 	Optional<VkCommandPool> m_commandPool;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 
@@ -37,6 +37,7 @@ public:
 			VkCommandPool commandPool;
 			raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &commandPool), "Unable to create command pool.");
 			m_commandPool = commandPool;
+			m_secondary = true;
 		}
 
 		// Create the command buffer.
@@ -126,6 +127,11 @@ void VulkanCommandBuffer::end() const
 		raiseIfFailed<RuntimeException>(::vkEndCommandBuffer(this->handle()), "Unable to stop command recording.");
 
 	m_impl->m_recording = false;
+}
+
+const bool& VulkanCommandBuffer::isSecondary() const noexcept
+{
+	return m_impl->m_secondary;
 }
 
 void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const noexcept
@@ -437,6 +443,20 @@ void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEv
 		throw ArgumentNotInitializedException("The timing event must be initialized.");
 
 	::vkCmdWriteTimestamp(this->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_impl->m_queue.device().swapChain().timestampQueryPool(), timingEvent->queryId());
+}
+
+void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
+{
+	::vkCmdExecuteCommands(this->handle(), 1, &commandBuffer->handle());
+}
+
+void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
+{
+	auto secondaryHandles = commandBuffers | 
+		std::views::transform([](auto commandBuffer) { return commandBuffer->handle(); }) | 
+		std::ranges::to<Array<VkCommandBuffer>>();
+
+	::vkCmdExecuteCommands(this->handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
 }
 
 void VulkanCommandBuffer::releaseSharedState() const

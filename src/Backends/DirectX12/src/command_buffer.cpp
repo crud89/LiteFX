@@ -12,7 +12,7 @@ public:
 
 private:
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-	bool m_recording{ false };
+	bool m_recording{ false }, m_secondary{ false };
 	const DirectX12Queue& m_queue;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 
@@ -23,17 +23,22 @@ public:
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin)
+	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin, const bool& primary)
 	{
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
 
-		switch (m_queue.type())
+		if (m_secondary = !primary)
+			type = D3D12_COMMAND_LIST_TYPE_BUNDLE;
+		else
 		{
-		case QueueType::Compute: type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
-		case QueueType::Transfer: type = D3D12_COMMAND_LIST_TYPE_COPY; break;
-		default:
-		case QueueType::Graphics: type = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
+			switch (m_queue.type())
+			{
+			case QueueType::Compute: type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
+			case QueueType::Transfer: type = D3D12_COMMAND_LIST_TYPE_COPY; break;
+			default:
+			case QueueType::Graphics: type = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
+			}
 		}
 
 		raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
@@ -67,10 +72,10 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin) :
+DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin, const bool& primary) :
 	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList7>(nullptr)
 {
-	this->handle() = m_impl->initialize(begin);
+	this->handle() = m_impl->initialize(begin, primary);
 
 	if (begin)
 		m_impl->bindDescriptorHeaps();
@@ -94,6 +99,11 @@ void DirectX12CommandBuffer::end() const
 		raiseIfFailed<RuntimeException>(this->handle()->Close(), "Unable to close command buffer for recording.");
 
 	m_impl->m_recording = false;
+}
+
+const bool& DirectX12CommandBuffer::isSecondary() const noexcept
+{
+	return m_impl->m_secondary;
 }
 
 void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) const noexcept
@@ -362,6 +372,16 @@ void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timin
 		throw ArgumentNotInitializedException("The timing event must be initialized.");
 
 	this->handle()->EndQuery(m_impl->m_queue.device().swapChain().timestampQueryHeap(), D3D12_QUERY_TYPE_TIMESTAMP, timingEvent->queryId());
+}
+
+void DirectX12CommandBuffer::execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
+{
+	this->handle()->ExecuteBundle(commandBuffer->handle().Get());
+}
+
+void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
+{
+	std::ranges::for_each(commandBuffers, [this](auto& bundle) { this->handle()->ExecuteBundle(bundle->handle().Get()); });
 }
 
 void DirectX12CommandBuffer::releaseSharedState() const

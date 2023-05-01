@@ -812,11 +812,11 @@ namespace LiteFX::Rendering::Backends {
 	/// Records commands for a <see cref="DirectX12CommandQueue" />
 	/// </summary>
 	/// <seealso cref="DirectX12CommandQueue" />
-	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public CommandBuffer<IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList7> {
+	class LITEFX_DIRECTX12_API DirectX12CommandBuffer : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList7> {
 		LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
 	public:
-		using base_type = CommandBuffer<IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
+		using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
 		using base_type::dispatch;
 		using base_type::draw;
 		using base_type::drawIndexed;
@@ -833,7 +833,8 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
 		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
-		explicit DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin = false);
+		/// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
+		explicit DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin = false, const bool& primary = true);
 		DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
 		DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
 		virtual ~DirectX12CommandBuffer() noexcept;
@@ -845,6 +846,9 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		virtual void end() const override;
+
+		/// <inheritdoc />
+		virtual const bool& isSecondary() const noexcept override;
 
 		/// <inheritdoc />
 		virtual void setViewports(Span<const IViewport*> viewports) const noexcept override;
@@ -921,6 +925,11 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
 
+		/// <inheritdoc />
+		virtual void execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
+
+		/// <inheritdoc />
+		virtual void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
 	private:
 		virtual void releaseSharedState() const override;
@@ -1430,7 +1439,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual void release() override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false) const override;
+		virtual SharedPtr<DirectX12CommandBuffer> createCommandBuffer(const bool& beginRecording = false, const bool& secondary = false) const override;
 
 		/// <inheritdoc />
 		virtual UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;

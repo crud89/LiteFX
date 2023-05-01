@@ -3864,6 +3864,12 @@ namespace LiteFX::Rendering {
         /// <seealso cref="begin" />
         virtual void end() const = 0;
 
+        /// <summary>
+        /// Returns `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
+        /// </summary>
+        /// <returns>`true`, if the command buffer is a secondary command buffer, or `false` otherwise.</returns>
+        virtual const bool& isSecondary() const noexcept = 0;
+
     public:
         /// <summary>
         /// Executes the transitions that have been added to <paramref name="barrier" />.
@@ -4319,6 +4325,22 @@ namespace LiteFX::Rendering {
         /// <param name="timingEvent">The timing event for which the time stamp is written.</param>
         virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const = 0;
 
+        /// <summary>
+        /// Executes a secondary command buffer/bundle.
+        /// </summary>
+        /// <param name="commandBuffer">The secondary command buffer/bundle to execute.</param>
+        void execute(SharedPtr<const ICommandBuffer> commandBuffer) const {
+            this->cmdExecute(commandBuffer);
+        }
+
+        /// <summary>
+        /// Executes a series of secondary command buffers/bundles.
+        /// </summary>
+        /// <param name="commandBuffers">The command buffers to execute.</param>
+        void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
+            this->cmdExecute(commandBuffers);
+        }
+
     private:
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
@@ -4338,7 +4360,9 @@ namespace LiteFX::Rendering {
         virtual void cmdDraw(const IVertexBuffer& vertexBuffer, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const = 0;
         virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const = 0;
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const = 0;
-        
+        virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
+        virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
+
         /// <summary>
         /// Called by the parent command queue to signal that the command buffer should release it's shared state.
         /// </summary>
@@ -5002,10 +5026,18 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a command buffer that can be used to allocate commands on the queue.
         /// </summary>
+        /// <remarks>
+        /// Specifying <paramref name="secondary" /> allows to create secondary command buffers (aka. bundles). Those are intended to be used as efficient pre-recorded command buffers
+        /// that are re-used multiple times. Using such a command buffer allows drivers to pre-apply optimizations, which causes a one-time cost during setup, but reduces cost when re-
+        /// applying the command buffer multiple times. Ideally they are used as small chunks of re-occurring workloads.
+        /// 
+        /// A secondary command buffer must not be submitted to a queue, but rather to a primary command buffer by calling <see cref="ICommandBuffer::execute" />.
+        /// </remarks>
         /// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
+        /// <param name="secondary">If set to `true`, the method will create a secondary command buffer/bundle.</param>
         /// <returns>The instance of the command buffer.</returns>
-        SharedPtr<ICommandBuffer> createCommandBuffer(const bool& beginRecording = false) const {
-            return this->getCommandBuffer(beginRecording);
+        SharedPtr<ICommandBuffer> createCommandBuffer(const bool& beginRecording = false, const bool& secondary = false) const {
+            return this->getCommandBuffer(beginRecording, secondary);
         }
 
         /// <summary>
@@ -5097,7 +5129,7 @@ namespace LiteFX::Rendering {
         virtual UInt64 currentFence() const noexcept = 0;
 
     private:
-        virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording) const = 0;
+        virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording, const bool& secondary) const = 0;
         virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
         
