@@ -23,16 +23,13 @@ public:
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin, const bool& secondary)
+	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin, const bool& primary)
 	{
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
 
-		if (secondary)
-		{
+		if (m_secondary = !primary)
 			type = D3D12_COMMAND_LIST_TYPE_BUNDLE;
-			m_secondary = true;
-		}
 		else
 		{
 			switch (m_queue.type())
@@ -78,7 +75,7 @@ public:
 DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin, const bool& primary) :
 	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList7>(nullptr)
 {
-	this->handle() = m_impl->initialize(begin, !primary);
+	this->handle() = m_impl->initialize(begin, primary);
 
 	if (begin)
 		m_impl->bindDescriptorHeaps();
@@ -379,12 +376,12 @@ void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timin
 
 void DirectX12CommandBuffer::execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
 {
-	throw;
+	this->handle()->ExecuteBundle(commandBuffer->handle().Get());
 }
 
 void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
-	throw;
+	std::ranges::for_each(commandBuffers, [this](auto& bundle) { this->handle()->ExecuteBundle(bundle->handle().Get()); });
 }
 
 void DirectX12CommandBuffer::releaseSharedState() const

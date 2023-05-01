@@ -447,12 +447,16 @@ void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEv
 
 void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
 {
-	throw;
+	::vkCmdExecuteCommands(this->handle(), 1, &commandBuffer->handle());
 }
 
 void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
-	throw;
+	auto secondaryHandles = commandBuffers | 
+		std::views::transform([](auto commandBuffer) { return commandBuffer->handle(); }) | 
+		std::ranges::to<Array<VkCommandBuffer>>();
+
+	::vkCmdExecuteCommands(this->handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
 }
 
 void VulkanCommandBuffer::releaseSharedState() const

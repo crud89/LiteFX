@@ -151,13 +151,16 @@ void DirectX12Queue::release()
 
 SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording, const bool& secondary) const
 {
-	return makeShared<DirectX12CommandBuffer>(*this, beginRecording, secondary);
+	return makeShared<DirectX12CommandBuffer>(*this, beginRecording, !secondary);
 }
 
 UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
 {
 	if (commandBuffer == nullptr)
 		throw InvalidArgumentException("The command buffer must be initialized.");
+
+	if (commandBuffer->isSecondary())
+		throw InvalidArgumentException("The command buffer must be a primary command buffer.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -187,6 +190,9 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("At least one command buffer is not initialized.");
+
+	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); }))
+		throw InvalidArgumentException("At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
