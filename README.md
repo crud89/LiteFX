@@ -48,11 +48,11 @@ LiteFX is written in modern C++23, following established design patterns to make
 
 ### Key Features
 
-- **Fluent Builders**: the fluent builder API can help you to organize creation of your render context. Instances, render passes and pipeline states typically require a lot of code to set them up. LiteFX hides this code behind a flexible builder architecture. However, if you don't like it, you can still create all objects on your own.
-- **Runtime Backend Switching**: Switch between DirectX 12 and Vulkan at runtime without re-creating the window. The engine's app model supports flexible configuration and all domain types are abstracted in a way, that make it easy to provide different render paths.
 - **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it uses features from the [DirectX 12 Agility SDK](https://devblogs.microsoft.com/directx/announcing-dx12agility/) and [Vulkan 1.3](https://www.khronos.org/news/press/vulkan-reduces-fragmentation-and-provides-roadmap-visibility-for-developers).
+- **Streamlined API**: low-level graphics APIs typically involve a lot of boilerplate code to set them up. LiteFX provides different techniques to make this code less verbose. *Fluent Builders* can be used to setup and configure render graphs. *Shader Reflection* can be used in both, Vulkan and DirectX 12, to create pipeline layouts from a single line of code.
 - **Multi-Threading Support**: LiteFX comes with support for multi-threaded render passes in order to maximize throughput and prevent GPU stalls. It takes care of the necessary synchronization between threads and exposes interfaces for manual synchronization. 
-- **Descriptor and Memory Management**: descriptors and buffers can be hard to get around. LiteFX abstracts them away in a way that is both efficient and easy to adapt.
+- **Descriptor and Memory Management**: descriptors and buffers can be hard to get around. LiteFX abstracts them away in a way that is both efficient and accessible.
+- **Runtime Backend Switching**: Switch between API backends at runtime without re-creating the window. The engine's app model supports flexible configuration and all domain types are abstracted in a way, that make it easy to provide different render paths.
 - **CMake Integration**: you can use CMake to integrate the engine into your project. Furthermore, it exports scripts that allow you to integrate assets and shaders into your build process. It can be installed using *vcpkg*, making project setup quick and painless.
 - **Much More**: If you want to learn what else you can do, check out the [guides](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html) and [wiki](https://github.com/crud89/LiteFX/wiki).
 
@@ -223,6 +223,6 @@ Want to add yours? Feel free to [contact](mailto:litefx@crudolph.io?subject=[Git
 
 ## License
 
-LiteFX is licensed under the permissive [MIT license](./LICENSE). The documentation (i.e. the contents of the `docs` folder of this repository, especially the LiteFX logo, banner and icon) is licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Parts of this software are from third parties and are licensed on different terms. By using or redistributing this software, you agree to the terms of the third-party licenses mentioned in the [NOTICE](./NOTICE) file, depending on the parts you use or re-distribute. Please refer to [the above list](#dependencies) to see which license terms you have to agree to.
+LiteFX is licensed under the permissive [MIT license](./LICENSE). The documentation (i.e. the contents of the `docs` folder of this repository, especially the LiteFX logo, banner and icon) is licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Parts of this software are from third parties and are licensed under different terms. By using or redistributing this software, you agree to the terms of the third-party licenses mentioned in the [NOTICE](./NOTICE) file, depending on the parts you use or re-distribute. Please refer to [the above list](#dependencies) to see which license terms you have to agree to.
 
 If you want to use LiteFX in your projects, linking to [project website](https://litefx.crudolph.io/) and/or putting the logo in your project description is much appreciated.
