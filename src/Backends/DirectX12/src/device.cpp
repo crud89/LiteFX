@@ -118,7 +118,7 @@ public:
 		ComPtr<ID3D12InfoQueue> infoQueue;
 
 		if (FAILED(device.As(&infoQueue)))
-			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query info queue. Debugger support will be disabled disabled.");
+			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query info queue. Debugger support will be disabled.");
 		else
 		{
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
@@ -130,7 +130,6 @@ public:
 			D3D12_MESSAGE_ID suppressIds[] = { 
 				D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
 				D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
-				D3D12_MESSAGE_ID_BARRIER_INTEROP_INVALID_STATE                // Temporary workaround, as this appears to be a false-positive here... Reported to MSFT and they've got an internal bug (44057285) tracked for this. See: https://github.com/crud89/d3d12-renderpass-barrier-mwe.
 			};
 			D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
 
