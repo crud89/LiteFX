@@ -28,9 +28,9 @@
       "name": "linux",
       "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
-      "toolchainFile": "${sourceDir}/src/src/Modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "binaryDir": "${sourceDir}/../out/build/${presetName}",
+      "installDir": "${sourceDir}/../out/install/${presetName}",
+      "toolchainFile": "${sourceDir}/Modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
         "X_VCPKG_APPLOCAL_DEPS_INSTALL": "OFF",
         "BUILD_DIRECTX_12_BACKEND": "OFF"
@@ -42,7 +42,7 @@
       },
       "vendor": {
         "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
-          "sourceDir": "$env{HOME}/.vs/litefx",
+          "sourceDir": "$env{HOME}/.vs/litefx/src",
           "copySourcesOptions": {
             "exclusionList": [
               ".vs",
