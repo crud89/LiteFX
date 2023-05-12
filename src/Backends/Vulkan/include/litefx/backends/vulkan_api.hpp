@@ -259,7 +259,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>A list of available extensions.</returns>
         /// <seealso cref="validateDeviceExtensions" />
-        Array<String> getAvailableDeviceExtensions() const noexcept;
+        Enumerable<String> getAvailableDeviceExtensions() const noexcept;
 
         /// <summary>
         /// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
@@ -273,7 +273,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>A list of available validation layers.</returns>
         /// <seealso cref="validateDeviceLayers" />
-        Array<String> deviceValidationLayers() const noexcept;
+        Enumerable<String> deviceValidationLayers() const noexcept;
     };
 
     /// <summary>

@@ -12,7 +12,7 @@ public:
 
 private:
 	const VulkanQueue& m_queue;
-	bool m_recording{ false };
+	bool m_recording{ false }, m_secondary{ false };
 	Optional<VkCommandPool> m_commandPool;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 
@@ -37,6 +37,7 @@ public:
 			VkCommandPool commandPool;
 			raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &commandPool), "Unable to create command pool.");
 			m_commandPool = commandPool;
+			m_secondary = true;
 		}
 
 		// Create the command buffer.
@@ -128,11 +129,16 @@ void VulkanCommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+const bool& VulkanCommandBuffer::isSecondary() const noexcept
+{
+	return m_impl->m_secondary;
+}
+
 void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const noexcept
 {
 	auto vps = viewports |
 		std::views::transform([](const auto& viewport) { return VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() }; }) |
-		ranges::to<Array<VkViewport>>();
+		std::ranges::to<Array<VkViewport>>();
 
 	::vkCmdSetViewportWithCount(this->handle(), static_cast<UInt32>(vps.size()), vps.data());
 }
@@ -147,7 +153,7 @@ void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noex
 {
 	auto scs = scissors |
 		std::views::transform([](const auto& scissor) { return VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} }; }) |
-		ranges::to<Array<VkRect2D>>();
+		std::ranges::to<Array<VkRect2D>>();
 
 	::vkCmdSetScissorWithCount(this->handle(), static_cast<UInt32>(scs.size()), scs.data());
 }
@@ -437,6 +443,20 @@ void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEv
 		throw ArgumentNotInitializedException("The timing event must be initialized.");
 
 	::vkCmdWriteTimestamp(this->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_impl->m_queue.device().swapChain().timestampQueryPool(), timingEvent->queryId());
+}
+
+void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
+{
+	::vkCmdExecuteCommands(this->handle(), 1, &commandBuffer->handle());
+}
+
+void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
+{
+	auto secondaryHandles = commandBuffers | 
+		std::views::transform([](auto commandBuffer) { return commandBuffer->handle(); }) | 
+		std::ranges::to<Array<VkCommandBuffer>>();
+
+	::vkCmdExecuteCommands(this->handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
 }
 
 void VulkanCommandBuffer::releaseSharedState() const

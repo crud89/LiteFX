@@ -107,12 +107,12 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 	// Global barriers.
 	auto globalBarriers = m_impl->m_globalBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) { 
 		return CD3DX12_GLOBAL_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)));
-	}) | ranges::to<Array<D3D12_GLOBAL_BARRIER>>();
+	}) | std::ranges::to<Array<D3D12_GLOBAL_BARRIER>>();
 
 	// Buffer barriers.
 	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) {
 		return CD3DX12_BUFFER_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)), std::as_const(std::get<2>(barrier)).handle().Get());
-	}) | ranges::to<Array<D3D12_BUFFER_BARRIER>>();
+	}) | std::ranges::to<Array<D3D12_BUFFER_BARRIER>>();
 
 	// Image barriers.
 	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) {
@@ -136,7 +136,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 
 		return CD3DX12_TEXTURE_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)), currentLayout, targetLayout, std::as_const(image).handle().Get(), 
 			CD3DX12_BARRIER_SUBRESOURCE_RANGE(std::get<5>(barrier), std::get<6>(barrier), std::get<7>(barrier), std::get<8>(barrier), std::get<9>(barrier)));
-	}) | ranges::to<Array<D3D12_TEXTURE_BARRIER>>();
+	}) | std::ranges::to<Array<D3D12_TEXTURE_BARRIER>>();
 
 	// Put all into a buffer group.
 	Array<D3D12_BARRIER_GROUP> barrierGroups;

@@ -18,9 +18,10 @@ private:
     const DirectX12Device& m_device;
 
 public:
-    DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-        base(parent), m_descriptorSetLayouts(std::move(descriptorLayouts)), m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device)
+    DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+        base(parent), m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device)
     {
+        m_descriptorSetLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device) :
@@ -108,7 +109,7 @@ public:
                 shaderStages = D3D12_SHADER_VISIBILITY_HULL;
 
             // Define the root parameter ranges.
-            Array<const DirectX12DescriptorLayout*> layouts = layout->descriptors();
+            auto layouts = layout->descriptors();
             Array<D3D12_DESCRIPTOR_RANGE1> rangeSet = layouts |
                 std::views::filter([](const DirectX12DescriptorLayout* range) { return range->staticSampler() == nullptr; }) |
                 std::views::transform([&](const DirectX12DescriptorLayout* range) {
@@ -136,7 +137,7 @@ public:
                 }
 
                 return descriptorRange;
-            }) | ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
+            }) | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
 
             // Define the static samplers.
             std::ranges::for_each(layouts, [&](const DirectX12DescriptorLayout* range) {
@@ -206,7 +207,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, Array<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
     ComResource<ID3D12RootSignature>(nullptr), m_impl(makePimpl<DirectX12PipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
 {
     this->handle() = m_impl->initialize();
@@ -232,11 +233,9 @@ const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(const
     throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
 }
 
-Array<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSets() const noexcept
+Enumerable<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSets() const noexcept
 {
-    return m_impl->m_descriptorSetLayouts |
-        std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); }) |
-        ranges::to<Array<const DirectX12DescriptorSetLayout*>>();
+    return m_impl->m_descriptorSetLayouts | std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); });
 }
 
 const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() const noexcept

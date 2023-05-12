@@ -69,7 +69,7 @@ public:
             auto samples = m_renderPass.multiSamplingLevel();
 
             if (m_renderPass.device().maximumMultiSamplingLevel(renderTarget.format()) < samples)
-                throw InvalidArgumentException("Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), static_cast<UInt32>(samples));
+                throw InvalidArgumentException("Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), std::to_underlying(samples));
 
             const IDirectX12Image* renderTargetView;
 
@@ -77,8 +77,7 @@ public:
             {
                 // If the render target is a present target and should not be multi-sampled, acquire an image view directly from the swap chain.
                 // NOTE: Multi-sampling back-buffers directly is not supported (see https://docs.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#remarks).
-                auto swapChainImages = m_renderPass.device().swapChain().images();
-                renderTargetView = swapChainImages[m_bufferIndex];
+                renderTargetView = m_renderPass.device().swapChain().image(m_bufferIndex);
             }
             else
             {
@@ -183,12 +182,12 @@ SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(cons
     return m_impl->m_commandBuffers[index];
 }
 
-Array<SharedPtr<const DirectX12CommandBuffer>> DirectX12FrameBuffer::commandBuffers() const noexcept
+Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12FrameBuffer::commandBuffers() const noexcept
 {
-    return m_impl->m_commandBuffers | ranges::to<Array<SharedPtr<const DirectX12CommandBuffer>>>();
+    return m_impl->m_commandBuffers;
 }
 
-Array<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
+Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }

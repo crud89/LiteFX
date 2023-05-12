@@ -23,7 +23,7 @@ public:
     }
 
 public:
-    void initialize(Array<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology)
+    void initialize(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
 
@@ -49,7 +49,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssembler::VulkanInputAssembler(Array<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
+VulkanInputAssembler::VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
     m_impl(makePimpl<VulkanInputAssemblerImpl>(this))
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
@@ -62,11 +62,9 @@ VulkanInputAssembler::VulkanInputAssembler() noexcept :
 
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
-Array<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const noexcept
+Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const noexcept
 {
-    return m_impl->m_vertexBufferLayouts |
-        std::views::transform([](const auto& pair) { return pair.second.get(); }) |
-        ranges::to<Array<const VulkanVertexBufferLayout*>>();
+    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
 
 const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(const UInt32& binding) const
@@ -122,7 +120,7 @@ VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
 
 void VulkanInputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(std::move(m_impl->m_vertexBufferLayouts), std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
+    this->instance()->m_impl->initialize(m_impl->m_vertexBufferLayouts | std::views::as_rvalue, std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
 }
 
 VulkanInputAssemblerBuilder& VulkanInputAssemblerBuilder::topology(const PrimitiveTopology& topology)

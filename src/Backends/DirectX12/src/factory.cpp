@@ -243,11 +243,12 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ImageLayout::Common, resourceDesc, allocationDesc);
 }
 
-Array<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
 {
-	Array<UniquePtr<IDirectX12Image>> textures(elements);
-	std::ranges::generate(textures, [&, this]() { return this->createTexture(format, size, dimension, levels, layers, samples); });
-	return textures;
+	return [&, this]() -> std::generator<UniquePtr<IDirectX12Image>> {
+		for (UInt32 i = 0; i < elements; ++i)
+			co_yield this->createTexture(format, size, dimension, levels, layers, samples, allowWrite);
+	}() | std::views::as_rvalue;
 }
 
 UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
@@ -260,9 +261,10 @@ UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const Strin
 	return makeUnique<DirectX12Sampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 }
 
-Array<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
-	Array<UniquePtr<IDirectX12Sampler>> samplers(elements);
-	std::ranges::generate(samplers, [&, this]() { return this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy); });
-	return samplers;
+	return [&, this]() -> std::generator<UniquePtr<IDirectX12Sampler>> {
+		for (UInt32 i = 0; i < elements; ++i)
+			co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+	}() | std::views::as_rvalue;
 }

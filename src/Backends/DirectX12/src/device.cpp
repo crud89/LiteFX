@@ -118,7 +118,7 @@ public:
 		ComPtr<ID3D12InfoQueue> infoQueue;
 
 		if (FAILED(device.As(&infoQueue)))
-			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query info queue. Debugger support will be disabled disabled.");
+			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query info queue. Debugger support will be disabled.");
 		else
 		{
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
@@ -130,7 +130,6 @@ public:
 			D3D12_MESSAGE_ID suppressIds[] = { 
 				D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
 				D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
-				D3D12_MESSAGE_ID_BARRIER_INTEROP_INVALID_STATE                // Temporary workaround, as this appears to be a false-positive here... Reported to MSFT and they've got an internal bug (44057285) tracked for this. See: https://github.com/crud89/d3d12-renderpass-barrier-mwe.
 			};
 			D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
 
@@ -145,7 +144,7 @@ public:
 			// Try to register event callback.
 			if (FAILED(infoQueue.As(&m_eventQueue)))
 				LITEFX_WARNING(DIRECTX12_LOG, "Unable to query debug message callback queue. Native event logging will be disabled. Note that it requires at least Windows 11.");
-			else if (FAILED(m_eventQueue->RegisterMessageCallback(&DirectX12Device::DirectX12DeviceImpl::onDebugMessage, D3D12_MESSAGE_CALLBACK_FLAGS::D3D12_MESSAGE_CALLBACK_IGNORE_FILTERS, nullptr, &m_debugCallbackCookie)))
+			else if (FAILED(m_eventQueue->RegisterMessageCallback(&DirectX12Device::DirectX12DeviceImpl::onDebugMessage, D3D12_MESSAGE_CALLBACK_FLAGS::D3D12_MESSAGE_CALLBACK_FLAG_NONE, nullptr, &m_debugCallbackCookie)))
 				LITEFX_WARNING(DIRECTX12_LOG, "Unable to register debug message callback with info queue. Native event logging will be disabled.");
 		}
 #endif
@@ -200,18 +199,22 @@ public:
 			Array<UniquePtr<DirectX12ShaderModule>> modules;
 			auto blitShader = LiteFX::Backends::DirectX12::Shaders::blit_dxi::open();
 			modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, blitShader, LiteFX::Backends::DirectX12::Shaders::blit_dxi::name(), "main")));
-			auto shaderProgram = makeShared<DirectX12ShaderProgram>(*m_parent, std::move(modules));
+			auto shaderProgram = makeShared<DirectX12ShaderProgram>(*m_parent, std::move(modules | std::views::as_rvalue));
 
 			// Allocate descriptor set layouts.
 			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
-			Array<UniquePtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts;
-			Array<UniquePtr<DirectX12DescriptorLayout>> bufferLayouts, samplerLayouts;
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16));
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0));
-			bufferLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0));
-			samplerLayouts.push_back(makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0));
-			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute));
-			descriptorSetLayouts.push_back(makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute));
+			auto bufferLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16), 
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0),
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0)
+			);
+			auto samplerLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
+				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0) 
+			);
+			auto descriptorSetLayouts = Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>(
+				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute),
+				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute)
+			);
 			
 			// Create a pipeline layout.
 			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(*m_parent, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
@@ -550,7 +553,7 @@ MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& form
 
 	for (int level(0); level < allLevels.size(); ++level)
 	{
-		levels.SampleCount = static_cast<UInt32>(allLevels[level]);
+		levels.SampleCount = std::to_underlying(allLevels[level]);
 		
 		if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &levels, sizeof(levels))))
 			continue;

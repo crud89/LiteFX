@@ -148,7 +148,7 @@ public:
 
 				return QueueFamily(i++, familyProperty.queueCount, type);
 			}) |
-			ranges::to<Array<QueueFamily>>();
+			std::ranges::to<Array<QueueFamily>>();
 	}
 
 	VkDevice initialize()
@@ -156,7 +156,7 @@ public:
 		if (!m_adapter.validateDeviceExtensions(m_extensions))
 			throw InvalidArgumentException("Some required device extensions are not supported by the system.");
 
-		auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | ranges::to<Array<const char*>>();
+		auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
 
 		// Create graphics and transfer queue.
 		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, std::as_const(*m_surface).handle());
@@ -194,7 +194,7 @@ public:
 			std::views::transform([&queuePriorities](const QueueFamily& family) {
 				auto const priorities = family.queues() | 
 					std::views::transform([](const UniquePtr<VulkanQueue>& queue) { return static_cast<Float>(queue->priority()) / 100.f; }) |
-					ranges::to<Array<Float>>();
+					std::ranges::to<Array<Float>>();
 				queuePriorities.push_back(priorities);
 
 				VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -204,7 +204,7 @@ public:
 				queueCreateInfo.pQueuePriorities = queuePriorities.back().data();
 
 				return queueCreateInfo;
-			}) | ranges::to<Array<VkDeviceQueueCreateInfo>>();
+			}) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
 		// Allow geometry and tessellation shader stages.
 		VkPhysicalDeviceFeatures deviceFeatures = {

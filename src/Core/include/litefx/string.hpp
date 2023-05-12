@@ -1,11 +1,12 @@
 #pragma once
 
 #include <string>
-#include <sstream>
 #include <string_view>
 #include <iterator>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
+#include <ranges>
 
 #if defined _WIN32 || defined WINCE
 #define LITEFX_CODECVT_USE_WIN32
@@ -16,30 +17,25 @@
 #endif
 
 namespace LiteFX {
+    
+    using namespace std::string_literals;
+    using namespace std::string_view_literals;
+
     using String = std::string;
     using WString = std::wstring;
     using StringView = std::string_view;
     using WStringView = std::wstring_view;
 
-    // Based on: https://stackoverflow.com/a/5289170/1254352
-    template <typename TStrings, typename Value = typename TStrings::value_type>
-    String Join(const TStrings& elements, const String& delimiter = "") 
+    constexpr inline auto Join(std::ranges::input_range auto&& elements, StringView delimiter = ""sv) noexcept requires
+        std::convertible_to<std::ranges::range_value_t<decltype(elements)>, String>
     {
-        std::ostringstream stream;
+        return std::ranges::fold_left(elements | std::views::join_with(delimiter), String{}, std::plus<>{});
+    }
 
-        auto beg = std::begin(elements);
-        auto end = std::end(elements);
-
-        if (beg != end) 
-        {
-            std::copy(beg, std::prev(end), std::ostream_iterator<Value>(stream, delimiter.c_str()));
-            beg = std::prev(end);
-        }
-
-        if (beg != end)
-            stream << *beg;
-
-        return stream.str();
+    constexpr inline auto WJoin(std::ranges::input_range auto&& elements, WStringView delimiter = L""sv) noexcept requires
+        std::convertible_to<std::ranges::range_value_t<decltype(elements)>, String>
+    {
+        return std::ranges::fold_left(elements | std::views::join_with(delimiter), WString{}, std::plus<>{});
     }
 
     /// <summary>

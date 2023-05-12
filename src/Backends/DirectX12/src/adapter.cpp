@@ -64,7 +64,7 @@ UInt32 DirectX12GraphicsAdapter::deviceId() const noexcept
 GraphicsAdapterType DirectX12GraphicsAdapter::type() const noexcept
 {
     auto properties = m_impl->getProperties();
-    return LITEFX_FLAG_IS_SET(properties.Flags, DXGI_ADAPTER_FLAG3_SOFTWARE) ? GraphicsAdapterType::CPU : GraphicsAdapterType::GPU;
+    return properties.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE ? GraphicsAdapterType::CPU : GraphicsAdapterType::GPU;
 }
 
 UInt32 DirectX12GraphicsAdapter::driverVersion() const noexcept

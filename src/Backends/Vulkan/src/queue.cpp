@@ -186,12 +186,7 @@ void VulkanQueue::release()
 	this->released(this, { });
 }
 
-SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording) const
-{
-	return this->createCommandBuffer(false, beginRecording);
-}
-
-SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& secondary, const bool& beginRecording) const
+SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording, const bool& secondary) const
 {
 	return makeShared<VulkanCommandBuffer>(*this, beginRecording, !secondary);
 }
@@ -205,6 +200,9 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, S
 {
 	if (commandBuffer == nullptr)
 		throw InvalidArgumentException("The command buffer must be initialized.");
+
+	if (commandBuffer->isSecondary())
+		throw InvalidArgumentException("The command buffer must be a primary command buffer.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -257,31 +255,32 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, S
 	return fence;
 }
 
-UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const
+UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const
 {
 	return this->submit(commandBuffers, {}, {}, {});
 }
 
-UInt64 VulkanQueue::submit(const Array<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
+UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("At least one command buffer is not initialized.");
 
+	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); }))
+		throw InvalidArgumentException("At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
+
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// Begin event.
-	auto buffers = commandBuffers |
-		std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
-		ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
+	auto buffers = commandBuffers | std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); });
 	this->submitting(this, { buffers });
 
 	// End the command buffer.
-	Array<VkCommandBuffer> handles(commandBuffers.size());
-	std::ranges::generate(handles, [&commandBuffers, i = 0]() mutable {
-		const auto& commandBuffer = commandBuffers[i++];
-		commandBuffer->end();
-		return commandBuffer->handle();
-	});
+	auto handles = [&commandBuffers]() -> std::generator<VkCommandBuffer> {
+		for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer) {
+			(*buffer)->end();
+			co_yield (*buffer)->handle();
+		}
+	}() | std::ranges::to<Array<VkCommandBuffer>>();
 
 	// Create an array of all signal semaphores.
 	Array<VkSemaphore> semaphoresToSignal(signalSemaphores.size());

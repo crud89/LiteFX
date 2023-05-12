@@ -339,18 +339,14 @@ const VulkanFrameBuffer& VulkanRenderPass::activeFrameBuffer() const
     return *m_impl->m_activeFrameBuffer;
 }
 
-Array<const VulkanFrameBuffer*> VulkanRenderPass::frameBuffers() const noexcept
+Enumerable<const VulkanFrameBuffer*> VulkanRenderPass::frameBuffers() const noexcept
 {
-    return m_impl->m_frameBuffers | 
-        std::views::transform([](const UniquePtr<VulkanFrameBuffer>& frameBuffer) { return frameBuffer.get(); }) |
-        ranges::to<Array<const VulkanFrameBuffer*>>();
+    return m_impl->m_frameBuffers | std::views::transform([](const UniquePtr<VulkanFrameBuffer>& frameBuffer) { return frameBuffer.get(); });
 }
 
-Array<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noexcept
+Enumerable<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noexcept
 {
-    return m_impl->m_pipelines | 
-        std::views::transform([](const UniquePtr<VulkanRenderPipeline>& pipeline) { return pipeline.get(); }) | ranges::to<Array<const VulkanRenderPipeline*>>() |
-        ranges::to<Array<const VulkanRenderPipeline*>>();
+    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<VulkanRenderPipeline>& pipeline) { return pipeline.get(); });
 }
 
 const RenderTarget& VulkanRenderPass::renderTarget(const UInt32& location) const
@@ -435,7 +431,7 @@ void VulkanRenderPass::end() const
     auto secondaryBuffers = frameBuffer->commandBuffers();
     auto secondaryHandles = secondaryBuffers |
         std::views::transform([](auto commandBuffer) { commandBuffer->end(); return commandBuffer->handle(); }) |
-        ranges::to<Array<VkCommandBuffer>>();
+        std::ranges::to<Array<VkCommandBuffer>>();
     ::vkCmdExecuteCommands(std::as_const(*commandBuffer).handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
     ::vkCmdEndRenderPass(std::as_const(*commandBuffer).handle());
 

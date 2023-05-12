@@ -162,7 +162,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     this->initLights();
     auto lightsStagingBuffer = m_device->factory().createBuffer("Lights Staging", staticBindingLayout, 1, BufferUsage::Staging, LIGHT_SOURCES);
     auto lightsBuffer = m_device->factory().createBuffer("Lights", staticBindingLayout, 1, BufferUsage::Resource, LIGHT_SOURCES);
-    auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | ranges::to<Array<const void*>>();
+    auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | std::ranges::to<Array<const void*>>();
     lightsStagingBuffer->map(lightsData, sizeof(LightBuffer));
     commandBuffer->transfer(asShared(std::move(lightsStagingBuffer)), *lightsBuffer, 0, 0, LIGHT_SOURCES);
 

@@ -18,9 +18,10 @@ private:
     const VulkanDevice& m_device;
 
 public:
-    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-        base(parent), m_device(device), m_descriptorSetLayouts(std::move(descriptorLayouts)), m_pushConstantsLayout(std::move(pushConstantsLayout))
+    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+        base(parent), m_device(device), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
+        m_descriptorSetLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device) :
@@ -41,13 +42,13 @@ public:
         // Query for the descriptor set layout handles.
         auto descriptorSetLayouts = m_descriptorSetLayouts |
             std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |
-            ranges::to<Array<VkDescriptorSetLayout>>();
+            std::ranges::to<Array<VkDescriptorSetLayout>>();
 
         // Query for push constant ranges.
-        Array<const VulkanPushConstantsRange*> ranges = m_pushConstantsLayout == nullptr ? Array<const VulkanPushConstantsRange*>{} : m_pushConstantsLayout->ranges();
+        auto ranges = m_pushConstantsLayout == nullptr ? Enumerable<const VulkanPushConstantsRange*>{} : m_pushConstantsLayout->ranges();
         auto rangeHandles = ranges |
             std::views::transform([](const VulkanPushConstantsRange* range) { return VkPushConstantRange{ .stageFlags = static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() }; }) |
-            ranges::to<Array<VkPushConstantRange>>();
+            std::ranges::to<Array<VkPushConstantRange>>();
 
         // Create the pipeline layout.
         LITEFX_TRACE(VULKAN_LOG, "Creating pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), descriptorSetLayouts.size(), rangeHandles.size());
@@ -69,7 +70,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
     m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout))), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
@@ -98,11 +99,9 @@ const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(const UInt3
     throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
 }
 
-Array<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept
+Enumerable<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept
 {
-    return m_impl->m_descriptorSetLayouts |
-        std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); }) |
-        ranges::to<Array<const VulkanDescriptorSetLayout*>>();
+    return m_impl->m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); });
 }
 
 const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noexcept

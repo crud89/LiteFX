@@ -185,7 +185,7 @@ private:
 
 		return Join(formats |
 			std::views::transform([](const Format& format) { return fmt::to_string(format); }) |
-			ranges::to<Array<String>>(), ", ");
+			std::ranges::to<Array<String>>(), ", ");
 	}
 };
 
@@ -211,7 +211,7 @@ ID3D12QueryHeap* DirectX12SwapChain::timestampQueryHeap() const noexcept
 	return m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get();
 }
 
-Array<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const noexcept
+Enumerable<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const noexcept
 {
 	return m_impl->m_timingEvents;
 }
@@ -261,9 +261,17 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-Array<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
+const IDirectX12Image* DirectX12SwapChain::image(const UInt32& backBuffer) const
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); }) | ranges::to<Array<const IDirectX12Image*>>();
+	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
+		throw ArgumentOutOfRangeException("The back buffer must be a valid index.");
+
+	return m_impl->m_presentImages[backBuffer].get();
+}
+
+Enumerable<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
+{
+	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); });
 }
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
@@ -275,12 +283,12 @@ void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
 	raiseIfFailed<RuntimeException>(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 
-Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
+Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 {
 	// NOTE: Those formats are actually the only ones that are supported for flip-model swap chains, which is currently the only 
 	//       supported swap effect. If other swap effects are used, this function may require redesign. For more information see: 
 	//       https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1#remarks.
-	return Array<Format> {
+	return Enumerable<Format> {
 		DX12::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
 		DX12::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
 		DX12::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM),

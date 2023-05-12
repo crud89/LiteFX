@@ -143,12 +143,11 @@ void App::registerStopCallback(std::type_index type, const std::function<void()>
 	m_impl->m_stopCallbacks.insert(std::make_pair(type, callback));
 }
 
-Array<const IBackend*> App::getBackends(const BackendType type) const noexcept
+Enumerable<const IBackend*> App::getBackends(const BackendType type) const noexcept
 {
 	return m_impl->m_backends |
 		std::views::transform([](const auto& backend) { return backend.second.get(); }) |
-		std::views::filter([type](const auto backend) { return backend->type() == type; }) |
-		ranges::to<Array<const IBackend*>>();
+		std::views::filter([type](const auto backend) { return backend->type() == type; });
 }
 
 void App::use(UniquePtr<IBackend>&& backend)

@@ -56,27 +56,27 @@ using namespace LiteFX::Rendering::Backends;
 
 class SimpleApp : public LiteFX::App {
 public:
-	String getName() const noexcept override { return "Simple App"; }
-	AppVersion getVersion() const noexcept override { return AppVersion(1, 0, 0, 0); }
+    String getName() const noexcept override { return "Simple App"; }
+    AppVersion getVersion() const noexcept override { return AppVersion(1, 0, 0, 0); }
 
 private:
     GLFWwindow* m_window;
 
 public:
-	SimpleApp(GLFWwindow* window) : 
-		App(), m_window(window)
-	{
-		this->initializing += std::bind(&SampleApp::onInit, this);
-		this->startup += std::bind(&SampleApp::onStartup, this);
-		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
+    SimpleApp(GLFWwindow* window) : 
+        App(), m_window(window)
+    {
+        this->initializing += std::bind(&SampleApp::onInit, this);
+        this->startup += std::bind(&SampleApp::onStartup, this);
+        this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
         this->shutdown += std::bind(&SampleApp::onShutdown, this);
-	}
+    }
 
 private:
-	void onInit();
-	void onStartup();
-	void onShutdown();
-	void onResize(const void* sender, ResizeEventArgs e);
+    void onInit();
+    void onStartup();
+    void onShutdown();
+    void onResize(const void* sender, ResizeEventArgs e);
 };
 
 static void resize(GLFWwindow* window, int width, int height)
@@ -108,18 +108,18 @@ void SimpleApp::onResize(const void* sender, ResizeEventArgs e)
 int main(const int argc, const char** argv)
 {
     // Create glfw window.
-	if (!::glfwInit())
+    if (!::glfwInit())
     {
         std::cout << "Unable to initialize glfw." << std::endl;
-		return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 
-	::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    ::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    ::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-	GLFWwindow* window = ::glfwCreateWindow(800, 600, "Simple App", nullptr, nullptr);
+    GLFWwindow* window = ::glfwCreateWindow(800, 600, "Simple App", nullptr, nullptr);
 
-	// The next lines are Vulkan-specific:
+    // The next lines are Vulkan-specific:
     UInt32 extensions = 0;
     const char** extensionNames = ::glfwGetRequiredInstanceExtensions(&extensions);
     Array<String> requiredExtensions(extensions);
@@ -133,13 +133,13 @@ int main(const int argc, const char** argv)
             .go();
     }
     catch (const LiteFX::Exception& ex)
-	{
-		std::cerr << "An unhandled exception occurred: " << ex.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+    {
+        std::cerr << "An unhandled exception occurred: " << ex.what() << std::endl;
+        return EXIT_FAILURE;
+    }
     
     ::glfwDestroyWindow(window);
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 ```
 
@@ -187,10 +187,10 @@ void SimpleApp::onInit()
 
     // For Vulkan:
     auto surface = backend->createSurface([this](const VkInstance& instance) {
-	    VkSurfaceKHR surface;
-	    raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
+        VkSurfaceKHR surface;
+        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
 
-	    return surface;
+        return surface;
     });
 
     // For DX12 (and Vulkan under Windows):
@@ -243,7 +243,7 @@ The other values that are provided to a render target are:
 
 ```cxx
 m_renderPass = m_device->buildRenderPass()
-	.renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false);
+    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false);
 ```
 
 #### Creating a Render Pipeline
@@ -264,12 +264,12 @@ Finally, we define out vertex buffer layout. This means, that we tell the input 
 
 ```cxx
     .inputAssembler(device->buildInputAssembler()
-		.withTopology(PrimitiveTopology::TriangleList)
-		.withIndexType(IndexType::UInt16)
-		.vertexBuffer(sizeof(Vertex), 0)
-			.withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-			.withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-			.add())
+        .withTopology(PrimitiveTopology::TriangleList)
+        .withIndexType(IndexType::UInt16)
+        .vertexBuffer(sizeof(Vertex), 0)
+            .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+            .add())
 ```
 
 ##### Rasterizer State
@@ -277,10 +277,10 @@ Finally, we define out vertex buffer layout. This means, that we tell the input 
 Next, we tell the pipeline about how those primitives (i.e. triangles in our example) should be drawn. We want to draw solid faces, so we set the `PolygonMode` to `Solid`. Another property of the rasterizer state is the face culling state. First, we set the order of vertices, which dictates which side of the primitive is interpreted as *front* and which one is the *back*. We set the `CullOrder` to `ClockWise` to tell the pipeline to treat this ordering as *front face*. Finally, we tell the pipeline  to draw both sides of a polygon, by setting the `CullMode` to `Disabled`.
 
 ```cxx
-	.rasterizer(device->buildRasterizer()
-		.withPolygonMode(PolygonMode::Solid)
-		.withCullOrder(CullOrder::ClockWise)
-		.withCullMode(CullMode::Disabled))
+    .rasterizer(device->buildRasterizer()
+        .withPolygonMode(PolygonMode::Solid)
+        .withCullOrder(CullOrder::ClockWise)
+        .withCullMode(CullMode::Disabled))
 ```
 
 ##### Render Pipeline Layout
@@ -288,9 +288,9 @@ Next, we tell the pipeline about how those primitives (i.e. triangles in our exa
 Each pipeline is defined using a *Shader Program* and a *Pipeline Layout*. We start by defining the shader program, which in our simple example should contain two stages: *Vertex* and *Fragment* shaders (those are also called *Pixel* shaders in DirectX). A program is built from multiple modules, where each module type may only exist once within a program. The modules are loaded from files and must be in a compatible binary format. For Vulkan this format is *SPIR-V*, for DirectX it's *DXIL*. We define those shaders later, for now it is only important that they are written to the *shaders* directory and called *vs.spv* (vertex shader) and *fs.spv* (fragment shader).
 
 ```cxx
-	.shaderProgram(device->buildShaderProgram()
-		.withVertexShaderModule("shaders/vs.spv")		// .dxi for DXIL
-		.withFragmentShaderModule("shaders/fs.spv"))
+    .shaderProgram(device->buildShaderProgram()
+        .withVertexShaderModule("shaders/vs.spv") // .dxi for DXIL
+        .withFragmentShaderModule("shaders/fs.spv"))
 ```
 
 Finally we need to tell the pipeline layout about the buffers that are used by the shader. Buffers are grouped into descriptor sets. Each descriptor set can contain multiple buffers and is visible to a pre-defined range of shader stages. Each buffer is bound to a certain location within the descriptor set. It is a good pracitce to group buffers into descriptor sets, based on update frequency. We have two buffers in our example, that are updated in different frequencies:
@@ -301,13 +301,13 @@ Finally we need to tell the pipeline layout about the buffers that are used by t
 For now, we will only define the descriptor sets and take a look at the `CameraBuffer` and `TransformBuffer` objects later.
 
 ```cxx
-	.layout(device->buildPipelineLayout()
-		.descriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
-			.withConstantBuffer(0, sizeof(CameraBuffer))
-			.add()
-		.descriptorSet(1, ShaderStage::Vertex)
-			.withConstantBuffer(0, sizeof(TransformBuffer))
-			.add())
+    .layout(device->buildPipelineLayout()
+        .descriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
+            .withConstantBuffer(0, sizeof(CameraBuffer))
+            .add()
+        .descriptorSet(1, ShaderStage::Vertex)
+            .withConstantBuffer(0, sizeof(TransformBuffer))
+            .add())
 ```
 
 For more details about buffers and descriptor sets, kindly refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Resource-Bindings) or read the API documentation about descriptor sets.

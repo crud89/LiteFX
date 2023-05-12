@@ -12,7 +12,7 @@ public:
 
 private:
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-	bool m_recording{ false };
+	bool m_recording{ false }, m_secondary{ false };
 	const DirectX12Queue& m_queue;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 
@@ -23,17 +23,22 @@ public:
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin)
+	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin, const bool& primary)
 	{
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
 
-		switch (m_queue.type())
+		if (m_secondary = !primary)
+			type = D3D12_COMMAND_LIST_TYPE_BUNDLE;
+		else
 		{
-		case QueueType::Compute: type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
-		case QueueType::Transfer: type = D3D12_COMMAND_LIST_TYPE_COPY; break;
-		default:
-		case QueueType::Graphics: type = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
+			switch (m_queue.type())
+			{
+			case QueueType::Compute: type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
+			case QueueType::Transfer: type = D3D12_COMMAND_LIST_TYPE_COPY; break;
+			default:
+			case QueueType::Graphics: type = D3D12_COMMAND_LIST_TYPE_DIRECT; break;
+			}
 		}
 
 		raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
@@ -67,10 +72,10 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin) :
+DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin, const bool& primary) :
 	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList7>(nullptr)
 {
-	this->handle() = m_impl->initialize(begin);
+	this->handle() = m_impl->initialize(begin, primary);
 
 	if (begin)
 		m_impl->bindDescriptorHeaps();
@@ -96,11 +101,16 @@ void DirectX12CommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+const bool& DirectX12CommandBuffer::isSecondary() const noexcept
+{
+	return m_impl->m_secondary;
+}
+
 void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) const noexcept
 {
 	auto vps = viewports |
 		std::views::transform([](const auto& viewport) { return CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth()); }) |
-		ranges::to<Array<D3D12_VIEWPORT>>();
+		std::ranges::to<Array<D3D12_VIEWPORT>>();
 
 	this->handle()->RSSetViewports(vps.size(), vps.data());
 }
@@ -115,7 +125,7 @@ void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const n
 {
 	auto scs = scissors |
 		std::views::transform([](const auto& scissor) { return CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height()); }) |
-		ranges::to<Array<D3D12_RECT>>();
+		std::ranges::to<Array<D3D12_RECT>>();
 
 	this->handle()->RSSetScissorRects(scs.size(), scs.data());
 }
@@ -160,7 +170,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 
 	auto parametersBlock = parametersData |
 		std::views::transform([](const Parameters& parameters) { return reinterpret_cast<const void*>(&parameters); }) |
-		ranges::to<Array<const void*>>();
+		std::ranges::to<Array<const void*>>();
 
 	// Set the active pipeline state.
 	auto& pipeline = m_impl->m_queue.device().blitPipeline();
@@ -184,25 +194,25 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	DirectX12Barrier startBarrier(PipelineStage::None, PipelineStage::Compute);
 	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ReadWrite);
 	this->barrier(startBarrier);
-	int resource = 0;
+	auto resource = resourceBindings.begin();
 
-	for (int l(0); l < image.layers(); ++l)
+	for (int l(0); l < image.layers(); ++l, ++resource)
 	{
 		auto size = image.extent();
 
 		for (UInt32 i(1); i < image.levels(); ++i, size /= 2)
 		{
 			// Update the invocation parameters.
-			resourceBindings[resource]->update(parametersLayout.binding(), *parameters, i, 1);
+			(*resource)->update(parametersLayout.binding(), *parameters, i, 1);
 
 			// Bind the previous mip map level to the SRV at binding point 1.
-			resourceBindings[resource]->update(1, image, 0, i - 1, 1, l, 1);
+			(*resource)->update(1, image, 0, i - 1, 1, l, 1);
 
 			// Bind the current level to the UAV at binding point 2.
-			resourceBindings[resource]->update(2, image, 0, i, 1, l, 1);
+			(*resource)->update(2, image, 0, i, 1, l, 1);
 
 			// Dispatch the pipeline.
-			this->bind(*resourceBindings[resource], pipeline);
+			this->bind(*(*resource), pipeline);
 			this->dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
 
 			// Wait for all writes.
@@ -362,6 +372,16 @@ void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timin
 		throw ArgumentNotInitializedException("The timing event must be initialized.");
 
 	this->handle()->EndQuery(m_impl->m_queue.device().swapChain().timestampQueryHeap(), D3D12_QUERY_TYPE_TIMESTAMP, timingEvent->queryId());
+}
+
+void DirectX12CommandBuffer::execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
+{
+	this->handle()->ExecuteBundle(commandBuffer->handle().Get());
+}
+
+void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
+{
+	std::ranges::for_each(commandBuffers, [this](auto& bundle) { this->handle()->ExecuteBundle(bundle->handle().Get()); });
 }
 
 void DirectX12CommandBuffer::releaseSharedState() const

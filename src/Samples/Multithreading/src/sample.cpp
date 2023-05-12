@@ -143,7 +143,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Create a transform buffer array for each worker and bind it to one of the descriptor sets.
     Array<UniquePtr<IBuffer>> transformBuffers(NUM_WORKERS);
     std::ranges::generate(transformBuffers, [&, i = 0]() mutable { return m_device->factory().createBuffer(fmt::format("Transform {0}", i++), transformBindingLayout, 0, BufferUsage::Dynamic, 3); });
-    auto transformBindings = transformBindingLayout.allocateMultiple(3 * NUM_WORKERS, [&transformBuffers](const UInt32& set) -> Array<DescriptorBinding> { 
+    auto transformBindings = transformBindingLayout.allocateMultiple(3 * NUM_WORKERS, [&transformBuffers](const UInt32& set) -> Enumerable<DescriptorBinding> { 
         return { { .binding = 0, .resource = *transformBuffers[set % NUM_WORKERS], .firstElement = set / NUM_WORKERS, .elements = 1 } }; 
     });
     
