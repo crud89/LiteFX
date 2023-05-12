@@ -1419,6 +1419,26 @@ namespace LiteFX::Rendering {
         Undefined = 0x7FFFFFFF
     };
 
+    /// <summary>
+    /// Strategy to use for device resource defragmentation.
+    /// </summary>
+    enum class LITEFX_RENDERING_API DefragmentationStrategy {
+        /// <summary>
+        /// Fastest but least accurate strategy.
+        /// </summary>
+        Fast,
+
+        /// <summary>
+        /// Strategy that trades performance for accuracy.
+        /// </summary>
+        Balanced,
+
+        /// <summary>
+        /// Least performant, but most accurate strategy.
+        /// </summary>
+        Full
+    };
+
 #pragma endregion
 
 #pragma region "Flags"
@@ -5497,6 +5517,57 @@ namespace LiteFX::Rendering {
         Enumerable<UniquePtr<ISampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
             return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
+
+        /// <summary>
+        /// Starts the defragmentation process.
+        /// </summary>
+        /// <remarks>
+        /// Allows subsequent calls to <see cref="defragment" />.
+        /// 
+        /// Calling this method if another defragmentation process is running will fail and produce an error.
+        /// </remarks>
+        /// <param name="strategy">The defragmentation strategy to apply.</param>
+        /// <param name="maxBytes">The maximum number of bytes to copy per defragmentation pass (`0` means unlimited).</param>
+        /// <param name="maxAllocations">The maximum number of allocations to move during a defragmentation pass (`0` means unlimited).</param>
+        /// <exception cref="RuntimeException">Thrown, if another defragmentation process is currently active.</exception>
+        /// <seealso cref="endDefragmentation" />
+        /// <seealso cref="defragment" />
+        void beginDefragmentation(const DefragmentationStrategy& strategy = DefragmentationStrategy::Fast, const UInt64& maxBytes = 0, const UInt32& maxAllocations = 0);
+
+        /// <summary>
+        /// Ends the defragmentation process.
+        /// </summary>
+        /// <remarks>
+        /// Only call this method, if an earlier call to <see cref="defragment" /> has returned <c>true</c>.
+        /// 
+        /// Calling this method if no defragmentation process is started will have no effect.
+        /// </remarks>
+        /// <exception cref="RuntimeException">Thrown, if the defragmentation has not yet finished.</exception>
+        /// <seealso cref="beginDefragmentation" />
+        /// <seealso cref="defragment" />
+        void endDefragmentation();
+
+        /// <summary>
+        /// Inserts a new defragmentation pass.
+        /// </summary>
+        /// <remarks>
+        /// A defragmentation pass must be only issued between a call to <see cref="beginDefragmentation" /> and <see cref="endDefragmentation" />.
+        /// 
+        /// During a defragmentation pass, the factory collects memory allocations to move and issues copy commands on the <see cref="IGraphicsDevice::transferQueue" />. If another pass has
+        /// preceeded the current pass, it cleans up the outdated allocations before this process. If there are no more allocations to move, the method returns <c>true</c>, in which case you have
+        /// to call <see cref="endDefragmentation" /> to end the defragmentation. If the defragmentation is not ended, subsequent passes will no longer do any defragmentation work. On the other
+        /// hand, calling <see cref="endDefragmentation" /> before the current defragmentation pass returns <c>true</c> is not allowed and produces an error.
+        /// 
+        /// You can set the <paramref name="fence" /> pointer to store the value of a fence that marks the end of the defragmentation pass. This allows you to prevent unneccessary waiting when 
+        /// issuing a new defragmentation pass by checking the <see cref="ICommandQueue::currentFence" /> on the <see cref="IGraphicsDevice::transferQueue" /> against this value and only calling
+        /// this method, if the fence is lower or equal to the current fence of the queue.
+        /// </remarks>
+        /// <param name="fence">Stores the value of a fence that marks the end of the defragmentation pass.</returns>
+        /// <returns><c>true</c>, if the defragmentation is finished and can be ended by calling <see cref="endDefragmentation" />, otherwise <c>false</c>.</returns>
+        /// <exception cref="RuntimeException">Thrown, if no defragmentation process is currently active.</exception>
+        /// <seealso cref="beginDefragmentation" />
+        /// <seealso cref="endDefragmentation" />
+        bool defragment(UInt64* fence = nullptr) const;
 
     private:
         virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;

@@ -469,7 +469,6 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
     template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
         rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
-        //std::derived_from<TCommandBuffer, ICommandBuffer> &&
         std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>>
     class CommandBuffer : public ICommandBuffer {
     public:
