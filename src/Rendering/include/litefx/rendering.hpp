@@ -1266,7 +1266,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TBackend">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
-    template <typename TBackend, typename TGraphicsDevice> requires
+    template <typename TGraphicsDevice> requires
         rtti::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::barrier_type>>
     class RenderBackend : public IRenderBackend {
     public:
@@ -1311,11 +1311,11 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_args">The arguments that are passed to the graphics device constructor.</param>
         /// <returns>A pointer of the created graphics device instance.</returns>
-        template <typename ...TArgs>
-        device_type* createDevice(String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
-            auto device = makeUnique<device_type>(static_cast<const TBackend&>(*this), adapter, std::move(surface), std::forward<TArgs>(_args)...);
+        template <typename TSelf, typename ...TArgs>
+        device_type* createDevice(this TSelf&& self, String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
+            auto device = makeUnique<device_type>(self, adapter, std::move(surface), std::forward<TArgs>(_args)...);
             auto devicePointer = device.get();
-            this->registerDevice(name, std::move(device));
+            self.registerDevice(name, std::move(device));
             return devicePointer;
         }
 

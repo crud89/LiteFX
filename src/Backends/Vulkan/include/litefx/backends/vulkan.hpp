@@ -1716,7 +1716,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend<VulkanBackend, VulkanDevice>, public Resource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend<VulkanDevice>, public Resource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
 	public:

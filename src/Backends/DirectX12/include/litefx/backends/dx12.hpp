@@ -1730,7 +1730,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements the DirectX 12 <see cref="RenderBackend" />.
 	/// </summary>
-	class LITEFX_DIRECTX12_API DirectX12Backend : public RenderBackend<DirectX12Backend, DirectX12Device>, public ComResource<IDXGIFactory7> {
+	class LITEFX_DIRECTX12_API DirectX12Backend : public RenderBackend<DirectX12Device>, public ComResource<IDXGIFactory7> {
 		LITEFX_IMPLEMENTATION(DirectX12BackendImpl);
 
 	public:
