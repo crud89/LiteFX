@@ -1,10 +1,12 @@
-#pragma once
+module;
 
 #include <type_traits>
 #include <typeindex>
 #include <concepts>
 
-namespace LiteFX::rtti {
+export module LiteFX.Core:Concepts;
+
+export namespace LiteFX {
 
     /// <summary>
     /// Trait that is evaluated, if a class does not have an builder member type defined.
@@ -99,4 +101,5 @@ namespace LiteFX::rtti {
     /// </summary>
     template <typename T, typename... Ts>
     concept are_same = std::conjunction_v<std::is_same<T, Ts>...>;
+
 }

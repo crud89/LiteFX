@@ -16,16 +16,24 @@ CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h")
 
 # Collect header & source files.
 SET(CORE_HEADERS
-    "include/litefx/containers.hpp"
-    "include/litefx/generator.hpp"
-    "include/litefx/string.hpp"
-    "include/litefx/traits.hpp"
-    "include/litefx/exceptions.hpp"
     "include/litefx/litefx.h"
+    "include/litefx/common.h"
 )
 
 SET(CORE_SOURCES
-    "src/core.cpp"
+    "src/generator.hpp"
+)
+
+SET(CORE_MODULES
+    "modules/core.ixx"
+    "modules/alias.ixx"
+    "modules/string.ixx"
+    "modules/concepts.ixx"
+    "modules/exceptions.ixx"
+    "modules/enumerable.ixx"
+    "modules/pimpl.ixx"
+    "modules/builder.ixx"
+    "modules/resource.ixx"
 )
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED
@@ -36,8 +44,14 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
     "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h"
 )
 
+TARGET_SOURCES(${PROJECT_NAME} 
+    PUBLIC
+        FILE_SET core_modules TYPE CXX_MODULES
+        FILES ${CORE_MODULES}
+)
+
 # Create source groups for better code organization.
-SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CORE_HEADERS} ${CORE_SOURCES})
+SOURCE_GROUP(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CORE_HEADERS} ${CORE_MODULES} ${CORE_SOURCES})
 
 # Setup project properties. Relevant properties:
 # - FOLDER: IDE folder (if supported).
@@ -52,7 +66,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
     DEFINE_SYMBOL ""
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO "Debug"
     MAP_IMPORTED_CONFIG_MINSIZEREL "Release"
-    PUBLIC_HEADER "${CORE_HEADERS};${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h;${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h;${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h"
+    PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h;${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h;${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h"
 )
 
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
@@ -67,20 +81,17 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC fmt::fmt)
 
-# Pre-compile core header.
-IF(BUILD_PRECOMPILED_HEADERS)
-    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PRIVATE <litefx/core.h>)
-ENDIF(BUILD_PRECOMPILED_HEADERS)
-
 # Setup installer.
 INSTALL(TARGETS ${PROJECT_NAME} EXPORT EXPORT LiteFX
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}/litefx/
+    FILE_SET core_modules DESTINATION ${CMAKE_INSTALL_MODULE_DIR}
+    CXX_MODULES_BMI DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}/modules
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
 )
 
 # Export config.
-INSTALL(EXPORT LiteFX DESTINATION ${CMAKE_INSTALL_EXPORT_DIR})
+INSTALL(EXPORT LiteFX DESTINATION ${CMAKE_INSTALL_EXPORT_DIR} CXX_MODULES_DIRECTORY ${CMAKE_INSTALL_EXPORT_DIR}/modules)
 EXPORT(TARGETS ${PROJECT_NAME} FILE LiteFXCoreConfig.cmake)

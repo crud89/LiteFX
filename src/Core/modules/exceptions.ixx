@@ -1,4 +1,4 @@
-#pragma once
+module;
 
 #include <stdexcept>
 #include <string>
@@ -6,8 +6,11 @@
 #include <string>
 #include <type_traits>
 #include <fmt/format.h>
+#include <litefx/common.h>
 
-namespace LiteFX {
+export module LiteFX.Core:Exceptions;
+
+export namespace LiteFX {
 
 	using Exception = std::exception;
 
@@ -46,11 +49,6 @@ namespace LiteFX {
 			return m_inner.has_value() ? &m_inner.value() : nullptr; 
 		}
 	};
-
-#define DEFINE_EXCEPTION(name, base) class name : public ExceptionBase<base, name> { \
-	public: \
-		using ExceptionBase<base, name>::ExceptionBase; \
-	}
 
 	DEFINE_EXCEPTION(InvalidArgumentException, std::invalid_argument);
 	DEFINE_EXCEPTION(ArgumentOutOfRangeException, std::out_of_range);

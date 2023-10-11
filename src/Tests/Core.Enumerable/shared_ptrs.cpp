@@ -6,7 +6,7 @@ int main(int argc, char* argv[])
 	foos.push_back(makeShared<Foo>(0));
 	foos.push_back(makeShared<Foo>(1));
 	foos.push_back(makeShared<Foo>(2));
-	auto bars = []() -> std::generator<SharedPtr<Bar>> {
+	auto bars = []() -> Generator<SharedPtr<Bar>> {
 		for (int i(3); ; ++i)
 			co_yield makeShared<Bar>(i);
 	}() | std::views::take(3) | std::ranges::to<Array<SharedPtr<Bar>>>();
