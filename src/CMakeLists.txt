@@ -4,7 +4,7 @@
 #####                                                                                         #####
 ###################################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.25)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.28)
 
 # Check if the build dir does not match the source dir (disallow in-source builds).
 IF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")

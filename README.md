@@ -73,12 +73,12 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
 - [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features.
-- [CMake](https://cmake.org/download/) (version 3.25 or higher). †
+- [CMake](https://cmake.org/download/) (version 3.28 or higher). †
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.20348.0 or later (required to build DirectX backend).
 
-† CMake 3.25 is part of Visual Studio 2022 version 17.5 and above. When using other compilers, CMake needs to be installed manually.
+† CMake 3.28 is part of Visual Studio 2022 version 17.9 and above. When using other compilers, CMake needs to be installed manually.
 
 ‡ Note that the LunarG Vulkan SDK (1.3.204.1 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
@@ -116,7 +116,7 @@ You can customize the engine build, according to your specific needs. The most s
   "version": 2,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 25,
+    "minor": 28,
     "patch": 0
   },
   "configurePresets": [
@@ -150,7 +150,7 @@ For example, if you only want to build the Vulkan backend and samples and don't 
   "version": 2,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 25,
+    "minor": 28,
     "patch": 0
   },
   "configurePresets": [
