@@ -624,37 +624,30 @@ namespace LiteFX {
 	/// <typeparamref name="T" />. Assigning the builder instance to an instance of <typeparamref name="TPointer" /> will return the instance object.
 	/// Similar to child builders, it is possible to overwrite the `build` method, to perform any additional pre-construction work.
 	/// 
-	/// The derived type <typeparamref name="TDerived" /> marks the actual implementation of the builder, which itself is derived from this class in 
-	/// CRTP-fashion. It is typically used to define builder methods that return references to `this`.
-	/// 
 	/// Builders create the object instances they manage in form of smart pointers. The <typeparamref name="TPointer" /> can either be set to any smart
 	/// pointer type that wraps <typeparamref name="T" /> for convenience.
 	/// </remarks>
-	/// <typeparam name="TDerived">The concrete implementation of the builder itself.</typeparam>
 	/// <typeparam name="T">The type of the object the builder builds.</typeparam>
 	/// <typeparam name="TParent">The type of the parent builder or `std::nullptr_t`.</typeparam>
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
-	template <typename TDerived, typename T, typename TParent = std::nullptr_t, typename TPointer = UniquePtr<T>>
+	template <typename T, typename TParent = std::nullptr_t, typename TPointer = UniquePtr<T>>
 	class Builder;
 
 	/// <summary>
 	/// Describes a root builder.
 	/// </summary>
-	/// <typeparam name="TDerived">The concrete implementation of the builder itself.</typeparam>
 	/// <typeparam name="T">The type of the object the builder builds.</typeparam>
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Builders" />
-	template <typename TDerived, typename T, typename TPointer>
-	class Builder<TDerived, T, std::nullptr_t, typename TPointer> {
+	template <typename T, typename TPointer>
+	class Builder<T, std::nullptr_t, typename TPointer> {
 	private:
 		TPointer m_instance;
 
 	public:
-		using derived_type = TDerived;
 		using instance_type = T;
 		using parent_type = std::nullptr_t;
 		using pointer_type = TPointer;
-		using builder_type = Builder<derived_type, instance_type, parent_type, pointer_type>;
 
 	public:
 		/// <summary>
@@ -681,9 +674,9 @@ namespace LiteFX {
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
-		Builder(builder_type&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
+		Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
 
-		Builder(const builder_type&) = delete;
+		Builder(const Builder&) = delete;
 		virtual ~Builder() noexcept = default;
 
 	protected:
@@ -717,22 +710,19 @@ namespace LiteFX {
 	/// <summary>
 	/// Describes a child builder.
 	/// </summary>
-	/// <typeparam name="TDerived">The concrete implementation of the builder itself.</typeparam>
 	/// <typeparam name="T">The type of the object the builder builds.</typeparam>
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Builders" />
-	template <typename TDerived, typename T, typename TParent, typename TPointer>
+	template <typename T, typename TParent, typename TPointer>
 	class Builder {
 	private:
 		TPointer m_instance;
 		TParent& m_parent;
 
 	public:
-		using derived_type = TDerived;
 		using instance_type = T;
 		using parent_type = TParent;
 		using pointer_type = TPointer;
-		using builder_type = Builder<derived_type, instance_type, parent_type, pointer_type>;
 
 	public:
 		/// <summary>
@@ -766,9 +756,9 @@ namespace LiteFX {
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
-		Builder(builder_type&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
+		Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
 		
-		Builder(const builder_type&) = delete;
+		Builder(const Builder&) = delete;
 		virtual ~Builder() noexcept = default;
 
 	protected:

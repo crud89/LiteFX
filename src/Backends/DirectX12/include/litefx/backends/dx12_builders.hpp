@@ -82,48 +82,12 @@ namespace LiteFX::Rendering::Backends {
 		virtual void build() override;
 
 		// ShaderProgramBuilder interface.
-	public:
+	protected:
 		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint = "main") override;
+		virtual void addShaderModuleFromFile(const ShaderStage& type, const String& fileName, const String& entryPoint) override;
 
 		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withShaderModule(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withVertexShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withVertexShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withTessellationControlShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withTessellationControlShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withTessellationEvaluationShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withGeometryShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withGeometryShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withFragmentShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withFragmentShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withComputeShaderModule(const String& fileName, const String& entryPoint = "main") override;
-
-		/// <inheritdoc />
-		virtual DirectX12ShaderProgramBuilder& withComputeShaderModule(std::istream& stream, const String& name, const String& entryPoint = "main") override;
+		virtual void addShaderModuleFromFile(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint) override;
 	};
 
 	/// <summary>

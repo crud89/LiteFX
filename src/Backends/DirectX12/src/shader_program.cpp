@@ -427,75 +427,13 @@ void DirectX12ShaderProgramBuilder::build()
     instance->m_impl->m_modules = std::move(m_impl->m_modules);
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
+void DirectX12ShaderProgramBuilder::addShaderModuleFromFile(const ShaderStage& type, const String& fileName, const String& entryPoint)
 {
     m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, fileName, entryPoint));
-    return *this;
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withShaderModule(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint)
+void DirectX12ShaderProgramBuilder::addShaderModuleFromFile(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint)
 {
     m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint));
-    return *this;
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withVertexShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Vertex, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withVertexShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Vertex, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationControlShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationControlShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationEvaluationShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withGeometryShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Geometry, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withGeometryShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Geometry, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withFragmentShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withFragmentShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Fragment, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withComputeShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Compute, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withComputeShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Compute, stream, name, entryPoint);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

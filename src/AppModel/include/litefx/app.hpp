@@ -639,9 +639,9 @@ namespace LiteFX {
 	/// <summary>
 	/// Creates a new builder for an <see cref="App" />.
 	/// </summary>
-	class LITEFX_APPMODEL_API AppBuilder : public Builder<AppBuilder, App> {
+	class LITEFX_APPMODEL_API AppBuilder : public Builder<App> {
 	public:
-		using builder_type::Builder;
+		using Builder<App>::Builder;
 
 	public:
 		/// <inheritdoc />

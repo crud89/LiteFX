@@ -1264,7 +1264,6 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Defines a back-end, that provides a device instance for a certain surface and graphics adapter.
     /// </summary>
-    /// <typeparam name="TBackend">The type of the backend derived from the interface. Must implement <see cref="IRenderBackend" />.</typeparam>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
     template <typename TGraphicsDevice> requires
         rtti::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::barrier_type>>
