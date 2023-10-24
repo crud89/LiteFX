@@ -18,44 +18,182 @@ namespace LiteFX::Rendering {
         rtti::implements<TBarrier, Barrier<typename TBarrier::buffer_type, typename TBarrier::image_type>>
     class BarrierBuilder : public Builder<TBarrier> {
     public:
-        struct SecondStageBuilder {
+        template <typename TParent> requires
+            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+        struct [[nodiscard]] ImageBarrierBuilder;
+
+        /// <summary>
+        /// A builder that sets up the pipeline stages to wait for and to continue with on a barrier.
+        /// </summary>
+        /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
+        template <typename TParent> requires
+            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+        struct [[nodiscard]] SecondStageBuilder {
+        private:
+            PipelineStage m_from;
+            TParent m_parent;
+
+            /// <summary>
+            /// Initializes a builder that sets up barrier stages.
+            /// </summary>
+            /// <param name="parent">The parent builder instance.</param>
+            /// <param name="waitFor">The pipeline stage to wait for.</param>
+            constexpr inline SecondStageBuilder(TParent&& parent, PipelineStage waitFor) noexcept :
+                m_parent(std::move(parent)), m_from(waitFor) { }
+
+        public:
+            friend class BarrierBuilder;
+
             /// <summary>
             /// Specifies the pipeline stage that are allowed to continue after the barrier has executed.
             /// </summary>
             /// <param name="stage">The pipeline stage that are allowed to continue after the barrier has executed.</param>
-            virtual TDerived& toContinueWith(const PipelineStage& stage) = 0;
+            /// <returns>The instance of the parent builder.</returns>
+            constexpr inline auto toContinueWith(PipelineStage stage) -> TParent&& {
+                this->m_parent.stagesCallback(this->m_from, stage);
+                return std::move(this->m_parent);
+            }
         };
 
-        struct GlobalBarrierBuilder {
+        /// <summary>
+        /// A builder that sets up a global ressource barrier.
+        /// </summary>
+        /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
+        template <typename TParent> requires
+            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+        struct [[nodiscard]] GlobalBarrierBuilder {
+        private:
+            ResourceAccess m_waitFor;
+            TParent m_parent;
+
+            /// <summary>
+            /// Initializes a builder that sets up a global resource barrier.
+            /// </summary>
+            /// <param name="parent">The parent builder instance.</param>
+            /// <param name="access">The resource access state of all resources to wait for with this barrier.</param>
+            constexpr inline GlobalBarrierBuilder(TParent&& parent, ResourceAccess access) noexcept :
+                m_parent(std::move(parent)), m_waitFor(access) { }
+
+        public:
+            friend class BarrierBuilder;
+
             /// <summary>
             /// Specifies the resource accesses that are waited for in a global barrier before it can be executed.
             /// </summary>
             /// <param name="access">The resource accesses that are waited for until the barrier can be executed.</param>
-            virtual TDerived& untilFinishedWith(const ResourceAccess& access) = 0;
+            constexpr inline auto untilFinishedWith(ResourceAccess access) -> TParent&& {
+                this->m_parent.globalBarrierCallback(m_waitFor, access);
+                return std::move(this->m_parent);
+            }
         };
 
-        struct BufferBarrierBuilder {
+        /// <summary>
+        /// A builder that sets up a resource barrier for a specific buffer.
+        /// </summary>
+        /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
+        template <typename TParent> requires
+            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+        struct [[nodiscard]] BufferBarrierBuilder {
+        private:
+            ResourceAccess m_waitFor;
+            IBuffer& m_buffer;
+            TParent m_parent;
+
+            /// <summary>
+            /// Initializes a builder that sets up a barrier for a specific buffer.
+            /// </summary>
+            /// <param name="parent">The parent builder instance.</param>
+            /// <param name="buffer">The buffer for this barrier.</param>
+            /// <param name="access">The resource access state of the buffer to wait for with this barrier.</param>
+            constexpr inline BufferBarrierBuilder(TParent&& parent, IBuffer& buffer, ResourceAccess access) noexcept :
+                m_parent(std::move(parent)), m_buffer(buffer), m_waitFor(access) { }
+
+        public:
+            friend class BarrierBuilder;
+
             /// <summary>
             /// Specifies the resource accesses that are waited for in a buffer before the barrier can be executed.
             /// </summary>
             /// <param name="access">The resource accesses that are waited for in a buffer before the barrier can be executed.</param>
-            virtual TDerived& untilFinishedWith(const ResourceAccess& access) = 0;
+            constexpr inline auto untilFinishedWith(ResourceAccess access) -> TParent&& {
+                this->m_parent.bufferBarrierCallback(m_buffer, m_waitFor, access);
+                return std::move(this->m_parent);
+            }
         };
 
-        struct ImageLayoutBarrierBuilder {
+        /// <summary>
+        /// A builder that sets up the layout transition barrier for a set of sub-resources of a specific image.
+        /// </summary>
+        /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
+        template <typename TParent> requires
+            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+        struct [[nodiscard]] ImageLayoutBarrierBuilder {
+        private:
+            ResourceAccess m_waitFor;
+            IImage& m_image;
+            TParent m_parent;
+            ImageLayout m_layout;
+            UInt32 m_level, m_levels, m_layer, m_layers, m_plane;
+
             /// <summary>
-            /// Specifies the resource accesses that are waited for in an image before the barrier can be executed.
+            /// Initializes a builder that sets up the layout transition barrier for a set of sub-resources of a specific image.
             /// </summary>
-            /// <param name="access">The resource accesses that are waited for in an image before the barrier can be executed.</param>
-            virtual TDerived& whenFinishedWith(const ResourceAccess& access) = 0;
+            /// <param name="parent">The parent builder instance.</param>
+            /// <param name="image">The image for this barrier.</param>
+            /// <param name="access">The resource access state of the sub-resources in the image to wait for with this barrier.</param>
+            /// <param name="layout">The layout to transition the image sub-resources into.</param>
+            /// <param name="level">The level of the first sub-resource to transition.</param>
+            /// <param name="levels">The number of levels to to transition.</param>
+            /// <param name="layer">The layer of the first sub-resource to transition.</param>
+            /// <param name="layers">The number of layers to transition.</param>
+            /// <param name="plane">The plane of the sub-resource to transition.</param>
+            constexpr inline ImageLayoutBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) noexcept :
+                m_parent(std::move(parent)), m_image(image), m_waitFor(access), m_layout(layout), m_level(level), m_levels(levels), m_layer(layer), m_layers(layers), m_plane(plane) { }
+
+        public:
+            friend class BarrierBuilder;
+            friend class ImageBarrierBuilder<TParent>;
+
+            /// <summary>
+            /// Specifies the resource accesses that are waited for on the image sub-resources before the barrier can be executed.
+            /// </summary>
+            /// <param name="access">The resource accesses that are waited for on the image sub-resources before the barrier can be executed.</param>
+            constexpr inline auto whenFinishedWith(ResourceAccess access) -> TParent&& {
+                this->m_parent.imageBarrierCallback(m_image, m_waitFor, access, m_layout, m_level, m_levels, m_layer, m_layers, m_plane);
+                return std::move(this->m_parent);
+            }
         };
 
-        struct ImageBarrierBuilder {
+        /// <summary>
+        /// A builder that sets up a resource barrier for a specific image.
+        /// </summary> 
+        /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
+        template <typename TParent> requires
+            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+        struct [[nodiscard]] ImageBarrierBuilder {
+        private:
+            ResourceAccess m_waitFor;
+            IImage& m_image;
+            TParent m_parent;
+            UInt32 m_level, m_levels, m_layer, m_layers, m_plane;
+
+            /// <summary>
+            /// Initializes a builder that sets up a resource barrier for a specific image.
+            /// </summary>
+            /// <param name="parent">The parent builder instance.</param>
+            /// <param name="image">The image for this barrier.</param>
+            /// <param name="access">The resource access state of the sub-resources in the image to wait for with this barrier.</param>
+            constexpr inline ImageBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access) noexcept :
+                m_parent(std::move(parent)), m_image(image), m_waitFor(access), m_level{ 0 }, m_levels{ 0 }, m_layer{ 0 }, m_layers{ 0 }, m_plane{ 0 } { }
+
+        public:
             /// <summary>
             /// Specifies the layout to transition an image to when executing the barrier.
             /// </summary>
             /// <param name="layout">The layout to transition an image to when executing the barrier.</param>
-            virtual ImageLayoutBarrierBuilder& transitionLayout(const ImageLayout& layout) = 0;
+            constexpr inline auto transitionLayout(ImageLayout layout) -> ImageBarrierBuilder<TParent> {
+                return ImageBarrierBuilder<TParent>{ std::move(m_parent), m_image, m_waitFor, layout, m_level, m_levels, m_layer, m_layers, m_plane };
+            }
 
             /// <summary>
             /// Specifies the sub-resource to block and transition when executing the barrier.
@@ -65,8 +203,98 @@ namespace LiteFX::Rendering {
             /// <param name="layer">The base layer of the sub-resource.</param>
             /// <param name="layers">The number of layers to block and transition.</param>
             /// <param name="plane">The plane index of the sub-resource to block and transition.</param>
-            virtual ImageBarrierBuilder& subresource(const UInt32& level, const UInt32& levels, const UInt32& layer = 0, const UInt32& layers = 1, const UInt32& plane = 0) = 0;
+            constexpr inline auto subresource(UInt32 level, UInt32 levels, UInt32 layer = 0, UInt32 layers = 1, UInt32 plane = 0) -> ImageBarrierBuilder<TParent>& {
+                m_level = level;
+                m_levels = levels;
+                m_layer = layer;
+                m_layers = layers;
+                m_plane = plane;
+
+                return *this;
+            };
         };
+
+    private:
+        /// <summary>
+        /// Function that is called back from the <see cref="SecondStageBuilder" /> in order to setup the barrier pipeline stages.
+        /// </summary>
+        /// <param name="waitFor">The pipeline stage to wait for with the barrier.</param>
+        /// <param name="continueWith">The pipeline stage to allow continuation with the current barrier.</param>
+        constexpr inline void stagesCallback(PipelineStage waitFor, PipelineStage continueWith) {
+            this->setupStages(waitFor, continueWith);
+        }
+
+        /// <summary>
+        /// Function that is called back from the <see cref="GlobalBarrierBuilder" /> in order to setup the resource access states for a global resource barrier.
+        /// </summary>
+        /// <param name="before">The resource access state of all resources to wait for with this barrier.</param>
+        /// <param name="after">The resource access state of all resources to continue with after this barrier.</param>
+        constexpr inline void globalBarrierCallback(ResourceAccess before, ResourceAccess after) {
+            this->setupGlobalBarrier(before, after);
+        }
+
+        /// <summary>
+        /// Function that is called back from the <see cref="BufferBarrierBuilder" /> in order to setup the resource access states for a buffer resource barrier.
+        /// </summary>
+        /// <param name="buffer">The buffer for which the barrier blocks.</param>
+        /// <param name="before">The resource access state of the buffer to wait for with this barrier.</param>
+        /// <param name="after">The resource access state of the buffer to continue with after this barrier.</param>
+        constexpr inline void bufferBarrierCallback(IBuffer& buffer, ResourceAccess before, ResourceAccess after) {
+            this->setupBufferBarrier(buffer, before, after);
+        }
+
+        /// <summary>
+        /// Function that is called back from the <see cref="ImageLayoutBarrierBuilder" /> in order to setup the layout transition and resource access states for a set if sub-resources of a specific image.
+        /// </summary>
+        /// <param name="image">The image for this barrier.</param>
+        /// <param name="before">The resource access state of the sub-resources in the image to wait for with this barrier.</param>
+        /// <param name="after">The resource access state of the sub-resources in the image to continue with after this barrier.</param>
+        /// <param name="layout">The layout to transition the image sub-resources into.</param>
+        /// <param name="level">The level of the first sub-resource to transition.</param>
+        /// <param name="levels">The number of levels to to transition.</param>
+        /// <param name="layer">The layer of the first sub-resource to transition.</param>
+        /// <param name="layers">The number of layers to transition.</param>
+        /// <param name="plane">The plane of the sub-resource to transition.</param>
+        constexpr inline void imageBarrierCallback(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) {
+            this->setupImageBarrier(image, before, after, layout, level, levels, layer, layers, plane);
+        }
+
+    protected:
+        /// <summary>
+        /// Sets the pipeline stages for the built barrier to wait for and to continue with.
+        /// </summary>
+        /// <param name="waitFor">The pipeline stage to wait for with the barrier.</param>
+        /// <param name="continueWith">The pipeline stage to allow continuation with the current barrier.</param>
+        constexpr inline virtual void setupStages(PipelineStage waitFor, PipelineStage continueWith) = 0;
+
+        /// <summary>
+        /// Sets up the resource access states to wait for and to continue with the barrier to be built.
+        /// </summary>
+        /// <param name="before">The resource access state of all resources to wait for with this barrier.</param>
+        /// <param name="after">The resource access state of all resources to continue with after this barrier.</param>
+        constexpr inline virtual void setupGlobalBarrier(ResourceAccess before, ResourceAccess after) = 0;
+
+        /// <summary>
+        /// Sets up the resource access states to wait for and to continue with for a specific buffer with the barrier to be built.
+        /// </summary>
+        /// <param name="buffer">The buffer for which the barrier blocks.</param>
+        /// <param name="before">The resource access state of all resources to wait for with this barrier.</param>
+        /// <param name="after">The resource access state of all resources to continue with after this barrier.</param>
+        constexpr inline virtual void setupBufferBarrier(IBuffer& buffer, ResourceAccess before, ResourceAccess after) = 0;
+
+        /// <summary>
+        /// Sets up the image layout transition and resource access states to wait for and continue with the barrier to be built.
+        /// </summary>
+        /// <param name="image">The image for this barrier.</param>
+        /// <param name="before">The resource access state of the sub-resources in the image to wait for with this barrier.</param>
+        /// <param name="after">The resource access state of the sub-resources in the image to continue with after this barrier.</param>
+        /// <param name="layout">The layout to transition the image sub-resources into.</param>
+        /// <param name="level">The level of the first sub-resource to transition.</param>
+        /// <param name="levels">The number of levels to to transition.</param>
+        /// <param name="layer">The layer of the first sub-resource to transition.</param>
+        /// <param name="layers">The number of layers to transition.</param>
+        /// <param name="plane">The plane of the sub-resource to transition.</param>
+        constexpr inline virtual void setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) = 0;
 
     public:
         using Builder<TBarrier>::Builder;
@@ -77,20 +305,29 @@ namespace LiteFX::Rendering {
         /// Specifies the pipeline stages to wait for before executing the barrier.
         /// </summary>
         /// <param name="stage">The pipeline stages to wait for before executing the barrier.</param>
-        virtual SecondStageBuilder& waitFor(const PipelineStage& stage) = 0;
+        template <typename TSelf>
+        constexpr inline [[nodiscard]] auto waitFor(this TSelf&& self, PipelineStage stage) -> SecondStageBuilder<TSelf>&& {
+            return SecondStageBuilder<TSelf>{ std::move(self), stage };
+        }
 
         /// <summary>
         /// Specifies the resource accesses that are blocked in a global barrier until the barrier has executed.
         /// </summary>
         /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
-        virtual GlobalBarrierBuilder& blockAccessTo(const ResourceAccess& access) = 0;
+        template <typename TSelf>
+        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, ResourceAccess access) -> GlobalBarrierBuilder<TSelf>&& {
+            return GlobalBarrierBuilder<TSelf>{ std::move(self), access };
+        }
 
         /// <summary>
         /// Specifies the resource accesses that are blocked for <paramref name="buffer" /> until the barrier has executed.
         /// </summary>
         /// <param name="buffer">The buffer to wait for.</param>
         /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
-        virtual BufferBarrierBuilder& blockAccessTo(IBuffer& buffer, const ResourceAccess& access) = 0;
+        template <typename TSelf>
+        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IBuffer& buffer, ResourceAccess access) -> BufferBarrierBuilder<TSelf>&& {
+            return BufferBarrierBuilder<TSelf>{ std::move(self), buffer, access };
+        }
 
         /// <summary>
         /// Specifies the resource accesses that are blocked for <paramref name="buffer" /> until the barrier has executed.
@@ -98,14 +335,20 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer to wait for.</param>
         /// <param name="subresource">The sub-resource to block.</param>
         /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
-        virtual BufferBarrierBuilder& blockAccessTo(IBuffer& buffer, const UInt32 subresource, const ResourceAccess& access) = 0;
+        template <typename TSelf>
+        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IBuffer& buffer, UInt32 subresource, ResourceAccess access) -> BufferBarrierBuilder<TSelf>&& {
+            return BufferBarrierBuilder<TSelf>{ std::move(self), buffer, subresource, access };
+        }
 
         /// <summary>
         /// Specifies the resource accesses that are blocked for <paramref name="image" /> until the barrier has executed.
         /// </summary>
         /// <param name="image">The buffer to wait for.</param>
         /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
-        virtual ImageBarrierBuilder& blockAccessTo(IImage& image, const ResourceAccess& access) = 0;
+        template <typename TSelf>
+        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IImage& image, ResourceAccess access) -> ImageBarrierBuilder<TSelf>&& {
+            return ImageBarrierBuilder<TSelf>{ std::move(self), image, access };
+        }
     };
 
     /// <summary>
@@ -128,7 +371,7 @@ namespace LiteFX::Rendering {
         /// <param name="type">The type of the shader module.</param>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
-        virtual void addShaderModuleFromFile(const ShaderStage& type, const String& fileName, const String& entryPoint) = 0;
+        constexpr virtual void addShaderModuleFromFile(const ShaderStage& type, const String& fileName, const String& entryPoint) = 0;
 
         /// <summary>
         /// Called to register a new shader module in the program that is loaded from a stream.
@@ -137,7 +380,7 @@ namespace LiteFX::Rendering {
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
-        virtual void addShaderModuleFromFile(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint) = 0;
+        constexpr virtual void addShaderModuleFromFile(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint) = 0;
 
     public:
         /// <summary>
@@ -147,7 +390,7 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withShaderModule(this TSelf&& self, const ShaderStage& type, const String& fileName, const String& entryPoint = "main") {
+        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, const ShaderStage& type, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             self.addShaderModuleFromFile(type, fileName, entryPoint);
             return self;
         }
@@ -160,7 +403,7 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withShaderModule(this TSelf&& self, const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint = "main") {
+        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
             self.addShaderModuleFromStream(type, stream, name, entryPoint);
             return self;
         }
@@ -171,7 +414,7 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withVertexShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") {
+        constexpr inline [[nodiscard]] auto withVertexShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             return self.withShaderModule(fileName, ShaderStage::Vertex, fileName, entryPoint);
         }
 
@@ -182,8 +425,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withVertexShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") {
-            return self.withShaderModule(fileName, ShaderStage::Vertex, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withVertexShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return self.withShaderModule(ShaderStage::Vertex, stream, name, entryPoint);
         }
 
         /// <summary>
@@ -192,7 +435,7 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withTessellationControlShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") {
+        constexpr inline [[nodiscard]] auto withTessellationControlShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             return self.withShaderModule(fileName, ShaderStage::TessellationControl, fileName, entryPoint);
         }
 
@@ -203,8 +446,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withTessellationControlShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") {
-            return self.withShaderModule(fileName, ShaderStage::TessellationControl, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withTessellationControlShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return self.withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint);
         }
 
         /// <summary>
@@ -213,7 +456,7 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withTessellationEvaluationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") {
+        constexpr inline [[nodiscard]] auto withTessellationEvaluationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             return self.withShaderModule(fileName, ShaderStage::TessellationEvaluation, fileName, entryPoint);
         }
 
@@ -224,8 +467,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withTessellationEvaluationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") {
-            return self.withShaderModule(fileName, ShaderStage::TessellationEvaluation, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withTessellationEvaluationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return self.withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint);
         }
 
         /// <summary>
@@ -234,7 +477,7 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withGeometryShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") {
+        constexpr inline [[nodiscard]] auto withGeometryShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             return self.withShaderModule(fileName, ShaderStage::Geometry, fileName, entryPoint);
         }
 
@@ -245,8 +488,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withGeometryShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") {
-            return self.withShaderModule(fileName, ShaderStage::Geometry, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withGeometryShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return self.withShaderModule(ShaderStage::Geometry, stream, name, entryPoint);
         }
 
         /// <summary>
@@ -255,7 +498,7 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withFragmentShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") {
+        constexpr inline [[nodiscard]] auto withFragmentShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             return self.withShaderModule(fileName, ShaderStage::Fragment, fileName, entryPoint);
         }
 
@@ -266,8 +509,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withFragmentShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") {
-            return self.withShaderModule(fileName, ShaderStage::Fragment, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withFragmentShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return self.withShaderModule(ShaderStage::Fragment, stream, name, entryPoint);
         }
 
         /// <summary>
@@ -276,7 +519,7 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withComputeShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") {
+        constexpr inline [[nodiscard]] auto withComputeShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             return self.withShaderModule(fileName, ShaderStage::Compute, fileName, entryPoint);
         }
 
@@ -287,8 +530,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        inline TSelf& withComputeShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") {
-            return self.withShaderModule(fileName, ShaderStage::Compute, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withComputeShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return self.withShaderModule(ShaderStage::Compute, stream, name, entryPoint);
         }
     };
 
