@@ -110,42 +110,35 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexcept :
-    m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this)), InputAssemblerBuilder<DirectX12InputAssemblerBuilder, DirectX12InputAssembler>(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler()))
+constexpr DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexcept :
+    m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this)), InputAssemblerBuilder(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler()))
 {
 }
 
-DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = default;
+constexpr DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = default;
 
-void DirectX12InputAssemblerBuilder::build()
+constexpr void DirectX12InputAssemblerBuilder::build()
 {
     this->instance()->m_impl->initialize(m_impl->m_vertexBufferLayouts | std::views::as_rvalue, std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
 }
 
-void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12VertexBufferLayout>&& layout)
+constexpr void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12VertexBufferLayout>&& layout)
 {
     m_impl->m_vertexBufferLayouts.push_back(std::move(layout));
 }
 
-void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12IndexBufferLayout>&& layout)
+constexpr void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12IndexBufferLayout>&& layout)
 {
     m_impl->m_indexBufferLayout = std::move(layout);
 }
 
-DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::topology(const PrimitiveTopology& topology)
+constexpr void DirectX12InputAssemblerBuilder::setTopology(PrimitiveTopology topology)
 {
     m_impl->m_primitiveTopology = topology;
-    return *this;
 }
 
-DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(const size_t& elementSize, const UInt32& binding)
+constexpr DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
 {
     return DirectX12VertexBufferLayoutBuilder(*this, makeUnique<DirectX12VertexBufferLayout>(elementSize, binding));
-}
-
-DirectX12InputAssemblerBuilder& DirectX12InputAssemblerBuilder::indexType(const IndexType& type)
-{
-    this->use(makeUnique<DirectX12IndexBufferLayout>(type));
-    return *this;
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

@@ -414,25 +414,25 @@ public:
 // Shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
+constexpr DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
     m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(UniquePtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device)))
 {
 }
 
-DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = default;
+constexpr DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = default;
 
-void DirectX12ShaderProgramBuilder::build()
+constexpr void DirectX12ShaderProgramBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_modules = std::move(m_impl->m_modules);
 }
 
-void DirectX12ShaderProgramBuilder::addShaderModuleFromFile(const ShaderStage& type, const String& fileName, const String& entryPoint)
+constexpr void DirectX12ShaderProgramBuilder::addShaderModuleFromFile(ShaderStage type, const String& fileName, const String& entryPoint)
 {
     m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, fileName, entryPoint));
 }
 
-void DirectX12ShaderProgramBuilder::addShaderModuleFromFile(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint)
+constexpr void DirectX12ShaderProgramBuilder::addShaderModuleFromFile(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint)
 {
     m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint));
 }

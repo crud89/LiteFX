@@ -269,14 +269,14 @@ public:
 // Pipeline layout builder interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const DirectX12Device& parent) :
+constexpr DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const DirectX12Device& parent) :
     m_impl(makePimpl<DirectX12PipelineLayoutBuilderImpl>(this, parent)), PipelineLayoutBuilder(SharedPtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(parent)))
 {
 }
 
-DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = default;
+constexpr DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = default;
 
-void DirectX12PipelineLayoutBuilder::build()
+constexpr void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
@@ -284,27 +284,27 @@ void DirectX12PipelineLayoutBuilder::build()
     instance->handle() = instance->m_impl->initialize();
 }
 
-void DirectX12PipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSetLayout>&& layout)
+constexpr void DirectX12PipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSetLayout>&& layout)
 {
     m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
 }
 
-void DirectX12PipelineLayoutBuilder::use(UniquePtr<DirectX12PushConstantsLayout>&& layout)
+constexpr void DirectX12PipelineLayoutBuilder::use(UniquePtr<DirectX12PushConstantsLayout>&& layout)
 {
     m_impl->m_pushConstantsLayout = std::move(layout);
 }
 
-DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(const UInt32& space, const ShaderStage& stages, const UInt32& /*poolSize*/)
+constexpr DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 /*poolSize*/)
 {
     return DirectX12DescriptorSetLayoutBuilder(*this, space, stages);
 }
 
-DirectX12PushConstantsLayoutBuilder DirectX12PipelineLayoutBuilder::pushConstants(const UInt32& size)
+constexpr DirectX12PushConstantsLayoutBuilder DirectX12PipelineLayoutBuilder::pushConstants(UInt32 size)
 {
     return DirectX12PushConstantsLayoutBuilder(*this, size);
 }
 
-const DirectX12Device& DirectX12PipelineLayoutBuilder::device() const noexcept
+constexpr const DirectX12Device& DirectX12PipelineLayoutBuilder::device() const noexcept
 {
     return m_impl->m_device;
 }
