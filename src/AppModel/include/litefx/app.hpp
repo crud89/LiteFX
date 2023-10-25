@@ -639,20 +639,20 @@ namespace LiteFX {
 	/// <summary>
 	/// Creates a new builder for an <see cref="App" />.
 	/// </summary>
-	class LITEFX_APPMODEL_API AppBuilder : public Builder<App> {
+	class LITEFX_APPMODEL_API [[nodiscard]] AppBuilder : public Builder<App> {
 	public:
 		using Builder<App>::Builder;
 
 	public:
 		/// <inheritdoc />
-		void use(UniquePtr<IBackend>&& backend);
+		constexpr inline void use(UniquePtr<IBackend>&& backend);
 
 		/// <summary>
 		/// Registers a sink for logging.
 		/// </summary>
 		template <typename TSink, typename ...TArgs> requires
 			std::convertible_to<TSink*, ISink*>
-		AppBuilder& logTo(TArgs&&... args) {
+		constexpr inline AppBuilder& logTo(TArgs&&... args) {
 			auto sink = makeUnique<TSink>(std::forward<TArgs>(args)...);
 			Logger::sinkTo(sink.get());
 			return *this;
@@ -663,7 +663,7 @@ namespace LiteFX {
 		/// </summary>
 		template <typename TBackend, typename ...TArgs> requires
 			rtti::implements<TBackend, IBackend>
-		AppBuilder& useBackend(TArgs&&... args) {
+			constexpr inline AppBuilder& useBackend(TArgs&&... args) {
 			this->use(makeUnique<TBackend>(*this->instance(), std::forward<TArgs>(args)...));
 			return *this;
 		}

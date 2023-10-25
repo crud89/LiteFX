@@ -654,30 +654,30 @@ namespace LiteFX {
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		const T* instance() const noexcept { return m_instance.get(); }
+		constexpr inline const T* instance() const noexcept { return m_instance.get(); }
 
 	protected:
 		/// <summary>
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		T* instance() noexcept { return m_instance.get(); }
+		constexpr inline T* instance() noexcept { return m_instance.get(); }
 
 	public:
 		/// <summary>
 		/// Initializes the builder instance.
 		/// </summary>
 		/// <param name="instance">The instance of the object to build.</param>
-		explicit Builder(TPointer&& instance) noexcept : m_instance(std::move(instance)) { }
+		constexpr inline explicit Builder(TPointer&& instance) noexcept : m_instance(std::move(instance)) { }
 
 		/// <summary>
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
-		Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
+		constexpr inline Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
 
-		Builder(const Builder&) = delete;
-		virtual ~Builder() noexcept = default;
+		constexpr inline Builder(const Builder&) = delete;
+		constexpr inline virtual ~Builder() noexcept = default;
 
 	protected:
 		/// <summary>
@@ -700,8 +700,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Calls <see cref="build" /> and returns the instance.
 		/// </summary>
-		[[nodiscard]]
-		operator TPointer&& () {
+		constexpr inline [[nodiscard]] operator TPointer&& () {
 			this->build();
 			return std::move(m_instance);
 		}
@@ -729,20 +728,20 @@ namespace LiteFX {
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		const T* instance() const noexcept { return m_instance.get(); }
+		constexpr inline const T* instance() const noexcept { return m_instance.get(); }
 
 		/// <summary>
 		/// Returns a reference of the parent builder.
 		/// </summary>
 		/// <returns>A reference of the parent builder.</returns>
-		const TParent& parent() const noexcept { return m_parent; }
+		constexpr inline const TParent& parent() const noexcept { return m_parent; }
 
 	protected:
 		/// <summary>
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		T* instance() noexcept { return m_instance.get(); }
+		constexpr inline T* instance() noexcept { return m_instance.get(); }
 
 	public:
 		/// <summary>
@@ -750,16 +749,16 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="parent">The instance of the parent builder.</param>
 		/// <param name="instance">The instance of the object to build.</param>
-		explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
+		constexpr inline explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
 		
 		/// <summary>
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
-		Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
+		constexpr inline Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
 		
-		Builder(const Builder&) = delete;
-		virtual ~Builder() noexcept = default;
+		constexpr inline Builder(const Builder&) = delete;
+		constexpr inline virtual ~Builder() noexcept = default;
 
 	protected:
 		/// <summary>
@@ -782,8 +781,7 @@ namespace LiteFX {
 		/// <summary>
 		/// First, calls <see cref="build" />, then `use` on the parent builder using the current object instance and finally returns the parent builder.
 		/// </summary>
-		[[nodiscard]]
-		TParent& add() {
+		constexpr inline [[nodiscard]] TParent& add() {
 			this->build();
 			m_parent.use(std::move(m_instance));
 			return m_parent;
