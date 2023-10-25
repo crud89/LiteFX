@@ -683,7 +683,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Can be overwritten to perform any pre-construction work before the builder returns the final object instance.
 		/// </summary>
-		virtual void build() { };
+		constexpr inline virtual void build() { };
 
 	public:
 		// TODO: Provide concept (`is_buildable<TBuilder>`)
@@ -764,7 +764,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Can be overwritten to perform any pre-construction work before the builder returns the final object instance.
 		/// </summary>
-		virtual void build() { };
+		constexpr inline virtual void build() { };
 
 	public:
 		// TODO: Provide concept (`is_buildable<TBuilder>`)
