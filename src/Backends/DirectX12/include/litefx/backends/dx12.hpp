@@ -1246,7 +1246,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Creates a new DirectX 12 input attachment mapping.
 		/// </summary>
-		DirectX12InputAttachmentMapping() noexcept;
+		constexpr DirectX12InputAttachmentMapping() noexcept;
 
 		/// <summary>
 		/// Creates a new DirectX 12 input attachment mapping.
@@ -1254,30 +1254,30 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderPass">The render pass to fetch the input attachment from.</param>
 		/// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
 		/// <param name="location">The location to bind the input attachment to.</param>
-		DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location);
+		constexpr DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location);
 
 		/// <summary>
 		/// Copies another input attachment mapping.
 		/// </summary>
-		DirectX12InputAttachmentMapping(const DirectX12InputAttachmentMapping&) noexcept;
+		constexpr DirectX12InputAttachmentMapping(const DirectX12InputAttachmentMapping&) noexcept;
 
 		/// <summary>
 		/// Takes over another input attachment mapping.
 		/// </summary>
-		DirectX12InputAttachmentMapping(DirectX12InputAttachmentMapping&&) noexcept;
+		constexpr DirectX12InputAttachmentMapping(DirectX12InputAttachmentMapping&&) noexcept;
 
-		virtual ~DirectX12InputAttachmentMapping() noexcept;
+		constexpr virtual ~DirectX12InputAttachmentMapping() noexcept;
 
 	public:
 		/// <summary>
 		/// Copies another input attachment mapping.
 		/// </summary>
-		inline DirectX12InputAttachmentMapping& operator=(const DirectX12InputAttachmentMapping&) noexcept;
+		constexpr inline DirectX12InputAttachmentMapping& operator=(const DirectX12InputAttachmentMapping&) noexcept;
 
 		/// <summary>
 		/// Takes over another input attachment mapping.
 		/// </summary>
-		inline DirectX12InputAttachmentMapping& operator=(DirectX12InputAttachmentMapping&&) noexcept;
+		constexpr inline DirectX12InputAttachmentMapping& operator=(DirectX12InputAttachmentMapping&&) noexcept;
 
 	public:
 		/// <inheritdoc />

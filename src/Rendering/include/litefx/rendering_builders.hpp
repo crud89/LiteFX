@@ -1120,7 +1120,6 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the interface of a render pipeline builder.
     /// </summary>
-    /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <seealso cref="RenderPipeline" />
     template <typename TRenderPipeline> requires
@@ -1134,6 +1133,37 @@ namespace LiteFX::Rendering {
         using input_assembler_type = render_pipeline_type::input_assembler_type;
         using rasterizer_type = render_pipeline_type::rasterizer_type;
 
+    protected:
+        /// <summary>
+        /// Stores the render pipeline state while building.
+        /// </summary>
+        struct RenderPipelineState {
+            /// <summary>
+            /// The shader program of the render pipeline.
+            /// </summary>
+            SharedPtr<shader_program_type> shaderProgram;
+
+            /// <summary>
+            /// The render pipeline layout.
+            /// </summary>
+            SharedPtr<pipeline_layout_type> pipelineLayout;
+
+            /// <summary>
+            /// The rasterizer state.
+            /// </summary>
+            SharedPtr<rasterizer_type> rasterizer;
+
+            /// <summary>
+            /// The input assembler state.
+            /// </summary>
+            SharedPtr<input_assembler_type> inputAssembler;
+
+            /// <summary>
+            /// The alpha-to-coverage setting.
+            /// </summary>
+            bool enableAlphaToCoverage{ false };
+        } m_state;
+
     public:
         /// <summary>
         /// Adds a shader program to the pipeline layout.
@@ -1143,25 +1173,41 @@ namespace LiteFX::Rendering {
         /// program set by the first call.
         /// </remarks>
         /// <param name="program">The program to add to the pipeline layout.</param>
-        virtual TDerived& shaderProgram(SharedPtr<shader_program_type> program) = 0;
+        template <typename TSelf>
+        constexpr inline auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf&& {
+            self.m_state.shaderProgram = program;
+            return self;
+        }
 
         /// <summary>
         /// Uses the provided pipeline layout to initialize the render pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="layout">The pipeline layout to initialize the render pipeline with.</param>
-        virtual TDerived& layout(SharedPtr<pipeline_layout_type> layout) = 0;
+        template <typename TSelf>
+        constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
+            self.m_state.pipelineLayout = layout;
+            return self;
+        }
 
         /// <summary>
         /// Uses the provided rasterizer state to initialize the render pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
-        virtual TDerived& rasterizer(SharedPtr<rasterizer_type> rasterizer) = 0;
+        template <typename TSelf>
+        constexpr inline auto rasterizer(this TSelf&& self, SharedPtr<rasterizer_type> rasterizer) -> TSelf&& {
+            self.m_state.rasterizer = rasterizer;
+            return self;
+        }
 
         /// <summary>
         /// Uses the provided input assembler state to initialize the render pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="inputAssembler">The input assembler state to initialize the render pipeline with.</param>
-        virtual TDerived& inputAssembler(SharedPtr<input_assembler_type> inputAssembler) = 0;
+        template <typename TSelf>
+        constexpr inline auto inputAssembler(this TSelf&& self, SharedPtr<input_assembler_type> inputAssembler) -> TSelf&& {
+            self.m_state.inputAssembler = inputAssembler;
+            return self;
+        }
 
         /// <summary>
         /// Enables <i>Alpha-to-Coverage</i> multi-sampling on the pipeline.
@@ -1170,23 +1216,42 @@ namespace LiteFX::Rendering {
         /// For more information on <i>Alpha-to-Coverage</i> multi-sampling see the remarks of <see cref="IRenderPipeline::alphaToCoverage" />.
         /// </remarks>
         /// <param name="enable">Whether or not to use <i>Alpha-to-Coverage</i> multi-sampling.</param>
-        virtual TDerived& enableAlphaToCoverage(const bool& enable = true) = 0;
+        template <typename TSelf>
+        constexpr inline auto enableAlphaToCoverage(this TSelf&& self, bool enable = true) -> TSelf&& {
+            self.m_state.enableAlphaToCoverage = enable;
+            return self;
+        }
     };
 
     /// <summary>
     /// Describes the interface of a render pipeline builder.
     /// </summary>
-    /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
     /// <seealso cref="ComputePipeline" />
-    template <typename TDerived, typename TComputePipeline> requires
+    template <typename TComputePipeline> requires
         rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>>
-    class ComputePipelineBuilder : public Builder<TDerived, TComputePipeline> {
+    class ComputePipelineBuilder : public Builder<TComputePipeline> {
     public:
-        using Builder<TDerived, TComputePipeline>::Builder;
+        using Builder<TComputePipeline>::Builder;
         using compute_pipeline_type = TComputePipeline;
         using pipeline_layout_type = compute_pipeline_type::pipeline_layout_type;
         using shader_program_type = compute_pipeline_type::shader_program_type;
+
+    protected:
+        /// <summary>
+        /// Stores the compute pipeline state while building.
+        /// </summary>
+        struct ComputePipelineState {
+            /// <summary>
+            /// The compute pipeline shader program.
+            /// </summary>
+            SharedPtr<shader_program_type> shaderProgram;
+
+            /// <summary>
+            /// The compute pipeline layout.
+            /// </summary>
+            SharedPtr<pipeline_layout_type> pipelineLayout;
+        } m_state;
 
     public:
         /// <summary>
@@ -1197,13 +1262,21 @@ namespace LiteFX::Rendering {
         /// program set by the first call.
         /// </remarks>
         /// <param name="program">The program to add to the pipeline layout.</param>
-        virtual TDerived& shaderProgram(SharedPtr<shader_program_type> program) = 0;
+        template <typename TSelf>
+        constexpr inline auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf&& {
+            self.m_state.shaderProgram = program;
+            return self;
+        }
 
         /// <summary>
         /// Uses the provided pipeline layout to initialize the compute pipeline. Can be invoked only once.
         /// </summary>
         /// <param name="layout">The pipeline layout to initialize the compute pipeline with.</param>
-        virtual TDerived& layout(SharedPtr<pipeline_layout_type> layout) = 0;
+        template <typename TSelf>
+        constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
+            self.m_state.pipelineLayout = layout;
+            return self;
+        }
     };
 
     /// <summary>
@@ -1212,26 +1285,69 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <seealso cref="RenderPass" />
-    template <typename TDerived, typename TRenderPass> requires
+    template <typename TRenderPass> requires
         rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>>
-    class RenderPassBuilder : public Builder<TDerived, TRenderPass> {
+    class RenderPassBuilder : public Builder<TRenderPass> {
     public:
-        using Builder<TDerived, TRenderPass>::Builder;
+        using Builder<TRenderPass>::Builder;
         using render_pass_type = TRenderPass;
         using input_attachment_mapping_type = render_pass_type::input_attachment_mapping_type;
+
+    protected:
+        /// <summary>
+        /// Stores the render pass state while building.
+        /// </summary>
+        struct RenderPassState {
+            /// <summary>
+            /// The number of command buffers provided by the render pass.
+            /// </summary>
+            UInt32 commandBufferCount{ 0 };
+
+            /// <summary>
+            /// The multi-sampling level for the render pass frame buffer.
+            /// </summary>
+            MultiSamplingLevel multiSamplingLevel{ MultiSamplingLevel::x1 };
+
+            /// <summary>
+            /// The render targets of the render pass.
+            /// </summary>
+            Array<RenderTarget> renderTargets;
+
+            /// <summary>
+            /// The input attachments of the render pass.
+            /// </summary>
+            Array<input_attachment_mapping_type> inputAttachments;
+        } m_state;
+
+        /// <summary>
+        /// Creates a new input attachment mapping between a render target of a specified render pass and an input location of the render pass that is currently built.
+        /// </summary>
+        /// <param name="inputLocation">The input location of the mapped render target.</param>
+        /// <param name="renderPass">The render pass that produces the render target.</param>
+        /// <param name="renderTarget">The render target of the render pass.</param>
+        /// <returns>The input attachment mapping that describes the relation between the earlier render pass render target and the input location.</returns>
+        constexpr inline virtual input_attachment_mapping_type makeInputAttachment(UInt32 inputLocation, const render_pass_type& renderPass, const RenderTarget& renderTarget);
 
     public:
         /// <summary>
         /// Sets the number of command buffers allocated by the render pass.
         /// </summary>
         /// <param name="count">The number of command buffers.</param>
-        virtual TDerived& commandBuffers(const UInt32& count) = 0;
+        template <typename TSelf>
+        constexpr inline auto commandBuffers(this TSelf&& self, UInt32 count) -> TSelf&& {
+            self.m_state.commandBufferCount = count;
+            return self;
+        }
 
         /// <summary>
         /// Sets the multi-sampling level for the render targets.
         /// </summary>
         /// <param name="samples">The number of samples for each render target.</param>
-        virtual TDerived& multiSamplingLevel(const MultiSamplingLevel& samples) = 0;
+        template <typename TSelf>
+        constexpr inline auto multiSamplingLevel(this TSelf&& self, MultiSamplingLevel samples) -> TSelf&& {
+            self.m_state.multiSamplingLevel = samples;
+            return self;
+        }
 
         /// <summary>
         /// Adds a render target to the render pass by assigning it an incremental location number.
@@ -1242,7 +1358,11 @@ namespace LiteFX::Rendering {
         /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
-        virtual TDerived& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        template <typename TSelf>
+        constexpr inline auto renderTarget(this TSelf&& self, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf&& {
+            self.renderTarget("", static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, clearValues, clearColor, clearStencil, isVolatile);
+            return self;
+        }
 
         /// <summary>
         /// Adds a render target to the render pass by assigning it an incremental location number.
@@ -1254,7 +1374,11 @@ namespace LiteFX::Rendering {
         /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
-        virtual TDerived& renderTarget(const String& name, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        template <typename TSelf>
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf&& {
+            self.renderTarget(name, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, clearValues, clearColor, clearStencil, isVolatile);
+            return self;
+        }
 
         /// <summary>
         /// Adds a render target to the render pass.
@@ -1266,7 +1390,11 @@ namespace LiteFX::Rendering {
         /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
-        virtual TDerived& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        template <typename TSelf>
+        constexpr inline auto renderTarget(this TSelf&& self, UInt32 location, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf&& {
+            self.renderTarget("", location, type, format, clearValues, clearColor, clearStencil, isVolatile);
+            return self;
+        }
 
         /// <summary>
         /// Adds a render target to the render pass.
@@ -1279,7 +1407,11 @@ namespace LiteFX::Rendering {
         /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
-        virtual TDerived& renderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        template <typename TSelf>
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, UInt32 location, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf&& {
+            self.m_state.renderTargets.push_back(RenderTarget(name, location, type, format, clearColor, clearValues, clearStencil, isVolatile));
+            return self;
+        }
 
         /// <summary>
         /// Adds a render target to the render pass, that maps to an input attachment of another render pass. The location is assigned incrementally.
@@ -1291,7 +1423,11 @@ namespace LiteFX::Rendering {
         /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
-        virtual TDerived& renderTarget(input_attachment_mapping_type& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        template <typename TSelf>
+        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf&& {
+            self.renderTarget("", output, static_cast<UInt32>(self.m_state.m_renderTargets.size()), type, format, clearValues, clearColor, clearStencil, isVolatile);
+            return self;
+        }
 
         /// <summary>
         /// Adds a render target to the render pass, that maps to an input attachment of another render pass. The location is assigned incrementally.
@@ -1304,7 +1440,11 @@ namespace LiteFX::Rendering {
         /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
-        virtual TDerived& renderTarget(const String& name, input_attachment_mapping_type& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        template <typename TSelf>
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, input_attachment_mapping_type& output, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf&& {
+            self.renderTarget(name, output, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, clearValues, clearColor, clearStencil, isVolatile);
+            return self;
+        }
 
         /// <summary>
         /// Adds a render target to the render pass, that maps to an input attachment of another render pass.
@@ -1317,27 +1457,21 @@ namespace LiteFX::Rendering {
         /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
         /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
-        virtual TDerived& renderTarget(input_attachment_mapping_type& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
+        template <typename TSelf>
+        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, UInt32 location, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf&& {
+            self.renderTarget("", output, location, type, format, clearValues, clearColor, clearStencil, isVolatile);
+            return self;
+        }
 
-        /// <summary>
-        /// Adds a render target to the render pass, that maps to an input attachment of another render pass.
-        /// </summary>
-        /// <param name="name">The name of the render target.</param>
-        /// <param name="output">The input attachment mapping to map to.</param>
-        /// <param name="location">The location of the render target.</param>
-        /// <param name="type">The type of the render target.</param>
-        /// <param name="format">The color format of the render target.</param>
-        /// <param name="clearValues">The fixed clear value for the render target.</param>
-        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
-        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
-        virtual TDerived& renderTarget(const String& name, input_attachment_mapping_type& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) = 0;
-        
         /// <summary>
         /// Adds an input attachment to the render pass.
         /// </summary>
         /// <param name="inputAttachment">The input attachment to add.</param>
-        virtual TDerived& inputAttachment(const input_attachment_mapping_type& inputAttachment) = 0;
+        template <typename TSelf>
+        constexpr inline auto inputAttachment(this TSelf&& self, const input_attachment_mapping_type& inputAttachment) -> TSelf&& {
+            self.m_state.inputAttachments.push_back(inputAttachment);
+            return self;
+        }
 
         /// <summary>
         /// Adds an input attachment to the render pass.
@@ -1345,7 +1479,11 @@ namespace LiteFX::Rendering {
         /// <param name="inputLocation">The location from which the input attachment gets accessed.</param>
         /// <param name="renderPass">The render pass, the input attachment is created from.</param>
         /// <param name="outputLocation">The location to which the input attachment is written by <paramref name="renderPass" />.</param>
-        virtual TDerived& inputAttachment(const UInt32& inputLocation, const render_pass_type& renderPass, const UInt32& outputLocation) = 0;
+        template <typename TSelf>
+        constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, UInt32 outputLocation) -> TSelf&& {
+            self.inputAttachment(self.makeInputAttachment(inputLocation, renderPass, renderPass.renderTarget(outputLocation)));
+            return self;
+        }
 
         /// <summary>
         /// Adds an input attachment to the render pass.
@@ -1353,7 +1491,11 @@ namespace LiteFX::Rendering {
         /// <param name="inputLocation">The location from which the input attachment gets accessed.</param>
         /// <param name="renderPass">The render pass, the input attachment is created from.</param>
         /// <param name="renderTarget">The render target that is bound as input attachment.</param>
-        virtual TDerived& inputAttachment(const UInt32& inputLocation, const render_pass_type& renderPass, const RenderTarget& renderTarget) = 0;
+        template <typename TSelf>
+        constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, RenderTarget renderTarget) -> TSelf&& {
+            self.inputAttachment(self.makeInputAttachment(inputLocation, renderPass, renderTarget));
+            return self;
+        }
     };
 
 }

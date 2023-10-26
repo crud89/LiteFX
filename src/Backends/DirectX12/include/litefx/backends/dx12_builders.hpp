@@ -290,89 +290,58 @@ namespace LiteFX::Rendering::Backends {
 	/// Builds a DirectX 12 <see cref="RenderPipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPipeline" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPipelineBuilder : public RenderPipelineBuilder<DirectX12RenderPipelineBuilder, DirectX12RenderPipeline> {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPipelineBuilderImpl);
-
+	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12RenderPipelineBuilder final : public RenderPipelineBuilder<DirectX12RenderPipeline> {
 	public:
 		/// <summary>
 		/// Initializes a DirectX 12 render pipeline builder.
 		/// </summary>
 		/// <param name="renderPass">The parent render pass</param>
 		/// <param name="name">A debug name for the render pipeline.</param>
-		explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name = "");
+		constexpr inline explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name = "");
 		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
 		DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
-		virtual ~DirectX12RenderPipelineBuilder() noexcept;
+		constexpr inline virtual ~DirectX12RenderPipelineBuilder() noexcept;
 
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		virtual void build() override;
-
-		// RenderPipelineBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& shaderProgram(SharedPtr<DirectX12ShaderProgram> shaderProgram) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& layout(SharedPtr<DirectX12PipelineLayout> layout) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& rasterizer(SharedPtr<DirectX12Rasterizer> rasterizer) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& inputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPipelineBuilder& enableAlphaToCoverage(const bool& enable = true) override;
+		constexpr inline void build() override;
 	};
 
 	/// <summary>
 	/// Builds a DirectX 12 <see cref="ComputePipeline" />.
 	/// </summary>
 	/// <seealso cref="DirectX12ComputePipeline" />
-	class LITEFX_DIRECTX12_API DirectX12ComputePipelineBuilder : public ComputePipelineBuilder<DirectX12ComputePipelineBuilder, DirectX12ComputePipeline> {
-		LITEFX_IMPLEMENTATION(DirectX12ComputePipelineBuilderImpl);
-
+	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12ComputePipelineBuilder final : public ComputePipelineBuilder<DirectX12ComputePipeline> {
 	public:
 		/// <summary>
 		/// Initializes a DirectX 12 compute pipeline builder.
 		/// </summary>
 		/// <param name="device">The parent device</param>
 		/// <param name="name">A debug name for the compute pipeline.</param>
-		explicit DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name = "");
+		constexpr inline explicit DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name = "");
 		DirectX12ComputePipelineBuilder(DirectX12ComputePipelineBuilder&&) = delete;
 		DirectX12ComputePipelineBuilder(const DirectX12ComputePipelineBuilder&) = delete;
-		virtual ~DirectX12ComputePipelineBuilder() noexcept;
+		constexpr inline virtual ~DirectX12ComputePipelineBuilder() noexcept;
 
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		virtual void build() override;
-
-		// ComputePipelineBuilder interface.
-	public:
-		/// <inheritdoc />
-		virtual DirectX12ComputePipelineBuilder& shaderProgram(SharedPtr<DirectX12ShaderProgram> program) override;
-
-		/// <inheritdoc />
-		virtual DirectX12ComputePipelineBuilder& layout(SharedPtr<DirectX12PipelineLayout> layout) override;
+		constexpr inline void build() override;
 	};
 
 	/// <summary>
 	/// Implements the DirectX 12 <see cref="RenderPassBuilder" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPass" />
-	class LITEFX_DIRECTX12_API DirectX12RenderPassBuilder : public RenderPassBuilder<DirectX12RenderPassBuilder, DirectX12RenderPass> {
-		LITEFX_IMPLEMENTATION(DirectX12RenderPassBuilderImpl)
-
+	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12RenderPassBuilder final : public RenderPassBuilder<DirectX12RenderPass> {
 	public:
 		/// <summary>
 		/// Initializes a DirectX 12 render pass builder.
 		/// </summary>
 		/// <param name="device">The parent device</param>
 		/// <param name="name">A debug name for the render pass.</param>
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name = "") noexcept;
+		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name = "") noexcept;
 
 		/// <summary>
 		/// Initializes a DirectX 12 render pass builder.
@@ -380,7 +349,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="device">The parent device</param>
 		/// <param name="samples">The multi-sampling level for the render targets.</param>
 		/// <param name="name">A debug name for the render pass.</param>
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
+		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, MultiSamplingLevel samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
 
 		/// <summary>
 		/// Initializes a DirectX 12 render pass builder.
@@ -388,7 +357,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="device">The parent device</param>
 		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
 		/// <param name="name">A debug name for the render pass.</param>
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const String& name = "") noexcept;
+		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name = "") noexcept;
 
 		/// <summary>
 		/// Initializes a DirectX 12 render pass builder.
@@ -397,56 +366,21 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
 		/// <param name="multiSamplingLevel">The multi-sampling level for the render targets.</param>
 		/// <param name="name">A debug name for the render pass.</param>
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const UInt32& commandBuffers, const MultiSamplingLevel& multiSamplingLevel, const String& name = "") noexcept;
+		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, MultiSamplingLevel multiSamplingLevel, const String& name = "") noexcept;
 		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
-		virtual ~DirectX12RenderPassBuilder() noexcept;
+		constexpr inline virtual ~DirectX12RenderPassBuilder() noexcept;
 
 		// Builder interface.
-	public:
+	protected:
 		/// <inheritdoc />
-		virtual void build() override;
+		constexpr inline void build() override;
 
 		// RenderPassBuilder interface.
-	public:
+	protected:
 		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& commandBuffers(const UInt32& count) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& multiSamplingLevel(const MultiSamplingLevel& samples) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& renderTarget(const String& name, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& renderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& renderTarget(const String& name, DirectX12InputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& renderTarget(DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& renderTarget(const String& name, DirectX12InputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& inputAttachment(const DirectX12InputAttachmentMapping& inputAttachment) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const UInt32& outputLocation) override;
-
-		/// <inheritdoc />
-		virtual DirectX12RenderPassBuilder& inputAttachment(const UInt32& inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
+		constexpr inline DirectX12InputAttachmentMapping makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
 	};
+
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

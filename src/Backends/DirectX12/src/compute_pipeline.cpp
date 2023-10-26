@@ -105,63 +105,22 @@ void DirectX12ComputePipeline::use(const DirectX12CommandBuffer& commandBuffer) 
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilderImpl : public Implement<DirectX12ComputePipelineBuilder> {
-public:
-	friend class DirectX12ComputePipelineBuilder;
-
-private:
-	SharedPtr<DirectX12PipelineLayout> m_layout;
-	SharedPtr<DirectX12ShaderProgram> m_program;
-
-public:
-	DirectX12ComputePipelineBuilderImpl(DirectX12ComputePipelineBuilder* parent) :
-		base(parent)
-	{
-	}
-};
-
-// ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name) :
-	m_impl(makePimpl<DirectX12ComputePipelineBuilderImpl>(this)), ComputePipelineBuilder(UniquePtr<DirectX12ComputePipeline>(new DirectX12ComputePipeline(device)))
+	ComputePipelineBuilder(UniquePtr<DirectX12ComputePipeline>(new DirectX12ComputePipeline(device)))
 {
 	this->instance()->name() = name;
 }
 
 DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = default;
 
-void DirectX12ComputePipelineBuilder::build()
+constexpr void DirectX12ComputePipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = std::move(m_impl->m_layout);
-	instance->m_impl->m_program = std::move(m_impl->m_program);
+	instance->m_impl->m_layout = m_state.pipelineLayout;
+	instance->m_impl->m_program = m_state.shaderProgram;
 	instance->handle() = instance->m_impl->initialize();
-}
-
-DirectX12ComputePipelineBuilder& DirectX12ComputePipelineBuilder::shaderProgram(SharedPtr<DirectX12ShaderProgram> program)
-{
-#ifndef NDEBUG
-	if (m_impl->m_layout != nullptr)
-		LITEFX_WARNING(DIRECTX12_LOG, "Another shader program has already been initialized and will be replaced. A pipeline can only have one shader program.");
-#endif
-
-	m_impl->m_program = program;
-	return *this;
-}
-
-DirectX12ComputePipelineBuilder& DirectX12ComputePipelineBuilder::layout(SharedPtr<DirectX12PipelineLayout> layout)
-{
-#ifndef NDEBUG
-	if (m_impl->m_layout != nullptr)
-		LITEFX_WARNING(DIRECTX12_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
-#endif
-
-	m_impl->m_layout = layout;
-	return *this;
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)
