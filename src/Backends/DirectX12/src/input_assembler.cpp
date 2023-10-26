@@ -119,22 +119,7 @@ constexpr DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noex
 
 constexpr void DirectX12InputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(m_impl->m_vertexBufferLayouts | std::views::as_rvalue, std::move(m_impl->m_indexBufferLayout), m_impl->m_primitiveTopology);
-}
-
-constexpr void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12VertexBufferLayout>&& layout)
-{
-    m_impl->m_vertexBufferLayouts.push_back(std::move(layout));
-}
-
-constexpr void DirectX12InputAssemblerBuilder::use(UniquePtr<DirectX12IndexBufferLayout>&& layout)
-{
-    m_impl->m_indexBufferLayout = std::move(layout);
-}
-
-constexpr void DirectX12InputAssemblerBuilder::setTopology(PrimitiveTopology topology)
-{
-    m_impl->m_primitiveTopology = topology;
+    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.primitiveTopology);
 }
 
 constexpr DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)

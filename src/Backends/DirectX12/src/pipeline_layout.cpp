@@ -279,19 +279,9 @@ constexpr DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noex
 constexpr void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
-    instance->m_impl->m_pushConstantsLayout = std::move(m_impl->m_pushConstantsLayout);
+    instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
+    instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
     instance->handle() = instance->m_impl->initialize();
-}
-
-constexpr void DirectX12PipelineLayoutBuilder::use(UniquePtr<DirectX12DescriptorSetLayout>&& layout)
-{
-    m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
-}
-
-constexpr void DirectX12PipelineLayoutBuilder::use(UniquePtr<DirectX12PushConstantsLayout>&& layout)
-{
-    m_impl->m_pushConstantsLayout = std::move(layout);
 }
 
 constexpr DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 /*poolSize*/)

@@ -63,10 +63,10 @@ namespace LiteFX::Rendering::Backends {
 		// ShaderProgramBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void addShaderModuleFromFile(ShaderStage type, const String& fileName, const String& entryPoint) override;
+		constexpr inline UniquePtr<DirectX12ShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint) override;
 
 		/// <inheritdoc />
-		constexpr inline void addShaderModuleFromFile(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) override;
+		constexpr inline UniquePtr<DirectX12ShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) override;
 	};
 
 	/// <summary>
@@ -98,10 +98,12 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
 
+		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void addAttribute(UniquePtr<BufferAttribute>&& attribute) override;
+		constexpr inline void build() override;
 
+		// DirectX12VertexBufferLayoutBuilder interface.
 	public:
 		/// <summary>
 		/// Adds an attribute to the vertex buffer layout.
@@ -155,18 +157,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		constexpr inline virtual void build() override;
 
-		// InputAssemblerBuilder interface.
-	protected:
-		/// <inheritdoc />
-		constexpr inline virtual void setTopology(PrimitiveTopology topology) override;
-
-	public:
-		/// <inheritdoc />
-		constexpr inline virtual void use(UniquePtr<DirectX12VertexBufferLayout>&& layout) override;
-
-		/// <inheritdoc />
-		constexpr inline virtual void use(UniquePtr<DirectX12IndexBufferLayout>&& layout) override;
-
 	public:
 		/// <summary>
 		/// Starts building a vertex buffer layout.
@@ -193,8 +183,6 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="DirectX12RenderPipeline" />
 	/// <seealso cref="DirectX12ComputePipeline" />
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12DescriptorSetLayoutBuilder final : public DescriptorSetLayoutBuilder<DirectX12DescriptorSetLayout, DirectX12PipelineLayoutBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutBuilderImpl);
-
 	public:
 		/// <summary>
 		/// Initializes a DirectX 12 descriptor set layout builder.
@@ -217,44 +205,10 @@ namespace LiteFX::Rendering::Backends {
 		// DescriptorSetLayoutBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout) override;
+		constexpr inline UniquePtr<DirectX12DescriptorLayout> makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
 
 		/// <inheritdoc />
-		constexpr inline void addDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
-
-		/// <inheritdoc />
-		constexpr inline void addStaticSampler(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
-
-		// DirectX12DescriptorSetLayoutBuilder.
-	public:
-		/// <summary>
-		/// Sets the space, the descriptor set is bound to.
-		/// </summary>
-		/// <param name="space">The space, the descriptor set is bound to.</param>
-		template <typename TSelf>
-		constexpr inline auto space(this TSelf&& self, UInt32 space) noexcept -> TSelf&& {
-			m_impl->m_space = space;
-			return self;
-		}
-
-		/// <summary>
-		/// Sets the shader stages, the descriptor set is accessible from.
-		/// </summary>
-		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-		template <typename TSelf>
-		constexpr inline auto shaderStages(ShaderStage stages) noexcept -> TSelf&& {
-			m_impl->m_stages = stages;
-			return self;
-		}
-
-		/// <summary>
-		/// Sets the size of the descriptor pools used for descriptor set allocations. Ignored for DirectX 12, but required for interface compatibility.
-		/// </summary>
-		/// <param name="poolSize">The size of the descriptor pools used for descriptor set allocations.</param>
-		template <typename TSelf>
-		constexpr inline auto poolSize(UInt32 poolSize) noexcept -> TSelf&& {
-			return self;
-		}
+		constexpr inline UniquePtr<DirectX12DescriptorLayout> makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
 	};
 
 	/// <summary>
@@ -262,8 +216,6 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12PushConstantsLayout" />
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12PushConstantsLayoutBuilder final : public PushConstantsLayoutBuilder<DirectX12PushConstantsLayout, DirectX12PipelineLayoutBuilder> {
-		LITEFX_IMPLEMENTATION(DirectX12PushConstantsLayoutBuilderImpl);
-
 	public:
 		/// <summary>
 		/// Initializes a DirectX 12 render pipeline push constants layout builder.
@@ -283,7 +235,7 @@ namespace LiteFX::Rendering::Backends {
 		// PushConstantsLayoutBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void addRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) override;
+		constexpr inline UniquePtr<DirectX12PushConstantsRange> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) override;
 	};
 
 	/// <summary>
@@ -309,14 +261,6 @@ namespace LiteFX::Rendering::Backends {
 	protected:
 		/// <inheritdoc />
 		constexpr inline void build() override;
-
-		// PipelineBuilder interface.
-	public:
-		/// <inheritdoc />
-		constexpr inline void use(UniquePtr<DirectX12DescriptorSetLayout>&& layout) override;
-
-		/// <inheritdoc />
-		constexpr inline void use(UniquePtr<DirectX12PushConstantsLayout>&& layout) override;
 
 		// DirectX12PipelineLayoutBuilder.
 	public:

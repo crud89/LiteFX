@@ -364,21 +364,33 @@ namespace LiteFX::Rendering {
 
     protected:
         /// <summary>
-        /// Called to register a new shader module in the program that is stored in a file.
+        /// Stores the shader program state while building.
+        /// </summary>
+        struct ShaderProgramState {
+            /// <summary>
+            /// The shader modules of the program.
+            /// </summary>
+            Array<UniquePtr<shader_module_type>> modules;
+        } m_state;
+
+        /// <summary>
+        /// Called to create a new shader module in the program that is stored in a file.
         /// </summary>
         /// <param name="type">The type of the shader module.</param>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
-        constexpr inline virtual void addShaderModuleFromFile(ShaderStage type, const String& fileName, const String& entryPoint) = 0;
+        /// <returns>The shader module instance.</return>
+        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint) = 0;
 
         /// <summary>
-        /// Called to register a new shader module in the program that is loaded from a stream.
+        /// Called to create a new shader module in the program that is loaded from a stream.
         /// </summary>
         /// <param name="type">The type of the shader module.</param>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
-        constexpr inline virtual void addShaderModuleFromFile(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) = 0;
+        /// <returns>The shader module instance.</return>
+        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) = 0;
 
     public:
         /// <summary>
@@ -389,7 +401,7 @@ namespace LiteFX::Rendering {
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
         constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
-            self.addShaderModuleFromFile(type, fileName, entryPoint);
+            m_state.modules.push_back(std::move(self.makeShaderModule(type, fileName, entryPoint)));
             return self;
         }
 
@@ -402,7 +414,7 @@ namespace LiteFX::Rendering {
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
         constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
-            self.addShaderModuleFromStream(type, stream, name, entryPoint);
+            m_state.modules.push_back(std::move(self.makeShaderModule(type, stream, name, entryPoint)));
             return self;
         }
 
@@ -672,10 +684,14 @@ namespace LiteFX::Rendering {
 
     protected:
         /// <summary>
-        /// Adds an attribute to the vertex buffer layout.
+        /// Stores the vertex buffer layout state while building.
         /// </summary>
-        /// <param name="attribute">The attribute to add to the layout.</param>
-        constexpr virtual inline void addAttribute(UniquePtr<BufferAttribute>&& attribute) = 0;
+        struct VertexBufferLayoutState {
+            /// <summary>
+            /// The vertex buffer attributes of the layout.
+            /// </summary>
+            Array<UniquePtr<BufferAttribute>> attributes;
+        } m_state;
 
     public:
         /// <summary>
@@ -684,7 +700,7 @@ namespace LiteFX::Rendering {
         /// <param name="attribute">The attribute to add to the layout.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UniquePtr<BufferAttribute>&& attribute) -> TSelf&& {
-            self.addAttribute(std::move(attribute));
+            m_state.attributes.push_back(std::move(attribute));
             return self;
         }
     };
@@ -706,22 +722,45 @@ namespace LiteFX::Rendering {
 
     protected:
         /// <summary>
-        /// Adds a descriptor to the descriptor set layout.
+        /// Stores the descriptor set layout state while building.
         /// </summary>
-        /// <param name="layout">The descriptor layout to add.</param>
-        constexpr inline virtual void addDescriptor(UniquePtr<descriptor_layout_type>&& layout) = 0;
+        struct DescriptorSetLayoutState {
+            /// <summary>
+            /// The space of the descriptor set.
+            /// </summary>
+            UInt32 space;
+
+            /// <summary>
+            /// The pool size (if supported), of the descriptor pool that allocates the descriptors in the descriptor set.
+            /// </summary>
+            /// <remarks>
+            /// Descriptor pools are only supported in Vulkan. For DirectX 12, this setting is ignored.
+            /// </remarks>
+            UInt32 poolSize;
+            
+            /// <summary>
+            /// The shader stages, the descriptor set is accessible from.
+            /// </summary>
+            ShaderStage stages;
+
+            /// <summary>
+            /// The layouts of the descriptors within the descriptor set.
+            /// </summary>
+            Array<UniquePtr<descriptor_layout_type>> descriptorLayouts;
+        } m_state;
 
         /// <summary>
-        /// Adds a descriptor to the descriptor set layout.
+        /// Creates a descriptor to the descriptor set layout.
         /// </summary>
         /// <param name="type">The type of the descriptor.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="descriptorSize">The size of a single descriptor.</param>
         /// <param name="descriptors">The number of descriptors to bind.</param>
-        constexpr inline virtual void addDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) = 0;
+        /// <returns>The descriptor layout instance.</returns>
+        constexpr inline virtual UniquePtr<descriptor_layout_type> makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) = 0;
 
         /// <summary>
-        /// Defines a static sampler at the descriptor bound to <see cref="binding" />.
+        /// Creates a static sampler for the descriptor bound to <see cref="binding" />.
         /// </summary>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="magFilter">The magnifying filter operation.</param>
@@ -734,7 +773,8 @@ namespace LiteFX::Rendering {
         /// <param name="minLod">The closest mip map distance level.</param>
         /// <param name="maxLod">The furthest mip map distance level. </param>
         /// <param name="anisotropy">The maximum anisotropy.</param>
-        constexpr inline virtual void addStaticSampler(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) = 0;
+        /// <returns>The descriptor layout instance for the static sampler.</returns>
+        constexpr inline virtual UniquePtr<descriptor_layout_type> makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) = 0;
 
     public:
         /// <summary>
@@ -743,7 +783,7 @@ namespace LiteFX::Rendering {
         /// <param name="layout">The descriptor layout to add.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withDescriptor(this TSelf&& self, UniquePtr<descriptor_layout_type>&& layout) -> TSelf&& {
-            self.addDescriptor(std::move(layout));
+            self.m_state.descriptorLayouts.push_back(std::move(layout));
             return self;
         }
 
@@ -756,7 +796,7 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors to bind.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withDescriptor(this TSelf&& self, DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf&& {
-            self.addDescriptor(type, binding, descriptorSize, descriptors);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(type, binding, descriptorSize, descriptors)));
             return self;
         }
 
@@ -776,7 +816,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The maximum anisotropy.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withStaticSampler(this TSelf&& self, UInt32 binding, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f) -> TSelf&& {
-            self.addStaticSampler(binding, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(binding, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy)));
             return self;
         }
 
@@ -788,7 +828,7 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withConstantBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf&& {
-            self.withDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, descriptors);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, descriptors)));
             return self;
         }
 
@@ -800,7 +840,7 @@ namespace LiteFX::Rendering {
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.withDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0, descriptors);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0, descriptors)));
             return self;
         }
 
@@ -812,19 +852,19 @@ namespace LiteFX::Rendering {
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withStructuredBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.withDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0, descriptors);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0, descriptors)));
             return self;
         }
 
         /// <summary>
-        /// Adds a byte address buffer buffer descriptor.
+        /// Adds a byte address buffer descriptor.
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withByteAddressBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.withDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0, descriptors);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0, descriptors)));
             return self;
         }
 
@@ -836,7 +876,7 @@ namespace LiteFX::Rendering {
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withTexture(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.withDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0, descriptors);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0, descriptors)));
             return self;
         }
 
@@ -846,7 +886,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withInputAttachment(this TSelf&& self, UInt32 binding) -> TSelf&& {
-            self.withDescriptor(DescriptorType::InputAttachment, binding, 0);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::InputAttachment, binding, 0)));
             return self;
         }
 
@@ -857,10 +897,41 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withSampler(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1) -> TSelf&& {
-            self.withDescriptor(DescriptorType::Sampler, binding, 0, descriptors);
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::Sampler, binding, 0, descriptors)));
             return self;
         }
 
+        /// <summary>
+        /// Sets the space, the descriptor set is bound to.
+        /// </summary>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        template <typename TSelf>
+        constexpr inline auto space(this TSelf&& self, UInt32 space) noexcept -> TSelf&& {
+            self.m_state.space = space;
+            return self;
+        }
+
+        /// <summary>
+        /// Sets the shader stages, the descriptor set is accessible from.
+        /// </summary>
+        /// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
+        template <typename TSelf>
+        constexpr inline auto shaderStages(this TSelf&& self, ShaderStage stages) noexcept -> TSelf&& {
+            self.m_state.stages = stages;
+            return self;
+        }
+
+        /// <summary>
+        /// Sets the size of the descriptor pools used for descriptor set allocations. Ignored for DirectX 12, but required for interface compatibility.
+        /// </summary>
+        /// <param name="poolSize">The size of the descriptor pools used for descriptor set allocations.</param>
+        template <typename TSelf>
+        constexpr inline auto poolSize(this TSelf&& self, UInt32 poolSize) noexcept -> TSelf&& {
+            self.m_state.poolSize = poolSize;
+            return self;
+        }
+
+    public:
         /// <summary>
         /// Adds a descriptor layout to the descriptor set.
         /// </summary>
@@ -868,7 +939,7 @@ namespace LiteFX::Rendering {
         /// <seealso cref="DescriptorLayout" />
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto use(this TSelf&& self, UniquePtr<descriptor_layout_type>&& layout) -> TSelf&& {
-            self.withDescriptor(std::move(layout));
+            self.m_state.descriptorLayouts.push_back(std::move(layout));
             return self;
         }
     };
@@ -888,14 +959,25 @@ namespace LiteFX::Rendering {
 
     protected:
         /// <summary>
-        /// Adds a new push constants range.
+        /// Stores the push constants layout state while building.
+        /// </summary>
+        struct PushConstantsLayoutState {
+            /// <summary>
+            /// The push constant ranges of the layout.
+            /// </summary>
+            Array<UniquePtr<push_constants_range_type>> ranges;
+        } m_state;
+
+        /// <summary>
+        /// Creates a new push constants range.
         /// </summary>
         /// <param name="shaderStages">The shader stage, for which the range is defined.</param>
         /// <param name="offset">The offset of the range.</param>
         /// <param name="size">The size of the range.</param>
         /// <param name="space">The descriptor space, the range is bound to.</param>
         /// <param name="binding">The binding point for the range.</param>
-        constexpr inline virtual void addRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding);
+        /// <returns>The instance of the push constant range.</returns>
+        constexpr inline virtual UniquePtr<push_constants_range_type> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding);
 
     public:
         /// <summary>
@@ -908,7 +990,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point for the range.</param>
         template <typename TSelf>
         constexpr inline auto withRange(this TSelf&& self, ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) -> TSelf&& {
-            self.addRange(shaderStages, offset, size, space, binding);
+            self.m_state.ranges.push_back(std::move(self.makeRange(shaderStages, offset, size, space, binding)));
             return self;
         }
     };
@@ -927,20 +1009,44 @@ namespace LiteFX::Rendering {
         using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
         using push_constants_layout_type = pipeline_layout_type::push_constants_layout_type;
 
+    protected:
+        /// <summary>
+        /// Stores the pipeline layout state while building.
+        /// </summary>
+        struct PipelineLayoutState {
+            /// <summary>
+            /// The descriptor set layouts of the pipeline state.
+            /// </summary>
+            Array<UniquePtr<descriptor_set_layout_type>> descriptorSetLayouts;
+
+            /// <summary>
+            /// The push constant layout of the pipeline state.
+            /// </summary>
+            UniquePtr<push_constants_layout_type> pushConstantsLayout;
+        } m_state;
+
     public:
         /// <summary>
         /// Adds a descriptor set to the pipeline layout.
         /// </summary>
         /// <param name="layout">The layout of the descriptor set.</param>
         /// <seealso cref="DescriptorSetLayout" />
-        constexpr inline virtual void use(UniquePtr<descriptor_set_layout_type>&& layout) = 0;
+        template <typename TSelf>
+        constexpr inline auto use(this TSelf&& self, UniquePtr<descriptor_set_layout_type>&& layout) -> TSelf&& {
+            self.m_state.descriptorSetLayouts.push_back(std::move(layout));
+            return self;
+        }
 
         /// <summary>
         /// Adds a push constants range to the pipeline layout.
         /// </summary>
         /// <param name="layout">The layout of the push constants range.</param>
         /// <seealso cref="PushConstantsLayout" />
-        constexpr inline virtual void use(UniquePtr<push_constants_layout_type>&& layout) = 0;
+        template <typename TSelf>
+        constexpr inline auto use(this TSelf&& self, UniquePtr<push_constants_layout_type>&& layout) -> TSelf&& {
+            self.m_state.pushConstantsLayout = std::move(layout);
+            return self;
+        }
     };
 
     /// <summary>
@@ -959,10 +1065,24 @@ namespace LiteFX::Rendering {
 
     protected:
         /// <summary>
-        /// Specifies the topology to initialize the input assembler with.
+        /// Stores the input assembler state while building.
         /// </summary>
-        /// <param name="topology">The topology to initialize the input assembler with.</param>
-        constexpr inline virtual void setTopology(PrimitiveTopology topology) = 0;
+        struct InputAssemblerState {
+            /// <summary>
+            /// The primitive topology.
+            /// </summary>
+            PrimitiveTopology topology;
+
+            /// <summary>
+            /// The vertex buffer layouts.
+            /// </summary>
+            Array<UniquePtr<vertex_buffer_layout_type>> vertexBufferLayouts;
+            
+            /// <summary>
+            /// The index buffer layout.
+            /// </summary>
+            UniquePtr<index_buffer_layout_type> indexBufferLayout;
+        } m_state;
 
     public:
         /// <summary>
@@ -971,7 +1091,7 @@ namespace LiteFX::Rendering {
         /// <param name="topology">The topology to initialize the input assembler with.</param>
         template <typename TSelf>
         constexpr inline auto topology(this TSelf&& self, PrimitiveTopology topology) -> TSelf&& {
-            self.setTopology(topology);
+            self.m_state.topology = topology;
             return self;
         }
 
@@ -979,14 +1099,22 @@ namespace LiteFX::Rendering {
         /// Adds a vertex buffer layout to the input assembler. Can be called multiple times.
         /// </summary>
         /// <param name="layout">The layout to add to the input assembler.</param>
-        constexpr inline virtual void use(UniquePtr<vertex_buffer_layout_type>&& layout) = 0;
+        template <typename TSelf>
+        constexpr inline auto use(this TSelf&& self, UniquePtr<vertex_buffer_layout_type>&& layout) -> TSelf&& {
+            self.m_state.vertexBufferLayouts.push_back(std::move(layout));
+            return self;
+        }
 
         /// <summary>
         /// Adds an index buffer layout to the input assembler. Can only be called once.
         /// </summary>
         /// <param name="layout"></param>
         /// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</excpetion>
-        constexpr inline virtual void use(UniquePtr<index_buffer_layout_type>&& layout) = 0;
+        template <typename TSelf>
+        constexpr inline auto use(this TSelf&& self, UniquePtr<index_buffer_layout_type>&& layout) -> TSelf&& {
+            self.m_state.indexBufferLayout = std::move(layout);
+            return self;
+        }
     };
 
     /// <summary>
@@ -995,11 +1123,11 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TDerived">The type of the implementation of the builder.</typeparam>
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <seealso cref="RenderPipeline" />
-    template <typename TDerived, typename TRenderPipeline> requires
+    template <typename TRenderPipeline> requires
         rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>>
-    class RenderPipelineBuilder : public Builder<TDerived, TRenderPipeline> {
+    class RenderPipelineBuilder : public Builder<TRenderPipeline> {
     public:
-        using Builder<TDerived, TRenderPipeline>::Builder;
+        using Builder<TRenderPipeline>::Builder;
         using render_pipeline_type = TRenderPipeline;
         using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
         using shader_program_type = render_pipeline_type::shader_program_type;
@@ -1227,5 +1355,6 @@ namespace LiteFX::Rendering {
         /// <param name="renderTarget">The render target that is bound as input attachment.</param>
         virtual TDerived& inputAttachment(const UInt32& inputLocation, const render_pass_type& renderPass, const RenderTarget& renderTarget) = 0;
     };
+
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

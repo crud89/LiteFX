@@ -294,31 +294,11 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Descriptor set layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilderImpl : public Implement<DirectX12DescriptorSetLayoutBuilder> {
-public:
-    friend class DirectX12DescriptorSetLayoutBuilder;
-
-private:
-    Array<UniquePtr<DirectX12DescriptorLayout>> m_layouts;
-    UInt32 m_space;
-    ShaderStage m_stages;
-
-public:
-    DirectX12DescriptorSetLayoutBuilderImpl(DirectX12DescriptorSetLayoutBuilder* parent, UInt32 space, ShaderStage stages) :
-        base(parent), m_space(space), m_stages(stages)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
 constexpr DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages, UInt32 /*poolSize*/, UInt32 /*maxUnboundedArraySize*/) :
-    m_impl(makePimpl<DirectX12DescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
+    DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
 {
 }
 
@@ -327,24 +307,19 @@ constexpr DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuil
 constexpr void DirectX12DescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_layouts = std::move(m_impl->m_layouts);
-    instance->m_impl->m_space = std::move(m_impl->m_space);
-    instance->m_impl->m_stages = std::move(m_impl->m_stages);
+    instance->m_impl->m_layouts = std::move(m_state.descriptorLayouts);
+    instance->m_impl->m_space = std::move(m_state.space);
+    instance->m_impl->m_stages = std::move(m_state.stages);
     instance->m_impl->initialize();
 }
 
-constexpr void DirectX12DescriptorSetLayoutBuilder::addDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout)
+constexpr UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
 {
-    m_impl->m_layouts.push_back(std::move(layout));
+    return makeUnique<DirectX12DescriptorLayout>(type, binding, descriptorSize, descriptors);
 }
 
-constexpr void DirectX12DescriptorSetLayoutBuilder::addDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
+constexpr UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
 {
-    this->addDescriptor(makeUnique<DirectX12DescriptorLayout>(type, binding, descriptorSize, descriptors));
-}
-
-constexpr void DirectX12DescriptorSetLayoutBuilder::addStaticSampler(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
-{
-    this->addDescriptor(makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding));
+    return makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

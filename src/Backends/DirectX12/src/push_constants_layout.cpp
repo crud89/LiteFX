@@ -90,30 +90,11 @@ Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() 
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Push constants layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuilderImpl : public Implement<DirectX12PushConstantsLayoutBuilder> {
-public:
-    friend class DirectX12PushConstantsLayoutBuilder;
-
-private:
-    Array<UniquePtr<DirectX12PushConstantsRange>> m_ranges;
-    UInt32 m_size;
-
-public:
-    DirectX12PushConstantsLayoutBuilderImpl(DirectX12PushConstantsLayoutBuilder* parent, UInt32 size) :
-        base(parent), m_size(size)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Push constants layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
 constexpr DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(size)))
+    PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(size)))
 {
 }
 
@@ -121,12 +102,11 @@ constexpr DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuil
 
 constexpr void DirectX12PushConstantsLayoutBuilder::build()
 {
-    auto instance = this->instance();
-    instance->m_impl->setRanges(std::move(m_impl->m_ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>()));
+    this->instance()->m_impl->setRanges(std::move(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>()));
 }
 
-constexpr void DirectX12PushConstantsLayoutBuilder::addRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)
+constexpr UniquePtr<DirectX12PushConstantsRange> DirectX12PushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)
 {
-    m_impl->m_ranges.push_back(makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding));
+    return makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)
