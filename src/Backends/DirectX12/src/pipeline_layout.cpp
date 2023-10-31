@@ -254,8 +254,6 @@ public:
     friend class DirectX12PipelineLayout;
 
 private:
-    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
-    Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
     const DirectX12Device& m_device;
 
 public:
@@ -284,7 +282,7 @@ constexpr void DirectX12PipelineLayoutBuilder::build()
     instance->handle() = instance->m_impl->initialize();
 }
 
-constexpr DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 /*poolSize*/)
+constexpr DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 /*poolSize*/, UInt32 /*maxUnboundedArraySize*/)
 {
     return DirectX12DescriptorSetLayoutBuilder(*this, space, stages);
 }

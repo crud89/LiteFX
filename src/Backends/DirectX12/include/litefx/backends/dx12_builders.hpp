@@ -270,7 +270,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="space">The space, the descriptor set is bound to.</param>
 		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
 		/// <param name="poolSize">Unused for this backend.</param>
-		constexpr inline DirectX12DescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, UInt32 poolSize = 0);
+		/// <param name="maxUnboundedArraySize">Unused for this backend.</param>
+		constexpr inline DirectX12DescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, UInt32 poolSize = 0, UInt32 maxUnboundedArraySize = 0);
 
 		/// <summary>
 		/// Builds a new push constants layout for the pipeline layout.

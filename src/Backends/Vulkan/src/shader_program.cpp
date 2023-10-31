@@ -264,7 +264,7 @@ SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() con
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Graphics shader program builder implementation.
+// Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
 
 class VulkanShaderProgramBuilder::VulkanShaderProgramBuilderImpl : public Implement<VulkanShaderProgramBuilder> {
@@ -272,7 +272,6 @@ public:
     friend class VulkanShaderProgramBuilder;
 
 private:
-    Array<UniquePtr<VulkanShaderModule>> m_modules;
     const VulkanDevice& m_device;
 
 public:
@@ -283,91 +282,28 @@ public:
 };
 
 // ------------------------------------------------------------------------------------------------
-// Graphics shader program builder shared interface.
+// Shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
-    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
+constexpr VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
+    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(UniquePtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
 {
 }
 
-VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
+constexpr VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
-void VulkanShaderProgramBuilder::build()
+constexpr void VulkanShaderProgramBuilder::build()
 {
-    auto instance = this->instance();
-    instance->m_impl->m_modules = std::move(m_impl->m_modules);
+    this->instance()->m_impl->m_modules = std::move(m_state.modules);
 }
 
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
+constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint)
 {
-    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint));
-    return *this;
+    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint);
 }
 
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withShaderModule(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint)
+constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint)
 {
-    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint));
-    return *this;
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withVertexShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Vertex, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withVertexShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Vertex, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationControlShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationControlShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationEvaluationShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withGeometryShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Geometry, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withGeometryShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Geometry, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withFragmentShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withFragmentShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Fragment, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withComputeShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Compute, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withComputeShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Compute, stream, name, entryPoint);
+    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

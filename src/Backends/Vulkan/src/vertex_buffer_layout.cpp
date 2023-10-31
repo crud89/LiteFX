@@ -61,19 +61,8 @@ Enumerable<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const 
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::withAttribute(UniquePtr<BufferAttribute>&& attribute)
+constexpr void VulkanVertexBufferLayoutBuilder::build()
 {
-    this->instance()->m_impl->m_attributes.push_back(std::move(attribute));
-    return *this;
-}
-
-VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::withAttribute(const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
-{
-    return this->withAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->attributes().size()), offset, format, semantic, semanticIndex)));
-}
-
-VulkanVertexBufferLayoutBuilder& VulkanVertexBufferLayoutBuilder::withAttribute(const UInt32& location, const BufferFormat& format, const UInt32& offset, const AttributeSemantic& semantic, const UInt32& semanticIndex)
-{
-    return this->withAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
+    this->instance()->m_impl->m_attributes = std::move(m_state.attributes);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

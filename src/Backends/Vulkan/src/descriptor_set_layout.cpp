@@ -45,21 +45,22 @@ private:
     Dictionary<const VkDescriptorSet*, const VkDescriptorPool*> m_descriptorSetSources;
 
 public:
-    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-        base(parent), m_device(device), m_space(space), m_stages(stages), m_poolSize(poolSize)
+    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
+        base(parent), m_device(device), m_space(space), m_stages(stages), m_poolSize(0)
     {
         m_descriptorLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device) :
-        base(parent), m_device(device)
+        base(parent), m_device(device), m_poolSize(0)
     {
     }
 
 public:
-    VkDescriptorSetLayout initialize(const UInt32& maxUnboundedArraySize)
+    VkDescriptorSetLayout initialize(UInt32 poolSize, UInt32 maxUnboundedArraySize)
     {
-        LITEFX_TRACE(VULKAN_LOG, "Defining layout for descriptor set {0} {{ Stages: {1}, Pool Size: {2} }}...", m_space, m_stages, m_poolSize);
+        LITEFX_TRACE(VULKAN_LOG, "Defining layout for descriptor set {0} {{ Stages: {1}, Pool Size: {2} }}...", m_space, m_stages, poolSize);
+        m_poolSize = poolSize;
 
         // Parse the shader stage descriptor.
         VkShaderStageFlags shaderStages = {};
@@ -233,9 +234,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages, poolSize)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
-    this->handle() = m_impl->initialize(maxUnboundedArraySize);
+    this->handle() = m_impl->initialize(poolSize, maxUnboundedArraySize);
 }
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device) noexcept :
@@ -422,77 +423,34 @@ size_t VulkanDescriptorSetLayout::pools() const noexcept
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Descriptor set layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilderImpl : public Implement<VulkanDescriptorSetLayoutBuilder> {
-public:
-    friend class VulkanDescriptorSetLayoutBuilder;
-
-private:
-    Array<UniquePtr<VulkanDescriptorLayout>> m_descriptorLayouts;
-    UInt32 m_poolSize, m_space, m_maxArraySize;
-    ShaderStage m_stages;
-
-public:
-    VulkanDescriptorSetLayoutBuilderImpl(VulkanDescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
-        base(parent), m_poolSize(poolSize), m_space(space), m_stages(stages), m_maxArraySize(maxUnboundedArraySize)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize, maxUnboundedArraySize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(parent.device())))
+constexpr VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages, UInt32 poolSize, UInt32 maxUnboundedArraySize) :
+    DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(parent.device())))
 {
+    m_state.poolSize = poolSize;
+    m_state.maxUnboundedArraySize = maxUnboundedArraySize;
 }
 
-VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept = default;
+constexpr VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept = default;
 
-void VulkanDescriptorSetLayoutBuilder::build()
+constexpr void VulkanDescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_descriptorLayouts = std::move(m_impl->m_descriptorLayouts);
-    instance->m_impl->m_poolSize = std::move(m_impl->m_poolSize);
-    instance->m_impl->m_space = std::move(m_impl->m_space);
-    instance->m_impl->m_stages = std::move(m_impl->m_stages);
-    instance->handle() = instance->m_impl->initialize(m_impl->m_maxArraySize);
+    instance->m_impl->m_descriptorLayouts = std::move(m_state.descriptorLayouts);
+    instance->m_impl->m_space = std::move(m_state.space);
+    instance->m_impl->m_stages = std::move(m_state.stages);
+    instance->m_impl->initialize(m_state.poolSize, m_state.maxUnboundedArraySize);
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescriptor(UniquePtr<VulkanDescriptorLayout>&& layout)
+constexpr UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
 {
-    m_impl->m_descriptorLayouts.push_back(std::move(layout));
-    return *this;
+    return makeUnique<VulkanDescriptorLayout>(type, binding, descriptorSize, descriptors);
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
+constexpr UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
 {
-    return this->withDescriptor(makeUnique<VulkanDescriptorLayout>(type, binding, descriptorSize, descriptors));
-}
-
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withStaticSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy)
-{
-    return this->withDescriptor(makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding));
-}
-
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
-{
-    m_impl->m_space = space;
-    return *this;
-}
-
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::shaderStages(const ShaderStage& stages) noexcept
-{
-    m_impl->m_stages = stages;
-    return *this;
-}
-
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::poolSize(const UInt32& poolSize) noexcept
-{
-    m_impl->m_poolSize = poolSize;
-    return *this;
+    return makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)
