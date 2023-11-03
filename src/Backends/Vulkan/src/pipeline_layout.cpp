@@ -140,7 +140,7 @@ constexpr VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanD
 
 constexpr VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
 
-constexpr void VulkanPipelineLayoutBuilder::build()
+void VulkanPipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);

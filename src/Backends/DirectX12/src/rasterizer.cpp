@@ -31,7 +31,7 @@ constexpr DirectX12RasterizerBuilder::DirectX12RasterizerBuilder() noexcept :
 
 constexpr DirectX12RasterizerBuilder::~DirectX12RasterizerBuilder() noexcept = default;
 
-constexpr void DirectX12RasterizerBuilder::build()
+void DirectX12RasterizerBuilder::build()
 {
     this->instance()->polygonMode() = m_state.polygonMode;
     this->instance()->cullMode() = m_state.cullMode;

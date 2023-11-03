@@ -100,7 +100,7 @@ constexpr DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuild
 
 constexpr DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuilder() noexcept = default;
 
-constexpr void DirectX12PushConstantsLayoutBuilder::build()
+void DirectX12PushConstantsLayoutBuilder::build()
 {
     this->instance()->m_impl->setRanges(std::move(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>()));
 }

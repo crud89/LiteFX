@@ -32,69 +32,69 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBarrier::VulkanBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept :
+constexpr VulkanBarrier::VulkanBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept :
     m_impl(makePimpl<VulkanBarrierImpl>(this, syncBefore, syncAfter))
 {
 }
 
-VulkanBarrier::VulkanBarrier() noexcept :
+constexpr VulkanBarrier::VulkanBarrier() noexcept :
     VulkanBarrier(PipelineStage::None, PipelineStage::None)
 {
 }
 
-VulkanBarrier::~VulkanBarrier() noexcept = default;
+constexpr VulkanBarrier::~VulkanBarrier() noexcept = default;
 
-const PipelineStage& VulkanBarrier::syncBefore() const noexcept
+constexpr const PipelineStage& VulkanBarrier::syncBefore() const noexcept
 {
     return m_impl->m_syncBefore;
 }
 
-PipelineStage& VulkanBarrier::syncBefore() noexcept
+constexpr PipelineStage& VulkanBarrier::syncBefore() noexcept
 {
     return m_impl->m_syncBefore;
 }
 
-const PipelineStage& VulkanBarrier::syncAfter() const noexcept
+constexpr const PipelineStage& VulkanBarrier::syncAfter() const noexcept
 {
     return m_impl->m_syncAfter;
 }
 
-PipelineStage& VulkanBarrier::syncAfter() noexcept
+constexpr PipelineStage& VulkanBarrier::syncAfter() noexcept
 {
     return m_impl->m_syncAfter;
 }
 
-void VulkanBarrier::wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept
+constexpr void VulkanBarrier::wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept
 {
     m_impl->m_globalBarriers.push_back({ accessBefore, accessAfter });
 }
 
-void VulkanBarrier::transition(IVulkanBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
+constexpr void VulkanBarrier::transition(IVulkanBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
 {
     m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, std::numeric_limits<UInt32>::max() });
 }
 
-void VulkanBarrier::transition(IVulkanBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
+constexpr void VulkanBarrier::transition(IVulkanBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
 {
     m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, element });
 }
 
-void VulkanBarrier::transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
+constexpr void VulkanBarrier::transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-void VulkanBarrier::transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
+constexpr void VulkanBarrier::transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-void VulkanBarrier::transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
+constexpr void VulkanBarrier::transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane });
 }
 
-void VulkanBarrier::transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
+constexpr void VulkanBarrier::transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
 }
@@ -199,8 +199,8 @@ constexpr void VulkanBarrierBuilder::setupBufferBarrier(IBuffer& buffer, Resourc
 
 constexpr void VulkanBarrierBuilder::setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane)
 {
-    auto levels = levels > 0 ? levels : image.levels() - level;
-    auto layers = layers > 0 ? layers : image.layers() - layer;
-    this->instance()->transition(image, level, levels, layer, layers, plane, before, after, layout);
+    auto numLevels = levels > 0 ? levels : image.levels() - level;
+    auto numLayers = layers > 0 ? layers : image.layers() - layer;
+    this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after, layout);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

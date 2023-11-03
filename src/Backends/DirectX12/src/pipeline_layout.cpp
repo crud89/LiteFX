@@ -274,7 +274,7 @@ constexpr DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const D
 
 constexpr DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = default;
 
-constexpr void DirectX12PipelineLayoutBuilder::build()
+void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);

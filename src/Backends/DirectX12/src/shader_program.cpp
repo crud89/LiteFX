@@ -420,7 +420,7 @@ constexpr DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const Dir
 
 constexpr DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = default;
 
-constexpr void DirectX12ShaderProgramBuilder::build()
+void DirectX12ShaderProgramBuilder::build()
 {
     this->instance()->m_impl->m_modules = std::move(m_state.modules);
 }

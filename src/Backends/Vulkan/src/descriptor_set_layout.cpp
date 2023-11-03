@@ -435,7 +435,7 @@ constexpr VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(Vul
 
 constexpr VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept = default;
 
-constexpr void VulkanDescriptorSetLayoutBuilder::build()
+void VulkanDescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_descriptorLayouts = std::move(m_state.descriptorLayouts);

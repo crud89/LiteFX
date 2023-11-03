@@ -117,9 +117,9 @@ constexpr DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexc
 
 constexpr DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = default;
 
-constexpr void DirectX12InputAssemblerBuilder::build()
+void DirectX12InputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.primitiveTopology);
+    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.topology);
 }
 
 constexpr DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)

@@ -280,15 +280,15 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
+constexpr DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
 	RenderPipelineBuilder(UniquePtr<DirectX12RenderPipeline>(new DirectX12RenderPipeline(renderPass)))
 {
 	this->instance()->name() = name;
 }
 
-DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
+constexpr DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
 
-constexpr void DirectX12RenderPipelineBuilder::build()
+void DirectX12RenderPipelineBuilder::build()
 {
 	auto instance = this->instance();
 	instance->m_impl->m_layout = m_state.pipelineLayout;

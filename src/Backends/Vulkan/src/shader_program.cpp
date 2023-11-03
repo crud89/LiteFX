@@ -292,7 +292,7 @@ constexpr VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDev
 
 constexpr VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
-constexpr void VulkanShaderProgramBuilder::build()
+void VulkanShaderProgramBuilder::build()
 {
     this->instance()->m_impl->m_modules = std::move(m_state.modules);
 }

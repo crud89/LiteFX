@@ -294,15 +294,15 @@ void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, const 
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const String& name) :
+constexpr VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const String& name) :
 	RenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>(new VulkanRenderPipeline(renderPass)))
 {
 	this->instance()->name() = name;
 }
 
-VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
+constexpr VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
 
-constexpr void VulkanRenderPipelineBuilder::build()
+void VulkanRenderPipelineBuilder::build()
 {
 	auto instance = this->instance();
 	instance->m_impl->m_layout = m_state.pipelineLayout;

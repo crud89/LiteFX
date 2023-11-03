@@ -517,7 +517,7 @@ constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& d
 
 constexpr VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default;
 
-constexpr void VulkanRenderPassBuilder::build()
+void VulkanRenderPassBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->mapRenderTargets(m_state.renderTargets);
@@ -526,7 +526,7 @@ constexpr void VulkanRenderPassBuilder::build()
     instance->m_impl->initializeFrameBuffers(m_state.commandBufferCount);
 }
 
-constexpr VulkanInputAttachmentMapping VulkanRenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
+VulkanInputAttachmentMapping VulkanRenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
 {
     return VulkanInputAttachmentMapping(renderPass, renderTarget, inputLocation);
 }

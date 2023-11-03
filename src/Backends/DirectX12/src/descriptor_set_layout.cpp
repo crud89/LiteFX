@@ -306,7 +306,7 @@ constexpr DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuild
 
 constexpr DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
 
-constexpr void DirectX12DescriptorSetLayoutBuilder::build()
+void DirectX12DescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_layouts = std::move(m_state.descriptorLayouts);

@@ -58,7 +58,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline virtual void build() override;
+		inline void build() override;
 
 		// ShaderProgramBuilder interface.
 	protected:
@@ -86,7 +86,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 	};
 
 	/// <summary>
@@ -101,7 +101,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// VulkanVertexBufferLayoutBuilder interface.
 	public:
@@ -155,7 +155,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline virtual void build() override;
+		inline void build() override;
 
 	public:
 		/// <summary>
@@ -200,7 +200,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// DescriptorSetLayoutBuilder interface.
 	protected:
@@ -230,12 +230,12 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// PushConstantsLayoutBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline UniquePtr<VulkanPushConstantsRange> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) override;
+		inline UniquePtr<VulkanPushConstantsRange> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) override;
 	};
 
 	/// <summary>
@@ -260,7 +260,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// VulkanPipelineLayoutBuilder.
 	public:
@@ -306,7 +306,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 	};
 
 	/// <summary>
@@ -328,7 +328,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 	};
 
 	/// <summary>
@@ -375,12 +375,12 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// RenderPassBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline VulkanInputAttachmentMapping makeInputAttachment(UInt32 inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
+		inline VulkanInputAttachmentMapping makeInputAttachment(UInt32 inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
 	};
 
 }

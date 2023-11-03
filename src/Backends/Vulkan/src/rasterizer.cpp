@@ -36,7 +36,7 @@ constexpr VulkanRasterizerBuilder::VulkanRasterizerBuilder() noexcept :
 
 constexpr VulkanRasterizerBuilder::~VulkanRasterizerBuilder() noexcept = default;
 
-constexpr void VulkanRasterizerBuilder::build()
+void VulkanRasterizerBuilder::build()
 {
     this->instance()->polygonMode() = m_state.polygonMode;
     this->instance()->cullMode() = m_state.cullMode;

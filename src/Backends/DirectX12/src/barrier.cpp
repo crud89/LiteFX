@@ -32,74 +32,74 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Barrier::DirectX12Barrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept :
+constexpr DirectX12Barrier::DirectX12Barrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept :
 	m_impl(makePimpl<DirectX12BarrierImpl>(this, syncBefore, syncAfter))
 {
 }
 
-DirectX12Barrier::DirectX12Barrier() noexcept :
+constexpr DirectX12Barrier::DirectX12Barrier() noexcept :
 	DirectX12Barrier(PipelineStage::None, PipelineStage::None)
 {
 }
 
-DirectX12Barrier::~DirectX12Barrier() noexcept = default;
+constexpr DirectX12Barrier::~DirectX12Barrier() noexcept = default;
 
-const PipelineStage& DirectX12Barrier::syncBefore() const noexcept
+constexpr const PipelineStage& DirectX12Barrier::syncBefore() const noexcept
 {
 	return m_impl->m_syncBefore;
 }
 
-PipelineStage& DirectX12Barrier::syncBefore() noexcept
+constexpr PipelineStage& DirectX12Barrier::syncBefore() noexcept
 {
 	return m_impl->m_syncBefore;
 }
 
-const PipelineStage& DirectX12Barrier::syncAfter() const noexcept
+constexpr const PipelineStage& DirectX12Barrier::syncAfter() const noexcept
 {
 	return m_impl->m_syncAfter;
 }
 
-PipelineStage& DirectX12Barrier::syncAfter() noexcept
+constexpr PipelineStage& DirectX12Barrier::syncAfter() noexcept
 {
 	return m_impl->m_syncAfter;
 }
 
-void DirectX12Barrier::wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept
+constexpr void DirectX12Barrier::wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept
 {
 	m_impl->m_globalBarriers.push_back({ accessBefore, accessAfter });
 }
 
-void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
+constexpr void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
 {
 	m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES });
 }
 
-void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
+constexpr void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter)
 {
 	m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, element });
 }
 
-void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
+constexpr void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
 {
 	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
+constexpr void DirectX12Barrier::transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
 {
 	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
+constexpr void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout)
 {
 	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane });
 }
 
-void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
+constexpr void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout)
 {
 	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
 }
 
-void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) const
+void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
 	auto syncBefore = DX12::getPipelineStage(m_impl->m_syncBefore);
 	auto syncAfter  = DX12::getPipelineStage(m_impl->m_syncAfter);
@@ -184,8 +184,8 @@ constexpr void DirectX12BarrierBuilder::setupBufferBarrier(IBuffer& buffer, Reso
 
 constexpr void DirectX12BarrierBuilder::setupImageBarrier(IImage& image, ResourceAccess before, ResourceAccess after, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane)
 {
-	auto levels = levels > 0 ? levels : image.levels() - level;
-	auto layers = layers > 0 ? layers : image.layers() - layer;
-	this->instance()->transition(image, level, levels, layer, layers, plane, before, after, layout);
+	auto numLevels = levels > 0 ? levels : image.levels() - level;
+	auto numLayers = layers > 0 ? layers : image.layers() - layer;
+	this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after, layout);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

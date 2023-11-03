@@ -61,7 +61,7 @@ Enumerable<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const 
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr void VulkanVertexBufferLayoutBuilder::build()
+void VulkanVertexBufferLayoutBuilder::build()
 {
     this->instance()->m_impl->m_attributes = std::move(m_state.attributes);
 }

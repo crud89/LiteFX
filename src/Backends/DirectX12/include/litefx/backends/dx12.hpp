@@ -171,44 +171,44 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
 		/// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
-		explicit DirectX12Barrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept;
+		constexpr inline explicit DirectX12Barrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept;
 		DirectX12Barrier(const DirectX12Barrier&) = delete;
 		DirectX12Barrier(DirectX12Barrier&&) = delete;
-		virtual ~DirectX12Barrier() noexcept;
+		constexpr inline virtual ~DirectX12Barrier() noexcept;
 
 	private:
-		explicit DirectX12Barrier() noexcept;
-		PipelineStage& syncBefore() noexcept;
-		PipelineStage& syncAfter() noexcept;
+		constexpr inline explicit DirectX12Barrier() noexcept;
+		constexpr inline PipelineStage& syncBefore() noexcept;
+		constexpr inline PipelineStage& syncAfter() noexcept;
 
 		// Barrier interface.
 	public:
 		/// <inheritdoc />
-		virtual const PipelineStage& syncBefore() const noexcept override;
+		constexpr inline const PipelineStage& syncBefore() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const PipelineStage& syncAfter() const noexcept override;
+		constexpr inline const PipelineStage& syncAfter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept override;
+		constexpr inline void wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept override;
 
 		/// <inheritdoc />
-		virtual void transition(IDirectX12Buffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
+		constexpr inline void transition(IDirectX12Buffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
 
 		/// <inheritdoc />
-		virtual void transition(IDirectX12Buffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
+		constexpr inline void transition(IDirectX12Buffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
 
 		/// <inheritdoc />
-		virtual void transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
+		constexpr inline void transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
 
 		/// <inheritdoc />
-		virtual void transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
+		constexpr inline void transition(IDirectX12Image& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
 
 		/// <inheritdoc />
-		virtual void transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
+		constexpr inline void transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
 
 		/// <inheritdoc />
-		virtual void transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
+		constexpr inline void transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
 
 	public:
 		/// <summary>
@@ -216,7 +216,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="commandBuffer">The command buffer to add the barriers to.</param>
 		/// <exception cref="RuntimeException">Thrown, if any of the contained barriers is a image barrier that targets a sub-resource range that does not share the same <see cref="ImageLayout" /> in all sub-resources.</exception>
-		virtual void execute(const DirectX12CommandBuffer& commandBuffer) const;
+		inline void execute(const DirectX12CommandBuffer& commandBuffer) const noexcept;
 	};
 
 	/// <summary>
@@ -1246,7 +1246,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Creates a new DirectX 12 input attachment mapping.
 		/// </summary>
-		constexpr DirectX12InputAttachmentMapping() noexcept;
+		DirectX12InputAttachmentMapping() noexcept;
 
 		/// <summary>
 		/// Creates a new DirectX 12 input attachment mapping.
@@ -1254,40 +1254,40 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderPass">The render pass to fetch the input attachment from.</param>
 		/// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
 		/// <param name="location">The location to bind the input attachment to.</param>
-		constexpr DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location);
+		DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location);
 
 		/// <summary>
 		/// Copies another input attachment mapping.
 		/// </summary>
-		constexpr DirectX12InputAttachmentMapping(const DirectX12InputAttachmentMapping&) noexcept;
+		DirectX12InputAttachmentMapping(const DirectX12InputAttachmentMapping&) noexcept;
 
 		/// <summary>
 		/// Takes over another input attachment mapping.
 		/// </summary>
-		constexpr DirectX12InputAttachmentMapping(DirectX12InputAttachmentMapping&&) noexcept;
+		DirectX12InputAttachmentMapping(DirectX12InputAttachmentMapping&&) noexcept;
 
-		constexpr virtual ~DirectX12InputAttachmentMapping() noexcept;
+		virtual ~DirectX12InputAttachmentMapping() noexcept;
 
 	public:
 		/// <summary>
 		/// Copies another input attachment mapping.
 		/// </summary>
-		constexpr inline DirectX12InputAttachmentMapping& operator=(const DirectX12InputAttachmentMapping&) noexcept;
+		inline DirectX12InputAttachmentMapping& operator=(const DirectX12InputAttachmentMapping&) noexcept;
 
 		/// <summary>
 		/// Takes over another input attachment mapping.
 		/// </summary>
-		constexpr inline DirectX12InputAttachmentMapping& operator=(DirectX12InputAttachmentMapping&&) noexcept;
+		inline DirectX12InputAttachmentMapping& operator=(DirectX12InputAttachmentMapping&&) noexcept;
 
 	public:
 		/// <inheritdoc />
-		virtual const DirectX12RenderPass* inputAttachmentSource() const noexcept override;
+		const DirectX12RenderPass* inputAttachmentSource() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const RenderTarget& renderTarget() const noexcept override;
+		const RenderTarget& renderTarget() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& location() const noexcept override;
+		const UInt32& location() const noexcept override;
 	};
 
 	/// <summary>

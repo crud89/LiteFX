@@ -110,15 +110,15 @@ void VulkanComputePipeline::bind(const VulkanCommandBuffer& commandBuffer, const
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanComputePipelineBuilder::VulkanComputePipelineBuilder(const VulkanDevice& device, const String& name) :
+constexpr VulkanComputePipelineBuilder::VulkanComputePipelineBuilder(const VulkanDevice& device, const String& name) :
 	ComputePipelineBuilder(UniquePtr<VulkanComputePipeline>(new VulkanComputePipeline(device)))
 {
 	this->instance()->name() = name;
 }
 
-VulkanComputePipelineBuilder::~VulkanComputePipelineBuilder() noexcept = default;
+constexpr VulkanComputePipelineBuilder::~VulkanComputePipelineBuilder() noexcept = default;
 
-constexpr void VulkanComputePipelineBuilder::build()
+void VulkanComputePipelineBuilder::build()
 {
 	auto instance = this->instance();
 	instance->m_impl->m_layout = m_state.pipelineLayout;

@@ -118,9 +118,9 @@ constexpr VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() noexcept :
 
 constexpr VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
 
-constexpr void VulkanInputAssemblerBuilder::build()
+void VulkanInputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.primitiveTopology);
+    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.topology);
 }
 
 constexpr VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)

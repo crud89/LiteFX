@@ -58,7 +58,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// ShaderProgramBuilder interface.
 	protected:
@@ -86,7 +86,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 	};
 	
 	/// <summary>
@@ -101,7 +101,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// DirectX12VertexBufferLayoutBuilder interface.
 	public:
@@ -155,7 +155,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline virtual void build() override;
+		inline void build() override;
 
 	public:
 		/// <summary>
@@ -200,7 +200,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// DescriptorSetLayoutBuilder interface.
 	protected:
@@ -230,7 +230,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// PushConstantsLayoutBuilder interface.
 	protected:
@@ -260,7 +260,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// DirectX12PipelineLayoutBuilder.
 	public:
@@ -306,7 +306,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 	};
 
 	/// <summary>
@@ -328,7 +328,7 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	public:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 	};
 
 	/// <summary>
@@ -375,12 +375,12 @@ namespace LiteFX::Rendering::Backends {
 		// Builder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline void build() override;
+		inline void build() override;
 
 		// RenderPassBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline DirectX12InputAttachmentMapping makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
+		inline DirectX12InputAttachmentMapping makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
 	};
 
 }

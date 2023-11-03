@@ -476,7 +476,7 @@ constexpr DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12
 
 constexpr DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
 
-constexpr void DirectX12RenderPassBuilder::build()
+void DirectX12RenderPassBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->mapRenderTargets(m_state.renderTargets);
@@ -485,7 +485,7 @@ constexpr void DirectX12RenderPassBuilder::build()
     instance->m_impl->initializeFrameBuffers(m_state.commandBufferCount);
 }
 
-constexpr DirectX12InputAttachmentMapping DirectX12RenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
+DirectX12InputAttachmentMapping DirectX12RenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
 {
     return DirectX12InputAttachmentMapping(renderPass, renderTarget, inputLocation);
 }
