@@ -22,49 +22,49 @@ namespace LiteFX::Rendering {
         using image_type = TImage;
 
     public:
-        virtual ~Barrier() noexcept = default;
+        constexpr inline virtual ~Barrier() noexcept = default;
 
     public:
         /// <inheritdoc />
-        virtual void transition(buffer_type& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
+        constexpr inline virtual void transition(buffer_type& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
 
         /// <inheritdoc />
-        virtual void transition(buffer_type& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
+        constexpr inline virtual void transition(buffer_type& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
 
         /// <inheritdoc />
-        virtual void transition(image_type& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
+        constexpr inline virtual void transition(image_type& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
 
         /// <inheritdoc />
-        virtual void transition(image_type& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
+        constexpr inline virtual void transition(image_type& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
 
         /// <inheritdoc />
-        virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
+        constexpr inline virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
 
         /// <inheritdoc />
-        virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
+        constexpr inline virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
 
     private:
-        virtual void doTransition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override {
+        constexpr inline virtual void doTransition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override {
             this->transition(dynamic_cast<buffer_type&>(buffer), accessBefore, accessAfter);
         }
 
-        virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override {
+        constexpr inline virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override {
             this->transition(dynamic_cast<buffer_type&>(buffer), element, accessBefore, accessAfter);
         }
 
-        virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override {
+        constexpr inline virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override {
             this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, layout);
         }
 
-        virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override {
+        constexpr inline virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override {
             this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, fromLayout, toLayout);
         }
 
-        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override {
+        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override {
             this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
-        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override {
+        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override {
             this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
     };
