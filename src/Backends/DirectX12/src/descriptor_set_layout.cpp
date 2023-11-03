@@ -294,75 +294,34 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Descriptor set layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilderImpl : public Implement<DirectX12DescriptorSetLayoutBuilder> {
-public:
-    friend class DirectX12DescriptorSetLayoutBuilder;
-
-private:
-    Array<UniquePtr<DirectX12DescriptorLayout>> m_layouts;
-    UInt32 m_space;
-    ShaderStage m_stages;
-
-public:
-    DirectX12DescriptorSetLayoutBuilderImpl(DirectX12DescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages) :
-        base(parent), m_space(space), m_stages(stages)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& /*poolSize*/, const UInt32& /*maxUnboundedArraySize*/) :
-    m_impl(makePimpl<DirectX12DescriptorSetLayoutBuilderImpl>(this, space, stages)), DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
+constexpr DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages, UInt32 poolSize, UInt32 maxUnboundedArraySize) :
+    DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
 {
+    m_state.poolSize = poolSize;
+    m_state.maxUnboundedArraySize = maxUnboundedArraySize;
 }
 
-DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
+constexpr DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
 
 void DirectX12DescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_layouts = std::move(m_impl->m_layouts);
-    instance->m_impl->m_space = std::move(m_impl->m_space);
-    instance->m_impl->m_stages = std::move(m_impl->m_stages);
+    instance->m_impl->m_layouts = std::move(m_state.descriptorLayouts);
+    instance->m_impl->m_space = std::move(m_state.space);
+    instance->m_impl->m_stages = std::move(m_state.stages);
     instance->m_impl->initialize();
 }
 
-DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withDescriptor(UniquePtr<DirectX12DescriptorLayout>&& layout)
+constexpr UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
 {
-    m_impl->m_layouts.push_back(std::move(layout));
-    return *this;
+    return makeUnique<DirectX12DescriptorLayout>(type, binding, descriptorSize, descriptors);
 }
 
-DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
+constexpr UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
 {
-    return this->withDescriptor(makeUnique<DirectX12DescriptorLayout>(type, binding, descriptorSize, descriptors));
-}
-
-DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::withStaticSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy)
-{
-    return this->withDescriptor(makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding));
-}
-
-DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
-{
-    m_impl->m_space = space;
-    return *this;
-}
-
-DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::shaderStages(const ShaderStage& stages) noexcept
-{
-    m_impl->m_stages = stages;
-    return *this;
-}
-
-DirectX12DescriptorSetLayoutBuilder& DirectX12DescriptorSetLayoutBuilder::poolSize(const UInt32& /*poolSize*/) noexcept
-{
-    return *this;
+    return makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

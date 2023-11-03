@@ -639,20 +639,20 @@ namespace LiteFX {
 	/// <summary>
 	/// Creates a new builder for an <see cref="App" />.
 	/// </summary>
-	class LITEFX_APPMODEL_API AppBuilder : public Builder<AppBuilder, App> {
+	class LITEFX_APPMODEL_API [[nodiscard]] AppBuilder : public Builder<App> {
 	public:
-		using builder_type::Builder;
+		using Builder<App>::Builder;
 
 	public:
 		/// <inheritdoc />
-		void use(UniquePtr<IBackend>&& backend);
+		constexpr inline void use(UniquePtr<IBackend>&& backend);
 
 		/// <summary>
 		/// Registers a sink for logging.
 		/// </summary>
 		template <typename TSink, typename ...TArgs> requires
 			std::convertible_to<TSink*, ISink*>
-		AppBuilder& logTo(TArgs&&... args) {
+		constexpr inline AppBuilder& logTo(TArgs&&... args) {
 			auto sink = makeUnique<TSink>(std::forward<TArgs>(args)...);
 			Logger::sinkTo(sink.get());
 			return *this;
@@ -663,119 +663,10 @@ namespace LiteFX {
 		/// </summary>
 		template <typename TBackend, typename ...TArgs> requires
 			rtti::implements<TBackend, IBackend>
-		AppBuilder& useBackend(TArgs&&... args) {
+			constexpr inline AppBuilder& useBackend(TArgs&&... args) {
 			this->use(makeUnique<TBackend>(*this->instance(), std::forward<TArgs>(args)...));
 			return *this;
 		}
 	};
 
-	/// <summary>
-	/// Contains the version of an <see cref="App" />.
-	/// </summary>
-	class LITEFX_APPMODEL_API AppVersion {
-		LITEFX_IMPLEMENTATION(AppVersionImpl);
-
-	public:
-		/// <summary>
-		/// Creates a new app version instance.
-		/// </summary>
-		/// <param name="major">The major version of the app.</param>
-		/// <param name="minor">The minor version of the app.</param>
-		/// <param name="patch">The patch number of the app.</param>
-		/// <param name="revision">The revision of the app.</param>
-		explicit AppVersion(int major = 1, int minor = 0, int patch = 0, int revision = 0) noexcept;
-		AppVersion(const AppVersion&) = delete;
-		AppVersion(AppVersion&&) = delete;
-
-		virtual ~AppVersion() noexcept;
-
-	public:
-		/// <summary>
-		/// Gets the major version of the app.
-		/// </summary>
-		/// <returns>The major version of the app.</returns>
-		int major() const noexcept;
-
-		/// <summary>
-		/// Gets the minor version of the app.
-		/// </summary>
-		/// <returns>The minor version of the app.</returns>
-		int minor() const noexcept;
-
-		/// <summary>
-		/// Gets the patch number of the app.
-		/// </summary>
-		/// <returns>The patch number of the app.</returns>
-		int patch() const noexcept;
-
-		/// <summary>
-		/// Gets the revision of the app.
-		/// </summary>
-		/// <returns>The revision of the app.</returns>
-		int revision() const noexcept;
-
-		/// <summary>
-		/// Gets the major version of the engine build.
-		/// </summary>
-		/// <returns>The major version of the engine build.</returns>
-		int engineMajor() const noexcept;
-
-		/// <summary>
-		/// Gets the minor version of the engine build.
-		/// </summary>
-		/// <returns>The minor version of the engine build.</returns>
-		int engineMinor() const noexcept;
-
-		/// <summary>
-		/// Gets the revision of the engine build.
-		/// </summary>
-		/// <returns>The revision of the engine build.</returns>
-		int engineRevision() const noexcept;
-
-		/// <summary>
-		/// Gets the status of the engine build.
-		/// </summary>
-		/// <returns>The status of the engine build.</returns>
-		int engineStatus() const noexcept;
-		
-		/// <summary>
-		/// Gets the identifier of the engine build.
-		/// </summary>
-		/// <returns>The identifier of the engine build.</returns>
-		String engineIdentifier() const noexcept;
-
-		/// <summary>
-		/// Gets the version string of the engine build.
-		/// </summary>
-		/// <returns>The version string of the engine build.</returns>
-		String engineVersion() const noexcept;
-	};
-
 }
-
-template <>
-struct fmt::formatter<LiteFX::AppVersion> {
-	bool engineVersion = false;
-
-	constexpr auto parse(format_parse_context& ctx) {
-		auto it = ctx.begin(), end = ctx.end();
-
-		if (it != end && (*it == 'e'))
-		{
-			engineVersion = true;
-			it++;
-		}
-
-		if (it != end && *it != '}')
-			throw format_error("Invalid version format: expected: `}`.");
-
-		return it;
-	}
-
-	template <typename FormatContext>
-	auto format(const LiteFX::AppVersion& app, FormatContext& ctx) {
-		return engineVersion ?
-			fmt::format_to(ctx.out(), "{} Version {}", app.engineIdentifier(), app.engineVersion()) :
-			fmt::format_to(ctx.out(), "{}.{}.{}.{}", app.major(), app.minor(), app.patch(), app.revision());
-	}
-};

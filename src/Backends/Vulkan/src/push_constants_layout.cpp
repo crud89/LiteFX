@@ -100,43 +100,23 @@ Enumerable<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() 
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Push constants layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilderImpl : public Implement<VulkanPushConstantsLayoutBuilder> {
-public:
-    friend class VulkanPushConstantsLayoutBuilder;
-
-private:
-    Array<UniquePtr<VulkanPushConstantsRange>> m_ranges;
-    UInt32 m_size;
-
-public:
-    VulkanPushConstantsLayoutBuilderImpl(VulkanPushConstantsLayoutBuilder* parent, const UInt32& size) :
-        base(parent), m_size(size)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Push constants layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(size)))
+constexpr VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 size) :
+    PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(size)))
 {
 }
 
-VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept = default;
+constexpr VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept = default;
 
 void VulkanPushConstantsLayoutBuilder::build()
 {
-    this->instance()->m_impl->setRanges(std::move(m_impl->m_ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>()));
+    this->instance()->m_impl->setRanges(std::move(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>()));
 }
 
-VulkanPushConstantsLayoutBuilder& VulkanPushConstantsLayoutBuilder::withRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
+UniquePtr<VulkanPushConstantsRange> VulkanPushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)
 {
-    m_impl->m_ranges.push_back(makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding));
-    return *this;
+    return makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

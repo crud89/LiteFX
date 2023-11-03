@@ -120,8 +120,6 @@ public:
     friend class VulkanPipelineLayout;
 
 private:
-    UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
-    Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
     const VulkanDevice& m_device;
 
 public:
@@ -132,45 +130,35 @@ public:
 };
 
 // ------------------------------------------------------------------------------------------------
-//  pipeline layout builder interface.
+// Pipeline layout builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
+constexpr VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
     m_impl(makePimpl<VulkanPipelineLayoutBuilderImpl>(this, parent)), PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent)))
 {
 }
 
-VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
+constexpr VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
 
 void VulkanPipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_descriptorSetLayouts = std::move(m_impl->m_descriptorSetLayouts);
-    instance->m_impl->m_pushConstantsLayout = std::move(m_impl->m_pushConstantsLayout);
+    instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
+    instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
     instance->handle() = instance->m_impl->initialize();
 }
 
-void VulkanPipelineLayoutBuilder::use(UniquePtr<VulkanDescriptorSetLayout>&& layout)
+constexpr VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 poolSize, UInt32 maxUnboundedArraySize)
 {
-    m_impl->m_descriptorSetLayouts.push_back(std::move(layout));
+    return VulkanDescriptorSetLayoutBuilder(*this, space, stages, poolSize, maxUnboundedArraySize);
 }
 
-void VulkanPipelineLayoutBuilder::use(UniquePtr<VulkanPushConstantsLayout>&& layout)
-{
-    m_impl->m_pushConstantsLayout = std::move(layout);
-}
-
-VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(const UInt32& space, const ShaderStage& stages, const UInt32& poolSize)
-{
-    return VulkanDescriptorSetLayoutBuilder(*this, space, stages, poolSize);
-}
-
-VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(const UInt32& size)
+constexpr VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(UInt32 size)
 {
     return VulkanPushConstantsLayoutBuilder(*this, size);
 }
 
-const VulkanDevice& VulkanPipelineLayoutBuilder::device() const noexcept
+constexpr const VulkanDevice& VulkanPipelineLayoutBuilder::device() const noexcept
 {
     return m_impl->m_device;
 }

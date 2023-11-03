@@ -187,44 +187,44 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
 		/// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
-		explicit VulkanBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept;
+		constexpr inline explicit VulkanBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept;
 		VulkanBarrier(const VulkanBarrier&) = delete;
 		VulkanBarrier(VulkanBarrier&&) = delete;
-		virtual ~VulkanBarrier() noexcept;
+		constexpr inline virtual ~VulkanBarrier() noexcept;
 
 	private:
-		explicit VulkanBarrier() noexcept;
-		PipelineStage& syncBefore() noexcept;
-		PipelineStage& syncAfter() noexcept;
+		constexpr inline explicit VulkanBarrier() noexcept;
+		constexpr inline PipelineStage& syncBefore() noexcept;
+		constexpr inline PipelineStage& syncAfter() noexcept;
 
 		// Barrier interface.
 	public:
 		/// <inheritdoc />
-		virtual const PipelineStage& syncBefore() const noexcept override;
+		constexpr inline const PipelineStage& syncBefore() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const PipelineStage& syncAfter() const noexcept override;
+		constexpr inline const PipelineStage& syncAfter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept override;
+		constexpr inline void wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept override;
 
 		/// <inheritdoc />
-		virtual void transition(IVulkanBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
+		constexpr inline void transition(IVulkanBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
 
 		/// <inheritdoc />
-		virtual void transition(IVulkanBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
+		constexpr inline void transition(IVulkanBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
 
 		/// <inheritdoc />
-		virtual void transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
+		constexpr inline void transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
 
 		/// <inheritdoc />
-		virtual void transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
+		constexpr inline void transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
 
 		/// <inheritdoc />
-		virtual void transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
+		constexpr inline void transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
 
 		/// <inheritdoc />
-		virtual void transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
+		constexpr inline void transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
 
 	public:
 		/// <summary>
@@ -232,7 +232,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="commandBuffer">The command buffer to add the barriers to.</param>
 		/// <exception cref="RuntimeException">Thrown, if any of the contained barriers is a image barrier that targets a sub-resource range that does not share the same <see cref="ImageLayout" /> in all sub-resources.</exception>
-		virtual void execute(const VulkanCommandBuffer& commandBuffer) const noexcept;
+		inline void execute(const VulkanCommandBuffer& commandBuffer) const noexcept;
 	};
 
 	/// <summary>
@@ -1274,13 +1274,13 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual const VulkanRenderPass* inputAttachmentSource() const noexcept override;
+		const VulkanRenderPass* inputAttachmentSource() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const RenderTarget& renderTarget() const noexcept override;
+		const RenderTarget& renderTarget() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& location() const noexcept override;
+		const UInt32& location() const noexcept override;
 	};
 
 	/// <summary>
@@ -1716,7 +1716,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend<VulkanBackend, VulkanDevice>, public Resource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend<VulkanDevice>, public Resource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
 	public:

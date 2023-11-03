@@ -98,7 +98,7 @@ void DeviceState::add(UniquePtr<IRenderPass>&& renderPass)
 void DeviceState::add(const String& id, UniquePtr<IRenderPass>&& renderPass)
 {
     if (renderPass == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The render pass must be initialized.");
+        throw InvalidArgumentException("The render pass must be initialized.");
 
     if (m_impl->m_renderPasses.contains(id)) [[unlikely]]
         throw InvalidArgumentException("Another render pass with the identifier \"{0}\" has already been registered in the device state.", id);
@@ -114,7 +114,7 @@ void DeviceState::add(UniquePtr<IPipeline>&& pipeline)
 void DeviceState::add(const String& id, UniquePtr<IPipeline>&& pipeline)
 {
     if (pipeline == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The pipeline must be initialized.");
+        throw InvalidArgumentException("The pipeline must be initialized.");
 
     if (m_impl->m_pipelines.contains(id)) [[unlikely]]
         throw InvalidArgumentException("Another pipeline with the identifier \"{0}\" has already been registered in the device state.", id);
@@ -130,7 +130,7 @@ void DeviceState::add(UniquePtr<IBuffer>&& buffer)
 void DeviceState::add(const String& id, UniquePtr<IBuffer>&& buffer)
 {
     if (buffer == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The buffer must be initialized.");
+        throw InvalidArgumentException("The buffer must be initialized.");
 
     if (m_impl->m_buffers.contains(id)) [[unlikely]]
         throw InvalidArgumentException("Another buffer with the identifier \"{0}\" has already been registered in the device state.", id);
@@ -146,7 +146,7 @@ void DeviceState::add(UniquePtr<IVertexBuffer>&& vertexBuffer)
 void DeviceState::add(const String& id, UniquePtr<IVertexBuffer>&& vertexBuffer)
 {
     if (vertexBuffer == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The vertex buffer must be initialized.");
+        throw InvalidArgumentException("The vertex buffer must be initialized.");
 
     if (m_impl->m_vertexBuffers.contains(id)) [[unlikely]]
         throw InvalidArgumentException("Another vertex buffer with the identifier \"{0}\" has already been registered in the device state.", id);
@@ -162,7 +162,7 @@ void DeviceState::add(UniquePtr<IIndexBuffer>&& indexBuffer)
 void DeviceState::add(const String& id, UniquePtr<IIndexBuffer>&& indexBuffer)
 {
     if (indexBuffer == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The index buffer must be initialized.");
+        throw InvalidArgumentException("The index buffer must be initialized.");
 
     if (m_impl->m_indexBuffers.contains(id)) [[unlikely]]
         throw InvalidArgumentException("Another index buffer with the identifier \"{0}\" has already been registered in the device state.", id);
@@ -178,7 +178,7 @@ void DeviceState::add(UniquePtr<IImage>&& image)
 void DeviceState::add(const String& id, UniquePtr<IImage>&& image)
 {
     if (image == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The image must be initialized.");
+        throw InvalidArgumentException("The image must be initialized.");
 
     if (m_impl->m_images.contains(id)) [[unlikely]]
         throw InvalidArgumentException("Another image with the identifier \"{0}\" has already been registered in the device state.", id);
@@ -194,7 +194,7 @@ void DeviceState::add(UniquePtr<ISampler>&& sampler)
 void DeviceState::add(const String& id, UniquePtr<ISampler>&& sampler)
 {
     if (sampler == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The sampler must be initialized.");
+        throw InvalidArgumentException("The sampler must be initialized.");
 
     if (m_impl->m_samplers.contains(id)) [[unlikely]]
         throw InvalidArgumentException("Another sampler with the identifier \"{0}\" has already been registered in the device state.", id);
@@ -205,7 +205,7 @@ void DeviceState::add(const String& id, UniquePtr<ISampler>&& sampler)
 void DeviceState::add(const String& id, UniquePtr<IDescriptorSet>&& descriptorSet)
 {
     if (descriptorSet == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The descriptor set must be initialized.");
+        throw InvalidArgumentException("The descriptor set must be initialized.");
 
     if (m_impl->m_descriptorSets.contains(id)) [[unlikely]]
         throw InvalidArgumentException("Another descriptor set with the identifier \"{0}\" has already been registered in the device state.", id);

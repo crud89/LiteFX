@@ -490,139 +490,45 @@ void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSe
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanRenderPassBuilder::VulkanRenderPassBuilderImpl : public Implement<VulkanRenderPassBuilder> {
-public:
-    friend class VulkanRenderPassBuilder;
-    friend class VulkanRenderPass;
-
-private:
-    Array<UniquePtr<VulkanRenderPipeline>> m_pipelines;
-    Array<VulkanInputAttachmentMapping> m_inputAttachments;
-    Array<RenderTarget> m_renderTargets;
-    MultiSamplingLevel m_samples;
-    UInt32 m_commandBuffers;
-
-public:
-    VulkanRenderPassBuilderImpl(VulkanRenderPassBuilder* parent, const MultiSamplingLevel& samples, const UInt32& commandBuffers) :
-        base(parent), m_samples(samples), m_commandBuffers(commandBuffers)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const String& name) noexcept :
+constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const String& name) noexcept :
     VulkanRenderPassBuilder(device, 1, MultiSamplingLevel::x1, name)
 {
 }
 
-VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const String& name) noexcept :
-    VulkanRenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1, name)
-{
-}
-
-VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const MultiSamplingLevel& samples, const String& name) noexcept :
+constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, MultiSamplingLevel samples, const String& name) noexcept :
     VulkanRenderPassBuilder(device, 1, samples, name)
 {
 }
 
-VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const UInt32& commandBuffers, const MultiSamplingLevel& samples, const String& name) noexcept :
-    m_impl(makePimpl<VulkanRenderPassBuilderImpl>(this, samples, commandBuffers)), RenderPassBuilder<VulkanRenderPassBuilder, VulkanRenderPass>(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device, name)))
+constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name) noexcept :
+    VulkanRenderPassBuilder(device, commandBuffers, MultiSamplingLevel::x1, name)
 {
 }
 
-VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default;
+constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, MultiSamplingLevel samples, const String& name) noexcept :
+    RenderPassBuilder(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device, name)))
+{
+    m_state.commandBufferCount = commandBuffers;
+    m_state.multiSamplingLevel = samples;
+}
+
+constexpr VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default;
 
 void VulkanRenderPassBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->mapRenderTargets(m_impl->m_renderTargets);
-    instance->m_impl->mapInputAttachments(m_impl->m_inputAttachments);
-    instance->m_impl->m_samples = std::move(m_impl->m_samples);
+    instance->m_impl->mapRenderTargets(m_state.renderTargets);
+    instance->m_impl->mapInputAttachments(m_state.inputAttachments);
+    instance->m_impl->m_samples = m_state.multiSamplingLevel;
     instance->handle() = instance->m_impl->initialize();
-    instance->m_impl->initializeFrameBuffers(m_impl->m_commandBuffers);
+    instance->m_impl->initializeFrameBuffers(m_state.commandBufferCount);
 }
 
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::commandBuffers(const UInt32& count)
+VulkanInputAttachmentMapping VulkanRenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
 {
-    m_impl->m_commandBuffers = count;
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::multiSamplingLevel(const MultiSamplingLevel& samples)
-{
-    m_impl->m_samples = samples;
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    return this->renderTarget("", type, format, clearValues, clear, clearStencil, isVolatile);
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const String& name, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
-    //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(name, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    return this->renderTarget("", location, type, format, clearValues, clear, clearStencil, isVolatile);
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    m_impl->m_renderTargets.push_back(RenderTarget(name, location, type, format, clear, clearValues, clearStencil, isVolatile));
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    return this->renderTarget("", output, type, format, clearValues, clear, clearStencil, isVolatile);
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const String& name, VulkanInputAttachmentMapping& output, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    // TODO: This might be invalid, if another target is already defined with a custom location, however in this case we have no guarantee that the location range will be contiguous
-    //       until the render pass is initialized, so we silently ignore this for now.
-    return this->renderTarget(name, output, static_cast<UInt32>(m_impl->m_renderTargets.size()), type, format, clearValues, clear, clearStencil, isVolatile);
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    return this->renderTarget("", output, location, type, format, clearValues, clear, clearStencil, isVolatile);
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::renderTarget(const String& name, VulkanInputAttachmentMapping& output, const UInt32& location, const RenderTargetType& type, const Format& format, const Vector4f& clearValues, bool clear, bool clearStencil, bool isVolatile)
-{
-    auto renderTarget = RenderTarget(name, location, type, format, clear, clearValues, clearStencil, isVolatile);
-    output = std::move(VulkanInputAttachmentMapping(*this->instance(), renderTarget, location));
-    m_impl->m_renderTargets.push_back(renderTarget);
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::inputAttachment(const VulkanInputAttachmentMapping& inputAttachment)
-{
-    m_impl->m_inputAttachments.push_back(inputAttachment);
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const UInt32& outputLocation)
-{
-    m_impl->m_inputAttachments.push_back(VulkanInputAttachmentMapping(renderPass, renderPass.renderTarget(outputLocation), inputLocation));
-    return *this;
-}
-
-VulkanRenderPassBuilder& VulkanRenderPassBuilder::inputAttachment(const UInt32& inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
-{
-    m_impl->m_inputAttachments.push_back(VulkanInputAttachmentMapping(renderPass, renderTarget, inputLocation));
-    return *this;
+    return VulkanInputAttachmentMapping(renderPass, renderTarget, inputLocation);
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)

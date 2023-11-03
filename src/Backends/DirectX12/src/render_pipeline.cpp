@@ -277,97 +277,25 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 
 #if defined(BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilderImpl : public Implement<DirectX12RenderPipelineBuilder> {
-public:
-	friend class DirectX12RenderPipelineBuilder;
-
-private:
-	SharedPtr<DirectX12PipelineLayout> m_layout;
-	SharedPtr<DirectX12ShaderProgram> m_program;
-	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
-	SharedPtr<DirectX12Rasterizer> m_rasterizer;
-	bool m_alphaToCoverage{ false };
-
-public:
-	DirectX12RenderPipelineBuilderImpl(DirectX12RenderPipelineBuilder* parent) :
-		base(parent)
-	{
-	}
-};
-
-// ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineBuilderImpl>(this)), RenderPipelineBuilder(UniquePtr<DirectX12RenderPipeline>(new DirectX12RenderPipeline(renderPass)))
+constexpr DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
+	RenderPipelineBuilder(UniquePtr<DirectX12RenderPipeline>(new DirectX12RenderPipeline(renderPass)))
 {
 	this->instance()->name() = name;
 }
 
-DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
+constexpr DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
 
 void DirectX12RenderPipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = std::move(m_impl->m_layout);
-	instance->m_impl->m_program = std::move(m_impl->m_program);
-	instance->m_impl->m_inputAssembler = std::move(m_impl->m_inputAssembler);
-	instance->m_impl->m_rasterizer = std::move(m_impl->m_rasterizer);
-	instance->m_impl->m_alphaToCoverage = std::move(m_impl->m_alphaToCoverage);
+	instance->m_impl->m_layout = m_state.pipelineLayout;
+	instance->m_impl->m_program = m_state.shaderProgram;
+	instance->m_impl->m_inputAssembler = m_state.inputAssembler;
+	instance->m_impl->m_rasterizer = m_state.rasterizer;
+	instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
 	instance->handle() = instance->m_impl->initialize();
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::shaderProgram(SharedPtr<DirectX12ShaderProgram> program)
-{
-#ifndef NDEBUG
-	if (m_impl->m_program != nullptr)
-		LITEFX_WARNING(DIRECTX12_LOG, "Another shader program has already been initialized and will be replaced. A pipeline can only have one shader program.");
-#endif
-
-	m_impl->m_program = program;
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::layout(SharedPtr<DirectX12PipelineLayout> layout)
-{
-#ifndef NDEBUG
-	if (m_impl->m_layout != nullptr)
-		LITEFX_WARNING(DIRECTX12_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
-#endif
-
-	m_impl->m_layout = layout;
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::rasterizer(SharedPtr<DirectX12Rasterizer> rasterizer)
-{
-#ifndef NDEBUG
-	if (m_impl->m_rasterizer != nullptr)
-		LITEFX_WARNING(DIRECTX12_LOG, "Another rasterizer has already been initialized and will be replaced. A pipeline can only have one rasterizer.");
-#endif
-
-	m_impl->m_rasterizer = rasterizer;
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::inputAssembler(SharedPtr<DirectX12InputAssembler> inputAssembler)
-{
-#ifndef NDEBUG
-	if (m_impl->m_inputAssembler != nullptr)
-		LITEFX_WARNING(DIRECTX12_LOG, "Another input assembler has already been initialized and will be replaced. A pipeline can only have one input assembler.");
-#endif
-
-	m_impl->m_inputAssembler = inputAssembler;
-	return *this;
-}
-
-DirectX12RenderPipelineBuilder& DirectX12RenderPipelineBuilder::enableAlphaToCoverage(const bool& enable)
-{
-	m_impl->m_alphaToCoverage = enable;
-	return *this;
 }
 #endif // defined(BUILD_DEFINE_BUILDERS)
