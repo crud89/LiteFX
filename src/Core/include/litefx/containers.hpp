@@ -137,7 +137,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new unique pointer.</returns>
 	template <class T>
-	UniquePtr<T> makeUnique() {
+	constexpr inline [[nodiscard]] UniquePtr<T> makeUnique() {
 		return std::make_unique<T>();
 	}
 
@@ -147,7 +147,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new unique pointer.</returns>
 	template <class T, class... TArgs>
-	UniquePtr<T> makeUnique(TArgs&&... _args) {
+	constexpr inline [[nodiscard]] UniquePtr<T> makeUnique(TArgs&&... _args) {
 		return std::make_unique<T>(std::forward<TArgs>(_args)...);
 	}
 
@@ -157,7 +157,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	SharedPtr<T> makeShared() {
+	constexpr inline [[nodiscard]] SharedPtr<T> makeShared() {
 		return std::make_shared<T>();
 	}
 
@@ -167,7 +167,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new shared pointer.</returns>
 	template <class T, class... TArgs>
-	SharedPtr<T> makeShared(TArgs&&... _args) {
+	constexpr inline [[nodiscard]] SharedPtr<T> makeShared(TArgs&&... _args) {
 		return std::make_shared<T>(std::forward<TArgs>(_args)...);
 	}
 
@@ -178,7 +178,7 @@ namespace LiteFX {
 	/// <param name="ptr">The unique pointer that should be turned into a shared pointer.</param>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
+	constexpr inline [[nodiscard]] SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
 		return SharedPtr<T>(ptr.release());
 	}
 
