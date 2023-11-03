@@ -417,7 +417,7 @@ namespace LiteFX {
 	/// </summary>
 	/// <typeparam name="pImpl">The type of the implementaion class.</typeparam>
 	template <class pImpl>
-	class PimplPtr {
+	class PimplPtr final {
 	private:
 		UniquePtr<pImpl> m_ptr;
 
@@ -425,7 +425,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Initializes a new pointer to an uninitialized implementation instance.
 		/// </summary>
-		PimplPtr() noexcept = default;
+		constexpr inline PimplPtr() noexcept = default;
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -435,13 +435,13 @@ namespace LiteFX {
 		/// of both implementation pointers manually!
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
-		PimplPtr(const PimplPtr& src) noexcept : m_ptr(new pImpl(*src.m_ptr)) { }
+		constexpr inline PimplPtr(const PimplPtr& src) noexcept : m_ptr(new pImpl(*src.m_ptr)) { }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
-		PimplPtr(PimplPtr&& src) noexcept = default;
+		constexpr inline PimplPtr(PimplPtr&& src) noexcept = default;
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -452,52 +452,52 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
 		/// <returns>A new pointer to the provided implementation instance.</returns>
-		PimplPtr& operator= (const PimplPtr& src) noexcept { m_ptr.reset(new pImpl(*src.m_ptr)); return *this; }
+		constexpr inline PimplPtr& operator= (const PimplPtr& src) noexcept { m_ptr.reset(new pImpl(*src.m_ptr)); return *this; }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
 		/// /// <returns>A new pointer to the provided implementation instance.</returns>
-		PimplPtr& operator= (PimplPtr&& src) noexcept = default;
+		constexpr inline PimplPtr& operator= (PimplPtr&& src) noexcept = default;
 
-		~PimplPtr() noexcept = default;
+		constexpr inline ~PimplPtr() noexcept = default;
 
 	private:
 		/// <summary>
 		/// Initializes a new pointer from the raw pointer provided with <paramref name="pimpl" />.
 		/// </summary>
 		/// <param name="pimpl">The raw pointer to take ownership over.</param>
-		PimplPtr(pImpl* pimpl) noexcept : m_ptr(pimpl) { }
+		constexpr inline PimplPtr(pImpl* pimpl) noexcept : m_ptr(pimpl) { }
 
 	public:
 		/// <summary>
 		/// Destroys the implementation instance managed by this pointer.
 		/// </summary>
-		void destroy() { m_ptr = nullptr; }
+		constexpr inline void destroy() { m_ptr = nullptr; }
 
 		/// <summary>
 		/// Releases the implementation instance managed by this pointer and returns it.
 		/// </summary>
 		/// <returns>The pointer to the managed implementation instance.</returns>
-		pImpl* release() noexcept { m_ptr.release(); }
+		constexpr inline pImpl* release() noexcept { m_ptr.release(); }
 
 	public:
 		/// <summary>
 		/// Returns a reference to the managed implementation instance.
 		/// </summary>
 		/// <returns>A reference to the managed implementation instance.</returns>
-		pImpl& operator* () const noexcept { return *m_ptr; }
+		constexpr inline pImpl& operator* () const noexcept { return *m_ptr; }
 
 		/// <summary>
 		/// Returns a pointer to the managed implementation instance.
 		/// </summary>
 		/// <returns>A pointer to the managed implementation instance.</returns>
-		pImpl* operator-> () const noexcept { return m_ptr.get(); }
+		constexpr inline pImpl* operator-> () const noexcept { return m_ptr.get(); }
 
 	public:
 		template <class T, class... Arg>
-		friend PimplPtr<T> makePimpl(Arg&&... arg);
+		friend constexpr inline PimplPtr<T> makePimpl(Arg&&... arg);
 	};
 
 	/// <summary>
@@ -508,7 +508,7 @@ namespace LiteFX {
 	/// <param name="...arg">The arguments forwarded to the implementation classes' constructor.</param>
 	/// <returns>The pointer to the implementation class instance.</returns>
 	template <class T, class... Arg>
-	PimplPtr<T> makePimpl(Arg&&... arg) {
+	constexpr inline [[nodiscard]] PimplPtr<T> makePimpl(Arg&&... arg) {
 		return PimplPtr<T>(new T(std::forward<Arg>(arg)...));
 	}
 
@@ -544,14 +544,14 @@ namespace LiteFX {
 		/// Initializes the implementation instance.
 		/// </summary>
 		/// <param name="parent">The pointer to the parent public interface instance.</param>
-		Implement(TInterface* parent) : m_parent(parent) {
+		constexpr inline Implement(TInterface* parent) : m_parent(parent) {
 			if (parent == nullptr)
 				throw std::runtime_error("Initializing an implementation requires the parent to be provided.");
 		}
 
 		Implement(Implement<TInterface>&&) = delete;
 		Implement(const Implement<TInterface>&) = delete;
-		virtual ~Implement() = default;
+		constexpr inline virtual ~Implement() = default;
 	};
 
 	/// <summary>
