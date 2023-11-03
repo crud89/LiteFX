@@ -47,7 +47,7 @@ namespace LiteFX::Rendering {
             /// </summary>
             /// <param name="stage">The pipeline stage that are allowed to continue after the barrier has executed.</param>
             /// <returns>The instance of the parent builder.</returns>
-            constexpr inline auto toContinueWith(PipelineStage stage) -> TParent&& {
+            constexpr inline auto toContinueWith(PipelineStage stage) -> TParent {
                 this->m_parent.stagesCallback(this->m_from, stage);
                 return std::move(this->m_parent);
             }
@@ -61,7 +61,7 @@ namespace LiteFX::Rendering {
             rtti::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] GlobalBarrierBuilder {
         private:
-            ResourceAccess m_waitFor;
+            ResourceAccess m_access;
             TParent m_parent;
 
             /// <summary>
@@ -70,7 +70,7 @@ namespace LiteFX::Rendering {
             /// <param name="parent">The parent builder instance.</param>
             /// <param name="access">The resource access state of all resources to wait for with this barrier.</param>
             constexpr inline GlobalBarrierBuilder(TParent&& parent, ResourceAccess access) noexcept :
-                m_parent(std::move(parent)), m_waitFor(access) { }
+                m_parent(std::move(parent)), m_access(access) { }
 
         public:
             friend class BarrierBuilder;
@@ -79,8 +79,8 @@ namespace LiteFX::Rendering {
             /// Specifies the resource accesses that are waited for in a global barrier before it can be executed.
             /// </summary>
             /// <param name="access">The resource accesses that are waited for until the barrier can be executed.</param>
-            constexpr inline auto untilFinishedWith(ResourceAccess access) -> TParent&& {
-                this->m_parent.globalBarrierCallback(m_waitFor, access);
+            constexpr inline auto untilFinishedWith(ResourceAccess access) -> TParent {
+                this->m_parent.globalBarrierCallback(access, m_access);
                 return std::move(this->m_parent);
             }
         };
@@ -93,7 +93,7 @@ namespace LiteFX::Rendering {
             rtti::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] BufferBarrierBuilder {
         private:
-            ResourceAccess m_waitFor;
+            ResourceAccess m_access;
             IBuffer& m_buffer;
             TParent m_parent;
 
@@ -104,7 +104,7 @@ namespace LiteFX::Rendering {
             /// <param name="buffer">The buffer for this barrier.</param>
             /// <param name="access">The resource access state of the buffer to wait for with this barrier.</param>
             constexpr inline BufferBarrierBuilder(TParent&& parent, IBuffer& buffer, ResourceAccess access) noexcept :
-                m_parent(std::move(parent)), m_buffer(buffer), m_waitFor(access) { }
+                m_parent(std::move(parent)), m_buffer(buffer), m_access(access) { }
 
         public:
             friend class BarrierBuilder;
@@ -113,8 +113,8 @@ namespace LiteFX::Rendering {
             /// Specifies the resource accesses that are waited for in a buffer before the barrier can be executed.
             /// </summary>
             /// <param name="access">The resource accesses that are waited for in a buffer before the barrier can be executed.</param>
-            constexpr inline auto untilFinishedWith(ResourceAccess access) -> TParent&& {
-                this->m_parent.bufferBarrierCallback(m_buffer, m_waitFor, access);
+            constexpr inline auto untilFinishedWith(ResourceAccess access) -> TParent {
+                this->m_parent.bufferBarrierCallback(m_buffer, access, m_access);
                 return std::move(this->m_parent);
             }
         };
@@ -127,7 +127,7 @@ namespace LiteFX::Rendering {
             rtti::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] ImageLayoutBarrierBuilder {
         private:
-            ResourceAccess m_waitFor;
+            ResourceAccess m_access;
             IImage& m_image;
             TParent m_parent;
             ImageLayout m_layout;
@@ -146,7 +146,7 @@ namespace LiteFX::Rendering {
             /// <param name="layers">The number of layers to transition.</param>
             /// <param name="plane">The plane of the sub-resource to transition.</param>
             constexpr inline ImageLayoutBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) noexcept :
-                m_parent(std::move(parent)), m_image(image), m_waitFor(access), m_layout(layout), m_level(level), m_levels(levels), m_layer(layer), m_layers(layers), m_plane(plane) { }
+                m_parent(std::move(parent)), m_image(image), m_access(access), m_layout(layout), m_level(level), m_levels(levels), m_layer(layer), m_layers(layers), m_plane(plane) { }
 
         public:
             friend class BarrierBuilder;
@@ -156,8 +156,8 @@ namespace LiteFX::Rendering {
             /// Specifies the resource accesses that are waited for on the image sub-resources before the barrier can be executed.
             /// </summary>
             /// <param name="access">The resource accesses that are waited for on the image sub-resources before the barrier can be executed.</param>
-            constexpr inline auto whenFinishedWith(ResourceAccess access) -> TParent&& {
-                this->m_parent.imageBarrierCallback(m_image, m_waitFor, access, m_layout, m_level, m_levels, m_layer, m_layers, m_plane);
+            constexpr inline auto whenFinishedWith(ResourceAccess access) -> TParent {
+                this->m_parent.imageBarrierCallback(m_image, access, m_access, m_layout, m_level, m_levels, m_layer, m_layers, m_plane);
                 return std::move(this->m_parent);
             }
         };
@@ -170,7 +170,7 @@ namespace LiteFX::Rendering {
             rtti::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] ImageBarrierBuilder {
         private:
-            ResourceAccess m_waitFor;
+            ResourceAccess m_access;
             IImage& m_image;
             TParent m_parent;
             UInt32 m_level, m_levels, m_layer, m_layers, m_plane;
@@ -182,7 +182,7 @@ namespace LiteFX::Rendering {
             /// <param name="image">The image for this barrier.</param>
             /// <param name="access">The resource access state of the sub-resources in the image to wait for with this barrier.</param>
             constexpr inline ImageBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access) noexcept :
-                m_parent(std::move(parent)), m_image(image), m_waitFor(access), m_level{ 0 }, m_levels{ 0 }, m_layer{ 0 }, m_layers{ 0 }, m_plane{ 0 } { }
+                m_parent(std::move(parent)), m_image(image), m_access(access), m_level{ 0 }, m_levels{ 0 }, m_layer{ 0 }, m_layers{ 0 }, m_plane{ 0 } { }
 
         public:
             friend class BarrierBuilder;
@@ -192,7 +192,7 @@ namespace LiteFX::Rendering {
             /// </summary>
             /// <param name="layout">The layout to transition an image to when executing the barrier.</param>
             constexpr inline auto transitionLayout(ImageLayout layout) -> ImageLayoutBarrierBuilder<TParent> {
-                return ImageLayoutBarrierBuilder<TParent>{ std::move(m_parent), m_image, m_waitFor, layout, m_level, m_levels, m_layer, m_layers, m_plane };
+                return ImageLayoutBarrierBuilder<TParent>{ std::move(m_parent), m_image, m_access, layout, m_level, m_levels, m_layer, m_layers, m_plane };
             }
 
             /// <summary>
@@ -306,7 +306,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stage">The pipeline stages to wait for before executing the barrier.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto waitFor(this TSelf&& self, PipelineStage stage) -> SecondStageBuilder<TSelf>&& {
+        constexpr inline [[nodiscard]] auto waitFor(this TSelf&& self, PipelineStage stage) -> SecondStageBuilder<TSelf> {
             return SecondStageBuilder<TSelf>{ std::move(self), stage };
         }
 
@@ -315,7 +315,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, ResourceAccess access) -> GlobalBarrierBuilder<TSelf>&& {
+        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, ResourceAccess access) -> GlobalBarrierBuilder<TSelf> {
             return GlobalBarrierBuilder<TSelf>{ std::move(self), access };
         }
 
@@ -325,7 +325,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer to wait for.</param>
         /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IBuffer& buffer, ResourceAccess access) -> BufferBarrierBuilder<TSelf>&& {
+        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IBuffer& buffer, ResourceAccess access) -> BufferBarrierBuilder<TSelf> {
             return BufferBarrierBuilder<TSelf>{ std::move(self), buffer, access };
         }
 
@@ -336,7 +336,7 @@ namespace LiteFX::Rendering {
         /// <param name="subresource">The sub-resource to block.</param>
         /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IBuffer& buffer, UInt32 subresource, ResourceAccess access) -> BufferBarrierBuilder<TSelf>&& {
+        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IBuffer& buffer, UInt32 subresource, ResourceAccess access) -> BufferBarrierBuilder<TSelf> {
             return BufferBarrierBuilder<TSelf>{ std::move(self), buffer, subresource, access };
         }
 
@@ -346,7 +346,7 @@ namespace LiteFX::Rendering {
         /// <param name="image">The buffer to wait for.</param>
         /// <param name="access">The resource accesses that are blocked until the barrier has executed.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IImage& image, ResourceAccess access) -> ImageBarrierBuilder<TSelf>&& {
+        constexpr inline [[nodiscard]] auto blockAccessTo(this TSelf&& self, IImage& image, ResourceAccess access) -> ImageBarrierBuilder<TSelf> {
             return ImageBarrierBuilder<TSelf>{ std::move(self), image, access };
         }
     };
