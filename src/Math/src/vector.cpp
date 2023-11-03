@@ -7,7 +7,7 @@ using namespace LiteFX::Math;
 // ------------------------------------------------------------------------------------------------
 
 Vector1f::Vector1f() noexcept : Vector<Float, 1>() { }
-Vector1f::Vector1f(const Float& v) noexcept : Vector<Float, 1>(v) { }
+Vector1f::Vector1f(Float v) noexcept : Vector<Float, 1>(v) { }
 Vector1f::Vector1f(const Vector1f& _v) noexcept : Vector<Float, 1>(_v) { }
 Vector1f::Vector1f(const Vector<Float, 1>& _v) noexcept : Vector<Float, 1>(_v) { }
 Vector1f::Vector1f(Vector1f&& _v) noexcept : Vector<Float, 1>(_v) { }
@@ -36,11 +36,11 @@ Vector1f& Vector1f::operator=(Vector1f&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const Float& Vector1f::operator[](const unsigned int& i) const noexcept {
+Float Vector1f::operator[](UInt32 i) const noexcept {
     return Vector<Float, 1>::operator[](i);
 }
 
-Float& Vector1f::operator[](const unsigned int& i) noexcept {
+Float& Vector1f::operator[](UInt32 i) noexcept {
     return Vector<Float, 1>::operator[](i);
 }
 
@@ -81,7 +81,7 @@ Vector1f::operator DirectX::XMVECTOR() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector1u::Vector1u() noexcept : Vector<UInt32, 1>() { }
-Vector1u::Vector1u(const UInt32& v) noexcept : Vector<UInt32, 1>(v) { }
+Vector1u::Vector1u(UInt32 v) noexcept : Vector<UInt32, 1>(v) { }
 Vector1u::Vector1u(const Vector1u& _v) noexcept : Vector<UInt32, 1>(_v) { }
 Vector1u::Vector1u(const Vector<UInt32, 1>& _v) noexcept : Vector<UInt32, 1>(_v) { }
 Vector1u::Vector1u(Vector1u&& _v) noexcept : Vector<UInt32, 1>(_v) { }
@@ -113,11 +113,11 @@ Vector1u& Vector1u::operator=(Vector1u&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const UInt32& Vector1u::operator[](const unsigned int& i) const noexcept {
+UInt32 Vector1u::operator[](UInt32 i) const noexcept {
     return Vector<UInt32, 1>::operator[](i);
 }
 
-UInt32& Vector1u::operator[](const unsigned int& i) noexcept {
+UInt32& Vector1u::operator[](UInt32 i) noexcept {
     return Vector<UInt32, 1>::operator[](i);
 }
 
@@ -158,8 +158,8 @@ Vector1u::operator DirectX::XMVECTOR() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector2f::Vector2f() noexcept : Vector<Float, 2>() { }
-Vector2f::Vector2f(const Float& v) noexcept : Vector<Float, 2>(v) { }
-Vector2f::Vector2f(const Float& x, const Float& y) noexcept : Vector<Float, 2>() { 
+Vector2f::Vector2f(Float v) noexcept : Vector<Float, 2>(v) { }
+Vector2f::Vector2f(Float x, Float y) noexcept : Vector<Float, 2>() { 
     this->x() = x;
     this->y() = y;
 }
@@ -192,11 +192,11 @@ Vector2f& Vector2f::operator=(Vector2f&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const Float& Vector2f::operator[](const unsigned int& i) const noexcept {
+Float Vector2f::operator[](UInt32 i) const noexcept {
     return Vector<Float, 2>::operator[](i);
 }
 
-Float& Vector2f::operator[](const unsigned int& i) noexcept {
+Float& Vector2f::operator[](UInt32 i) noexcept {
     return Vector<Float, 2>::operator[](i);
 }
 
@@ -260,8 +260,8 @@ Vector2f::operator DirectX::XMFLOAT2() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector2u::Vector2u() noexcept : Vector<UInt32, 2>() { }
-Vector2u::Vector2u(const UInt32& v) noexcept : Vector<UInt32, 2>(v) { }
-Vector2u::Vector2u(const UInt32& x, const UInt32& y) noexcept : Vector<UInt32, 2>() {
+Vector2u::Vector2u(UInt32 v) noexcept : Vector<UInt32, 2>(v) { }
+Vector2u::Vector2u(UInt32 x, UInt32 y) noexcept : Vector<UInt32, 2>() {
     this->x() = x;
     this->y() = y;
 }
@@ -294,11 +294,11 @@ Vector2u& Vector2u::operator=(Vector2u&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const UInt32& Vector2u::operator[](const unsigned int& i) const noexcept {
+UInt32 Vector2u::operator[](UInt32 i) const noexcept {
     return Vector<UInt32, 2>::operator[](i);
 }
 
-UInt32& Vector2u::operator[](const unsigned int& i) noexcept {
+UInt32& Vector2u::operator[](UInt32 i) noexcept {
     return Vector<UInt32, 2>::operator[](i);
 }
 
@@ -362,8 +362,8 @@ Vector2u::operator DirectX::XMUINT2() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector2i::Vector2i() noexcept : Vector<Int32, 2>() { }
-Vector2i::Vector2i(const Int32& v) noexcept : Vector<Int32, 2>(v) { }
-Vector2i::Vector2i(const Int32& x, const Int32& y) noexcept : Vector<Int32, 2>() {
+Vector2i::Vector2i(Int32 v) noexcept : Vector<Int32, 2>(v) { }
+Vector2i::Vector2i(Int32 x, Int32 y) noexcept : Vector<Int32, 2>() {
     this->x() = x;
     this->y() = y;
 }
@@ -396,11 +396,11 @@ Vector2i& Vector2i::operator=(Vector2i&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const Int32& Vector2i::operator[](const unsigned int& i) const noexcept {
+Int32 Vector2i::operator[](UInt32 i) const noexcept {
     return Vector<Int32, 2>::operator[](i);
 }
 
-Int32& Vector2i::operator[](const unsigned int& i) noexcept {
+Int32& Vector2i::operator[](UInt32 i) noexcept {
     return Vector<Int32, 2>::operator[](i);
 }
 
@@ -464,8 +464,8 @@ Vector2i::operator DirectX::XMINT2() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector3f::Vector3f() noexcept : Vector<Float, 3>() { }
-Vector3f::Vector3f(const Float& v) noexcept : Vector<Float, 3>(v) { }
-Vector3f::Vector3f(const Float& x, const Float& y, const Float& z) noexcept : Vector<Float, 3>() {
+Vector3f::Vector3f(Float v) noexcept : Vector<Float, 3>(v) { }
+Vector3f::Vector3f(Float x, Float y, Float z) noexcept : Vector<Float, 3>() {
     this->x() = x;
     this->y() = y;
     this->z() = z;
@@ -499,11 +499,11 @@ Vector3f& Vector3f::operator=(Vector3f&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const Float& Vector3f::operator[](const unsigned int& i) const noexcept {
+Float Vector3f::operator[](UInt32 i) const noexcept {
     return Vector<Float, 3>::operator[](i);
 }
 
-Float& Vector3f::operator[](const unsigned int& i) noexcept {
+Float& Vector3f::operator[](UInt32 i) noexcept {
     return Vector<Float, 3>::operator[](i);
 }
 
@@ -571,8 +571,8 @@ Vector3f::operator DirectX::XMFLOAT3() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector3u::Vector3u() noexcept : Vector<UInt32, 3>() { }
-Vector3u::Vector3u(const UInt32& v) noexcept : Vector<UInt32, 3>(v) { }
-Vector3u::Vector3u(const UInt32& x, const UInt32& y, const UInt32& z) noexcept : Vector<UInt32, 3>() {
+Vector3u::Vector3u(UInt32 v) noexcept : Vector<UInt32, 3>(v) { }
+Vector3u::Vector3u(UInt32 x, UInt32 y, UInt32 z) noexcept : Vector<UInt32, 3>() {
     this->x() = x;
     this->y() = y;
     this->z() = z;
@@ -606,11 +606,11 @@ Vector3u& Vector3u::operator=(Vector3u&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const UInt32& Vector3u::operator[](const unsigned int& i) const noexcept {
+UInt32 Vector3u::operator[](UInt32 i) const noexcept {
     return Vector<UInt32, 3>::operator[](i);
 }
 
-UInt32& Vector3u::operator[](const unsigned int& i) noexcept {
+UInt32& Vector3u::operator[](UInt32 i) noexcept {
     return Vector<UInt32, 3>::operator[](i);
 }
 
@@ -678,8 +678,8 @@ Vector3u::operator DirectX::XMUINT3() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector3i::Vector3i() noexcept : Vector<Int32, 3>() { }
-Vector3i::Vector3i(const Int32& v) noexcept : Vector<Int32, 3>(v) { }
-Vector3i::Vector3i(const Int32& x, const Int32& y, const Int32& z) noexcept : Vector<Int32, 3>() {
+Vector3i::Vector3i(Int32 v) noexcept : Vector<Int32, 3>(v) { }
+Vector3i::Vector3i(Int32 x, Int32 y, Int32 z) noexcept : Vector<Int32, 3>() {
     this->x() = x;
     this->y() = y;
     this->z() = z;
@@ -713,11 +713,11 @@ Vector3i& Vector3i::operator=(Vector3i&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const Int32& Vector3i::operator[](const unsigned int& i) const noexcept {
+Int32 Vector3i::operator[](UInt32 i) const noexcept {
     return Vector<Int32, 3>::operator[](i);
 }
 
-Int32& Vector3i::operator[](const unsigned int& i) noexcept {
+Int32& Vector3i::operator[](UInt32 i) noexcept {
     return Vector<Int32, 3>::operator[](i);
 }
 
@@ -785,8 +785,8 @@ Vector3i::operator DirectX::XMINT3() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector4f::Vector4f() noexcept : Vector<Float, 4>() { }
-Vector4f::Vector4f(const Float& v) noexcept : Vector<Float, 4>(v) { }
-Vector4f::Vector4f(const Float& x, const Float& y, const Float& z, const Float& w) noexcept : Vector<Float, 4>() {
+Vector4f::Vector4f(Float v) noexcept : Vector<Float, 4>(v) { }
+Vector4f::Vector4f(Float x, Float y, Float z, Float w) noexcept : Vector<Float, 4>() {
     this->x() = x;
     this->y() = y;
     this->z() = z;
@@ -821,11 +821,11 @@ Vector4f& Vector4f::operator=(Vector4f&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const Float& Vector4f::operator[](const unsigned int& i) const noexcept {
+Float Vector4f::operator[](UInt32 i) const noexcept {
     return Vector<Float, 4>::operator[](i);
 }
 
-Float& Vector4f::operator[](const unsigned int& i) noexcept {
+Float& Vector4f::operator[](UInt32 i) noexcept {
     return Vector<Float, 4>::operator[](i);
 }
 
@@ -897,8 +897,8 @@ Vector4f::operator DirectX::XMFLOAT4() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector4u::Vector4u() noexcept : Vector<UInt32, 4>() { }
-Vector4u::Vector4u(const UInt32& v) noexcept : Vector<UInt32, 4>(v) { }
-Vector4u::Vector4u(const UInt32& x, const UInt32& y, const UInt32& z, const UInt32& w) noexcept : Vector<UInt32, 4>() {
+Vector4u::Vector4u(UInt32 v) noexcept : Vector<UInt32, 4>(v) { }
+Vector4u::Vector4u(UInt32 x, UInt32 y, UInt32 z, UInt32 w) noexcept : Vector<UInt32, 4>() {
     this->x() = x;
     this->y() = y;
     this->z() = z;
@@ -933,11 +933,11 @@ Vector4u& Vector4u::operator=(Vector4u&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const UInt32& Vector4u::operator[](const unsigned int& i) const noexcept {
+UInt32 Vector4u::operator[](UInt32 i) const noexcept {
     return Vector<UInt32, 4>::operator[](i);
 }
 
-UInt32& Vector4u::operator[](const unsigned int& i) noexcept {
+UInt32& Vector4u::operator[](UInt32 i) noexcept {
     return Vector<UInt32, 4>::operator[](i);
 }
 
@@ -1009,8 +1009,8 @@ Vector4u::operator DirectX::XMUINT4() const noexcept {
 // ------------------------------------------------------------------------------------------------
 
 Vector4i::Vector4i() noexcept : Vector<Int32, 4>() { }
-Vector4i::Vector4i(const Int32& v) noexcept : Vector<Int32, 4>(v) { }
-Vector4i::Vector4i(const Int32& x, const Int32& y, const Int32& z, const Int32& w) noexcept : Vector<Int32, 4>() {
+Vector4i::Vector4i(Int32 v) noexcept : Vector<Int32, 4>(v) { }
+Vector4i::Vector4i(Int32 x, Int32 y, Int32 z, Int32 w) noexcept : Vector<Int32, 4>() {
     this->x() = x;
     this->y() = y;
     this->z() = z;
@@ -1045,11 +1045,11 @@ Vector4i& Vector4i::operator=(Vector4i&& _other) noexcept {
     return this->operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
 }
 
-const Int32& Vector4i::operator[](const unsigned int& i) const noexcept {
+Int32 Vector4i::operator[](UInt32 i) const noexcept {
     return Vector<Int32, 4>::operator[](i);
 }
 
-Int32& Vector4i::operator[](const unsigned int& i) noexcept {
+Int32& Vector4i::operator[](UInt32 i) noexcept {
     return Vector<Int32, 4>::operator[](i);
 }
 

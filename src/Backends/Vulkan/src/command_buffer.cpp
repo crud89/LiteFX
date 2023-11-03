@@ -166,7 +166,7 @@ void VulkanCommandBuffer::setScissors(const IScissor* scissor) const noexcept
 
 void VulkanCommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept
 {
-	::vkCmdSetBlendConstants(this->handle(), &blendFactors[0]);
+	::vkCmdSetBlendConstants(this->handle(), blendFactors.elements());
 }
 
 void VulkanCommandBuffer::setStencilRef(const UInt32& stencilRef) const noexcept

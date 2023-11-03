@@ -20,7 +20,7 @@ private:
     SharedPtr<spdlog::sinks::daily_file_sink_mt> m_sink;
 
 public:
-    RollingFileSinkImpl(RollingFileSink* parent, const LogLevel& level, const String& fileName, const String& pattern, bool truncate, int maxFiles) :
+    RollingFileSinkImpl(RollingFileSink* parent, LogLevel level, const String& fileName, const String& pattern, bool truncate, int maxFiles) :
         base(parent), m_pattern(pattern), m_level(level), m_fileName(fileName), m_truncate(truncate), m_maxFiles(maxFiles), 
         m_sink(makeShared<spdlog::sinks::daily_file_sink_mt>(fileName, 23, 59, truncate, maxFiles)) 
     {
@@ -33,7 +33,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-RollingFileSink::RollingFileSink(const String& fileName, const LogLevel& level, const String& pattern, const bool& truncate, const int& maxFiles) :
+RollingFileSink::RollingFileSink(const String& fileName, LogLevel level, const String& pattern, bool truncate, int maxFiles) :
     m_impl(makePimpl<RollingFileSinkImpl>(this, level, fileName, pattern, truncate, maxFiles))
 {
 }

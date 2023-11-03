@@ -138,7 +138,7 @@ void DirectX12CommandBuffer::setScissors(const IScissor* scissor) const noexcept
 
 void DirectX12CommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept
 {
-	this->handle()->OMSetBlendFactor(&blendFactors[0]);
+	this->handle()->OMSetBlendFactor(blendFactors.elements());
 }
 
 void DirectX12CommandBuffer::setStencilRef(const UInt32& stencilRef) const noexcept
