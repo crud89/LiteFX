@@ -19,8 +19,8 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a DirectX 12 barrier builder.
 		/// </summary>
 		constexpr inline explicit DirectX12BarrierBuilder();
-		DirectX12BarrierBuilder(const DirectX12BarrierBuilder&) = delete;
-		DirectX12BarrierBuilder(DirectX12BarrierBuilder&&) = delete;
+		constexpr inline DirectX12BarrierBuilder(const DirectX12BarrierBuilder&) = delete;
+		constexpr inline DirectX12BarrierBuilder(DirectX12BarrierBuilder&&) = default;
 		constexpr inline virtual ~DirectX12BarrierBuilder() noexcept;
 
 		// BarrierBuilder interface.
@@ -102,38 +102,6 @@ namespace LiteFX::Rendering::Backends {
 	protected:
 		/// <inheritdoc />
 		inline void build() override;
-
-		// DirectX12VertexBufferLayoutBuilder interface.
-	public:
-		/// <summary>
-		/// Adds an attribute to the vertex buffer layout.
-		/// </summary>
-		/// <remarks>
-		/// This overload implicitly determines the location based on the number of attributes already defined. It should only be used if all locations can be implicitly deducted.
-		/// </remarks>
-		/// <param name="format">The format of the attribute.</param>
-		/// <param name="offset">The offset of the attribute within a buffer element.</param>
-		/// <param name="semantic">The semantic of the attribute.</param>
-		/// <param name="semanticIndex">The semantic index of the attribute.</param>
-		template <typename TSelf>
-		constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
-			self.addAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(this->instance()->attributes().size()), offset, format, semantic, semanticIndex)));
-			return self;
-		}
-
-		/// <summary>
-		/// Adds an attribute to the vertex buffer layout.
-		/// </summary>
-		/// <param name="location">The location, the attribute is bound to.</param>
-		/// <param name="format">The format of the attribute.</param>
-		/// <param name="offset">The offset of the attribute within a buffer element.</param>
-		/// <param name="semantic">The semantic of the attribute.</param>
-		/// <param name="semanticIndex">The semantic index of the attribute.</param>
-		template <typename TSelf>
-		constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
-			self.addAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
-			return self;
-		}
 	};
 
 	/// <summary>
