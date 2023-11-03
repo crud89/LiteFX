@@ -523,6 +523,7 @@ void VulkanRenderPassBuilder::build()
     instance->m_impl->mapRenderTargets(m_state.renderTargets);
     instance->m_impl->mapInputAttachments(m_state.inputAttachments);
     instance->m_impl->m_samples = m_state.multiSamplingLevel;
+    instance->handle() = instance->m_impl->initialize();
     instance->m_impl->initializeFrameBuffers(m_state.commandBufferCount);
 }
 
