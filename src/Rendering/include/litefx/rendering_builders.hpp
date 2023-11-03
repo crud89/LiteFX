@@ -985,7 +985,7 @@ namespace LiteFX::Rendering {
         /// <param name="space">The descriptor space, the range is bound to.</param>
         /// <param name="binding">The binding point for the range.</param>
         /// <returns>The instance of the push constant range.</returns>
-        constexpr inline virtual UniquePtr<push_constants_range_type> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding);
+        virtual inline UniquePtr<push_constants_range_type> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) = 0;
 
     public:
         /// <summary>
@@ -1334,7 +1334,7 @@ namespace LiteFX::Rendering {
         /// <param name="renderPass">The render pass that produces the render target.</param>
         /// <param name="renderTarget">The render target of the render pass.</param>
         /// <returns>The input attachment mapping that describes the relation between the earlier render pass render target and the input location.</returns>
-        constexpr inline virtual input_attachment_mapping_type makeInputAttachment(UInt32 inputLocation, const render_pass_type& renderPass, const RenderTarget& renderTarget);
+        virtual inline input_attachment_mapping_type makeInputAttachment(UInt32 inputLocation, const render_pass_type& renderPass, const RenderTarget& renderTarget) = 0;
 
     public:
         /// <summary>
