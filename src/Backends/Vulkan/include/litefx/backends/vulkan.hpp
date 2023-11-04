@@ -1621,7 +1621,7 @@ namespace LiteFX::Rendering::Backends {
 		/// Returns the array that stores the extensions that were used to initialize the device.
 		/// </summary>
 		/// <returns>A reference to the array that stores the extensions that were used to initialize the device.</returns>
-		virtual Span<const String> enabledExtensions() const noexcept;
+		Span<const String> enabledExtensions() const noexcept;
 
 		/// <summary>
 		/// Sets the debug name for an object.
@@ -1633,7 +1633,14 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="objectHandle">The handle of the object casted to an integer.</param>
 		/// <param name="objectType">The type of the object.</param>
 		/// <param name="name">The debug name of the object.</param>
-		virtual void setDebugName(UInt64 objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept;
+		void setDebugName(UInt64 objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept;
+
+		/// <summary>
+		/// Returns the indices of all queue families with support for <paramref name="type" />.
+		/// </summary>
+		/// <param name="type">The type of workload that must be supported by the family in order for it to be returned. Specifying <see cref="QueueType::None" /> will return all available queue families.</param>
+		/// <returns>The indices of the queue families that support queue workloads specified by <paramref name="type" />.</returns>
+		Enumerable<UInt32> queueFamilyIndices(QueueType type = QueueType::None) const noexcept;
 
 		// GraphicsDevice interface.
 	public:

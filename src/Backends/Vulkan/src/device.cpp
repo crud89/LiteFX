@@ -386,6 +386,14 @@ void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type, 
 #endif
 }
 
+Enumerable<UInt32> VulkanDevice::queueFamilyIndices(QueueType type) const noexcept
+{
+	return m_impl->m_families | 
+		std::views::filter([type](const auto& family) { return type == QueueType::None || LITEFX_FLAG_IS_SET(family.type(), type); }) |
+		std::views::transform([](const auto& family) { return family.id(); }) | 
+		std::ranges::to<Enumerable<UInt32>>();
+}
+
 VulkanSwapChain& VulkanDevice::swapChain() noexcept
 {
 	return *m_impl->m_swapChain;
