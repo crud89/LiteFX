@@ -215,7 +215,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Implements a DirectX12 <see cref="IGraphicsAdapter" />.
     /// </summary>
-    class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter : public IGraphicsAdapter, public ComResource<IDXGIAdapter4> {
+    class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter final : public IGraphicsAdapter, public ComResource<IDXGIAdapter4> {
         LITEFX_IMPLEMENTATION(DirectX12GraphicsAdapterImpl);
 
     public:
@@ -263,7 +263,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Implements a DirectX12 <see cref="ISurface" />.
     /// </summary>
-    class LITEFX_DIRECTX12_API DirectX12Surface : public ISurface, public Resource<HWND> {
+    class LITEFX_DIRECTX12_API DirectX12Surface final : public ISurface, public Resource<HWND> {
     public:
         /// <summary>
         /// Initializes a new DirectX 12 surface.

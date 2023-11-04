@@ -15,7 +15,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanVertexBuffer" />
 	/// <seealso cref="VulkanIndexBufferLayout" />
 	/// <seealso cref="VulkanVertexBufferLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanVertexBufferLayout : public IVertexBufferLayout {
+	class LITEFX_VULKAN_API VulkanVertexBufferLayout final : public IVertexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferLayoutImpl);
 		LITEFX_BUILDER(VulkanVertexBufferLayoutBuilder);
 
@@ -52,7 +52,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanIndexBuffer" />
 	/// <seealso cref="VulkanVertexBufferLayout" />
-	class LITEFX_VULKAN_API VulkanIndexBufferLayout : public IIndexBufferLayout {
+	class LITEFX_VULKAN_API VulkanIndexBufferLayout final : public IIndexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferLayoutImpl);
 
 	public:
@@ -173,7 +173,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IVulkanBuffer" />
 	/// <seealso cref="IVulkanImage" />
 	/// <seealso cref="Barrier" />
-	class LITEFX_VULKAN_API VulkanBarrier : public Barrier<IVulkanBuffer, IVulkanImage> {
+	class LITEFX_VULKAN_API VulkanBarrier final : public Barrier<IVulkanBuffer, IVulkanImage> {
 		LITEFX_IMPLEMENTATION(VulkanBarrierImpl);
 		LITEFX_BUILDER(VulkanBarrierBuilder);
 
@@ -241,7 +241,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanShaderProgram" />
 	/// <seealso cref="VulkanDevice" />
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-	class LITEFX_VULKAN_API VulkanShaderModule : public IShaderModule, public Resource<VkShaderModule> {
+	class LITEFX_VULKAN_API VulkanShaderModule final : public IShaderModule, public Resource<VkShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
 	public:
@@ -298,7 +298,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanShaderProgramBuilder" />
 	/// <seealso cref="VulkanShaderModule" />
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-	class LITEFX_VULKAN_API VulkanShaderProgram : public ShaderProgram<VulkanShaderModule> {
+	class LITEFX_VULKAN_API VulkanShaderProgram final : public ShaderProgram<VulkanShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
 		LITEFX_BUILDER(VulkanShaderProgramBuilder);
 
@@ -337,7 +337,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="DescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorSet : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
+	class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
 	public:
@@ -385,7 +385,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IVulkanSampler" />
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorLayout : public IDescriptorLayout {
+	class LITEFX_VULKAN_API VulkanDescriptorLayout final : public IDescriptorLayout {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorLayoutImpl);
 
 	public:
@@ -438,7 +438,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanDescriptorSetLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanDescriptorSetLayout : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
+	class LITEFX_VULKAN_API VulkanDescriptorSetLayout final : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
 		LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
 
@@ -571,7 +571,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements the Vulkan <see cref="IPushConstantsRange" />.
 	/// </summary>
 	/// <seealso cref="VulkanPushConstantsLayout" />
-	class LITEFX_VULKAN_API VulkanPushConstantsRange : public IPushConstantsRange {
+	class LITEFX_VULKAN_API VulkanPushConstantsRange final : public IPushConstantsRange {
 		LITEFX_IMPLEMENTATION(VulkanPushConstantsRangeImpl);
 
 	public:
@@ -611,7 +611,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanPushConstantsRange" />
 	/// <seealso cref="VulkanPushConstantsLayoutBuilder" />
 	/// <seealso cref="VulkanPushConstantsLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanPushConstantsLayout : public PushConstantsLayout<VulkanPushConstantsRange> {
+	class LITEFX_VULKAN_API VulkanPushConstantsLayout final : public PushConstantsLayout<VulkanPushConstantsRange> {
 		LITEFX_IMPLEMENTATION(VulkanPushConstantsLayoutImpl);
 		LITEFX_BUILDER(VulkanPushConstantsLayoutBuilder);
 		friend class VulkanPipelineLayout;
@@ -663,7 +663,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="PipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanPipelineLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanPipelineLayout : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanPipelineLayout final : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanPipelineLayoutBuilder);
 
@@ -709,7 +709,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements the Vulkan input assembler state.
 	/// </summary>
 	/// <seealso cref="VulkanInputAssemblerBuilder" />
-	class LITEFX_VULKAN_API VulkanInputAssembler : public InputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
+	class LITEFX_VULKAN_API VulkanInputAssembler final : public InputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
 		LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl);
 		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
@@ -749,7 +749,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="IRasterizer" />.
 	/// </summary>
 	/// <seealso cref="VulkanRasterizerBuilder" />
-	class LITEFX_VULKAN_API VulkanRasterizer : public Rasterizer {
+	class LITEFX_VULKAN_API VulkanRasterizer final : public Rasterizer {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
 	public:
@@ -817,7 +817,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Records commands for a <see cref="VulkanCommandQueue" />
 	/// </summary>
 	/// <seealso cref="VulkanQueue" />
-	class LITEFX_VULKAN_API VulkanCommandBuffer : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
+	class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
@@ -953,7 +953,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanComputePipeline" />
 	/// <seealso cref="VulkanRenderPipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, VulkanRasterizer>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanRenderPipeline final : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, VulkanRasterizer>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -1014,7 +1014,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipeline" />
 	/// <seealso cref="VulkanComputePipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanComputePipeline : public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanComputePipeline final : public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanComputePipelineImpl);
 		LITEFX_BUILDER(VulkanComputePipelineBuilder);
 
@@ -1059,7 +1059,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan frame buffer.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPass" />
-	class LITEFX_VULKAN_API VulkanFrameBuffer : public FrameBuffer<VulkanCommandBuffer>, public Resource<VkFramebuffer> {
+	class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<VulkanCommandBuffer>, public Resource<VkFramebuffer> {
 		LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
 
 	public:
@@ -1127,7 +1127,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan render pass.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPassBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPass : public RenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
+	class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
@@ -1232,7 +1232,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanRenderPass" />
 	/// <seealso cref="VulkanRenderPassBuilder" />
-	class LITEFX_VULKAN_API VulkanInputAttachmentMapping : public IInputAttachmentMapping<VulkanRenderPass> {
+	class LITEFX_VULKAN_API VulkanInputAttachmentMapping final : public IInputAttachmentMapping<VulkanRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanInputAttachmentMappingImpl);
 
 	public:
@@ -1286,7 +1286,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan swap chain.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSwapChain : public SwapChain<IVulkanImage, VulkanFrameBuffer> {
+	class LITEFX_VULKAN_API VulkanSwapChain final : public SwapChain<IVulkanImage, VulkanFrameBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
@@ -1370,7 +1370,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan command queue.
 	/// </summary>
 	/// <seealso cref="VulkanCommandBuffer" />
-	class LITEFX_VULKAN_API VulkanQueue : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
+	class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 
 	public:
@@ -1515,7 +1515,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <remarks>
 	/// Internally this factory implementation is based on <a href="https://gpuopen.com/vulkan-memory-allocator/" target="_blank">Vulkan Memory Allocator</a>.
 	/// </remarks>
-	class LITEFX_VULKAN_API VulkanGraphicsFactory : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler> {
+	class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
 
 	public:
@@ -1586,7 +1586,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Implements a Vulkan graphics device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanBarrier>, public Resource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanBarrier>, public Resource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -1716,7 +1716,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <summary>
 	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend<VulkanDevice>, public Resource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend final : public RenderBackend<VulkanDevice>, public Resource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
 	public:
@@ -1825,4 +1825,5 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		const VulkanDevice* device(const String& name) const noexcept override;
 	};
+
 }
