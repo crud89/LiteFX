@@ -3799,7 +3799,7 @@ namespace LiteFX::Rendering {
         /// Returns the primitive topology.
         /// </summary>
         /// <returns>The primitive topology.</returns>
-        virtual const PrimitiveTopology& topology() const noexcept = 0;
+        virtual PrimitiveTopology topology() const noexcept = 0;
 
     private:
         virtual Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept = 0;

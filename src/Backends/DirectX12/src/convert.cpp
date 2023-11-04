@@ -453,7 +453,7 @@ constexpr PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopol
 	}
 }
 
-constexpr D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const PrimitiveTopology& topology)
+constexpr D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(PrimitiveTopology topology)
 {
 	switch (topology)
 	{
@@ -472,7 +472,7 @@ constexpr D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimiti
 	}
 }
 
-constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::DX12::getPrimitiveTopologyType(const PrimitiveTopology& topology)
+constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::DX12::getPrimitiveTopologyType(PrimitiveTopology topology)
 {
 	switch (topology)
 	{

@@ -744,7 +744,7 @@ constexpr PrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopolog
 	}
 }
 
-constexpr VkPrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const PrimitiveTopology& topology)
+constexpr VkPrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(PrimitiveTopology topology)
 {
 	switch (topology)
 	{

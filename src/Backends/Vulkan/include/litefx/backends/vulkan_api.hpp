@@ -131,7 +131,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const PrimitiveTopology& topology);
+        constexpr inline VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(PrimitiveTopology topology);
 
         /// <summary>
         /// 
