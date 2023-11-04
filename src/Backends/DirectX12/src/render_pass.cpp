@@ -30,7 +30,7 @@ private:
     String m_name;
 
 public:
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
         base(parent), m_device(device), m_multiSamplingLevel(samples)
     {
         this->mapRenderTargets(renderTargets);
@@ -67,7 +67,7 @@ public:
         std::sort(std::begin(m_inputAttachments), std::end(m_inputAttachments), [](const DirectX12InputAttachmentMapping& a, const DirectX12InputAttachmentMapping& b) { return a.location() < b.location(); });
     }
 
-    void initRenderTargetViews(const UInt32& backBuffer)
+    void initRenderTargetViews(UInt32 backBuffer)
     {
         auto& frameBuffer = m_frameBuffers[backBuffer];
         
@@ -126,7 +126,7 @@ public:
         }
     }
 
-    void initializeFrameBuffers(const UInt32& commandBuffers)
+    void initializeFrameBuffers(UInt32 commandBuffers)
     {
         // Initialize the frame buffers.
         this->m_frameBuffers.resize(m_device.swapChain().buffers());
@@ -180,13 +180,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
     m_impl(makePimpl<DirectX12RenderPassImpl>(this, device, renderTargets, samples, inputAttachments))
 {
     m_impl->initializeFrameBuffers(commandBuffers);
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
     DirectX12RenderPass(device, renderTargets, commandBuffers, samples, inputAttachments)
 {
     if (!name.empty())
@@ -213,7 +213,7 @@ const DirectX12Device& DirectX12RenderPass::device() const noexcept
     return m_impl->m_device;
 }
 
-const DirectX12FrameBuffer& DirectX12RenderPass::frameBuffer(const UInt32& buffer) const
+const DirectX12FrameBuffer& DirectX12RenderPass::frameBuffer(UInt32 buffer) const
 {
     if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
         throw ArgumentOutOfRangeException("The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
@@ -239,7 +239,7 @@ Enumerable<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() cons
     return m_impl->m_pipelines | std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | std::ranges::to<Array<const DirectX12RenderPipeline*>>();
 }
 
-const RenderTarget& DirectX12RenderPass::renderTarget(const UInt32& location) const
+const RenderTarget& DirectX12RenderPass::renderTarget(UInt32 location) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end())
         return *match;
@@ -262,12 +262,12 @@ Span<const DirectX12InputAttachmentMapping> DirectX12RenderPass::inputAttachment
     return m_impl->m_inputAttachments;
 }
 
-const MultiSamplingLevel& DirectX12RenderPass::multiSamplingLevel() const noexcept
+MultiSamplingLevel DirectX12RenderPass::multiSamplingLevel() const noexcept
 {
     return m_impl->m_multiSamplingLevel;
 }
 
-void DirectX12RenderPass::begin(const UInt32& buffer)
+void DirectX12RenderPass::begin(UInt32 buffer)
 {
     // Only begin, if we are currently not running.
     if (m_impl->m_activeFrameBuffer != nullptr)
@@ -423,7 +423,7 @@ void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
-void DirectX12RenderPass::changeMultiSamplingLevel(const MultiSamplingLevel& samples)
+void DirectX12RenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
 {
     // Check if we're currently running.
     if (m_impl->m_activeFrameBuffer != nullptr)

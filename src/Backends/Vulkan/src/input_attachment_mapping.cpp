@@ -16,7 +16,7 @@ private:
     UInt32 m_location;
 
 public:
-    VulkanInputAttachmentMappingImpl(VulkanInputAttachmentMapping* parent, const VulkanRenderPass* renderPass, const RenderTarget& renderTarget, const UInt32& location) :
+    VulkanInputAttachmentMappingImpl(VulkanInputAttachmentMapping* parent, const VulkanRenderPass* renderPass, const RenderTarget& renderTarget, UInt32 location) :
         base(parent), m_renderPass(renderPass), m_location(location), m_renderTarget(renderTarget)
     {
     }
@@ -31,7 +31,7 @@ VulkanInputAttachmentMapping::VulkanInputAttachmentMapping() noexcept :
 {
 }
 
-VulkanInputAttachmentMapping::VulkanInputAttachmentMapping(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location) :
+VulkanInputAttachmentMapping::VulkanInputAttachmentMapping(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location) :
     m_impl(makePimpl<VulkanInputAttachmentMappingImpl>(this, &renderPass, renderTarget, location))
 {
 }
@@ -71,7 +71,7 @@ const VulkanRenderPass* VulkanInputAttachmentMapping::inputAttachmentSource() co
     return m_impl->m_renderPass;
 }
 
-const UInt32& VulkanInputAttachmentMapping::location() const noexcept
+UInt32 VulkanInputAttachmentMapping::location() const noexcept
 {
     return m_impl->m_location;
 }

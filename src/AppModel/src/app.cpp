@@ -111,13 +111,13 @@ void App::stopBackend(std::type_index type) const
 	}
 }
 
-void App::stopActiveBackends(const BackendType& type) const
+void App::stopActiveBackends(BackendType type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
 		this->stopBackend(backend.first);
 }
 
-IBackend* App::activeBackend(const BackendType& type) const
+IBackend* App::activeBackend(BackendType type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
 		return backend.second.get();
@@ -125,7 +125,7 @@ IBackend* App::activeBackend(const BackendType& type) const
 	return nullptr;
 }
 
-std::type_index App::activeBackendType(const BackendType& type) const
+std::type_index App::activeBackendType(BackendType type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
 		return backend.first;
@@ -193,7 +193,7 @@ void App::run()
 	this->shutdown(this, { });
 }
 
-void App::resize(int& width, int& height)
+void App::resize(int width, int height)
 {
 	// Ensure the area is at least 1 pixel into each direction.
 	width = std::max(width, 1);

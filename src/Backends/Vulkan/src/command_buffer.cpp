@@ -23,7 +23,7 @@ public:
 	}
 
 public:
-	VkCommandBuffer initialize(const bool& primary)
+	VkCommandBuffer initialize(bool primary)
 	{
 		// Secondary command buffers have their own command pool.
 		if (!primary)
@@ -58,7 +58,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin, const bool& primary) :
+VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, bool primary) :
 	m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue)), Resource<VkCommandBuffer>(nullptr)
 {
 	if (!queue.isBound())
@@ -129,7 +129,7 @@ void VulkanCommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
-const bool& VulkanCommandBuffer::isSecondary() const noexcept
+bool VulkanCommandBuffer::isSecondary() const noexcept
 {
 	return m_impl->m_secondary;
 }
@@ -166,10 +166,10 @@ void VulkanCommandBuffer::setScissors(const IScissor* scissor) const noexcept
 
 void VulkanCommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept
 {
-	::vkCmdSetBlendConstants(this->handle(), &blendFactors[0]);
+	::vkCmdSetBlendConstants(this->handle(), blendFactors.elements());
 }
 
-void VulkanCommandBuffer::setStencilRef(const UInt32& stencilRef) const noexcept
+void VulkanCommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 {
 	::vkCmdSetStencilReference(this->handle(), VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef);
 }
@@ -237,7 +237,7 @@ void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier) const noexcept
 	barrier.execute(*this);
 }
 
-void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -254,7 +254,7 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target,
 	::vkCmdCopyBuffer(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), 1, &copyInfo);
 }
 
-void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -292,7 +292,7 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, 
 	::vkCmdCopyBufferToImage(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
-void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
@@ -340,7 +340,7 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, c
 	::vkCmdCopyImage(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
-void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
@@ -372,25 +372,25 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanBuffer& target, 
 	::vkCmdCopyImageToBuffer(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<IVulkanBuffer> source, IVulkanBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void VulkanCommandBuffer::transfer(SharedPtr<IVulkanBuffer> source, IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<IVulkanBuffer> source, IVulkanImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+void VulkanCommandBuffer::transfer(SharedPtr<IVulkanBuffer> source, IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<IVulkanImage> source, IVulkanImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+void VulkanCommandBuffer::transfer(SharedPtr<IVulkanImage> source, IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+void VulkanCommandBuffer::transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
 	m_impl->m_sharedResources.push_back(source);
@@ -422,12 +422,12 @@ void VulkanCommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 	::vkCmdDispatch(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-void VulkanCommandBuffer::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const noexcept
+void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
 	::vkCmdDraw(this->handle(), vertices, instances, firstVertex, firstInstance);
 }
 
-void VulkanCommandBuffer::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const noexcept
+void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
 {
 	::vkCmdDrawIndexed(this->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }

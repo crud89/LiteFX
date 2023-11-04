@@ -23,7 +23,7 @@ public:
     }
 
 public:
-    void initialize(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology)
+    void initialize(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
 
@@ -49,7 +49,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssembler::VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology) :
+VulkanInputAssembler::VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
     m_impl(makePimpl<VulkanInputAssemblerImpl>(this))
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
@@ -67,7 +67,7 @@ Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLa
     return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
 
-const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(const UInt32& binding) const
+const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
 {
     [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
         return *m_impl->m_vertexBufferLayouts[binding];
@@ -80,7 +80,7 @@ const VulkanIndexBufferLayout& VulkanInputAssembler::indexBufferLayout() const
     return *m_impl->m_indexBufferLayout;
 }
 
-const PrimitiveTopology& VulkanInputAssembler::topology() const noexcept
+PrimitiveTopology VulkanInputAssembler::topology() const noexcept
 {
     return m_impl->m_primitiveTopology;
 }

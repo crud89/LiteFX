@@ -19,7 +19,7 @@ namespace LiteFX::Math {
 	public:
 		Vector() noexcept = default;
 
-		Vector(const T& val) noexcept {
+		Vector(T val) noexcept {
 			std::fill(std::begin(m_elements), std::end(m_elements), val);
 		}
 
@@ -56,13 +56,13 @@ namespace LiteFX::Math {
 			return *this;
 		}
 
-		inline const T& operator[](const unsigned int& i) const noexcept {
+		inline T operator[](unsigned int i) const noexcept {
 			assert(i < DIM);
 
 			return m_elements[i];
 		}
 
-		inline T& operator[](const unsigned int& i) noexcept {
+		inline T& operator[](unsigned int i) noexcept {
 			assert(i < DIM);
 
 			return m_elements[i];
@@ -85,7 +85,7 @@ namespace LiteFX::Math {
 			return vec_size;
 		}
 
-		inline const scalar_type& x() const noexcept requires (DIM > 0) {
+		inline scalar_type x() const noexcept requires (DIM > 0) {
 			return m_elements[0];
 		}
 
@@ -93,7 +93,7 @@ namespace LiteFX::Math {
 			return m_elements[0];
 		}
 
-		inline const scalar_type& y() const noexcept requires (DIM > 1) {
+		inline scalar_type y() const noexcept requires (DIM > 1) {
 			return m_elements[1];
 		}
 
@@ -101,7 +101,7 @@ namespace LiteFX::Math {
 			return m_elements[1];
 		}
 
-		inline const scalar_type& z() const noexcept requires (DIM > 2) {
+		inline scalar_type z() const noexcept requires (DIM > 2) {
 			return m_elements[2];
 		}
 
@@ -109,7 +109,7 @@ namespace LiteFX::Math {
 			return m_elements[2];
 		}
 
-		inline const scalar_type& w() const noexcept requires (DIM > 3) {
+		inline scalar_type w() const noexcept requires (DIM > 3) {
 			return m_elements[3];
 		}
 

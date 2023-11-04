@@ -330,7 +330,7 @@ namespace LiteFX {
 		/// Returns the new window width.
 		/// </summary>
 		/// <returns>The new window width.</returns>
-		const int& width() const noexcept {
+		inline int width() const noexcept {
 			return m_width;
 		}
 
@@ -338,7 +338,7 @@ namespace LiteFX {
 		/// Returns the new window height.
 		/// </summary>
 		/// <returns>The new window height.</returns>
-		const int& height() const noexcept {
+		inline int height() const noexcept {
 			return m_height;
 		}
 	};
@@ -449,21 +449,21 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The backend type for which the active backend should be stopped.</param>
 		/// <seealso cref="stopBackend" />
-		virtual void stopActiveBackends(const BackendType& type) const;
+		virtual void stopActiveBackends(BackendType type) const;
 
 		/// <summary>
 		/// Returns the active backend of the provided backend <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The type of the backend.</param>
 		/// <returns>The active backend of the provided backend type, or <c>std::nullptr</c>, if no backend is active.</returns>
-		virtual IBackend* activeBackend(const BackendType& type) const;
+		virtual IBackend* activeBackend(BackendType type) const;
 
 		/// <summary>
 		/// Returns the type index of the active backend of the provided backend <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The type of the backend.</param>
 		/// <returns>Type index of the active backend of the provided backend type, or the type index of <c>std::nullptr_t</c>, if no backend is active.</returns>
-		virtual std::type_index activeBackendType(const BackendType& type) const;
+		virtual std::type_index activeBackendType(BackendType type) const;
 
 	private:
 		/// <summary>
@@ -619,12 +619,9 @@ namespace LiteFX {
 		/// <summary>
 		/// Called, if the application window resizes.
 		/// </summary>
-		/// <remarks>
-		/// Calling this method ensures, that the <paramref name="width" /> and <paramref name="height" /> parameters are valid.
-		/// </remarks>
 		/// <param name="width">The new width of the application window.</param>
 		/// <param name="height">The new height of the application window.</param>
-		void resize(int& width, int& height);
+		void resize(int width, int height);
 
 	public:
 		/// <summary>

@@ -40,7 +40,7 @@ public:
         return factory;
     }
 
-    void loadAdapters(const bool& enableWarp = false)
+    void loadAdapters(bool enableWarp = false)
     {
         ComPtr<IDXGIAdapter1> adapterInterface;
         ComPtr<IDXGIAdapter4> adapterInstance;
@@ -76,7 +76,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Backend::DirectX12Backend(const App& app, const bool& useAdvancedSoftwareRasterizer) :
+DirectX12Backend::DirectX12Backend(const App& app, bool useAdvancedSoftwareRasterizer) :
     m_impl(makePimpl<DirectX12BackendImpl>(this, app)), ComResource<IDXGIFactory7>(nullptr)
 {
     this->handle() = m_impl->initialize();
@@ -162,7 +162,7 @@ UniquePtr<DirectX12Surface> DirectX12Backend::createSurface(const HWND& hwnd) co
     return makeUnique<DirectX12Surface>(hwnd);
 }
 
-void DirectX12Backend::enableAdvancedSoftwareRasterizer(const bool& enable)
+void DirectX12Backend::enableAdvancedSoftwareRasterizer(bool enable)
 {
     m_impl->loadAdapters(enable);
 }

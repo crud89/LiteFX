@@ -19,14 +19,14 @@ private:
 		QueueType m_type;
 
 	public:
-		const QueueType& type() const noexcept { return m_type; }
-		const UInt32& total() const noexcept { return m_queueCount; }
+		QueueType type() const noexcept { return m_type; }
+		UInt32 total() const noexcept { return m_queueCount; }
 		const UInt32 active() const noexcept { return static_cast<UInt32>(m_queues.size()); }
-		const UInt32& id() const noexcept { return m_id; }
+		UInt32 id() const noexcept { return m_id; }
 		const Array<UniquePtr<VulkanQueue>>& queues() const noexcept { return m_queues; }
 
 	public:
-		QueueFamily(const UInt32& id, const UInt32& queueCount, const QueueType& type) :
+		QueueFamily(UInt32 id, UInt32 queueCount, QueueType type) :
 			m_id(id), m_queueCount(queueCount), m_type(type) { 
 		}
 		QueueFamily(const QueueFamily& _other) = delete;
@@ -41,7 +41,7 @@ private:
 		}
 
 	public:
-		VulkanQueue* createQueue(const VulkanDevice& device, const QueuePriority& priority) {
+		VulkanQueue* createQueue(const VulkanDevice& device, QueuePriority priority) {
 			if (this->active() >= this->total())
 			{
 				LITEFX_ERROR(VULKAN_LOG, "Unable to create another queue for family {0}, since all {1} queues are already created.", m_id, m_queueCount);
@@ -281,7 +281,7 @@ public:
 		m_factory = makeUnique<VulkanGraphicsFactory>(*m_parent);
 	}
 
-	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	void createSwapChain(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
 	{
 		m_swapChain = makeUnique<VulkanSwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
 	}
@@ -295,7 +295,7 @@ public:
 	}
 
 public:
-	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority)
+	VulkanQueue* createQueue(QueueType type, QueuePriority priority)
 	{
 		// If a transfer queue is requested, look up only dedicated transfer queues. If none is available, fallbacks need to be handled manually. Every queue implicitly handles transfer.
 		auto match = type == QueueType::Transfer ?
@@ -305,7 +305,7 @@ public:
 		return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
 	}
 
-	VulkanQueue* createQueue(const QueueType& type, const QueuePriority& priority, const VkSurfaceKHR& surface)
+	VulkanQueue* createQueue(QueueType type, QueuePriority priority, const VkSurfaceKHR& surface)
 	{
 		if (auto match = std::ranges::find_if(m_families, [&](const auto& family) {
 				if (!LITEFX_FLAG_IS_SET(family.type(), type))
@@ -331,7 +331,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAda
 {
 }
 
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, Span<String> extensions) :
 	Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), extensions))
 {
 	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
@@ -392,12 +392,12 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
 	return VulkanRenderPassBuilder(*this, commandBuffers, samples);
 }
 
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
 	return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
 }
@@ -483,12 +483,12 @@ const VulkanQueue& VulkanDevice::computeQueue() const noexcept
 	return *m_impl->m_computeQueue;
 }
 
-UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept
+UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
 {
 	return makeUnique<VulkanBarrier>(syncBefore, syncAfter);
 }
 
-MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(const Format& format) const noexcept
+MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const noexcept
 {
 	auto limits = m_impl->m_adapter.limits();
 	VkSampleCountFlags sampleCounts = limits.framebufferColorSampleCounts;

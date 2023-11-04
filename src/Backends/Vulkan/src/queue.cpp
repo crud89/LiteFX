@@ -28,7 +28,7 @@ private:
 	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_submittedCommandBuffers;
 
 public:
-	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
 		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_bound(false), m_device(device)
 	{
 	}
@@ -98,7 +98,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanQueue::VulkanQueue(const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+VulkanQueue::VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
 	Resource<VkQueue>(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, device, type, priority, familyId, queueId))
 {
 }
@@ -115,12 +115,12 @@ const VkCommandPool& VulkanQueue::commandPool() const noexcept
 	return m_impl->m_commandPool;
 }
 
-const UInt32& VulkanQueue::familyId() const noexcept
+UInt32 VulkanQueue::familyId() const noexcept
 {
 	return m_impl->m_familyId;
 }
 
-const UInt32& VulkanQueue::queueId() const noexcept
+UInt32 VulkanQueue::queueId() const noexcept
 {
 	return m_impl->m_queueId;
 }
@@ -135,7 +135,7 @@ bool VulkanQueue::isBound() const noexcept
 	return m_impl->m_bound;
 }
 
-const QueueType& VulkanQueue::type() const noexcept
+QueueType VulkanQueue::type() const noexcept
 {
 	return m_impl->m_type;
 }
@@ -169,7 +169,7 @@ void VulkanQueue::SetDebugMarker(const String& label, const Vectors::ByteVector3
 }
 #endif
 
-const QueuePriority& VulkanQueue::priority() const noexcept
+QueuePriority VulkanQueue::priority() const noexcept
 {
 	return m_impl->m_priority;
 }
@@ -186,7 +186,7 @@ void VulkanQueue::release()
 	this->released(this, { });
 }
 
-SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(const bool& beginRecording, const bool& secondary) const
+SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(bool beginRecording, bool secondary) const
 {
 	return makeShared<VulkanCommandBuffer>(*this, beginRecording, !secondary);
 }
@@ -325,7 +325,7 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 	return fence;
 }
 
-void VulkanQueue::waitFor(const UInt64& fence) const noexcept
+void VulkanQueue::waitFor(UInt64 fence) const noexcept
 {
 	UInt64 completedValue{ 0 };
 	//raiseIfFailed<RuntimeException>(::vkGetSemaphoreCounterValue(this->getDevice()->handle(), m_impl->m_timelineSemaphore, &completedValue), "Unable to query current queue timeline semaphore value.");

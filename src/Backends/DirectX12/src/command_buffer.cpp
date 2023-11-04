@@ -23,7 +23,7 @@ public:
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList7> initialize(const bool& begin, const bool& primary)
+	ComPtr<ID3D12GraphicsCommandList7> initialize(bool begin, bool primary)
 	{
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
@@ -72,7 +72,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, const bool& begin, const bool& primary) :
+DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin, bool primary) :
 	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList7>(nullptr)
 {
 	this->handle() = m_impl->initialize(begin, primary);
@@ -101,7 +101,7 @@ void DirectX12CommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
-const bool& DirectX12CommandBuffer::isSecondary() const noexcept
+bool DirectX12CommandBuffer::isSecondary() const noexcept
 {
 	return m_impl->m_secondary;
 }
@@ -138,10 +138,10 @@ void DirectX12CommandBuffer::setScissors(const IScissor* scissor) const noexcept
 
 void DirectX12CommandBuffer::setBlendFactors(const Vector4f& blendFactors) const noexcept
 {
-	this->handle()->OMSetBlendFactor(&blendFactors[0]);
+	this->handle()->OMSetBlendFactor(blendFactors.elements());
 }
 
-void DirectX12CommandBuffer::setStencilRef(const UInt32& stencilRef) const noexcept
+void DirectX12CommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 {
 	this->handle()->OMSetStencilRef(stencilRef);
 }
@@ -234,7 +234,7 @@ void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noex
 	barrier.execute(*this);
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -245,7 +245,7 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer
 	this->handle()->CopyBufferRegion(std::as_const(target).handle().Get(), targetElement * target.alignedElementSize(), std::as_const(source).handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -264,7 +264,7 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image&
 	}
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
@@ -283,7 +283,7 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& 
 	}
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
@@ -302,25 +302,25 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer&
 	}
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Buffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const
+void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Image& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const
+void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Image& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const
+void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Buffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const
+void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
 	m_impl->m_sharedResources.push_back(source);
@@ -351,12 +351,12 @@ void DirectX12CommandBuffer::dispatch(const Vector3u& threadCount) const noexcep
 	this->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-void DirectX12CommandBuffer::draw(const UInt32& vertices, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const noexcept
+void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
 	this->handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);
 }
 
-void DirectX12CommandBuffer::drawIndexed(const UInt32& indices, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const noexcept
+void DirectX12CommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
 {
 	this->handle()->DrawIndexedInstanced(indices, instances, firstIndex, vertexOffset, firstInstance);
 }

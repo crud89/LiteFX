@@ -15,7 +15,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanVertexBuffer" />
 	/// <seealso cref="VulkanIndexBufferLayout" />
 	/// <seealso cref="VulkanVertexBufferLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanVertexBufferLayout : public IVertexBufferLayout {
+	class LITEFX_VULKAN_API VulkanVertexBufferLayout final : public IVertexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferLayoutImpl);
 		LITEFX_BUILDER(VulkanVertexBufferLayoutBuilder);
 
@@ -25,7 +25,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="vertexSize">The size of a single vertex.</param>
 		/// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-		explicit VulkanVertexBufferLayout(const size_t& vertexSize, const UInt32& binding = 0);
+		explicit VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
 		VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) = delete;
 		VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) = delete;
 		virtual ~VulkanVertexBufferLayout() noexcept;
@@ -33,18 +33,18 @@ namespace LiteFX::Rendering::Backends {
 		// IVertexBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const BufferAttribute*> attributes() const noexcept override;
+		Enumerable<const BufferAttribute*> attributes() const noexcept override;
 
 		// IBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
+		UInt32 binding() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BufferType& type() const noexcept override;
+		BufferType type() const noexcept override;
 	};
 
 	/// <summary>
@@ -52,7 +52,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanIndexBuffer" />
 	/// <seealso cref="VulkanVertexBufferLayout" />
-	class LITEFX_VULKAN_API VulkanIndexBufferLayout : public IIndexBufferLayout {
+	class LITEFX_VULKAN_API VulkanIndexBufferLayout final : public IIndexBufferLayout {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferLayoutImpl);
 
 	public:
@@ -60,7 +60,7 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new index buffer layout
 		/// </summary>
 		/// <param name="type">The type of the indices within the index buffer.</param>
-		explicit VulkanIndexBufferLayout(const IndexType& type);
+		explicit VulkanIndexBufferLayout(IndexType type);
 		VulkanIndexBufferLayout(VulkanIndexBufferLayout&&) = delete;
 		VulkanIndexBufferLayout(const VulkanIndexBufferLayout&) = delete;
 		virtual ~VulkanIndexBufferLayout() noexcept;
@@ -68,18 +68,18 @@ namespace LiteFX::Rendering::Backends {
 		// IIndexBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual const IndexType& indexType() const noexcept override;
+		IndexType indexType() const noexcept override;
 
 		// IBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
+		UInt32 binding() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BufferType& type() const noexcept override;
+		BufferType type() const noexcept override;
 	};
 
 	/// <summary>
@@ -141,17 +141,17 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="plane">The sub-resource identifier to query the aspect mask from.</param>
 		/// <returns>The image resource aspect mask.</returns>
-		virtual VkImageAspectFlags aspectMask(const UInt32& plane) const = 0;
+		virtual VkImageAspectFlags aspectMask(UInt32 plane) const = 0;
 
 		/// <summary>
 		/// Returns the image view for a sub-resource.
 		/// </summary>
 		/// <param name="plane">The sub-resource index to return the image view for.</param>
 		/// <returns>The image view for the sub-resource.</returns>
-		virtual const VkImageView& imageView(const UInt32& plane = 0) const = 0;
+		virtual const VkImageView& imageView(UInt32 plane = 0) const = 0;
 		
 	private:
-		virtual ImageLayout& layout(const UInt32& subresource) = 0;
+		virtual ImageLayout& layout(UInt32 subresource) = 0;
 	};
 
 	/// <summary>
@@ -173,7 +173,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IVulkanBuffer" />
 	/// <seealso cref="IVulkanImage" />
 	/// <seealso cref="Barrier" />
-	class LITEFX_VULKAN_API VulkanBarrier : public Barrier<IVulkanBuffer, IVulkanImage> {
+	class LITEFX_VULKAN_API VulkanBarrier final : public Barrier<IVulkanBuffer, IVulkanImage> {
 		LITEFX_IMPLEMENTATION(VulkanBarrierImpl);
 		LITEFX_BUILDER(VulkanBarrierBuilder);
 
@@ -187,7 +187,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
 		/// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
-		constexpr inline explicit VulkanBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) noexcept;
+		constexpr inline explicit VulkanBarrier(PipelineStage syncBefore, PipelineStage syncAfter) noexcept;
 		VulkanBarrier(const VulkanBarrier&) = delete;
 		VulkanBarrier(VulkanBarrier&&) = delete;
 		constexpr inline virtual ~VulkanBarrier() noexcept;
@@ -200,31 +200,31 @@ namespace LiteFX::Rendering::Backends {
 		// Barrier interface.
 	public:
 		/// <inheritdoc />
-		constexpr inline const PipelineStage& syncBefore() const noexcept override;
+		constexpr inline PipelineStage syncBefore() const noexcept override;
 
 		/// <inheritdoc />
-		constexpr inline const PipelineStage& syncAfter() const noexcept override;
+		constexpr inline PipelineStage syncAfter() const noexcept override;
 
 		/// <inheritdoc />
-		constexpr inline void wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept override;
+		constexpr inline void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept override;
 
 		/// <inheritdoc />
-		constexpr inline void transition(IVulkanBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
+		constexpr inline void transition(IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
 		/// <inheritdoc />
-		constexpr inline void transition(IVulkanBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override;
+		constexpr inline void transition(IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
 		/// <inheritdoc />
-		constexpr inline void transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
+		constexpr inline void transition(IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
 
 		/// <inheritdoc />
-		constexpr inline void transition(IVulkanImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
+		constexpr inline void transition(IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
 
 		/// <inheritdoc />
-		constexpr inline void transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override;
+		constexpr inline void transition(IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
 
 		/// <inheritdoc />
-		constexpr inline void transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override;
+		constexpr inline void transition(IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
 
 	public:
 		/// <summary>
@@ -241,7 +241,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanShaderProgram" />
 	/// <seealso cref="VulkanDevice" />
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-	class LITEFX_VULKAN_API VulkanShaderModule : public IShaderModule, public Resource<VkShaderModule> {
+	class LITEFX_VULKAN_API VulkanShaderModule final : public IShaderModule, public Resource<VkShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderModuleImpl);
 
 	public:
@@ -252,7 +252,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="type">The shader stage, this module is used in.</param>
 		/// <param name="fileName">The file name of the module source.</param>
 		/// <param name="entryPoint">The name of the module entry point.</param>
-		explicit VulkanShaderModule(const VulkanDevice& device, const ShaderStage& type, const String& fileName, const String& entryPoint = "main");
+		explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint = "main");
 
 		/// <summary>
 		/// Initializes a new Vulkan shader module.
@@ -262,7 +262,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="stream">The file stream of the module source.</param>
 		/// <param name="name">The file name of the module source.</param>
 		/// <param name="entryPoint">The name of the module entry point.</param>
-		explicit VulkanShaderModule(const VulkanDevice& device, const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint = "main");
+		explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main");
 		VulkanShaderModule(const VulkanShaderModule&) noexcept = delete;
 		VulkanShaderModule(VulkanShaderModule&&) noexcept = delete;
 		virtual ~VulkanShaderModule() noexcept;
@@ -270,13 +270,13 @@ namespace LiteFX::Rendering::Backends {
 		// ShaderModule interface.
 	public:
 		/// <inheritdoc />
-		virtual const String& fileName() const noexcept override;
+		const String& fileName() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const String& entryPoint() const noexcept override;
+		const String& entryPoint() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ShaderStage& type() const noexcept override;
+		ShaderStage type() const noexcept override;
 
 	public:
 		/// <summary>
@@ -298,7 +298,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanShaderProgramBuilder" />
 	/// <seealso cref="VulkanShaderModule" />
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-	class LITEFX_VULKAN_API VulkanShaderProgram : public ShaderProgram<VulkanShaderModule> {
+	class LITEFX_VULKAN_API VulkanShaderProgram final : public ShaderProgram<VulkanShaderModule> {
 		LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
 		LITEFX_BUILDER(VulkanShaderProgramBuilder);
 
@@ -322,13 +322,13 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const VulkanShaderModule*> modules() const noexcept override;
+		Enumerable<const VulkanShaderModule*> modules() const noexcept override;
 
 		/// <inheritdoc />
 		virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout() const;
 
 	private:
-		virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
+		SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
 			return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
 		}
 	};
@@ -337,7 +337,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements a Vulkan <see cref="DescriptorSet" />.
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorSet : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
+	class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
 	public:
@@ -365,16 +365,16 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual void update(const UInt32& binding, const IVulkanBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 0, const UInt32& firstDescriptor = 0) const override;
+		void update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual void update(const UInt32& binding, const IVulkanImage& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const override;
+		void update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
 
 		/// <inheritdoc />
-		virtual void update(const UInt32& binding, const IVulkanSampler& sampler, const UInt32& descriptor = 0) const override;
+		void update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual void attach(const UInt32& binding, const IVulkanImage& image) const override;
+		void attach(UInt32 binding, const IVulkanImage& image) const override;
 	};
 
 	/// <summary>
@@ -385,7 +385,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="IVulkanSampler" />
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanDescriptorSetLayout" />
-	class LITEFX_VULKAN_API VulkanDescriptorLayout : public IDescriptorLayout {
+	class LITEFX_VULKAN_API VulkanDescriptorLayout final : public IDescriptorLayout {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorLayoutImpl);
 
 	public:
@@ -397,14 +397,14 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="elementSize">The size of the descriptor.</param>
 		/// <param name="descriptors">The number of descriptors in the descriptor array. If set to `-1`, the descriptor will be unbounded.</param>
 		/// <seealso cref="descriptors" />
-		explicit VulkanDescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors = 1);
+		explicit VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1);
 
 		/// <summary>
 		/// Initializes a new Vulkan descriptor layout for a static sampler.
 		/// </summary>
 		/// <param name="staticSampler">The static sampler to initialize the state with.</param>
 		/// <param name="binding">The binding point for the descriptor.</param>
-		explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, const UInt32& binding);
+		explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding);
 
 		VulkanDescriptorLayout(VulkanDescriptorLayout&&) = delete;
 		VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;
@@ -413,24 +413,24 @@ namespace LiteFX::Rendering::Backends {
 		// IDescriptorLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual const DescriptorType& descriptorType() const noexcept override;
+		DescriptorType descriptorType() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& descriptors() const noexcept override;
+		UInt32 descriptors() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const IVulkanSampler* staticSampler() const noexcept override;
+		const IVulkanSampler* staticSampler() const noexcept override;
 
 		// IBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
+		UInt32 binding() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BufferType& type() const noexcept override;
+		BufferType type() const noexcept override;
 	};
 
 	/// <summary>
@@ -438,7 +438,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanDescriptorSet" />
 	/// <seealso cref="VulkanDescriptorSetLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanDescriptorSetLayout : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
+	class LITEFX_VULKAN_API VulkanDescriptorSetLayout final : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
 		LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
 		LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
 
@@ -461,7 +461,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
 		/// <param name="poolSize">The size of a descriptor pool.</param>
 		/// <param name="maxUnboundedArraySize">The maximum number of descriptors in an unbounded array.</param>
-		explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize = 1024, const UInt32& maxUnboundedArraySize = 104857);
+		explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages, UInt32 poolSize = 1024, UInt32 maxUnboundedArraySize = 104857);
 		VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) = delete;
 		VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
 		virtual ~VulkanDescriptorSetLayout() noexcept;
@@ -482,59 +482,59 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const VulkanDescriptorLayout*> descriptors() const noexcept override;
+		Enumerable<const VulkanDescriptorLayout*> descriptors() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanDescriptorLayout& descriptor(const UInt32& binding) const override;
+		const VulkanDescriptorLayout& descriptor(UInt32 binding) const override;
 
 		/// <inheritdoc />
-		virtual const UInt32& space() const noexcept override;
+		UInt32 space() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ShaderStage& shaderStages() const noexcept override;
+		ShaderStage shaderStages() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 uniforms() const noexcept override;
+		UInt32 uniforms() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 storages() const noexcept override;
+		UInt32 storages() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 images() const noexcept override;
+		UInt32 images() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 buffers() const noexcept override;
+		UInt32 buffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 samplers() const noexcept override;
+		UInt32 samplers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 staticSamplers() const noexcept override;
+		UInt32 staticSamplers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 inputAttachments() const noexcept override;
+		UInt32 inputAttachments() const noexcept override;
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const override;
+		UniquePtr<VulkanDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<VulkanDescriptorSet> allocate(const UInt32& descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override;
+		UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+		Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const override;
+		Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+		Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const override;
+		Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
 		/// <inheritdoc />
-		virtual void free(const VulkanDescriptorSet& descriptorSet) const noexcept override;
+		void free(const VulkanDescriptorSet& descriptorSet) const noexcept override;
 
 	public:
 		/// <summary>
@@ -555,7 +555,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <seealso cref="allocate" />
 		/// <seealso cref="free" />
 		/// <seealso cref="pools" />
-		virtual const UInt32& poolSize() const noexcept;
+		virtual UInt32 poolSize() const noexcept;
 
 		/// <summary>
 		/// Returns the number of active descriptor pools.
@@ -571,7 +571,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Implements the Vulkan <see cref="IPushConstantsRange" />.
 	/// </summary>
 	/// <seealso cref="VulkanPushConstantsLayout" />
-	class LITEFX_VULKAN_API VulkanPushConstantsRange : public IPushConstantsRange {
+	class LITEFX_VULKAN_API VulkanPushConstantsRange final : public IPushConstantsRange {
 		LITEFX_IMPLEMENTATION(VulkanPushConstantsRangeImpl);
 
 	public:
@@ -583,26 +583,26 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="size">The size of the push constants range.</param>
 		/// <param name="space">The space from which the push constants of the range will be accessible in the shader.</param>
 		/// <param name="binding">The register from which the push constants of the range will be accessible in the shader.</param>
-		explicit VulkanPushConstantsRange(const ShaderStage& shaderStage, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding);
+		explicit VulkanPushConstantsRange(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding);
 		VulkanPushConstantsRange(const VulkanPushConstantsRange&) = delete;
 		VulkanPushConstantsRange(VulkanPushConstantsRange&&) = delete;
 		virtual ~VulkanPushConstantsRange() noexcept;
 
 	public:
 		/// <inheritdoc />
-		virtual const UInt32& space() const noexcept override;
+		UInt32 space() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& binding() const noexcept override;
+		UInt32 binding() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& offset() const noexcept override;
+		UInt32 offset() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& size() const noexcept override;
+		UInt32 size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ShaderStage& stage() const noexcept override;
+		ShaderStage stage() const noexcept override;
 	};
 
 	/// <summary>
@@ -611,7 +611,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <seealso cref="VulkanPushConstantsRange" />
 	/// <seealso cref="VulkanPushConstantsLayoutBuilder" />
 	/// <seealso cref="VulkanPushConstantsLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanPushConstantsLayout : public PushConstantsLayout<VulkanPushConstantsRange> {
+	class LITEFX_VULKAN_API VulkanPushConstantsLayout final : public PushConstantsLayout<VulkanPushConstantsRange> {
 		LITEFX_IMPLEMENTATION(VulkanPushConstantsLayoutImpl);
 		LITEFX_BUILDER(VulkanPushConstantsLayoutBuilder);
 		friend class VulkanPipelineLayout;
@@ -622,7 +622,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="ranges">The ranges contained by the layout.</param>
 		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
-		explicit VulkanPushConstantsLayout(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size);
+		explicit VulkanPushConstantsLayout(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges, UInt32 size);
 		VulkanPushConstantsLayout(const VulkanPushConstantsLayout&) = delete;
 		VulkanPushConstantsLayout(VulkanPushConstantsLayout&&) = delete;
 		virtual ~VulkanPushConstantsLayout() noexcept;
@@ -632,7 +632,7 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new push constants layout.
 		/// </summary>
 		/// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
-		explicit VulkanPushConstantsLayout(const UInt32& size);
+		explicit VulkanPushConstantsLayout(UInt32 size);
 
 	public:
 		/// <summary>
@@ -650,20 +650,20 @@ namespace LiteFX::Rendering::Backends {
 	
 	public:
 		/// <inheritdoc />
-		virtual const UInt32& size() const noexcept override;
+		UInt32 size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanPushConstantsRange& range(const ShaderStage& stage) const override;
+		const VulkanPushConstantsRange& range(ShaderStage stage) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const VulkanPushConstantsRange*> ranges() const noexcept override;
+		Enumerable<const VulkanPushConstantsRange*> ranges() const noexcept override;
 	};
 
 	/// <summary>
 	/// Implements a Vulkan <see cref="PipelineLayout" />.
 	/// </summary>
 	/// <seealso cref="VulkanPipelineLayoutBuilder" />
-	class LITEFX_VULKAN_API VulkanPipelineLayout : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
+	class LITEFX_VULKAN_API VulkanPipelineLayout final : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
 		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
 		LITEFX_BUILDER(VulkanPipelineLayoutBuilder);
 
@@ -696,20 +696,20 @@ namespace LiteFX::Rendering::Backends {
 		// PipelineLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual const VulkanDescriptorSetLayout& descriptorSet(const UInt32& space) const override;
+		const VulkanDescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const VulkanDescriptorSetLayout*> descriptorSets() const noexcept override;
+		Enumerable<const VulkanDescriptorSetLayout*> descriptorSets() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanPushConstantsLayout* pushConstants() const noexcept override;
+		const VulkanPushConstantsLayout* pushConstants() const noexcept override;
 	};
 
 	/// <summary>
 	/// Implements the Vulkan input assembler state.
 	/// </summary>
 	/// <seealso cref="VulkanInputAssemblerBuilder" />
-	class LITEFX_VULKAN_API VulkanInputAssembler : public InputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
+	class LITEFX_VULKAN_API VulkanInputAssembler final : public InputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
 		LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl);
 		LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
@@ -720,7 +720,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, const PrimitiveTopology& primitiveTopology = PrimitiveTopology::TriangleList);
+		explicit VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
 		VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
 		VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
 		virtual ~VulkanInputAssembler() noexcept;
@@ -733,23 +733,23 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const VulkanVertexBufferLayout*> vertexBufferLayouts() const noexcept override;
+		Enumerable<const VulkanVertexBufferLayout*> vertexBufferLayouts() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const override;
+		const VulkanVertexBufferLayout& vertexBufferLayout(UInt32 binding) const override;
 
 		/// <inheritdoc />
-		virtual const VulkanIndexBufferLayout& indexBufferLayout() const override;
+		const VulkanIndexBufferLayout& indexBufferLayout() const override;
 
 		/// <inheritdoc />
-		virtual const PrimitiveTopology& topology() const noexcept override;
+		PrimitiveTopology topology() const noexcept override;
 	};
 
 	/// <summary>
 	/// Implements a Vulkan <see cref="IRasterizer" />.
 	/// </summary>
 	/// <seealso cref="VulkanRasterizerBuilder" />
-	class LITEFX_VULKAN_API VulkanRasterizer : public Rasterizer {
+	class LITEFX_VULKAN_API VulkanRasterizer final : public Rasterizer {
 		LITEFX_BUILDER(VulkanRasterizerBuilder);
 
 	public:
@@ -761,7 +761,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="cullOrder">The cull order used by the pipeline.</param>
 		/// <param name="lineWidth">The line width used by the pipeline.</param>
 		/// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-		explicit VulkanRasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
+		explicit VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
 		VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
 		VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
 		virtual ~VulkanRasterizer() noexcept;
@@ -785,7 +785,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </remarks>
 		/// <returns>A reference to the line width.</returns>
 		/// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#features-wideLines" />
-		virtual void updateLineWidth(const Float& lineWidth) noexcept;
+		virtual void updateLineWidth(Float lineWidth) noexcept;
 	};
 
 	/// <summary>
@@ -817,7 +817,7 @@ namespace LiteFX::Rendering::Backends {
 	/// Records commands for a <see cref="VulkanCommandQueue" />
 	/// </summary>
 	/// <seealso cref="VulkanQueue" />
-	class LITEFX_VULKAN_API VulkanCommandBuffer : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
+	class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
 	public:
@@ -839,7 +839,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
 		/// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
 		/// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
-		explicit VulkanCommandBuffer(const VulkanQueue& queue, const bool& begin = false, const bool& primary = true);
+		explicit VulkanCommandBuffer(const VulkanQueue& queue, bool begin = false, bool primary = true);
 		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
 		VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
 		virtual ~VulkanCommandBuffer() noexcept;
@@ -855,97 +855,97 @@ namespace LiteFX::Rendering::Backends {
 		// CommandBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual void begin() const override;
+		void begin() const override;
 
 		/// <inheritdoc />
-		virtual void end() const override;
+		void end() const override;
 
 		/// <inheritdoc />
-		virtual const bool& isSecondary() const noexcept override;
+		bool isSecondary() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setViewports(Span<const IViewport*> viewports) const noexcept override;
+		void setViewports(Span<const IViewport*> viewports) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setViewports(const IViewport* viewport) const noexcept override;
+		void setViewports(const IViewport* viewport) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setScissors(Span<const IScissor*> scissors) const noexcept override;
+		void setScissors(Span<const IScissor*> scissors) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setScissors(const IScissor* scissor) const noexcept override;
+		void setScissors(const IScissor* scissor) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
+		void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setStencilRef(const UInt32& stencilRef) const noexcept override;
+		void setStencilRef(UInt32 stencilRef) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void generateMipMaps(IVulkanImage& image) noexcept override;
+		void generateMipMaps(IVulkanImage& image) noexcept override;
 
 		/// <inheritdoc />
-		virtual void barrier(const VulkanBarrier& barrier) const noexcept override;
+		void barrier(const VulkanBarrier& barrier) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void transfer(IVulkanBuffer& source, IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		void transfer(IVulkanBuffer& source, IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(IVulkanBuffer& source, IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+		void transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(IVulkanImage& source, IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+		void transfer(IVulkanImage& source, IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(IVulkanImage& source, IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+		void transfer(IVulkanImage& source, IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<IVulkanBuffer> source, IVulkanBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const override;
+		void transfer(SharedPtr<IVulkanBuffer> source, IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<IVulkanBuffer> source, IVulkanImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const override;
+		void transfer(SharedPtr<IVulkanBuffer> source, IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<IVulkanImage> source, IVulkanImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const override;
+		void transfer(SharedPtr<IVulkanImage> source, IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const override;
+		void transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void use(const VulkanPipelineState& pipeline) const noexcept override;
+		void use(const VulkanPipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
+		void bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const IVulkanVertexBuffer& buffer) const noexcept override;
+		void bind(const IVulkanVertexBuffer& buffer) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const IVulkanIndexBuffer& buffer) const noexcept override;
+		void bind(const IVulkanIndexBuffer& buffer) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void dispatch(const Vector3u& threadCount) const noexcept override;
+		void dispatch(const Vector3u& threadCount) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const noexcept override;
+		void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept override;
+		void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
+		void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+		void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
 
 		/// <inheritdoc />
-		virtual void execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
+		void execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual void execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
+		void execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
 
 	private:
-		virtual void releaseSharedState() const override;
+		void releaseSharedState() const override;
 	};
 
 	/// <summary>
@@ -953,7 +953,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanComputePipeline" />
 	/// <seealso cref="VulkanRenderPipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPipeline : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, VulkanRasterizer>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanRenderPipeline final : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, VulkanRasterizer>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
 		LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -968,7 +968,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="rasterizer">The rasterizer state of the pipeline.</param>
 		/// <param name="name">The optional name of the render pipeline.</param>
 		/// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
-		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, const bool& enableAlphaToCoverage = false, const String& name = "");
+		explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, bool enableAlphaToCoverage = false, const String& name = "");
 		VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 		VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 		virtual ~VulkanRenderPipeline() noexcept;
@@ -984,29 +984,29 @@ namespace LiteFX::Rendering::Backends {
 		// Pipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual SharedPtr<const VulkanShaderProgram> program() const noexcept override;
+		SharedPtr<const VulkanShaderProgram> program() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<const VulkanPipelineLayout> layout() const noexcept override;
+		SharedPtr<const VulkanPipelineLayout> layout() const noexcept override;
 
 		// RenderPipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual SharedPtr<VulkanInputAssembler> inputAssembler() const noexcept override;
+		SharedPtr<VulkanInputAssembler> inputAssembler() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<VulkanRasterizer> rasterizer() const noexcept override;
+		SharedPtr<VulkanRasterizer> rasterizer() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const bool& alphaToCoverage() const noexcept override;
+		bool alphaToCoverage() const noexcept override;
 
 		// VulkanPipelineState interface.
 	public:
 		/// <inheritdoc />
-		virtual void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
+		void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
+		void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
 	};
 
 	/// <summary>
@@ -1014,7 +1014,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanRenderPipeline" />
 	/// <seealso cref="VulkanComputePipelineBuilder" />
-	class LITEFX_VULKAN_API VulkanComputePipeline : public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
+	class LITEFX_VULKAN_API VulkanComputePipeline final : public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
 		LITEFX_IMPLEMENTATION(VulkanComputePipelineImpl);
 		LITEFX_BUILDER(VulkanComputePipelineBuilder);
 
@@ -1041,25 +1041,25 @@ namespace LiteFX::Rendering::Backends {
 		// Pipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual SharedPtr<const VulkanShaderProgram> program() const noexcept override;
+		SharedPtr<const VulkanShaderProgram> program() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<const VulkanPipelineLayout> layout() const noexcept override;
+		SharedPtr<const VulkanPipelineLayout> layout() const noexcept override;
 
 		// VulkanPipelineState interface.
 	public:
 		/// <inheritdoc />
-		virtual void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
+		void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
+		void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
 	};
 
 	/// <summary>
 	/// Implements a Vulkan frame buffer.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPass" />
-	class LITEFX_VULKAN_API VulkanFrameBuffer : public FrameBuffer<VulkanCommandBuffer>, public Resource<VkFramebuffer> {
+	class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<VulkanCommandBuffer>, public Resource<VkFramebuffer> {
 		LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
 
 	public:
@@ -1070,7 +1070,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="bufferIndex">The index of the frame buffer within the parent render pass.</param>
 		/// <param name="renderArea">The initial size of the render area.</param>
 		/// <param name="commandBuffers">The number of command buffers, the frame buffer stores.</param>
-		VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers = 1);
+		VulkanFrameBuffer(const VulkanRenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers = 1);
 		VulkanFrameBuffer(const VulkanFrameBuffer&) noexcept = delete;
 		VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
 		virtual ~VulkanFrameBuffer() noexcept;
@@ -1095,39 +1095,39 @@ namespace LiteFX::Rendering::Backends {
 		// FrameBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual const UInt32& bufferIndex() const noexcept override;
+		UInt32 bufferIndex() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Size2d& size() const noexcept override;
+		const Size2d& size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t getWidth() const noexcept override;
+		size_t getWidth() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t getHeight() const noexcept override;
+		size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<const VulkanCommandBuffer> commandBuffer(const UInt32& index) const override;
+		SharedPtr<const VulkanCommandBuffer> commandBuffer(UInt32 index) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
+		Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const IVulkanImage*> images() const noexcept override;
+		Enumerable<const IVulkanImage*> images() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const IVulkanImage& image(const UInt32& location) const override;
+		const IVulkanImage& image(UInt32 location) const override;
 
 	public:
 		/// <inheritdoc />
-		virtual void resize(const Size2d& renderArea) override;
+		void resize(const Size2d& renderArea) override;
 	};
 
 	/// <summary>
 	/// Implements a Vulkan render pass.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPassBuilder" />
-	class LITEFX_VULKAN_API VulkanRenderPass : public RenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
+	class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
 		LITEFX_BUILDER(VulkanRenderPassBuilder);
 
@@ -1144,7 +1144,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
 		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
 		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+		explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
 
 		/// <summary>
 		/// Creates and initializes a new Vulkan render pass instance.
@@ -1155,7 +1155,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderTargets">The render targets that are output by the render pass.</param>
 		/// <param name="samples">The number of samples for the render targets in this render pass.</param>
 		/// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-		explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+		explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
 		
 		VulkanRenderPass(const VulkanRenderPass&) = delete;
 		VulkanRenderPass(VulkanRenderPass&&) = delete;
@@ -1176,7 +1176,7 @@ namespace LiteFX::Rendering::Backends {
 		// IInputAttachmentMappingSource interface.
 	public:
 		/// <inheritdoc />
-		virtual const VulkanFrameBuffer& frameBuffer(const UInt32& buffer) const override;
+		const VulkanFrameBuffer& frameBuffer(UInt32 buffer) const override;
 
 		// RenderPass interface.
 	public:
@@ -1187,44 +1187,44 @@ namespace LiteFX::Rendering::Backends {
 		virtual const VulkanDevice& device() const noexcept;
 
 		/// <inheritdoc />
-		virtual const VulkanFrameBuffer& activeFrameBuffer() const override;
+		const VulkanFrameBuffer& activeFrameBuffer() const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const VulkanFrameBuffer*> frameBuffers() const noexcept override;
+		Enumerable<const VulkanFrameBuffer*> frameBuffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const VulkanRenderPipeline*> pipelines() const noexcept override;
+		Enumerable<const VulkanRenderPipeline*> pipelines() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const RenderTarget& renderTarget(const UInt32& location) const override;
+		const RenderTarget& renderTarget(UInt32 location) const override;
 
 		/// <inheritdoc />
-		virtual Span<const RenderTarget> renderTargets() const noexcept override;
+		Span<const RenderTarget> renderTargets() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool hasPresentTarget() const noexcept override;
+		bool hasPresentTarget() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Span<const VulkanInputAttachmentMapping> inputAttachments() const noexcept override;
+		Span<const VulkanInputAttachmentMapping> inputAttachments() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept override;
+		MultiSamplingLevel multiSamplingLevel() const noexcept override;
 
 	public:
 		/// <inheritdoc />
-		virtual void begin(const UInt32& buffer) override;
+		void begin(UInt32 buffer) override;
 		
 		/// <inheritdoc />
-		virtual void end() const override;
+		void end() const override;
 
 		/// <inheritdoc />
-		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
+		void resizeFrameBuffers(const Size2d& renderArea) override;
 
 		/// <inheritdoc />
-		virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) override;
+		void changeMultiSamplingLevel(MultiSamplingLevel samples) override;
 
 		/// <inheritdoc />
-		virtual void updateAttachments(const VulkanDescriptorSet& descriptorSet) const override;
+		void updateAttachments(const VulkanDescriptorSet& descriptorSet) const override;
 	};
 
 	/// <summary>
@@ -1232,7 +1232,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="VulkanRenderPass" />
 	/// <seealso cref="VulkanRenderPassBuilder" />
-	class LITEFX_VULKAN_API VulkanInputAttachmentMapping : public IInputAttachmentMapping<VulkanRenderPass> {
+	class LITEFX_VULKAN_API VulkanInputAttachmentMapping final : public IInputAttachmentMapping<VulkanRenderPass> {
 		LITEFX_IMPLEMENTATION(VulkanInputAttachmentMappingImpl);
 
 	public:
@@ -1247,7 +1247,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderPass">The render pass to fetch the input attachment from.</param>
 		/// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
 		/// <param name="location">The location to bind the input attachment to.</param>
-		VulkanInputAttachmentMapping(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location);
+		VulkanInputAttachmentMapping(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location);
 
 		/// <summary>
 		/// Copies another input attachment mapping.
@@ -1280,13 +1280,13 @@ namespace LiteFX::Rendering::Backends {
 		const RenderTarget& renderTarget() const noexcept override;
 
 		/// <inheritdoc />
-		const UInt32& location() const noexcept override;
+		UInt32 location() const noexcept override;
 	};
 
 	/// <summary>
 	/// Implements a Vulkan swap chain.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanSwapChain : public SwapChain<IVulkanImage, VulkanFrameBuffer> {
+	class LITEFX_VULKAN_API VulkanSwapChain final : public SwapChain<IVulkanImage, VulkanFrameBuffer> {
 		LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
 	public:
@@ -1301,7 +1301,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="format">The initial surface format.</param>
 		/// <param name="renderArea">The initial size of the render area.</param>
 		/// <param name="buffers">The initial number of buffers.</param>
-		explicit VulkanSwapChain(const VulkanDevice& device, const Format& surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, const UInt32& buffers = 3);
+		explicit VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3);
 		VulkanSwapChain(const VulkanSwapChain&) = delete;
 		VulkanSwapChain(VulkanSwapChain&&) = delete;
 		virtual ~VulkanSwapChain() noexcept;
@@ -1323,54 +1323,54 @@ namespace LiteFX::Rendering::Backends {
 		// SwapChain interface.
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
+		Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<TimingEvent> timingEvent(const UInt32& queryId) const override;
+		SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+		UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
 
 		/// <inheritdoc />
-		virtual UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
+		UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
 
 		/// <inheritdoc />
-		virtual const Format& surfaceFormat() const noexcept override;
+		Format surfaceFormat() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& buffers() const noexcept override;
+		UInt32 buffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Size2d& renderArea() const noexcept override;
+		const Size2d& renderArea() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const IVulkanImage* image(const UInt32& backBuffer) const override;
+		const IVulkanImage* image(UInt32 backBuffer) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const IVulkanImage*> images() const noexcept override;
+		Enumerable<const IVulkanImage*> images() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void present(const VulkanFrameBuffer& frameBuffer) const override;
+		void present(const VulkanFrameBuffer& frameBuffer) const override;
 
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<Format> getSurfaceFormats() const noexcept override;
+		Enumerable<Format> getSurfaceFormats() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
+		void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
 
 		/// <inheritdoc />
-		virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) override;
+		void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual UInt32 swapBackBuffer() const override;
+		[[nodiscard]] UInt32 swapBackBuffer() const override;
 	};
 
 	/// <summary>
 	/// Implements a Vulkan command queue.
 	/// </summary>
 	/// <seealso cref="VulkanCommandBuffer" />
-	class LITEFX_VULKAN_API VulkanQueue : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
+	class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
 		LITEFX_IMPLEMENTATION(VulkanQueueImpl);
 
 	public:
@@ -1386,7 +1386,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="priority">The priority, of which commands are issued on the device.</param>
 		/// <param name="familyId">The ID of the queue family.</param>
 		/// <param name="queueId">The ID of the queue.</param>
-		explicit VulkanQueue(const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId);
+		explicit VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId);
 		VulkanQueue(const VulkanQueue&) = delete;
 		VulkanQueue(VulkanQueue&&) = delete;
 		virtual ~VulkanQueue() noexcept;
@@ -1415,13 +1415,13 @@ namespace LiteFX::Rendering::Backends {
 		/// Returns the queue family ID.
 		/// </summary>
 		/// <returns>The queue family ID.</returns>
-		virtual const UInt32& familyId() const noexcept;
+		virtual UInt32 familyId() const noexcept;
 
 		/// <summary>
 		/// Returns the queue ID.
 		/// </summary>
 		/// <returns>The queue ID.</returns>
-		virtual const UInt32& queueId() const noexcept;
+		virtual UInt32 queueId() const noexcept;
 
 		/// <summary>
 		/// Returns the internal timeline semaphore used to synchronize the queue execution.
@@ -1466,47 +1466,47 @@ namespace LiteFX::Rendering::Backends {
 		// CommandQueue interface.
 	public:
 		/// <inheritdoc />
-		virtual bool isBound() const noexcept override;
+		bool isBound() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const QueuePriority& priority() const noexcept override;
+		QueuePriority priority() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const QueueType& type() const noexcept override;
+		QueueType type() const noexcept override;
 
 #ifndef NDEBUG
 	public:
 		/// <inheritdoc />
-		virtual void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+		void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void EndDebugRegion() const noexcept override;
+		void EndDebugRegion() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+		void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
 #endif
 
 	public:
 		/// <inheritdoc />
-		virtual void bind() override;
+		void bind() override;
 
 		/// <inheritdoc />
-		virtual void release() override;
+		void release() override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<VulkanCommandBuffer> createCommandBuffer(const bool& beginRecording = false, const bool& secondary = false) const override;
+		SharedPtr<VulkanCommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
+		UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
+		UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
 
 		/// <inheritdoc />
-		virtual void waitFor(const UInt64& fence) const noexcept override;
+		void waitFor(UInt64 fence) const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt64 currentFence() const noexcept override;
+		UInt64 currentFence() const noexcept override;
 	};
 
 	/// <summary>
@@ -1515,7 +1515,7 @@ namespace LiteFX::Rendering::Backends {
 	/// <remarks>
 	/// Internally this factory implementation is based on <a href="https://gpuopen.com/vulkan-memory-allocator/" target="_blank">Vulkan Memory Allocator</a>.
 	/// </remarks>
-	class LITEFX_VULKAN_API VulkanGraphicsFactory : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler> {
+	class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler> {
 		LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
 
 	public:
@@ -1541,52 +1541,52 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const override;
+		UniquePtr<IVulkanBuffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const override;
+		UniquePtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
+		UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const override;
+		UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
+		UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override;
+		UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		UniquePtr<IVulkanImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanImage> createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const override;
+		UniquePtr<IVulkanImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
+		UniquePtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanImage> createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
+		UniquePtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<IVulkanImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const override;
+		Enumerable<UniquePtr<IVulkanImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanSampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		UniquePtr<IVulkanSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IVulkanSampler> createSampler(const String& name, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		UniquePtr<IVulkanSampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<IVulkanSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const override;
+		Enumerable<UniquePtr<IVulkanSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 	};
 
 	/// <summary>
 	/// Implements a Vulkan graphics device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanDevice : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanBarrier>, public Resource<VkDevice> {
+	class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanBarrier>, public Resource<VkDevice> {
 		LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
 	public:
@@ -1609,7 +1609,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="frameBufferSize">The initial size of the frame buffers.</param>
 		/// <param name="frameBuffers">The initial number of frame buffers.</param>
 		/// <param name="extensions">The required extensions the device gets initialized with.</param>
-		explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions = { });
+		explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, Span<String> extensions = { });
 
 		VulkanDevice(const VulkanDevice&) = delete;
 		VulkanDevice(VulkanDevice&&) = delete;
@@ -1638,85 +1638,85 @@ namespace LiteFX::Rendering::Backends {
 		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
-		virtual DeviceState& state() const noexcept override;
+		DeviceState& state() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanSwapChain& swapChain() const noexcept override;
+		const VulkanSwapChain& swapChain() const noexcept override;
 
 		/// <inheritdoc />
-		virtual VulkanSwapChain& swapChain() noexcept override;
+		VulkanSwapChain& swapChain() noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanSurface& surface() const noexcept override;
+		const VulkanSurface& surface() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanGraphicsAdapter& adapter() const noexcept override;
+		const VulkanGraphicsAdapter& adapter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanGraphicsFactory& factory() const noexcept override;
+		const VulkanGraphicsFactory& factory() const noexcept override;
 		
 		/// <inheritdoc />
-		virtual const VulkanQueue& graphicsQueue() const noexcept override;
+		const VulkanQueue& graphicsQueue() const noexcept override;
 		
 		/// <inheritdoc />
-		virtual const VulkanQueue& transferQueue() const noexcept override;
+		const VulkanQueue& transferQueue() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanQueue& bufferQueue() const noexcept override;
+		const VulkanQueue& bufferQueue() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanQueue& computeQueue() const noexcept override;
+		const VulkanQueue& computeQueue() const noexcept override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual UniquePtr<VulkanBarrier> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept override;
+		[[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
 
 		/// <inheritdoc />
-		virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept override;
+		MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
 
 		/// <inheritdoc />
-		virtual double ticksPerMillisecond() const noexcept override;
+		double ticksPerMillisecond() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void wait() const override;
+		void wait() const override;
 
 #if defined(BUILD_DEFINE_BUILDERS)
 	public:
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanRenderPassBuilder buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const override;
+		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanRenderPassBuilder buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const override;
+		[[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
 
 		/// <inheritdoc />
-		//[[nodiscard]] virtual VulkanRenderPipelineBuilder buildRenderPipeline(const String& name) const override;
+		//[[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const String& name) const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanRenderPipelineBuilder buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const override;
+		[[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanComputePipelineBuilder buildComputePipeline(const String& name) const override;
+		[[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline(const String& name) const override;
 		
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanPipelineLayoutBuilder buildPipelineLayout() const override;
+		[[nodiscard]] VulkanPipelineLayoutBuilder buildPipelineLayout() const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanInputAssemblerBuilder buildInputAssembler() const override;
+		[[nodiscard]] VulkanInputAssemblerBuilder buildInputAssembler() const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanRasterizerBuilder buildRasterizer() const override;
+		[[nodiscard]] VulkanRasterizerBuilder buildRasterizer() const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanShaderProgramBuilder buildShaderProgram() const override;
+		[[nodiscard]] VulkanShaderProgramBuilder buildShaderProgram() const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual VulkanBarrierBuilder buildBarrier() const override;
+		[[nodiscard]] VulkanBarrierBuilder buildBarrier() const override;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 	};
 
 	/// <summary>
 	/// Defines a rendering backend that creates a Vulkan device.
 	/// </summary>
-	class LITEFX_VULKAN_API VulkanBackend : public RenderBackend<VulkanDevice>, public Resource<VkInstance> {
+	class LITEFX_VULKAN_API VulkanBackend final : public RenderBackend<VulkanDevice>, public Resource<VkInstance> {
 		LITEFX_IMPLEMENTATION(VulkanBackendImpl);
 
 	public:
@@ -1793,36 +1793,37 @@ namespace LiteFX::Rendering::Backends {
 		// IBackend interface.
 	public:
 		/// <inheritdoc />
-		virtual BackendType type() const noexcept override;
+		BackendType type() const noexcept override;
 
 		/// <inheritdoc />
-		virtual String name() const noexcept override;
+		String name() const noexcept override;
 
 	protected:
 		/// <inheritdoc />
-		virtual void activate() override;
+		void activate() override;
 
 		/// <inheritdoc />
-		virtual void deactivate() override;
+		void deactivate() override;
 
 		// RenderBackend interface.
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const VulkanGraphicsAdapter*> listAdapters() const override;
+		Enumerable<const VulkanGraphicsAdapter*> listAdapters() const override;
 
 		/// <inheritdoc />
-		virtual const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
+		const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
 
 		/// <inheritdoc />
-		virtual void registerDevice(String name, UniquePtr<VulkanDevice>&& device) override;
+		void registerDevice(String name, UniquePtr<VulkanDevice>&& device) override;
 
 		/// <inheritdoc />
-		virtual void releaseDevice(const String& name) override;
+		void releaseDevice(const String& name) override;
 
 		/// <inheritdoc />
-		virtual VulkanDevice* device(const String& name) noexcept override;
+		VulkanDevice* device(const String& name) noexcept override;
 
 		/// <inheritdoc />
-		virtual const VulkanDevice* device(const String& name) const noexcept override;
+		const VulkanDevice* device(const String& name) const noexcept override;
 	};
+
 }

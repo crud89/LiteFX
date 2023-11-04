@@ -45,7 +45,7 @@ private:
     Dictionary<const VkDescriptorSet*, const VkDescriptorPool*> m_descriptorSetSources;
 
 public:
-    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
+    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
         base(parent), m_device(device), m_space(space), m_stages(stages), m_poolSize(0)
     {
         m_descriptorLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
@@ -188,7 +188,7 @@ public:
         m_descriptorPools.push_back(descriptorPool);
     }
 
-    VkDescriptorSet tryAllocate(const UInt32& descriptors)
+    VkDescriptorSet tryAllocate(UInt32 descriptors)
     {
         VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo;
         VkDescriptorSetAllocateInfo descriptorSetInfo = {
@@ -233,7 +233,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages, UInt32 poolSize, UInt32 maxUnboundedArraySize) :
     m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize(poolSize, maxUnboundedArraySize);
@@ -261,7 +261,7 @@ Enumerable<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::descriptors
     return m_impl->m_descriptorLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout.get(); });
 }
 
-const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(const UInt32& binding) const
+const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(UInt32 binding) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_descriptorLayouts.end())
         return *match->get();
@@ -269,12 +269,12 @@ const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(const UInt32
     throw ArgumentOutOfRangeException("No layout has been provided for the binding {0}.", binding);
 }
 
-const UInt32& VulkanDescriptorSetLayout::space() const noexcept
+UInt32 VulkanDescriptorSetLayout::space() const noexcept
 {
     return m_impl->m_space;
 }
 
-const ShaderStage& VulkanDescriptorSetLayout::shaderStages() const noexcept
+ShaderStage VulkanDescriptorSetLayout::shaderStages() const noexcept
 {
     return m_impl->m_stages;
 }
@@ -319,7 +319,7 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const Enumera
     return this->allocate(0, bindings);
 }
 
-UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32& descriptors, const Enumerable<DescriptorBinding>& bindings) const
+UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings) const
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -347,17 +347,17 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32&
     return descriptorSet;
 }
 
-Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
+Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
 {
     return this->allocateMultiple(descriptorSets, 0, bindings);
 }
 
-Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& descriptorSets, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const
+Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
 {
     return this->allocateMultiple(descriptorSets, 0, bindingFactory);
 }
 
-Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
+Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(UInt32 count, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
 {
     return [this, descriptors, &bindings, &count]() -> std::generator<UniquePtr<VulkanDescriptorSet>> {
         for (auto& binding : bindings)
@@ -368,7 +368,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
     }() | std::views::as_rvalue;
 }
 
-Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const
+Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(UInt32 count, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
 {
     return [this, descriptors, &bindingFactory, &count]() -> std::generator<UniquePtr<VulkanDescriptorSet>> {
         for (int i = 0; i < count; ++i)
@@ -411,7 +411,7 @@ void VulkanDescriptorSetLayout::free(const VulkanDescriptorSet& descriptorSet) c
     }
 }
 
-const UInt32& VulkanDescriptorSetLayout::poolSize() const noexcept
+UInt32 VulkanDescriptorSetLayout::poolSize() const noexcept
 {
     return m_impl->m_poolSize;
 }

@@ -21,7 +21,7 @@ private:
     UInt64 m_lastFence{ 0 };
 
 public:
-    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
+    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanRenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers) :
         base(parent), m_bufferIndex(bufferIndex), m_size(renderArea), m_renderPass(renderPass)
 	{
         const auto& device = m_renderPass.device();
@@ -121,7 +121,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
+VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers) :
 	m_impl(makePimpl<VulkanFrameBufferImpl>(this, renderPass, bufferIndex, renderArea, commandBuffers)), Resource<VkFramebuffer>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
@@ -142,7 +142,7 @@ UInt64& VulkanFrameBuffer::lastFence() const noexcept
     return m_impl->m_lastFence;
 }
 
-const UInt32& VulkanFrameBuffer::bufferIndex() const noexcept
+UInt32 VulkanFrameBuffer::bufferIndex() const noexcept
 {
     return m_impl->m_bufferIndex;
 }
@@ -162,7 +162,7 @@ size_t VulkanFrameBuffer::getHeight() const noexcept
 	return m_impl->m_size.height();
 }
 
-SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(const UInt32& index) const
+SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(UInt32 index) const
 {
     if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
         throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
@@ -180,7 +180,7 @@ Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
     return m_impl->m_renderTargetViews;
 }
 
-const IVulkanImage& VulkanFrameBuffer::image(const UInt32& location) const
+const IVulkanImage& VulkanFrameBuffer::image(UInt32 location) const
 {
     if (location >= m_impl->m_renderTargetViews.size())
         throw ArgumentOutOfRangeException("No render target is mapped to location {0}.", location);

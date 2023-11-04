@@ -23,7 +23,7 @@ private:
 	const DirectX12RenderPass& m_renderPass;
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
+	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
 		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
 	}
@@ -263,7 +263,7 @@ SharedPtr<DirectX12Rasterizer> DirectX12RenderPipeline::rasterizer() const noexc
 	return m_impl->m_rasterizer;
 }
 
-const bool& DirectX12RenderPipeline::alphaToCoverage() const noexcept
+bool DirectX12RenderPipeline::alphaToCoverage() const noexcept
 {
 	return m_impl->m_alphaToCoverage;
 }

@@ -26,7 +26,7 @@ private:
     const VulkanDevice& m_device;
 
 public:
-    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, Span<RenderTarget> renderTargets, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
         base(parent), m_samples(samples), m_device(device)
     {
         this->mapRenderTargets(renderTargets);
@@ -244,7 +244,7 @@ public:
         return renderPass;
     }
 
-    void initializeFrameBuffers(const UInt32& commandBuffers)
+    void initializeFrameBuffers(UInt32 commandBuffers)
     {
         // Initialize the frame buffers.
         this->m_frameBuffers.resize(this->m_device.swapChain().buffers());
@@ -292,14 +292,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
     m_impl(makePimpl<VulkanRenderPassImpl>(this, device, renderTargets, samples, inputAttachments)), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
     m_impl->initializeFrameBuffers(commandBuffers);
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, const UInt32& commandBuffers, const MultiSamplingLevel& samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
     VulkanRenderPass(device, renderTargets, commandBuffers, samples, inputAttachments)
 {
     if (!name.empty())
@@ -318,7 +318,7 @@ VulkanRenderPass::~VulkanRenderPass() noexcept
     ::vkDestroyRenderPass(m_impl->m_device.handle(), this->handle(), nullptr);
 }
 
-const VulkanFrameBuffer& VulkanRenderPass::frameBuffer(const UInt32& buffer) const
+const VulkanFrameBuffer& VulkanRenderPass::frameBuffer(UInt32 buffer) const
 {
     if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
         throw ArgumentOutOfRangeException("The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
@@ -349,7 +349,7 @@ Enumerable<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noex
     return m_impl->m_pipelines | std::views::transform([](const UniquePtr<VulkanRenderPipeline>& pipeline) { return pipeline.get(); });
 }
 
-const RenderTarget& VulkanRenderPass::renderTarget(const UInt32& location) const
+const RenderTarget& VulkanRenderPass::renderTarget(UInt32 location) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end())
         return *match;
@@ -372,12 +372,12 @@ Span<const VulkanInputAttachmentMapping> VulkanRenderPass::inputAttachments() co
     return m_impl->m_inputAttachments;
 }
 
-const MultiSamplingLevel& VulkanRenderPass::multiSamplingLevel() const noexcept
+MultiSamplingLevel VulkanRenderPass::multiSamplingLevel() const noexcept
 {
     return m_impl->m_samples;
 }
 
-void VulkanRenderPass::begin(const UInt32& buffer)
+void VulkanRenderPass::begin(UInt32 buffer)
 {
     // Only begin, if we are currently not running.
     if (m_impl->m_activeFrameBuffer != nullptr)
@@ -464,7 +464,7 @@ void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
-void VulkanRenderPass::changeMultiSamplingLevel(const MultiSamplingLevel& samples)
+void VulkanRenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
 {
     // Check if we're currently running.
     if (m_impl->m_activeFrameBuffer != nullptr)
